@@ -315,6 +315,7 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
             animation: float 6s ease-in-out infinite;
             z-index: 15;
+            margin-top: -70px; /* FIXED: Increased negative margin to move image higher */
         }
 
         .hero-image img {
@@ -961,21 +962,21 @@
         footer {
             background-color: var(--primary);
             color: var(--text-light);
-            padding: 4rem 0 2rem;
+            padding: 1.5rem 0 0.5rem; /* FIXED: Reduced footer padding significantly */
         }
 
         .footer-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 3rem;
-            margin-bottom: 3rem;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
         }
 
         .footer-col h3 {
             font-size: 1.4rem;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.25rem;
             position: relative;
-            padding-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
             color: var(--text-light);
         }
 
@@ -994,7 +995,7 @@
         }
 
         .footer-links li {
-            margin-bottom: 0.85rem;
+            margin-bottom: 0.75rem;
         }
 
         .footer-links a {
@@ -1022,7 +1023,7 @@
         }
 
         .contact-info li {
-            margin-bottom: 1.25rem;
+            margin-bottom: 1rem;
             display: flex;
             align-items: flex-start;
         }
@@ -1041,7 +1042,7 @@
             gap: 0.75rem;
             font-size: 1.8rem;
             font-weight: 700;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.25rem;
             color: var(--text-light);
         }
 
@@ -1057,8 +1058,8 @@
         }
 
         .copyright {
-            margin-top: 5rem;
-            padding-top: 2rem;
+            margin-top: 1.5rem;
+            padding-top: 1rem;
             border-top: 1px solid rgba(249, 250, 251, 0.1);
             font-size: 1.1rem;
             color: rgba(249, 250, 251, 0.6);
@@ -1068,42 +1069,42 @@
 
         .social-links {
             display: flex;
-            gap: 15px;
-            margin-top: 25px;
+            gap: 12px;
+            margin-top: 15px;
         }
 
         .social-links a {
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 45px;
-            height: 45px;
+            width: 40px;
+            height: 40px;
             background: rgba(255, 255, 255, 0.1);
             border-radius: 50%;
             color: var(--text-light);
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             transition: var(--transition);
         }
 
         .social-links a:hover {
             background: var(--secondary);
             color: var(--text-light);
-            transform: translateY(-5px);
+            transform: translateY(-3px);
         }
 
         .newsletter-form {
             display: flex;
-            gap: 0.75rem;
-            margin-top: 1.25rem;
+            gap: 0.5rem;
+            margin-top: 1rem;
         }
 
         .newsletter-form input {
             flex: 1;
-            padding: 0.85rem 1.25rem;
+            padding: 0.75rem 1rem;
             border: none;
             border-radius: var(--radius);
             font-family: inherit;
-            font-size: 1rem;
+            font-size: 0.95rem;
             background: rgba(255, 255, 255, 0.1);
             color: var(--text-light);
         }
@@ -1117,10 +1118,11 @@
             color: var(--text-light);
             border: none;
             border-radius: var(--radius);
-            padding: 0 1.5rem;
+            padding: 0 1rem;
             font-weight: 600;
             cursor: pointer;
             transition: var(--transition);
+            font-size: 0.95rem;
         }
 
         .newsletter-form button:hover {
@@ -1655,7 +1657,7 @@
                         </div>
                         <span>HostelHub</span>
                     </a>
-                    <p class="nepali" style="color: rgba(249, 250, 251, 0.8); margin-top: 20px; line-height: 1.7;">
+                    <p class="nepali" style="color: rgba(249, 250, 251, 0.8); margin-top: 15px; line-height: 1.7;">
                         नेपालको नम्बर १ होस्टल प्रबन्धन प्रणाली। हामी होस्टल व्यवस्थापनलाई सहज, दक्ष र विश्वसनीय बनाउँछौं।
                     </p>
                     <div class="social-links">
@@ -1699,7 +1701,7 @@
                 </div>
                 <div class="footer-col">
                     <h3 class="nepali">समाचारपत्र</h3>
-                    <p class="nepali" style="color: rgba(249, 250, 251, 0.8); margin-bottom: 20px; line-height: 1.7;">
+                    <p class="nepali" style="color: rgba(249, 250, 251, 0.8); margin-bottom: 15px; line-height: 1.7;">
                         हाम्रो नवीनतम अपडेटहरू प्राप्त गर्न तपाईंको इमेल दर्ता गर्नुहोस्
                     </p>
                     <form class="newsletter-form">
@@ -1918,11 +1920,41 @@
             tomorrow.setDate(now.getDate() + 1);
 
             const formatDate = (date) => {
+                // Format date as dd/mm/yyyy for Nepal
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const year = date.getFullYear();
+                return `${day}/${month}/${year}`;
+            };
+
+            // Format date for HTML date input (ISO format)
+            const formatISODate = (date) => {
                 return date.toISOString().split('T')[0];
             };
 
-            if (checkinDate) checkinDate.value = formatDate(now);
-            if (checkoutDate) checkoutDate.value = formatDate(tomorrow);
+            // Set the date inputs with ISO format
+            if (checkinDate) checkinDate.value = formatISODate(now);
+            if (checkoutDate) checkoutDate.value = formatISODate(tomorrow);
+
+            // Add date validation for Nepali date format
+            document.querySelectorAll('.form-control[type="date"]').forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.type = 'date';
+                });
+
+                input.addEventListener('blur', function() {
+                    if (this.value === '') {
+                        this.type = 'text';
+                        this.placeholder = 'दिनांक छान्नुहोस्';
+                    }
+                });
+
+                // Initialize placeholder
+                if (input.value === '') {
+                    input.type = 'text';
+                    input.placeholder = 'दिनांक छान्नुहोस्';
+                }
+            });
         });
     </script>
 </body>
