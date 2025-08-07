@@ -315,7 +315,7 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
             animation: float 6s ease-in-out infinite;
             z-index: 15;
-            margin-top: -70px; /* FIXED: Increased negative margin to move image higher */
+            margin-top: -70px; /* FIXED: Image moved higher */
         }
 
         .hero-image img {
@@ -962,7 +962,7 @@
         footer {
             background-color: var(--primary);
             color: var(--text-light);
-            padding: 1.5rem 0 0.5rem; /* FIXED: Reduced footer padding significantly */
+            padding: 1.5rem 0 0.5rem; /* FIXED: Reduced footer padding */
         }
 
         .footer-grid {
