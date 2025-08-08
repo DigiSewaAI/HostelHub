@@ -2,9 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -13,11 +12,32 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Run custom seeders
+        $this->call([
+            CourseSeeder::class,
+            HostelHubSeeder::class,
+            ReviewSeeder::class,
+        ]);
 
-        User::factory()->create([
+        // Create Admin User
+        \App\Models\User::create([
+            'name' => 'Admin User',
+            'email' => 'admin@hostelhub.com',
+            'password' => Hash::make('password123'),
+            'role' => 'admin',
+            'email_verified_at' => now(),
+            'phone' => '9800000000',
+            'address' => 'काठमाडौं, नेपाल',
+        ]);
+
+        // Create Test User
+        \App\Models\User::create([
             'name' => 'Test User',
             'email' => 'test@example.com',
+            'password' => Hash::make('password123'),
+            'email_verified_at' => now(),
+            'phone' => '9812345678',
+            'address' => 'पोखरा, नेपाल',
         ]);
     }
 }

@@ -1,135 +1,97 @@
-<?php
-
+// app/Http/Controllers/Admin/StudentController.php
 namespace App\Http\Controllers\Admin;
 
-use App\Exports\StudentsExport;
-use App\Http\Requests\Admin\StoreStudentRequest;
-use App\Http\Requests\Admin\UpdateStudentRequest;
-use App\Models\Room;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreStudentRequest;
+use App\Http\Requests\UpdateStudentRequest;
 use App\Models\Student;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\View\View;
-use Maatwebsite\Excel\Facades\Excel; // Added Excel Facade import
+use App\Models\Hostel;
+use App\Models\Room;
+use Illuminate\Support\Facades\Storage;
 
 class StudentController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index(): View
+    public function index()
     {
-        $students = Student::with('room')
-            ->latest()
-            ->paginate(10);
-
+        $students = Student::with(['hostel', 'room'])->latest()->paginate(10);
         return view('admin.students.index', compact('students'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create(): View
+    public function create()
     {
-        $rooms = Room::where('status', 'available')
-            ->orWhere('status', 'occupied')
-            ->get();
-
-        return view('admin.students.create', compact('rooms'));
+        $hostels = Hostel::all();
+        $rooms = Room::where('status', 'available')->get();
+        return view('admin.students.create', compact('hostels', 'rooms'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreStudentRequest $request): RedirectResponse
+    public function store(StoreStudentRequest $request)
     {
-        $room = Room::findOrFail($request->room_id);
-        if ($room->students()->count() >= $room->capacity) {
-            return back()->withErrors(['room_id' => 'यो कोठामा ठाउँ छैन!'])->withInput();
+        $data = $request->validated();
+
+        if ($request->hasFile('image')) {
+            $data['image'] = $request->file('image')->store('students', 'public');
         }
 
-        Student::create($request->validated());
+        Student::create($data);
 
-        if ($room->students()->count() + 1 == $room->capacity) {
-            $room->update(['status' => 'occupied']);
-        }
+        // Update room status
+        Room::find($data['room_id'])->update(['status' => 'occupied']);
 
         return redirect()->route('admin.students.index')
-            ->with('success', 'विद्यार्थी सफलतापूर्वक थपियो!');
+            ->with('success', 'विद्यार्थी सफलतापूर्वक दर्ता गरियो');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Student $student): View
+    public function show(Student $student)
     {
         return view('admin.students.show', compact('student'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Student $student): View
+    public function edit(Student $student)
     {
-        $rooms = Room::where('status', '!=', 'maintenance')
-            ->get();
+        $hostels = Hostel::all();
+        $rooms = Room::where('status', 'available')
+                    ->orWhere('id', $student->room_id)
+                    ->get();
 
-        return view('admin.students.edit', compact('student', 'rooms'));
+        return view('admin.students.edit', compact('student', 'hostels', 'rooms'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateStudentRequest $request, Student $student): RedirectResponse
+    public function update(UpdateStudentRequest $request, Student $student)
     {
-        if ($request->room_id && $request->room_id != $student->room_id) {
-            $newRoom = Room::findOrFail($request->room_id);
+        $data = $request->validated();
 
-            if ($newRoom->students()->count() >= $newRoom->capacity) {
-                return back()->withErrors(['room_id' => 'यो कोठामा ठाउँ छैन!'])->withInput();
+        if ($request->hasFile('image')) {
+            // Delete old image
+            if ($student->image) {
+                Storage::disk('public')->delete($student->image);
             }
-
-            $oldRoom = $student->room;
-            $student->update($request->validated());
-
-            if ($oldRoom->students()->count() < $oldRoom->capacity) {
-                $oldRoom->update(['status' => 'available']);
-            }
-
-            if ($newRoom->students()->count() + 1 == $newRoom->capacity) {
-                $newRoom->update(['status' => 'occupied']);
-            }
-        } else {
-            $student->update($request->validated());
+            $data['image'] = $request->file('image')->store('students', 'public');
         }
 
+        // Update room status if changed
+        if ($student->room_id != $data['room_id']) {
+            Room::find($student->room_id)->update(['status' => 'available']);
+            Room::find($data['room_id'])->update(['status' => 'occupied']);
+        }
+
+        $student->update($data);
+
         return redirect()->route('admin.students.index')
-            ->with('success', 'विद्यार्थी अपडेट गरियो!');
+            ->with('success', 'विद्यार्थी विवरण सफलतापूर्वक अद्यावधिक गरियो');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Student $student): RedirectResponse
+    public function destroy(Student $student)
     {
-        $room = $student->room;
+        if ($student->image) {
+            Storage::disk('public')->delete($student->image);
+        }
+
+        // Free up the room
+        Room::find($student->room_id)->update(['status' => 'available']);
+
         $student->delete();
 
-        if ($room->students()->count() < $room->capacity) {
-            $room->update(['status' => 'available']);
-        }
-
         return redirect()->route('admin.students.index')
-            ->with('success', 'विद्यार्थी हटाइयो!');
-    }
-
-    /**
-     * Export students data to Excel
-     */
-    public function export()
-    {
-        return Excel::download(
-            new StudentsExport,
-            'विद्यार्थीहरू-'.now()->format('Y-m-d').'.xlsx'
-        );
+            ->with('success', 'विद्यार्थी रेकर्ड सफलतापूर्वक मेटाइयो');
     }
 }

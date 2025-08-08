@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Gallery;
+use App\Models\Hostel;
 use App\Models\Meal;
 use App\Models\Room;
 use App\Models\Student;
-use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class PublicController extends Controller
@@ -17,23 +17,23 @@ class PublicController extends Controller
     public function home(): View
     {
         // 1. Featured Rooms (Available rooms with at least one vacancy)
-        $featuredRooms = Room::available()
+        $featuredRooms = Room::where('status', 'available')
             ->withCount('students')
-            ->having('students_count', '<', 'capacity')
+            ->having('students_count', '<', \DB::raw('capacity'))
             ->orderBy('price')
             ->limit(3)
             ->get();
 
-        // 2. System Metrics (Using query scopes for cleaner code)
+        // 2. System Metrics
         $metrics = [
-            'total_students' => Student::active()->count(),
+            'total_hostels' => Hostel::count(),
+            'total_students' => Student::where('status', 'active')->count(),
             'total_rooms' => Room::count(),
-            'available_rooms' => Room::available()->count(),
-            'occupancy_rate' => Room::getOccupancyRate(),
+            'available_rooms' => Room::where('status', 'available')->count(),
+            'occupancy_rate' => $this->getOccupancyRate(),
         ];
 
         // 3. Featured Gallery Images (Only featured items)
-        // यदि Gallery मोडेल छैन भने, यो अस्थायी रूपमा कमेन्ट गर्नुहोस्
         $galleries = collect();
         if (class_exists(\App\Models\Gallery::class)) {
             $galleries = Gallery::where('category', 'featured')
@@ -43,7 +43,6 @@ class PublicController extends Controller
         }
 
         // 4. Recent Meals (Today + next 2 days)
-        // यदि Meal मोडेल छैन भने, यो अस्थायी रूपमा कमेन्ट गर्नुहोस्
         $meals = collect();
         if (class_exists(\App\Models\Meal::class)) {
             $meals = Meal::whereDate('date', '>=', now()->format('Y-m-d'))
@@ -52,6 +51,26 @@ class PublicController extends Controller
                 ->get();
         }
 
-        return view('public.home', compact('featuredRooms', 'metrics', 'galleries', 'meals'));
+        return view('public.home', compact(
+            'featuredRooms',
+            'metrics',
+            'galleries',
+            'meals'
+        ));
+    }
+
+    /**
+     * Calculate room occupancy rate.
+     */
+    private function getOccupancyRate(): float
+    {
+        $totalRooms = Room::count();
+        $occupiedRooms = Room::where('status', 'occupied')->count();
+
+        if ($totalRooms > 0) {
+            return round(($occupiedRooms / $totalRooms) * 100, 2);
+        }
+
+        return 0.0;
     }
 }

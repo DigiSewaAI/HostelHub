@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Support\Facades\DB;
 
 class Room extends Model
@@ -18,12 +19,15 @@ class Room extends Model
      * @var array
      */
     protected $fillable = [
+        'hostel_id',
         'room_number',
-        'floor',
+        'type',
         'capacity',
+        'price',
         'status',
         'description',
-        'price', // यो थपियो किनभने क्वेरीमा price को प्रयोग छ
+        'image',
+        'floor',
     ];
 
     /**
@@ -32,7 +36,7 @@ class Room extends Model
      * @var array
      */
     protected $casts = [
-        'price' => 'decimal:2', // मूल्यलाई दशमलवको रूपमा कास्ट गर्ने
+        'price' => 'decimal:2',
     ];
 
     /**
@@ -44,6 +48,21 @@ class Room extends Model
     }
 
     /**
+     * Get all payments for the room through students.
+     */
+    public function payments(): HasManyThrough
+    {
+        return $this->hasManyThrough(
+            Payment::class,
+            Student::class,
+            'room_id',
+            'student_id',
+            'id',
+            'id'
+        );
+    }
+
+    /**
      * Scope a query to only include available rooms.
      */
     public function scopeAvailable(Builder $query): Builder
@@ -52,23 +71,7 @@ class Room extends Model
     }
 
     /**
-     * Scope a query to only include occupied rooms.
-     */
-    public function scopeOccupied(Builder $query): Builder
-    {
-        return $query->where('status', 'occupied');
-    }
-
-    /**
-     * Scope a query to only include rooms under maintenance.
-     */
-    public function scopeMaintenance(Builder $query): Builder
-    {
-        return $query->where('status', 'maintenance');
-    }
-
-    /**
-     * Scope a query to get rooms with available capacity (students_count < capacity)
+     * Scope a query to only include rooms with available capacity.
      */
     public function scopeWithAvailableCapacity(Builder $query): Builder
     {
@@ -84,26 +87,18 @@ class Room extends Model
     }
 
     /**
-     * Scope a query to get rooms by capacity
-     */
-    public function scopeCapacity(Builder $query, int $capacity): Builder
-    {
-        return $query->where('capacity', $capacity);
-    }
-
-    /**
      * Calculate the overall room occupancy rate.
      */
     public static function getOccupancyRate(): float
     {
         $totalRooms = self::count();
+        $occupiedRooms = self::where('status', 'occupied')->count();
 
-        if ($totalRooms === 0) {
-            return 0.0;
+        if ($totalRooms > 0) {
+            return round(($occupiedRooms / $totalRooms) * 100, 2);
         }
 
-        $occupiedRooms = self::occupied()->count();
-        return round(($occupiedRooms / $totalRooms) * 100, 1);
+        return 0.0;
     }
 
     /**
@@ -111,13 +106,8 @@ class Room extends Model
      */
     public function getOccupancyAttribute(): float
     {
-        if ($this->capacity === 0) {
-            return 0.0;
-        }
-
-        // क्याश भएको students_count प्रयोग गर्ने वा नयाँ काउन्ट गर्ने
-        $currentOccupancy = isset($this->students_count) ? $this->students_count : $this->students()->count();
-        return round(($currentOccupancy / $this->capacity) * 100, 1);
+        $currentOccupancy = $this->students_count ?? $this->students()->count();
+        return $this->capacity ? round(($currentOccupancy / $this->capacity) * 100, 1) : 0.0;
     }
 
     /**
@@ -125,7 +115,15 @@ class Room extends Model
      */
     public function getAvailableCapacityAttribute(): int
     {
-        $currentOccupancy = isset($this->students_count) ? $this->students_count : $this->students()->count();
+        $currentOccupancy = $this->students_count ?? $this->students()->count();
         return max(0, $this->capacity - $currentOccupancy);
+    }
+
+    /**
+     * Scope for occupied rooms
+     */
+    public function scopeOccupied($query)
+    {
+        return $query->where('status', 'occupied');
     }
 }
