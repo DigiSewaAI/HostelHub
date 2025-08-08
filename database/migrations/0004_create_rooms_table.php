@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::create('rooms', function (Blueprint $table) {
     $table->id();
-    $table->string('name');
+    $table->foreignId('hostel_id')->constrained()->onDelete('cascade');
+    $table->string('room_number'); // Added this
     $table->decimal('price', 8, 2);
     $table->integer('capacity');
     $table->enum('type', ['single', 'double', 'dorm']);
@@ -21,6 +22,7 @@ return new class extends Migration
     $table->text('description')->nullable();
     $table->timestamps();
 });
+
     }
 
     /**
