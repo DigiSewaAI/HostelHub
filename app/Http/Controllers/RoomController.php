@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Room;
-use App\Models\Student;
+use App\Models\Booking;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Eloquent\Builder;
 
 class RoomController extends Controller
 {
@@ -15,7 +17,9 @@ class RoomController extends Controller
     public function index()
     {
         // सही तरिकाले उपलब्ध कोठाहरू प्राप्त गर्ने (SQL 1054 त्रुटि समाधान गर्ने)
-        $rooms = Room::withCount('students')
+        $rooms = Room::withCount(['students' => function (Builder $query) {
+                $query->where('status', 'active');
+            }])
             ->where('status', 'available')
             ->having('students_count', '<', 'capacity')
             ->orderBy('price')
@@ -75,7 +79,10 @@ class RoomController extends Controller
      */
     public function show(Room $room)
     {
-        $room->loadCount('students');
+        $room->loadCount(['students' => function (Builder $query) {
+                $query->where('status', 'active');
+            }]);
+
         $availableCapacity = $room->capacity - $room->students_count;
 
         return view('public.rooms.show', compact('room', 'availableCapacity'));
@@ -123,10 +130,12 @@ class RoomController extends Controller
      */
     public function destroy(Room $room)
     {
-        // कोठामा विद्यार्थीहरू छन् भने हटाउन नदिने
-        if ($room->students()->count() > 0) {
+        // कोठामा सक्रिय विद्यार्थीहरू छन् भने हटाउन नदिने
+        $activeStudentsCount = $room->students()->where('status', 'active')->count();
+
+        if ($activeStudentsCount > 0) {
             return redirect()->route('admin.rooms.index')
-                ->with('error', 'यो कोठामा विद्यार्थीहरू छन्, हटाउन सकिँदैन!');
+                ->with('error', 'यो कोठामा सक्रिय विद्यार्थीहरू छन्, हटाउन सकिँदैन!');
         }
 
         $room->delete();
@@ -140,7 +149,7 @@ class RoomController extends Controller
      */
     private function updateRoomStatus(Room $room)
     {
-        $currentOccupancy = $room->students()->count();
+        $currentOccupancy = $room->students()->where('status', 'active')->count();
 
         if ($currentOccupancy >= $room->capacity) {
             $room->update(['status' => 'occupied']);
@@ -156,5 +165,28 @@ class RoomController extends Controller
     public function publicIndex()
     {
         return $this->index();
+    }
+
+    /**
+     * Display user's booking history
+     *
+     * @return \Illuminate\View\View
+     */
+    public function myBookings()
+    {
+        // प्रमाणित प्रयोगकर्ताको बुकिङहरू पुनःप्राप्त गर्ने
+        $user = Auth::user();
+
+        // Error handling for cases where user might not exist
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'कृपया लगइन गर्नुहोस्।');
+        }
+
+        $bookings = Booking::where('user_id', $user->id)
+                    ->with(['room', 'hostel']) // सम्बन्धित डेटा
+                    ->orderBy('created_at', 'desc')
+                    ->get();
+
+        return view('bookings.my-bookings', compact('bookings'));
     }
 }

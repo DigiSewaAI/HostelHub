@@ -1,3 +1,67 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* साइडबार आइटमहरू स्पष्ट रूपमा देखिने बनाउन */
+.sidebar-link {
+    color: #ffffff !important;
+    opacity: 1 !important;
+}
+
+/* होभर र एक्टिभ स्टेटमा पनि रङ्ग स्थिर रहने */
+.sidebar-link:hover,
+.sidebar-link.active {
+    color: #ffffff !important;
+}
+
+/* साइडबारमा स्क्रोल अनुमति दिने */
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow-y: auto;
+}
+
+/* साइडबार स्क्रोलबारको स्टाइल */
+.sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 3px;
+}
+
+/* लगआउट बटनलाई सधैं तल्लो भागमा राख्न */
+.logout-section {
+    margin-top: auto;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* FIXED: Added specific styles for notification bell */
+.notification-button i {
+    color: #2563eb !important;
+    position: relative;
+    z-index: 5;
+}
+
+.dark-mode .notification-button i {
+    color: #60a5fa !important;
+}
+
+/* FIXED: Adjusted notification dot positioning */
+.notification-dot {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    width: 8px;
+    height: 8px;
+    background-color: #ef4444;
+    border-radius: 50%;
+    z-index: 10;
+}
