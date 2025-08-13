@@ -14,40 +14,60 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Always run RoleSeeder FIRST (critical dependency)
+        // भूमिका सिडर एकपटक मात्र चलाउने
         $this->call(RoleSeeder::class);
 
-        // Create Admin User with proper role relationship
+        // एडमिन यूजर (Parashar Regmi)
         $adminRole = Role::where('name', 'admin')->firstOrFail();
+        User::firstOrCreate(
+            ['email' => 'parasharregmi@gmail.com'],
+            [
+                'name' => 'Parashar Regmi',
+                'password' => Hash::make('Himalayan@1980'),
+                'email_verified_at' => now(),
+                'phone' => '9761762036',
+                'address' => 'काठमाडौं, नेपाल',
+                'role_id' => $adminRole->id,
+                'payment_verified' => true
+            ]
+        );
 
-        User::create([
-            'name' => 'Admin User',
-            'email' => 'admin@hostelhub.com',
-            'password' => Hash::make('password123'),
-            'email_verified_at' => now(),
-            'phone' => '9800000000',
-            'address' => 'काठमाडौं, नेपाल',
-            'role_id' => $adminRole->id, // ✅ CORRECTED: Use role_id instead of role string
-        ]);
+        // होस्टेल म्यानेजर यूजर (Ashish Regmi)
+        $managerRole = Role::where('name', 'hostel_manager')->firstOrFail();
+        User::firstOrCreate(
+            ['email' => 'regmiashish629@gmail.com'],
+            [
+                'name' => 'Ashish Regmi',
+                'password' => Hash::make('Himalayan@1980'),
+                'email_verified_at' => now(),
+                'phone' => '9761762036',
+                'address' => 'पोखरा, नेपाल',
+                'role_id' => $managerRole->id,
+                'payment_verified' => true
+            ]
+        );
 
-        // Create Test User (student role)
+        // टेस्ट यूजर (छात्र)
         $studentRole = Role::where('name', 'student')->firstOrFail();
+        User::firstOrCreate(
+            ['email' => 'shresthaxok@gmail.com'],
+            [
+                'name' => 'Ashok Shrestha',
+                'password' => Hash::make('password123'),
+                'email_verified_at' => now(),
+                'phone' => '9851134338',
+                'address' => 'पोखरा, नेपाल',
+                'role_id' => $studentRole->id,
+                'payment_verified' => false
+            ]
+        );
 
-        User::create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-            'password' => Hash::make('password123'),
-            'email_verified_at' => now(),
-            'phone' => '9812345678',
-            'address' => 'पोखरा, नेपाल',
-            'role_id' => $studentRole->id, // ✅ CORRECTED
-        ]);
-
-        // Run other seeders AFTER user creation
+        // अन्य सिडरहरू (UserSeeder हटाइएको)
         $this->call([
             CourseSeeder::class,
             HostelHubSeeder::class,
             ReviewSeeder::class,
+            GallerySeeder::class,
         ]);
     }
 }

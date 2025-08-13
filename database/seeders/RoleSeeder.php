@@ -2,19 +2,24 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Role;
+use Illuminate\Database\Seeder;
 
 class RoleSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        // Use firstOrCreate to prevent duplicate entries
-        Role::firstOrCreate(['name' => 'admin']);
-        Role::firstOrCreate(['name' => 'hostel_manager']);
-        Role::firstOrCreate(['name' => 'student']);
+        $roles = [
+            ['name' => 'admin'],
+            ['name' => 'hostel_manager'],
+            ['name' => 'student']
+        ];
+
+        foreach ($roles as $role) {
+            Role::firstOrCreate(
+                ['name' => $role['name']],
+                $role
+            );
+        }
     }
 }

@@ -6,45 +6,38 @@ use App\Http\Controllers\Controller;
 use App\Models\Gallery;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class GalleryController extends Controller
 {
     /**
-     * Create a new controller instance.
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-        $this->middleware('auth');
-        $this->authorizeResource(Gallery::class, 'gallery');
-    }
-
-    /**
      * Display a listing of gallery items.
      */
     public function index()
     {
+        $this->authorize('viewAny', Gallery::class);
+
         $categories = [
-            'all' => 'सबै',
-            'single' => 'एकल कोठा',
-            'double' => 'दुई ब्यक्ति कोठा',
-            'common' => 'सामान्य क्षेत्र',
-            'dining' => 'भोजन कक्ष',
-            'video' => 'भिडियो टुर'
+            'all'    => 'सबै',
+            'single' => '१ सिटर',
+            'double' => '२ सिटर',
+            'triple' => '३ सिटर',
+            'quad'   => '४ सिटर',
+            'common' => 'लिभिङ रूम',
+            'dining' => 'बाथरूम',
+            'video'  => 'भिडियो टुर'
         ];
 
         $selectedCategory = request('category', 'all');
 
-        $galleryItems = Gallery::when($selectedCategory !== 'all', function ($query) use ($selectedCategory) {
-                $query->where('category', $selectedCategory);
-            })
+        // यहाँ galleryItems लाई galleries मा परिवर्तन गर्नुहोस्
+        $galleries = Gallery::when($selectedCategory !== 'all', function ($query) use ($selectedCategory) {
+            $query->where('category', $selectedCategory);
+        })
             ->latest()
             ->paginate(12);
 
-        return view('admin.gallery.index', compact('galleryItems', 'categories', 'selectedCategory'));
+        return view('admin.gallery.index', compact('galleries', 'categories', 'selectedCategory'));
     }
 
     /**
@@ -52,12 +45,16 @@ class GalleryController extends Controller
      */
     public function create()
     {
+        $this->authorize('create', Gallery::class);
+
         $categories = [
-            'single' => 'एकल कोठा',
-            'double' => 'दुई ब्यक्ति कोठा',
-            'common' => 'सामान्य क्षेत्र',
-            'dining' => 'भोजन कक्ष',
-            'video' => 'भिडियो टुर'
+            'single' => '१ सिटर',
+            'double' => '२ सिटर',
+            'triple' => '३ सिटर',
+            'quad'   => '४ सिटर',
+            'common' => 'लिभिङ रूम',
+            'dining' => 'बाथरूम',
+            'video'  => 'भिडियो टुर'
         ];
 
         return view('admin.gallery.create', compact('categories'));
@@ -68,52 +65,53 @@ class GalleryController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize('create', Gallery::class);
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
             'category' => [
                 'required',
-                Rule::in(['single', 'double', 'common', 'dining', 'video'])
+                Rule::in(['single', 'double', 'triple', 'quad', 'common', 'dining', 'video'])
             ],
             'type' => [
                 'required',
-                Rule::in(['image', 'video'])
+                Rule::in(['photo', 'local_video', 'youtube'])
             ],
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-            'video' => 'nullable|mimes:mp4,webm,mov,avi|max:102400',
-            'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-            'location' => 'nullable|string|max:255',
+            'file' => 'required_if:type,photo,local_video|file|mimes:jpg,jpeg,png,gif,webp,mp4,webm,mov,avi|max:102400',
+            'external_link' => 'required_if:type,youtube|url',
             'is_featured' => 'sometimes|boolean',
-            'status' => 'required|in:active,inactive'
+            'status' => 'required|in:active,inactive,draft'
         ]);
 
         try {
-            $galleryData = $validated;
-            $galleryData['is_featured'] = $request->has('is_featured');
-            $galleryData['user_id'] = auth()->id();
+            $galleryData = [
+                'title' => $validated['title'],
+                'description' => $validated['description'],
+                'category' => $validated['category'],
+                'type' => $validated['type'],
+                'is_featured' => $request->boolean('is_featured'),
+                'status' => $validated['status'],
+                'user_id' => auth()->id()
+            ];
 
-            // Handle image upload
-            if ($request->hasFile('image')) {
-                $imagePath = $request->file('image')->store('public/hostel/gallery');
-                $galleryData['image'] = str_replace('public/', '', $imagePath);
+            // Handle file upload based on type
+            if ($request->hasFile('file')) {
+                $file = $request->file('file');
+                $path = $file->store('public/gallery');
+
+                $galleryData['image'] = str_replace('public/', '', $path);
+
+                // For videos, set default thumbnail
+                if ($validated['type'] === 'local_video') {
+                    $galleryData['thumbnail'] = 'gallery/thumbnails/video-default.jpg';
+                }
             }
 
-            // Handle video upload
-            if ($request->hasFile('video')) {
-                $videoPath = $request->file('video')->store('public/hostel/gallery/videos');
-                $galleryData['video'] = str_replace('public/', '', $videoPath);
-            }
-
-            // Handle thumbnail upload
-            if ($request->hasFile('thumbnail')) {
-                $thumbnailPath = $request->file('thumbnail')->store('public/hostel/gallery/thumbnails');
-                $galleryData['thumbnail'] = str_replace('public/', '', $thumbnailPath);
-            }
-            // Generate thumbnail from video if video is uploaded but no thumbnail
-            elseif ($request->hasFile('video')) {
-                // In a real implementation, you would generate a thumbnail from the video
-                // For now, we'll use a default thumbnail
-                $galleryData['thumbnail'] = 'hostel/gallery/thumbnails/video-default.jpg';
+            // Handle YouTube link
+            if ($validated['type'] === 'youtube') {
+                $galleryData['external_link'] = $validated['external_link'];
+                $galleryData['thumbnail'] = 'gallery/thumbnails/youtube-default.jpg';
             }
 
             Gallery::create($galleryData);
@@ -132,6 +130,8 @@ class GalleryController extends Controller
      */
     public function show(Gallery $gallery)
     {
+        $this->authorize('view', $gallery);
+
         return view('admin.gallery.show', compact('gallery'));
     }
 
@@ -140,12 +140,16 @@ class GalleryController extends Controller
      */
     public function edit(Gallery $gallery)
     {
+        $this->authorize('update', $gallery);
+
         $categories = [
-            'single' => 'एकल कोठा',
-            'double' => 'दुई ब्यक्ति कोठा',
-            'common' => 'सामान्य क्षेत्र',
-            'dining' => 'भोजन कक्ष',
-            'video' => 'भिडियो टुर'
+            'single' => '१ सिटर',
+            'double' => '२ सिटर',
+            'triple' => '३ सिटर',
+            'quad'   => '४ सिटर',
+            'common' => 'लिभिङ रूम',
+            'dining' => 'बाथरूम',
+            'video'  => 'भिडियो टुर'
         ];
 
         return view('admin.gallery.edit', compact('gallery', 'categories'));
@@ -156,60 +160,65 @@ class GalleryController extends Controller
      */
     public function update(Request $request, Gallery $gallery)
     {
+        $this->authorize('update', $gallery);
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
             'category' => [
                 'required',
-                Rule::in(['single', 'double', 'common', 'dining', 'video'])
+                Rule::in(['single', 'double', 'triple', 'quad', 'common', 'dining', 'video'])
             ],
             'type' => [
                 'required',
-                Rule::in(['image', 'video'])
+                Rule::in(['photo', 'local_video', 'youtube'])
             ],
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-            'video' => 'nullable|mimes:mp4,webm,mov,avi|max:102400',
-            'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-            'location' => 'nullable|string|max:255',
+            'file' => 'nullable|file|mimes:jpg,jpeg,png,gif,webp,mp4,webm,mov,avi|max:102400',
+            'external_link' => 'nullable|required_if:type,youtube|url',
             'is_featured' => 'sometimes|boolean',
-            'status' => 'required|in:active,inactive'
+            'status' => 'required|in:active,inactive,draft'
         ]);
 
         try {
-            $galleryData = $validated;
-            $galleryData['is_featured'] = $request->has('is_featured');
+            $galleryData = [
+                'title' => $validated['title'],
+                'description' => $validated['description'],
+                'category' => $validated['category'],
+                'type' => $validated['type'],
+                'is_featured' => $request->boolean('is_featured'),
+                'status' => $validated['status']
+            ];
 
-            // Handle image upload
-            if ($request->hasFile('image')) {
-                // Delete old image if exists
+            // Handle file upload if provided
+            if ($request->hasFile('file')) {
+                // Delete old file
                 if ($gallery->image && Storage::exists('public/' . $gallery->image)) {
                     Storage::delete('public/' . $gallery->image);
                 }
 
-                $imagePath = $request->file('image')->store('public/hostel/gallery');
-                $galleryData['image'] = str_replace('public/', '', $imagePath);
+                $file = $request->file('file');
+                $path = $file->store('public/gallery');
+                $galleryData['image'] = str_replace('public/', '', $path);
+
+                // Update thumbnail for videos
+                if ($validated['type'] === 'local_video') {
+                    $galleryData['thumbnail'] = 'gallery/thumbnails/video-default.jpg';
+                }
             }
 
-            // Handle video upload
-            if ($request->hasFile('video')) {
-                // Delete old video if exists
-                if ($gallery->video && Storage::exists('public/' . $gallery->video)) {
-                    Storage::delete('public/' . $gallery->video);
+            // Handle YouTube link
+            if ($validated['type'] === 'youtube') {
+                $galleryData['external_link'] = $validated['external_link'];
+                $galleryData['thumbnail'] = 'gallery/thumbnails/youtube-default.jpg';
+
+                // Clear previous image if exists
+                if ($gallery->image && Storage::exists('public/' . $gallery->image)) {
+                    Storage::delete('public/' . $gallery->image);
                 }
-
-                $videoPath = $request->file('video')->store('public/hostel/gallery/videos');
-                $galleryData['video'] = str_replace('public/', '', $videoPath);
-            }
-
-            // Handle thumbnail upload
-            if ($request->hasFile('thumbnail')) {
-                // Delete old thumbnail if exists
-                if ($gallery->thumbnail && Storage::exists('public/' . $gallery->thumbnail)) {
-                    Storage::delete('public/' . $gallery->thumbnail);
-                }
-
-                $thumbnailPath = $request->file('thumbnail')->store('public/hostel/gallery/thumbnails');
-                $galleryData['thumbnail'] = str_replace('public/', '', $thumbnailPath);
+                $galleryData['image'] = null;
+            } else if ($validated['type'] !== 'youtube' && $gallery->type === 'youtube') {
+                // Clear YouTube link when switching to non-youtube
+                $galleryData['external_link'] = null;
             }
 
             $gallery->update($galleryData);
@@ -228,14 +237,12 @@ class GalleryController extends Controller
      */
     public function destroy(Gallery $gallery)
     {
+        $this->authorize('delete', $gallery);
+
         try {
             // Delete associated files
             if ($gallery->image && Storage::exists('public/' . $gallery->image)) {
                 Storage::delete('public/' . $gallery->image);
-            }
-
-            if ($gallery->video && Storage::exists('public/' . $gallery->video)) {
-                Storage::delete('public/' . $gallery->video);
             }
 
             if ($gallery->thumbnail && Storage::exists('public/' . $gallery->thumbnail)) {
@@ -257,14 +264,35 @@ class GalleryController extends Controller
      */
     public function toggleFeatured(Gallery $gallery)
     {
-        $gallery->is_featured = !$gallery->is_featured;
-        $gallery->save();
+        $this->authorize('update', $gallery);
+
+        $gallery->update(['is_featured' => !$gallery->is_featured]);
 
         return response()->json([
             'success' => true,
-            'message' => $gallery->is_featured ?
-                'ग्यालरी आइटम फिचर्ड गरियो' :
-                'ग्यालरी आइटम फिचर्ड हटाइयो'
+            'is_featured' => $gallery->is_featured,
+            'message' => $gallery->is_featured
+                ? 'ग्यालरी आइटम फिचर्ड गरियो'
+                : 'ग्यालरी आइटम फिचर्ड हटाइयो'
+        ]);
+    }
+
+    /**
+     * Toggle active status of gallery item.
+     */
+    public function toggleActive(Gallery $gallery)
+    {
+        $this->authorize('update', $gallery);
+
+        $newStatus = $gallery->status === 'active' ? 'inactive' : 'active';
+        $gallery->update(['status' => $newStatus]);
+
+        return response()->json([
+            'success' => true,
+            'status' => $newStatus,
+            'message' => $newStatus === 'active'
+                ? 'ग्यालरी आइटम सक्रिय गरियो'
+                : 'ग्यालरी आइटम निष्क्रिय गरियो'
         ]);
     }
 }

@@ -5,23 +5,37 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
 
 class RoleMiddleware
 {
-    public function handle(Request $request, Closure $next, $role): Response
+    public function handle(Request $request, Closure $next, string $role): Response
     {
         if (!Auth::check()) {
-            return redirect('login');
+            return redirect()->route('login');
         }
 
-        $user = Auth::user();
+        // DIRECT QUERY - NO RELATIONS
+        $hasRole = DB::table('users')
+            ->where('id', Auth::id())
+            ->where('role_id', $this->getRoleId($role))
+            ->exists();
 
-        // hasRole() मेथड प्रयोग गर्ने
-        if ($user->hasRole($role)) {
-            return $next($request);
+        if (!$hasRole) {
+            abort(403, 'Unauthorized access. Required role: ' . $role);
         }
 
-        abort(403, 'तपाईंसँग यो पृष्ठ हेर्न अनुमति छैन।');
+        return $next($request);
+    }
+
+    private function getRoleId(string $role): int
+    {
+        return match ($role) {
+            'admin' => 1,
+            'hostel_manager' => 2,
+            'student' => 3,
+            default => 0
+        };
     }
 }

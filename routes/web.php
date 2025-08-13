@@ -26,24 +26,18 @@ use App\Http\Controllers\RoomController as PublicRoomController;
 use App\Http\Controllers\StudentController as PublicStudentController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
-
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| contains the "web" middleware group. Now create something great!
-|
-*/
+use App\Http\Middleware\RoleMiddleware;
 
 // Force HTTPS in production
 if (app()->environment('production')) {
     URL::forceScheme('https');
 }
 
-// 🌐 Public Website Routes (No Authentication Required)
+/*
+|--------------------------------------------------------------------------
+| Public Routes
+|--------------------------------------------------------------------------
+*/
 Route::get('/', [PublicController::class, 'home'])->name('home');
 Route::get('/about', [PublicController::class, 'about'])->name('about');
 Route::get('/features', [PublicController::class, 'features'])->name('features');
@@ -51,59 +45,48 @@ Route::get('/how-it-works', [PublicController::class, 'howItWorks'])->name('how-
 Route::get('/pricing', [PublicController::class, 'pricing'])->name('pricing');
 Route::get('/reviews', [PublicController::class, 'reviews'])->name('reviews');
 
-// Room Booking Routes
+// Room booking
 Route::get('/rooms', [PublicRoomController::class, 'index'])->name('rooms');
 Route::get('/rooms/{room}', [PublicRoomController::class, 'show'])->name('rooms.show');
 Route::get('/rooms/availability', [PublicRoomController::class, 'checkAvailability'])->name('rooms.availability');
 Route::post('/booking/search', [PublicRoomController::class, 'search'])->name('booking.search');
 
-// Meal Routes
+// Meals
 Route::get('/meals', [PublicMealController::class, 'publicIndex'])->name('meals');
 Route::get('/meals/menu', [PublicMealController::class, 'menu'])->name('meals.menu');
 
-// Gallery Routes
+// Gallery
 Route::get('/gallery', [PublicGalleryController::class, 'publicIndex'])->name('gallery');
 Route::get('/gallery/category/{category}', function ($category) {
     return redirect()->route('gallery', ['category' => $category]);
 })->name('gallery.category');
 
-// Student Routes
+// Students
 Route::get('/students', [PublicStudentController::class, 'index'])->name('students');
 
-// Contact Routes
+// Contact
 Route::get('/contact', [PublicContactController::class, 'index'])->name('contact');
 Route::post('/contact', [PublicContactController::class, 'store'])->name('contact.store');
 
-// 🔐 Authentication Routes
+/*
+|--------------------------------------------------------------------------
+| Authentication Routes
+|--------------------------------------------------------------------------
+*/
 Route::middleware('guest')->group(function () {
-    Route::get('/login', [AuthenticatedSessionController::class, 'create'])
-        ->name('login');
-
+    Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
     Route::post('/login', [AuthenticatedSessionController::class, 'store']);
 
-    Route::get('/register', [RegisteredUserController::class, 'create'])
-        ->name('register');
+    Route::get('/register', [RegisteredUserController::class, 'create'])->name('register');
+    Route::post('/register', [RegisteredUserController::class, 'store'])->name('register.submit');
 
-    Route::post('/register', [RegisteredUserController::class, 'store'])
-        ->name('register.submit');
+    Route::get('/forgot-password', [PasswordResetLinkController::class, 'create'])->name('password.request');
+    Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])->name('password.email');
 
-    // Password Reset Routes
-    Route::get('/forgot-password', [PasswordResetLinkController::class, 'create'])
-        ->name('password.request');
+    Route::get('/reset-password/{token}', [NewPasswordController::class, 'create'])->name('password.reset');
+    Route::post('/reset-password', [NewPasswordController::class, 'store'])->name('password.reset.store');
 
-    Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])
-        ->name('password.email');
-
-    Route::get('/reset-password/{token}', [NewPasswordController::class, 'create'])
-        ->name('password.reset');
-
-    Route::post('/reset-password', [NewPasswordController::class, 'store'])
-        ->name('password.reset.store');
-
-    // Email Verification Routes
-    Route::get('/verify-email', [EmailVerificationPromptController::class, '__invoke'])
-        ->name('verification.notice');
-
+    Route::get('/verify-email', [EmailVerificationPromptController::class, '__invoke'])->name('verification.notice');
     Route::get('/verify-email/{id}/{hash}', [VerifyEmailController::class, '__invoke'])
         ->middleware(['signed', 'throttle:6,1'])
         ->name('verification.verify');
@@ -113,121 +96,127 @@ Route::middleware('guest')->group(function () {
         ->name('verification.send');
 });
 
-// 👤 Authenticated User Routes (Requires Login)
+/*
+|--------------------------------------------------------------------------
+| Authenticated User Routes
+|--------------------------------------------------------------------------
+*/
 Route::middleware('auth')->group(function () {
-    // Profile Management
+    // Fixed dashboard redirect
+    Route::get('/dashboard', function () {
+        $user = auth()->user();
+        return match ($user->role_id) {
+            1 => redirect()->route('admin.dashboard'),
+            2 => redirect()->route('hostel.manager.dashboard'),
+            3 => redirect()->route('student.dashboard'),
+            default => redirect('/')->with('error', 'अमान्य प्रयोगकर्ता भूमिका'),
+        };
+    })->name('dashboard');
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // Password Management
     Route::put('/password', [PasswordController::class, 'update'])->name('password.update');
 
-    // Password Confirmation
-    Route::get('/confirm-password', [ConfirmablePasswordController::class, 'show'])
-        ->name('password.confirm');
-
+    Route::get('/confirm-password', [ConfirmablePasswordController::class, 'show'])->name('password.confirm');
     Route::post('/confirm-password', [ConfirmablePasswordController::class, 'store']);
 
-    // Student & Booking Management
     Route::get('/my-students', [PublicStudentController::class, 'myStudents'])->name('students.my');
     Route::get('/my-bookings', [PublicRoomController::class, 'myBookings'])->name('bookings.my');
 
-    // Payment Management
-    Route::resource('payments', PaymentController::class)->only(['index', 'show', 'create', 'store']);
-    Route::post('payments/khalti-callback', [PaymentController::class, 'khaltiCallback'])->name('payments.khalti.callback');
-
-    // ✅ Secure logout route (POST only)
-    Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
-        ->name('logout');
-});
-
-// 👑 Admin Routes (Requires Admin Role)
-Route::middleware(['auth', \App\Http\Middleware\RoleMiddleware::class . ':admin'])->prefix('admin')->name('admin.')->group(function () {
-    // Dashboard
-    Route::get('/dashboard', [DashboardController::class, 'index'])
-        ->name('dashboard');
-
-    // Hostel Management
-    Route::resource('hostels', HostelController::class);
-    Route::post('hostels/{hostel}/availability', [HostelController::class, 'updateAvailability'])
-        ->name('hostels.availability');
-
-    // Room Management
-    Route::resource('rooms', RoomController::class);
-    Route::get('rooms/availability', [RoomController::class, 'availability'])
-        ->name('rooms.availability');
-
-    // Student Management
-    Route::resource('students', AdminStudentController::class);
-
-    // Meal Management
-    Route::resource('meals', MealController::class);
-
-    // Gallery Management
-    Route::resource('gallery', GalleryController::class);
-    Route::post('gallery/{gallery}/toggle-featured', [GalleryController::class, 'toggleFeatured'])
-        ->name('gallery.toggle-featured');
-
-    // Contact Management
-    Route::resource('contacts', AdminContactController::class)
-        ->only(['index', 'show', 'destroy']);
-
-    // Payment Management
     Route::resource('payments', PaymentController::class)
-        ->except(['create', 'store']);
-    Route::post('payments/{payment}/status', [PaymentController::class, 'updateStatus'])
-        ->name('payments.update-status');
-});
+        ->only(['index', 'show', 'create', 'store'])
+        ->names('user.payments');
 
-// 🏨 Hostel Manager Routes (Requires Hostel Manager Role)
-Route::middleware(['auth', 'role:hostel_manager'])->prefix('hostel-manager')->name('hostel.manager.')->group(function () {
-    // Dashboard
-    Route::get('/dashboard', function () {
-        return view('hostel-manager.dashboard');
-    })->name('dashboard');
-
-    // Hostel Management
-    Route::resource('hostels', HostelController::class)->only(['show', 'edit', 'update']);
-    Route::post('hostels/{hostel}/availability', [HostelController::class, 'updateAvailability'])
-        ->name('hostels.availability');
-
-    // Room Management
-    Route::resource('rooms', RoomController::class);
-    Route::get('rooms/availability', [RoomController::class, 'availability'])
-        ->name('rooms.availability');
-
-    // Student Management
-    Route::resource('students', AdminStudentController::class)->only(['index', 'show']);
-});
-
-// 🎓 Student Routes (Requires Student Role)
-Route::middleware(['auth', 'role:student'])->prefix('student')->name('student.')->group(function () {
-    // Dashboard
-    Route::get('/dashboard', function () {
-        return view('student.dashboard');
-    })->name('dashboard');
-
-    // Hostel & Room Management
-    Route::get('/hostels', [HostelController::class, 'index'])->name('hostels.index');
-    Route::get('/hostels/{hostel}', [HostelController::class, 'show'])->name('hostels.show');
-    Route::get('/rooms', [PublicRoomController::class, 'index'])->name('rooms.index');
-    Route::get('/rooms/{room}', [PublicRoomController::class, 'show'])->name('rooms.show');
-
-    // Booking Management
-    Route::get('/my-bookings', [PublicRoomController::class, 'myBookings'])->name('bookings.my');
-    Route::get('/booking/search', [PublicRoomController::class, 'search'])->name('booking.search');
-
-    // Profile Management
-    Route::get('/profile', [PublicStudentController::class, 'myProfile'])->name('profile');
-    Route::patch('/profile', [PublicStudentController::class, 'updateProfile'])->name('profile.update');
-
-    // Payment Management
-    Route::resource('payments', PaymentController::class)->only(['index', 'show', 'create', 'store']);
     Route::post('payments/khalti-callback', [PaymentController::class, 'khaltiCallback'])->name('payments.khalti.callback');
+
+    Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 });
 
-// ✅ Optional GET logout for dev testing (remove in production)
+/*
+|--------------------------------------------------------------------------
+| Admin Routes - FIXED: No double prefix
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', RoleMiddleware::class . ':admin'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+        Route::resource('hostels', HostelController::class);
+        Route::post('hostels/{hostel}/availability', [HostelController::class, 'updateAvailability'])->name('hostels.availability');
+
+        Route::resource('rooms', RoomController::class);
+        Route::get('rooms/availability', [RoomController::class, 'availability'])->name('rooms.availability');
+
+        Route::resource('students', AdminStudentController::class);
+
+        Route::resource('meals', MealController::class);
+
+        Route::resource('gallery', GalleryController::class);
+        Route::post('gallery/{gallery}/toggle-featured', [GalleryController::class, 'toggleFeatured'])->name('gallery.toggle-featured');
+        Route::post('gallery/{gallery}/toggle-status', [GalleryController::class, 'toggleActive'])->name('gallery.toggle-status');
+
+        Route::resource('contacts', AdminContactController::class)->only(['index', 'show', 'destroy']);
+
+        Route::resource('payments', PaymentController::class)->except(['create', 'store'])->names('admin.payments');
+        Route::post('payments/{payment}/status', [PaymentController::class, 'updateStatus'])->name('payments.update-status');
+    });
+
+/*
+|--------------------------------------------------------------------------
+| Hostel Manager Routes
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', RoleMiddleware::class . ':hostel_manager'])
+    ->prefix('hostel-manager')
+    ->name('hostel.manager.')
+    ->group(function () {
+        Route::get('dashboard', fn() => view('hostel-manager.dashboard'))->name('dashboard');
+
+        Route::resource('hostels', HostelController::class)->only(['show', 'edit', 'update']);
+        Route::post('hostels/{hostel}/availability', [HostelController::class, 'updateAvailability'])->name('hostels.availability');
+
+        Route::resource('rooms', RoomController::class);
+        Route::get('rooms/availability', [RoomController::class, 'availability'])->name('rooms.availability');
+
+        Route::resource('students', AdminStudentController::class)->only(['index', 'show']);
+    });
+
+/*
+|--------------------------------------------------------------------------
+| Student Routes
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', RoleMiddleware::class . ':student'])
+    ->prefix('student')
+    ->name('student.')
+    ->group(function () {
+        Route::get('dashboard', fn() => view('student.dashboard'))->name('dashboard');
+
+        Route::get('hostels', [HostelController::class, 'index'])->name('hostels.index');
+        Route::get('hostels/{hostel}', [HostelController::class, 'show'])->name('hostels.show');
+
+        Route::get('rooms', [PublicRoomController::class, 'index'])->name('rooms.index');
+        Route::get('rooms/{room}', [PublicRoomController::class, 'show'])->name('rooms.show');
+
+        Route::get('my-bookings', [PublicRoomController::class, 'myBookings'])->name('bookings.my');
+        Route::get('booking/search', [PublicRoomController::class, 'search'])->name('booking.search');
+
+        Route::get('profile', [PublicStudentController::class, 'myProfile'])->name('profile');
+        Route::patch('profile', [PublicStudentController::class, 'updateProfile'])->name('profile.update');
+
+        Route::resource('payments', PaymentController::class)->only(['index', 'show', 'create', 'store'])->names('student.payments');
+        Route::post('payments/khalti-callback', [PaymentController::class, 'khaltiCallback'])->name('payments.khalti.callback');
+    });
+
+/*
+|--------------------------------------------------------------------------
+| Dev-Only GET Logout
+|--------------------------------------------------------------------------
+*/
 if (app()->environment('local')) {
     Route::get('/logout', function () {
         auth()->logout();
