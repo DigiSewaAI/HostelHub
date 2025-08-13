@@ -9,18 +9,7 @@ use Illuminate\Support\Facades\Auth;
 class LoginController extends Controller
 {
     /**
-     * Where to redirect users after login.
-     *
-     * @var string
-     */
-    protected $redirectTo = '/dashboard';
-
-    /**
      * Handle the authenticated user.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  mixed  $user
-     * @return \Illuminate\Http\RedirectResponse
      */
     protected function authenticated(Request $request, $user)
     {
@@ -28,20 +17,31 @@ class LoginController extends Controller
     }
 
     /**
-     * Get the post login redirect path.
-     *
-     * @return string
+     * Get the post login redirect path based on user role.
      */
     protected function redirectPath()
     {
-        return $this->redirectTo;
+        return $this->redirectTo();
+    }
+
+    /**
+     * Determine where to redirect users after login.
+     */
+    protected function redirectTo()
+    {
+        $user = Auth::user(); // वा $user = auth()->user();
+
+        // भूमिका अनुसार पुनर्निर्देशन (साधारण role कलम प्रयोग गरी)
+        return match ($user->role) {
+            'admin' => '/admin/dashboard',
+            'hostel_manager' => '/hostel/dashboard',
+            'student' => '/student/dashboard',
+            default => '/dashboard',
+        };
     }
 
     /**
      * Log the user out of the application.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\RedirectResponse
      */
     public function logout(Request $request)
     {

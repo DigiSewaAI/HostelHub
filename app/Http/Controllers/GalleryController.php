@@ -13,16 +13,18 @@ class GalleryController extends Controller
      *
      * @return \Illuminate\View\View
      */
-    public function publicIndex(Request $request)
+    public function index(Request $request)
     {
-        // Define gallery categories with Nepali labels
+        // Define gallery categories with Nepali labels using "सिटर" terminology
         $categories = [
-            'all' => 'सबै',
-            'single' => 'एकल कोठा',
-            'double' => 'दुई ब्यक्ति कोठा',
-            'common' => 'सामान्य क्षेत्र',
-            'dining' => 'भोजन कक्ष',
-            'video' => 'भिडियो टुर'
+            'all'    => 'सबै',
+            'single' => '१ सिटर कोठा',
+            'double' => '२ सिटर कोठा',
+            'triple' => '३ सिटर कोठा',
+            'quad'   => '४ सिटर कोठा',
+            'common' => 'लिभिङ रूम',
+            'dining' => 'बाथरूम',
+            'video'  => 'भिडियो टुर'
         ];
 
         // Get selected category from request, default to 'all'
@@ -34,49 +36,72 @@ class GalleryController extends Controller
         }
 
         // Cache gallery items for 1 hour to improve performance
-        $galleryItems = Cache::remember('public_gallery_items_'.$selectedCategory, 3600, function () use ($selectedCategory) {
+        $galleryItems = Cache::remember('public_gallery_items_' . $selectedCategory, 3600, function () use ($selectedCategory) {
             return Gallery::where('status', 'active')
                 ->when($selectedCategory !== 'all', function ($query) use ($selectedCategory) {
                     $query->where('category', $selectedCategory);
                 })
-                ->orderByRaw("FIELD(category, 'video', 'single', 'double', 'dining', 'common')")
+                ->orderByRaw("FIELD(category, 'video', 'single', 'double', 'triple', 'quad', 'common', 'dining')")
                 ->orderBy('is_featured', 'desc')
                 ->orderBy('created_at', 'desc')
                 ->get()
                 ->map(function ($item) {
-                    return [
+                    $processedItem = [
                         'id' => $item->id,
                         'title' => $item->title,
                         'category' => $item->category,
                         'type' => $item->type,
                         'description' => $item->description,
-                        'location' => $item->location,
                         'is_featured' => $item->is_featured,
-                        'image' => $item->image ? asset('storage/'.$item->image) : null,
-                        'video' => $item->video ? asset('storage/'.$item->video) : null,
-                        'thumbnail' => $item->thumbnail ? asset('storage/'.$item->thumbnail) :
-                                      ($item->type === 'video' ? asset('images/video-default.jpg') : null),
                         'created_at' => $item->created_at->format('M d, Y')
                     ];
+
+                    // Handle different media types
+                    if ($item->type === 'photo') {
+                        $processedItem['image'] = $item->image ? asset('storage/' . $item->image) : null;
+                        $processedItem['thumbnail'] = $processedItem['image'];
+                    } elseif ($item->type === 'local_video') {
+                        $processedItem['video'] = $item->image ? asset('storage/' . $item->image) : null;
+                        $processedItem['thumbnail'] = $item->thumbnail ? asset('storage/' . $item->thumbnail) : asset('images/video-default.jpg');
+                    } elseif ($item->type === 'youtube') {
+                        $processedItem['youtube_id'] = $this->getYoutubeIdFromUrl($item->external_link);
+                        $processedItem['thumbnail'] = $item->thumbnail ? asset('storage/' . $item->thumbnail) : 'https://img.youtube.com/vi/' . $processedItem['youtube_id'] . '/mqdefault.jpg';
+                    }
+
+                    return $processedItem;
                 });
         });
 
         // Get statistics for the stats section
         $stats = [
             'total_students' => Cache::remember('total_students', 3600, function () {
-                return 125; // This would come from your database in a real implementation
+                return 125;
             }),
             'total_hostels' => Cache::remember('total_hostels', 3600, function () {
-                return 24; // This would come from your database in a real implementation
+                return 24;
             }),
             'cities_available' => Cache::remember('cities_available', 3600, function () {
-                return 5; // This would come from your database in a real implementation
+                return 5;
             }),
             'satisfaction_rate' => Cache::remember('satisfaction_rate', 3600, function () {
-                return '98%'; // This would come from your database in a real implementation
+                return '98%';
             })
         ];
 
         return view('gallery', compact('galleryItems', 'categories', 'selectedCategory', 'stats'));
+    }
+
+    /**
+     * Extract YouTube video ID from URL
+     *
+     * @param string $url
+     * @return string|null
+     */
+    private function getYoutubeIdFromUrl(string $url): ?string
+    {
+        $pattern = '/(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/';
+        preg_match($pattern, $url, $matches);
+
+        return $matches[1] ?? null;
     }
 }

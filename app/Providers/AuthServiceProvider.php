@@ -2,37 +2,39 @@
 
 namespace App\Providers;
 
+use App\Models\Gallery;
+use App\Policies\GalleryPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 
 class AuthServiceProvider extends ServiceProvider
 {
     /**
-     * The model to policy mappings for the application.
+     * एप्लिकेसनका लागि मोडेल र पोलिसी म्यापिङ्ग
      *
      * @var array<class-string, class-string>
      */
     protected $policies = [
-        // 'App\Models\Model' => 'App\Policies\ModelPolicy',
+        Gallery::class => GalleryPolicy::class,
     ];
 
     /**
-     * Register any authentication / authorization services.
+     * कुनै पनि प्रमाणीकरण / अनुमति सेवाहरू रजिस्टर गर्नुहोस्।
      */
     public function boot(): void
     {
         $this->registerPolicies();
 
-        // Define admin role gate
+        // एडमिन रोल गेट परिभाषित गर्नुहोस्
         Gate::define('access-admin', function ($user) {
-            return $user->isAdmin();
+            return $user->hasRole('admin');
         });
 
-        // Define user role gate
+        // यूजर रोल गेट परिभाषित गर्नुहोस्
         Gate::define('access-user', function ($user) {
-            return $user->isUser();
+            return $user->hasRole('user');
         });
 
-        // Additional gates can be added here
+        // अन्य गेटहरू यहाँ थप्न सक्नुहुन्छ
     }
 }
