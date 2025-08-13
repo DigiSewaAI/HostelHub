@@ -55,11 +55,10 @@ Route::post('/booking/search', [PublicRoomController::class, 'search'])->name('b
 Route::get('/meals', [PublicMealController::class, 'publicIndex'])->name('meals');
 Route::get('/meals/menu', [PublicMealController::class, 'menu'])->name('meals.menu');
 
-// Gallery
-Route::get('/gallery', [PublicGalleryController::class, 'publicIndex'])->name('gallery');
-Route::get('/gallery/category/{category}', function ($category) {
-    return redirect()->route('gallery', ['category' => $category]);
-})->name('gallery.category');
+// Gallery - ✅ सही गरिएको (duplicate route हटाइयो)
+Route::get('/gallery', [PublicGalleryController::class, 'publicIndex'])
+    ->name('gallery.index') // ✅ index suffix थपियो (Laravel convention अनुसार)
+    ->middleware('web'); // Explicit web middleware
 
 // Students
 Route::get('/students', [PublicStudentController::class, 'index'])->name('students');
@@ -155,7 +154,9 @@ Route::middleware(['auth', RoleMiddleware::class . ':admin'])
 
         Route::resource('meals', MealController::class);
 
-        Route::resource('gallery', GalleryController::class);
+        // ✅ Admin gallery routes - सही नामकरण
+        Route::resource('gallery', GalleryController::class)
+            ->names('gallery'); // 'admin.gallery' prefix अनुसार
         Route::post('gallery/{gallery}/toggle-featured', [GalleryController::class, 'toggleFeatured'])->name('gallery.toggle-featured');
         Route::post('gallery/{gallery}/toggle-status', [GalleryController::class, 'toggleActive'])->name('gallery.toggle-status');
 
