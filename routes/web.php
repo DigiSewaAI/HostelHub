@@ -1,32 +1,28 @@
 <?php
 
-use App\Http\Controllers\Admin\ContactController as AdminContactController;
-use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Admin\GalleryController;
-use App\Http\Controllers\Admin\HostelController;
-use App\Http\Controllers\Admin\MealController;
-use App\Http\Controllers\Admin\RoomController;
-use App\Http\Controllers\Admin\StudentController as AdminStudentController;
-use App\Http\Controllers\Auth\AuthenticatedSessionController;
-use App\Http\Controllers\Auth\ConfirmablePasswordController;
-use App\Http\Controllers\Auth\EmailVerificationNotificationController;
-use App\Http\Controllers\Auth\EmailVerificationPromptController;
-use App\Http\Controllers\Auth\NewPasswordController;
-use App\Http\Controllers\Auth\PasswordController;
-use App\Http\Controllers\Auth\PasswordResetLinkController;
-use App\Http\Controllers\Auth\RegisteredUserController;
-use App\Http\Controllers\Auth\VerifyEmailController;
-use App\Http\Controllers\ContactController as PublicContactController;
-use App\Http\Controllers\GalleryController as PublicGalleryController;
-use App\Http\Controllers\MealController as PublicMealController;
-use App\Http\Controllers\PaymentController;
-use App\Http\Controllers\PublicController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\RoomController as PublicRoomController;
-use App\Http\Controllers\StudentController as PublicStudentController;
+use App\Http\Controllers\Auth\{
+    AuthenticatedSessionController,
+    ConfirmablePasswordController,
+    EmailVerificationNotificationController,
+    EmailVerificationPromptController,
+    NewPasswordController,
+    PasswordController,
+    PasswordResetLinkController,
+    RegisteredUserController,
+    VerifyEmailController
+};
+use App\Http\Controllers\{
+    ContactController as PublicContactController,
+    GalleryController as PublicGalleryController,
+    MealController as PublicMealController,
+    PaymentController,
+    PublicController,
+    ProfileController,
+    RoomController as PublicRoomController,
+    StudentController as PublicStudentController
+};
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
-use App\Http\Middleware\RoleMiddleware;
 
 // Force HTTPS in production
 if (app()->environment('production')) {
@@ -55,10 +51,8 @@ Route::post('/booking/search', [PublicRoomController::class, 'search'])->name('b
 Route::get('/meals', [PublicMealController::class, 'publicIndex'])->name('meals');
 Route::get('/meals/menu', [PublicMealController::class, 'menu'])->name('meals.menu');
 
-// Gallery - ✅ सही गरिएको (duplicate route हटाइयो)
-Route::get('/gallery', [PublicGalleryController::class, 'publicIndex'])
-    ->name('gallery.index') // ✅ index suffix थपियो (Laravel convention अनुसार)
-    ->middleware('web'); // Explicit web middleware
+// Gallery
+Route::get('/gallery', [PublicGalleryController::class, 'publicIndex'])->name('gallery.index');
 
 // Students
 Route::get('/students', [PublicStudentController::class, 'index'])->name('students');
@@ -85,8 +79,8 @@ Route::middleware('guest')->group(function () {
     Route::get('/reset-password/{token}', [NewPasswordController::class, 'create'])->name('password.reset');
     Route::post('/reset-password', [NewPasswordController::class, 'store'])->name('password.reset.store');
 
-    Route::get('/verify-email', [EmailVerificationPromptController::class, '__invoke'])->name('verification.notice');
-    Route::get('/verify-email/{id}/{hash}', [VerifyEmailController::class, '__invoke'])
+    Route::get('/verify-email', EmailVerificationPromptController::class)->name('verification.notice');
+    Route::get('/verify-email/{id}/{hash}', VerifyEmailController::class)
         ->middleware(['signed', 'throttle:6,1'])
         ->name('verification.verify');
 
@@ -101,7 +95,6 @@ Route::middleware('guest')->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth')->group(function () {
-    // Fixed dashboard redirect
     Route::get('/dashboard', function () {
         $user = auth()->user();
         return match ($user->role_id) {
@@ -135,55 +128,22 @@ Route::middleware('auth')->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| Admin Routes - FIXED: No double prefix
-|--------------------------------------------------------------------------
-*/
-Route::middleware(['auth', RoleMiddleware::class . ':admin'])
-    ->prefix('admin')
-    ->name('admin.')
-    ->group(function () {
-        Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
-
-        Route::resource('hostels', HostelController::class);
-        Route::post('hostels/{hostel}/availability', [HostelController::class, 'updateAvailability'])->name('hostels.availability');
-
-        Route::resource('rooms', RoomController::class);
-        Route::get('rooms/availability', [RoomController::class, 'availability'])->name('rooms.availability');
-
-        Route::resource('students', AdminStudentController::class);
-
-        Route::resource('meals', MealController::class);
-
-        // ✅ Admin gallery routes - सही नामकरण
-        Route::resource('gallery', GalleryController::class)
-            ->names('gallery'); // 'admin.gallery' prefix अनुसार
-        Route::post('gallery/{gallery}/toggle-featured', [GalleryController::class, 'toggleFeatured'])->name('gallery.toggle-featured');
-        Route::post('gallery/{gallery}/toggle-status', [GalleryController::class, 'toggleActive'])->name('gallery.toggle-status');
-
-        Route::resource('contacts', AdminContactController::class)->only(['index', 'show', 'destroy']);
-
-        Route::resource('payments', PaymentController::class)->except(['create', 'store'])->names('admin.payments');
-        Route::post('payments/{payment}/status', [PaymentController::class, 'updateStatus'])->name('payments.update-status');
-    });
-
-/*
-|--------------------------------------------------------------------------
 | Hostel Manager Routes
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', RoleMiddleware::class . ':hostel_manager'])
+Route::middleware(['auth', 'role:hostel_manager'])
     ->prefix('hostel-manager')
     ->name('hostel.manager.')
     ->group(function () {
         Route::get('dashboard', fn() => view('hostel-manager.dashboard'))->name('dashboard');
 
-        Route::resource('hostels', HostelController::class)->only(['show', 'edit', 'update']);
-        Route::post('hostels/{hostel}/availability', [HostelController::class, 'updateAvailability'])->name('hostels.availability');
+        Route::resource('hostels', \App\Http\Controllers\Admin\HostelController::class)->only(['show', 'edit', 'update']);
+        Route::post('hostels/{hostel}/availability', [\App\Http\Controllers\Admin\HostelController::class, 'updateAvailability'])->name('hostels.availability');
 
-        Route::resource('rooms', RoomController::class);
-        Route::get('rooms/availability', [RoomController::class, 'availability'])->name('rooms.availability');
+        Route::resource('rooms', \App\Http\Controllers\Admin\RoomController::class);
+        Route::get('rooms/availability', [\App\Http\Controllers\Admin\RoomController::class, 'availability'])->name('rooms.availability');
 
-        Route::resource('students', AdminStudentController::class)->only(['index', 'show']);
+        Route::resource('students', \App\Http\Controllers\Admin\StudentController::class)->only(['index', 'show']);
     });
 
 /*
@@ -191,14 +151,14 @@ Route::middleware(['auth', RoleMiddleware::class . ':hostel_manager'])
 | Student Routes
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', RoleMiddleware::class . ':student'])
+Route::middleware(['auth', 'role:student'])
     ->prefix('student')
     ->name('student.')
     ->group(function () {
         Route::get('dashboard', fn() => view('student.dashboard'))->name('dashboard');
 
-        Route::get('hostels', [HostelController::class, 'index'])->name('hostels.index');
-        Route::get('hostels/{hostel}', [HostelController::class, 'show'])->name('hostels.show');
+        Route::get('hostels', [\App\Http\Controllers\Admin\HostelController::class, 'index'])->name('hostels.index');
+        Route::get('hostels/{hostel}', [\App\Http\Controllers\Admin\HostelController::class, 'show'])->name('hostels.show');
 
         Route::get('rooms', [PublicRoomController::class, 'index'])->name('rooms.index');
         Route::get('rooms/{room}', [PublicRoomController::class, 'show'])->name('rooms.show');
