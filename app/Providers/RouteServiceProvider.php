@@ -19,10 +19,13 @@ class RouteServiceProvider extends ServiceProvider
         $this->routes(function () {
             Route::middleware('web')
                 ->group(base_path('routes/web.php'));
-        });
 
-        // REMOVE THIS LINE COMPLETELY:
-        // Route::model('role', Role::class);
+            // ✅ सही कोड: केवल 'web' middleware लागू गर्ने
+            Route::middleware('web')
+                ->prefix('admin')
+                ->as('admin.')
+                ->group(base_path('routes/admin.php'));
+        });
     }
 
     protected function configureRateLimiting(): void

@@ -8,34 +8,42 @@ use App\Http\Controllers\Admin\RoomController;
 use App\Http\Controllers\Admin\StudentController;
 use Illuminate\Support\Facades\Route;
 
-// Admin routes with proper namespace, prefix, and middleware
+/*
+|--------------------------------------------------------------------------
+| Admin Routes
+|--------------------------------------------------------------------------
+| यो section मा सबै admin panel routes राखिएको छ।
+| RouteServiceProvider मा admin prefix पहिले नै define भएकाले 
+| यहाँ पुन: prefix('admin') राख्न आवश्यक छैन।
+|
+| Middleware: auth + role:admin
+| Name prefix: admin.
+*/
+
 Route::middleware(['auth', 'role:admin'])
-    ->prefix('admin')
-    ->name('admin.')
-    ->group(function () {
-        // Dashboard route (सबैभन्दा माथि हुनुपर्छ)
-        Route::get('/dashboard', [DashboardController::class, 'index'])
-             ->name('dashboard');
+     ->name('admin.')
+     ->group(function () {
 
-        // Student Management
-        Route::resource('students', StudentController::class);
+          // Dashboard
+          Route::get('dashboard', [DashboardController::class, 'index'])
+               ->name('dashboard'); // Route name: admin.dashboard
 
-        // Export route must come BEFORE resource route declaration
-        // BUT since we're using resource(), it's better to define it AFTER but with higher priority
-        Route::get('students/export', [StudentController::class, 'export'])
-             ->name('students.export')
-             ->middleware('permission:export-students');
+          // Students
+          Route::resource('students', StudentController::class);
+          Route::get('students/export', [StudentController::class, 'export'])
+               ->name('students.export')
+               ->middleware('permission:export-students');
 
-        // Room Management
-        Route::resource('rooms', RoomController::class);
+          // Rooms
+          Route::resource('rooms', RoomController::class);
 
-        // Meal Management
-        Route::resource('meals', MealController::class);
+          // Meals
+          Route::resource('meals', MealController::class);
 
-        // Gallery Management
-        Route::resource('gallery', GalleryController::class);
+          // Gallery
+          Route::resource('gallery', GalleryController::class);
 
-        // Contact Management
-        Route::resource('contacts', ContactController::class)
-             ->only(['index', 'show', 'destroy']);
-    });
+          // Contacts (Only index, show, and destroy)
+          Route::resource('contacts', ContactController::class)
+               ->only(['index', 'show', 'destroy']);
+     });

@@ -6,6 +6,11 @@ use Illuminate\Foundation\Http\Kernel as HttpKernel;
 
 class Kernel extends HttpKernel
 {
+    /**
+     * Global HTTP middleware stack.
+     *
+     * यी middleware हरू सबै request मा globally चल्छन्।
+     */
     protected $middleware = [
         \App\Http\Middleware\TrustProxies::class,
         \Illuminate\Http\Middleware\HandleCors::class,
@@ -15,6 +20,11 @@ class Kernel extends HttpKernel
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
     ];
 
+    /**
+     * Middleware groups.
+     *
+     * यी middleware हरू group अनुसार routes मा लाग्छन्।
+     */
     protected $middlewareGroups = [
         'web' => [
             \App\Http\Middleware\EncryptCookies::class,
@@ -24,8 +34,40 @@ class Kernel extends HttpKernel
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ],
+
+        'api' => [
+            \Illuminate\Routing\Middleware\ThrottleRequests::class . ':api',
+            \Illuminate\Routing\Middleware\SubstituteBindings::class,
+        ],
     ];
 
-    // COMPLETELY REMOVE MIDDLEWARE ALIASES
-    // We'll register the middleware directly in routes
-};
+    /**
+     * Route middleware aliases.
+     *
+     * यी middleware लाई route-level मा नामको आधारमा call गर्न सकिन्छ।
+     */
+    protected $middlewareAliases = [
+        'auth' => \App\Http\Middleware\Authenticate::class,
+        'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
+        'auth.session' => \Illuminate\Session\Middleware\AuthenticateSession::class,
+        'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class,
+        'can' => \Illuminate\Auth\Middleware\Authorize::class,
+        'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
+        'password.confirm' => \Illuminate\Auth\Middleware\RequirePassword::class,
+        'precognitive' => \Illuminate\Foundation\Http\Middleware\HandlePrecognitiveRequests::class,
+        'signed' => \App\Http\Middleware\ValidateSignature::class,
+        'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
+        'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
+
+        // ✅ Custom role middleware register
+        'role' => \App\Http\Middleware\RoleMiddleware::class,
+    ];
+
+    // ✅ Add this method to register middleware aliases
+    protected function registerMiddlewareAliases()
+    {
+        foreach ($this->middlewareAliases as $alias => $middleware) {
+            $this->router->aliasMiddleware($alias, $middleware);
+        }
+    }
+}
