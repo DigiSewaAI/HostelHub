@@ -51,8 +51,8 @@ Route::post('/booking/search', [PublicRoomController::class, 'search'])->name('b
 Route::get('/meals', [PublicMealController::class, 'publicIndex'])->name('meals');
 Route::get('/meals/menu', [PublicMealController::class, 'menu'])->name('meals.menu');
 
-// Gallery
-Route::get('/gallery', [PublicGalleryController::class, 'publicIndex'])->name('gallery.index');
+// Gallery - Updated to use 'gallery.public' name
+Route::get('/gallery', [PublicGalleryController::class, 'publicIndex'])->name('gallery.public');
 
 // Students
 Route::get('/students', [PublicStudentController::class, 'index'])->name('students');

@@ -1686,4 +1686,4 @@
         });
     </script>
 </body>
-</html>
+</html><?php /**PATH D:\My Projects\HostelHub\resources\views/public/home.blade.php ENDPATH**/ ?>

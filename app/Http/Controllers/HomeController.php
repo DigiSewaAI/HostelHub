@@ -36,86 +36,62 @@ class HomeController extends Controller
             return Room::distinct()->pluck('type');
         });
 
-        // Fetch and process gallery items with CORRECTED media handling
-        $galleryItems = Cache::remember('home_gallery_items', 3600, function () {
+        // Fetch 10 random active gallery items with optimized media handling
+        $galleryItems = Cache::remember('home_gallery_items_random', 3600, function () {
             return Gallery::where('is_active', true)
-                ->orderBy('created_at', 'desc')
-                ->take(6)
+                ->inRandomOrder()
+                ->take(10)
                 ->get()
                 ->map(function ($item) {
-                    // Handle Windows path formatting
-                    $absolutePath = storage_path('app/public/' . $item->file_path);
-                    $absolutePath = str_replace('/', DIRECTORY_SEPARATOR, $absolutePath);
-
-                    $processedItem = [
+                    $processed = [
                         'id' => $item->id,
                         'title' => $item->title,
-                        'category' => $item->category,
                         'media_type' => $item->media_type,
                         'description' => $item->description,
                         'is_featured' => $item->is_featured,
                         'created_at' => $item->created_at->format('M d, Y'),
-                        'external_link' => $item->external_link,
-                        'file_exists' => '❌ हुँदैन', // Default to not exists
-                        'absolute_path' => $absolutePath,
-                        'file_url' => '', // Default empty file URL
-                        'thumbnail_url' => ''
+                        'thumbnail_url' => '',
+                        'file_url' => '',
+                        'youtube_id' => null,
                     ];
 
-                    // Handle different media types with CORRECTED paths
+                    // Handle photo media
                     if ($item->media_type === 'photo') {
-                        // Check if file exists
-                        $fileExists = file_exists($absolutePath);
-                        $processedItem['file_exists'] = $fileExists ? '✅ हुन्छ' : '❌ हुँदैन';
-
-                        // Set file URL
-                        $processedItem['file_url'] = $fileExists
-                            ? asset('storage/' . $item->file_path)
-                            : '';
-
-                        // Set image URL (same as file URL for photos)
-                        $processedItem['image_url'] = $processedItem['file_url'];
-
-                        // Set thumbnail URL
-                        $processedItem['thumbnail_url'] = $item->thumbnail
+                        $processed['file_url'] = asset('storage/' . $item->file_path);
+                        $processed['thumbnail_url'] = $item->thumbnail
                             ? asset('storage/' . $item->thumbnail)
-                            : $processedItem['file_url'];
-                    } elseif ($item->media_type === 'local_video') {
-                        // Check if file exists
-                        $fileExists = file_exists($absolutePath);
-                        $processedItem['file_exists'] = $fileExists ? '✅ हुन्छ' : '❌ हुँदैन';
-
-                        // Set file URL
-                        $processedItem['file_url'] = $fileExists
-                            ? asset('storage/' . $item->file_path)
-                            : '';
-
-                        // Set video URL (same as file URL for local videos)
-                        $processedItem['video_url'] = $processedItem['file_url'];
-
-                        // Set thumbnail URL
-                        $processedItem['thumbnail_url'] = $item->thumbnail
+                            : $processed['file_url'];
+                    }
+                    // Handle local video media
+                    elseif ($item->media_type === 'local_video') {
+                        $processed['file_url'] = asset('storage/' . $item->file_path);
+                        $processed['thumbnail_url'] = $item->thumbnail
                             ? asset('storage/' . $item->thumbnail)
                             : asset('images/video-default.jpg');
-                    } elseif ($item->media_type === 'youtube') {
-                        // YouTube always "exists" (it's external)
-                        $processedItem['file_exists'] = '✅ हुन्छ (External)';
-
-                        // Get YouTube ID
+                    }
+                    // Handle external YouTube videos
+                    elseif ($item->media_type === 'external_video') {
                         $youtubeId = $this->getYoutubeIdFromUrl($item->external_link);
-                        $processedItem['youtube_id'] = $youtubeId;
+                        $processed['youtube_id'] = $youtubeId;
 
-                        // Set thumbnail URL (with fixed URL format - no extra space)
-                        $processedItem['thumbnail_url'] = $item->thumbnail
+                        $processed['thumbnail_url'] = $item->thumbnail
                             ? asset('storage/' . $item->thumbnail)
-                            : "https://img.youtube.com/vi/{$youtubeId}/mqdefault.jpg";
+                            : ($youtubeId
+                                ? "https://img.youtube.com/vi/{$youtubeId}/mqdefault.jpg"
+                                : asset('images/video-default.jpg'));
                     }
 
-                    return $processedItem;
+                    return $processed;
                 });
         });
 
-        return view('welcome', compact('cities', 'hostels', 'reviews', 'roomTypes', 'galleryItems'));
+        return view('welcome', compact(
+            'cities',
+            'hostels',
+            'reviews',
+            'roomTypes',
+            'galleryItems'
+        ));
     }
 
     /**
@@ -154,12 +130,8 @@ class HomeController extends Controller
      */
     private function getYoutubeIdFromUrl(string $url): ?string
     {
-        // Handle case where URL might be null or empty
-        if (empty($url)) {
-            return null;
-        }
+        if (empty($url)) return null;
 
-        // Comprehensive regex to handle all YouTube URL formats
         $pattern = '%^ (?:https?://)? (?:www\.)? (?: youtu\.be/ | youtube\.com (?: /embed/ | /v/ | /watch\?v= | /watch\?.+&v= ) ) ([\w-]{11}) $%x';
         preg_match($pattern, $url, $matches);
 
