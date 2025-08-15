@@ -8,17 +8,15 @@
         @csrf
         @method('PUT')
         
-        <div class="grid gap-6">
-            @include('admin.gallery._form')
-            
-            <div class="flex justify-end space-x-4">
-                <a href="{{ route('admin.gallery.index') }}" class="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded">
-                    Cancel
-                </a>
-                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
-                    Update Item
-                </button>
-            </div>
+        @include('admin.gallery._form')
+        
+        <div class="flex justify-end space-x-4 mt-6">
+            <a href="{{ route('admin.gallery.index') }}" class="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded">
+                Cancel
+            </a>
+            <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+                Update Item
+            </button>
         </div>
     </form>
 </div>

@@ -8,6 +8,7 @@ use App\Models\Meal;
 use App\Models\Room;
 use App\Models\Student;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\DB;
 
 class PublicController extends Controller
 {
@@ -19,24 +20,24 @@ class PublicController extends Controller
         // 1. Featured Rooms (Available rooms with at least one vacancy)
         $featuredRooms = Room::where('status', 'available')
             ->withCount('students')
-            ->having('students_count', '<', \DB::raw('capacity'))
+            ->having('students_count', '<', DB::raw('capacity'))
             ->orderBy('price')
             ->limit(3)
             ->get();
 
         // 2. System Metrics
         $metrics = [
-            'total_hostels' => Hostel::count(),
-            'total_students' => Student::where('status', 'active')->count(),
-            'total_rooms' => Room::count(),
-            'available_rooms' => Room::where('status', 'available')->count(),
-            'occupancy_rate' => $this->getOccupancyRate(),
+            'total_hostels'     => Hostel::count(),
+            'total_students'    => Student::where('status', 'active')->count(),
+            'total_rooms'       => Room::count(),
+            'available_rooms'   => Room::where('status', 'available')->count(),
+            'occupancy_rate'    => $this->getOccupancyRate(),
         ];
 
-        // 3. Featured Gallery Images (Only featured items)
-        $galleries = collect();
-        if (class_exists(\App\Models\Gallery::class)) {
-            $galleries = Gallery::where('category', 'featured')
+        // 3. Featured Gallery Items
+        $galleryItems = collect();
+        if (class_exists(Gallery::class)) {
+            $galleryItems = Gallery::where('category', 'featured')
                 ->orderBy('created_at', 'desc')
                 ->take(6)
                 ->get();
@@ -44,7 +45,7 @@ class PublicController extends Controller
 
         // 4. Recent Meals (Today + next 2 days)
         $meals = collect();
-        if (class_exists(\App\Models\Meal::class)) {
+        if (class_exists(Meal::class)) {
             $meals = Meal::whereDate('date', '>=', now()->format('Y-m-d'))
                 ->orderBy('date')
                 ->limit(3)
@@ -54,7 +55,7 @@ class PublicController extends Controller
         return view('public.home', compact(
             'featuredRooms',
             'metrics',
-            'galleries',
+            'galleryItems', // fixed name
             'meals'
         ));
     }

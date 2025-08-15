@@ -10,16 +10,11 @@ class Gallery extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
     protected $fillable = [
         'title',
         'description',
         'category',
-        'type',
+        'media_type',
         'file_path',
         'thumbnail',
         'external_link',
@@ -28,49 +23,56 @@ class Gallery extends Model
         'user_id'
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array
-     */
     protected $casts = [
         'is_featured' => 'boolean',
         'is_active' => 'boolean',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime'
     ];
 
-    /**
-     * Get the user who uploaded this gallery item.
-     */
     public function user(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\User::class);
+        return $this->belongsTo(User::class);
     }
 
-    /**
-     * Get the display URL for the gallery item.
-     */
     public function getUrlAttribute(): string
     {
-        if ($this->type === 'youtube') {
+        if ($this->media_type === 'external_video' && $this->external_link) {
             return $this->external_link;
         }
 
-        return $this->file_path
-            ? asset('storage/' . $this->file_path)
-            : asset('images/default-gallery.jpg');
+        if ($this->file_path) {
+            return asset('storage/' . ltrim($this->file_path, '/'));
+        }
+
+        return asset('images/default-gallery.jpg');
     }
 
-    /**
-     * Get the thumbnail URL for the gallery item.
-     */
     public function getThumbnailUrlAttribute(): string
     {
-        return $this->thumbnail
-            ? asset('storage/' . $this->thumbnail)
-            : ($this->type === 'youtube'
-                ? 'https://img.youtube.com/vi/' . getYoutubeId($this->external_link) . '/mqdefault.jpg'
-                : asset('images/default-thumbnail.jpg'));
+        if ($this->thumbnail) {
+            return asset('storage/' . ltrim($this->thumbnail, '/'));
+        }
+
+        if ($this->media_type === 'external_video' && $this->external_link) {
+            $youtubeId = $this->getYoutubeId($this->external_link);
+            if ($youtubeId) {
+                return 'https://img.youtube.com/vi/' . $youtubeId . '/mqdefault.jpg';
+            }
+            return asset('images/video-thumbnail.jpg');
+        }
+
+        if ($this->media_type === 'local_video') {
+            return asset('images/video-thumbnail.jpg');
+        }
+
+        return asset('images/default-thumbnail.jpg');
+    }
+
+    public function getYoutubeId($url): ?string
+    {
+        if (empty($url)) return null;
+
+        $pattern = '/(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/';
+        preg_match($pattern, $url, $matches);
+        return $matches[1] ?? null;
     }
 }

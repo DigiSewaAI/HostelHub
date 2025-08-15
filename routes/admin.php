@@ -42,6 +42,11 @@ Route::middleware(['auth', 'role:admin'])
 
           // Gallery
           Route::resource('gallery', GalleryController::class);
+          // Toggle featured and status actions for gallery
+          Route::put('gallery/{gallery}/toggle-featured', [GalleryController::class, 'toggleFeatured'])
+               ->name('gallery.toggle-featured');
+          Route::put('gallery/{gallery}/toggle-status', [GalleryController::class, 'toggleActive'])
+               ->name('gallery.toggle-status');
 
           // Contacts (Only index, show, and destroy)
           Route::resource('contacts', ContactController::class)
