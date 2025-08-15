@@ -1372,88 +1372,62 @@
             </div>
         </section>
 
-        <!-- Gallery -->
-        <section class="section gallery" id="gallery">
-            <div class="container">
-                <h2 class="section-title nepali">हाम्रा होस्टलहरूको ग्यालरी</h2>
-                <p class="section-subtitle nepali">हाम्रा विभिन्न होस्टलहरूको कोठा र सुविधाहरूको झलक</p>
+<!-- gallery section -->
+<section class="section gallery" id="gallery">
+    <div class="container">
+        <h2 class="section-title nepali">हाम्रा होस्टलहरूको ग्यालरी</h2>
+        <p class="section-subtitle nepali">हाम्रा विभिन्न होस्टलहरूको कोठा र सुविधाहरूको झलक</p>
 
-                <!-- Gallery Filter Buttons with updated room types -->
-                <div class="flex gap-3 mb-5 justify-center flex-wrap">
-                    @foreach(['all' => 'सबै', '1-seater' => '१ सिटर', '2-seater' => '२ सिटर', '3-seater' => '३ सिटर', '4-seater' => '४ सिटर'] as $key => $label)
-                        <button class="filter-btn {{ ($activeFilter ?? 'all') === $key ? 'active' : '' }} nepali" data-filter="{{ $key }}">
-                            {{ $label }}
-                        </button>
-                    @endforeach
-                </div>
-
-                <!-- Gallery Grid with fallback images -->
-                <div class="gallery-grid">
-                    @if(isset($galleryImages) && count($galleryImages) > 0)
-                        @foreach($galleryImages as $image)
-                            <div class="gallery-item" data-type="{{ $image->type ?? 'all' }}">
-                                <img src="{{ asset('storage/' . ($image->path ?? 'default.jpg')) }}"
-                                     alt="{{ $image->title ?? 'होस्टल कोठा' }}"
-                                     class="w-full h-full object-cover lazy"
-                                     loading="lazy">
-                                <div class="gallery-overlay"></div>
-                                <div class="gallery-caption nepali">{{ $image->title ?? 'होस्टल कोठा' }}</div>
+        <div class="gallery-grid">
+            @forelse($galleryItems as $item)
+                <div class="gallery-item">
+                    @if($item['media_type'] === 'photo' && !empty($item['image_url']))
+                        <img src="{{ $item['image_url'] }}" 
+                             alt="{{ $item['title'] }}"
+                             class="w-full h-full object-cover">
+                    
+                    @elseif($item['media_type'] === 'video' && !empty($item['thumbnail_url']))
+                        <img src="{{ $item['thumbnail_url'] }}" 
+                             alt="{{ $item['title'] }}"
+                             class="w-full h-full object-cover">
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="bg-red-600 w-16 h-16 rounded-full flex items-center justify-center shadow-lg">
+                                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                                </svg>
                             </div>
-                        @endforeach
-                    @else
-                        <!-- Fallback hardcoded images -->
-                        <div class="gallery-item" data-type="1-seater">
-                            <img src="https://images.unsplash.com/photo-1554995207-c18c203602cb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
-                                 alt="१ सिटर कोठा"
-                                 class="w-full h-full object-cover lazy"
-                                 loading="lazy">
-                            <div class="gallery-overlay"></div>
-                            <div class="gallery-caption nepali">१ सिटर कोठा</div>
                         </div>
-                        <div class="gallery-item" data-type="2-seater">
-                            <img src="https://images.unsplash.com/photo-1584622650111-993a426fbf0a?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
-                                 alt="२ सिटर कोठा"
-                                 class="w-full h-full object-cover lazy"
-                                 loading="lazy">
-                            <div class="gallery-overlay"></div>
-                            <div class="gallery-caption nepali">२ सिटर कोठा</div>
-                        </div>
-                        <div class="gallery-item" data-type="3-seater">
-                            <img src="https://images.unsplash.com/photo-1540518614846-7eded433c457?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
-                                 alt="३ सिटर कोठा"
-                                 class="w-full h-full object-cover lazy"
-                                 loading="lazy">
-                            <div class="gallery-overlay"></div>
-                            <div class="gallery-caption nepali">३ सिटर कोठा</div>
-                        </div>
-                        <div class="gallery-item" data-type="4-seater">
-                            <img src="https://images.unsplash.com/photo-1513694203232-719a280e022f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
-                                 alt="४ सिटर कोठा"
-                                 class="w-full h-full object-cover lazy"
-                                 loading="lazy">
-                            <div class="gallery-overlay"></div>
-                            <div class="gallery-caption nepali">४ सिटर कोठा</div>
-                        </div>
-                        <div class="gallery-item" data-type="common">
-                            <img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
-                                 alt="लिभिङ रूम"
-                                 class="w-full h-full object-cover lazy"
-                                 loading="lazy">
-                            <div class="gallery-overlay"></div>
-                            <div class="gallery-caption nepali">लिभिङ रूम</div>
-                        </div>
-                        <div class="gallery-item" data-type="common">
-                            <img src="https://images.unsplash.com/photo-1584036561566-baf9516e802f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
-                                 alt="बाथरूम"
-                                 class="w-full h-full object-cover lazy"
-                                 loading="lazy">
-                            <div class="gallery-overlay"></div>
-                            <div class="gallery-caption nepali">बाथरूम</div>
+
+                    @elseif($item['media_type'] === 'youtube' && !empty($item['thumbnail_url']))
+                        <img src="{{ $item['thumbnail_url'] }}" 
+                             alt="{{ $item['title'] }}"
+                             class="w-full h-full object-cover">
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="bg-red-600 w-16 h-16 rounded-full flex items-center justify-center shadow-lg">
+                                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                                </svg>
+                            </div>
                         </div>
                     @endif
+
+                    <div class="gallery-caption nepali">{{ $item['title'] }}</div>
                 </div>
-            </div>
-        </section>
+            @empty
+                <div class="col-span-full text-center py-16 bg-white rounded-2xl">
+                    <div class="inline-block p-4 bg-indigo-100 rounded-full mb-4">
+                        <svg class="h-12 w-12 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-2">ग्यालरीमा कुनै आइटम छैन</h3>
+                    <p class="text-gray-600 max-w-md mx-auto">कृपया पछि फर्कनुहोस्</p>
+                </div>
+            @endforelse
+        </div>
+    </div>
+</section>
+
 
         <!-- Testimonials -->
         <section class="section testimonials" id="testimonials">

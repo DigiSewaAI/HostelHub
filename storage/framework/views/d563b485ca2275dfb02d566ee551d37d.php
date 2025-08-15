@@ -1,8 +1,6 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'होस्टल ग्यालरी - HostelHub'); ?>
 
-@section('title', 'होस्टल ग्यालरी - HostelHub')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="min-h-screen bg-gray-50">
     <!-- Hero Section -->
     <section class="bg-indigo-700 text-white py-16">
@@ -67,8 +65,8 @@
     <section class="py-16">
         <div class="container mx-auto px-4">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                @forelse($galleryItems as $item)
-                    @php
+                <?php $__empty_1 = true; $__currentLoopData = $galleryItems; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                    <?php
                         // Map database category values to filter values
                         $categoryMap = [
                             '1 seater' => 'single',
@@ -104,31 +102,19 @@
                             'video' => ['bg' => 'bg-red-500', 'text' => 'text-red-500', 'hover' => 'hover:bg-red-600']
                         ];
                         $colors = $categoryColors[$item['category']] ?? ['bg' => 'bg-gray-500', 'text' => 'text-gray-500', 'hover' => 'hover:bg-gray-600'];
-                    @endphp
+                    ?>
 
                     <div class="gallery-item bg-white rounded-2xl overflow-hidden shadow-lg transition-all duration-300 hover:shadow-2xl"
-                         data-category="{{ $filterCategory }}">
+                         data-category="<?php echo e($filterCategory); ?>">
                         <div class="relative group">
-                            @if($item['file_exists'] === '✅ हुन्छ')
-                                @if($item['media_type'] === 'photo')
-                                    <img src="{{ $item['file_url'] }}" 
-                                         alt="{{ $item['title'] }}"
+                            <?php if($item['file_exists'] === '✅ हुन्छ'): ?>
+                                <?php if($item['media_type'] === 'photo'): ?>
+                                    <img src="<?php echo e($item['file_url']); ?>" 
+                                         alt="<?php echo e($item['title']); ?>"
                                          class="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-105">
-                                @elseif($item['media_type'] === 'local_video')
-                                    <img src="{{ $item['thumbnail_url'] }}" 
-                                         alt="{{ $item['title'] }}"
-                                         class="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-105">
-                                    <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <div class="bg-red-600 w-16 h-16 rounded-full flex items-center justify-center shadow-lg">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                        </div>
-                                    </div>
-                                @elseif($item['media_type'] === 'youtube')
-                                    <img src="{{ $item['thumbnail_url'] }}" 
-                                         alt="{{ $item['title'] }}"
+                                <?php elseif($item['media_type'] === 'local_video'): ?>
+                                    <img src="<?php echo e($item['thumbnail_url']); ?>" 
+                                         alt="<?php echo e($item['title']); ?>"
                                          class="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-105">
                                     <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                         <div class="bg-red-600 w-16 h-16 rounded-full flex items-center justify-center shadow-lg">
@@ -138,48 +124,60 @@
                                             </svg>
                                         </div>
                                     </div>
-                                @endif
-                            @else
+                                <?php elseif($item['media_type'] === 'youtube'): ?>
+                                    <img src="<?php echo e($item['thumbnail_url']); ?>" 
+                                         alt="<?php echo e($item['title']); ?>"
+                                         class="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-105">
+                                    <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div class="bg-red-600 w-16 h-16 rounded-full flex items-center justify-center shadow-lg">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
+                            <?php else: ?>
                                 <div class="w-full h-64 bg-gray-200 flex items-center justify-center">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                     </svg>
                                 </div>
-                            @endif
+                            <?php endif; ?>
                             
                             <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                             <div class="absolute bottom-4 left-4">
-                                <span class="text-white px-3 py-1 rounded-full text-sm font-medium {{ $colors['bg'] }}">{{ $categoryLabel }}</span>
-                                <h3 class="text-xl font-bold text-white mt-2">{{ $item['title'] }}</h3>
+                                <span class="text-white px-3 py-1 rounded-full text-sm font-medium <?php echo e($colors['bg']); ?>"><?php echo e($categoryLabel); ?></span>
+                                <h3 class="text-xl font-bold text-white mt-2"><?php echo e($item['title']); ?></h3>
                             </div>
                         </div>
                         <div class="p-5">
-                            <p class="text-gray-600 mb-4">{{ $item['description'] }}</p>
+                            <p class="text-gray-600 mb-4"><?php echo e($item['description']); ?></p>
                             <div class="flex justify-between items-center">
-                                <span class="font-semibold {{ $colors['text'] }}">{{ $item['created_at'] }}</span>
-                                @if($item['media_type'] === 'photo')
+                                <span class="font-semibold <?php echo e($colors['text']); ?>"><?php echo e($item['created_at']); ?></span>
+                                <?php if($item['media_type'] === 'photo'): ?>
                                     <button class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg transition-colors view-photo-btn"
-                                            data-photo="{{ $item['file_url'] }}"
-                                            data-title="{{ $item['title'] }}">
+                                            data-photo="<?php echo e($item['file_url']); ?>"
+                                            data-title="<?php echo e($item['title']); ?>">
                                         हेर्नुहोस्
                                     </button>
-                                @elseif($item['media_type'] === 'local_video')
+                                <?php elseif($item['media_type'] === 'local_video'): ?>
                                     <button class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors play-video-btn"
-                                            data-video="{{ $item['file_url'] }}"
-                                            data-title="{{ $item['title'] }}">
+                                            data-video="<?php echo e($item['file_url']); ?>"
+                                            data-title="<?php echo e($item['title']); ?>">
                                         हेर्नुहोस्
                                     </button>
-                                @elseif($item['media_type'] === 'youtube')
+                                <?php elseif($item['media_type'] === 'youtube'): ?>
                                     <button class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors play-youtube-btn"
-                                            data-youtube-id="{{ $item['youtube_id'] }}"
-                                            data-title="{{ $item['title'] }}">
+                                            data-youtube-id="<?php echo e($item['youtube_id']); ?>"
+                                            data-title="<?php echo e($item['title']); ?>">
                                         हेर्नुहोस्
                                     </button>
-                                @endif
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
-                @empty
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                     <div class="col-span-full text-center py-16 bg-white rounded-2xl">
                         <div class="inline-block p-4 bg-indigo-100 rounded-full mb-4">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -192,7 +190,7 @@
                             सबै फोटो हेर्नुहोस्
                         </button>
                     </div>
-                @endforelse
+                <?php endif; ?>
             </div>
 
             <!-- Empty State -->
@@ -216,19 +214,19 @@
         <div class="container mx-auto px-4">
             <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
                 <div class="p-6 bg-indigo-50 rounded-xl">
-                    <div class="text-4xl font-bold text-indigo-600 mb-2">{{ $stats['total_students'] }}+</div>
+                    <div class="text-4xl font-bold text-indigo-600 mb-2"><?php echo e($stats['total_students']); ?>+</div>
                     <div class="text-gray-600 font-medium">खुसी विद्यार्थीहरू</div>
                 </div>
                 <div class="p-6 bg-purple-50 rounded-xl">
-                    <div class="text-4xl font-bold text-purple-600 mb-2">{{ $stats['total_hostels'] }}</div>
+                    <div class="text-4xl font-bold text-purple-600 mb-2"><?php echo e($stats['total_hostels']); ?></div>
                     <div class="text-gray-600 font-medium">सहयोगी होस्टल</div>
                 </div>
                 <div class="p-6 bg-amber-50 rounded-xl">
-                    <div class="text-4xl font-bold text-amber-600 mb-2">{{ $stats['cities_available'] }}</div>
+                    <div class="text-4xl font-bold text-amber-600 mb-2"><?php echo e($stats['cities_available']); ?></div>
                     <div class="text-gray-600 font-medium">शहरहरूमा उपलब्ध</div>
                 </div>
                 <div class="p-6 bg-emerald-50 rounded-xl">
-                    <div class="text-4xl font-bold text-emerald-600 mb-2">{{ $stats['satisfaction_rate'] }}</div>
+                    <div class="text-4xl font-bold text-emerald-600 mb-2"><?php echo e($stats['satisfaction_rate']); ?></div>
                     <div class="text-gray-600 font-medium">सन्तुष्टि दर</div>
                 </div>
             </div>
@@ -313,7 +311,7 @@
     </div>
 </div>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const filterBtns = document.querySelectorAll('.filter-btn');
@@ -534,9 +532,9 @@
         });
     });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@push('styles')
+<?php $__env->startPush('styles'); ?>
 <style>
     .gallery-item {
         transform: translateY(20px);
@@ -568,5 +566,6 @@
         to { opacity: 1; }
     }
 </style>
-@endpush
-@endsection
+<?php $__env->stopPush(); ?>
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\My Projects\HostelHub\resources\views/gallery.blade.php ENDPATH**/ ?>

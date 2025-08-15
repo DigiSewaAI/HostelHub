@@ -5,17 +5,15 @@
     <form action="<?php echo e(route('admin.gallery.store')); ?>" method="POST" enctype="multipart/form-data" class="max-w-3xl">
         <?php echo csrf_field(); ?>
         
-        <div class="grid gap-6">
-            <?php echo $__env->make('admin.gallery._form', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
-            
-            <div class="flex justify-end space-x-4">
-                <a href="<?php echo e(route('admin.gallery.index')); ?>" class="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded">
-                    Cancel
-                </a>
-                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
-                    Save Item
-                </button>
-            </div>
+        <?php echo $__env->make('admin.gallery._form', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+        
+        <div class="flex justify-end space-x-4 mt-6">
+            <a href="<?php echo e(route('admin.gallery.index')); ?>" class="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded">
+                Cancel
+            </a>
+            <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+                Save Item
+            </button>
         </div>
     </form>
 </div>
