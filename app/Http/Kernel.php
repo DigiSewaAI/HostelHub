@@ -61,6 +61,11 @@ class Kernel extends HttpKernel
 
         // ✅ Custom role middleware register
         'role' => \App\Http\Middleware\RoleMiddleware::class,
+
+        // ✅ Custom organization and subscription middleware
+        'EnsureOrgContext' => \App\Http\Middleware\EnsureOrgContext::class,
+        'EnsureSubscriptionActive' => \App\Http\Middleware\EnsureSubscriptionActive::class,
+        'EnforcePlanLimits' => \App\Http\Middleware\EnforcePlanLimits::class,
     ];
 
     // ✅ Add this method to register middleware aliases
