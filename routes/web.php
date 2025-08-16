@@ -45,7 +45,17 @@ Route::get('/about', [PublicController::class, 'about'])->name('about');
 Route::get('/features', [PublicController::class, 'features'])->name('features');
 Route::get('/how-it-works', [PublicController::class, 'howItWorks'])->name('how-it-works');
 Route::get('/pricing', [PricingController::class, 'index'])->name('pricing');
+Route::get('/gallery', [PublicGalleryController::class, 'publicIndex'])->name('gallery.public');
 Route::get('/reviews', [PublicController::class, 'reviews'])->name('reviews');
+
+// SEO pages
+Route::get('/privacy-policy', [PublicController::class, 'privacy'])->name('privacy');
+Route::get('/terms', [PublicController::class, 'terms'])->name('terms');
+Route::get('/cookies', [PublicController::class, 'cookies'])->name('cookies');
+
+// Sitemap/robots
+Route::get('/sitemap.xml', [PublicController::class, 'sitemap'])->name('sitemap');
+Route::get('/robots.txt', [PublicController::class, 'robots'])->name('robots');
 
 // Organization registration (for hostel managers)
 Route::get('/register/organization', [RegistrationController::class, 'showOrganizationForm'])->name('register.organization');
@@ -64,9 +74,6 @@ Route::post('/booking/search', [PublicRoomController::class, 'search'])->name('b
 // Meals
 Route::get('/meals', [PublicMealController::class, 'publicIndex'])->name('meals');
 Route::get('/meals/menu', [PublicMealController::class, 'menu'])->name('meals.menu');
-
-// Gallery
-Route::get('/gallery', [PublicGalleryController::class, 'publicIndex'])->name('gallery.public');
 
 // Students
 Route::get('/students', [PublicStudentController::class, 'index'])->name('students');
@@ -109,6 +116,7 @@ Route::middleware(['auth', 'EnsureOrgContext'])->group(function () {
     // Subscription management routes
     Route::get('/subscription', [SubscriptionController::class, 'show'])->name('subscription.show');
     Route::post('/subscription/upgrade', [SubscriptionController::class, 'upgrade'])->name('subscription.upgrade');
+    Route::post('/subscription/start-trial', [SubscriptionController::class, 'startTrial'])->name('subscription.start-trial');
 
     // Routes requiring active subscription
     Route::middleware(['EnsureSubscriptionActive'])->group(function () {
@@ -170,7 +178,6 @@ Route::middleware(['auth', 'EnsureOrgContext', 'EnsureSubscriptionActive', 'role
     ->name('admin.')
     ->group(function () {
         Route::get('dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
-        // Additional admin routes...
     });
 
 /*

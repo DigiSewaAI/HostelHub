@@ -6,20 +6,21 @@ use App\Http\Requests\ContactRequest;
 use App\Mail\ContactFormSubmitted;
 use App\Models\Contact;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
-class ContactController extends Controller
+class PublicContactController extends Controller
 {
     /**
-     * Show the contact form.
+     * Contact form प्रदर्शन गर्ने
      */
     public function index(): \Illuminate\View\View
     {
-        return view('contact.index');
+        return view('contact');
     }
 
     /**
-     * Store a newly submitted contact message.
+     * Submit गरिएको contact message सुरक्षित गर्ने
      */
     public function store(ContactRequest $request): RedirectResponse
     {
@@ -28,14 +29,17 @@ class ContactController extends Controller
 
         // 2. एडमिनलाई इमेल पठाउने
         try {
-            Mail::to(config('mail.admin_address'))->send(
-                new ContactFormSubmitted($request->validated())
+            // config/mail.php मा परिभाषित admin_address प्रयोग गर्दै
+            $adminEmail = config('mail.admin_address', 'info@hostelhub.com');
+
+            Mail::to($adminEmail)->send(
+                new ContactFormSubmitted($contact)
             );
         } catch (\Exception $e) {
-            \Log::error('Email failed to send: ' . $e->getMessage());
+            Log::error('Contact form email failed to send: ' . $e->getMessage());
             // Email नपठाउन सके पनि contact सुरक्षित हुन्छ
         }
 
-        return back()->with('success', 'तपाईंको सन्देश सफलतापूर्वक पठाइयो!');
+        return back()->with('success', 'धन्यवाद! हामी चाँडै सम्पर्क गर्छौं।');
     }
 }
