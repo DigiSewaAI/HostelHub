@@ -7,8 +7,10 @@ use App\Models\Hostel;
 use App\Models\Meal;
 use App\Models\Room;
 use App\Models\Student;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Response;
 
 class PublicController extends Controller
 {
@@ -38,15 +40,15 @@ class PublicController extends Controller
         $galleryItems = collect();
         if (class_exists(Gallery::class)) {
             $galleryItems = Gallery::where('category', 'featured')
-                ->orderBy('created_at', 'desc')
+                ->latest()
                 ->take(6)
                 ->get();
         }
 
-        // 4. Recent Meals (Today + next 2 days)
+        // 4. Upcoming Meals (Today + next 2 days)
         $meals = collect();
         if (class_exists(Meal::class)) {
-            $meals = Meal::whereDate('date', '>=', now()->format('Y-m-d'))
+            $meals = Meal::whereDate('date', '>=', now())
                 ->orderBy('date')
                 ->limit(3)
                 ->get();
@@ -55,7 +57,7 @@ class PublicController extends Controller
         return view('public.home', compact(
             'featuredRooms',
             'metrics',
-            'galleryItems', // fixed name
+            'galleryItems',
             'meals'
         ));
     }
@@ -68,10 +70,61 @@ class PublicController extends Controller
         $totalRooms = Room::count();
         $occupiedRooms = Room::where('status', 'occupied')->count();
 
-        if ($totalRooms > 0) {
-            return round(($occupiedRooms / $totalRooms) * 100, 2);
-        }
+        return $totalRooms > 0
+            ? round(($occupiedRooms / $totalRooms) * 100, 2)
+            : 0.0;
+    }
 
-        return 0.0;
+    // Basic page routes
+    public function about(): View
+    {
+        return view('about');
+    }
+    public function features(): View
+    {
+        return view('features');
+    }
+    public function howItWorks(): View
+    {
+        return view('how-it-works');
+    }
+    public function pricing(): View
+    {
+        return view('pricing.index');
+    }
+    public function reviews(): View
+    {
+        return view('reviews');
+    }
+    public function contact(): View
+    {
+        return view('contact');
+    }
+
+    // Legal pages
+    public function privacy(): View
+    {
+        return view('legal.privacy');
+    }
+    public function terms(): View
+    {
+        return view('legal.terms');
+    }
+    public function cookies(): View
+    {
+        return view('legal.cookies');
+    }
+
+    // SEO routes
+    public function sitemap()
+    {
+        $content = view('seo.sitemap')->render();
+        return Response::make($content, 200, ['Content-Type' => 'application/xml']);
+    }
+
+    public function robots()
+    {
+        $content = view('seo.robots')->render();
+        return Response::make($content, 200, ['Content-Type' => 'text/plain']);
     }
 }

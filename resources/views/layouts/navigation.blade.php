@@ -5,18 +5,34 @@
             <div class="flex">
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
-                    <a href="{{ Auth::check() ? route('dashboard') : '/' }}">
+                    <a href="{{ Auth::check() ? route('dashboard') : route('home') }}">
                         <x-application-logo class="block h-9 w-auto fill-current text-gray-800" />
                     </a>
                 </div>
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    @auth
+                    @guest
+                        <x-nav-link :href="route('features')" :active="request()->routeIs('features')">
+                            {{ __('सुविधाहरू') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('how-it-works')" :active="request()->routeIs('how-it-works')">
+                            {{ __('कसरी काम गर्छ') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('pricing')" :active="request()->routeIs('pricing')">
+                            {{ __('मूल्य') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('gallery.public')" :active="request()->routeIs('gallery.public')">
+                            {{ __('ग्यालरी') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('reviews')" :active="request()->routeIs('reviews')">
+                            {{ __('समीक्षाहरू') }}
+                        </x-nav-link>
+                    @else
                         <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                             {{ __('Dashboard') }}
                         </x-nav-link>
-                    @endauth
+                    @endguest
                 </div>
             </div>
 
@@ -24,11 +40,11 @@
             <div class="hidden sm:flex sm:items-center sm:ms-6">
                 @guest
                     <a href="{{ route('login') }}" class="text-sm text-gray-700 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                        {{ __('Login') }}
+                        {{ __('लगइन') }}
                     </a>
                     @if (Route::has('register'))
                         <a href="{{ route('register') }}" class="ml-4 text-sm text-gray-700 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                            {{ __('Sign Up') }}
+                            {{ __('साइन अप') }}
                         </a>
                     @endif
                 @else
@@ -48,7 +64,7 @@
 
                         <x-slot name="content">
                             <x-dropdown-link :href="route('profile.edit')">
-                                {{ __('Profile') }}
+                                {{ __('प्रोफाइल') }}
                             </x-dropdown-link>
 
                             <!-- Authentication -->
@@ -58,7 +74,7 @@
                                 <x-dropdown-link :href="route('logout')"
                                         onclick="event.preventDefault();
                                                     this.closest('form').submit();">
-                                    {{ __('Log Out') }}
+                                    {{ __('लगआउट') }}
                                 </x-dropdown-link>
                             </form>
                         </x-slot>
@@ -82,12 +98,27 @@
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         @guest
             <div class="pt-2 pb-3 space-y-1">
+                <x-responsive-nav-link :href="route('features')" :active="request()->routeIs('features')">
+                    {{ __('सुविधाहरू') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('how-it-works')" :active="request()->routeIs('how-it-works')">
+                    {{ __('कसरी काम गर्छ') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('pricing')" :active="request()->routeIs('pricing')">
+                    {{ __('मूल्य') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('gallery.public')" :active="request()->routeIs('gallery.public')">
+                    {{ __('ग्यालरी') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('reviews')" :active="request()->routeIs('reviews')">
+                    {{ __('समीक्षाहरू') }}
+                </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('login')" :active="request()->routeIs('login')">
-                    {{ __('Login') }}
+                    {{ __('लगइन') }}
                 </x-responsive-nav-link>
                 @if (Route::has('register'))
                     <x-responsive-nav-link :href="route('register')" :active="request()->routeIs('register')">
-                        {{ __('Sign Up') }}
+                        {{ __('साइन अप') }}
                     </x-responsive-nav-link>
                 @endif
             </div>
@@ -107,7 +138,7 @@
 
                 <div class="mt-3 space-y-1">
                     <x-responsive-nav-link :href="route('profile.edit')">
-                        {{ __('Profile') }}
+                        {{ __('प्रोफाइल') }}
                     </x-responsive-nav-link>
 
                     <!-- Authentication -->
@@ -117,7 +148,7 @@
                         <x-responsive-nav-link :href="route('logout')"
                                 onclick="event.preventDefault();
                                             this.closest('form').submit();">
-                            {{ __('Log Out') }}
+                            {{ __('लगआउट') }}
                         </x-responsive-nav-link>
                     </form>
                 </div>

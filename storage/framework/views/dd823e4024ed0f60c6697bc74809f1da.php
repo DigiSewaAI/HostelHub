@@ -39,23 +39,23 @@
             <div class="flex justify-between items-center h-20">
                 <!-- Logo -->
                 <div class="flex-shrink-0 flex items-center">
-                    <a href="{{ route('home') }}" class="text-2xl font-bold text-indigo-600">HostelHub</a>
+                    <a href="<?php echo e(route('home')); ?>" class="text-2xl font-bold text-indigo-600">HostelHub</a>
                 </div>
 
                 <!-- Desktop Navigation - Fixed with all links -->
                 <nav class="hidden md:flex gap-2">
-                    <a href="{{ route('home') }}" class="nav-button text-gray-700 hover:bg-indigo-100">होम</a>
-                    <a href="{{ route('features') }}" class="nav-button text-gray-700 hover:bg-indigo-100">सुविधाहरू</a>
-                    <a href="{{ route('how-it-works') }}" class="nav-button text-gray-700 hover:bg-indigo-100">कसरी काम गर्छ</a>
-                    <a href="{{ route('pricing') }}" class="nav-button active-nav">मूल्य</a>
-                    <a href="{{ route('gallery.public') }}" class="nav-button text-gray-700 hover:bg-indigo-100">ग्यालरी</a>
-                    <a href="{{ route('reviews') }}" class="nav-button text-gray-700 hover:bg-indigo-100">समीक्षाहरू</a>
+                    <a href="<?php echo e(route('home')); ?>" class="nav-button text-gray-700 hover:bg-indigo-100">होम</a>
+                    <a href="<?php echo e(route('features')); ?>" class="nav-button text-gray-700 hover:bg-indigo-100">सुविधाहरू</a>
+                    <a href="<?php echo e(route('how-it-works')); ?>" class="nav-button text-gray-700 hover:bg-indigo-100">कसरी काम गर्छ</a>
+                    <a href="<?php echo e(route('pricing')); ?>" class="nav-button active-nav">मूल्य</a>
+                    <a href="<?php echo e(route('gallery.public')); ?>" class="nav-button text-gray-700 hover:bg-indigo-100">ग्यालरी</a>
+                    <a href="<?php echo e(route('reviews')); ?>" class="nav-button text-gray-700 hover:bg-indigo-100">समीक्षाहरू</a>
                 </nav>
 
                 <!-- Login/Signup Buttons -->
                 <div class="hidden md:flex items-center gap-3">
-                    <a href="{{ route('login') }}" class="nav-button text-indigo-600 border border-indigo-600 hover:bg-indigo-50">लगइन</a>
-                    <a href="{{ route('register.organization') }}" class="nav-button bg-indigo-600 text-white hover:bg-indigo-700">साइन अप</a>
+                    <a href="<?php echo e(route('login')); ?>" class="nav-button text-indigo-600 border border-indigo-600 hover:bg-indigo-50">लगइन</a>
+                    <a href="<?php echo e(route('register.organization')); ?>" class="nav-button bg-indigo-600 text-white hover:bg-indigo-700">साइन अप</a>
                 </div>
 
                 <!-- Mobile menu button -->
@@ -135,7 +135,7 @@
                         </div>
                         
                         <div class="mt-auto">
-                            <a href="{{ route('register.organization', ['plan' => 'starter']) }}" class="w-full block text-center py-3 px-6 rounded-lg font-medium transition-colors duration-200 bg-indigo-600 hover:bg-indigo-700 text-white shadow-md">
+                            <a href="<?php echo e(route('register.organization', ['plan' => 'starter'])); ?>" class="w-full block text-center py-3 px-6 rounded-lg font-medium transition-colors duration-200 bg-indigo-600 hover:bg-indigo-700 text-white shadow-md">
                                 योजना छान्नुहोस्
                             </a>
                         </div>
@@ -199,7 +199,7 @@
     </div>
     
     <div class="mt-auto">
-      <a href="{{ route('register.organization', ['plan' => 'pro']) }}" class="w-full block text-center py-3 px-6 rounded-lg font-medium transition-colors duration-200 bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg">
+      <a href="<?php echo e(route('register.organization', ['plan' => 'pro'])); ?>" class="w-full block text-center py-3 px-6 rounded-lg font-medium transition-colors duration-200 bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg">
         योजना छान्नुहोस्
       </a>
     </div>
@@ -259,7 +259,7 @@
                         </div>
                         
                         <div class="mt-auto">
-                            <a href="{{ route('register.organization', ['plan' => 'enterprise']) }}" class="w-full block text-center py-3 px-6 rounded-lg font-medium transition-colors duration-200 bg-indigo-600 hover:bg-indigo-700 text-white shadow-md">
+                            <a href="<?php echo e(route('register.organization', ['plan' => 'enterprise'])); ?>" class="w-full block text-center py-3 px-6 rounded-lg font-medium transition-colors duration-200 bg-indigo-600 hover:bg-indigo-700 text-white shadow-md">
                                 योजना छान्नुहोस्
                             </a>
                         </div>
@@ -278,7 +278,7 @@
                             </svg>
                             support@hostelhub.com
                         </a>
-                        <a href="{{ route('subscription.start-trial') }}" class="inline-flex items-center justify-center px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                        <a href="<?php echo e(route('subscription.start-trial')); ?>" class="inline-flex items-center justify-center px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
                             ७ दिन निःशुल्क परीक्षण सुरु गर्नुहोस्
                             <svg class="h-5 w-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
@@ -302,11 +302,11 @@
                 <div>
                     <h4 class="text-lg font-semibold mb-4">तिब्र लिङ्कहरू</h4>
                     <ul class="space-y-3 text-indigo-200">
-                        <li><a href="{{ route('home') }}" class="hover:text-white transition-colors">होम</a></li>
-                        <li><a href="{{ route('features') }}" class="hover:text-white transition-colors">सुविधाहरू</a></li>
-                        <li><a href="{{ route('how-it-works') }}" class="hover:text-white transition-colors">कसरी काम गर्छ</a></li>
-                        <li><a href="{{ route('pricing') }}" class="hover:text-white transition-colors">मूल्य</a></li>
-                        <li><a href="{{ route('gallery.public') }}" class="hover:text-white transition-colors">ग्यालरी</a></li>
+                        <li><a href="<?php echo e(route('home')); ?>" class="hover:text-white transition-colors">होम</a></li>
+                        <li><a href="<?php echo e(route('features')); ?>" class="hover:text-white transition-colors">सुविधाहरू</a></li>
+                        <li><a href="<?php echo e(route('how-it-works')); ?>" class="hover:text-white transition-colors">कसरी काम गर्छ</a></li>
+                        <li><a href="<?php echo e(route('pricing')); ?>" class="hover:text-white transition-colors">मूल्य</a></li>
+                        <li><a href="<?php echo e(route('gallery.public')); ?>" class="hover:text-white transition-colors">ग्यालरी</a></li>
                     </ul>
                 </div>
                 
@@ -360,4 +360,4 @@
         </div>
     </footer>
 </body>
-</html>
+</html><?php /**PATH D:\My Projects\HostelHub\resources\views/pricing/index.blade.php ENDPATH**/ ?>

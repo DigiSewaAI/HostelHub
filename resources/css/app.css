@@ -2,34 +2,27 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 
- * HostelHub Custom Styles
- * 
- * यो फाइललाई resources/css/app.css मा राख्नुहोस् (public/css/app.css मा हुँदैन!)
- * 
- * सुधार गर्नु अघि:
- * 1. resources/css/app.css खोल्नुहोस्
- * 2. पुरानो कोड हटाउनुहोस् (यदि छ भने)
- * 3. माथिको @tailwind directives राख्नुहोस्
- * 4. यो पूरै Code Paste गर्नुहोस्
- * 5. Ctrl + S थिचेर Save गर्नुहोस्
- * 6. Terminal मा: npm run build
- */
+/* =============== PLAN BADGE STYLES =============== */
+.plan-card {
+  @apply relative overflow-visible;
+}
+
+.plan-badge {
+  @apply absolute -top-3 left-1/2 -translate-x-1/2;
+}
 
 /* =============== SIDEBAR STYLES =============== */
-/* साइडबार आइटमहरू स्पष्ट रूपमा देखिने बनाउन */
 .sidebar-link {
     color: #ffffff !important;
     opacity: 1 !important;
 }
 
-/* होभर र एक्टिभ स्टेटमा पनि रङ्ग स्थिर रहने */
 .sidebar-link:hover,
 .sidebar-link.active {
     color: #ffffff !important;
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
-/* साइडबारमा स्क्रोल अनुमति दिने */
 .sidebar {
     display: flex;
     flex-direction: column;
@@ -37,7 +30,6 @@
     overflow-y: auto;
 }
 
-/* साइडबार स्क्रोलबारको स्टाइल */
 .sidebar::-webkit-scrollbar {
     width: 6px;
 }
@@ -51,7 +43,6 @@
     border-radius: 3px;
 }
 
-/* लगआउट बटनलाई सधैं तल्लो भागमा राख्न */
 .logout-section {
     margin-top: auto;
     padding-top: 1rem;
@@ -59,7 +50,6 @@
 }
 
 /* =============== NOTIFICATION STYLES =============== */
-/* FIXED: Added specific styles for notification bell */
 .notification-button i {
     position: relative;
     z-index: 5;
@@ -69,7 +59,6 @@
     color: #60a5fa !important;
 }
 
-/* FIXED: Adjusted notification dot positioning */
 .notification-dot {
     position: absolute;
     top: 3px;
@@ -82,7 +71,6 @@
 }
 
 /* =============== FORM STYLES =============== */
-/* Form select styles */
 .form-group select {
     display: block;
     width: 100%;
@@ -102,16 +90,7 @@
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
 }
 
-/* Responsive adjustments */
-@media (min-width: 640px) {
-    .form-group select {
-        font-size: 1rem;
-        padding: 0.625rem 1.25rem;
-    }
-}
-
 /* =============== GALLERY STYLES =============== */
-/* NEW: Modern responsive gallery grid */
 .gallery-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -166,7 +145,6 @@
     transform: translateY(0);
 }
 
-/* Category Badge - Now properly positioned */
 .category-badge {
     position: absolute;
     top: 0.75rem;
@@ -181,7 +159,6 @@
     backdrop-filter: blur(4px);
 }
 
-/* Featured Ribbon - Improved visibility */
 .is-featured::after {
     content: "Featured";
     position: absolute;
@@ -198,7 +175,6 @@
 }
 
 /* =============== ADDITIONAL FIXES =============== */
-/* Text Wrapping for Long Titles */
 .text-wrap {
     word-break: break-word;
     display: -webkit-box;
@@ -207,13 +183,11 @@
     overflow: hidden;
 }
 
-/* Yellow Background for Debug Panel (तपाईंको मूल रङ्ग) */
 .bg-yellow-100 {
     background-color: #fffbeb;
 }
 
 /* =============== MEDIA QUERIES =============== */
-/* Mobile Responsive */
 @media (max-width: 640px) {
     .gallery-grid {
         grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -232,9 +206,92 @@
     }
 }
 
-/* Tablet Responsive */
 @media (min-width: 768px) and (max-width: 1024px) {
     .gallery-grid {
         grid-template-columns: repeat(2, 1fr);
     }
+}
+
+/* =============== HEADER NAVIGATION =============== */
+.nav-button {
+    padding: 0.5rem 1.5rem;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.nav-button:hover {
+    background-color: #4f46e5;
+    color: white;
+}
+
+.active-nav {
+    background-color: #4f46e5;
+    color: white;
+}
+
+/* =============== MOBILE MENU =============== */
+@media (max-width: 767px) {
+    .mobile-menu {
+        position: fixed;
+        top: 80px;
+        left: 0;
+        right: 0;
+        background: white;
+        padding: 1rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        z-index: 40;
+    }
+    
+    .mobile-menu a {
+        display: block;
+        padding: 0.75rem 1rem;
+        margin-bottom: 0.5rem;
+        border-radius: 0.5rem;
+    }
+    
+    .mobile-menu a:hover {
+        background-color: #e0e7ff;
+    }
+}
+
+/* =============== FORM VALIDATION =============== */
+.input-error {
+    border-color: #ef4444 !important;
+}
+
+.error-message {
+    color: #ef4444;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+/* =============== LOADING STATES =============== */
+.loading-spinner {
+    display: inline-block;
+    width: 1.5rem;
+    height: 1.5rem;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* =============== BUTTON STATES =============== */
+.btn-disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* =============== UTILITY CLASSES =============== */
+.transition-smooth {
+    transition: all 0.3s ease-in-out;
+}
+
+.z-100 {
+    z-index: 100;
 }

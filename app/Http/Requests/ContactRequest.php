@@ -11,7 +11,7 @@ class ContactRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true; // Changed to true to allow public access
     }
 
     /**
@@ -20,12 +20,12 @@ class ContactRequest extends FormRequest
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
     public function rules(): array
-{
-    return [
-        'name' => 'required|string|max:255',
-        'email' => 'required|email',
-        'message' => 'required|string',
-        'phone' => 'nullable|string|max:15'
-    ];
-}
+    {
+        return [
+            'name'    => ['required', 'string', 'max:255'],
+            'email'   => ['required', 'email', 'max:255'],
+            'phone'   => ['nullable', 'string', 'max:15'],
+            'message' => ['required', 'string', 'max:2000']
+        ];
+    }
 }
