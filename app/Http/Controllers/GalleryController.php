@@ -10,9 +10,11 @@ use Illuminate\Support\Facades\Validator;
 
 class GalleryController extends Controller
 {
+    /**
+     * Display the public gallery with filtering and caching.
+     */
     public function publicIndex(Request $request)
     {
-        // Define gallery categories with Nepali labels
         $categories = [
             'all'    => 'सबै',
             'single' => '१ सिटर कोठा',
@@ -24,13 +26,11 @@ class GalleryController extends Controller
             'video'  => 'भिडियो टुर'
         ];
 
-        // Get and validate category
         $selectedCategory = $request->input('category', 'all');
         if (!array_key_exists($selectedCategory, $categories)) {
             $selectedCategory = 'all';
         }
 
-        // Map request categories to database values
         $categoryMap = [
             'single' => '1 seater',
             'double' => '2 seater',
@@ -41,7 +41,6 @@ class GalleryController extends Controller
             'video'  => 'video'
         ];
 
-        // Cache key with category
         $cacheKey = 'public_gallery_' . $selectedCategory;
 
         $galleryItems = Cache::remember($cacheKey, 3600, function () use ($selectedCategory, $categoryMap) {
@@ -64,11 +63,11 @@ class GalleryController extends Controller
                         'description' => $item->description,
                         'is_featured' => $item->is_featured,
                         'created_at' => $item->created_at->format('M d, Y'),
+                        'media_type' => $item->media_type, // ✅ यो थप्नुहोस्
                     ]);
                 });
         });
 
-        // Statistics with caching
         $stats = [
             'total_students' => Cache::remember('stats_students', 3600, fn() => 125),
             'total_hostels' => Cache::remember('stats_hostels', 3600, fn() => 24),
@@ -76,7 +75,7 @@ class GalleryController extends Controller
             'satisfaction_rate' => Cache::remember('stats_satisfaction', 3600, fn() => '98%')
         ];
 
-        return view('public.gallery.index', compact(
+        return view('gallery', compact(
             'galleryItems',
             'categories',
             'selectedCategory',
@@ -84,6 +83,9 @@ class GalleryController extends Controller
         ));
     }
 
+    /**
+     * Display admin gallery management page.
+     */
     public function index(Request $request)
     {
         $galleryItems = Gallery::orderBy('created_at', 'desc')->paginate(20);
@@ -100,6 +102,7 @@ class GalleryController extends Controller
             'file_url' => '',
             'thumbnail_url' => asset('images/default-thumbnail.jpg'),
             'absolute_path' => '',
+            'media_type' => $item->media_type,
         ];
 
         if ($item->media_type === 'photo') {

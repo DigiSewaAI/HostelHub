@@ -310,8 +310,8 @@
                 @endif
 
                 <!-- Gallery -->
-                @if(Route::has('gallery.index'))
-                    <a href="{{ route('gallery.index') }}"
+                @if(Route::has('gallery.public'))
+                    <a href="{{ route('gallery.public') }}"
                        class="sidebar-link {{ request()->routeIs('gallery.*') ? 'active' : '' }}"
                        aria-current="{{ request()->routeIs('gallery.*') ? 'page' : 'false' }}">
                         <i class="fas fa-images sidebar-icon"></i>
@@ -398,7 +398,7 @@
                                 @elseif(request()->routeIs('gallery.*'))
                                     <li class="text-gray-500">
                                         <i class="fas fa-chevron-right text-xs mx-2"></i>
-                                        <a href="{{ route('gallery.index') }}" class="hover:text-indigo-600">ग्यालरी</a>
+                                        <a href="{{ route('gallery.public') }}" class="hover:text-indigo-600">ग्यालरी</a>
                                     </li>
                                 @endif
                             </ol>
