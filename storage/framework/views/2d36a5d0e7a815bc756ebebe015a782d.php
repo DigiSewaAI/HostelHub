@@ -1,6 +1,6 @@
-@extends('layouts.app')
-@section('title', 'गोपनीयता नीति - HostelHub')
-@section('content')
+
+<?php $__env->startSection('title', 'गोपनीयता नीति - HostelHub'); ?>
+<?php $__env->startSection('content'); ?>
 <div style="
   max-width: 1200px;
   margin: 0 auto;
@@ -139,4 +139,5 @@
   </div>
 
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\My Projects\HostelHub\resources\views/legal/privacy.blade.php ENDPATH**/ ?>

@@ -1,6 +1,6 @@
-@extends('layouts.app')
-@section('title', 'कसरी काम गर्छ - HostelHub')
-@section('content')
+
+<?php $__env->startSection('title', 'कसरी काम गर्छ - HostelHub'); ?>
+<?php $__env->startSection('content'); ?>
 <div class="max-w-7xl mx-auto px-4 py-16">
 
   <!-- Page Header -->
@@ -148,4 +148,5 @@
   .bg-navy-600 { background-color: #001F5B; }
   .bg-navy-800 { background-color: #001447; }
 </style>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\My Projects\HostelHub\resources\views/how-it-works.blade.php ENDPATH**/ ?>
