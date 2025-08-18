@@ -15,13 +15,22 @@ use Illuminate\Auth\Events\PasswordReset;
 
 class AuthController extends Controller
 {
-    // Show Login Form
+    /**
+     * Show the login form.
+     *
+     * @return \Illuminate\View\View
+     */
     public function showLoginForm()
     {
         return view('auth.login');
     }
 
-    // Handle Login Request
+    /**
+     * Handle login request.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -38,22 +47,33 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials, $remember)) {
             $request->session()->regenerate();
+
+            // Redirect to dashboard after successful login
             return $this->handleResponse($request, [
                 'message' => 'Login successful'
-            ], 200, 'home'); // Redirect to home after login
+            ], 200, 'dashboard');
         }
 
         $error = ['email' => 'Invalid credentials'];
         return $this->handleResponse($request, $error, 401, 'login');
     }
 
-    // Show Registration Form
+    /**
+     * Show the registration form.
+     *
+     * @return \Illuminate\View\View
+     */
     public function showRegistrationForm()
     {
         return view('auth.register_user');
     }
 
-    // Handle Registration Request
+    /**
+     * Handle registration request.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -76,12 +96,18 @@ class AuthController extends Controller
         event(new Registered($user));
         Auth::login($user);
 
+        // Redirect to dashboard after registration
         return $this->handleResponse($request, [
             'message' => 'Registration successful'
-        ], 201, 'home'); // Redirect directly to home
+        ], 201, 'dashboard');
     }
 
-    // Handle Logout
+    /**
+     * Handle logout request.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
     public function logout(Request $request)
     {
         Auth::logout();
@@ -90,15 +116,25 @@ class AuthController extends Controller
 
         return $this->handleResponse($request, [
             'message' => 'Logged out successfully'
-        ], 200, 'home');
+        ], 200, 'login');
     }
 
-    // Password Reset Methods
+    /**
+     * Show forgot password form.
+     *
+     * @return \Illuminate\View\View
+     */
     public function showForgotPasswordForm()
     {
         return view('auth.forgot-password');
     }
 
+    /**
+     * Send password reset link.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
     public function sendResetLink(Request $request)
     {
         $request->validate(['email' => 'required|email']);
@@ -116,11 +152,23 @@ class AuthController extends Controller
             ], 422, 'password.request');
     }
 
+    /**
+     * Show password reset form.
+     *
+     * @param  string  $token
+     * @return \Illuminate\View\View
+     */
     public function showResetPasswordForm($token)
     {
         return view('auth.reset-password', ['token' => $token]);
     }
 
+    /**
+     * Reset user password.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
     public function resetPassword(Request $request)
     {
         $request->validate([
@@ -150,17 +198,27 @@ class AuthController extends Controller
             ], 422, 'password.reset');
     }
 
-    // Password Confirmation Methods
+    /**
+     * Show password confirmation form.
+     *
+     * @return \Illuminate\View\View
+     */
     public function showConfirmPasswordForm()
     {
         return view('auth.confirm-password');
     }
 
+    /**
+     * Confirm user password.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function confirmPassword(Request $request)
     {
         if (! Hash::check($request->password, $request->user()->password)) {
             return back()->withErrors([
-                'password' => ['The provided password does not match our records.']
+                'password' => __('The provided password does not match our records.')
             ]);
         }
 
@@ -168,7 +226,15 @@ class AuthController extends Controller
         return redirect()->intended(route('dashboard'));
     }
 
-    // Response Handler - UPDATED WITH SUCCESS MESSAGES
+    /**
+     * Handle response formatting for JSON and web requests.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  array  $data
+     * @param  int  $statusCode
+     * @param  string|null  $route
+     * @return \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse
+     */
     private function handleResponse(Request $request, $data, $statusCode, $route = null)
     {
         if ($request->expectsJson()) {
@@ -179,11 +245,11 @@ class AuthController extends Controller
             return back()->withErrors($data)->withInput();
         }
 
-        // Add success message for web requests (200-299 status codes)
-        if ($statusCode >= 200 && $statusCode < 300) {
+        // Handle success responses with proper redirect
+        if ($route) {
             return redirect()->route($route)->with('success', $data['message'] ?? 'Operation completed successfully');
         }
 
-        return redirect()->route($route);
+        return redirect()->back()->with('success', $data['message'] ?? 'Operation completed successfully');
     }
 }

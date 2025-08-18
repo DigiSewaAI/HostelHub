@@ -1,7 +1,5 @@
 @extends('layouts.app')
-
 @section('title', 'होस्टल ग्यालरी - HostelHub')
-
 @section('content')
 <div class="min-h-screen bg-gray-50">
     <!-- Hero Section -->
@@ -12,7 +10,6 @@
                 <p class="text-xl text-indigo-100 mb-8">
                     हाम्रा विभिन्न होस्टलहरूको कोठा, सुविधा र आवासीय क्षेत्रहरूको वास्तविक झलक
                 </p>
-
                 <!-- Filter Buttons -->
                 <div class="flex flex-wrap justify-center gap-3 mb-10">
                     <button class="filter-btn active bg-white text-indigo-700 px-5 py-2.5 rounded-full font-medium shadow-md hover:shadow-lg transition-all"
@@ -48,7 +45,6 @@
                         भिडियो टुर
                     </button>
                 </div>
-
                 <div class="relative max-w-xl mx-auto">
                     <input type="text" id="search-gallery"
                            class="w-full px-5 py-3 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 text-white placeholder-indigo-100 focus:outline-none focus:ring-2 focus:ring-white"
@@ -62,7 +58,6 @@
             </div>
         </div>
     </section>
-
     <!-- Gallery Grid -->
     <section class="py-16">
         <div class="container mx-auto px-4">
@@ -80,7 +75,6 @@
                             'video' => 'video'
                         ];
                         $filterCategory = $categoryMap[$item['category']] ?? $item['category'];
-                        
                         // Get Nepali category label
                         $categoryLabels = [
                             '1 seater' => '१ सिटर कोठा',
@@ -92,7 +86,6 @@
                             'video' => 'भिडियो टुर'
                         ];
                         $categoryLabel = $categoryLabels[$item['category']] ?? $item['category'];
-                        
                         // Set appropriate colors based on category
                         $categoryColors = [
                             '1 seater' => ['bg' => 'bg-indigo-600', 'text' => 'text-indigo-600', 'hover' => 'hover:bg-indigo-700'],
@@ -105,7 +98,6 @@
                         ];
                         $colors = $categoryColors[$item['category']] ?? ['bg' => 'bg-gray-500', 'text' => 'text-gray-500', 'hover' => 'hover:bg-gray-600'];
                     @endphp
-
                     <div class="gallery-item bg-white rounded-2xl overflow-hidden shadow-lg transition-all duration-300 hover:shadow-2xl"
                          data-category="{{ $filterCategory }}">
                         <div class="relative group">
@@ -146,7 +138,6 @@
                                     </svg>
                                 </div>
                             @endif
-                            
                             <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                             <div class="absolute bottom-4 left-4">
                                 <span class="text-white px-3 py-1 rounded-full text-sm font-medium {{ $colors['bg'] }}">{{ $categoryLabel }}</span>
@@ -186,15 +177,14 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                             </svg>
                         </div>
-                        <h3 class="text-2xl font-bold text-gray-800 mb-2">यस श्रेणीमा कुनै फोटो छैन</h3>
-                        <p class="text-gray-600 max-w-md mx-auto">कृपया अर्को श्रेणी छान्नुहोस् वा सबै फिल्टर चयन गर्नुहोस्</p>
-                        <button id="reset-filter" class="mt-4 bg-indigo-600 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-indigo-700 transition-colors">
+                        <h3 class="text-2xl font-bold text-gray-800 mb-2">हामीसँग अहिले कुनै फोटो छैन</h3>
+                        <p class="text-gray-600 max-w-md mx-auto">हामीसँग अहिले कुनै फोटो उपलब्ध छैन, कृपया पछि फेरि हेर्नुहोस्</p>
+                        <button class="reset-filter-button mt-4 bg-indigo-600 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-indigo-700 transition-colors">
                             सबै फोटो हेर्नुहोस्
                         </button>
                     </div>
                 @endforelse
             </div>
-
             <!-- Empty State -->
             <div id="empty-state" class="hidden text-center py-16 bg-white rounded-2xl mt-12">
                 <div class="inline-block p-4 bg-indigo-100 rounded-full mb-4">
@@ -204,13 +194,12 @@
                 </div>
                 <h3 class="text-2xl font-bold text-gray-800 mb-2">यस श्रेणीमा कुनै फोटो छैन</h3>
                 <p class="text-gray-600 max-w-md mx-auto">कृपया अर्को श्रेणी छान्नुहोस् वा सबै फिल्टर चयन गर्नुहोस्</p>
-                <button id="reset-filter" class="mt-4 bg-indigo-600 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-indigo-700 transition-colors">
+                <button class="reset-filter-button mt-4 bg-indigo-600 text-white px-6 py-2.5 rounded-lg font-medium hover:bg-indigo-700 transition-colors">
                     सबै फोटो हेर्नुहोस्
                 </button>
             </div>
         </div>
     </section>
-
     <!-- Hostel Stats -->
     <section class="bg-white py-12 border-t">
         <div class="container mx-auto px-4">
@@ -234,7 +223,6 @@
             </div>
         </div>
     </section>
-
     <!-- CTA Section -->
     <section class="bg-gradient-to-r from-indigo-600 to-purple-700 py-16">
         <div class="container mx-auto px-4 text-center">
@@ -253,7 +241,6 @@
         </div>
     </section>
 </div>
-
 <!-- Photo Modal -->
 <div id="photo-modal" class="fixed inset-0 bg-black bg-opacity-90 z-50 hidden flex items-center justify-center p-4">
     <div class="relative max-w-4xl w-full">
@@ -270,7 +257,6 @@
         </div>
     </div>
 </div>
-
 <!-- Video Modal -->
 <div id="video-modal" class="fixed inset-0 bg-black bg-opacity-90 z-50 hidden flex items-center justify-center p-4">
     <div class="relative w-full max-w-4xl">
@@ -290,7 +276,6 @@
         </div>
     </div>
 </div>
-
 <!-- YouTube Modal -->
 <div id="youtube-modal" class="fixed inset-0 bg-black bg-opacity-90 z-50 hidden flex items-center justify-center p-4">
     <div class="relative w-full max-w-4xl">
@@ -312,14 +297,12 @@
         </div>
     </div>
 </div>
-
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const filterBtns = document.querySelectorAll('.filter-btn');
         const galleryItems = document.querySelectorAll('.gallery-item');
         const emptyState = document.getElementById('empty-state');
-        const resetFilter = document.getElementById('reset-filter');
         const searchInput = document.getElementById('search-gallery');
         
         // Photo Modal Elements
@@ -342,7 +325,14 @@
         const youtubeTitle = document.getElementById('youtube-title');
         const closeYoutubeModal = document.getElementById('close-youtube-modal');
         const playYoutubeBtns = document.querySelectorAll('.play-youtube-btn');
-
+        
+        // Reset filter buttons (using class instead of ID)
+        const resetFilterButtons = document.querySelectorAll('.reset-filter-button');
+        
+        // Search debounce functionality
+        let searchTimeout;
+        const SEARCH_DEBOUNCE_TIME = 300; // milliseconds
+        
         // Filter functionality
         filterBtns.forEach(btn => {
             btn.addEventListener('click', () => {
@@ -353,10 +343,10 @@
                 });
                 btn.classList.remove('bg-white/10', 'hover:bg-white/20');
                 btn.classList.add('active', 'bg-white', 'text-indigo-700');
-
+                
                 const filter = btn.getAttribute('data-filter');
                 let visibleItems = 0;
-
+                
                 galleryItems.forEach(item => {
                     if (filter === 'all' || item.getAttribute('data-category') === filter) {
                         item.style.display = 'block';
@@ -365,118 +355,127 @@
                         item.style.display = 'none';
                     }
                 });
-
+                
                 // Show empty state if no items
                 emptyState.classList.toggle('hidden', visibleItems > 0);
             });
         });
-
-        // Reset filter
-        resetFilter.addEventListener('click', () => {
-            filterBtns.forEach(b => {
-                b.classList.remove('active', 'bg-white', 'text-indigo-700');
-                b.classList.add('bg-white/10', 'hover:bg-white/20');
-            });
-            filterBtns[0].classList.remove('bg-white/10', 'hover:bg-white/20');
-            filterBtns[0].classList.add('active', 'bg-white', 'text-indigo-700');
-
-            galleryItems.forEach(item => item.style.display = 'block');
-            emptyState.classList.add('hidden');
-        });
-
-        // Search functionality
-        searchInput.addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase().trim();
-            let visibleItems = 0;
-
-            if (searchTerm === '') {
-                // Reset to show all items
-                galleryItems.forEach(item => item.style.display = 'block');
-                visibleItems = galleryItems.length;
-            } else {
-                galleryItems.forEach(item => {
-                    const title = item.querySelector('h3').textContent.toLowerCase();
-                    const description = item.querySelector('p').textContent.toLowerCase();
-                    const date = item.querySelector('.font-semibold').textContent.toLowerCase();
-
-                    if (title.includes(searchTerm) ||
-                        description.includes(searchTerm) ||
-                        date.includes(searchTerm)) {
-                        item.style.display = 'block';
-                        visibleItems++;
-                    } else {
-                        item.style.display = 'none';
-                    }
-                });
-            }
-
-            // Update filter buttons state
-            if (searchTerm) {
+        
+        // Reset filter functionality (works with multiple buttons)
+        resetFilterButtons.forEach(button => {
+            button.addEventListener('click', () => {
                 filterBtns.forEach(b => {
                     b.classList.remove('active', 'bg-white', 'text-indigo-700');
                     b.classList.add('bg-white/10', 'hover:bg-white/20');
                 });
-            }
-
-            // Show empty state if no results
-            emptyState.classList.toggle('hidden', visibleItems > 0);
+                filterBtns[0].classList.remove('bg-white/10', 'hover:bg-white/20');
+                filterBtns[0].classList.add('active', 'bg-white', 'text-indigo-700');
+                
+                galleryItems.forEach(item => item.style.display = 'block');
+                emptyState.classList.add('hidden');
+                
+                // Clear search input
+                searchInput.value = '';
+            });
         });
-
+        
+        // Search functionality with debounce
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            
+            searchTimeout = setTimeout(() => {
+                const searchTerm = this.value.toLowerCase().trim();
+                let visibleItems = 0;
+                
+                if (searchTerm === '') {
+                    // Reset to show all items
+                    galleryItems.forEach(item => item.style.display = 'block');
+                    visibleItems = galleryItems.length;
+                } else {
+                    galleryItems.forEach(item => {
+                        const title = item.querySelector('h3').textContent.toLowerCase();
+                        const description = item.querySelector('p').textContent.toLowerCase();
+                        const date = item.querySelector('.font-semibold').textContent.toLowerCase();
+                        
+                        if (title.includes(searchTerm) ||
+                            description.includes(searchTerm) ||
+                            date.includes(searchTerm)) {
+                            item.style.display = 'block';
+                            visibleItems++;
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                }
+                
+                // Update filter buttons state
+                if (searchTerm) {
+                    filterBtns.forEach(b => {
+                        b.classList.remove('active', 'bg-white', 'text-indigo-700');
+                        b.classList.add('bg-white/10', 'hover:bg-white/20');
+                    });
+                }
+                
+                // Show empty state if no results
+                emptyState.classList.toggle('hidden', visibleItems > 0);
+            }, SEARCH_DEBOUNCE_TIME);
+        });
+        
         // Photo Modal Functionality
         viewPhotoBtns.forEach(btn => {
             btn.addEventListener('click', function() {
                 const photoUrl = this.getAttribute('data-photo');
                 const title = this.getAttribute('data-title');
-
+                
                 modalPhoto.src = photoUrl;
                 photoTitle.textContent = title;
-
+                
                 // Show modal
                 photoModal.classList.remove('hidden');
             });
         });
-
+        
         // Close photo modal
         closePhotoModal.addEventListener('click', function() {
             photoModal.classList.add('hidden');
         });
-
+        
         // Close photo modal when clicking outside
         photoModal.addEventListener('click', function(e) {
             if (e.target === photoModal) {
                 photoModal.classList.add('hidden');
             }
         });
-
+        
         // Video Modal Functionality
         playVideoBtns.forEach(btn => {
             btn.addEventListener('click', function() {
                 const videoUrl = this.getAttribute('data-video');
                 const title = this.getAttribute('data-title');
-
+                
                 modalVideoPlayer.querySelector('source').src = videoUrl;
                 videoTitle.textContent = title;
-
+                
                 // Reload video to ensure it loads the new source
                 modalVideoPlayer.load();
-
+                
                 // Show modal
                 videoModal.classList.remove('hidden');
-
+                
                 // Autoplay when loaded
                 modalVideoPlayer.onloadeddata = function() {
                     modalVideoPlayer.play().catch(e => console.log("Autoplay prevented:", e));
                 };
             });
         });
-
+        
         // Close video modal
         closeVideoModal.addEventListener('click', function() {
             videoModal.classList.add('hidden');
             modalVideoPlayer.pause();
             modalVideoPlayer.currentTime = 0;
         });
-
+        
         // Close video modal when clicking outside
         videoModal.addEventListener('click', function(e) {
             if (e.target === videoModal) {
@@ -485,28 +484,27 @@
                 modalVideoPlayer.currentTime = 0;
             }
         });
-
+        
         // YouTube Modal Functionality
         playYoutubeBtns.forEach(btn => {
             btn.addEventListener('click', function() {
                 const youtubeId = this.getAttribute('data-youtube-id');
                 const title = this.getAttribute('data-title');
-
-                // FIXED: Removed extra space
+                
                 youtubePlayer.src = `https://www.youtube.com/embed/${youtubeId}?autoplay=1&rel=0&modestbranding=1`;
                 youtubeTitle.textContent = title;
-
+                
                 // Show modal
                 youtubeModal.classList.remove('hidden');
             });
         });
-
+        
         // Close YouTube modal
         closeYoutubeModal.addEventListener('click', function() {
             youtubeModal.classList.add('hidden');
             youtubePlayer.src = '';
         });
-
+        
         // Close YouTube modal when clicking outside
         youtubeModal.addEventListener('click', function(e) {
             if (e.target === youtubeModal) {
@@ -514,7 +512,7 @@
                 youtubePlayer.src = '';
             }
         });
-
+        
         // Close all modals on escape key
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
@@ -535,7 +533,6 @@
     });
 </script>
 @endpush
-
 @push('styles')
 <style>
     .gallery-item {
@@ -543,14 +540,12 @@
         opacity: 0;
         animation: fadeInUp 0.5s ease forwards;
     }
-
     @keyframes fadeInUp {
         to {
             transform: translateY(0);
             opacity: 1;
         }
     }
-
     .gallery-item:nth-child(2) { animation-delay: 0.1s; }
     .gallery-item:nth-child(3) { animation-delay: 0.2s; }
     .gallery-item:nth-child(4) { animation-delay: 0.3s; }
@@ -558,11 +553,9 @@
     .gallery-item:nth-child(6) { animation-delay: 0.5s; }
     .gallery-item:nth-child(7) { animation-delay: 0.6s; }
     .gallery-item:nth-child(8) { animation-delay: 0.7s; }
-
     #photo-modal, #video-modal, #youtube-modal {
         animation: modalFadeIn 0.3s ease-out;
     }
-
     @keyframes modalFadeIn {
         from { opacity: 0; }
         to { opacity: 1; }

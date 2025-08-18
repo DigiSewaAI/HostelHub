@@ -12,12 +12,22 @@ class EnsureSubscriptionActive
 {
     public function handle(Request $request, Closure $next): Response
     {
-        // Skip for pricing and registration pages
-        if ($request->routeIs('pricing') || $request->routeIs('register.*')) {
-            return $next($request);
+        // Skip for relevant routes
+        $exemptRoutes = [
+            'pricing',
+            'register.*',
+            'subscription.*',
+            'login',
+            'logout'
+        ];
+
+        foreach ($exemptRoutes as $route) {
+            if ($request->routeIs($route)) {
+                return $next($request);
+            }
         }
 
-        // If user is not authenticated or no org context, let other middleware handle
+        // If user is not authenticated or no org context, proceed
         if (!Auth::check() || !$request->attributes->has('organization')) {
             return $next($request);
         }
@@ -27,13 +37,12 @@ class EnsureSubscriptionActive
         // Check subscription status
         $subscription = $organization->subscription;
 
-        if (
-            !$subscription ||
-            ($subscription->status === 'cancelled' && now()->greaterThan($subscription->renews_at)) ||
-            ($subscription->status === 'past_due' && now()->greaterThan($subscription->renews_at))
-        ) {
+        $subscriptionActive = $subscription &&
+            !($subscription->status === 'cancelled' && now()->greaterThan($subscription->renews_at)) &&
+            !($subscription->status === 'past_due' && now()->greaterThan($subscription->renews_at));
 
-            // Allow access to subscription page
+        if (!$subscriptionActive) {
+            // Allow access to subscription and exempted pages
             if ($request->routeIs('subscription.*')) {
                 return $next($request);
             }

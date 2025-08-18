@@ -9,9 +9,6 @@ use Symfony\Component\HttpFoundation\Response;
 
 class RedirectIfAuthenticated
 {
-    /**
-     * Handle an incoming request.
-     */
     public function handle(Request $request, Closure $next, ...$guards): Response
     {
         $guards = empty($guards) ? [null] : $guards;
@@ -20,13 +17,17 @@ class RedirectIfAuthenticated
             if (Auth::guard($guard)->check()) {
                 $user = Auth::guard($guard)->user();
 
-                // भूमिका आधारित पुनर्निर्देशन (spatie बिना)
-                return match ($user->role) {
-                    'admin' => redirect('/admin/dashboard'),
-                    'hostel_manager' => redirect('/hostel/dashboard'),
-                    'student' => redirect('/student/dashboard'),
-                    default => redirect('/dashboard'),
-                };
+                // Use direct URLs to prevent route name issues
+                switch ($user->role->name) {
+                    case 'admin':
+                        return redirect('/admin/dashboard');
+                    case 'hostel_manager':
+                        return redirect('/owner/dashboard');
+                    case 'student':
+                        return redirect('/student/dashboard');
+                    default:
+                        return redirect('/');
+                }
             }
         }
 

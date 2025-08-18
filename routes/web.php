@@ -29,6 +29,8 @@ use App\Http\Controllers\{
 };
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
+use App\Http\Middleware\EnsureOrgContext;
+use App\Http\Middleware\EnsureSubscriptionActive;
 
 // Force HTTPS in production
 if (app()->environment('production')) {
@@ -47,40 +49,11 @@ Route::get('/how-it-works', [PublicController::class, 'howItWorks'])->name('how-
 Route::get('/pricing', [PricingController::class, 'index'])->name('pricing');
 Route::get('/gallery', [PublicGalleryController::class, 'publicIndex'])->name('gallery.public');
 Route::get('/reviews', [PublicController::class, 'reviews'])->name('reviews');
-
-// SEO pages
 Route::get('/privacy-policy', [PublicController::class, 'privacy'])->name('privacy');
 Route::get('/terms', [PublicController::class, 'terms'])->name('terms');
 Route::get('/cookies', [PublicController::class, 'cookies'])->name('cookies');
-
-// Sitemap/robots
 Route::get('/sitemap.xml', [PublicController::class, 'sitemap'])->name('sitemap');
 Route::get('/robots.txt', [PublicController::class, 'robots'])->name('robots');
-
-// Organization registration (for hostel managers)
-Route::get('/register/organization', [RegistrationController::class, 'showOrganizationForm'])->name('register.organization');
-Route::post('/register/organization', [RegistrationController::class, 'registerOrganization'])->name('register.organization.store');
-
-// Regular user registration (for students/staff)
-Route::get('/register', [RegisteredUserController::class, 'create'])->name('register');
-Route::post('/register', [RegisteredUserController::class, 'store'])->name('register.submit');
-
-// Room booking
-Route::get('/rooms', [PublicRoomController::class, 'index'])->name('rooms');
-Route::get('/rooms/{room}', [PublicRoomController::class, 'show'])->name('rooms.show');
-Route::get('/rooms/availability', [PublicRoomController::class, 'checkAvailability'])->name('rooms.availability');
-Route::post('/booking/search', [PublicRoomController::class, 'search'])->name('booking.search');
-
-// Meals
-Route::get('/meals', [PublicMealController::class, 'publicIndex'])->name('meals');
-Route::get('/meals/menu', [PublicMealController::class, 'menu'])->name('meals.menu');
-
-// Students
-Route::get('/students', [PublicStudentController::class, 'index'])->name('students');
-
-// Contact
-Route::get('/contact', [PublicContactController::class, 'index'])->name('contact');
-Route::post('/contact', [PublicContactController::class, 'store'])->name('contact.store');
 
 /*
 |--------------------------------------------------------------------------
@@ -88,20 +61,29 @@ Route::post('/contact', [PublicContactController::class, 'store'])->name('contac
 |--------------------------------------------------------------------------
 */
 Route::middleware('guest')->group(function () {
+    // Organization Registration
+    Route::get('/register/organization', [RegistrationController::class, 'show'])->name('register.organization');
+    Route::post('/register/organization', [RegistrationController::class, 'store'])->name('register.organization.store');
+
+    // User Registration
+    Route::get('/register', [RegisteredUserController::class, 'create'])->name('register');
+    Route::post('/register', [RegisteredUserController::class, 'store'])->name('register.submit');
+
+    // Login
     Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
     Route::post('/login', [AuthenticatedSessionController::class, 'store']);
 
+    // Password Reset
     Route::get('/forgot-password', [PasswordResetLinkController::class, 'create'])->name('password.request');
     Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])->name('password.email');
-
     Route::get('/reset-password/{token}', [NewPasswordController::class, 'create'])->name('password.reset');
     Route::post('/reset-password', [NewPasswordController::class, 'store'])->name('password.reset.store');
 
+    // Email Verification
     Route::get('/verify-email', EmailVerificationPromptController::class)->name('verification.notice');
     Route::get('/verify-email/{id}/{hash}', VerifyEmailController::class)
         ->middleware(['signed', 'throttle:6,1'])
         ->name('verification.verify');
-
     Route::post('/email/verification-notification', [EmailVerificationNotificationController::class, 'store'])
         ->middleware('throttle:6,1')
         ->name('verification.send');
@@ -109,87 +91,59 @@ Route::middleware('guest')->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| Authenticated Routes with Organization Context
+| Authenticated Routes
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'EnsureOrgContext'])->group(function () {
-    // Subscription management routes
+Route::middleware(['auth', EnsureOrgContext::class])->group(function () {
+    // Logout
+    Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
+
+    // Subscription Management
     Route::get('/subscription', [SubscriptionController::class, 'show'])->name('subscription.show');
     Route::post('/subscription/upgrade', [SubscriptionController::class, 'upgrade'])->name('subscription.upgrade');
     Route::post('/subscription/start-trial', [SubscriptionController::class, 'startTrial'])->name('subscription.start-trial');
 
-    // Routes requiring active subscription
-    Route::middleware(['EnsureSubscriptionActive'])->group(function () {
-        // Onboarding routes
+    // Active Subscription Routes
+    Route::middleware([EnsureSubscriptionActive::class])->group(function () {
+        // Onboarding
         Route::get('/onboarding', [OnboardingController::class, 'index'])->name('onboarding.index');
         Route::post('/onboarding/step/{step}', [OnboardingController::class, 'store'])->name('onboarding.store');
         Route::post('/onboarding/skip/{step}', [OnboardingController::class, 'skip'])->name('onboarding.skip');
 
-        // Main dashboard with onboarding check
-        Route::get('/dashboard', function () {
-            $user = auth()->user();
-            $organization = request()->attributes->get('organization');
-            $onboarding = $organization->onboardingProgress;
-
-            if (!$organization->is_ready && $onboarding && !$onboarding->isCompleted()) {
-                return redirect()->route('onboarding.index');
-            }
-
-            return match ($user->role_id) {
-                1 => redirect()->route('admin.dashboard'),
-                2 => redirect()->route('hostel.manager.dashboard'),
-                3 => redirect()->route('student.dashboard'),
-                default => redirect('/')->with('error', 'अमान्य प्रयोगकर्ता भूमिका'),
-            };
-        })->name('dashboard');
-
-        // Profile management
+        // Profile Management
         Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
         Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-        // Password management
+        // Password Management
         Route::put('/password', [PasswordController::class, 'update'])->name('password.update');
         Route::get('/confirm-password', [ConfirmablePasswordController::class, 'show'])->name('password.confirm');
         Route::post('/confirm-password', [ConfirmablePasswordController::class, 'store']);
 
-        // User-specific routes
+        // User Features
         Route::get('/my-students', [PublicStudentController::class, 'myStudents'])->name('students.my');
         Route::get('/my-bookings', [PublicRoomController::class, 'myBookings'])->name('bookings.my');
 
-        // Payment routes
-        Route::resource('payments', PaymentController::class)
-            ->only(['index', 'show', 'create', 'store'])
-            ->names('user.payments');
+        // Payments
+        Route::resource('payments', PaymentController::class)->only(['index', 'show', 'create', 'store']);
         Route::post('payments/khalti-callback', [PaymentController::class, 'khaltiCallback'])->name('payments.khalti.callback');
-
-        // Logout
-        Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
     });
 });
 
 /*
 |--------------------------------------------------------------------------
-| Admin Routes
+| Role-based Routes
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'EnsureOrgContext', 'EnsureSubscriptionActive', 'role:admin'])
-    ->prefix('admin')
-    ->name('admin.')
-    ->group(function () {
-        Route::get('dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
-    });
 
-/*
-|--------------------------------------------------------------------------
-| Hostel Manager Routes
-|--------------------------------------------------------------------------
-*/
-Route::middleware(['auth', 'EnsureOrgContext', 'EnsureSubscriptionActive', 'role:hostel_manager'])
-    ->prefix('hostel-manager')
+// Hostel Manager Routes
+Route::middleware(['auth', EnsureOrgContext::class, EnsureSubscriptionActive::class, 'role:hostel_manager'])
+    ->prefix('owner')
     ->name('hostel.manager.')
     ->group(function () {
-        Route::get('dashboard', fn() => view('hostel-manager.dashboard'))->name('dashboard');
+        Route::get('dashboard', function () {
+            return view('hostel-manager.dashboard');
+        })->name('dashboard');
 
         Route::resource('hostels', AdminHostelController::class)->only(['show', 'edit', 'update']);
         Route::post('hostels/{hostel}/availability', [AdminHostelController::class, 'updateAvailability'])->name('hostels.availability');
@@ -200,16 +154,14 @@ Route::middleware(['auth', 'EnsureOrgContext', 'EnsureSubscriptionActive', 'role
         Route::resource('students', AdminStudentController::class)->only(['index', 'show']);
     });
 
-/*
-|--------------------------------------------------------------------------
-| Student Routes
-|--------------------------------------------------------------------------
-*/
-Route::middleware(['auth', 'EnsureOrgContext', 'EnsureSubscriptionActive', 'role:student'])
+// Student Routes
+Route::middleware(['auth', EnsureOrgContext::class, EnsureSubscriptionActive::class, 'role:student'])
     ->prefix('student')
     ->name('student.')
     ->group(function () {
-        Route::get('dashboard', fn() => view('student.dashboard'))->name('dashboard');
+        Route::get('dashboard', function () {
+            return view('student.dashboard');
+        })->name('dashboard');
 
         Route::get('hostels', [AdminHostelController::class, 'index'])->name('hostels.index');
         Route::get('hostels/{hostel}', [AdminHostelController::class, 'show'])->name('hostels.show');
@@ -223,16 +175,13 @@ Route::middleware(['auth', 'EnsureOrgContext', 'EnsureSubscriptionActive', 'role
         Route::get('profile', [PublicStudentController::class, 'myProfile'])->name('profile');
         Route::patch('profile', [PublicStudentController::class, 'updateProfile'])->name('profile.update');
 
-        Route::resource('payments', PaymentController::class)
-            ->only(['index', 'show', 'create', 'store'])
-            ->names('student.payments');
-        Route::post('payments/khalti-callback', [PaymentController::class, 'khaltiCallback'])
-            ->name('payments.khalti.callback');
+        Route::resource('payments', PaymentController::class)->only(['index', 'show', 'create', 'store']);
+        Route::post('payments/khalti-callback', [PaymentController::class, 'khaltiCallback'])->name('payments.khalti.callback');
     });
 
 /*
 |--------------------------------------------------------------------------
-| Dev-Only GET Logout
+| Development Routes
 |--------------------------------------------------------------------------
 */
 if (app()->environment('local')) {
@@ -243,3 +192,22 @@ if (app()->environment('local')) {
         return redirect('/');
     })->middleware('auth');
 }
+
+/*
+|--------------------------------------------------------------------------
+| Global Dashboard Redirect (Role-based)
+|--------------------------------------------------------------------------
+*/
+Route::get('/dashboard', function () {
+    $user = auth()->user();
+
+    if ($user->isAdmin()) {
+        return redirect()->route('admin.dashboard');
+    } elseif ($user->isHostelManager()) {
+        return redirect()->route('hostel.manager.dashboard');
+    } elseif ($user->isStudent()) {
+        return redirect()->route('student.dashboard');
+    }
+
+    return redirect('/');
+})->middleware('auth')->name('dashboard');

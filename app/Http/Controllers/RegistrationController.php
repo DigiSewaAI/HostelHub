@@ -7,6 +7,7 @@ use App\Models\OrganizationUser;
 use App\Models\Plan;
 use App\Models\Subscription;
 use App\Models\OnboardingProgress;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -16,8 +17,12 @@ class RegistrationController extends Controller
 {
     public function show(Request $request)
     {
-        $planId = $request->query('plan');
-        $plan = $planId ? Plan::find($planId) : Plan::where('name', 'Starter')->first();
+        $planSlug = $request->query('plan', 'starter');
+        $plan = Plan::where('slug', $planSlug)->first();
+
+        if (!$plan) {
+            $plan = Plan::where('name', 'Starter')->first();
+        }
 
         return view('auth.organization.register', compact('plan'));
     }
@@ -26,55 +31,58 @@ class RegistrationController extends Controller
     {
         $request->validate([
             'organization_name' => 'required|string|max:255',
-            'owner_name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-            'plan_id' => 'required|exists:plans,id'
+            'owner_name'       => 'required|string|max:255',
+            'email'            => 'required|string|email|max:255|unique:users',
+            'password'         => 'required|string|min:8|confirmed',
+            'plan_slug'        => 'required|string|exists:plans,slug',
         ]);
 
-        // Create organization
+        // Check for slug uniqueness to avoid duplicate errors
+        $slug = Str::slug($request->organization_name);
+        $originalSlug = $slug;
+        $i = 1;
+        while (Organization::where('slug', $slug)->exists()) {
+            $slug = $originalSlug . '-' . $i;
+            $i++;
+        }
+
         $organization = Organization::create([
-            'name' => $request->organization_name,
-            'slug' => Str::slug($request->organization_name),
-            'is_ready' => false
+            'name'     => $request->organization_name,
+            'slug'     => $slug,
+            'is_ready' => false,
         ]);
 
-        // Create owner user
-        $user = \App\Models\User::create([
-            'name' => $request->owner_name,
-            'email' => $request->email,
+        $user = User::create([
+            'name'     => $request->owner_name,
+            'email'    => $request->email,
             'password' => Hash::make($request->password),
+            'role_id'  => 2, // hostel manager role
         ]);
 
-        // Attach user to organization
         OrganizationUser::create([
-            'org_id' => $organization->id,
-            'user_id' => $user->id,
-            'role' => 'owner'
+            'organization_id' => $organization->id,
+            'user_id'         => $user->id,
+            'role'            => 'owner',
         ]);
 
-        // Get selected plan
-        $plan = Plan::find($request->plan_id);
+        $plan = Plan::where('slug', $request->plan_slug)->firstOrFail();
 
-        // Create subscription
-        $subscription = Subscription::create([
-            'org_id' => $organization->id,
-            'plan_id' => $plan->id,
-            'status' => 'trial',
-            'trial_ends_at' => now()->addDays(7),
-            'renews_at' => now()->addDays(7)
+        Subscription::create([
+            'organization_id' => $organization->id,
+            'plan_id'         => $plan->id,
+            'status'          => 'trial',
+            'trial_ends_at'   => now()->addDays(7),
+            'renews_at'       => now()->addDays(7),
         ]);
 
-        // Create onboarding progress
         OnboardingProgress::create([
-            'org_id' => $organization->id,
-            'current_step' => 1
+            'organization_id' => $organization->id,
+            'current_step'    => 1,
         ]);
 
-        // Log in the user
         Auth::login($user);
-
-        // Set current organization in session
+        $request->session()->regenerate();
+        session()->forget(['_old_input', 'errors']);
         session(['current_org_id' => $organization->id]);
 
         return redirect()->route('onboarding.index');

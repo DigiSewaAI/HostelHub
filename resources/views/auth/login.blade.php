@@ -1,15 +1,25 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ne">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <title>लगइन</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100">
     <div class="min-h-screen flex items-center justify-center">
         <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-            <h2 class="text-2xl font-bold mb-6 text-center">Login</h2>
+            <h2 class="text-2xl font-bold mb-6 text-center">लगइन</h2>
+
+            @if(session('status'))
+                <script>
+                    window.location.href = @json(auth()->user()->isAdmin() ? 
+                        route('admin.dashboard') : 
+                        (auth()->user()->isHostelManager() ? 
+                        route('owner.dashboard') : 
+                        route('student.dashboard')));
+                </script>
+            @endif
 
             @if ($errors->any())
                 <div class="mb-4 p-3 bg-red-100 text-red-700 rounded">
@@ -21,11 +31,14 @@
                 </div>
             @endif
 
-            <form method="POST" action="{{ route('login') }}">
+            <form method="POST" action="{{ route('login') }}" autocomplete="off">
                 @csrf
+                
+                <input type="text" name="fakeusernameremembered" autocomplete="username" style="display:none">
+                <input type="password" name="fakepasswordremembered" autocomplete="current-password" style="display:none">
 
                 <div class="mb-4">
-                    <label for="email" class="block text-gray-700 mb-2">Email</label>
+                    <label for="email" class="block text-gray-700 mb-2">इमेल</label>
                     <input
                         type="email"
                         name="email"
@@ -41,13 +54,14 @@
                 </div>
 
                 <div class="mb-4">
-                    <label for="password" class="block text-gray-700 mb-2">Password</label>
+                    <label for="password" class="block text-gray-700 mb-2">पासवर्ड</label>
                     <input
                         type="password"
                         name="password"
                         id="password"
                         class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         required
+                        autocomplete="current-password"
                     >
                     @error('password')
                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
@@ -61,19 +75,24 @@
                         id="remember"
                         class="mr-2"
                     >
-                    <label for="remember" class="text-gray-700">Remember me</label>
+                    <label for="remember" class="text-gray-700">मलाई सम्झनुहोस्</label>
                 </div>
 
                 <div class="mb-4">
                     <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition">
-                        Login
+                        लगइन
                     </button>
                 </div>
 
                 <div class="text-center">
                     <a href="{{ route('password.request') }}" class="text-blue-500 hover:underline">
-                        Forgot Password?
+                        पासवर्ड बिर्सनुभयो?
                     </a>
+                    <div class="mt-3">
+                        <a href="{{ route('register') }}" class="text-blue-500 hover:underline">
+                            नयाँ खाता खोल्नुहोस्
+                        </a>
+                    </div>
                 </div>
             </form>
         </div>

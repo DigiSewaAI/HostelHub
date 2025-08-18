@@ -2,17 +2,35 @@
 
 namespace App\Providers;
 
-use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Support\ServiceProvider;
 use App\Http\Middleware\RoleMiddleware;
+use App\Http\Middleware\EnsureOrgContext;
 
 class MiddlewareServiceProvider extends ServiceProvider
 {
-    public function boot()
+    /**
+     * Register application services.
+     */
+    public function register()
     {
-        // Manually register role middleware
-        $this->app->singleton('role', function ($app) {
+        // Bind EnsureOrgContext middleware
+        $this->app->bind(EnsureOrgContext::class, function ($app) {
+            return new EnsureOrgContext();
+        });
+
+        // Bind RoleMiddleware
+        $this->app->bind(RoleMiddleware::class, function ($app) {
             return new RoleMiddleware();
         });
+    }
+
+    /**
+     * Bootstrap any application services.
+     */
+    public function boot()
+    {
+        // Optionally you can alias them if you want to use short keys
+        $this->app['router']->aliasMiddleware('role', RoleMiddleware::class);
+        $this->app['router']->aliasMiddleware('org.context', EnsureOrgContext::class);
     }
 }
