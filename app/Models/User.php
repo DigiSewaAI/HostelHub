@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class User extends Authenticatable
 {
@@ -33,65 +32,39 @@ class User extends Authenticatable
         'payment_verified' => 'boolean',
     ];
 
-    // भूमिका सम्बन्धका लागि App\Models\Role प्रयोग गर्ने
     public function role(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\Role::class);
+        return $this->belongsTo(Role::class);
     }
 
-    // भूमिका नाम पहुँच गर्ने एक्सेसर थप्ने
-    public function getRoleAttribute(): ?string
+    public function getRoleName(): string
     {
-        return $this->roleRelation->name ?? null;
+        return $this->role->name;
     }
 
-    // सम्बन्धित भूमिका पहुँच गर्ने (नयाँ नाम)
-    public function roleRelation(): BelongsTo
+    // FIXED: Unified role checking
+    public function hasRole($roleName): bool
     {
-        return $this->belongsTo(\App\Models\Role::class, 'role_id');
-    }
-
-    // भूमिका जाँचका लागि सही विधिहरू
-    public function hasRole(string|int $role): bool
-    {
-        if (is_numeric($role)) {
-            return $this->role_id === (int)$role;
+        // Admin has all roles
+        if ($this->isAdmin()) {
+            return true;
         }
 
-        // भूमिका नामले जाँच गर्दा सम्बन्ध लोड गर्ने
-        if (!$this->relationLoaded('roleRelation')) {
-            $this->load('roleRelation');
-        }
-
-        return $this->roleRelation && $this->roleRelation->name === $role;
+        return $this->role && $this->role->name === $roleName;
     }
 
-    // नयाँ विधि: भूमिका नाम फर्काउने
-    public function getRoleName(): ?string
-    {
-        if (!$this->relationLoaded('roleRelation')) {
-            $this->load('roleRelation');
-        }
-
-        return $this->roleRelation->name ?? null;
-    }
-
-    // अधिकार जाँचका विधिहरू (नयाँ संस्करण)
     public function isAdmin(): bool
     {
-        return $this->hasRole('admin');
+        return $this->getRoleName() === 'admin';
     }
 
     public function isHostelManager(): bool
     {
-        return $this->hasRole('hostel_manager');
+        return $this->getRoleName() === 'hostel_manager';
     }
 
     public function isStudent(): bool
     {
-        return $this->hasRole('student');
+        return $this->getRoleName() === 'student';
     }
-
-    // अन्य विधिहरू जस्ताको तस्तै राख्ने...
-    // hasAnyRole, scopeAdmins, आदि...
 }

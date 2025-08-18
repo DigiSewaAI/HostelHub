@@ -8,8 +8,6 @@ class Kernel extends HttpKernel
 {
     /**
      * Global HTTP middleware stack.
-     *
-     * यी middleware हरू सबै request मा globally चल्छन्।
      */
     protected $middleware = [
         \App\Http\Middleware\TrustProxies::class,
@@ -21,9 +19,7 @@ class Kernel extends HttpKernel
     ];
 
     /**
-     * Middleware groups.
-     *
-     * यी middleware हरू group अनुसार routes मा लाग्छन्।
+     * The application's route middleware groups.
      */
     protected $middlewareGroups = [
         'web' => [
@@ -42,15 +38,13 @@ class Kernel extends HttpKernel
     ];
 
     /**
-     * Route middleware aliases.
-     *
-     * यी middleware लाई route-level मा नामको आधारमा call गर्न सकिन्छ।
+     * The application's route middleware aliases.
      */
     protected $middlewareAliases = [
         'auth' => \App\Http\Middleware\Authenticate::class,
         'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
         'auth.session' => \Illuminate\Session\Middleware\AuthenticateSession::class,
-        'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class, // ✅ Correct one
+        'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class,
         'can' => \Illuminate\Auth\Middleware\Authorize::class,
         'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
         'password.confirm' => \Illuminate\Auth\Middleware\RequirePassword::class,
@@ -58,21 +52,7 @@ class Kernel extends HttpKernel
         'signed' => \App\Http\Middleware\ValidateSignature::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
-
-        // ✅ Custom role middleware register
-        'role' => \App\Http\Middleware\RoleMiddleware::class,
-
-        // ✅ Custom organization and subscription middleware
-        'EnsureOrgContext' => \App\Http\Middleware\EnsureOrgContext::class,
-        'EnsureSubscriptionActive' => \App\Http\Middleware\EnsureSubscriptionActive::class,
-        'EnforcePlanLimits' => \App\Http\Middleware\EnforcePlanLimits::class,
+        // Register your custom middleware here
+        'role' => \App\Http\Middleware\CheckRole::class,
     ];
-
-    // ✅ Add this method to register middleware aliases
-    protected function registerMiddlewareAliases()
-    {
-        foreach ($this->middlewareAliases as $alias => $middleware) {
-            $this->router->aliasMiddleware($alias, $middleware);
-        }
-    }
 }

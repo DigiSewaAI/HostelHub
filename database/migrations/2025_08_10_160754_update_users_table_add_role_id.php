@@ -28,9 +28,9 @@ return new class extends Migration
             ]);
         }
 
-        // 2. Add role_id column to users table
+        // 2. Add role_id column to users table with default value
         Schema::table('users', function (Blueprint $table) {
-            $table->foreignId('role_id')->nullable()->after('id');
+            $table->foreignId('role_id')->default(3)->after('id'); // Default to student role
         });
 
         // 3. Map existing string roles to role_id
@@ -49,15 +49,15 @@ return new class extends Migration
         // 4. Make role_id required
         // Note: Requires doctrine/dbal package for column modification
         Schema::table('users', function (Blueprint $table) {
-            $table->foreignId('role_id')->nullable(false)->change();
+            $table->foreignId('role_id')->nullable(false)->default(3)->change();
         });
 
         // 5. Add foreign key constraint
         Schema::table('users', function (Blueprint $table) {
             $table->foreign('role_id')
-                  ->references('id')
-                  ->on('roles')
-                  ->onDelete('cascade');
+                ->references('id')
+                ->on('roles')
+                ->onDelete('cascade');
         });
 
         // 6. Drop the old role column

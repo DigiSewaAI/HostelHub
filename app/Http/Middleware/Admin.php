@@ -17,13 +17,13 @@ class Admin
      */
     public function handle(Request $request, Closure $next)
     {
-        // यदि प्रयोगकर्ता लगइन गरिएको छैन भने लगइन पेजमा पठाउनुहोस्
+        // Check if user is logged in
         if (!Auth::check()) {
             return redirect('login');
         }
 
-        // यदि प्रयोगकर्ताको रोल admin होइन भने होमपेजमा पठाउनुहोस्
-        if (Auth::user()->role_id != 1) {
+        // Use string role comparison instead of ID
+        if (Auth::user()->role !== 'admin') {
             return redirect('/');
         }
 

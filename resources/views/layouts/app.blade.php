@@ -6,7 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="robots" content="noindex, nofollow">
 
-    <title>@yield('title', 'ड्यासबोर्ड') - HostelHub Admin</title>
+    <title>@yield('title', 'ड्यासबोर्ड') - HostelHub</title>
 
     <!-- Favicon -->
     <link rel="shortcut icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
@@ -165,154 +165,138 @@
             </div>
             <nav class="mt-5 px-2">
                 <!-- Dashboard -->
-                <a href="{{ route('admin.dashboard') }}"
-                   class="sidebar-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}"
-                   aria-current="{{ request()->routeIs('admin.dashboard') ? 'page' : 'false' }}">
+                <a href="{{ route('dashboard') }}"
+                   class="sidebar-link {{ request()->routeIs('dashboard') ? 'active' : '' }}"
+                   aria-current="{{ request()->routeIs('dashboard') ? 'page' : 'false' }}">
                     <i class="fas fa-tachometer-alt sidebar-icon"></i>
                     <span class="sidebar-text">ड्यासबोर्ड</span>
                 </a>
 
-                <!-- Hostels -->
-                @if(Route::has('admin.hostels.index'))
-                    <a href="{{ route('admin.hostels.index') }}"
-                       class="sidebar-link {{ request()->routeIs('admin.hostels.*') ? 'active' : '' }}"
-                       aria-current="{{ request()->routeIs('admin.hostels.*') ? 'page' : 'false' }}">
-                        <i class="fas fa-building sidebar-icon"></i>
-                        <span class="sidebar-text">होस्टलहरू</span>
-                    </a>
-                @else
-                    <a href="#"
-                       class="sidebar-link opacity-50 cursor-not-allowed"
-                       aria-disabled="true">
-                        <i class="fas fa-building sidebar-icon"></i>
-                        <span class="sidebar-text">होस्टलहरू (प्रावधिक)</span>
-                    </a>
+                <!-- Conditional Menu Items -->
+                @if(auth()->user()->isAdmin())
+                    <!-- Admin Links -->
+                    @if(Route::has('admin.hostels.index'))
+                        <a href="{{ route('admin.hostels.index') }}"
+                           class="sidebar-link {{ request()->routeIs('admin.hostels.*') ? 'active' : '' }}"
+                           aria-current="{{ request()->routeIs('admin.hostels.*') ? 'page' : 'false' }}">
+                            <i class="fas fa-building sidebar-icon"></i>
+                            <span class="sidebar-text">होस्टलहरू</span>
+                        </a>
+                    @else
+                        <a href="#"
+                           class="sidebar-link opacity-50 cursor-not-allowed"
+                           aria-disabled="true">
+                            <i class="fas fa-building sidebar-icon"></i>
+                            <span class="sidebar-text">होस्टलहरू (प्रावधिक)</span>
+                        </a>
+                    @endif
+
+                    @if(Route::has('admin.rooms.index'))
+                        <a href="{{ route('admin.rooms.index') }}"
+                           class="sidebar-link {{ request()->routeIs('admin.rooms.*') ? 'active' : '' }}"
+                           aria-current="{{ request()->routeIs('admin.rooms.*') ? 'page' : 'false' }}">
+                            <i class="fas fa-door-open sidebar-icon"></i>
+                            <span class="sidebar-text">कोठाहरू</span>
+                        </a>
+                    @else
+                        <a href="#"
+                           class="sidebar-link opacity-50 cursor-not-allowed"
+                           aria-disabled="true">
+                            <i class="fas fa-door-open sidebar-icon"></i>
+                            <span class="sidebar-text">कोठाहरू (प्रावधिक)</span>
+                        </a>
+                    @endif
+
+                    @if(Route::has('admin.students.index'))
+                        <a href="{{ route('admin.students.index') }}"
+                           class="sidebar-link {{ request()->routeIs('admin.students.*') ? 'active' : '' }}"
+                           aria-current="{{ request()->routeIs('admin.students.*') ? 'page' : 'false' }}">
+                            <i class="fas fa-users sidebar-icon"></i>
+                            <span class="sidebar-text">विद्यार्थीहरू</span>
+                        </a>
+                    @else
+                        <a href="#"
+                           class="sidebar-link opacity-50 cursor-not-allowed"
+                           aria-disabled="true">
+                            <i class="fas fa-users sidebar-icon"></i>
+                            <span class="sidebar-text">विद्यार्थीहरू (प्रावधिक)</span>
+                        </a>
+                    @endif
+
+                @elseif(auth()->user()->isHostelManager())
+                    <!-- Owner Links -->
+                    @if(Route::has('owner.hostels.index'))
+                        <a href="{{ route('owner.hostels.index') }}"
+                           class="sidebar-link {{ request()->routeIs('owner.hostels.*') ? 'active' : '' }}"
+                           aria-current="{{ request()->routeIs('owner.hostels.*') ? 'page' : 'false' }}">
+                            <i class="fas fa-building sidebar-icon"></i>
+                            <span class="sidebar-text">मेरा होस्टलहरू</span>
+                        </a>
+                    @else
+                        <a href="#"
+                           class="sidebar-link opacity-50 cursor-not-allowed"
+                           aria-disabled="true">
+                            <i class="fas fa-building sidebar-icon"></i>
+                            <span class="sidebar-text">होस्टलहरू (प्रावधिक)</span>
+                        </a>
+                    @endif
+
+                    @if(Route::has('owner.rooms.index'))
+                        <a href="{{ route('owner.rooms.index') }}"
+                           class="sidebar-link {{ request()->routeIs('owner.rooms.*') ? 'active' : '' }}"
+                           aria-current="{{ request()->routeIs('owner.rooms.*') ? 'page' : 'false' }}">
+                            <i class="fas fa-door-open sidebar-icon"></i>
+                            <span class="sidebar-text">मेरा कोठाहरू</span>
+                        </a>
+                    @else
+                        <a href="#"
+                           class="sidebar-link opacity-50 cursor-not-allowed"
+                           aria-disabled="true">
+                            <i class="fas fa-door-open sidebar-icon"></i>
+                            <span class="sidebar-text">कोठाहरू (प्रावधिक)</span>
+                        </a>
+                    @endif
+
+                @elseif(auth()->user()->isStudent())
+                    <!-- Student Links -->
+                    @if(Route::has('student.rooms.index'))
+                        <a href="{{ route('student.rooms.index') }}"
+                           class="sidebar-link {{ request()->routeIs('student.rooms.*') ? 'active' : '' }}"
+                           aria-current="{{ request()->routeIs('student.rooms.*') ? 'page' : 'false' }}">
+                            <i class="fas fa-search sidebar-icon"></i>
+                            <span class="sidebar-text">कोठा खोजी</span>
+                        </a>
+                    @else
+                        <a href="#"
+                           class="sidebar-link opacity-50 cursor-not-allowed"
+                           aria-disabled="true">
+                            <i class="fas fa-search sidebar-icon"></i>
+                            <span class="sidebar-text">खोजी (प्रावधिक)</span>
+                        </a>
+                    @endif
+
+                    @if(Route::has('student.bookings'))
+                        <a href="{{ route('student.bookings') }}"
+                           class="sidebar-link {{ request()->routeIs('student.bookings') ? 'active' : '' }}"
+                           aria-current="{{ request()->routeIs('student.bookings') ? 'page' : 'false' }}">
+                            <i class="fas fa-calendar-check sidebar-icon"></i>
+                            <span class="sidebar-text">मेरो बुकिङहरू</span>
+                        </a>
+                    @else
+                        <a href="#"
+                           class="sidebar-link opacity-50 cursor-not-allowed"
+                           aria-disabled="true">
+                            <i class="fas fa-calendar-check sidebar-icon"></i>
+                            <span class="sidebar-text">बुकिङहरू (प्रावधिक)</span>
+                        </a>
+                    @endif
                 @endif
 
-                <!-- Rooms -->
-                @if(Route::has('admin.rooms.index'))
-                    <a href="{{ route('admin.rooms.index') }}"
-                       class="sidebar-link {{ request()->routeIs('admin.rooms.*') ? 'active' : '' }}"
-                       aria-current="{{ request()->routeIs('admin.rooms.*') ? 'page' : 'false' }}">
-                        <i class="fas fa-door-open sidebar-icon"></i>
-                        <span class="sidebar-text">कोठाहरू</span>
-                    </a>
-                @else
-                    <a href="#"
-                       class="sidebar-link opacity-50 cursor-not-allowed"
-                       aria-disabled="true">
-                        <i class="fas fa-door-open sidebar-icon"></i>
-                        <span class="sidebar-text">कोठाहरू (प्रावधिक)</span>
-                    </a>
-                @endif
-
-                <!-- Students -->
-                @if(Route::has('admin.students.index'))
-                    <a href="{{ route('admin.students.index') }}"
-                       class="sidebar-link {{ request()->routeIs('admin.students.*') ? 'active' : '' }}"
-                       aria-current="{{ request()->routeIs('admin.students.*') ? 'page' : 'false' }}">
-                        <i class="fas fa-users sidebar-icon"></i>
-                        <span class="sidebar-text">विद्यार्थीहरू</span>
-                    </a>
-                @else
-                    <a href="#"
-                       class="sidebar-link opacity-50 cursor-not-allowed"
-                       aria-disabled="true">
-                        <i class="fas fa-users sidebar-icon"></i>
-                        <span class="sidebar-text">विद्यार्थीहरू (प्रावधिक)</span>
-                    </a>
-                @endif
-
-                <!-- Payments -->
-                @if(Route::has('admin.payments.index'))
-                    <a href="{{ route('admin.payments.index') }}"
-                       class="sidebar-link {{ request()->routeIs('admin.payments.*') ? 'active' : '' }}"
-                       aria-current="{{ request()->routeIs('admin.payments.*') ? 'page' : 'false' }}">
-                        <i class="fas fa-money-bill-wave sidebar-icon"></i>
-                        <span class="sidebar-text">भुक्तानीहरू</span>
-                    </a>
-                @else
-                    <a href="#"
-                       class="sidebar-link opacity-50 cursor-not-allowed"
-                       aria-disabled="true">
-                        <i class="fas fa-money-bill-wave sidebar-icon"></i>
-                        <span class="sidebar-text">भुक्तानीहरू (प्रावधिक)</span>
-                    </a>
-                @endif
-
-                <!-- Meals -->
-                @if(Route::has('admin.meals.index'))
-                    <a href="{{ route('admin.meals.index') }}"
-                       class="sidebar-link {{ request()->routeIs('admin.meals.*') ? 'active' : '' }}"
-                       aria-current="{{ request()->routeIs('admin.meals.*') ? 'page' : 'false' }}">
-                        <i class="fas fa-utensils sidebar-icon"></i>
-                        <span class="sidebar-text">भोजन</span>
-                    </a>
-                @else
-                    <a href="#"
-                       class="sidebar-link opacity-50 cursor-not-allowed"
-                       aria-disabled="true">
-                        <i class="fas fa-utensils sidebar-icon"></i>
-                        <span class="sidebar-text">भोजन (प्रावधिक)</span>
-                    </a>
-                @endif
-
-                <!-- Gallery -->
-                @if(Route::has('admin.gallery.index'))
-                    <a href="{{ route('admin.gallery.index') }}"
-                       class="sidebar-link {{ request()->routeIs('admin.gallery.*') ? 'active' : '' }}"
-                       aria-current="{{ request()->routeIs('admin.gallery.*') ? 'page' : 'false' }}">
-                        <i class="fas fa-images sidebar-icon"></i>
-                        <span class="sidebar-text">ग्यालरी</span>
-                    </a>
-                @else
-                    <a href="#"
-                       class="sidebar-link opacity-50 cursor-not-allowed"
-                       aria-disabled="true">
-                        <i class="fas fa-images sidebar-icon"></i>
-                        <span class="sidebar-text">ग्यालरी (प्रावधिक)</span>
-                    </a>
-                @endif
-
-                <!-- Contacts -->
-                @if(Route::has('admin.contacts.index'))
-                    <a href="{{ route('admin.contacts.index') }}"
-                       class="sidebar-link {{ request()->routeIs('admin.contacts.*') ? 'active' : '' }}"
-                       aria-current="{{ request()->routeIs('admin.contacts.*') ? 'page' : 'false' }}">
-                        <i class="fas fa-envelope sidebar-icon"></i>
-                        <span class="sidebar-text">सम्पर्क</span>
-                    </a>
-                @else
-                    <a href="#"
-                       class="sidebar-link opacity-50 cursor-not-allowed"
-                       aria-disabled="true">
-                        <i class="fas fa-envelope sidebar-icon"></i>
-                        <span class="sidebar-text">सम्पर्क (प्रावधिक)</span>
-                    </a>
-                @endif
-
-                <!-- Reports -->
-                @if(Route::has('admin.reports.index'))
-                    <a href="{{ route('admin.reports.index') }}"
-                       class="sidebar-link {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}"
-                       aria-current="{{ request()->routeIs('admin.reports.*') ? 'page' : 'false' }}">
-                        <i class="fas fa-chart-bar sidebar-icon"></i>
-                        <span class="sidebar-text">प्रतिवेदनहरू</span>
-                    </a>
-                @else
-                    <a href="#"
-                       class="sidebar-link opacity-50 cursor-not-allowed"
-                       aria-disabled="true">
-                        <i class="fas fa-chart-bar sidebar-icon"></i>
-                        <span class="sidebar-text">प्रतिवेदनहरू (प्रावधिक)</span>
-                    </a>
-                @endif
-
-                <!-- Settings -->
-                @if(Route::has('admin.settings'))
-                    <a href="{{ route('admin.settings') }}"
-                       class="sidebar-link {{ request()->routeIs('admin.settings') ? 'active' : '' }}"
-                       aria-current="{{ request()->routeIs('admin.settings') ? 'page' : 'false' }}">
+                <!-- Common Links -->
+                @if(Route::has('settings'))
+                    <a href="{{ route('settings') }}"
+                       class="sidebar-link {{ request()->routeIs('settings') ? 'active' : '' }}"
+                       aria-current="{{ request()->routeIs('settings') ? 'page' : 'false' }}">
                         <i class="fas fa-cog sidebar-icon"></i>
                         <span class="sidebar-text">सेटिङ्हरू</span>
                     </a>
@@ -322,6 +306,23 @@
                        aria-disabled="true">
                         <i class="fas fa-cog sidebar-icon"></i>
                         <span class="sidebar-text">सेटिङ्हरू (प्रावधिक)</span>
+                    </a>
+                @endif
+
+                <!-- Gallery -->
+                @if(Route::has('gallery.index'))
+                    <a href="{{ route('gallery.index') }}"
+                       class="sidebar-link {{ request()->routeIs('gallery.*') ? 'active' : '' }}"
+                       aria-current="{{ request()->routeIs('gallery.*') ? 'page' : 'false' }}">
+                        <i class="fas fa-images sidebar-icon"></i>
+                        <span class="sidebar-text">ग्यालरी</span>
+                    </a>
+                @else
+                    <a href="#"
+                       class="sidebar-link opacity-50 cursor-not-allowed"
+                       aria-disabled="true">
+                        <i class="fas fa-images sidebar-icon"></i>
+                        <span class="sidebar-text">ग्यालरी (प्रावधिक)</span>
                     </a>
                 @endif
 
@@ -351,45 +352,53 @@
                         <nav class="hidden md:flex" aria-label="Breadcrumb">
                             <ol class="flex items-center space-x-2 text-sm">
                                 <li>
-                                    <a href="{{ route('admin.dashboard') }}" class="text-gray-500 hover:text-indigo-600">
+                                    <a href="{{ route('dashboard') }}" class="text-gray-500 hover:text-indigo-600">
                                         <i class="fas fa-home"></i>
                                     </a>
                                 </li>
-                                @if(request()->routeIs('admin.dashboard'))
+                                @if(request()->routeIs('dashboard'))
                                     <li class="text-gray-500">
                                         <i class="fas fa-chevron-right text-xs mx-2"></i>
                                         <span>ड्यासबोर्ड</span>
                                     </li>
-                                @elseif(Route::has('admin.hostels.index') && request()->routeIs('admin.hostels.*'))
+                                @elseif(request()->routeIs('admin.hostels.*') || request()->routeIs('owner.hostels.*'))
                                     <li class="text-gray-500">
                                         <i class="fas fa-chevron-right text-xs mx-2"></i>
-                                        <a href="{{ route('admin.hostels.index') }}" class="hover:text-indigo-600">होस्टलहरू</a>
+                                        <a href="{{ 
+                                            auth()->user()->isAdmin() ? route('admin.hostels.index') : 
+                                            route('owner.hostels.index') 
+                                        }}" class="hover:text-indigo-600">
+                                            होस्टलहरू
+                                        </a>
                                     </li>
-                                    @if(Route::has('admin.hostels.create') && request()->routeIs('admin.hostels.create'))
+                                    @if(request()->routeIs('admin.hostels.create') || request()->routeIs('owner.hostels.create'))
                                         <li class="text-gray-500">
                                             <i class="fas fa-chevron-right text-xs mx-2"></i>
                                             <span>थप्नुहोस्</span>
                                         </li>
-                                    @elseif(Route::has('admin.hostels.edit') && request()->routeIs('admin.hostels.edit'))
+                                    @elseif(request()->routeIs('admin.hostels.edit') || request()->routeIs('owner.hostels.edit'))
                                         <li class="text-gray-500">
                                             <i class="fas fa-chevron-right text-xs mx-2"></i>
                                             <span>सम्पादन गर्नुहोस्</span>
                                         </li>
                                     @endif
-                                @elseif(Route::has('admin.rooms.index') && request()->routeIs('admin.rooms.*'))
+                                @elseif(request()->routeIs('admin.rooms.*') || request()->routeIs('owner.rooms.*'))
                                     <li class="text-gray-500">
                                         <i class="fas fa-chevron-right text-xs mx-2"></i>
-                                        <a href="{{ route('admin.rooms.index') }}" class="hover:text-indigo-600">कोठाहरू</a>
+                                        <a href="{{ 
+                                            auth()->user()->isAdmin() ? route('admin.rooms.index') : 
+                                            route('owner.rooms.index') 
+                                        }}" class="hover:text-indigo-600">कोठाहरू</a>
                                     </li>
-                                @elseif(Route::has('admin.students.index') && request()->routeIs('admin.students.*'))
+                                @elseif(request()->routeIs('student.rooms.*'))
                                     <li class="text-gray-500">
                                         <i class="fas fa-chevron-right text-xs mx-2"></i>
-                                        <a href="{{ route('admin.students.index') }}" class="hover:text-indigo-600">विद्यार्थीहरू</a>
+                                        <a href="{{ route('student.rooms.index') }}" class="hover:text-indigo-600">कोठा खोजी</a>
                                     </li>
-                                @elseif(Route::has('admin.gallery.index') && request()->routeIs('admin.gallery.*'))
+                                @elseif(request()->routeIs('gallery.*'))
                                     <li class="text-gray-500">
                                         <i class="fas fa-chevron-right text-xs mx-2"></i>
-                                        <a href="{{ route('admin.gallery.index') }}" class="hover:text-indigo-600">ग्यालरी</a>
+                                        <a href="{{ route('gallery.index') }}" class="hover:text-indigo-600">ग्यालरी</a>
                                     </li>
                                 @endif
                             </ol>
@@ -468,7 +477,7 @@
                                     </span>
                                 </div>
                                 <span class="hidden md:inline text-gray-700 font-medium">
-                                    {{ optional(auth()->user())->name ?? 'प्रशासक' }}
+                                    {{ optional(auth()->user())->name ?? 'प्रयोगकर्ता' }}
                                 </span>
                                 <i class="fas fa-chevron-down text-xs text-gray-500"></i>
                             </button>
@@ -488,8 +497,8 @@
                                     <i class="fas fa-user mr-3 text-gray-400"></i>
                                     <span>मेरो प्रोफाइल</span>
                                 </a>
-                                @if(Route::has('admin.settings'))
-                                    <a href="{{ route('admin.settings') }}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" role="menuitem">
+                                @if(Route::has('settings'))
+                                    <a href="{{ route('settings') }}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" role="menuitem">
                                         <i class="fas fa-cog mr-3 text-gray-400"></i>
                                         <span>सेटिङ्हरू</span>
                                     </a>

@@ -7,12 +7,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100">
-    <script>
-        @if(session('success'))
-            window.location.href = "{{ route('home') }}";
-        @endif
-    </script>
-
     <div class="min-h-screen flex items-center justify-center">
         <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
             <h2 class="text-2xl font-bold mb-6 text-center">Create Account</h2>
@@ -27,11 +21,13 @@
                 </div>
             @endif
 
+            <!-- FIX: Correct form action route -->
             <form method="POST" action="{{ route('register.submit') }}">
                 @csrf
 
                 <div class="mb-4">
                     <label for="name" class="block text-gray-700 mb-2">Full Name</label>
+                    <!-- FIX: Add old input for name -->
                     <input
                         type="text"
                         name="name"
@@ -48,6 +44,7 @@
 
                 <div class="mb-4">
                     <label for="email" class="block text-gray-700 mb-2">Email</label>
+                    <!-- FIX: Add old input for email -->
                     <input
                         type="email"
                         name="email"
@@ -63,12 +60,14 @@
 
                 <div class="mb-4">
                     <label for="password" class="block text-gray-700 mb-2">Password</label>
+                    <!-- FIX: Add autocomplete and remove old input -->
                     <input
                         type="password"
                         name="password"
                         id="password"
                         class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         required
+                        autocomplete="new-password"
                     >
                     @error('password')
                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
@@ -77,12 +76,14 @@
 
                 <div class="mb-6">
                     <label for="password_confirmation" class="block text-gray-700 mb-2">Confirm Password</label>
+                    <!-- FIX: Add autocomplete -->
                     <input
                         type="password"
                         name="password_confirmation"
                         id="password_confirmation"
                         class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         required
+                        autocomplete="new-password"
                     >
                 </div>
 

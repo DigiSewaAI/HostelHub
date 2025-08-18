@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('password');
 
             // Added fields as per seeder
-            $table->string('role')->default('student'); // e.g., admin, student
+            $table->unsignedBigInteger('role_id')->default(3); // 1=admin, 2=hostel_manager, 3=student
             $table->string('phone')->nullable();
             $table->string('address')->nullable();
             $table->unsignedBigInteger('student_id')->nullable(); // संशोधित लाइन

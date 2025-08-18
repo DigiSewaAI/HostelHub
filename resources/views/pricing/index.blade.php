@@ -41,7 +41,6 @@
                 <div class="flex-shrink-0 flex items-center">
                     <a href="{{ route('home') }}" class="text-2xl font-bold text-indigo-600">HostelHub</a>
                 </div>
-
                 <!-- Desktop Navigation - Fixed with all links -->
                 <nav class="hidden md:flex gap-2">
                     <a href="{{ route('home') }}" class="nav-button text-gray-700 hover:bg-indigo-100">होम</a>
@@ -51,13 +50,11 @@
                     <a href="{{ route('gallery.public') }}" class="nav-button text-gray-700 hover:bg-indigo-100">ग्यालरी</a>
                     <a href="{{ route('reviews') }}" class="nav-button text-gray-700 hover:bg-indigo-100">समीक्षाहरू</a>
                 </nav>
-
                 <!-- Login/Signup Buttons -->
                 <div class="hidden md:flex items-center gap-3">
                     <a href="{{ route('login') }}" class="nav-button text-indigo-600 border border-indigo-600 hover:bg-indigo-50">लगइन</a>
                     <a href="{{ route('register.organization') }}" class="nav-button bg-indigo-600 text-white hover:bg-indigo-700">साइन अप</a>
                 </div>
-
                 <!-- Mobile menu button -->
                 <div class="md:hidden flex items-center">
                     <button type="button" class="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-indigo-600 hover:bg-gray-100 focus:outline-none transition duration-150 ease-in-out">
@@ -69,7 +66,6 @@
             </div>
         </div>
     </header>
-
     <!-- Pricing Section -->
     <section class="py-16 bg-gray-50">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -80,7 +76,6 @@
                     ७ दिन निःशुल्क परीक्षण | कुनै पनि क्रेडिट कार्ड आवश्यक छैन
                 </div>
             </div>
-
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
                 <!-- Starter Plan -->
                 <div class="relative flex flex-col h-full border border-gray-200 shadow-lg rounded-2xl overflow-hidden bg-white transition-all duration-300 hover:shadow-xl">
@@ -92,7 +87,6 @@
                                 <span class="ml-2 text-gray-600 font-medium">/महिना</span>
                             </div>
                         </div>
-                        
                         <div class="mb-8 flex-grow">
                             <ul class="space-y-3">
                                 <li class="flex items-start">
@@ -133,7 +127,6 @@
                                 </li>
                             </ul>
                         </div>
-                        
                         <div class="mt-auto">
                             <a href="{{ route('register.organization', ['plan' => 'starter']) }}" class="w-full block text-center py-3 px-6 rounded-lg font-medium transition-colors duration-200 bg-indigo-600 hover:bg-indigo-700 text-white shadow-md">
                                 योजना छान्नुहोस्
@@ -141,71 +134,66 @@
                         </div>
                     </div>
                 </div>
-
                 <!-- Pro Plan -->
-<div class="relative overflow-visible flex flex-col h-full md:-mt-6 md:scale-105 border-2 border-indigo-600 shadow-2xl rounded-2xl bg-white transition-all duration-300 hover:shadow-xl">
-  <span class="absolute -top-3 left-1/2 -translate-x-1/2 z-10 bg-rose-600 text-white text-xs font-semibold px-3 py-1 rounded-full shadow">
-    लोकप्रिय
-  </span>
-  
-  <div class="p-8 flex flex-col h-full">
-    <div class="mb-6">
-      <h3 class="text-2xl font-bold text-gray-900 mb-2">प्रो</h3>
-      <div class="flex items-baseline">
-        <span class="text-4xl font-extrabold text-indigo-600">रु. 4,999</span>
-        <span class="ml-2 text-gray-600 font-medium">/महिना</span>
-      </div>
-    </div>
-    
-    <div class="mb-8 flex-grow">
-      <ul class="space-y-3">
-        <li class="flex items-start">
-          <svg class="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-          </svg>
-          <span class="ml-3 text-gray-700">२०० विद्यार्थी सम्म</span>
-        </li>
-        <li class="flex items-start">
-          <svg class="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-          </svg>
-          <span class="ml-3 text-gray-700">पूर्ण विद्यार्थी व्यवस्थापन</span>
-        </li>
-        <li class="flex items-start">
-          <svg class="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-          </svg>
-          <span class="ml-3 text-gray-700">अग्रिम कोठा बुकिंग</span>
-        </li>
-        <li class="flex items-start">
-          <svg class="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-          </svg>
-          <span class="ml-3 text-gray-700">भुक्तानी ट्र्याकिंग</span>
-        </li>
-        <li class="flex items-start">
-          <svg class="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-          </svg>
-          <span class="ml-3 text-gray-700">भोजन व्यवस्थापन</span>
-        </li>
-        <li class="flex items-start">
-          <svg class="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-          </svg>
-          <span class="ml-3 text-gray-700">मोबाइल एप्प</span>
-        </li>
-      </ul>
-    </div>
-    
-    <div class="mt-auto">
-      <a href="{{ route('register.organization', ['plan' => 'pro']) }}" class="w-full block text-center py-3 px-6 rounded-lg font-medium transition-colors duration-200 bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg">
-        योजना छान्नुहोस्
-      </a>
-    </div>
-  </div>
-</div>
-
+                <div class="relative overflow-visible flex flex-col h-full md:-mt-6 md:scale-105 border-2 border-indigo-600 shadow-2xl rounded-2xl bg-white transition-all duration-300 hover:shadow-xl">
+                    <span class="absolute -top-3 left-1/2 -translate-x-1/2 z-10 bg-rose-600 text-white text-xs font-semibold px-3 py-1 rounded-full shadow">
+                        लोकप्रिय
+                    </span>
+                    <div class="p-8 flex flex-col h-full">
+                        <div class="mb-6">
+                            <h3 class="text-2xl font-bold text-gray-900 mb-2">प्रो</h3>
+                            <div class="flex items-baseline">
+                                <span class="text-4xl font-extrabold text-indigo-600">रु. 4,999</span>
+                                <span class="ml-2 text-gray-600 font-medium">/महिना</span>
+                            </div>
+                        </div>
+                        <div class="mb-8 flex-grow">
+                            <ul class="space-y-3">
+                                <li class="flex items-start">
+                                    <svg class="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    <span class="ml-3 text-gray-700">२०० विद्यार्थी सम्म</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <svg class="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    <span class="ml-3 text-gray-700">पूर्ण विद्यार्थी व्यवस्थापन</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <svg class="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    <span class="ml-3 text-gray-700">अग्रिम कोठा बुकिंग</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <svg class="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    <span class="ml-3 text-gray-700">भुक्तानी ट्र्याकिंग</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <svg class="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    <span class="ml-3 text-gray-700">भोजन व्यवस्थापन</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <svg class="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    <span class="ml-3 text-gray-700">मोबाइल एप्प</span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="mt-auto">
+                            <a href="{{ route('register.organization', ['plan' => 'pro']) }}" class="w-full block text-center py-3 px-6 rounded-lg font-medium transition-colors duration-200 bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg">
+                                योजना छान्नुहोस्
+                            </a>
+                        </div>
+                    </div>
+                </div>
                 <!-- Enterprise Plan -->
                 <div class="relative flex flex-col h-full border border-gray-200 shadow-lg rounded-2xl overflow-hidden bg-white transition-all duration-300 hover:shadow-xl">
                     <div class="p-8 flex flex-col h-full">
@@ -216,7 +204,6 @@
                                 <span class="ml-2 text-gray-600 font-medium">/महिना</span>
                             </div>
                         </div>
-                        
                         <div class="mb-8 flex-grow">
                             <ul class="space-y-3">
                                 <li class="flex items-start">
@@ -257,7 +244,6 @@
                                 </li>
                             </ul>
                         </div>
-                        
                         <div class="mt-auto">
                             <a href="{{ route('register.organization', ['plan' => 'enterprise']) }}" class="w-full block text-center py-3 px-6 rounded-lg font-medium transition-colors duration-200 bg-indigo-600 hover:bg-indigo-700 text-white shadow-md">
                                 योजना छान्नुहोस्
@@ -266,7 +252,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="mt-24 text-center">
                 <div class="inline-block bg-white border border-gray-200 rounded-xl p-6 max-w-3xl mx-auto">
                     <h3 class="text-2xl font-bold text-gray-900 mb-4">अझै केही जिज्ञासा छन्? सहयोग चाहिन्छ?</h3>
@@ -278,7 +263,7 @@
                             </svg>
                             support@hostelhub.com
                         </a>
-                        <a href="{{ route('subscription.start-trial') }}" class="inline-flex items-center justify-center px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                        <a href="{{ route('register.organization') }}" class="inline-flex items-center justify-center px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
                             ७ दिन निःशुल्क परीक्षण सुरु गर्नुहोस्
                             <svg class="h-5 w-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
@@ -289,7 +274,6 @@
             </div>
         </div>
     </section>
-
     <!-- Footer Section -->
     <footer class="bg-indigo-900 text-white py-12">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -298,7 +282,6 @@
                     <h3 class="text-2xl font-bold mb-4">HostelHub</h3>
                     <p class="text-indigo-200">नेपालको नम्बर १ होस्टल प्रबन्धन प्रणाली। हामी होस्टल व्यवस्थापनलाई सहज, दक्ष र विश्वसनीय बनाउँछौं।</p>
                 </div>
-                
                 <div>
                     <h4 class="text-lg font-semibold mb-4">तिब्र लिङ्कहरू</h4>
                     <ul class="space-y-3 text-indigo-200">
@@ -309,7 +292,6 @@
                         <li><a href="{{ route('gallery.public') }}" class="hover:text-white transition-colors">ग्यालरी</a></li>
                     </ul>
                 </div>
-                
                 <div>
                     <h4 class="text-lg font-semibold mb-4">सम्पर्क जानकारी</h4>
                     <address class="text-indigo-200 not-italic space-y-2">
@@ -319,7 +301,6 @@
                         <p>सोम-शुक्र: ९:०० बिहान - ५:०० बेलुका</p>
                     </address>
                 </div>
-                
                 <div>
                     <h4 class="text-lg font-semibold mb-4">हाम्रो पछाडि लाग्नुहोस्</h4>
                     <div class="flex gap-4">
@@ -341,13 +322,11 @@
                     </div>
                 </div>
             </div>
-            
             <div class="mt-12 pt-8 border-t border-indigo-800">
                 <div class="md:flex md:items-center md:justify-between">
                     <div class="text-center md:text-left">
                         <p class="text-indigo-300 text-sm">© 2025 HostelHub. सबै अधिकार सुरक्षित।</p>
                     </div>
-                    
                     <div class="mt-4 md:mt-0">
                         <div class="flex justify-center md:justify-end gap-4">
                             <a href="#" class="text-indigo-300 hover:text-white">गोपनीयता नीति</a>

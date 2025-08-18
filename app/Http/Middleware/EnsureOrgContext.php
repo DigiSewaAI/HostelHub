@@ -13,49 +13,59 @@ class EnsureOrgContext
 {
     public function handle(Request $request, Closure $next): Response
     {
-        // If user is not authenticated, redirect to login
+        // Skip organization check for these routes
+        $exemptRoutes = [
+            'login',
+            'register.organization',
+            'register',
+            'password.request',
+            'password.email',
+            'password.reset',
+            'verification.notice',
+            'verification.verify',
+            'verification.send'
+        ];
+
+        if (in_array($request->route()->getName(), $exemptRoutes)) {
+            return $next($request);
+        }
+
         if (!Auth::check()) {
             return redirect()->route('login');
         }
 
         $user = Auth::user();
-
-        // Get the organization from session if exists
         $orgId = session('current_org_id');
 
-        // If no org in session, get the first organization the user belongs to
         if (!$orgId) {
             $orgUser = OrganizationUser::where('user_id', $user->id)->first();
-            if ($orgUser) {
-                $orgId = $orgUser->org_id;
+            $orgId = $orgUser->org_id ?? null;
+            if ($orgId) {
                 session(['current_org_id' => $orgId]);
             }
         }
 
-        // If still no org, redirect to organization creation
         if (!$orgId) {
-            return redirect()->route('register.show');
+            return redirect()->route('register.organization');
         }
 
-        // Get the organization
         $organization = Organization::find($orgId);
 
-        // Check if user has access to this organization
+        if (!$organization) {
+            session()->forget('current_org_id');
+            return redirect()->route('register.organization');
+        }
+
         $hasAccess = OrganizationUser::where('user_id', $user->id)
             ->where('org_id', $orgId)
             ->exists();
 
         if (!$hasAccess) {
-            // Clear the session org and redirect
             session()->forget('current_org_id');
-            return redirect()->route('register.show');
+            return redirect()->route('register.organization');
         }
 
-        // Set the organization in the request
-        $request->attributes->set('organization', $organization);
-        $request->attributes->set('org_id', $orgId);
-
-        // Make organization available globally
+        $request->merge(['organization' => $organization, 'org_id' => $orgId]);
         view()->share('currentOrganization', $organization);
 
         return $next($request);
