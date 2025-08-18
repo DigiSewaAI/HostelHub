@@ -60,7 +60,7 @@ class RegistrationController extends Controller
         ]);
 
         OrganizationUser::create([
-            'organization_id' => $organization->id,
+            'org_id' => $organization->id,
             'user_id'         => $user->id,
             'role'            => 'owner',
         ]);
@@ -68,7 +68,7 @@ class RegistrationController extends Controller
         $plan = Plan::where('slug', $request->plan_slug)->firstOrFail();
 
         Subscription::create([
-            'organization_id' => $organization->id,
+            'org_id' => $organization->id,
             'plan_id'         => $plan->id,
             'status'          => 'trial',
             'trial_ends_at'   => now()->addDays(7),
@@ -76,7 +76,7 @@ class RegistrationController extends Controller
         ]);
 
         OnboardingProgress::create([
-            'organization_id' => $organization->id,
+            'org_id' => $organization->id,
             'current_step'    => 1,
         ]);
 
