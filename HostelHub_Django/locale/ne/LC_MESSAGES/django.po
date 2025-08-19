@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HostelHub 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-19 14:59+0545\n"
+"POT-Creation-Date: 2025-08-19 17:29+0545\n"
 "PO-Revision-Date: 2025-08-19 07:46+0545\n"
 "Last-Translator: Ashish Regmi <regmiashish629@gmail.com>\n"
 "Language-Team: Nepali <ne@li.org>\n"
@@ -17,6 +17,54 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: .\home\forms.py:8 .\home\models.py:8
+msgid "Check-in Date"
+msgstr ""
+
+#: .\home\forms.py:9 .\home\models.py:9
+msgid "Check-out Date"
+msgstr ""
+
+#: .\home\forms.py:10
+msgid "Number of Guests"
+msgstr ""
+
+#: .\home\forms.py:13
+msgid "Select your arrival date"
+msgstr ""
+
+#: .\home\forms.py:14
+msgid "Select your departure date"
+msgstr ""
+
+#: .\home\models.py:6
+msgid "Guest Name"
+msgstr ""
+
+#: .\home\models.py:7
+msgid "Room Number"
+msgstr ""
+
+#: .\home\models.py:10
+msgid "Created At"
+msgstr ""
+
+#: .\home\models.py:11
+msgid "Updated At"
+msgstr ""
+
+#: .\home\models.py:14
+msgid "Booking"
+msgstr ""
+
+#: .\home\models.py:15
+msgid "Bookings"
+msgstr ""
+
+#: .\home\models.py:21
+msgid "Check-out date must be after check-in date"
+msgstr ""
 
 #: .\templates\home\home.html:8
 msgid "Welcome to HostelHub"
@@ -1248,4 +1296,59 @@ msgstr ""
 
 #: .\venv\Lib\site-packages\django\views\templates\default_urlconf.html:236
 msgid "Connect, get help, or contribute"
+msgstr ""
+
+#: .\venv\Lib\site-packages\modeltranslation\tests\models.py:14
+#: .\venv\Lib\site-packages\modeltranslation\tests\models.py:53
+#: .\venv\Lib\site-packages\modeltranslation\tests\models.py:61
+#: .\venv\Lib\site-packages\modeltranslation\tests\models.py:71
+#: .\venv\Lib\site-packages\modeltranslation\tests\models.py:81
+#: .\venv\Lib\site-packages\modeltranslation\tests\models.py:85
+#: .\venv\Lib\site-packages\modeltranslation\tests\models.py:117
+#: .\venv\Lib\site-packages\modeltranslation\tests\models.py:136
+#: .\venv\Lib\site-packages\modeltranslation\tests\models.py:363
+#: .\venv\Lib\site-packages\modeltranslation\tests\models.py:368
+#: .\venv\Lib\site-packages\modeltranslation\tests\models.py:378
+#: .\venv\Lib\site-packages\modeltranslation\tests\models.py:398
+#: .\venv\Lib\site-packages\modeltranslation\tests\models.py:415
+#: .\venv\Lib\site-packages\modeltranslation\tests\models.py:434
+#: .\venv\Lib\site-packages\modeltranslation\tests\models.py:440
+#: .\venv\Lib\site-packages\modeltranslation\tests\models.py:457
+#: .\venv\Lib\site-packages\modeltranslation\tests\models.py:469
+#: .\venv\Lib\site-packages\modeltranslation\tests\models.py:477
+msgid "title"
+msgstr ""
+
+#: .\venv\Lib\site-packages\modeltranslation\tests\models.py:18
+msgid "password"
+msgstr ""
+
+#: .\venv\Lib\site-packages\modeltranslation\tests\models.py:244
+#: .\venv\Lib\site-packages\modeltranslation\tests\models.py:263
+msgid "title a"
+msgstr ""
+
+#: .\venv\Lib\site-packages\modeltranslation\tests\models.py:248
+#: .\venv\Lib\site-packages\modeltranslation\tests\models.py:274
+msgid "title b"
+msgstr ""
+
+#: .\venv\Lib\site-packages\modeltranslation\tests\models.py:252
+msgid "title c"
+msgstr ""
+
+#: .\venv\Lib\site-packages\modeltranslation\tests\models.py:256
+msgid "title d"
+msgstr ""
+
+#: .\venv\Lib\site-packages\modeltranslation\tests\models.py:379
+msgid "visits"
+msgstr ""
+
+#: .\venv\Lib\site-packages\modeltranslation\tests\translation.py:62
+msgid "Sorry, translation is not available."
+msgstr ""
+
+#: .\venv\Lib\site-packages\modeltranslation\widgets.py:32
+msgid "None"
 msgstr ""
