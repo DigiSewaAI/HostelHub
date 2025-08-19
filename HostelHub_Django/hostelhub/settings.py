@@ -1,4 +1,5 @@
 from pathlib import Path
+import os  # os.path.join प्रयोग गर्नको लागि import आवश्यक
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -6,6 +7,9 @@ SECRET_KEY = '+2x-75_o+%^yx6z0w)7*6el^x-%!r5+mymury%_u&(smz4pd$+'
 DEBUG = True
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
+# -----------------------------
+# Installed Apps
+# -----------------------------
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -13,12 +17,21 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # Third-party apps
+    'modeltranslation',  # multilingual support
+
+    # Your apps
+    'home',
 ]
 
+# -----------------------------
+# Middleware
+# -----------------------------
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.locale.LocaleMiddleware',
+    'django.middleware.locale.LocaleMiddleware',  # language support
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -28,6 +41,9 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'hostelhub.urls'
 
+# -----------------------------
+# Templates
+# -----------------------------
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -36,7 +52,7 @@ TEMPLATES = [
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
-                'django.template.context_processors.request',
+                'django.template.context_processors.request',  # required for language switching
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
@@ -46,6 +62,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'hostelhub.wsgi.application'
 
+# -----------------------------
+# Database
+# -----------------------------
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -53,26 +72,49 @@ DATABASES = {
     }
 }
 
+# -----------------------------
+# Password Validators
+# -----------------------------
 AUTH_PASSWORD_VALIDATORS = [
-    # ... (keep your existing validators) ...
+    # keep your existing validators
 ]
 
+# -----------------------------
+# Internationalization
+# -----------------------------
 LANGUAGE_CODE = 'en-us'
+
 LANGUAGES = [
     ('en', 'English'),
     ('ne', 'Nepali'),
     ('hi', 'Hindi'),
-    ('zh-hans', 'Simplified Chinese'),
-
+    ('zh-hans', 'Chinese Simplified'),
 ]
-LOCALE_PATHS = [BASE_DIR / 'locale']
-TIME_ZONE = 'Asia/Kathmandu'
-USE_I18N = True
-USE_TZ = True
-USE_L10N = True
 
+# Production-ready locale paths
+LOCALE_PATHS = [
+    os.path.join(BASE_DIR, 'locale'),
+]
+
+USE_I18N = True
+USE_L10N = True
+USE_TZ = True
+TIME_ZONE = 'Asia/Kathmandu'
+
+# -----------------------------
+# Static Files
+# -----------------------------
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR / "static"]
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+    os.path.join(BASE_DIR, 'locale'),  # include locale in static files
+]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# -----------------------------
+# Model Translation
+# -----------------------------
+MODELTRANSLATION_DEFAULT_LANGUAGE = 'en'
+MODELTRANSLATION_LANGUAGES = ('en', 'ne', 'hi', 'zh-hans')
