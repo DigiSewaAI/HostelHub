@@ -13,9 +13,9 @@ class RouteServiceProvider extends ServiceProvider
     /**
      * The path to the "home" route for your application.
      *
-     * Typically, users are redirected here after login.
+     * This is where users are redirected after login.
      */
-    public const HOME = '/';  // Redirect to homepage instead of dashboard
+    public const HOME = '/home'; // ✅ default safe route (override in controllers if needed)
 
     /**
      * Define your route model bindings, pattern filters, and other route configuration.
@@ -25,6 +25,7 @@ class RouteServiceProvider extends ServiceProvider
         $this->configureRateLimiting();
 
         $this->routes(function () {
+            // Public web routes
             Route::middleware('web')
                 ->group(base_path('routes/web.php'));
 

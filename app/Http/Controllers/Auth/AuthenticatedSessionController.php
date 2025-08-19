@@ -29,8 +29,23 @@ class AuthenticatedSessionController extends Controller
         // Prevent session fixation
         $request->session()->regenerate();
 
-        // Redirect to intended page or homepage if none
-        return redirect()->intended(url('/'));
+        $user = Auth::user();
+
+        switch ($user->role) {
+            case 'admin':
+                return redirect()->intended(route('admin.dashboard'));
+
+            case 'student':
+                return redirect()->intended(route('student.dashboard'));
+
+            case 'owner':
+                return redirect()->intended(route('owner.dashboard'));
+                // यदि तिमी owner लाई register/organization मा पठाउन चाहन्छौ भने:
+                // return redirect()->intended('/register/organization');
+
+            default:
+                return redirect()->intended('/');
+        }
     }
 
     /**
@@ -43,7 +58,7 @@ class AuthenticatedSessionController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        // सुरक्षित logout पछि login page वा home page मा पठाउने
-        return redirect('/login');
+        // सुरक्षित logout पछि login page मा पठाउने
+        return redirect()->route('login');
     }
 }

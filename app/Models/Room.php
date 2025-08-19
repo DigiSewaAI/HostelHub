@@ -130,4 +130,17 @@ class Room extends Model
         $currentOccupancy = $this->students_count ?? $this->students()->count();
         return max(0, $this->capacity - $currentOccupancy);
     }
+    // app/Models/Room.php
+
+    // यो नयाँ फंक्शन थप्नुहोस्
+    public function getNepaliTypeAttribute(): string
+    {
+        $types = [
+            'single' => '१ सिटर कोठा',
+            'double' => '२ सिटर कोठा',
+            'dorm'   => '४ सिटर कोठा',
+        ];
+
+        return $types[$this->type] ?? $this->type;
+    }
 }
