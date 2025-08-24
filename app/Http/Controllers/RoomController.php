@@ -14,13 +14,20 @@ class RoomController extends Controller
     /**
      * Display a listing of the resource for public website.
      */
+    // app/Http/Controllers/Public/RoomController.php
+
     public function index()
     {
-        // सही तरिकाले उपलब्ध कोठाहरू प्राप्त गर्ने (SQL 1054 त्रुटि समाधान गर्ने)
-        $rooms = Room::withCount(['students' => function (Builder $query) {
-                $query->where('status', 'active');
-            }])
-            ->where('status', 'available')
+        $query = Room::withCount(['students' => function ($q) {
+            $q->where('status', 'active');
+        }]);
+
+        // Filter by type (single, double, dorm)
+        if (in_array(request('type'), ['single', 'double', 'dorm'])) {
+            $query->where('type', request('type'));
+        }
+
+        $rooms = $query->where('status', 'available')
             ->having('students_count', '<', 'capacity')
             ->orderBy('price')
             ->paginate(12);
@@ -80,8 +87,8 @@ class RoomController extends Controller
     public function show(Room $room)
     {
         $room->loadCount(['students' => function (Builder $query) {
-                $query->where('status', 'active');
-            }]);
+            $query->where('status', 'active');
+        }]);
 
         $availableCapacity = $room->capacity - $room->students_count;
 
@@ -102,7 +109,7 @@ class RoomController extends Controller
     public function update(Request $request, Room $room)
     {
         $validator = Validator::make($request->all(), [
-            'room_number' => 'required|string|max:20|unique:rooms,room_number,'.$room->id,
+            'room_number' => 'required|string|max:20|unique:rooms,room_number,' . $room->id,
             'floor' => 'required|string|max:20',
             'capacity' => 'required|integer|min:1',
             'status' => 'required|in:available,occupied,maintenance',
@@ -183,9 +190,9 @@ class RoomController extends Controller
         }
 
         $bookings = Booking::where('user_id', $user->id)
-                    ->with(['room', 'hostel']) // सम्बन्धित डेटा
-                    ->orderBy('created_at', 'desc')
-                    ->get();
+            ->with(['room', 'hostel']) // सम्बन्धित डेटा
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         return view('bookings.my-bookings', compact('bookings'));
     }

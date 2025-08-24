@@ -148,8 +148,11 @@ Route::middleware(['auth', EnsureOrgContext::class, EnsureSubscriptionActive::cl
         Route::resource('hostels', AdminHostelController::class)->only(['show', 'edit', 'update']);
         Route::post('hostels/{hostel}/availability', [AdminHostelController::class, 'updateAvailability'])->name('hostels.availability');
 
+        // Rooms: Ensure all actions including 'show'
         Route::resource('rooms', AdminRoomController::class);
         Route::get('rooms/availability', [AdminRoomController::class, 'availability'])->name('rooms.availability');
+        // Optional: Explicitly define show if needed
+        // Route::get('rooms/{room}', [AdminRoomController::class, 'show'])->name('rooms.show');
 
         Route::resource('students', AdminStudentController::class)->only(['index', 'show']);
     });
@@ -166,17 +169,11 @@ Route::middleware(['auth', EnsureOrgContext::class, EnsureSubscriptionActive::cl
         Route::get('hostels', [AdminHostelController::class, 'index'])->name('hostels.index');
         Route::get('hostels/{hostel}', [AdminHostelController::class, 'show'])->name('hostels.show');
 
+        // Public Room Routes for Students
         Route::get('rooms', [PublicRoomController::class, 'index'])->name('rooms.index');
-        Route::get('rooms/{room}', [PublicRoomController::class, 'show'])->name('rooms.show');
-
+        Route::get('rooms/{room}', [PublicRoomController::class, 'show'])->name('rooms.show'); // Show single room
         Route::get('my-bookings', [PublicRoomController::class, 'myBookings'])->name('bookings.my');
-        Route::get('booking/search', [PublicRoomController::class, 'search'])->name('booking.search');
-
-        Route::get('profile', [PublicStudentController::class, 'myProfile'])->name('profile');
-        Route::patch('profile', [PublicStudentController::class, 'updateProfile'])->name('profile.update');
-
-        Route::resource('payments', PaymentController::class)->only(['index', 'show', 'create', 'store']);
-        Route::post('payments/khalti-callback', [PaymentController::class, 'khaltiCallback'])->name('payments.khalti.callback');
+        Route::get('booking/search', [PublicRoomController::class, 'search'])->name('booking.search'); // Optional: if search exists
     });
 
 /*
