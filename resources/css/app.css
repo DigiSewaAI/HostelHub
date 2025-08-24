@@ -2,6 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
+/* =============== LOGO STYLES =============== */
+.logo {
+    width: 8rem; /* w-32 equivalent */
+    height: 2.5rem; /* h-10 equivalent */
+    object-fit: contain;
+}
+
+.sidebar .logo {
+    filter: brightness(0) invert(1); /* Make logo white in sidebar */
+}
+
+.dark-mode .logo {
+    filter: brightness(0) invert(1); /* Make logo white in dark mode */
+}
+
 /* =============== PLAN BADGE STYLES =============== */
 .plan-card {
   @apply relative overflow-visible;

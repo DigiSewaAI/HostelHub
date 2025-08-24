@@ -6,7 +6,7 @@
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
                     <a href="{{ Auth::check() ? route('dashboard') : route('home') }}">
-                        <x-application-logo class="block h-9 w-auto fill-current text-gray-800" />
+                        <img src="{{ asset('storage/images/logo.png') }}" alt="HostelHub Logo" class="block h-9 w-auto object-contain">
                     </a>
                 </div>
 

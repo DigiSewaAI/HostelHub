@@ -156,8 +156,7 @@
         <aside id="sidebar" class="sidebar bg-blue-800 text-white z-20 flex-shrink-0 transition-all duration-300 ease-in-out">
             <div class="p-4 border-b border-blue-700 flex items-center justify-between">
                 <div class="flex items-center">
-                    <i class="fas fa-university text-2xl mr-2"></i>
-                    <h1 class="text-xl font-bold sidebar-text">होस्टल प्रबन्धन</h1>
+                    <img src="{{ asset('storage/images/logo.png') }}" alt="HostelHub Logo" class="w-32 h-10 object-contain logo">
                 </div>
                 <button id="sidebar-collapse" class="text-gray-300 hover:text-white sidebar-text" aria-label="साइडबार सङ्कुचित गर्नुहोस्">
                     <i class="fas fa-bars-staggered"></i>
@@ -786,7 +785,7 @@
                         // Check if we're already showing a spinner
                         if (!submitBtn.querySelector('.spinner-border')) {
                             submitBtn.innerHTML = `
-                                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                <span class="spinner-border spinner-border-sm me-2" role="status, aria-hidden="true"></span>
                                 प्रक्रिया गर्दै...
                             `;
                         }
