@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="HostelHub — होस्टल व्यवस्थापन सजिलो बनाउने SaaS: कोठा, विद्यार्थी, भुक्तानी र भोजन व्यवस्थापन। ७ दिन निःशुल्क ट्रायल।">
+    <meta name="description" content="HostelHub — होस्टल व्यवस्थापन सजिलो बनाउने SaaS: कोठा, विद्यार्थी, भुक्तानी र भोजन व्यवस्थापन। ७ दिन निःशुल्क ट्रयाल।">
     <title>HostelHub — होस्टल प्रबन्धन प्रणाली | Nepal</title>
     <meta property="og:title" content="HostelHub — होस्टल प्रबन्धन प्रणाली">
     <meta property="og:description" content="HostelHub — होस्टल व्यवस्थापन सजिलो बनाउने SaaS">
@@ -154,6 +154,7 @@
             justify-content: space-between;
             align-items: center;
         }
+        /* Logo styles - UPDATED */
         .logo {
             display: flex;
             align-items: center;
@@ -163,7 +164,13 @@
             font-size: 1.5rem;
             color: var(--text-light);
         }
-        .logo-icon {
+        header .logo img {
+    width: 98px;
+    height: 98px;
+}
+
+
+        .logo-image {
             width: 40px;
             height: 40px;
             display: flex;
@@ -172,6 +179,22 @@
             background: var(--secondary);
             border-radius: var(--radius);
             color: var(--text-light);
+            font-weight: bold;
+            font-size: 20px;
+        }
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+        }
+        .logo-text h1 {
+            font-size: 1.5rem;
+            line-height: 1.2;
+            margin: 0;
+        }
+        .logo-text span {
+            font-size: 0.8rem;
+            line-height: 1;
+            opacity: 0.9;
         }
         .nav-links {
             display: flex;
@@ -887,6 +910,8 @@
             background: var(--secondary);
             border-radius: var(--radius);
             color: var(--text-light);
+            font-weight: bold;
+            font-size: 20px;
         }
         .copyright {
             margin-top: 1.5rem;
@@ -1097,15 +1122,11 @@
         <div class="header-inner">
             <div class="container">
                 <div class="navbar">
-                    <a href="/" class="logo">
-                        <div class="logo-icon">
-                            <i class="fas fa-home"></i>
-                        </div>
-                        <div class="logo-text">
-                            <h1>HostelHub</h1>
-                            <span class="nepali">होस्टल प्रबन्धन प्रणाली</span>
-                        </div>
-                    </a>
+                    <!-- Updated Logo -->
+<a href="/" class="logo">
+    <?php echo $__env->make('components.application-logo', ['logoClass' => 'w-16 h-5 object-contain'], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+</a>
+
                     <div class="nav-links" id="main-nav">
                         <a href="#features" class="nepali">सुविधाहरू</a>
                         <a href="#how-it-works" class="nepali">कसरी काम गर्छ</a>
@@ -1278,7 +1299,7 @@
                             <i class="fas fa-utensils"></i>
                         </div>
                         <h3 id="feature4-title" class="feature-title nepali">भोजन व्यवस्थापन</h3>
-                        <p class="feature-desc nepali">मेनु योजना बनाउनुहोस्, भोजन आदेश ट्र्याक गर्नुहोस्, र खानेकुराको इन्भेन्टरी प्रबन्धन गर्नुहोस्</p>
+                        <p class="feature-desc nepali">मेनु योजना बनाउनुहोस्, भोजन आदेश ट्र्याक गर्नुहोस् र खानेकुराको इन्भेन्टरी प्रबन्धन गर्नुहोस्</p>
                     </div>
                     <div class="feature-card" aria-labelledby="feature5-title">
                         <div class="feature-icon" aria-hidden="true">
@@ -1457,7 +1478,7 @@
                         <ul class="pricing-features">
                             <li><i class="fas fa-check"></i> <span class="nepali">असीमित विद्यार्थी</span></li>
                             <li><i class="fas fa-check"></i> <span class="nepali">पूर्ण विद्यार्थी व्यवस्थापन</span></li>
-                            <li><i class="fas fa-check"></i> <span class="nepali">बहु-होस्टल व्यवस्थापन</span></li>
+                            <li><i class="fas fa-check"></i> <span class="nepali">बहु-हоस्टल व्यवस्थापन</span></li>
                             <li><i class="fas fa-check"></i> <span class="nepali">कस्टम भुक्तानी प्रणाली</span></li>
                             <li><i class="fas fa-check"></i> <span class="nepali">विस्तृत विवरण र विश्लेषण</span></li>
                             <li><i class="fas fa-check"></i> <span class="nepali">२४/७ समर्थन</span></li>
@@ -1489,12 +1510,11 @@
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-col">
-                    <a href="/" class="footer-logo">
-                        <div class="footer-logo-icon">
-                            <i class="fas fa-home"></i>
-                        </div>
-                        <span>HostelHub</span>
-                    </a>
+                    <!-- Updated Footer Logo -->
+<a href="/" class="footer-logo">
+    <?php echo $__env->make('components.application-logo', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+</a>
+
                     <p class="nepali" style="color: rgba(249, 250, 251, 0.8); margin-top: 15px; line-height: 1.7;">
                         नेपालको नम्बर १ होस्टल प्रबन्धन प्रणाली। हामी होस्टल व्यवस्थापनलाई सहज, दक्ष र विश्वसनीय बनाउँछौं।
                     </p>
