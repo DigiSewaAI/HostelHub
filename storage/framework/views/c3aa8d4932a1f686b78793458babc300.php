@@ -1124,7 +1124,7 @@
                 <div class="navbar">
                     <!-- Updated Logo -->
 <a href="/" class="logo">
-    @include('components.application-logo', ['logoClass' => 'w-16 h-5 object-contain'])
+    <?php echo $__env->make('components.application-logo', ['logoClass' => 'w-16 h-5 object-contain'], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 </a>
 
                     <div class="nav-links" id="main-nav">
@@ -1512,7 +1512,7 @@
                 <div class="footer-col">
                     <!-- Updated Footer Logo -->
 <a href="/" class="footer-logo">
-    @include('components.application-logo')
+    <?php echo $__env->make('components.application-logo', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 </a>
 
                     <p class="nepali" style="color: rgba(249, 250, 251, 0.8); margin-top: 15px; line-height: 1.7;">
@@ -1706,4 +1706,4 @@
         });
     </script>
 </body>
-</html>
+</html><?php /**PATH D:\My Projects\HostelHub\resources\views/public/home.blade.php ENDPATH**/ ?>

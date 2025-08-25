@@ -55,6 +55,9 @@ Route::get('/cookies', [PublicController::class, 'cookies'])->name('cookies');
 Route::get('/sitemap.xml', [PublicController::class, 'sitemap'])->name('sitemap');
 Route::get('/robots.txt', [PublicController::class, 'robots'])->name('robots');
 
+// ✅ नयाँ: Demo Page Route
+Route::get('/demo', [PublicController::class, 'demo'])->name('demo');
+
 /*
 |--------------------------------------------------------------------------
 | Authentication Routes
@@ -151,8 +154,6 @@ Route::middleware(['auth', EnsureOrgContext::class, EnsureSubscriptionActive::cl
         // Rooms: Ensure all actions including 'show'
         Route::resource('rooms', AdminRoomController::class);
         Route::get('rooms/availability', [AdminRoomController::class, 'availability'])->name('rooms.availability');
-        // Optional: Explicitly define show if needed
-        // Route::get('rooms/{room}', [AdminRoomController::class, 'show'])->name('rooms.show');
 
         Route::resource('students', AdminStudentController::class)->only(['index', 'show']);
     });
@@ -171,9 +172,21 @@ Route::middleware(['auth', EnsureOrgContext::class, EnsureSubscriptionActive::cl
 
         // Public Room Routes for Students
         Route::get('rooms', [PublicRoomController::class, 'index'])->name('rooms.index');
-        Route::get('rooms/{room}', [PublicRoomController::class, 'show'])->name('rooms.show'); // Show single room
+        Route::get('rooms/{room}', [PublicRoomController::class, 'show'])->name('rooms.show');
         Route::get('my-bookings', [PublicRoomController::class, 'myBookings'])->name('bookings.my');
-        Route::get('booking/search', [PublicRoomController::class, 'search'])->name('booking.search'); // Optional: if search exists
+        Route::get('booking/search', [PublicRoomController::class, 'search'])->name('booking.search');
+    });
+
+/*
+|--------------------------------------------------------------------------
+| Admin Gallery Routes
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'role:admin,hostel_manager', EnsureOrgContext::class, EnsureSubscriptionActive::class])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::resource('gallery', \App\Http\Controllers\GalleryController::class);
     });
 
 /*
