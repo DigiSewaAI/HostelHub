@@ -274,7 +274,7 @@
             <div class="flex items-center justify-between">
                 <!-- Logo -->
                 <a href="/" class="flex items-center">
-                    <img src="{{ asset('storage/images/logo.png') }}" alt="HostelHub Logo" class="logo h-10">
+                    <img src="<?php echo e(asset('storage/images/logo.png')); ?>" alt="HostelHub Logo" class="logo h-10">
                 </a>
                 <!-- Desktop Navigation -->
                 <nav class="hidden md:flex items-center space-x-8">
@@ -326,7 +326,7 @@
             <!-- Video Tour Items -->
             <div class="gallery-item video-tour animate-fade-in">
                 <div class="video-thumbnail">
-                    <img src="{{ asset('storage/gallery/images/2yFMltEoqZP4dTJ9SWfPKc8YzuzkliMZ9CcDm52x.jpg') }}" alt="Shaistu ko video for Testing" class="w-full h-full object-cover">
+                    <img src="<?php echo e(asset('storage/gallery/images/2yFMltEoqZP4dTJ9SWfPKc8YzuzkliMZ9CcDm52x.jpg')); ?>" alt="Shaistu ko video for Testing" class="w-full h-full object-cover">
                     <div class="play-icon">
                         <i class="fas fa-play-circle"></i>
                     </div>
@@ -338,7 +338,7 @@
                     <div class="flex justify-between items-center text-sm text-gray-500 mt-auto">
                         <span><i class="far fa-calendar-alt mr-1"></i> Aug 15, 2025</span>
                         <button class="text-indigo-600 hover:text-indigo-800 font-medium play-video" 
-                                data-video="{{ asset('storage/gallery/videos/Z8Th8Mz6Fm2rkYg5SnFZfSAeg1jwatx9uTMZAmXm.mp4') }}" 
+                                data-video="<?php echo e(asset('storage/gallery/videos/Z8Th8Mz6Fm2rkYg5SnFZfSAeg1jwatx9uTMZAmXm.mp4')); ?>" 
                                 data-title="Shaistu ko video for Testing">
                             <i class="fas fa-play mr-1"></i> हेर्नुहोस्
                         </button>
@@ -347,7 +347,7 @@
             </div>
             <div class="gallery-item video-tour animate-fade-in">
                 <div class="video-thumbnail">
-                    <img src="{{ asset('storage/gallery/images/3IYkKd43F287Eq1oKPfDy0ZNAHC5PxqHsCSWvPxY.jpg') }}" alt="Shaistu ko purano video" class="w-full h-full object-cover">
+                    <img src="<?php echo e(asset('storage/gallery/images/3IYkKd43F287Eq1oKPfDy0ZNAHC5PxqHsCSWvPxY.jpg')); ?>" alt="Shaistu ko purano video" class="w-full h-full object-cover">
                     <div class="play-icon">
                         <i class="fas fa-play-circle"></i>
                     </div>
@@ -359,7 +359,7 @@
                     <div class="flex justify-between items-center text-sm text-gray-500 mt-auto">
                         <span><i class="far fa-calendar-alt mr-1"></i> Aug 14, 2025</span>
                         <button class="text-indigo-600 hover:text-indigo-800 font-medium play-video" 
-                                data-video="{{ asset('storage/gallery/videos/gjkaYmX4Dzx0ehzDZmiCW7aIpaKK3biBi2gWT8uA.mp4') }}" 
+                                data-video="<?php echo e(asset('storage/gallery/videos/gjkaYmX4Dzx0ehzDZmiCW7aIpaKK3biBi2gWT8uA.mp4')); ?>" 
                                 data-title="Shaistu ko purano video">
                             <i class="fas fa-play mr-1"></i> हेर्नुहोस्
                         </button>
@@ -368,7 +368,7 @@
             </div>
             <div class="gallery-item video-tour animate-fade-in">
                 <div class="video-thumbnail">
-                    <img src="{{ asset('storage/gallery/images/e7cvu3oR4y8YKBcWIuv19Uli1PJu4TYJCJVU8puI.jpg') }}" alt="Shaistu's video" class="w-full h-full object-cover">
+                    <img src="<?php echo e(asset('storage/gallery/images/e7cvu3oR4y8YKBcWIuv19Uli1PJu4TYJCJVU8puI.jpg')); ?>" alt="Shaistu's video" class="w-full h-full object-cover">
                     <div class="play-icon">
                         <i class="fas fa-play-circle"></i>
                     </div>
@@ -380,7 +380,7 @@
                     <div class="flex justify-between items-center text-sm text-gray-500 mt-auto">
                         <span><i class="far fa-calendar-alt mr-1"></i> Aug 14, 2025</span>
                         <button class="text-indigo-600 hover:text-indigo-800 font-medium play-video" 
-                                data-video="{{ asset('storage/gallery/videos/AB3kZw0u6qyeJmp1ITyE6FsjsObi8olDirP6HNmf.mp4') }}" 
+                                data-video="<?php echo e(asset('storage/gallery/videos/AB3kZw0u6qyeJmp1ITyE6FsjsObi8olDirP6HNmf.mp4')); ?>" 
                                 data-title="Shaistu's video">
                             <i class="fas fa-play mr-1"></i> हेर्नुहोस्
                         </button>
@@ -390,10 +390,10 @@
             <!-- Room Items -->
             <div class="gallery-item 1-sitter animate-fade-in">
                 <div class="gallery-img-container">
-                    <img src="{{ asset('storage/gallery/images/Iv26mgAdeWUQmTJWtmuQqA7LPIVbP8u9p9pM7YkQ.jpg') }}" alt="Sanctuary Girls Hostel" class="gallery-img">
+                    <img src="<?php echo e(asset('storage/gallery/images/Iv26mgAdeWUQmTJWtmuQqA7LPIVbP8u9p9pM7YkQ.jpg')); ?>" alt="Sanctuary Girls Hostel" class="gallery-img">
                     <div class="gallery-overlay">
                         <button class="text-white font-medium view-image" 
-                                data-image="{{ asset('storage/gallery/images/Iv26mgAdeWUQmTJWtmuQqA7LPIVbP8u9p9pM7YkQ.jpg') }}" 
+                                data-image="<?php echo e(asset('storage/gallery/images/Iv26mgAdeWUQmTJWtmuQqA7LPIVbP8u9p9pM7YkQ.jpg')); ?>" 
                                 data-title="Sanctuary Girls Hostel">
                             <i class="fas fa-expand mr-1"></i> ठूलो हेर्नुहोस्
                         </button>
@@ -406,7 +406,7 @@
                     <div class="flex justify-between items-center text-sm text-gray-500 mt-auto">
                         <span><i class="far fa-calendar-alt mr-1"></i> Aug 14, 2025</span>
                         <button class="text-indigo-600 hover:text-indigo-800 font-medium view-image" 
-                                data-image="{{ asset('storage/gallery/images/Iv26mgAdeWUQmTJWtmuQqA7LPIVbP8u9p9pM7YkQ.jpg') }}" 
+                                data-image="<?php echo e(asset('storage/gallery/images/Iv26mgAdeWUQmTJWtmuQqA7LPIVbP8u9p9pM7YkQ.jpg')); ?>" 
                                 data-title="Sanctuary Girls Hostel">
                             <i class="fas fa-expand mr-1"></i> हेर्नुहोस्
                         </button>
@@ -415,10 +415,10 @@
             </div>
             <div class="gallery-item 2-sitter animate-fade-in">
                 <div class="gallery-img-container">
-                    <img src="{{ asset('storage/gallery/images/XOTA5MSY6VWYkuIkgjilWEO9NEdZ8MQaGlKzXoGZ.jpg') }}" alt="Sanctuary Girls Hostel" class="gallery-img">
+                    <img src="<?php echo e(asset('storage/gallery/images/XOTA5MSY6VWYkuIkgjilWEO9NEdZ8MQaGlKzXoGZ.jpg')); ?>" alt="Sanctuary Girls Hostel" class="gallery-img">
                     <div class="gallery-overlay">
                         <button class="text-white font-medium view-image" 
-                                data-image="{{ asset('storage/gallery/images/XOTA5MSY6VWYkuIkgjilWEO9NEdZ8MQaGlKzXoGZ.jpg') }}" 
+                                data-image="<?php echo e(asset('storage/gallery/images/XOTA5MSY6VWYkuIkgjilWEO9NEdZ8MQaGlKzXoGZ.jpg')); ?>" 
                                 data-title="Sanctuary Girls Hostel">
                             <i class="fas fa-expand mr-1"></i> ठूलो हेर्नुहोस्
                         </button>
@@ -431,7 +431,7 @@
                     <div class="flex justify-between items-center text-sm text-gray-500 mt-auto">
                         <span><i class="far fa-calendar-alt mr-1"></i> Aug 14, 2025</span>
                         <button class="text-indigo-600 hover:text-indigo-800 font-medium view-image" 
-                                data-image="{{ asset('storage/gallery/images/XOTA5MSY6VWYkuIkgjilWEO9NEdZ8MQaGlKzXoGZ.jpg') }}" 
+                                data-image="<?php echo e(asset('storage/gallery/images/XOTA5MSY6VWYkuIkgjilWEO9NEdZ8MQaGlKzXoGZ.jpg')); ?>" 
                                 data-title="Sanctuary Girls Hostel">
                             <i class="fas fa-expand mr-1"></i> हेर्नुहोस्
                         </button>
@@ -440,10 +440,10 @@
             </div>
             <div class="gallery-item 3-sitter animate-fade-in">
                 <div class="gallery-img-container">
-                    <img src="{{ asset('storage/gallery/images/yLozZeidPGYunzqS69T08ZthvIvg4YbmIcRWrMUa.jpg') }}" alt="Everest Boys Hostel" class="gallery-img">
+                    <img src="<?php echo e(asset('storage/gallery/images/yLozZeidPGYunzqS69T08ZthvIvg4YbmIcRWrMUa.jpg')); ?>" alt="Everest Boys Hostel" class="gallery-img">
                     <div class="gallery-overlay">
                         <button class="text-white font-medium view-image" 
-                                data-image="{{ asset('storage/gallery/images/yLozZeidPGYunzqS69T08ZthvIvg4YbmIcRWrMUa.jpg') }}" 
+                                data-image="<?php echo e(asset('storage/gallery/images/yLozZeidPGYunzqS69T08ZthvIvg4YbmIcRWrMUa.jpg')); ?>" 
                                 data-title="Everest Boys Hostel">
                             <i class="fas fa-expand mr-1"></i> ठूलो हेर्नुहोस्
                         </button>
@@ -456,7 +456,7 @@
                     <div class="flex justify-between items-center text-sm text-gray-500 mt-auto">
                         <span><i class="far fa-calendar-alt mr-1"></i> Aug 14, 2025</span>
                         <button class="text-indigo-600 hover:text-indigo-800 font-medium view-image" 
-                                data-image="{{ asset('storage/gallery/images/yLozZeidPGYunzqS69T08ZthvIvg4YbmIcRWrMUa.jpg') }}" 
+                                data-image="<?php echo e(asset('storage/gallery/images/yLozZeidPGYunzqS69T08ZthvIvg4YbmIcRWrMUa.jpg')); ?>" 
                                 data-title="Everest Boys Hostel">
                             <i class="fas fa-expand mr-1"></i> हेर्नुहोस्
                         </button>
@@ -465,10 +465,10 @@
             </div>
             <div class="gallery-item 3-sitter animate-fade-in">
                 <div class="gallery-img-container">
-                    <img src="{{ asset('storage/gallery/images/2yFMltEoqZP4dTJ9SWfPKc8YzuzkliMZ9CcDm52x.jpg') }}" alt="Image testing for homepage and pub gal" class="gallery-img">
+                    <img src="<?php echo e(asset('storage/gallery/images/2yFMltEoqZP4dTJ9SWfPKc8YzuzkliMZ9CcDm52x.jpg')); ?>" alt="Image testing for homepage and pub gal" class="gallery-img">
                     <div class="gallery-overlay">
                         <button class="text-white font-medium view-image" 
-                                data-image="{{ asset('storage/gallery/images/2yFMltEoqZP4dTJ9SWfPKc8YzuzkliMZ9CcDm52x.jpg') }}" 
+                                data-image="<?php echo e(asset('storage/gallery/images/2yFMltEoqZP4dTJ9SWfPKc8YzuzkliMZ9CcDm52x.jpg')); ?>" 
                                 data-title="Image testing for homepage and pub gal">
                             <i class="fas fa-expand mr-1"></i> ठूलो हेर्नुहोस्
                         </button>
@@ -481,7 +481,7 @@
                     <div class="flex justify-between items-center text-sm text-gray-500 mt-auto">
                         <span><i class="far fa-calendar-alt mr-1"></i> Aug 14, 2025</span>
                         <button class="text-indigo-600 hover:text-indigo-800 font-medium view-image" 
-                                data-image="{{ asset('storage/gallery/images/2yFMltEoqZP4dTJ9SWfPKc8YzuzkliMZ9CcDm52x.jpg') }}" 
+                                data-image="<?php echo e(asset('storage/gallery/images/2yFMltEoqZP4dTJ9SWfPKc8YzuzkliMZ9CcDm52x.jpg')); ?>" 
                                 data-title="Image testing for homepage and pub gal">
                             <i class="fas fa-expand mr-1"></i> हेर्नुहोस्
                         </button>
@@ -490,10 +490,10 @@
             </div>
             <div class="gallery-item living-room animate-fade-in">
                 <div class="gallery-img-container">
-                    <img src="{{ asset('storage/gallery/images/3IYkKd43F287Eq1oKPfDy0ZNAHC5PxqHsCSWvPxY.jpg') }}" alt="Best Time Ever" class="gallery-img">
+                    <img src="<?php echo e(asset('storage/gallery/images/3IYkKd43F287Eq1oKPfDy0ZNAHC5PxqHsCSWvPxY.jpg')); ?>" alt="Best Time Ever" class="gallery-img">
                     <div class="gallery-overlay">
                         <button class="text-white font-medium view-image" 
-                                data-image="{{ asset('storage/gallery/images/3IYkKd43F287Eq1oKPfDy0ZNAHC5PxqHsCSWvPxY.jpg') }}" 
+                                data-image="<?php echo e(asset('storage/gallery/images/3IYkKd43F287Eq1oKPfDy0ZNAHC5PxqHsCSWvPxY.jpg')); ?>" 
                                 data-title="Best Time Ever">
                             <i class="fas fa-expand mr-1"></i> ठूलो हेर्नुहोस्
                         </button>
@@ -506,7 +506,7 @@
                     <div class="flex justify-between items-center text-sm text-gray-500 mt-auto">
                         <span><i class="far fa-calendar-alt mr-1"></i> Aug 14, 2025</span>
                         <button class="text-indigo-600 hover:text-indigo-800 font-medium view-image" 
-                                data-image="{{ asset('storage/gallery/images/3IYkKd43F287Eq1oKPfDy0ZNAHC5PxqHsCSWvPxY.jpg') }}" 
+                                data-image="<?php echo e(asset('storage/gallery/images/3IYkKd43F287Eq1oKPfDy0ZNAHC5PxqHsCSWvPxY.jpg')); ?>" 
                                 data-title="Best Time Ever">
                             <i class="fas fa-expand mr-1"></i> हेर्नुहोस्
                         </button>
@@ -515,10 +515,10 @@
             </div>
             <div class="gallery-item living-room animate-fade-in">
                 <div class="gallery-img-container">
-                    <img src="{{ asset('storage/gallery/images/e7cvu3oR4y8YKBcWIuv19Uli1PJu4TYJCJVU8puI.jpg') }}" alt="Childhood Memory" class="gallery-img">
+                    <img src="<?php echo e(asset('storage/gallery/images/e7cvu3oR4y8YKBcWIuv19Uli1PJu4TYJCJVU8puI.jpg')); ?>" alt="Childhood Memory" class="gallery-img">
                     <div class="gallery-overlay">
                         <button class="text-white font-medium view-image" 
-                                data-image="{{ asset('storage/gallery/images/e7cvu3oR4y8YKBcWIuv19Uli1PJu4TYJCJVU8puI.jpg') }}" 
+                                data-image="<?php echo e(asset('storage/gallery/images/e7cvu3oR4y8YKBcWIuv19Uli1PJu4TYJCJVU8puI.jpg')); ?>" 
                                 data-title="Childhood Memory">
                             <i class="fas fa-expand mr-1"></i> ठूलो हेर्नुहोस्
                         </button>
@@ -531,7 +531,7 @@
                     <div class="flex justify-between items-center text-sm text-gray-500 mt-auto">
                         <span><i class="far fa-calendar-alt mr-1"></i> Aug 14, 2025</span>
                         <button class="text-indigo-600 hover:text-indigo-800 font-medium view-image" 
-                                data-image="{{ asset('storage/gallery/images/e7cvu3oR4y8YKBcWIuv19Uli1PJu4TYJCJVU8puI.jpg') }}" 
+                                data-image="<?php echo e(asset('storage/gallery/images/e7cvu3oR4y8YKBcWIuv19Uli1PJu4TYJCJVU8puI.jpg')); ?>" 
                                 data-title="Childhood Memory">
                             <i class="fas fa-expand mr-1"></i> हेर्नुहोस्
                         </button>
@@ -577,7 +577,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                 <!-- Logo and description -->
                 <div>
-                    <img src="{{ asset('storage/images/logo.png') }}" alt="HostelHub Logo" class="h-10 mb-4">
+                    <img src="<?php echo e(asset('storage/images/logo.png')); ?>" alt="HostelHub Logo" class="h-10 mb-4">
                     <p class="text-indigo-200 mb-4">नेपालको नम्बर १ होस्टल प्रबन्धन प्रणाली। हामी होस्टल व्यवस्थापनलाई सहज, दक्ष र विश्वसनीय बनाउँछौं।</p>
                     <div class="flex space-x-4">
                         <a href="#" class="text-indigo-200 hover:text-white"><i class="fab fa-facebook-f"></i></a>
@@ -805,4 +805,4 @@
         });
     </script>
 </body>
-</html>
+</html><?php /**PATH D:\My Projects\HostelHub\resources\views/gallery.blade.php ENDPATH**/ ?>

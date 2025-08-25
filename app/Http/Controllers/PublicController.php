@@ -115,6 +115,11 @@ class PublicController extends Controller
         return view('legal.cookies');
     }
 
+    public function demo()
+    {
+        return view('pages.demo');
+    }
+
     // SEO routes
     public function sitemap()
     {

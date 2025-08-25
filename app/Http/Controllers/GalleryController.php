@@ -5,8 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Gallery;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Validator;
 
 class GalleryController extends Controller
 {
@@ -16,14 +14,17 @@ class GalleryController extends Controller
     public function publicIndex(Request $request)
     {
         $categories = [
-            'all'    => 'सबै',
-            'single' => '१ सिटर कोठा',
-            'double' => '२ सिटर कोठा',
-            'triple' => '३ सिटर कोठा',
-            'quad'   => '४ सिटर कोठा',
-            'common' => 'लिभिङ रूम',
-            'dining' => 'बाथरूम',
-            'video'  => 'भिडियो टुर'
+            'all'       => 'सबै',
+            'single'    => '१ सिटर कोठा',
+            'double'    => '२ सिटर कोठा',
+            'triple'    => '३ सिटर कोठा',
+            'quad'      => '४ सिटर कोठा',
+            'common'    => 'लिभिङ रूम',
+            'bathroom'  => 'बाथरूम',
+            'kitchen'   => 'भान्सा',
+            'study'     => 'अध्ययन कोठा',
+            'event'     => 'कार्यक्रम',
+            'video'     => 'भिडियो टुर',
         ];
 
         $selectedCategory = $request->input('category', 'all');
@@ -32,13 +33,16 @@ class GalleryController extends Controller
         }
 
         $categoryMap = [
-            'single' => '1 seater',
-            'double' => '2 seater',
-            'triple' => '3 seater',
-            'quad'   => '4 seater',
-            'common' => 'common',
-            'dining' => 'dining',
-            'video'  => 'video'
+            'single'    => '1 seater',
+            'double'    => '2 seater',
+            'triple'    => '3 seater',
+            'quad'      => '4 seater',
+            'common'    => 'common',
+            'bathroom'  => 'bathroom',
+            'kitchen'   => 'kitchen',
+            'study'     => 'study room',
+            'event'     => 'event',
+            'video'     => 'video',
         ];
 
         $cacheKey = 'public_gallery_' . $selectedCategory;
@@ -50,7 +54,8 @@ class GalleryController extends Controller
                 $query->where('category', $categoryMap[$selectedCategory]);
             }
 
-            return $query->orderByRaw("FIELD(category, 'video', '1 seater', '2 seater', '3 seater', '4 seater', 'common', 'dining')")
+            return $query
+                ->orderByRaw("FIELD(category, 'video', '1 seater', '2 seater', '3 seater', '4 seater', 'common', 'bathroom', 'kitchen', 'study room', 'event')")
                 ->orderBy('is_featured', 'desc')
                 ->orderBy('created_at', 'desc')
                 ->get()
@@ -63,7 +68,7 @@ class GalleryController extends Controller
                         'description' => $item->description,
                         'is_featured' => $item->is_featured,
                         'created_at' => $item->created_at->format('M d, Y'),
-                        'media_type' => $item->media_type, // ✅ यो थप्नुहोस्
+                        'media_type' => $item->media_type,
                     ]);
                 });
         });
@@ -93,6 +98,65 @@ class GalleryController extends Controller
     }
 
     /**
+     * Store a new gallery item (Admin)
+     */
+    public function store(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'media_type' => 'required|in:photo,local_video,external_video',
+            'category' => [
+                'required',
+                'string',
+                'in:1 seater,2 seater,3 seater,4 seater,common,bathroom,kitchen,study room,event,video'
+            ],
+            'description' => 'nullable|string',
+            'status' => 'required|in:active,inactive',
+            'featured' => 'boolean',
+            'image' => $request->media_type === 'photo' ? 'required|image|max:5120' : 'nullable',
+            'local_video' => $request->media_type === 'local_video' ? 'required|mimes:mp4,mov,webm|max:51200' : 'nullable',
+            'external_link' => $request->media_type === 'external_video' ? 'required|url' : 'nullable',
+        ]);
+
+        $gallery = new Gallery();
+        $gallery->title = $request->title;
+        $gallery->description = $request->description;
+        $gallery->category = $request->category;
+        $gallery->media_type = $request->media_type;
+        $gallery->is_active = $request->status === 'active';
+        $gallery->is_featured = (bool) $request->featured;
+        $gallery->user_id = auth()->id();
+
+        if ($request->media_type === 'photo' && $request->hasFile('image')) {
+            $path = $request->file('image')->store('gallery', 'public');
+            $gallery->file_path = $path;
+            $gallery->thumbnail = $path;
+        }
+
+        if ($request->media_type === 'local_video' && $request->hasFile('local_video')) {
+            $path = $request->file('local_video')->store('gallery', 'public');
+            $gallery->file_path = $path;
+            $gallery->thumbnail = 'images/video-default.jpg';
+        }
+
+        if ($request->media_type === 'external_video') {
+            $gallery->external_link = $request->external_link;
+            $youtubeId = $this->getYoutubeIdFromUrl($request->external_link);
+            $gallery->thumbnail = $youtubeId
+                ? "https://img.youtube.com/vi/{$youtubeId}/mqdefault.jpg"  // ✅ NO SPACE
+                : 'images/video-default.jpg';
+        }
+
+        $gallery->save();
+
+        // Clear cache
+        Cache::forget('public_gallery_all');
+        Cache::tags(['gallery'])->flush();
+
+        return redirect()->route('admin.gallery.index')->with('success', '🎉 ग्यालेरी आइटम सफलतापूर्वक थपियो!');
+    }
+
+    /**
      * Process media item based on its type
      */
     private function processMediaItem(Gallery $item): array
@@ -113,8 +177,8 @@ class GalleryController extends Controller
             return $this->processLocalVideoItem($item, $result);
         }
 
-        if ($item->media_type === 'youtube') {
-            return $this->processYoutubeItem($item, $result);
+        if ($item->media_type === 'external_video') {
+            return $this->processExternalVideoItem($item, $result);
         }
 
         return $result;
@@ -153,7 +217,6 @@ class GalleryController extends Controller
 
         $result['file_exists'] = $fileExists ? '✅ हुन्छ' : '❌ हुँदैन';
         $result['absolute_path'] = $absolutePath;
-        $result['video_url'] = '';
 
         if ($fileExists) {
             $result['file_url'] = asset('storage/' . $item->file_path);
@@ -167,18 +230,18 @@ class GalleryController extends Controller
     }
 
     /**
-     * Process YouTube video items
+     * Process External Video (YouTube/Vimeo)
      */
-    private function processYoutubeItem(Gallery $item, array $result): array
+    private function processExternalVideoItem(Gallery $item, array $result): array
     {
-        $result['file_exists'] = '✅ हुन्छ (External)';
+        $result['file_exists'] = '✅ (External)';
         $youtubeId = $this->getYoutubeIdFromUrl($item->external_link);
 
         $result['youtube_id'] = $youtubeId;
         $result['thumbnail_url'] = $item->thumbnail
             ? asset('storage/' . $item->thumbnail)
             : ($youtubeId
-                ? "https://img.youtube.com/vi/{$youtubeId}/mqdefault.jpg"
+                ? "https://img.youtube.com/vi/{$youtubeId}/mqdefault.jpg"  // ✅ NO SPACE
                 : asset('images/video-default.jpg'));
 
         return $result;

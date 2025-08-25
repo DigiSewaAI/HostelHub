@@ -12,17 +12,17 @@
     <!-- Media Type Field -->
     <div class="form-group">
         <label for="media_type" class="block text-sm font-medium text-gray-700 mb-1">Media Type *</label>
-        <select name="media_type" id="media_type" class="form-control w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-            <option value="photo" <?php echo e((old('media_type', $gallery->media_type ?? 'photo') == 'photo') ? 'selected' : ''); ?>>Image</option>
-            <option value="external_video" <?php echo e((old('media_type', $gallery->media_type ?? '') == 'external_video') ? 'selected' : ''); ?>>External Video (YouTube/Vimeo)</option>
-            <option value="local_video" <?php echo e((old('media_type', $gallery->media_type ?? '') == 'local_video') ? 'selected' : ''); ?>>Local Video Upload</option>
+        <select name="media_type" id="media_type" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+            <option value="photo" <?php echo e(old('media_type', $gallery->media_type ?? 'photo') == 'photo' ? 'selected' : ''); ?>>Image</option>
+            <option value="external_video" <?php echo e(old('media_type', $gallery->media_type ?? '') == 'external_video' ? 'selected' : ''); ?>>External Video (YouTube/Vimeo)</option>
+            <option value="local_video" <?php echo e(old('media_type', $gallery->media_type ?? '') == 'local_video' ? 'selected' : ''); ?>>Local Video Upload</option>
         </select>
     </div>
 
     <!-- Image Upload Field -->
-    <div class="form-group" id="image-field" style="<?php echo e((old('media_type', $gallery->media_type ?? 'photo') == 'photo') ? '' : 'display:none;'); ?>">
-        <label for="image" class="block text-sm font-medium text-gray-700 mb-1">Image <?php echo e((old('media_type', $gallery->media_type ?? 'photo') == 'photo') ? '*' : ''); ?></label>
-        <input type="file" name="image" id="image" class="form-control w-full" accept="image/*">
+    <div class="form-group" id="image-field" style="<?php echo e(old('media_type', $gallery->media_type ?? 'photo') == 'photo' ? '' : 'display:none;'); ?>">
+        <label for="image" class="block text-sm font-medium text-gray-700 mb-1">Image <?php echo e(old('media_type', $gallery->media_type ?? 'photo') == 'photo' ? '*' : ''); ?></label>
+        <input type="file" name="image" id="image" class="w-full" accept="image/*">
         <small class="text-gray-500 mt-1 block">Supported formats: JPG, PNG, GIF (Max size: 5MB)</small>
         <?php if(isset($gallery) && $gallery->media_type == 'photo' && $gallery->file_path): ?>
             <div class="mt-2">
@@ -32,11 +32,11 @@
         <?php endif; ?>
     </div>
 
-    <!-- External Link Field (for external videos) -->
-    <div class="form-group" id="external-link-field" style="<?php echo e((old('media_type', $gallery->media_type ?? '') == 'external_video') ? '' : 'display:none;'); ?>">
+    <!-- External Link Field -->
+    <div class="form-group" id="external-link-field" style="<?php echo e(old('media_type', $gallery->media_type ?? '') == 'external_video' ? '' : 'display:none;'); ?>">
         <label for="external_link" class="block text-sm font-medium text-gray-700 mb-1">External Link *</label>
         <input type="url" name="external_link" id="external_link" 
-               class="form-control w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
+               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
                placeholder="https://www.youtube.com/watch?v=example"
                value="<?php echo e(old('external_link', $gallery->external_link ?? '')); ?>">
         <small class="text-gray-500 mt-1 block">YouTube, Vimeo or other video platform URL</small>
@@ -57,9 +57,9 @@
     </div>
 
     <!-- Local Video Upload Field -->
-    <div class="form-group" id="local-video-field" style="<?php echo e((old('media_type', $gallery->media_type ?? '') == 'local_video') ? '' : 'display:none;'); ?>">
-        <label for="local_video" class="block text-sm font-medium text-gray-700 mb-1">Upload Video <?php echo e((old('media_type', $gallery->media_type ?? '') == 'local_video') ? '*' : ''); ?></label>
-        <input type="file" name="local_video" id="local_video" class="form-control w-full" accept="video/*">
+    <div class="form-group" id="local-video-field" style="<?php echo e(old('media_type', $gallery->media_type ?? '') == 'local_video' ? '' : 'display:none;'); ?>">
+        <label for="local_video" class="block text-sm font-medium text-gray-700 mb-1">Upload Video <?php echo e(old('media_type', $gallery->media_type ?? '') == 'local_video' ? '*' : ''); ?></label>
+        <input type="file" name="local_video" id="local_video" class="w-full" accept="video/*">
         <small class="text-gray-500 mt-1 block">Supported formats: MP4, MOV (Max size: 50MB)</small>
         <?php if(isset($gallery) && $gallery->media_type == 'local_video' && $gallery->file_path): ?>
             <div class="mt-2">
@@ -76,7 +76,7 @@
     <div class="form-group">
         <label for="title" class="block text-sm font-medium text-gray-700 mb-1">Title *</label>
         <input type="text" name="title" id="title" 
-               class="form-control w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
+               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
                value="<?php echo e(old('title', $gallery->title ?? '')); ?>" required>
     </div>
 
@@ -84,24 +84,28 @@
     <div class="form-group">
         <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
         <textarea name="description" id="description" 
-                  class="form-control w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
                   rows="3"><?php echo e(old('description', $gallery->description ?? '')); ?></textarea>
     </div>
 
-    <!-- Category Field - FIXED CATEGORIES -->
+    <!-- Category Field - UPDATED CATEGORIES -->
     <div class="form-group">
         <label for="category" class="block text-sm font-medium text-gray-700 mb-1">Category *</label>
         <select name="category" id="category" 
-                class="form-control w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
                 required>
             <option value="">Select Category</option>
-            <option value="video" <?php echo e((old('category', $gallery->category ?? '') == 'video') ? 'selected' : ''); ?>>Video Tour</option>
-            <option value="1 seater" <?php echo e((old('category', $gallery->category ?? '') == '1 seater') ? 'selected' : ''); ?>>1 Seater Room</option>
-            <option value="2 seater" <?php echo e((old('category', $gallery->category ?? '') == '2 seater') ? 'selected' : ''); ?>>2 Seater Room</option>
-            <option value="3 seater" <?php echo e((old('category', $gallery->category ?? '') == '3 seater') ? 'selected' : ''); ?>>3 Seater Room</option>
-            <option value="4 seater" <?php echo e((old('category', $gallery->category ?? '') == '4 seater') ? 'selected' : ''); ?>>4 Seater Room</option>
-            <option value="common" <?php echo e((old('category', $gallery->category ?? '') == 'common') ? 'selected' : ''); ?>>Common Area</option>
-            <option value="bathroom" <?php echo e((old('category', $gallery->category ?? '') == 'bathroom') ? 'selected' : ''); ?>>Bathroom</option>
+            <option value="video" <?php echo e(old('category', $gallery->category ?? '') == 'video' ? 'selected' : ''); ?>>Video Tour</option>
+            <option value="1 seater" <?php echo e(old('category', $gallery->category ?? '') == '1 seater' ? 'selected' : ''); ?>>1 Seater Room</option>
+            <option value="2 seater" <?php echo e(old('category', $gallery->category ?? '') == '2 seater' ? 'selected' : ''); ?>>2 Seater Room</option>
+            <option value="3 seater" <?php echo e(old('category', $gallery->category ?? '') == '3 seater' ? 'selected' : ''); ?>>3 Seater Room</option>
+            <option value="4 seater" <?php echo e(old('category', $gallery->category ?? '') == '4 seater' ? 'selected' : ''); ?>>4 Seater Room</option>
+            <option value="common" <?php echo e(old('category', $gallery->category ?? '') == 'common' ? 'selected' : ''); ?>>Common Area</option>
+            <option value="kitchen" <?php echo e(old('category', $gallery->category ?? '') == 'kitchen' ? 'selected' : ''); ?>>Kitchen</option>
+            <option value="living room" <?php echo e(old('category', $gallery->category ?? '') == 'living room' ? 'selected' : ''); ?>>Living Room</option>
+            <option value="study room" <?php echo e(old('category', $gallery->category ?? '') == 'study room' ? 'selected' : ''); ?>>Study Room</option>
+            <option value="bathroom" <?php echo e(old('category', $gallery->category ?? '') == 'bathroom' ? 'selected' : ''); ?>>Bathroom</option>
+            <option value="event" <?php echo e(old('category', $gallery->category ?? '') == 'event' ? 'selected' : ''); ?>>Event Photos</option>
         </select>
     </div>
 
@@ -109,10 +113,10 @@
     <div class="form-group">
         <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status *</label>
         <select name="status" id="status" 
-                class="form-control w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
                 required>
-            <option value="active" <?php echo e((old('status', isset($gallery) ? ($gallery->is_active ? 'active' : 'inactive') : 'active')) == 'active' ? 'selected' : ''); ?>>Active</option>
-            <option value="inactive" <?php echo e((old('status', isset($gallery) ? ($gallery->is_active ? 'active' : 'inactive') : 'active')) == 'inactive' ? 'selected' : ''); ?>>Inactive</option>
+            <option value="active" <?php echo e(old('status', isset($gallery) ? ($gallery->is_active ? 'active' : 'inactive') : 'active') == 'active' ? 'selected' : ''); ?>>Active</option>
+            <option value="inactive" <?php echo e(old('status', isset($gallery) ? ($gallery->is_active ? 'active' : 'inactive') : 'active') == 'inactive' ? 'selected' : ''); ?>>Inactive</option>
         </select>
     </div>
     
@@ -120,7 +124,7 @@
     <div class="form-group">
         <div class="flex items-start">
             <div class="flex items-center h-5">
-                <input type="checkbox" name="featured" id="featured" class="form-checkbox h-4 w-4 text-blue-600"
+                <input type="checkbox" name="featured" id="featured" class="h-4 w-4 text-blue-600"
                        <?php echo e(old('featured', isset($gallery) ? $gallery->is_featured : false) ? 'checked' : ''); ?>>
             </div>
             <div class="ml-3 text-sm">
@@ -139,12 +143,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const localVideoField = document.getElementById('local-video-field');
     
     function toggleFields() {
-        // Hide all fields first
         imageField.style.display = 'none';
         externalLinkField.style.display = 'none';
         localVideoField.style.display = 'none';
         
-        // Show relevant field based on selection
         switch(mediaTypeSelect.value) {
             case 'photo':
                 imageField.style.display = 'block';
@@ -158,10 +160,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Initialize on page load
     toggleFields();
-    
-    // Add event listener for changes
     mediaTypeSelect.addEventListener('change', toggleFields);
 });
 </script><?php /**PATH D:\My Projects\HostelHub\resources\views/admin/gallery/_form.blade.php ENDPATH**/ ?>

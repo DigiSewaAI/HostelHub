@@ -125,7 +125,7 @@
   <p style="font-size: 1.25rem; margin-bottom: 2rem; opacity: 0.9;">
     हामी तपाइँको व्यवसायलाई नियम र पारदर्शिताका आधारमा सहयोग गर्छौं।
   </p>
-  <a href="/privacy-policy" style="
+  <a href="/privacy" style="
     color: white;
     text-decoration: underline;
     font-weight: 500;

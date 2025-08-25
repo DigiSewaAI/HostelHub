@@ -26,7 +26,7 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.tailwindcss.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.tailwindcss.min.css">
 
-    <!-- Custom Styles -->
+    <!-- Critical CSS Fix -->
     <style>
         :root {
             --sidebar-width: 16rem;
@@ -34,61 +34,47 @@
             --transition-speed: 0.3s;
         }
 
+        body {
+            margin: 0;
+            padding-top: 5rem !important;
+            padding-bottom: 4rem !important;
+            font-family: 'Noto Sans Devanagari', sans-serif;
+            background-color: #f9fafb;
+        }
+
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            height: 5rem;
+            background-color: #ffffff !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            z-index: 1000;
+            height: 4rem;
+            background-color: #ffffff !important;
+            box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .main-content {
+            min-height: calc(100vh - 9rem);
+        }
+
         .sidebar {
             width: var(--sidebar-width);
             transition: width var(--transition-speed);
+            background-color: #1e40af !important;
+            z-index: 900;
         }
 
         .sidebar.collapsed {
             width: var(--sidebar-collapsed-width);
-        }
-
-        .sidebar-link.active {
-            background-color: #e0f2fe;
-            color: #1d4ed8;
-            border-left: 4px solid #3b82f6;
-            font-weight: 600;
-        }
-
-        .sidebar.collapsed .sidebar-text {
-            display: none;
-        }
-
-        .sidebar.collapsed .sidebar-icon {
-            margin: 0 auto;
-        }
-
-        .dark-mode {
-            background-color: #1e293b;
-            color: #f1f5f9;
-        }
-
-        .dark-mode .main-content {
-            background-color: #1e293b;
-        }
-
-        .dark-mode .sidebar {
-            background-color: #1e293b;
-        }
-
-        .dark-mode .dropdown-menu {
-            background-color: #334155;
-        }
-
-        .dark-mode .text-gray-700 {
-            color: #f1f5f9 !important;
-        }
-
-        .dark-mode .bg-white {
-            background-color: #334155 !important;
-        }
-
-        .dark-mode .border-gray-200 {
-            border-color: #475569 !important;
-        }
-
-        .dark-mode .text-gray-500 {
-            color: #94a3b8 !important;
         }
 
         .sidebar-link {
@@ -106,17 +92,25 @@
             color: white;
         }
 
+        .sidebar-link.active {
+            background-color: #e0f2fe;
+            color: #1d4ed8;
+            border-left: 4px solid #3b82f6;
+            font-weight: 600;
+        }
+
         .sidebar-link i {
             width: 1.5rem;
             text-align: center;
             margin-right: 0.75rem;
         }
 
-        .sidebar-link.active {
-            background-color: #e0f2fe;
-            color: #1d4ed8;
-            border-left: 4px solid #3b82f6;
-            font-weight: 600;
+        .sidebar.collapsed .sidebar-text {
+            display: none;
+        }
+
+        .sidebar.collapsed .sidebar-icon {
+            margin: 0 auto;
         }
 
         .skip-link {
@@ -133,30 +127,23 @@
         .skip-link:focus {
             top: 0;
         }
-
-        .notification-dot {
-            position: absolute;
-            top: 4px;
-            right: 4px;
-            width: 8px;
-            height: 8px;
-            background-color: #ef4444;
-            border-radius: 50%;
-        }
     </style>
 
-    <!-- Page-specific CSS -->
     @stack('styles')
 </head>
 <body class="bg-gray-50 font-sans" x-data="{ darkMode: false }">
-    <a href="#main-content" class="skip-link nepali">मुख्य सामग्रीमा जानुहोस्</a>
+    <a href="#main-content" class="skip-link">मुख्य सामग्रीमा जानुहोस्</a>
 
-    <div class="flex h-screen overflow-hidden">
+    <!-- Include Header -->
+    @include('components.header')
+
+    <div class="flex h-screen overflow-hidden mt-20">
         <!-- Sidebar -->
-        <aside id="sidebar" class="sidebar bg-blue-800 text-white z-20 flex-shrink-0 transition-all duration-300 ease-in-out">
+        <aside id="sidebar" class="sidebar text-white flex-shrink-0 transition-all duration-300 ease-in-out">
             <div class="p-4 border-b border-blue-700 flex items-center justify-between">
                 <div class="flex items-center">
-                    <img src="{{ asset('storage/images/logo.png') }}" alt="HostelHub Logo" class="w-32 h-10 object-contain logo">
+                    <!-- यदि तपाईंले sidebar मा लोगो नचाहनुहुन्छ भने, यो हटाउनुहोस् -->
+                    <!-- <img src="{{ asset('storage/images/logo.png') }}" alt="HostelHub Logo" class="w-32 h-10 object-contain logo"> -->
                 </div>
                 <button id="sidebar-collapse" class="text-gray-300 hover:text-white sidebar-text" aria-label="साइडबार सङ्कुचित गर्नुहोस्">
                     <i class="fas fa-bars-staggered"></i>
@@ -172,124 +159,109 @@
                 </a>
 
                 <!-- Conditional Menu Items -->
-                @if(auth()->user()->isAdmin())
-                    <!-- Admin Links -->
-                    @if(Route::has('admin.hostels.index'))
-                        <a href="{{ route('admin.hostels.index') }}"
-                           class="sidebar-link {{ request()->routeIs('admin.hostels.*') ? 'active' : '' }}"
-                           aria-current="{{ request()->routeIs('admin.hostels.*') ? 'page' : 'false' }}">
-                            <i class="fas fa-building sidebar-icon"></i>
-                            <span class="sidebar-text">होस्टलहरू</span>
-                        </a>
-                    @else
-                        <a href="#"
-                           class="sidebar-link opacity-50 cursor-not-allowed"
-                           aria-disabled="true">
-                            <i class="fas fa-building sidebar-icon"></i>
-                            <span class="sidebar-text">होस्टलहरू (प्रावधिक)</span>
-                        </a>
-                    @endif
+                @auth
+                    @if(auth()->user()->isAdmin())
+                        @if(Route::has('admin.hostels.index'))
+                            <a href="{{ route('admin.hostels.index') }}"
+                               class="sidebar-link {{ request()->routeIs('admin.hostels.*') ? 'active' : '' }}"
+                               aria-current="{{ request()->routeIs('admin.hostels.*') ? 'page' : 'false' }}">
+                                <i class="fas fa-building sidebar-icon"></i>
+                                <span class="sidebar-text">होस्टलहरू</span>
+                            </a>
+                        @else
+                            <a href="#" class="sidebar-link opacity-50 cursor-not-allowed" aria-disabled="true">
+                                <i class="fas fa-building sidebar-icon"></i>
+                                <span class="sidebar-text">होस्टलहरू (प्रावधिक)</span>
+                            </a>
+                        @endif
 
-                    @if(Route::has('admin.rooms.index'))
-                        <a href="{{ route('admin.rooms.index') }}"
-                           class="sidebar-link {{ request()->routeIs('admin.rooms.*') ? 'active' : '' }}"
-                           aria-current="{{ request()->routeIs('admin.rooms.*') ? 'page' : 'false' }}">
-                            <i class="fas fa-door-open sidebar-icon"></i>
-                            <span class="sidebar-text">कोठाहरू</span>
-                        </a>
-                    @else
-                        <a href="#"
-                           class="sidebar-link opacity-50 cursor-not-allowed"
-                           aria-disabled="true">
-                            <i class="fas fa-door-open sidebar-icon"></i>
-                            <span class="sidebar-text">कोठाहरू (प्रावधिक)</span>
-                        </a>
-                    @endif
+                        @if(Route::has('admin.rooms.index'))
+                            <a href="{{ route('admin.rooms.index') }}"
+                               class="sidebar-link {{ request()->routeIs('admin.rooms.*') ? 'active' : '' }}"
+                               aria-current="{{ request()->routeIs('admin.rooms.*') ? 'page' : 'false' }}">
+                                <i class="fas fa-door-open sidebar-icon"></i>
+                                <span class="sidebar-text">कोठाहरू</span>
+                            </a>
+                        @else
+                            <a href="#" class="sidebar-link opacity-50 cursor-not-allowed" aria-disabled="true">
+                                <i class="fas fa-door-open sidebar-icon"></i>
+                                <span class="sidebar-text">कोठाहरू (प्रावधिक)</span>
+                            </a>
+                        @endif
 
-                    @if(Route::has('admin.students.index'))
-                        <a href="{{ route('admin.students.index') }}"
-                           class="sidebar-link {{ request()->routeIs('admin.students.*') ? 'active' : '' }}"
-                           aria-current="{{ request()->routeIs('admin.students.*') ? 'page' : 'false' }}">
-                            <i class="fas fa-users sidebar-icon"></i>
-                            <span class="sidebar-text">विद्यार्थीहरू</span>
-                        </a>
-                    @else
-                        <a href="#"
-                           class="sidebar-link opacity-50 cursor-not-allowed"
-                           aria-disabled="true">
-                            <i class="fas fa-users sidebar-icon"></i>
-                            <span class="sidebar-text">विद्यार्थीहरू (प्रावधिक)</span>
-                        </a>
-                    @endif
+                        @if(Route::has('admin.students.index'))
+                            <a href="{{ route('admin.students.index') }}"
+                               class="sidebar-link {{ request()->routeIs('admin.students.*') ? 'active' : '' }}"
+                               aria-current="{{ request()->routeIs('admin.students.*') ? 'page' : 'false' }}">
+                                <i class="fas fa-users sidebar-icon"></i>
+                                <span class="sidebar-text">विद्यार्थीहरू</span>
+                            </a>
+                        @else
+                            <a href="#" class="sidebar-link opacity-50 cursor-not-allowed" aria-disabled="true">
+                                <i class="fas fa-users sidebar-icon"></i>
+                                <span class="sidebar-text">विद्यार्थीहरू (प्रावधिक)</span>
+                            </a>
+                        @endif
 
-                @elseif(auth()->user()->isHostelManager())
-                    <!-- Owner Links -->
-                    @if(Route::has('owner.hostels.index'))
-                        <a href="{{ route('owner.hostels.index') }}"
-                           class="sidebar-link {{ request()->routeIs('owner.hostels.*') ? 'active' : '' }}"
-                           aria-current="{{ request()->routeIs('owner.hostels.*') ? 'page' : 'false' }}">
-                            <i class="fas fa-building sidebar-icon"></i>
-                            <span class="sidebar-text">मेरा होस्टलहरू</span>
-                        </a>
-                    @else
-                        <a href="#"
-                           class="sidebar-link opacity-50 cursor-not-allowed"
-                           aria-disabled="true">
-                            <i class="fas fa-building sidebar-icon"></i>
-                            <span class="sidebar-text">होस्टलहरू (प्रावधिक)</span>
-                        </a>
-                    @endif
+                    @elseif(auth()->user()->isHostelManager())
+                        @if(Route::has('owner.hostels.index'))
+                            <a href="{{ route('owner.hostels.index') }}"
+                               class="sidebar-link {{ request()->routeIs('owner.hostels.*') ? 'active' : '' }}"
+                               aria-current="{{ request()->routeIs('owner.hostels.*') ? 'page' : 'false' }}">
+                                <i class="fas fa-building sidebar-icon"></i>
+                                <span class="sidebar-text">मेरा होस्टलहरू</span>
+                            </a>
+                        @else
+                            <a href="#" class="sidebar-link opacity-50 cursor-not-allowed" aria-disabled="true">
+                                <i class="fas fa-building sidebar-icon"></i>
+                                <span class="sidebar-text">होस्टलहरू (प्रावधिक)</span>
+                            </a>
+                        @endif
 
-                    @if(Route::has('owner.rooms.index'))
-                        <a href="{{ route('owner.rooms.index') }}"
-                           class="sidebar-link {{ request()->routeIs('owner.rooms.*') ? 'active' : '' }}"
-                           aria-current="{{ request()->routeIs('owner.rooms.*') ? 'page' : 'false' }}">
-                            <i class="fas fa-door-open sidebar-icon"></i>
-                            <span class="sidebar-text">मेरा कोठाहरू</span>
-                        </a>
-                    @else
-                        <a href="#"
-                           class="sidebar-link opacity-50 cursor-not-allowed"
-                           aria-disabled="true">
-                            <i class="fas fa-door-open sidebar-icon"></i>
-                            <span class="sidebar-text">कोठाहरू (प्रावधिक)</span>
-                        </a>
-                    @endif
+                        @if(Route::has('owner.rooms.index'))
+                            <a href="{{ route('owner.rooms.index') }}"
+                               class="sidebar-link {{ request()->routeIs('owner.rooms.*') ? 'active' : '' }}"
+                               aria-current="{{ request()->routeIs('owner.rooms.*') ? 'page' : 'false' }}">
+                                <i class="fas fa-door-open sidebar-icon"></i>
+                                <span class="sidebar-text">मेरा कोठाहरू</span>
+                            </a>
+                        @else
+                            <a href="#" class="sidebar-link opacity-50 cursor-not-allowed" aria-disabled="true">
+                                <i class="fas fa-door-open sidebar-icon"></i>
+                                <span class="sidebar-text">कोठाहरू (प्रावधिक)</span>
+                            </a>
+                        @endif
 
-                @elseif(auth()->user()->isStudent())
-                    <!-- Student Links -->
-                    @if(Route::has('student.rooms.index'))
-                        <a href="{{ route('student.rooms.index') }}"
-                           class="sidebar-link {{ request()->routeIs('student.rooms.*') ? 'active' : '' }}"
-                           aria-current="{{ request()->routeIs('student.rooms.*') ? 'page' : 'false' }}">
-                            <i class="fas fa-search sidebar-icon"></i>
-                            <span class="sidebar-text">कोठा खोजी</span>
-                        </a>
-                    @else
-                        <a href="#"
-                           class="sidebar-link opacity-50 cursor-not-allowed"
-                           aria-disabled="true">
-                            <i class="fas fa-search sidebar-icon"></i>
-                            <span class="sidebar-text">खोजी (प्रावधिक)</span>
-                        </a>
-                    @endif
+                    @elseif(auth()->user()->isStudent())
+                        @if(Route::has('student.rooms.index'))
+                            <a href="{{ route('student.rooms.index') }}"
+                               class="sidebar-link {{ request()->routeIs('student.rooms.*') ? 'active' : '' }}"
+                               aria-current="{{ request()->routeIs('student.rooms.*') ? 'page' : 'false' }}">
+                                <i class="fas fa-search sidebar-icon"></i>
+                                <span class="sidebar-text">कोठा खोजी</span>
+                            </a>
+                        @else
+                            <a href="#" class="sidebar-link opacity-50 cursor-not-allowed" aria-disabled="true">
+                                <i class="fas fa-search sidebar-icon"></i>
+                                <span class="sidebar-text">खोजी (प्रावधिक)</span>
+                            </a>
+                        @endif
 
-                    @if(Route::has('student.bookings'))
-                        <a href="{{ route('student.bookings') }}"
-                           class="sidebar-link {{ request()->routeIs('student.bookings') ? 'active' : '' }}"
-                           aria-current="{{ request()->routeIs('student.bookings') ? 'page' : 'false' }}">
-                            <i class="fas fa-calendar-check sidebar-icon"></i>
-                            <span class="sidebar-text">मेरो बुकिङहरू</span>
-                        </a>
-                    @else
-                        <a href="#"
-                           class="sidebar-link opacity-50 cursor-not-allowed"
-                           aria-disabled="true">
-                            <i class="fas fa-calendar-check sidebar-icon"></i>
-                            <span class="sidebar-text">बुकिङहरू (प्रावधिक)</span>
-                        </a>
+                        @if(Route::has('student.bookings'))
+                            <a href="{{ route('student.bookings') }}"
+                               class="sidebar-link {{ request()->routeIs('student.bookings') ? 'active' : '' }}"
+                               aria-current="{{ request()->routeIs('student.bookings') ? 'page' : 'false' }}">
+                                <i class="fas fa-calendar-check sidebar-icon"></i>
+                                <span class="sidebar-text">मेरो बुकिङहरू</span>
+                            </a>
+                        @else
+                            <a href="#" class="sidebar-link opacity-50 cursor-not-allowed" aria-disabled="true">
+                                <i class="fas fa-calendar-check sidebar-icon"></i>
+                                <span class="sidebar-text">बुकिङहरू (प्रावधिक)</span>
+                            </a>
+                        @endif
                     @endif
-                @endif
+                @endauth
 
                 <!-- Common Links -->
                 @if(Route::has('settings'))
@@ -300,15 +272,12 @@
                         <span class="sidebar-text">सेटिङ्हरू</span>
                     </a>
                 @else
-                    <a href="#"
-                       class="sidebar-link opacity-50 cursor-not-allowed"
-                       aria-disabled="true">
+                    <a href="#" class="sidebar-link opacity-50 cursor-not-allowed" aria-disabled="true">
                         <i class="fas fa-cog sidebar-icon"></i>
                         <span class="sidebar-text">सेटिङ्हरू (प्रावधिक)</span>
                     </a>
                 @endif
 
-                <!-- Gallery -->
                 @if(Route::has('gallery.public'))
                     <a href="{{ route('gallery.public') }}"
                        class="sidebar-link {{ request()->routeIs('gallery.*') ? 'active' : '' }}"
@@ -317,9 +286,7 @@
                         <span class="sidebar-text">ग्यालरी</span>
                     </a>
                 @else
-                    <a href="#"
-                       class="sidebar-link opacity-50 cursor-not-allowed"
-                       aria-disabled="true">
+                    <a href="#" class="sidebar-link opacity-50 cursor-not-allowed" aria-disabled="true">
                         <i class="fas fa-images sidebar-icon"></i>
                         <span class="sidebar-text">ग्यालरी (प्रावधिक)</span>
                     </a>
@@ -339,191 +306,13 @@
 
         <!-- Main Content -->
         <div class="flex-1 flex flex-col overflow-hidden">
-            <!-- Top Navigation -->
-            <header class="bg-white shadow-sm z-10">
-                <div class="flex items-center justify-between px-6 py-4">
-                    <div class="flex items-center">
-                        <button id="mobile-sidebar-toggle" class="lg:hidden text-gray-500 hover:text-gray-700 mr-4" aria-label="मोबाइल साइडबार खोल्नुहोस्">
-                            <i class="fas fa-bars text-xl"></i>
-                        </button>
-
-                        <!-- Breadcrumb -->
-                        <nav class="hidden md:flex" aria-label="Breadcrumb">
-                            <ol class="flex items-center space-x-2 text-sm">
-                                <li>
-                                    <a href="{{ route('dashboard') }}" class="text-gray-500 hover:text-indigo-600">
-                                        <i class="fas fa-home"></i>
-                                    </a>
-                                </li>
-                                @if(request()->routeIs('dashboard'))
-                                    <li class="text-gray-500">
-                                        <i class="fas fa-chevron-right text-xs mx-2"></i>
-                                        <span>ड्यासबोर्ड</span>
-                                    </li>
-                                @elseif(request()->routeIs('admin.hostels.*') || request()->routeIs('owner.hostels.*'))
-                                    <li class="text-gray-500">
-                                        <i class="fas fa-chevron-right text-xs mx-2"></i>
-                                        <a href="{{ 
-                                            auth()->user()->isAdmin() ? route('admin.hostels.index') : 
-                                            route('owner.hostels.index') 
-                                        }}" class="hover:text-indigo-600">
-                                            होस्टलहरू
-                                        </a>
-                                    </li>
-                                    @if(request()->routeIs('admin.hostels.create') || request()->routeIs('owner.hostels.create'))
-                                        <li class="text-gray-500">
-                                            <i class="fas fa-chevron-right text-xs mx-2"></i>
-                                            <span>थप्नुहोस्</span>
-                                        </li>
-                                    @elseif(request()->routeIs('admin.hostels.edit') || request()->routeIs('owner.hostels.edit'))
-                                        <li class="text-gray-500">
-                                            <i class="fas fa-chevron-right text-xs mx-2"></i>
-                                            <span>सम्पादन गर्नुहोस्</span>
-                                        </li>
-                                    @endif
-                                @elseif(request()->routeIs('admin.rooms.*') || request()->routeIs('owner.rooms.*'))
-                                    <li class="text-gray-500">
-                                        <i class="fas fa-chevron-right text-xs mx-2"></i>
-                                        <a href="{{ 
-                                            auth()->user()->isAdmin() ? route('admin.rooms.index') : 
-                                            route('owner.rooms.index') 
-                                        }}" class="hover:text-indigo-600">कोठाहरू</a>
-                                    </li>
-                                @elseif(request()->routeIs('student.rooms.*'))
-                                    <li class="text-gray-500">
-                                        <i class="fas fa-chevron-right text-xs mx-2"></i>
-                                        <a href="{{ route('student.rooms.index') }}" class="hover:text-indigo-600">कोठा खोजी</a>
-                                    </li>
-                                @elseif(request()->routeIs('gallery.*'))
-                                    <li class="text-gray-500">
-                                        <i class="fas fa-chevron-right text-xs mx-2"></i>
-                                        <a href="{{ route('gallery.public') }}" class="hover:text-indigo-600">ग्यालरी</a>
-                                    </li>
-                                @endif
-                            </ol>
-                        </nav>
-                    </div>
-
-                    <h1 class="text-xl md:text-2xl font-semibold text-gray-800 hidden md:block">@yield('title')</h1>
-
-                    <div class="flex items-center space-x-3">
-                        <!-- Dark Mode Toggle -->
-                        <button id="dark-mode-toggle" class="text-gray-500 hover:text-gray-700 p-2 rounded-full hover:bg-gray-100" aria-label="डार्क मोड टगल गर्नुहोस्">
-                            <i class="fas fa-moon hidden dark-icon"></i>
-                            <i class="fas fa-sun dark-icon"></i>
-                        </button>
-
-                        <!-- Notifications -->
-                        <div class="relative" x-data="{ open: false }">
-                            <button @click="open = !open" class="text-gray-500 hover:text-gray-700 p-2 rounded-full hover:bg-gray-100" aria-label="सूचनाहरू हेर्नुहोस्">
-                                <i class="fas fa-bell text-lg"></i>
-                                <span class="notification-dot" aria-hidden="true"></span>
-                            </button>
-
-                            <div x-show="open" @click.away="open = false"
-                                 x-transition:enter="transition ease-out duration-200"
-                                 x-transition:enter-start="opacity-0 transform scale-95"
-                                 x-transition:enter-end="opacity-100 transform scale-100"
-                                 x-transition:leave="transition ease-in duration-75"
-                                 x-transition:leave-start="opacity-100 transform scale-100"
-                                 x-transition:leave-end="opacity-0 transform scale-95"
-                                 class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg py-1 z-20 max-h-96 overflow-y-auto border border-gray-200"
-                                 role="menu"
-                                 aria-orientation="vertical"
-                                 aria-labelledby="notifications-button">
-                                <div class="px-4 py-2 border-b border-gray-200">
-                                    <h3 class="font-semibold text-gray-800">सूचनाहरू</h3>
-                                </div>
-                                <a href="#" class="flex items-start px-4 py-3 hover:bg-gray-50 border-b border-gray-100" role="menuitem">
-                                    <div class="bg-indigo-100 p-2 rounded-lg mr-3">
-                                        <i class="fas fa-user-plus text-indigo-600"></i>
-                                    </div>
-                                    <div>
-                                        <p class="text-sm font-medium text-gray-800">नयाँ विद्यार्थी दर्ता</p>
-                                        <p class="text-xs text-gray-500">३० मिनेट अघि</p>
-                                    </div>
-                                </a>
-                                <a href="#" class="flex items-start px-4 py-3 hover:bg-gray-50 border-b border-gray-100" role="menuitem">
-                                    <div class="bg-amber-100 p-2 rounded-lg mr-3">
-                                        <i class="fas fa-money-bill-wave text-amber-600"></i>
-                                    </div>
-                                    <div>
-                                        <p class="text-sm font-medium text-gray-800">भुक्तानी समाप्ति</p>
-                                        <p class="text-xs text-gray-500">१ घण्टा अघि</p>
-                                    </div>
-                                </a>
-                                <a href="#" class="flex items-start px-4 py-3 hover:bg-gray-50" role="menuitem">
-                                    <div class="bg-red-100 p-2 rounded-lg mr-3">
-                                        <i class="fas fa-exclamation-triangle text-red-600"></i>
-                                    </div>
-                                    <div>
-                                        <p class="text-sm font-medium text-gray-800">कोठा उपलब्धता</p>
-                                        <p class="text-xs text-gray-500">२ घण्टा अघि</p>
-                                    </div>
-                                </a>
-                                <div class="px-4 py-2 border-t border-gray-200 text-center">
-                                    <a href="#" class="text-indigo-600 text-sm hover:underline">सबै सूचनाहरू हेर्नुहोस्</a>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- User Dropdown -->
-                        <div class="relative" x-data="{ open: false }">
-                            <button @click="open = !open" class="flex items-center space-x-2 focus:outline-none" aria-expanded="false" aria-haspopup="true">
-                                <div class="h-9 w-9 rounded-full bg-indigo-100 flex items-center justify-center">
-                                    <span class="text-indigo-600 font-medium">
-                                        {{ strtoupper(substr(optional(auth()->user())->name ?? 'U', 0, 2)) }}
-                                    </span>
-                                </div>
-                                <span class="hidden md:inline text-gray-700 font-medium">
-                                    {{ optional(auth()->user())->name ?? 'प्रयोगकर्ता' }}
-                                </span>
-                                <i class="fas fa-chevron-down text-xs text-gray-500"></i>
-                            </button>
-
-                            <div x-show="open" @click.away="open = false"
-                                 x-transition:enter="transition ease-out duration-200"
-                                 x-transition:enter-start="opacity-0 transform scale-95"
-                                 x-transition:enter-end="opacity-100 transform scale-100"
-                                 x-transition:leave="transition ease-in duration-75"
-                                 x-transition:leave-start="opacity-100 transform scale-100"
-                                 x-transition:leave-end="opacity-0 transform scale-95"
-                                 class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg py-1 z-20 border border-gray-200"
-                                 role="menu"
-                                 aria-orientation="vertical"
-                                 aria-labelledby="user-menu">
-                                <a href="{{ route('profile.edit') }}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" role="menuitem">
-                                    <i class="fas fa-user mr-3 text-gray-400"></i>
-                                    <span>मेरो प्रोफाइल</span>
-                                </a>
-                                @if(Route::has('settings'))
-                                    <a href="{{ route('settings') }}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" role="menuitem">
-                                        <i class="fas fa-cog mr-3 text-gray-400"></i>
-                                        <span>सेटिङ्हरू</span>
-                                    </a>
-                                @endif
-                                <hr class="my-1 border-gray-200">
-                                <form method="POST" action="{{ route('logout') }}" id="logout-form">
-                                    @csrf
-                                    <button type="submit" class="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" role="menuitem">
-                                        <i class="fas fa-sign-out-alt mr-3 text-gray-400"></i>
-                                        <span>लगआउट</span>
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            <!-- Page Content -->
-            <main id="main-content" class="flex-1 overflow-y-auto p-4 md:p-6 bg-gray-50">
+            <main id="main-content" class="flex-1 overflow-y-auto p-4 md:p-6 bg-gray-50 relative z-10">
                 <div class="max-w-7xl mx-auto">
                     <!-- Page Header -->
                     <div class="mb-6">
                         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                             <div>
-                                <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-1 md:block">@yield('title')</h1>
+                                <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-1">@yield('title')</h1>
                                 @if(View::hasSection('page-description'))
                                     <p class="text-gray-600 text-sm">@yield('page-description')</p>
                                 @endif
@@ -569,22 +358,11 @@
                     </div>
                 </div>
             </main>
-
-            <!-- Footer -->
-            <footer class="bg-white border-t border-gray-200 py-4">
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div class="flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
-                        <p class="mb-2 md:mb-0">&copy; {{ date('Y') }} HostelHub. सबै अधिकार सुरक्षित।</p>
-                        <div class="flex space-x-4">
-                            <a href="#" class="hover:text-gray-700">गोपनीयता नीति</a>
-                            <a href="#" class="hover:text-gray-700">सेवा सर्तहरू</a>
-                            <span>संस्करण: 1.0.0</span>
-                        </div>
-                    </div>
-                </div>
-            </footer>
         </div>
     </div>
+
+    <!-- Include Footer -->
+    @include('components.footer')
 
     <!-- Mobile Sidebar Overlay -->
     <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-10 hidden lg:hidden" aria-hidden="true"></div>
@@ -592,7 +370,7 @@
     <!-- Video Modal -->
     <div id="video-modal" class="fixed inset-0 bg-black bg-opacity-90 z-50 hidden flex items-center justify-center p-4">
         <div class="relative w-full max-w-4xl">
-            <button id="close-video-modal" class="absolute -top-12 right-0 text-white text-xl hover:text-gray-300 transition-colors" aria-label="भिडियो मोडल बन्द गर्नुहोस्">
+            <button id="close-video-modal" class="absolute -top-12 right-0 text-white text-xl hover:text-gray-300 transition-colors">
                 बन्द गर्नुहोस् ×
             </button>
             <div class="bg-black rounded-xl overflow-hidden">
@@ -614,44 +392,15 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Sidebar functionality
             const sidebar = document.getElementById('sidebar');
             const sidebarCollapse = document.getElementById('sidebar-collapse');
-            const mobileSidebarToggle = document.getElementById('mobile-sidebar-toggle');
             const sidebarOverlay = document.getElementById('sidebar-overlay');
-            const mainContent = document.getElementById('main-content');
 
             // Collapse/Expand sidebar
             if (sidebarCollapse) {
                 sidebarCollapse.addEventListener('click', function() {
                     sidebar.classList.toggle('collapsed');
-                    const isCollapsed = sidebar.classList.contains('collapsed');
-                    localStorage.setItem('sidebarCollapsed', isCollapsed);
-                });
-            }
-
-            // Mobile sidebar toggle
-            if (mobileSidebarToggle) {
-                mobileSidebarToggle.addEventListener('click', function() {
-                    sidebar.classList.remove('-translate-x-full');
-                    sidebarOverlay.classList.remove('hidden');
-                    // For accessibility, trap focus inside the sidebar
-                    const sidebarLinks = sidebar.querySelectorAll('a, button');
-                    if (sidebarLinks.length > 0) {
-                        sidebarLinks[0].focus();
-                    }
-                });
-            }
-
-            // Close mobile sidebar
-            if (sidebarOverlay) {
-                sidebarOverlay.addEventListener('click', function() {
-                    sidebar.classList.add('-translate-x-full');
-                    sidebarOverlay.classList.add('hidden');
-                    // Return focus to the toggle button for accessibility
-                    if (mobileSidebarToggle) {
-                        mobileSidebarToggle.focus();
-                    }
+                    localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
                 });
             }
 
@@ -660,175 +409,7 @@
                 sidebar.classList.add('collapsed');
             }
 
-            // Dark mode toggle
-            const darkModeToggle = document.getElementById('dark-mode-toggle');
-            const darkIcon = document.querySelector('.dark-icon');
-
-            if (darkModeToggle && darkIcon) {
-                const darkMode = localStorage.getItem('darkMode') === 'true';
-
-                if (darkMode) {
-                    document.body.classList.add('dark-mode');
-                    darkIcon.classList.remove('fa-sun');
-                    darkIcon.classList.add('fa-moon');
-                }
-
-                darkModeToggle.addEventListener('click', function() {
-                    const isDarkMode = document.body.classList.toggle('dark-mode');
-                    localStorage.setItem('darkMode', isDarkMode);
-
-                    if (isDarkMode) {
-                        darkIcon.classList.remove('fa-sun');
-                        darkIcon.classList.add('fa-moon');
-                    } else {
-                        darkIcon.classList.remove('fa-moon');
-                        darkIcon.classList.add('fa-sun');
-                    }
-                });
-            }
-
-            // Video Modal Functionality
-            const playVideoBtns = document.querySelectorAll('.play-video-btn');
-            const videoModal = document.getElementById('video-modal');
-            const modalVideoPlayer = document.getElementById('modal-video-player');
-            const videoTitle = document.getElementById('video-title');
-            const closeVideoModal = document.getElementById('close-video-modal');
-
-            playVideoBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const videoUrl = this.getAttribute('data-video');
-                    const title = this.getAttribute('data-title');
-
-                    if (videoUrl && modalVideoPlayer && videoTitle) {
-                        modalVideoPlayer.querySelector('source').src = videoUrl;
-                        videoTitle.textContent = title;
-
-                        // Reload video to ensure it loads the new source
-                        modalVideoPlayer.load();
-
-                        // Show modal
-                        if (videoModal) {
-                            videoModal.classList.remove('hidden');
-                        }
-                    }
-                });
-            });
-
-            // Close video modal
-            if (closeVideoModal && videoModal && modalVideoPlayer) {
-                closeVideoModal.addEventListener('click', function() {
-                    videoModal.classList.add('hidden');
-                    modalVideoPlayer.pause();
-                    modalVideoPlayer.currentTime = 0;
-                });
-
-                // Close modal when clicking outside video
-                videoModal.addEventListener('click', function(e) {
-                    if (e.target === videoModal) {
-                        videoModal.classList.add('hidden');
-                        modalVideoPlayer.pause();
-                        modalVideoPlayer.currentTime = 0;
-                    }
-                });
-
-                // Close modal on escape key
-                document.addEventListener('keydown', function(e) {
-                    if (e.key === 'Escape' && !videoModal.classList.contains('hidden')) {
-                        videoModal.classList.add('hidden');
-                        modalVideoPlayer.pause();
-                        modalVideoPlayer.currentTime = 0;
-                    }
-                });
-            }
-
-            // Auto-dismiss alerts after 5 seconds
-            setTimeout(function() {
-                const alerts = document.querySelectorAll('.alert-dismissible');
-                alerts.forEach(alert => {
-                    alert.style.transition = 'opacity 0.5s';
-                    alert.style.opacity = '0';
-                    setTimeout(() => alert.remove(), 500);
-                });
-            }, 5000);
-
-            // Initialize DataTables if present
-            if (typeof $ !== 'undefined' && typeof $.fn.DataTable !== 'undefined') {
-                $('table.data-table').each(function() {
-                    if (!$.fn.DataTable.isDataTable(this)) {
-                        $(this).DataTable({
-                            responsive: true,
-                            language: {
-                                url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/np.json'
-                            },
-                            pageLength: 10,
-                            lengthChange: false,
-                            autoWidth: false,
-                            columnDefs: [
-                                { responsivePriority: 1, targets: 0 },
-                                { responsivePriority: 2, targets: -1 }
-                            ]
-                        });
-                    }
-                });
-            }
-
-            // Form submission handling
-            const forms = document.querySelectorAll('form');
-            forms.forEach(form => {
-                form.addEventListener('submit', function() {
-                    // Disable submit button to prevent multiple submissions
-                    const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
-                    if (submitBtn) {
-                        const originalText = submitBtn.innerHTML;
-                        submitBtn.disabled = true;
-
-                        // Check if we're already showing a spinner
-                        if (!submitBtn.querySelector('.spinner-border')) {
-                            submitBtn.innerHTML = `
-                                <span class="spinner-border spinner-border-sm me-2" role="status, aria-hidden="true"></span>
-                                प्रक्रिया गर्दै...
-                            `;
-                        }
-
-                        // Reset button after 3 seconds if form doesn't submit
-                        setTimeout(() => {
-                            if (submitBtn.disabled) {
-                                submitBtn.disabled = false;
-                                submitBtn.innerHTML = originalText;
-                            }
-                        }, 3000);
-                    }
-                });
-            });
-
-            // Logout confirmation
-            const logoutForm = document.getElementById('logout-form');
-            if (logoutForm) {
-                logoutForm.addEventListener('submit', function(e) {
-                    if (!confirm('के तपाईं निश्चित रूपमा लगआउट गर्न चाहनुहुन्छ?')) {
-                        e.preventDefault();
-                    }
-                });
-            }
-
-            // Add focus trap for mobile sidebar
-            if (sidebar && sidebarOverlay) {
-                sidebar.addEventListener('keydown', function(e) {
-                    const focusableElements = sidebar.querySelectorAll('a, button, input, select, textarea');
-                    const firstFocusable = focusableElements[0];
-                    const lastFocusable = focusableElements[focusableElements.length - 1];
-
-                    if (e.key === 'Tab') {
-                        if (e.shiftKey && document.activeElement === firstFocusable) {
-                            e.preventDefault();
-                            lastFocusable.focus();
-                        } else if (!e.shiftKey && document.activeElement === lastFocusable) {
-                            e.preventDefault();
-                            firstFocusable.focus();
-                        }
-                    }
-                });
-            }
+            // Mobile sidebar toggle handled in header
         });
     </script>
 </body>
