@@ -7,7 +7,7 @@ use App\Models\Gallery;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Validation\Rule; // Added for category validation
+use Illuminate\Validation\Rule;
 
 class GalleryController extends Controller
 {
@@ -18,7 +18,7 @@ class GalleryController extends Controller
     {
         $this->authorize('viewAny', Gallery::class);
 
-        // Updated categories with new values
+        // Updated categories with event
         $categories = [
             'all'         => 'सबै',
             'video'       => 'भिडियो टुर',
@@ -27,7 +27,8 @@ class GalleryController extends Controller
             '3 seater'    => '३ सिटर कोठा',
             '4 seater'    => '४ सिटर कोठा',
             'common'      => 'लिभिङ रूम',
-            'bathroom'    => 'बाथरूम'
+            'bathroom'    => 'बाथरूम',
+            'event'       => 'कार्यक्रम'
         ];
 
         $selectedCategory = request('category', 'all');
@@ -48,7 +49,7 @@ class GalleryController extends Controller
     {
         $this->authorize('create', Gallery::class);
 
-        // Updated categories with new values
+        // Updated categories with event
         $categories = [
             'video'       => 'भिडियो टुर',
             '1 seater'    => '१ सिटर कोठा',
@@ -56,7 +57,8 @@ class GalleryController extends Controller
             '3 seater'    => '३ सिटर कोठा',
             '4 seater'    => '४ सिटर कोठा',
             'common'      => 'लिभिङ रूम',
-            'bathroom'    => 'बाथरूम'
+            'bathroom'    => 'बाथरूम',
+            'event'       => 'कार्यक्रम'
         ];
 
         return view('admin.gallery.create', compact('categories'));
@@ -69,7 +71,7 @@ class GalleryController extends Controller
     {
         $this->authorize('create', Gallery::class);
 
-        // Updated validation rules with new categories
+        // Updated validation rules with event category
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
@@ -79,7 +81,7 @@ class GalleryController extends Controller
             'local_video' => 'required_if:media_type,local_video|nullable|file|mimes:mp4,mov,avi|max:51200',
             'category' => [
                 'required',
-                Rule::in(['video', '1 seater', '2 seater', '3 seater', '4 seater', 'common', 'bathroom'])
+                Rule::in(['video', '1 seater', '2 seater', '3 seater', '4 seater', 'common', 'bathroom', 'event'])
             ],
             'status' => 'required|in:active,inactive',
         ]);
@@ -89,26 +91,33 @@ class GalleryController extends Controller
         unset($validated['status']);
 
         // Set default value for is_featured
-        $validated['is_featured'] = $request->has('featured'); // Get featured status from request
+        $validated['is_featured'] = $request->has('featured');
 
         // Add current user
         $validated['user_id'] = auth()->id();
 
-        // Handle media upload
+        // Handle media upload with consistent paths
         if ($validated['media_type'] === 'photo' && $request->hasFile('image')) {
-            $path = $request->file('image')->store('gallery', 'public');
+            $path = $request->file('image')->store('gallery/images', 'public');
             $validated['file_path'] = $path;
+            $validated['thumbnail'] = $path;
         } elseif ($validated['media_type'] === 'local_video' && $request->hasFile('local_video')) {
             $path = $request->file('local_video')->store('gallery/videos', 'public');
             $validated['file_path'] = $path;
+            $validated['thumbnail'] = 'images/video-default.jpg';
         } elseif ($validated['media_type'] === 'external_video') {
-            $validated['file_path'] = null; // No file for external videos
+            $validated['file_path'] = null;
+            // Generate YouTube thumbnail
+            $youtubeId = $this->getYoutubeIdFromUrl($request->external_link);
+            $validated['thumbnail'] = $youtubeId ? "https://img.youtube.com/vi/{$youtubeId}/mqdefault.jpg" : 'images/video-default.jpg';
         }
 
         Gallery::create($validated);
 
-        // Clear public gallery cache
+        // Clear all gallery caches
+        Cache::forget('public_gallery_all');
         Cache::forget('public_gallery_items_all');
+        Cache::tags(['gallery'])->flush();
 
         return redirect()->route('admin.gallery.index')
             ->with('success', 'ग्यालरी वस्तु सफलतापूर्वक थपियो');
@@ -131,7 +140,7 @@ class GalleryController extends Controller
     {
         $this->authorize('update', $gallery);
 
-        // Updated categories with new values
+        // Updated categories with event
         $categories = [
             'video'       => 'भिडियो टुर',
             '1 seater'    => '१ सिटर कोठा',
@@ -139,7 +148,8 @@ class GalleryController extends Controller
             '3 seater'    => '३ सिटर कोठा',
             '4 seater'    => '४ सिटर कोठा',
             'common'      => 'लिभिङ रूम',
-            'bathroom'    => 'बाथरूम'
+            'bathroom'    => 'बाथरूम',
+            'event'       => 'कार्यक्रम'
         ];
 
         return view('admin.gallery.edit', compact('gallery', 'categories'));
@@ -152,7 +162,7 @@ class GalleryController extends Controller
     {
         $this->authorize('update', $gallery);
 
-        // Updated validation rules with new categories
+        // Updated validation rules with event category
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
@@ -162,7 +172,7 @@ class GalleryController extends Controller
             'local_video' => 'nullable|file|mimes:mp4,mov,avi|max:51200',
             'category' => [
                 'required',
-                Rule::in(['video', '1 seater', '2 seater', '3 seater', '4 seater', 'common', 'bathroom'])
+                Rule::in(['video', '1 seater', '2 seater', '3 seater', '4 seater', 'common', 'bathroom', 'event'])
             ],
             'status' => 'required|in:active,inactive',
         ]);
@@ -199,19 +209,26 @@ class GalleryController extends Controller
 
         // Handle new file upload based on new media type
         if ($newMediaType === 'photo' && $request->hasFile('image')) {
-            $path = $request->file('image')->store('gallery', 'public');
+            $path = $request->file('image')->store('gallery/images', 'public');
             $validated['file_path'] = $path;
+            $validated['thumbnail'] = $path;
         } elseif ($newMediaType === 'local_video' && $request->hasFile('local_video')) {
             $path = $request->file('local_video')->store('gallery/videos', 'public');
             $validated['file_path'] = $path;
+            $validated['thumbnail'] = 'images/video-default.jpg';
         } elseif ($newMediaType === 'external_video') {
             $validated['file_path'] = null;
+            // Generate YouTube thumbnail
+            $youtubeId = $this->getYoutubeIdFromUrl($request->external_link);
+            $validated['thumbnail'] = $youtubeId ? "https://img.youtube.com/vi/{$youtubeId}/mqdefault.jpg" : 'images/video-default.jpg';
         }
 
         $gallery->update($validated);
 
-        // Clear public gallery cache
+        // Clear all gallery caches
+        Cache::forget('public_gallery_all');
         Cache::forget('public_gallery_items_all');
+        Cache::tags(['gallery'])->flush();
 
         return redirect()->route('admin.gallery.index')
             ->with('success', 'ग्यालरी वस्तु सफलतापूर्वक अपडेट गरियो');
@@ -231,8 +248,10 @@ class GalleryController extends Controller
 
         $gallery->delete();
 
-        // Clear public gallery cache
+        // Clear all gallery caches
+        Cache::forget('public_gallery_all');
         Cache::forget('public_gallery_items_all');
+        Cache::tags(['gallery'])->flush();
 
         return redirect()->route('admin.gallery.index')
             ->with('success', 'ग्यालरी वस्तु सफलतापूर्वक हटाइयो');
@@ -246,8 +265,10 @@ class GalleryController extends Controller
         $this->authorize('update', $gallery);
         $gallery->update(['is_featured' => !$gallery->is_featured]);
 
-        // Clear public gallery cache
+        // Clear all gallery caches
+        Cache::forget('public_gallery_all');
         Cache::forget('public_gallery_items_all');
+        Cache::tags(['gallery'])->flush();
 
         return back()->with('success', $gallery->is_featured ?
             'ग्यालरी वस्तु फिचर्ड गरियो' :
@@ -262,11 +283,33 @@ class GalleryController extends Controller
         $this->authorize('update', $gallery);
         $gallery->update(['is_active' => !$gallery->is_active]);
 
-        // Clear public gallery cache
+        // Clear all gallery caches
+        Cache::forget('public_gallery_all');
         Cache::forget('public_gallery_items_all');
+        Cache::tags(['gallery'])->flush();
 
         return back()->with('success', $gallery->is_active ?
             'ग्यालरी वस्तु सक्रिय गरियो' :
             'ग्यालरी वस्तु निष्क्रिय गरियो');
+    }
+
+    /**
+     * Extract YouTube ID from URL
+     */
+    private function getYoutubeIdFromUrl(string $url): ?string
+    {
+        $patterns = [
+            '%(?:youtube(?:-nocookie)?\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu\.be/)([^"&?/\s]{11})%i',
+            '%^https?://(?:www\.)?youtube\.com/watch\?v=([\w-]{11})%',
+            '%^https?://youtu\.be/([\w-]{11})%'
+        ];
+
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $url, $matches)) {
+                return $matches[1];
+            }
+        }
+
+        return null;
     }
 }
