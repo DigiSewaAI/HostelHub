@@ -117,7 +117,7 @@ class GalleryController extends Controller
         // Clear all gallery caches
         Cache::forget('public_gallery_all');
         Cache::forget('public_gallery_items_all');
-        Cache::tags(['gallery'])->flush();
+        Cache::forget('public_gallery_featured');
 
         return redirect()->route('admin.gallery.index')
             ->with('success', 'ग्यालरी वस्तु सफलतापूर्वक थपियो');
@@ -228,7 +228,7 @@ class GalleryController extends Controller
         // Clear all gallery caches
         Cache::forget('public_gallery_all');
         Cache::forget('public_gallery_items_all');
-        Cache::tags(['gallery'])->flush();
+        Cache::forget('public_gallery_featured');
 
         return redirect()->route('admin.gallery.index')
             ->with('success', 'ग्यालरी वस्तु सफलतापूर्वक अपडेट गरियो');
@@ -251,7 +251,7 @@ class GalleryController extends Controller
         // Clear all gallery caches
         Cache::forget('public_gallery_all');
         Cache::forget('public_gallery_items_all');
-        Cache::tags(['gallery'])->flush();
+        Cache::forget('public_gallery_featured');
 
         return redirect()->route('admin.gallery.index')
             ->with('success', 'ग्यालरी वस्तु सफलतापूर्वक हटाइयो');
@@ -268,7 +268,8 @@ class GalleryController extends Controller
         // Clear all gallery caches
         Cache::forget('public_gallery_all');
         Cache::forget('public_gallery_items_all');
-        Cache::tags(['gallery'])->flush();
+        Cache::forget('public_gallery_featured');
+
 
         return back()->with('success', $gallery->is_featured ?
             'ग्यालरी वस्तु फिचर्ड गरियो' :
@@ -286,7 +287,7 @@ class GalleryController extends Controller
         // Clear all gallery caches
         Cache::forget('public_gallery_all');
         Cache::forget('public_gallery_items_all');
-        Cache::tags(['gallery'])->flush();
+        Cache::forget('public_gallery_featured');
 
         return back()->with('success', $gallery->is_active ?
             'ग्यालरी वस्तु सक्रिय गरियो' :

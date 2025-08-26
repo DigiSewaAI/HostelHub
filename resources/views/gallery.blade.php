@@ -141,6 +141,7 @@
             opacity: 0.9;
             z-index: 2;
             transition: all 0.3s ease;
+            pointer-events: none;
         }
         .video-thumbnail:hover .play-icon {
             transform: translate(-50%, -50%) scale(1.1);
@@ -163,7 +164,7 @@
         }
         .stat-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px16px rgba(0, 0, 0, 0.1);
         }
         .stat-number {
             font-size: 2.5rem;
@@ -226,6 +227,9 @@
         }
         .modal {
             transition: opacity 0.3s ease;
+            display: flex;
+            opacity: 0;
+            pointer-events: none;
         }
         .modal-content {
             transform: scale(0.9);
@@ -240,7 +244,7 @@
         }
         .spinner {
             width: 40px;
-            height: 40px;
+            height:40px;
             border: 4px solid rgba(255, 255, 255, 0.3);
             border-radius: 50%;
             border-top-color: white;
@@ -320,7 +324,7 @@
         <!-- Gallery Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
             @foreach($galleryItems as $item)
-                <div class="gallery-item {{ str_replace(' ', '-', $item['category']) }} animate-fade-in">
+                <div class="gallery-item animate-fade-in" data-category="{{ $item['category'] }}">
                     @if($item['media_type'] === 'external_video' || $item['media_type'] === 'local_video')
                         <div class="video-thumbnail">
                             <img src="{{ $item['thumbnail_url'] }}" alt="{{ $item['title'] }}" class="w-full h-full object-cover">
@@ -534,6 +538,21 @@
     </div>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Map Nepali filter keys to English category values
+            const categoryMap = {
+                'all': 'all',
+                'single': '1 seater',
+                'double': '2 seater',
+                'triple': '3 seater',
+                'quad': '4 seater',
+                'common': 'common',
+                'bathroom': 'bathroom',
+                'kitchen': 'kitchen',
+                'study': 'study room',
+                'event': 'event',
+                'video': 'video'
+            };
+
             // Gallery filter functionality
             const filterButtons = document.querySelectorAll('.gallery-filter-btn');
             const galleryItems = document.querySelectorAll('.gallery-item');
@@ -541,6 +560,7 @@
             filterButtons.forEach(button => {
                 button.addEventListener('click', () => {
                     const filterValue = button.getAttribute('data-filter');
+                    const englishCategory = categoryMap[filterValue];
                     
                     // Update URL parameter
                     const url = new URL(window.location);
@@ -557,7 +577,8 @@
                         });
                     } else {
                         galleryItems.forEach(item => {
-                            if (item.classList.contains(filterValue)) {
+                            const itemCategory = item.getAttribute('data-category');
+                            if (itemCategory === englishCategory) {
                                 item.style.display = 'flex';
                                 setTimeout(() => item.classList.add('animate-fade-in'), 10);
                             } else {
@@ -694,6 +715,16 @@
                     el.style.animationDelay = `${index * 0.1}s`;
                 });
             }, 100);
+
+            // Apply initial filter if category is selected
+            const urlParams = new URLSearchParams(window.location.search);
+            const initialCategory = urlParams.get('category');
+            if (initialCategory && initialCategory !== 'all') {
+                const initialFilterButton = document.querySelector(`.gallery-filter-btn[data-filter="${initialCategory}"]`);
+                if (initialFilterButton) {
+                    initialFilterButton.click();
+                }
+            }
         });
     </script>
 </body>
