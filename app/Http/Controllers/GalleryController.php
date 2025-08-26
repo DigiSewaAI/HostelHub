@@ -51,7 +51,8 @@ class GalleryController extends Controller
             $query = Gallery::where('is_active', true);
 
             if ($selectedCategory !== 'all') {
-                $query->where('category', $categoryMap[$selectedCategory]);
+                $dbCategory = $categoryMap[$selectedCategory];
+                $query->where('category', $dbCategory);
             }
 
             return $query
@@ -128,13 +129,13 @@ class GalleryController extends Controller
         $gallery->user_id = auth()->id();
 
         if ($request->media_type === 'photo' && $request->hasFile('image')) {
-            $path = $request->file('image')->store('gallery', 'public');
+            $path = $request->file('image')->store('gallery/images', 'public');
             $gallery->file_path = $path;
             $gallery->thumbnail = $path;
         }
 
         if ($request->media_type === 'local_video' && $request->hasFile('local_video')) {
-            $path = $request->file('local_video')->store('gallery', 'public');
+            $path = $request->file('local_video')->store('gallery/videos', 'public');
             $gallery->file_path = $path;
             $gallery->thumbnail = 'images/video-default.jpg';
         }
@@ -143,7 +144,7 @@ class GalleryController extends Controller
             $gallery->external_link = $request->external_link;
             $youtubeId = $this->getYoutubeIdFromUrl($request->external_link);
             $gallery->thumbnail = $youtubeId
-                ? "https://img.youtube.com/vi/{$youtubeId}/mqdefault.jpg"  // ✅ NO SPACE
+                ? "https://img.youtube.com/vi/{$youtubeId}/mqdefault.jpg"
                 : 'images/video-default.jpg';
         }
 
@@ -151,6 +152,7 @@ class GalleryController extends Controller
 
         // Clear cache
         Cache::forget('public_gallery_all');
+        Cache::forget('public_gallery_items_all');
         Cache::tags(['gallery'])->flush();
 
         return redirect()->route('admin.gallery.index')->with('success', '🎉 ग्यालेरी आइटम सफलतापूर्वक थपियो!');
@@ -241,7 +243,7 @@ class GalleryController extends Controller
         $result['thumbnail_url'] = $item->thumbnail
             ? asset('storage/' . $item->thumbnail)
             : ($youtubeId
-                ? "https://img.youtube.com/vi/{$youtubeId}/mqdefault.jpg"  // ✅ NO SPACE
+                ? "https://img.youtube.com/vi/{$youtubeId}/mqdefault.jpg"
                 : asset('images/video-default.jpg'));
 
         return $result;

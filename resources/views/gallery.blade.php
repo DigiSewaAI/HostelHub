@@ -305,14 +305,10 @@
         </div>
         <!-- Filter Buttons -->
         <div class="flex flex-wrap gap-3 mb-8 justify-center animate-fade-in">
-            <button class="gallery-filter-btn px-5 py-2 bg-indigo-100 text-indigo-800 rounded-lg active" data-filter="all">सबै</button>
-            <button class="gallery-filter-btn px-5 py-2 bg-indigo-100 text-indigo-800 rounded-lg" data-filter="1-sitter">१ सिटर कोठा</button>
-            <button class="gallery-filter-btn px-5 py-2 bg-indigo-100 text-indigo-800 rounded-lg" data-filter="2-sitter">२ सिटर कोठा</button>
-            <button class="gallery-filter-btn px-5 py-2 bg-indigo-100 text-indigo-800 rounded-lg" data-filter="3-sitter">३ सिटर कोठा</button>
-            <button class="gallery-filter-btn px-5 py-2 bg-indigo-100 text-indigo-800 rounded-lg" data-filter="4-sitter">४ सिटर कोठा</button>
-            <button class="gallery-filter-btn px-5 py-2 bg-indigo-100 text-indigo-800 rounded-lg" data-filter="living-room">लिभिङ रूम</button>
-            <button class="gallery-filter-btn px-5 py-2 bg-indigo-100 text-indigo-800 rounded-lg" data-filter="bathroom">बाथरूम</button>
-            <button class="gallery-filter-btn px-5 py-2 bg-indigo-100 text-indigo-800 rounded-lg" data-filter="video-tour">भिडियो टुर</button>
+            @foreach($categories as $key => $name)
+                <button class="gallery-filter-btn px-5 py-2 bg-indigo-100 text-indigo-800 rounded-lg {{ $selectedCategory === $key ? 'active' : '' }}" 
+                        data-filter="{{ $key }}">{{ $name }}</button>
+            @endforeach
         </div>
         <!-- Search Box -->
         <div class="mb-10 flex justify-center animate-fade-in">
@@ -323,240 +319,115 @@
         </div>
         <!-- Gallery Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-            <!-- Video Tour Items -->
-            <div class="gallery-item video-tour animate-fade-in">
-                <div class="video-thumbnail">
-                    <img src="{{ asset('storage/gallery/images/2yFMltEoqZP4dTJ9SWfPKc8YzuzkliMZ9CcDm52x.jpg') }}" alt="Shaistu ko video for Testing" class="w-full h-full object-cover">
-                    <div class="play-icon">
-                        <i class="fas fa-play-circle"></i>
-                    </div>
+            @foreach($galleryItems as $item)
+                <div class="gallery-item {{ str_replace(' ', '-', $item['category']) }} animate-fade-in">
+                    @if($item['media_type'] === 'external_video' || $item['media_type'] === 'local_video')
+                        <div class="video-thumbnail">
+                            <img src="{{ $item['thumbnail_url'] }}" alt="{{ $item['title'] }}" class="w-full h-full object-cover">
+                            <div class="play-icon">
+                                <i class="fas fa-play-circle"></i>
+                            </div>
+                        </div>
+                        <div class="p-5 flex-grow">
+                            <span class="category-badge bg-blue-100 text-blue-800">
+                                @switch($item['category'])
+                                    @case('video') भिडियो टुर @break
+                                    @case('1 seater') १ सिटर कोठा @break
+                                    @case('2 seater') २ सिटर कोठा @break
+                                    @case('3 seater') ३ सिटर कोठा @break
+                                    @case('4 seater') ४ सिटर कोठा @break
+                                    @case('common') लिभिङ रूम @break
+                                    @case('bathroom') बाथरूम @break
+                                    @case('kitchen') भान्सा @break
+                                    @case('study room') अध्ययन कोठा @break
+                                    @case('event') कार्यक्रम @break
+                                    @default {{ $item['category'] }}
+                                @endswitch
+                            </span>
+                            <h3 class="font-bold text-lg mb-2">{{ $item['title'] }}</h3>
+                            <p class="text-gray-600 text-sm mb-4">{{ $item['description'] }}</p>
+                            <div class="flex justify-between items-center text-sm text-gray-500 mt-auto">
+                                <span><i class="far fa-calendar-alt mr-1"></i> {{ $item['created_at'] }}</span>
+                                <button class="text-indigo-600 hover:text-indigo-800 font-medium play-video" 
+                                        data-video="{{ $item['media_type'] === 'local_video' ? $item['file_url'] : $item['external_link'] }}" 
+                                        data-title="{{ $item['title'] }}">
+                                    <i class="fas fa-play mr-1"></i> हेर्नुहोस्
+                                </button>
+                            </div>
+                        </div>
+                    @else
+                        <div class="gallery-img-container">
+                            <img src="{{ $item['thumbnail_url'] }}" alt="{{ $item['title'] }}" class="gallery-img">
+                            <div class="gallery-overlay">
+                                <button class="text-white font-medium view-image" 
+                                        data-image="{{ $item['file_url'] }}" 
+                                        data-title="{{ $item['title'] }}">
+                                    <i class="fas fa-expand mr-1"></i> ठूलो हेर्नुहोस्
+                                </button>
+                            </div>
+                        </div>
+                        <div class="p-5 flex-grow">
+                            <span class="category-badge 
+                                @switch($item['category'])
+                                    @case('1 seater') bg-purple-100 text-purple-800 @break
+                                    @case('2 seater') bg-green-100 text-green-800 @break
+                                    @case('3 seater') bg-yellow-100 text-yellow-800 @break
+                                    @case('4 seater') bg-yellow-100 text-yellow-800 @break
+                                    @case('common') bg-red-100 text-red-800 @break
+                                    @case('bathroom') bg-blue-100 text-blue-800 @break
+                                    @case('kitchen') bg-blue-100 text-blue-800 @break
+                                    @case('study room') bg-blue-100 text-blue-800 @break
+                                    @case('event') bg-blue-100 text-blue-800 @break
+                                    @default bg-gray-100 text-gray-800
+                                @endswitch
+                            ">
+                                @switch($item['category'])
+                                    @case('video') भिडियो टुर @break
+                                    @case('1 seater') १ सिटर कोठा @break
+                                    @case('2 seater') २ सिटर कोठा @break
+                                    @case('3 seater') ३ सिटर कोठा @break
+                                    @case('4 seater') ४ सिटर कोठा @break
+                                    @case('common') लिभिङ रूम @break
+                                    @case('bathroom') बाथरूम @break
+                                    @case('kitchen') भान्सा @break
+                                    @case('study room') अध्ययन कोठा @break
+                                    @case('event') कार्यक्रम @break
+                                    @default {{ $item['category'] }}
+                                @endswitch
+                            </span>
+                            <h3 class="font-bold text-lg mb-2">{{ $item['title'] }}</h3>
+                            <p class="text-gray-600 text-sm mb-4">{{ $item['description'] }}</p>
+                            <div class="flex justify-between items-center text-sm text-gray-500 mt-auto">
+                                <span><i class="far fa-calendar-alt mr-1"></i> {{ $item['created_at'] }}</span>
+                                <button class="text-indigo-600 hover:text-indigo-800 font-medium view-image" 
+                                        data-image="{{ $item['file_url'] }}" 
+                                        data-title="{{ $item['title'] }}">
+                                    <i class="fas fa-expand mr-1"></i> हेर्नुहोस्
+                                </button>
+                            </div>
+                        </div>
+                    @endif
                 </div>
-                <div class="p-5 flex-grow">
-                    <span class="category-badge bg-blue-100 text-blue-800">भिडियो टुर</span>
-                    <h3 class="font-bold text-lg mb-2">Shaistu ko video for Testing</h3>
-                    <p class="text-gray-600 text-sm mb-4">Video test</p>
-                    <div class="flex justify-between items-center text-sm text-gray-500 mt-auto">
-                        <span><i class="far fa-calendar-alt mr-1"></i> Aug 15, 2025</span>
-                        <button class="text-indigo-600 hover:text-indigo-800 font-medium play-video" 
-                                data-video="{{ asset('storage/gallery/videos/Z8Th8Mz6Fm2rkYg5SnFZfSAeg1jwatx9uTMZAmXm.mp4') }}" 
-                                data-title="Shaistu ko video for Testing">
-                            <i class="fas fa-play mr-1"></i> हेर्नुहोस्
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <div class="gallery-item video-tour animate-fade-in">
-                <div class="video-thumbnail">
-                    <img src="{{ asset('storage/gallery/images/3IYkKd43F287Eq1oKPfDy0ZNAHC5PxqHsCSWvPxY.jpg') }}" alt="Shaistu ko purano video" class="w-full h-full object-cover">
-                    <div class="play-icon">
-                        <i class="fas fa-play-circle"></i>
-                    </div>
-                </div>
-                <div class="p-5 flex-grow">
-                    <span class="category-badge bg-blue-100 text-blue-800">भिडियो टुर</span>
-                    <h3 class="font-bold text-lg mb-2">Shaistu ko purano video</h3>
-                    <p class="text-gray-600 text-sm mb-4">old memeries</p>
-                    <div class="flex justify-between items-center text-sm text-gray-500 mt-auto">
-                        <span><i class="far fa-calendar-alt mr-1"></i> Aug 14, 2025</span>
-                        <button class="text-indigo-600 hover:text-indigo-800 font-medium play-video" 
-                                data-video="{{ asset('storage/gallery/videos/gjkaYmX4Dzx0ehzDZmiCW7aIpaKK3biBi2gWT8uA.mp4') }}" 
-                                data-title="Shaistu ko purano video">
-                            <i class="fas fa-play mr-1"></i> हेर्नुहोस्
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <div class="gallery-item video-tour animate-fade-in">
-                <div class="video-thumbnail">
-                    <img src="{{ asset('storage/gallery/images/e7cvu3oR4y8YKBcWIuv19Uli1PJu4TYJCJVU8puI.jpg') }}" alt="Shaistu's video" class="w-full h-full object-cover">
-                    <div class="play-icon">
-                        <i class="fas fa-play-circle"></i>
-                    </div>
-                </div>
-                <div class="p-5 flex-grow">
-                    <span class="category-badge bg-blue-100 text-blue-800">भिडियो टुर</span>
-                    <h3 class="font-bold text-lg mb-2">Shaistu's video</h3>
-                    <p class="text-gray-600 text-sm mb-4">Local video testing</p>
-                    <div class="flex justify-between items-center text-sm text-gray-500 mt-auto">
-                        <span><i class="far fa-calendar-alt mr-1"></i> Aug 14, 2025</span>
-                        <button class="text-indigo-600 hover:text-indigo-800 font-medium play-video" 
-                                data-video="{{ asset('storage/gallery/videos/AB3kZw0u6qyeJmp1ITyE6FsjsObi8olDirP6HNmf.mp4') }}" 
-                                data-title="Shaistu's video">
-                            <i class="fas fa-play mr-1"></i> हेर्नुहोस्
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <!-- Room Items -->
-            <div class="gallery-item 1-sitter animate-fade-in">
-                <div class="gallery-img-container">
-                    <img src="{{ asset('storage/gallery/images/Iv26mgAdeWUQmTJWtmuQqA7LPIVbP8u9p9pM7YkQ.jpg') }}" alt="Sanctuary Girls Hostel" class="gallery-img">
-                    <div class="gallery-overlay">
-                        <button class="text-white font-medium view-image" 
-                                data-image="{{ asset('storage/gallery/images/Iv26mgAdeWUQmTJWtmuQqA7LPIVbP8u9p9pM7YkQ.jpg') }}" 
-                                data-title="Sanctuary Girls Hostel">
-                            <i class="fas fa-expand mr-1"></i> ठूलो हेर्नुहोस्
-                        </button>
-                    </div>
-                </div>
-                <div class="p-5 flex-grow">
-                    <span class="category-badge bg-purple-100 text-purple-800">१ सिटर कोठा</span>
-                    <h3 class="font-bold text-lg mb-2">Sanctuary Girls Hostel</h3>
-                    <p class="text-gray-600 text-sm mb-4">Ashoj 1 gatey dekhi yo single seater room khaali hudai chha, dashain ko bisesh chhut 10%</p>
-                    <div class="flex justify-between items-center text-sm text-gray-500 mt-auto">
-                        <span><i class="far fa-calendar-alt mr-1"></i> Aug 14, 2025</span>
-                        <button class="text-indigo-600 hover:text-indigo-800 font-medium view-image" 
-                                data-image="{{ asset('storage/gallery/images/Iv26mgAdeWUQmTJWtmuQqA7LPIVbP8u9p9pM7YkQ.jpg') }}" 
-                                data-title="Sanctuary Girls Hostel">
-                            <i class="fas fa-expand mr-1"></i> हेर्नुहोस्
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <div class="gallery-item 2-sitter animate-fade-in">
-                <div class="gallery-img-container">
-                    <img src="{{ asset('storage/gallery/images/XOTA5MSY6VWYkuIkgjilWEO9NEdZ8MQaGlKzXoGZ.jpg') }}" alt="Sanctuary Girls Hostel" class="gallery-img">
-                    <div class="gallery-overlay">
-                        <button class="text-white font-medium view-image" 
-                                data-image="{{ asset('storage/gallery/images/XOTA5MSY6VWYkuIkgjilWEO9NEdZ8MQaGlKzXoGZ.jpg') }}" 
-                                data-title="Sanctuary Girls Hostel">
-                            <i class="fas fa-expand mr-1"></i> ठूलो हेर्नुहोस्
-                        </button>
-                    </div>
-                </div>
-                <div class="p-5 flex-grow">
-                    <span class="category-badge bg-green-100 text-green-800">२ सिटर कोठा</span>
-                    <h3 class="font-bold text-lg mb-2">Sanctuary Girls Hostel</h3>
-                    <p class="text-gray-600 text-sm mb-4">2 seater room khaali chha</p>
-                    <div class="flex justify-between items-center text-sm text-gray-500 mt-auto">
-                        <span><i class="far fa-calendar-alt mr-1"></i> Aug 14, 2025</span>
-                        <button class="text-indigo-600 hover:text-indigo-800 font-medium view-image" 
-                                data-image="{{ asset('storage/gallery/images/XOTA5MSY6VWYkuIkgjilWEO9NEdZ8MQaGlKzXoGZ.jpg') }}" 
-                                data-title="Sanctuary Girls Hostel">
-                            <i class="fas fa-expand mr-1"></i> हेर्नुहोस्
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <div class="gallery-item 3-sitter animate-fade-in">
-                <div class="gallery-img-container">
-                    <img src="{{ asset('storage/gallery/images/yLozZeidPGYunzqS69T08ZthvIvg4YbmIcRWrMUa.jpg') }}" alt="Everest Boys Hostel" class="gallery-img">
-                    <div class="gallery-overlay">
-                        <button class="text-white font-medium view-image" 
-                                data-image="{{ asset('storage/gallery/images/yLozZeidPGYunzqS69T08ZthvIvg4YbmIcRWrMUa.jpg') }}" 
-                                data-title="Everest Boys Hostel">
-                            <i class="fas fa-expand mr-1"></i> ठूलो हेर्नुहोस्
-                        </button>
-                    </div>
-                </div>
-                <div class="p-5 flex-grow">
-                    <span class="category-badge bg-yellow-100 text-yellow-800">३ सिटर कोठा</span>
-                    <h3 class="font-bold text-lg mb-2">Everest Boys Hostel</h3>
-                    <p class="text-gray-600 text-sm mb-4">3 seater room available for 2 students from 3rd october</p>
-                    <div class="flex justify-between items-center text-sm text-gray-500 mt-auto">
-                        <span><i class="far fa-calendar-alt mr-1"></i> Aug 14, 2025</span>
-                        <button class="text-indigo-600 hover:text-indigo-800 font-medium view-image" 
-                                data-image="{{ asset('storage/gallery/images/yLozZeidPGYunzqS69T08ZthvIvg4YbmIcRWrMUa.jpg') }}" 
-                                data-title="Everest Boys Hostel">
-                            <i class="fas fa-expand mr-1"></i> हेर्नुहोस्
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <div class="gallery-item 3-sitter animate-fade-in">
-                <div class="gallery-img-container">
-                    <img src="{{ asset('storage/gallery/images/2yFMltEoqZP4dTJ9SWfPKc8YzuzkliMZ9CcDm52x.jpg') }}" alt="Image testing for homepage and pub gal" class="gallery-img">
-                    <div class="gallery-overlay">
-                        <button class="text-white font-medium view-image" 
-                                data-image="{{ asset('storage/gallery/images/2yFMltEoqZP4dTJ9SWfPKc8YzuzkliMZ9CcDm52x.jpg') }}" 
-                                data-title="Image testing for homepage and pub gal">
-                            <i class="fas fa-expand mr-1"></i> ठूलो हेर्नुहोस्
-                        </button>
-                    </div>
-                </div>
-                <div class="p-5 flex-grow">
-                    <span class="category-badge bg-yellow-100 text-yellow-800">३ सिटर कोठा</span>
-                    <h3 class="font-bold text-lg mb-2">Image testing for homepage and pub gal</h3>
-                    <p class="text-gray-600 text-sm mb-4">image test</p>
-                    <div class="flex justify-between items-center text-sm text-gray-500 mt-auto">
-                        <span><i class="far fa-calendar-alt mr-1"></i> Aug 14, 2025</span>
-                        <button class="text-indigo-600 hover:text-indigo-800 font-medium view-image" 
-                                data-image="{{ asset('storage/gallery/images/2yFMltEoqZP4dTJ9SWfPKc8YzuzkliMZ9CcDm52x.jpg') }}" 
-                                data-title="Image testing for homepage and pub gal">
-                            <i class="fas fa-expand mr-1"></i> हेर्नुहोस्
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <div class="gallery-item living-room animate-fade-in">
-                <div class="gallery-img-container">
-                    <img src="{{ asset('storage/gallery/images/3IYkKd43F287Eq1oKPfDy0ZNAHC5PxqHsCSWvPxY.jpg') }}" alt="Best Time Ever" class="gallery-img">
-                    <div class="gallery-overlay">
-                        <button class="text-white font-medium view-image" 
-                                data-image="{{ asset('storage/gallery/images/3IYkKd43F287Eq1oKPfDy0ZNAHC5PxqHsCSWvPxY.jpg') }}" 
-                                data-title="Best Time Ever">
-                            <i class="fas fa-expand mr-1"></i> ठूलो हेर्नुहोस्
-                        </button>
-                    </div>
-                </div>
-                <div class="p-5 flex-grow">
-                    <span class="category-badge bg-red-100 text-red-800">लिभिङ रूम</span>
-                    <h3 class="font-bold text-lg mb-2">Best Time Ever</h3>
-                    <p class="text-gray-600 text-sm mb-4">Image test</p>
-                    <div class="flex justify-between items-center text-sm text-gray-500 mt-auto">
-                        <span><i class="far fa-calendar-alt mr-1"></i> Aug 14, 2025</span>
-                        <button class="text-indigo-600 hover:text-indigo-800 font-medium view-image" 
-                                data-image="{{ asset('storage/gallery/images/3IYkKd43F287Eq1oKPfDy0ZNAHC5PxqHsCSWvPxY.jpg') }}" 
-                                data-title="Best Time Ever">
-                            <i class="fas fa-expand mr-1"></i> हेर्नुहोस्
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <div class="gallery-item living-room animate-fade-in">
-                <div class="gallery-img-container">
-                    <img src="{{ asset('storage/gallery/images/e7cvu3oR4y8YKBcWIuv19Uli1PJu4TYJCJVU8puI.jpg') }}" alt="Childhood Memory" class="gallery-img">
-                    <div class="gallery-overlay">
-                        <button class="text-white font-medium view-image" 
-                                data-image="{{ asset('storage/gallery/images/e7cvu3oR4y8YKBcWIuv19Uli1PJu4TYJCJVU8puI.jpg') }}" 
-                                data-title="Childhood Memory">
-                            <i class="fas fa-expand mr-1"></i> ठूलो हेर्नुहोस्
-                        </button>
-                    </div>
-                </div>
-                <div class="p-5 flex-grow">
-                    <span class="category-badge bg-red-100 text-red-800">लिभिङ रूम</span>
-                    <h3 class="font-bold text-lg mb-2">Childhood Memory</h3>
-                    <p class="text-gray-600 text-sm mb-4">Shaistu ra Pareen didi ko childhood video</p>
-                    <div class="flex justify-between items-center text-sm text-gray-500 mt-auto">
-                        <span><i class="far fa-calendar-alt mr-1"></i> Aug 14, 2025</span>
-                        <button class="text-indigo-600 hover:text-indigo-800 font-medium view-image" 
-                                data-image="{{ asset('storage/gallery/images/e7cvu3oR4y8YKBcWIuv19Uli1PJu4TYJCJVU8puI.jpg') }}" 
-                                data-title="Childhood Memory">
-                            <i class="fas fa-expand mr-1"></i> हेर्नुहोस्
-                        </button>
-                    </div>
-                </div>
-            </div>
+            @endforeach
         </div>
         <!-- Stats Section -->
         <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl p-8 mb-12">
             <h2 class="text-2xl font-bold text-center text-gray-800 mb-8">हाम्रो प्रगति</h2>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
                 <div class="stat-card">
-                    <div class="stat-number">125+</div>
+                    <div class="stat-number">{{ $stats['total_students'] }}+</div>
                     <div class="text-gray-700 font-medium">खुसी विद्यार्थीहरू</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number">24</div>
+                    <div class="stat-number">{{ $stats['total_hostels'] }}</div>
                     <div class="text-gray-700 font-medium">सहयोगी होस्टल</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number">5</div>
+                    <div class="stat-number">{{ $stats['cities_available'] }}</div>
                     <div class="text-gray-700 font-medium">शहरहरूमा उपलब्ध</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number">98%</div>
+                    <div class="stat-number">{{ $stats['satisfaction_rate'] }}</div>
                     <div class="text-gray-700 font-medium">सन्तुष्टि दर</div>
                 </div>
             </div>
@@ -578,7 +449,7 @@
                 <!-- Logo and description -->
                 <div>
                     <img src="{{ asset('storage/images/logo.png') }}" alt="HostelHub Logo" class="h-10 mb-4">
-                    <p class="text-indigo-200 mb-4">नेपालको नम्बर १ होस्टल प्रबन्धन प्रणाली। हामी होस्टल व्यवस्थापनलाई सहज, दक्ष र विश्वसनीय बनाउँछौं।</p>
+                    <p class="text-indigo-200 mb-4">नेपालको नम्बर १ होस्टल प्रबन्धन प्रणाली। हामी होस्टल व्यवस्थापनलाई सहज, द्रुत र विश्वसनीय बनाउँछौं。</p>
                     <div class="flex space-x-4">
                         <a href="#" class="text-indigo-200 hover:text-white"><i class="fab fa-facebook-f"></i></a>
                         <a href="#" class="text-indigo-200 hover:text-white"><i class="fab fa-twitter"></i></a>
@@ -618,7 +489,7 @@
             </div>
             <!-- Bottom Copyright -->
             <div class="border-t border-indigo-800 mt-10 pt-6 text-center">
-                <p class="text-indigo-300">© 2025 HostelHub. सबै अधिकार सुरक्षित।</p>
+                <p class="text-indigo-300">© 2025 HostelHub. सबै अधिकार सुरक्षित。</p>
                 <div class="flex justify-center space-x-6 mt-2">
                     <a href="#" class="text-indigo-200 hover:text-white">गोपनीयता नीति</a>
                     <a href="#" class="text-indigo-200 hover:text-white">सेवा सर्तहरू</a>
@@ -666,11 +537,19 @@
             // Gallery filter functionality
             const filterButtons = document.querySelectorAll('.gallery-filter-btn');
             const galleryItems = document.querySelectorAll('.gallery-item');
+            
             filterButtons.forEach(button => {
                 button.addEventListener('click', () => {
+                    const filterValue = button.getAttribute('data-filter');
+                    
+                    // Update URL parameter
+                    const url = new URL(window.location);
+                    url.searchParams.set('category', filterValue);
+                    window.history.pushState({}, '', url);
+                    
                     filterButtons.forEach(btn => btn.classList.remove('active'));
                     button.classList.add('active');
-                    const filterValue = button.getAttribute('data-filter');
+                    
                     if (filterValue === 'all') {
                         galleryItems.forEach(item => {
                             item.style.display = 'flex';
@@ -689,6 +568,7 @@
                     }
                 });
             });
+
             // Search functionality
             const searchInput = document.querySelector('.search-input');
             searchInput.addEventListener('input', () => {
@@ -697,6 +577,7 @@
                     const title = item.querySelector('h3').textContent.toLowerCase();
                     const description = item.querySelector('p').textContent.toLowerCase();
                     const category = item.querySelector('.category-badge').textContent.toLowerCase();
+                    
                     if (title.includes(searchTerm) || description.includes(searchTerm) || category.includes(searchTerm)) {
                         item.style.display = 'flex';
                         setTimeout(() => item.classList.add('animate-fade-in'), 10);
@@ -706,46 +587,52 @@
                     }
                 });
             });
+
             // Image modal functionality
             const imageModal = document.getElementById('imageModal');
             const modalImage = document.getElementById('modalImage');
             const imageModalTitle = document.getElementById('imageModalTitle');
             const closeImageModal = document.getElementById('closeImageModal');
-            const viewImageButtons = document.querySelectorAll('.view-image');
-            viewImageButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    modalImage.src = button.getAttribute('data-image');
-                    imageModalTitle.textContent = button.getAttribute('data-title');
+            
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('view-image')) {
+                    modalImage.src = e.target.getAttribute('data-image');
+                    imageModalTitle.textContent = e.target.getAttribute('data-title');
                     imageModal.classList.remove('hidden');
                     setTimeout(() => imageModal.classList.add('open'), 10);
-                });
+                }
             });
+
             closeImageModal.addEventListener('click', () => {
                 imageModal.classList.remove('open');
                 setTimeout(() => imageModal.classList.add('hidden'), 300);
             });
+
             imageModal.addEventListener('click', (e) => {
                 if (e.target === imageModal) {
                     imageModal.classList.remove('open');
                     setTimeout(() => imageModal.classList.add('hidden'), 300);
                 }
             });
+
             // Video modal functionality
             const videoModal = document.getElementById('videoModal');
             const modalVideo = document.getElementById('modalVideo');
             const videoModalTitle = document.getElementById('videoModalTitle');
             const closeVideoModal = document.getElementById('closeVideoModal');
-            const playVideoButtons = document.querySelectorAll('.play-video');
             const videoLoading = document.getElementById('videoLoading');
-            playVideoButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    const videoSrc = button.getAttribute('data-video');
-                    videoModalTitle.textContent = button.getAttribute('data-title');
+            
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('play-video')) {
+                    const videoSrc = e.target.getAttribute('data-video');
+                    videoModalTitle.textContent = e.target.getAttribute('data-title');
                     videoModal.classList.remove('hidden');
                     setTimeout(() => videoModal.classList.add('open'), 10);
+                    
                     videoLoading.classList.remove('hidden');
                     modalVideo.src = videoSrc;
                     modalVideo.load();
+                    
                     modalVideo.addEventListener('canplay', () => {
                         videoLoading.classList.add('hidden');
                         modalVideo.play().catch(e => {
@@ -753,12 +640,14 @@
                             videoLoading.classList.add('hidden');
                         });
                     });
+                    
                     modalVideo.addEventListener('error', () => {
                         videoLoading.classList.add('hidden');
                         videoModalTitle.textContent = 'भिडियो लोड गर्न असमर्थ';
                     });
-                });
+                }
             });
+
             closeVideoModal.addEventListener('click', () => {
                 videoModal.classList.remove('open');
                 modalVideo.pause();
@@ -767,6 +656,7 @@
                     modalVideo.src = '';
                 }, 300);
             });
+
             videoModal.addEventListener('click', (e) => {
                 if (e.target === videoModal) {
                     videoModal.classList.remove('open');
@@ -777,6 +667,7 @@
                     }, 300);
                 }
             });
+
             // Keyboard events for modals
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape') {
@@ -796,6 +687,7 @@
                     }
                 }
             });
+
             // Initialize animations
             setTimeout(() => {
                 document.querySelectorAll('.animate-fade-in').forEach((el, index) => {
