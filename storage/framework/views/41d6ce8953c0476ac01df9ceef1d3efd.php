@@ -99,10 +99,10 @@
                 <h1 class="text-4xl md:text-5xl font-bold mb-4 animate-fade-in">HostelHub को डेमो हेर्नुहोस्</h1>
                 <p class="text-xl max-w-3xl mx-auto mb-8 animate-fade-in" style="animation-delay: 0.2s;">हाम्रो प्रणालीको सबै सुविधाहरू निःशुल्क परीक्षण गर्नुहोस्, कुनै पनि बाध्यता बिना</p>
                 <div class="flex flex-col sm:flex-row justify-center gap-4 animate-fade-in" style="animation-delay: 0.4s;">
-                    <a href="{{ route('register') }}" class="px-8 py-3 bg-white text-indigo-900 font-medium rounded-lg hover:bg-gray-100 transition-colors duration-300 shadow-lg">
+                    <a href="<?php echo e(route('register')); ?>" class="px-8 py-3 bg-white text-indigo-900 font-medium rounded-lg hover:bg-gray-100 transition-colors duration-300 shadow-lg">
                         निःशुल्क साइन अप गर्नुहोस्
                     </a>
-                    <a href="{{ url()->previous() }}" class="px-8 py-3 border border-white text-white font-medium rounded-lg hover:bg-white hover:text-indigo-900 transition-colors duration-300">
+                    <a href="<?php echo e(url()->previous()); ?>" class="px-8 py-3 border border-white text-white font-medium rounded-lg hover:bg-white hover:text-indigo-900 transition-colors duration-300">
                         पछाडि फर्कनुहोस्
                     </a>
                 </div>
@@ -205,8 +205,8 @@
             <h2 class="text-3xl font-bold mb-4 relative z-10">तपाईंको होस्टललाई HostelHub संग जोड्नुहोस्</h2>
             <p class="mb-6 max-w-2xl mx-auto relative z-10">७ दिन निःशुल्क परीक्षण गर्नुहोस् र होस्टल व्यवस्थापनलाई सजिलो, द्रुत र भरपर्दो बनाउनुहोस्</p>
             <div class="flex flex-col sm:flex-row justify-center gap-4 relative z-10">
-                <a href="{{ route('register') }}" class="px-8 py-3 bg-white text-indigo-900 font-medium rounded-lg hover:bg-gray-100 transition-colors duration-300 shadow-lg">निःशुल्क साइन अप गर्नुहोस्</a>
-                <a href="{{ route('gallery.public') }}" class="px-8 py-3 border border-white text-white font-medium rounded-lg hover:bg-white hover:text-indigo-900 transition-colors duration-300">ग्यालरी हेर्नुहोस्</a>
+                <a href="<?php echo e(route('register')); ?>" class="px-8 py-3 bg-white text-indigo-900 font-medium rounded-lg hover:bg-gray-100 transition-colors duration-300 shadow-lg">निःशुल्क साइन अप गर्नुहोस्</a>
+                <a href="<?php echo e(route('gallery.public')); ?>" class="px-8 py-3 border border-white text-white font-medium rounded-lg hover:bg-white hover:text-indigo-900 transition-colors duration-300">ग्यालरी हेर्नुहोस्</a>
             </div>
         </div>
     </main>
@@ -223,4 +223,4 @@
         </div>
     </footer>
 </body>
-</html>
+</html><?php /**PATH D:\My Projects\HostelHub\resources\views/pages/demo.blade.php ENDPATH**/ ?>

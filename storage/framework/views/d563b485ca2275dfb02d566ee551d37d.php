@@ -278,7 +278,7 @@
             <div class="flex items-center justify-between">
                 <!-- Logo -->
                 <a href="/" class="flex items-center">
-                    <img src="{{ asset('storage/images/logo.png') }}" alt="HostelHub Logo" class="logo h-10">
+                    <img src="<?php echo e(asset('storage/images/logo.png')); ?>" alt="HostelHub Logo" class="logo h-10">
                 </a>
                 <!-- Desktop Navigation -->
                 <nav class="hidden md:flex items-center space-x-8">
@@ -309,10 +309,10 @@
         </div>
         <!-- Filter Buttons -->
         <div class="flex flex-wrap gap-3 mb-8 justify-center animate-fade-in">
-            @foreach($categories as $key => $name)
-                <button class="gallery-filter-btn px-5 py-2 bg-indigo-100 text-indigo-800 rounded-lg {{ $selectedCategory === $key ? 'active' : '' }}" 
-                        data-filter="{{ $key }}">{{ $name }}</button>
-            @endforeach
+            <?php $__currentLoopData = $categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $name): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <button class="gallery-filter-btn px-5 py-2 bg-indigo-100 text-indigo-800 rounded-lg <?php echo e($selectedCategory === $key ? 'active' : ''); ?>" 
+                        data-filter="<?php echo e($key); ?>"><?php echo e($name); ?></button>
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
         </div>
         <!-- Search Box -->
         <div class="mb-10 flex justify-center animate-fade-in">
@@ -323,132 +323,134 @@
         </div>
         <!-- Gallery Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-            @foreach($galleryItems as $item)
-                <div class="gallery-item animate-fade-in" data-category="{{ $item['category'] }}">
-                    @if($item['media_type'] === 'external_video' || $item['media_type'] === 'local_video')
+            <?php $__currentLoopData = $galleryItems; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <div class="gallery-item animate-fade-in" data-category="<?php echo e($item['category']); ?>">
+                    <?php if($item['media_type'] === 'external_video' || $item['media_type'] === 'local_video'): ?>
                         <div class="video-thumbnail">
                             <!-- Use thumbnail if available, otherwise use file_path for local videos or default for external -->
-                            @if($item['media_type'] === 'local_video' && !empty($item['thumbnail_url']))
-                                <img src="{{ $item['thumbnail_url'] }}" alt="{{ $item['title'] }}" class="w-full h-full object-cover">
-                            @elseif($item['media_type'] === 'local_video' && !empty($item['file_url']))
-                                <img src="{{ $item['file_url'] }}" alt="{{ $item['title'] }}" class="w-full h-full object-cover">
-                            @elseif(!empty($item['thumbnail_url']))
-                                <img src="{{ $item['thumbnail_url'] }}" alt="{{ $item['title'] }}" class="w-full h-full object-cover">
-                            @else
+                            <?php if($item['media_type'] === 'local_video' && !empty($item['thumbnail_url'])): ?>
+                                <img src="<?php echo e($item['thumbnail_url']); ?>" alt="<?php echo e($item['title']); ?>" class="w-full h-full object-cover">
+                            <?php elseif($item['media_type'] === 'local_video' && !empty($item['file_url'])): ?>
+                                <img src="<?php echo e($item['file_url']); ?>" alt="<?php echo e($item['title']); ?>" class="w-full h-full object-cover">
+                            <?php elseif(!empty($item['thumbnail_url'])): ?>
+                                <img src="<?php echo e($item['thumbnail_url']); ?>" alt="<?php echo e($item['title']); ?>" class="w-full h-full object-cover">
+                            <?php else: ?>
                                 <!-- Default video thumbnail -->
-                                <img src="{{ asset('images/default-video-thumbnail.jpg') }}" alt="{{ $item['title'] }}" class="w-full h-full object-cover">
-                            @endif
+                                <img src="<?php echo e(asset('images/default-video-thumbnail.jpg')); ?>" alt="<?php echo e($item['title']); ?>" class="w-full h-full object-cover">
+                            <?php endif; ?>
                             <div class="play-icon">
                                 <i class="fas fa-play-circle"></i>
                             </div>
                         </div>
                         <div class="p-5 flex-grow">
                             <span class="category-badge bg-blue-100 text-blue-800">
-                                @switch($item['category'])
-                                    @case('video') भिडियो टुर @break
-                                    @case('1 seater') १ सिटर कोठा @break
-                                    @case('2 seater') २ सिटर कोठा @break
-                                    @case('3 seater') ३ सिटर कोठा @break
-                                    @case('4 seater') ४ सिटर कोठा @break
-                                    @case('common') लिभिङ रूम @break
-                                    @case('bathroom') बाथरूम @break
-                                    @case('kitchen') भान्सा @break
-                                    @case('study room') अध्ययन कोठा @break
-                                    @case('event') कार्यक्रम @break
-                                    @default {{ $item['category'] }}
-                                @endswitch
+                                <?php switch($item['category']):
+                                    case ('video'): ?> भिडियो टुर <?php break; ?>
+                                    <?php case ('1 seater'): ?> १ सिटर कोठा <?php break; ?>
+                                    <?php case ('2 seater'): ?> २ सिटर कोठा <?php break; ?>
+                                    <?php case ('3 seater'): ?> ३ सिटर कोठा <?php break; ?>
+                                    <?php case ('4 seater'): ?> ४ सिटर कोठा <?php break; ?>
+                                    <?php case ('common'): ?> लिभिङ रूम <?php break; ?>
+                                    <?php case ('bathroom'): ?> बाथरूम <?php break; ?>
+                                    <?php case ('kitchen'): ?> भान्सा <?php break; ?>
+                                    <?php case ('study room'): ?> अध्ययन कोठा <?php break; ?>
+                                    <?php case ('event'): ?> कार्यक्रम <?php break; ?>
+                                    <?php default: ?> <?php echo e($item['category']); ?>
+
+                                <?php endswitch; ?>
                             </span>
-                            <h3 class="font-bold text-lg mb-2">{{ $item['title'] }}</h3>
-                            <p class="text-gray-600 text-sm mb-4">{{ $item['description'] }}</p>
+                            <h3 class="font-bold text-lg mb-2"><?php echo e($item['title']); ?></h3>
+                            <p class="text-gray-600 text-sm mb-4"><?php echo e($item['description']); ?></p>
                             <div class="flex justify-between items-center text-sm text-gray-500 mt-auto">
-                                <span><i class="far fa-calendar-alt mr-1"></i> {{ $item['created_at'] }}</span>
+                                <span><i class="far fa-calendar-alt mr-1"></i> <?php echo e($item['created_at']); ?></span>
                                 <button class="text-indigo-600 hover:text-indigo-800 font-medium play-video" 
-                                        data-video="{{ $item['media_type'] === 'local_video' ? $item['file_url'] : $item['external_link'] }}" 
-                                        data-title="{{ $item['title'] }}">
+                                        data-video="<?php echo e($item['media_type'] === 'local_video' ? $item['file_url'] : $item['external_link']); ?>" 
+                                        data-title="<?php echo e($item['title']); ?>">
                                     <i class="fas fa-play mr-1"></i> हेर्नुहोस्
                                 </button>
                             </div>
                         </div>
-                    @else
+                    <?php else: ?>
                         <div class="gallery-img-container">
                             <!-- Use thumbnail if available, otherwise use file_path -->
-                            @if(!empty($item['thumbnail_url']))
-                                <img src="{{ $item['thumbnail_url'] }}" alt="{{ $item['title'] }}" class="gallery-img">
-                            @elseif(!empty($item['file_url']))
-                                <img src="{{ $item['file_url'] }}" alt="{{ $item['title'] }}" class="gallery-img">
-                            @else
-                                <img src="{{ asset('images/default-image.jpg') }}" alt="{{ $item['title'] }}" class="gallery-img">
-                            @endif
+                            <?php if(!empty($item['thumbnail_url'])): ?>
+                                <img src="<?php echo e($item['thumbnail_url']); ?>" alt="<?php echo e($item['title']); ?>" class="gallery-img">
+                            <?php elseif(!empty($item['file_url'])): ?>
+                                <img src="<?php echo e($item['file_url']); ?>" alt="<?php echo e($item['title']); ?>" class="gallery-img">
+                            <?php else: ?>
+                                <img src="<?php echo e(asset('images/default-image.jpg')); ?>" alt="<?php echo e($item['title']); ?>" class="gallery-img">
+                            <?php endif; ?>
                             <div class="gallery-overlay">
                                 <button class="text-white font-medium view-image" 
-                                        data-image="{{ $item['file_url'] }}" 
-                                        data-title="{{ $item['title'] }}">
+                                        data-image="<?php echo e($item['file_url']); ?>" 
+                                        data-title="<?php echo e($item['title']); ?>">
                                     <i class="fas fa-expand mr-1"></i> ठूलो हेर्नुहोस्
                                 </button>
                             </div>
                         </div>
                         <div class="p-5 flex-grow">
                             <span class="category-badge 
-                                @switch($item['category'])
-                                    @case('1 seater') bg-purple-100 text-purple-800 @break
-                                    @case('2 seater') bg-green-100 text-green-800 @break
-                                    @case('3 seater') bg-yellow-100 text-yellow-800 @break
-                                    @case('4 seater') bg-yellow-100 text-yellow-800 @break
-                                    @case('common') bg-red-100 text-red-800 @break
-                                    @case('bathroom') bg-blue-100 text-blue-800 @break
-                                    @case('kitchen') bg-blue-100 text-blue-800 @break
-                                    @case('study room') bg-blue-100 text-blue-800 @break
-                                    @case('event') bg-blue-100 text-blue-800 @break
-                                    @default bg-gray-100 text-gray-800
-                                @endswitch
+                                <?php switch($item['category']):
+                                    case ('1 seater'): ?> bg-purple-100 text-purple-800 <?php break; ?>
+                                    <?php case ('2 seater'): ?> bg-green-100 text-green-800 <?php break; ?>
+                                    <?php case ('3 seater'): ?> bg-yellow-100 text-yellow-800 <?php break; ?>
+                                    <?php case ('4 seater'): ?> bg-yellow-100 text-yellow-800 <?php break; ?>
+                                    <?php case ('common'): ?> bg-red-100 text-red-800 <?php break; ?>
+                                    <?php case ('bathroom'): ?> bg-blue-100 text-blue-800 <?php break; ?>
+                                    <?php case ('kitchen'): ?> bg-blue-100 text-blue-800 <?php break; ?>
+                                    <?php case ('study room'): ?> bg-blue-100 text-blue-800 <?php break; ?>
+                                    <?php case ('event'): ?> bg-blue-100 text-blue-800 <?php break; ?>
+                                    <?php default: ?> bg-gray-100 text-gray-800
+                                <?php endswitch; ?>
                             ">
-                                @switch($item['category'])
-                                    @case('video') भिडियो टुर @break
-                                    @case('1 seater') १ सिटर कोठा @break
-                                    @case('2 seater') २ सिटर कोठा @break
-                                    @case('3 seater') ३ सिटर कोठा @break
-                                    @case('4 seater') ४ सिटर कोठा @break
-                                    @case('common') लिभिङ रूम @break
-                                    @case('bathroom') बाथरूम @break
-                                    @case('kitchen') भान्सा @break
-                                    @case('study room') अध्ययन कोठा @break
-                                    @case('event') कार्यक्रम @break
-                                    @default {{ $item['category'] }}
-                                @endswitch
+                                <?php switch($item['category']):
+                                    case ('video'): ?> भिडियो टुर <?php break; ?>
+                                    <?php case ('1 seater'): ?> १ सिटर कोठा <?php break; ?>
+                                    <?php case ('2 seater'): ?> २ सिटर कोठा <?php break; ?>
+                                    <?php case ('3 seater'): ?> ३ सिटर कोठा <?php break; ?>
+                                    <?php case ('4 seater'): ?> ४ सिटर कोठा <?php break; ?>
+                                    <?php case ('common'): ?> लिभिङ रूम <?php break; ?>
+                                    <?php case ('bathroom'): ?> बाथरूम <?php break; ?>
+                                    <?php case ('kitchen'): ?> भान्सा <?php break; ?>
+                                    <?php case ('study room'): ?> अध्ययन कोठा <?php break; ?>
+                                    <?php case ('event'): ?> कार्यक्रम <?php break; ?>
+                                    <?php default: ?> <?php echo e($item['category']); ?>
+
+                                <?php endswitch; ?>
                             </span>
-                            <h3 class="font-bold text-lg mb-2">{{ $item['title'] }}</h3>
-                            <p class="text-gray-600 text-sm mb-4">{{ $item['description'] }}</p>
+                            <h3 class="font-bold text-lg mb-2"><?php echo e($item['title']); ?></h3>
+                            <p class="text-gray-600 text-sm mb-4"><?php echo e($item['description']); ?></p>
                             <div class="flex justify-between items-center text-sm text-gray-500 mt-auto">
-                                <span><i class="far fa-calendar-alt mr-1"></i> {{ $item['created_at'] }}</span>
+                                <span><i class="far fa-calendar-alt mr-1"></i> <?php echo e($item['created_at']); ?></span>
                                 <button class="text-indigo-600 hover:text-indigo-800 font-medium view-image" 
-                                        data-image="{{ $item['file_url'] }}" 
-                                        data-title="{{ $item['title'] }}">
+                                        data-image="<?php echo e($item['file_url']); ?>" 
+                                        data-title="<?php echo e($item['title']); ?>">
                                     <i class="fas fa-expand mr-1"></i> हेर्नुहोस्
                                 </button>
                             </div>
                         </div>
-                    @endif
+                    <?php endif; ?>
                 </div>
-            @endforeach
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
         </div>
         <!-- Stats Section -->
         <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl p-8 mb-12">
             <h2 class="text-2xl font-bold text-center text-gray-800 mb-8">हाम्रो प्रगति</h2>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
                 <div class="stat-card">
-                    <div class="stat-number">{{ $stats['total_students'] }}+</div>
+                    <div class="stat-number"><?php echo e($stats['total_students']); ?>+</div>
                     <div class="text-gray-700 font-medium">खुसी विद्यार्थीहरू</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number">{{ $stats['total_hostels'] }}</div>
+                    <div class="stat-number"><?php echo e($stats['total_hostels']); ?></div>
                     <div class="text-gray-700 font-medium">सहयोगी होस्टल</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number">{{ $stats['cities_available'] }}</div>
+                    <div class="stat-number"><?php echo e($stats['cities_available']); ?></div>
                     <div class="text-gray-700 font-medium">शहरहरूमा उपलब्ध</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-number">{{ $stats['satisfaction_rate'] }}</div>
+                    <div class="stat-number"><?php echo e($stats['satisfaction_rate']); ?></div>
                     <div class="text-gray-700 font-medium">सन्तुष्टि दर</div>
                 </div>
             </div>
@@ -459,7 +461,7 @@
             <p class="mb-6 max-w-2xl mx-auto relative z-10">७ दिन निःशुल्क परीक्षण गर्नुहोस् र होस्टल व्यवस्थापनलाई सजिलो, द्रुत र भरपर्दो बनाउनुहोस्</p>
             <div class="flex flex-col sm:flex-row justify-center gap-4 relative z-10">
                 <a href="#" class="px-8 py-3 bg-white text-indigo-900 font-medium rounded-lg hover:bg-gray-100 transition-colors duration-300 shadow-lg">निःशुल्क साइन अप गर्नुहोस्</a>
-<a href="{{ route('demo') }}" class="px-8 py-3 border border-white text-white font-medium rounded-lg hover:bg-white hover:text-indigo-900 transition-colors duration-300">डेमो हेर्नुहोस्</a>
+<a href="<?php echo e(route('demo')); ?>" class="px-8 py-3 border border-white text-white font-medium rounded-lg hover:bg-white hover:text-indigo-900 transition-colors duration-300">डेमो हेर्नुहोस्</a>
 </div>
 
         </div>
@@ -470,7 +472,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                 <!-- Logo and description -->
                 <div>
-                    <img src="{{ asset('storage/images/logo.png') }}" alt="HostelHub Logo" class="h-10 mb-4">
+                    <img src="<?php echo e(asset('storage/images/logo.png')); ?>" alt="HostelHub Logo" class="h-10 mb-4">
                     <p class="text-indigo-200 mb-4">नेपालको नम्बर १ होस्टल प्रबन्धन प्रणाली। हामी होस्टल व्यवस्थापनलाई सहज, द्रुत र विश्वसनीय बनाउँछौं。</p>
                     <div class="flex space-x-4">
                         <a href="#" class="text-indigo-200 hover:text-white"><i class="fab fa-facebook-f"></i></a>
@@ -746,4 +748,4 @@
         });
     </script>
 </body>
-</html>
+</html><?php /**PATH D:\My Projects\HostelHub\resources\views/gallery.blade.php ENDPATH**/ ?>
