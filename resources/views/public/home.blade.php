@@ -1168,11 +1168,11 @@
     </div>
 </a>
                     <div class="nav-links" id="main-nav">
-                        <a href="#features" class="nepali">सुविधाहरू</a>
-                        <a href="#how-it-works" class="nepali">कसरी काम गर्छ</a>
-                        <a href="#gallery" class="nepali">ग्यालरी</a>
-                        <a href="#pricing" class="nepali">मूल्य</a>
-                        <a href="#testimonials" class="nepali">समीक्षाहरू</a>
+                        <a href="{{ route('features') }}" class="nepali">सुविधाहरू</a>
+                        <a href="{{ route('how-it-works') }}" class="nepali">कसरी काम गर्छ</a>
+                        <a href="{{ route('gallery.public') }}" class="nepali">ग्यालरी</a>
+                        <a href="{{ route('pricing') }}" class="nepali">मूल्य</a>
+                        <a href="{{ route('reviews') }}" class="nepali">समीक्षाहरू</a>
                         <a href="/login" class="nepali">लगइन</a>
                     </div>
                     <div class="header-cta">
@@ -1199,7 +1199,7 @@
                         <h1 class="hero-title nepali">HostelHub — तपाइँको होस्टल व्यवस्थापन अब सजिलो, द्रुत र भरपर्दो</h1>
                         <p class="hero-subtitle nepali">विद्यार्थी व्यवस्थापन, कोठा आवंटन, भुक्तानी र भोजन प्रणाली—एकै प्लेटफर्मबाट चलाउनुहोस्। ७ दिन निःशुल्क।</p>
                         <div class="hero-cta">
-                            <a href="/register" class="btn btn-primary nepali">डेमो हेर्नुहोस्</a>
+                            <a href="{{ route('demo') }}" class="btn btn-primary nepali">डेमो हेर्नुहोस्</a>
                             <a href="#gallery" class="btn btn-outline nepali">खोजी सुरु गर्नुहोस्</a>
                         </div>
                         <div class="hero-stats">
@@ -1327,7 +1327,7 @@
                     </div>
                 </div>
                 <div class="gallery-button">
-                    <a href="#gallery" class="view-gallery-btn nepali">पूरै ग्यालरी हेर्नुहोस्</a>
+                    <a href="{{ route('gallery.public') }}" class="view-gallery-btn nepali">पूरै ग्यालरी हेर्नुहोस्</a>
                 </div>
             </div>
         </section>
@@ -1539,7 +1539,7 @@
                     </div>
                     <div class="trial-cta">
                         <a href="/register" class="btn btn-primary nepali">निःशुल्क साइन अप गर्नुहोस्</a>
-                        <a href="/demo" class="btn btn-outline nepali" style="background: white; color: var(--primary);">डेमो हेर्नुहोस्</a>
+                        <a href="{{ route('demo') }}" class="btn btn-outline nepali" style="background: white; color: var(--primary);">डेमो हेर्नुहोस्</a>
                     </div>
                 </div>
             </div>
@@ -1552,7 +1552,7 @@
                 <div class="footer-col">
                     <!-- Footer Logo -->
 <a href="/" class="footer-logo">
-    <img src="{{ asset('storage/images/logo.png') }}" alt="HostelHub Logo" style="height: 40px; width: auto;">
+    <img src="{{ asset('storage/images/logo.png') }}" alt="HostelHub Logo" style="height: 146px; width: auto;">
     <span>HostelHub</span>
 </a>
                     <p class="nepali" style="color: rgba(249, 250, 251, 0.8); margin-top: 12px; line-height: 1.6;">
@@ -1569,11 +1569,11 @@
                     <h3 class="nepali">तिब्र लिङ्कहरू</h3>
                     <ul class="footer-links">
                         <li><a href="#"><i class="fas fa-chevron-right"></i> <span class="nepali">होम</span></a></li>
-                        <li><a href="#features"><i class="fas fa-chevron-right"></i> <span class="nepali">सुविधाहरू</span></a></li>
-                        <li><a href="#how-it-works"><i class="fas fa-chevron-right"></i> <span class="nepali">कसरी काम गर्छ</span></a></li>
-                        <li><a href="#gallery"><i class="fas fa-chevron-right"></i> <span class="nepali">ग्यालरी</span></a></li>
-                        <li><a href="#pricing"><i class="fas fa-chevron-right"></i> <span class="nepali">मूल्य</span></a></li>
-                        <li><a href="#testimonials"><i class="fas fa-chevron-right"></i> <span class="nepali">समीक्षाहरू</span></a></li>
+                        <li><a href="{{ route('features') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">सुविधाहरू</span></a></li>
+                        <li><a href="{{ route('how-it-works') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">कसरी काम गर्छ</span></a></li>
+                        <li><a href="{{ route('gallery.public') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">ग्यालरी</span></a></li>
+                        <li><a href="{{ route('pricing') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">मूल्य</span></a></li>
+                        <li><a href="{{ route('reviews') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">समीक्षाहरू</span></a></li>
                     </ul>
                 </div>
                 <div class="footer-col">
