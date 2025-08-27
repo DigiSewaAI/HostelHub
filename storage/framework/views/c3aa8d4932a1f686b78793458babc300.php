@@ -28,6 +28,7 @@
             --transition: all 0.3s ease-in-out;
             --radius: 0.75rem;
             --glow: 0 8px 30px rgba(14, 165, 233, 0.25);
+            --header-height: 70px;     /* Reduced header height */
         }
         * {
             margin: 0;
@@ -90,18 +91,20 @@
             left: 100%;
         }
         .btn-outline {
-            background-color: transparent;
-            color: var(--primary);
+            background-color: var(--primary);
+            color: var(--text-light);
             border: 2px solid var(--primary);
+            transition: all 0.3s ease;
         }
         .btn-outline:hover {
-            background-color: var(--primary);
+            background-color: var(--primary-dark);
             color: var(--text-light);
             transform: translateY(-3px);
             border-color: var(--primary-dark);
+            box-shadow: 0 0 15px rgba(30, 58, 138, 0.4);
         }
         .section {
-            padding: 5rem 0;
+            padding: 4rem 0; /* Reduced section padding */
         }
         .section-title {
             font-size: 2.25rem;
@@ -111,6 +114,7 @@
             text-align: center;
             position: relative;
             display: inline-block;
+            width: 100%;
         }
         .section-title::after {
             content: "";
@@ -131,7 +135,7 @@
             margin: 0 auto 3rem;
             line-height: 1.7;
         }
-        /* Header Styles */
+        /* Header Styles - REDUCED */
         #site-header {
             position: fixed;
             top: 0;
@@ -140,39 +144,43 @@
             background: var(--primary);
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease;
+            height: var(--header-height);
         }
         .header-scrolled {
-            padding: 0.75rem 0;
+            padding: 0.5rem 0; /* Reduced padding */
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
         }
         .header-inner {
-            padding: 1rem 0; /* Reduced from 1.25rem for less vertical space */
+            padding: 0.5rem 0; /* Reduced padding */
             transition: all 0.3s ease;
+            height: 100%;
+            display: flex;
+            align-items: center;
         }
         .navbar {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            width: 100%;
+            height: 100%;
         }
         /* Logo styles - UPDATED */
         .logo {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 0.5rem; /* Reduced gap */
             text-decoration: none;
             font-weight: 700;
-            font-size: 1.5rem;
+            font-size: 1.3rem; /* Reduced font size */
             color: var(--text-light);
         }
         header .logo img {
-    width: 94px;
-    height: 94px;
-}
-
-
+            width: 75px; /* Reduced logo size */
+            height: 75px; /* Reduced logo size */
+        }
         .logo-image {
-            width: 40px;
-            height: 40px;
+            width: 60px; /* Reduced size */
+            height: 60px; /* Reduced size */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -180,26 +188,26 @@
             border-radius: var(--radius);
             color: var(--text-light);
             font-weight: bold;
-            font-size: 20px;
+            font-size: 18px; /* Reduced font size */
         }
         .logo-text {
             display: flex;
             flex-direction: column;
         }
         .logo-text h1 {
-            font-size: 1.5rem;
+            font-size: 1.3rem; /* Reduced font size */
             line-height: 1.2;
             margin: 0;
         }
         .logo-text span {
-            font-size: 0.8rem;
+            font-size: 0.7rem; /* Reduced font size */
             line-height: 1;
             opacity: 0.9;
         }
         .nav-links {
             display: flex;
             align-items: center;
-            gap: 2.25rem;
+            gap: 1.5rem; /* Reduced gap */
         }
         .nav-links a {
             text-decoration: none;
@@ -207,8 +215,8 @@
             font-weight: 500;
             transition: var(--transition);
             position: relative;
-            padding: 0.5rem 0;
-            font-size: 1.05rem;
+            padding: 0.4rem 0; /* Reduced padding */
+            font-size: 0.95rem; /* Reduced font size */
         }
         .nav-links a.active, .nav-links a:hover {
             color: var(--text-light);
@@ -228,25 +236,27 @@
         }
         .header-cta {
             display: flex;
-            gap: 1rem;
+            gap: 0.8rem; /* Reduced gap */
             align-items: center;
         }
         .mobile-menu-btn {
             display: none;
             background: none;
             border: none;
-            font-size: 1.5rem;
+            font-size: 1.3rem; /* Reduced font size */
             cursor: pointer;
             color: var(--text-light);
         }
-        /* Hero Section */
+        /* Hero Section - IMPROVED */
         .hero {
-            height: 100vh;
-            padding: 0;
+            min-height: 100vh;
+            padding: var(--header-height) 0 0; /* Account for header height */
             background: linear-gradient(135deg, #1e3a8a, #0ea5e9);
             position: relative;
             overflow: hidden;
             z-index: 1;
+            display: flex;
+            align-items: center;
         }
         .hero-video {
             position: absolute;
@@ -261,52 +271,52 @@
         .hero-content {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 3rem;
+            gap: 2rem; /* Reduced gap */
             align-items: center;
             height: 100%;
             position: relative;
             z-index: 15;
-            padding-top: 20px; /* Ensures text is visible above header */
+            padding: 2rem 0; /* Added padding */
         }
         .hero-text {
             max-width: 600px;
             color: var(--text-light);
         }
         .hero-title {
-            font-size: 3.5rem;
+            font-size: 2.8rem; /* Reduced font size */
             font-weight: 800;
             line-height: 1.2;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.2rem; /* Reduced margin */
             color: var(--text-light);
             text-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         .hero-subtitle {
-            font-size: 1.25rem;
+            font-size: 1.1rem; /* Reduced font size */
             color: rgba(249, 250, 251, 0.9);
-            margin-bottom: 2rem;
-            line-height: 1.7;
+            margin-bottom: 1.8rem; /* Reduced margin */
+            line-height: 1.6;
         }
         .hero-cta {
             display: flex;
-            gap: 1.25rem;
-            margin-bottom: 2.5rem;
+            gap: 1rem; /* Reduced gap */
+            margin-bottom: 2rem; /* Reduced margin */
         }
         .hero-stats {
             display: flex;
-            gap: 2.5rem;
-            margin-top: 2rem;
+            gap: 2rem; /* Reduced gap */
+            margin-top: 1.5rem; /* Reduced margin */
         }
         .stat-item {
             text-align: center;
         }
         .stat-number {
-            font-size: 2.75rem;
+            font-size: 2.2rem; /* Reduced font size */
             font-weight: 800;
             color: var(--secondary);
             background: rgba(14, 165, 233, 0.1);
-            padding: 0.75rem 1.25rem;
+            padding: 0.6rem 1rem; /* Reduced padding */
             border-radius: var(--radius);
-            min-width: 140px;
+            min-width: 110px; /* Reduced width */
             transition: var(--transition);
         }
         .stat-number:hover {
@@ -314,8 +324,8 @@
             background: rgba(14, 165, 233, 0.2);
         }
         .stat-label {
-            font-size: 1rem;
-            margin-top: 0.75rem;
+            font-size: 0.9rem; /* Reduced font size */
+            margin-top: 0.6rem; /* Reduced margin */
             color: var(--text-light);
             font-weight: 600;
         }
@@ -334,47 +344,47 @@
             height: 100%;
             object-fit: cover;
             display: block;
-            filter: brightness(1.05) saturate(1.03); /* Increased clarity/brightness */
+            filter: brightness(1.05) saturate(1.03);
         }
         /* Search Widget */
         .search-widget {
             background: var(--bg-light);
             border-radius: var(--radius);
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-            padding: 2rem;
-            margin-top: 1.5rem; /* Fixed overlap issue */
+            padding: 1.8rem; /* Reduced padding */
+            margin-top: 1.5rem;
             position: relative;
             z-index: 20;
         }
         .widget-title {
-            font-size: 1.5rem;
+            font-size: 1.4rem; /* Reduced font size */
             font-weight: 700;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.2rem; /* Reduced margin */
             text-align: center;
             color: var(--primary);
         }
         .widget-form {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.25rem;
+            gap: 1rem; /* Reduced gap */
         }
         .form-group {
-            margin-bottom: 1rem;
+            margin-bottom: 0.9rem; /* Reduced margin */
             position: relative;
         }
         .form-group label {
             display: block;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.4rem; /* Reduced margin */
             font-weight: 500;
             color: var(--primary);
         }
         .form-control {
             width: 100%;
-            padding: 0.85rem 1.25rem;
+            padding: 0.75rem 1.1rem; /* Reduced padding */
             border: 1px solid var(--border);
             border-radius: var(--radius);
             font-family: inherit;
-            font-size: 1rem;
+            font-size: 0.95rem; /* Reduced font size */
             transition: var(--transition);
             background-color: var(--light-bg);
         }
@@ -386,8 +396,8 @@
         .error-message {
             display: none;
             color: #e53e3e;
-            font-size: 0.85rem;
-            margin-top: 0.25rem;
+            font-size: 0.8rem; /* Reduced font size */
+            margin-top: 0.2rem; /* Reduced margin */
         }
         .error .form-control {
             border-color: #e53e3e;
@@ -398,17 +408,17 @@
         /* Statistics Section */
         .stats-section {
             background-color: var(--bg-light);
-            padding: 4rem 0;
+            padding: 3rem 0; /* Reduced padding */
         }
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 2rem;
+            gap: 1.5rem; /* Reduced gap */
         }
         .stat-card {
             background: var(--light-bg);
             border-radius: var(--radius);
-            padding: 2rem;
+            padding: 1.8rem; /* Reduced padding */
             text-align: center;
             box-shadow: var(--shadow);
             transition: var(--transition);
@@ -420,26 +430,27 @@
             border-color: var(--secondary);
         }
         .stat-icon {
-            width: 70px;
-            height: 70px;
+            width: 60px; /* Reduced size */
+            height: 60px; /* Reduced size */
             display: flex;
             align-items: center;
             justify-content: center;
             background: rgba(14, 165, 233, 0.1);
             border-radius: 50%;
-            margin: 0 auto 1.5rem;
+            margin: 0 auto 1.2rem; /* Reduced margin */
             color: var(--secondary);
-            font-size: 1.75rem;
+            font-size: 1.5rem; /* Reduced font size */
         }
         .stat-count {
-            font-size: 2.5rem;
+            font-size: 2.2rem; /* Reduced font size */
             font-weight: 800;
             color: var(--secondary);
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.4rem; /* Reduced margin */
         }
         .stat-description {
             color: var(--text-dark);
             font-weight: 600;
+            font-size: 0.95rem; /* Reduced font size */
         }
         /* Features Section */
         .features {
@@ -448,12 +459,12 @@
         .features-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 2rem;
+            gap: 1.8rem; /* Reduced gap */
         }
         .feature-card {
             background: var(--light-bg);
             border-radius: var(--radius);
-            padding: 2.25rem;
+            padding: 2rem; /* Reduced padding */
             box-shadow: var(--shadow);
             transition: var(--transition);
             border: 1px solid var(--border);
@@ -464,26 +475,27 @@
             border-color: var(--secondary);
         }
         .feature-icon {
-            width: 70px;
-            height: 70px;
+            width: 60px; /* Reduced size */
+            height: 60px; /* Reduced size */
             display: flex;
             align-items: center;
             justify-content: center;
             background: rgba(14, 165, 233, 0.1);
             border-radius: 50%;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.2rem; /* Reduced margin */
             color: var(--secondary);
-            font-size: 1.75rem;
+            font-size: 1.5rem; /* Reduced font size */
         }
         .feature-title {
-            font-size: 1.4rem;
+            font-size: 1.3rem; /* Reduced font size */
             font-weight: 700;
-            margin-bottom: 0.75rem;
+            margin-bottom: 0.6rem; /* Reduced margin */
             color: var(--primary);
         }
         .feature-desc {
             color: var(--text-dark);
-            line-height: 1.7;
+            line-height: 1.6;
+            font-size: 0.95rem; /* Reduced font size */
         }
         /* How It Works */
         .how-it-works {
@@ -492,7 +504,7 @@
         .steps {
             display: flex;
             justify-content: center;
-            gap: 3rem;
+            gap: 2.5rem; /* Reduced gap */
             position: relative;
         }
         .steps::before {
@@ -507,7 +519,7 @@
         }
         .step {
             position: relative;
-            padding: 2.5rem 2rem 2rem;
+            padding: 2.2rem 1.8rem 1.8rem; /* Reduced padding */
             background: var(--light-bg);
             border-radius: var(--radius);
             box-shadow: var(--shadow);
@@ -516,7 +528,7 @@
             z-index: 1;
             text-align: center;
             flex: 1;
-            max-width: 300px;
+            max-width: 280px; /* Reduced max-width */
         }
         .step:hover {
             transform: translateY(-10px);
@@ -540,14 +552,15 @@
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
         .step-title {
-            font-size: 1.3rem;
+            font-size: 1.2rem; /* Reduced font size */
             font-weight: 700;
-            margin-bottom: 1rem;
+            margin-bottom: 0.8rem; /* Reduced margin */
             color: var(--primary);
         }
         .step-desc {
             color: var(--text-dark);
-            line-height: 1.7;
+            line-height: 1.6;
+            font-size: 0.95rem; /* Reduced font size */
         }
         /* Gallery */
         .gallery {
@@ -555,8 +568,8 @@
         }
         .gallery-swiper {
             width: 100%;
-            height: 350px; /* Increased height for better display */
-            margin-bottom: 2rem;
+            height: 320px; /* Slightly reduced height */
+            margin-bottom: 1.8rem; /* Reduced margin */
         }
         .gallery-swiper .swiper-slide {
             text-align: center;
@@ -576,7 +589,7 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-            filter: brightness(1.05) saturate(1.03); /* Increased clarity/brightness */
+            filter: brightness(1.05) saturate(1.03);
         }
         .video-overlay {
             position: absolute;
@@ -608,15 +621,15 @@
         .gallery-button {
             display: flex;
             justify-content: center;
-            margin-top: 2rem;
+            margin-top: 1.8rem; /* Reduced margin */
         }
         .view-gallery-btn {
             background: linear-gradient(to right, var(--primary), var(--secondary));
             color: white;
-            padding: 1rem 2.5rem;
+            padding: 0.9rem 2.2rem; /* Reduced padding */
             border-radius: 50px;
             font-weight: 600;
-            font-size: 1.1rem;
+            font-size: 1rem; /* Reduced font size */
             text-decoration: none;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             transition: all 0.3s ease;
@@ -636,13 +649,13 @@
         .testimonials-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 2.5rem;
+            gap: 2.2rem; /* Reduced gap */
         }
         .testimonial-card {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(5px);
             border-radius: var(--radius);
-            padding: 2.5rem;
+            padding: 2.2rem; /* Reduced padding */
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
             position: relative;
@@ -664,20 +677,20 @@
             line-height: 1;
         }
         .testimonial-text {
-            margin-bottom: 1.75rem;
+            margin-bottom: 1.5rem; /* Reduced margin */
             position: relative;
             z-index: 1;
-            line-height: 1.8;
-            font-size: 1.05rem;
+            line-height: 1.7;
+            font-size: 1rem; /* Reduced font size */
         }
         .testimonial-author {
             display: flex;
             align-items: center;
-            gap: 1.25rem;
+            gap: 1rem; /* Reduced gap */
         }
         .author-avatar {
-            width: 60px;
-            height: 60px;
+            width: 55px; /* Reduced size */
+            height: 55px; /* Reduced size */
             border-radius: 50%;
             background: rgba(14, 165, 233, 0.2);
             display: flex;
@@ -685,17 +698,18 @@
             justify-content: center;
             color: var(--secondary);
             font-weight: 700;
-            font-size: 1.4rem;
+            font-size: 1.3rem; /* Reduced font size */
             flex-shrink: 0;
         }
         .author-info h4 {
             font-weight: 700;
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.2rem; /* Reduced margin */
             color: var(--text-light);
+            font-size: 1.1rem; /* Reduced font size */
         }
         .author-info p {
             color: var(--secondary);
-            font-size: 0.95rem;
+            font-size: 0.9rem; /* Reduced font size */
             font-weight: 600;
         }
         /* Pricing */
@@ -705,12 +719,12 @@
         .pricing-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 2.5rem;
+            gap: 2.2rem; /* Reduced gap */
         }
         .pricing-card {
             background: var(--light-bg);
             border-radius: var(--radius);
-            padding: 2.75rem 2.25rem;
+            padding: 2.5rem 2rem; /* Reduced padding */
             box-shadow: var(--shadow);
             text-align: center;
             border: 1px solid var(--border);
@@ -740,50 +754,51 @@
             box-shadow: 0 3px 10px rgba(0,0,0,0.1);
         }
         .pricing-header {
-            margin-bottom: 1.75rem;
+            margin-bottom: 1.5rem; /* Reduced margin */
         }
         .pricing-title {
-            font-size: 1.6rem;
+            font-size: 1.5rem; /* Reduced font size */
             font-weight: 700;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.4rem; /* Reduced margin */
             color: var(--primary);
         }
         .pricing-price {
-            font-size: 2.75rem;
+            font-size: 2.5rem; /* Reduced font size */
             font-weight: 800;
             color: var(--secondary);
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.4rem; /* Reduced margin */
         }
         .pricing-price span {
-            font-size: 1.25rem;
+            font-size: 1.1rem; /* Reduced font size */
             color: #4B5563;
             font-weight: 400;
         }
         .pricing-features {
             list-style: none;
-            margin: 2rem 0;
+            margin: 1.8rem 0; /* Reduced margin */
             text-align: left;
         }
         .pricing-features li {
-            padding: 0.85rem 0;
+            padding: 0.7rem 0; /* Reduced padding */
             border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 0.6rem; /* Reduced gap */
             justify-content: flex-start;
             padding-left: 5px;
+            font-size: 0.95rem; /* Reduced font size */
         }
         .pricing-features li:last-child {
             border-bottom: none;
         }
         .pricing-features li i {
             color: var(--secondary);
-            font-size: 1.1rem;
+            font-size: 1rem; /* Reduced font size */
         }
         /* Free Trial Section */
         .free-trial {
             background: linear-gradient(to right, var(--primary), #1e40af, var(--secondary));
-            padding: 4rem 0;
+            padding: 3.5rem 0; /* Reduced padding */
             text-align: center;
             position: relative;
             overflow: hidden;
@@ -795,54 +810,54 @@
             z-index: 2;
         }
         .trial-title {
-            font-size: 2.5rem;
+            font-size: 2.2rem; /* Reduced font size */
             font-weight: 800;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.2rem; /* Reduced margin */
             color: var(--text-light);
         }
         .trial-subtitle {
-            font-size: 1.3rem;
+            font-size: 1.2rem; /* Reduced font size */
             color: rgba(249, 250, 251, 0.9);
-            margin-bottom: 2.5rem;
-            line-height: 1.7;
+            margin-bottom: 2.2rem; /* Reduced margin */
+            line-height: 1.6;
         }
         .trial-highlight {
             background: rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(5px);
             border-radius: var(--radius);
-            padding: 1.5rem;
-            margin: 2rem auto;
+            padding: 1.3rem; /* Reduced padding */
+            margin: 1.8rem auto; /* Reduced margin */
             max-width: 600px;
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
         .trial-highlight-text {
-            font-size: 1.5rem;
+            font-size: 1.3rem; /* Reduced font size */
             font-weight: 700;
             color: var(--text-light);
         }
         .trial-cta {
             display: flex;
             justify-content: center;
-            gap: 1.5rem;
+            gap: 1.2rem; /* Reduced gap */
             flex-wrap: wrap;
         }
-        /* Footer */
+        /* Footer - REDUCED HEIGHT */
         footer {
             background-color: var(--primary);
             color: var(--text-light);
-            padding: 1.25rem 0 0.25rem; /* Reduced vertical padding */
+            padding: 1rem 0 0.2rem; /* Further reduced vertical padding */
         }
         .footer-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 1.5rem;
+            gap: 1.2rem; /* Reduced gap */
+            margin-bottom: 1rem; /* Reduced margin */
         }
         .footer-col h3 {
-            font-size: 1.4rem;
-            margin-bottom: 1.25rem;
+            font-size: 1.3rem; /* Reduced font size */
+            margin-bottom: 1rem; /* Reduced margin */
             position: relative;
-            padding-bottom: 0.5rem;
+            padding-bottom: 0.4rem; /* Reduced padding */
             color: var(--text-light);
         }
         .footer-col h3::after {
@@ -856,9 +871,11 @@
         }
         .footer-links {
             list-style: none;
+            margin: 0;
+            padding: 0;
         }
         .footer-links li {
-            margin-bottom: 0.75rem;
+            margin-bottom: 0.6rem; /* Reduced margin */
         }
         .footer-links a {
             color: rgba(249, 250, 251, 0.8);
@@ -866,44 +883,46 @@
             transition: var(--transition);
             display: flex;
             align-items: center;
-            font-size: 1.05rem;
+            font-size: 0.95rem; /* Reduced font size */
         }
         .footer-links a:hover {
             color: var(--secondary);
             transform: translateX(5px);
         }
         .footer-links i {
-            margin-right: 12px;
-            width: 20px;
+            margin-right: 10px; /* Reduced margin */
+            width: 18px; /* Reduced width */
             color: var(--secondary);
         }
         .contact-info {
             list-style: none;
+            margin: 0;
+            padding: 0;
         }
         .contact-info li {
-            margin-bottom: 1rem;
+            margin-bottom: 0.8rem; /* Reduced margin */
             display: flex;
             align-items: flex-start;
         }
         .contact-info i {
-            margin-right: 15px;
+            margin-right: 12px; /* Reduced margin */
             color: var(--secondary);
-            font-size: 1.2rem;
-            margin-top: 5px;
+            font-size: 1.1rem; /* Reduced font size */
+            margin-top: 4px; /* Reduced margin */
             flex-shrink: 0;
         }
         .footer-logo {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
-            font-size: 1.8rem;
+            gap: 0.6rem; /* Reduced gap */
+            font-size: 1.6rem; /* Reduced font size */
             font-weight: 700;
-            margin-bottom: 1.25rem;
+            margin-bottom: 1rem; /* Reduced margin */
             color: var(--text-light);
         }
         .footer-logo-icon {
-            width: 40px;
-            height: 40px;
+            width: 35px; /* Reduced size */
+            height: 35px; /* Reduced size */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -911,32 +930,33 @@
             border-radius: var(--radius);
             color: var(--text-light);
             font-weight: bold;
-            font-size: 20px;
+            font-size: 18px; /* Reduced font size */
         }
         .copyright {
-            margin-top: 1.5rem;
-            padding-top: 1rem;
+            margin-top: 1.2rem; /* Reduced margin */
+            padding-top: 0.8rem; /* Reduced padding */
             border-top: 1px solid rgba(249, 250, 251, 0.1);
-            font-size: 1.1rem;
+            font-size: 1rem; /* Reduced font size */
             color: rgba(249, 250, 251, 0.6);
             text-align: center;
             grid-column: 1 / -1;
         }
         .social-links {
             display: flex;
-            gap: 12px;
-            margin-top: 15px;
+            gap: 10px; /* Reduced gap */
+            margin-top: 12px; /* Reduced margin */
+            flex-wrap: wrap;
         }
         .social-links a {
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 40px;
-            height: 40px;
+            width: 36px; /* Reduced size */
+            height: 36px; /* Reduced size */
             background: rgba(255, 255, 255, 0.1);
             border-radius: 50%;
             color: var(--text-light);
-            font-size: 1.1rem;
+            font-size: 1rem; /* Reduced font size */
             transition: var(--transition);
         }
         .social-links a:hover {
@@ -946,16 +966,16 @@
         }
         .newsletter-form {
             display: flex;
-            gap: 0.5rem;
-            margin-top: 1rem;
+            gap: 0.4rem; /* Reduced gap */
+            margin-top: 0.8rem; /* Reduced margin */
         }
         .newsletter-form input {
             flex: 1;
-            padding: 0.75rem 1rem;
+            padding: 0.7rem 0.9rem; /* Reduced padding */
             border: none;
             border-radius: var(--radius);
             font-family: inherit;
-            font-size: 0.95rem;
+            font-size: 0.9rem; /* Reduced font size */
             background: rgba(255, 255, 255, 0.1);
             color: var(--text-light);
         }
@@ -967,11 +987,11 @@
             color: var(--text-light);
             border: none;
             border-radius: var(--radius);
-            padding: 0 1rem;
+            padding: 0 0.9rem; /* Reduced padding */
             font-weight: 600;
             cursor: pointer;
             transition: var(--transition);
-            font-size: 0.95rem;
+            font-size: 0.9rem; /* Reduced font size */
         }
         .newsletter-form button:hover {
             background: var(--secondary-dark);
@@ -997,14 +1017,15 @@
         /* Responsive Design */
         @media (max-width: 1024px) {
             .hero-title {
-                font-size: 2.8rem;
+                font-size: 2.5rem; /* Adjusted for tablet */
             }
             .hero-content {
                 grid-template-columns: 1fr;
+                padding-top: 70px; /* Adjusted for tablet */
             }
             .hero-slideshow {
                 max-width: 600px;
-                margin: 2.5rem auto 0;
+                margin: 2rem auto 0; /* Reduced margin */
                 transform: none;
             }
             .steps::before {
@@ -1013,32 +1034,35 @@
             .steps {
                 flex-direction: column;
                 align-items: center;
-                gap: 2rem;
+                gap: 1.8rem; /* Reduced gap */
             }
             .gallery-swiper {
-                height: 300px;
+                height: 280px; /* Adjusted height */
             }
         }
         @media (max-width: 768px) {
             .section {
-                padding: 3.5rem 0;
+                padding: 3rem 0; /* Reduced padding */
             }
             .hero {
                 padding: 0;
             }
             .hero-title {
-                font-size: 2.3rem;
+                font-size: 2.1rem; /* Adjusted for mobile */
+            }
+            .hero-content {
+                padding-top: 60px; /* Adjusted for mobile */
             }
             .hero-cta {
                 flex-direction: column;
             }
             .hero-stats {
                 flex-direction: column;
-                gap: 1.25rem;
+                gap: 1rem; /* Reduced gap */
             }
             .search-widget {
-                margin-top: 1.5rem;
-                padding: 1.5rem;
+                margin-top: 1.2rem; /* Reduced margin */
+                padding: 1.3rem; /* Reduced padding */
             }
             .widget-form {
                 grid-template-columns: 1fr;
@@ -1061,7 +1085,7 @@
                 right: 0;
                 background: var(--primary);
                 flex-direction: column;
-                padding: 1.5rem;
+                padding: 1.2rem; /* Reduced padding */
                 box-shadow: 0 10px 15px rgba(0,0,0,0.1);
                 border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             }
@@ -1072,25 +1096,35 @@
                 display: none;
             }
             .gallery-swiper {
-                height: 250px;
+                height: 220px; /* Adjusted height */
             }
         }
         @media (max-width: 480px) {
             .hero-title {
-                font-size: 2rem;
+                font-size: 1.8rem; /* Adjusted for small mobile */
+            }
+            .hero-content {
+                padding-top: 50px; /* Adjusted for small mobile */
             }
             .section-title {
-                font-size: 1.8rem;
+                font-size: 1.6rem; /* Adjusted for small mobile */
             }
             .section-subtitle {
-                font-size: 1.1rem;
+                font-size: 1rem; /* Adjusted for small mobile */
             }
             .btn {
-                padding: 0.75rem 1.5rem;
-                font-size: 0.95rem;
+                padding: 0.7rem 1.3rem; /* Reduced padding */
+                font-size: 0.9rem; /* Reduced font size */
             }
             .gallery-swiper {
-                height: 200px;
+                height: 180px; /* Adjusted height */
+            }
+            :root {
+                --header-height: 60px; /* Further reduced header height for mobile */
+            }
+            header .logo img {
+                width: 60px; /* Further reduced logo size for mobile */
+                height: 60px; /* Further reduced logo size for mobile */
             }
         }
         /* Accessibility Focus Styles */
@@ -1122,11 +1156,17 @@
         <div class="header-inner">
             <div class="container">
                 <div class="navbar">
-                    <!-- Updated Logo -->
+                    <!-- Header Logo -->
 <a href="/" class="logo">
-    <?php echo $__env->make('components.application-logo', ['logoClass' => 'w-16 h-5 object-contain'], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+    <!-- Real Logo Image -->
+    <div class="logo-image">
+        <img src="<?php echo e(asset('storage/images/logo.png')); ?>" alt="HostelHub Logo" style="height: 50px; width: auto;">
+    </div>
+    <div class="logo-text">
+        <h1>HostelHub</h1>
+        <span class="nepali">होस्टल प्रबन्धन</span>
+    </div>
 </a>
-
                     <div class="nav-links" id="main-nav">
                         <a href="#features" class="nepali">सुविधाहरू</a>
                         <a href="#how-it-works" class="nepali">कसरी काम गर्छ</a>
@@ -1159,7 +1199,7 @@
                         <h1 class="hero-title nepali">HostelHub — तपाइँको होस्टल व्यवस्थापन अब सजिलो, द्रुत र भरपर्दो</h1>
                         <p class="hero-subtitle nepali">विद्यार्थी व्यवस्थापन, कोठा आवंटन, भुक्तानी र भोजन प्रणाली—एकै प्लेटफर्मबाट चलाउनुहोस्। ७ दिन निःशुल्क।</p>
                         <div class="hero-cta">
-                            <a href="/register" class="btn btn-primary nepali">डेमो माग्नुहोस्</a>
+                            <a href="/register" class="btn btn-primary nepali">डेमो हेर्नुहोस्</a>
                             <a href="#gallery" class="btn btn-outline nepali">खोजी सुरु गर्नुहोस्</a>
                         </div>
                         <div class="hero-stats">
@@ -1184,7 +1224,7 @@
                                     <img src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Hostel Image 1" loading="lazy">
                                 </div>
                                 <div class="swiper-slide">
-                                    <img src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Hostel Image 2" loading="lazy">
+                                    <img src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwa90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Hostel Image 2" loading="lazy">
                                 </div>
                                 <div class="swiper-slide">
                                     <img src="https://images.unsplash.com/photo-1615876234886-fd9a39fda97f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1332&q=80" alt="Hostel Image 3" loading="lazy">
@@ -1237,6 +1277,58 @@
                         <button type="submit" class="btn btn-primary nepali" style="width: 100%; margin-top: 0.85rem;">खोज्नुहोस्</button>
                     </div>
                 </form>
+            </div>
+        </section>
+        <!-- Gallery Section -->
+        <section class="section gallery" id="gallery">
+            <div class="container">
+                <h2 class="section-title nepali">हाम्रो ग्यालरी</h2>
+                <p class="section-subtitle nepali">हाम्रा होस्टलहरूको फोटो र भिडियोहरू हेर्नुहोस्</p>
+                <div class="gallery-swiper swiper">
+                    <div class="swiper-wrapper">
+                        <div class="swiper-slide">
+                            <img src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Hostel Image 1" loading="lazy">
+                        </div>
+                        <div class="swiper-slide">
+                            <img src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Hostel Image 2" loading="lazy">
+                        </div>
+                        <div class="swiper-slide">
+                            <img src="https://images.unsplash.com/photo-1615876234886-fd9a39fda97f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1332&q=80" alt="Hostel Image 3" loading="lazy">
+                        </div>
+                        <div class="swiper-slide">
+                            <img src="https://images.unsplash.com/photo-1593696140826-c58b021acf8b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Hostel Image 4" loading="lazy">
+                        </div>
+                        <div class="swiper-slide">
+                            <img src="https://images.unsplash.com/photo-1582407947304-fd86f028f716?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1096&q=80" alt="Hostel Image 5" loading="lazy">
+                        </div>
+                        <div class="swiper-slide">
+                            <img src="https://images.unsplash.com/photo-1618221118493-9cfa1a1c00da?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1032&q=80" alt="Hostel Image 6" loading="lazy">
+                        </div>
+                        <div class="swiper-slide">
+                            <img src="https://images.unsplash.com/photo-1584622650111-993a426fbf0a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Room Image 1" loading="lazy">
+                        </div>
+                        <div class="swiper-slide">
+                            <img src="https://images.unsplash.com/photo-1554995207-c18c203602cb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Room Image 2" loading="lazy">
+                        </div>
+                        <div class="swiper-slide">
+                            <img src="https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1074&q=80" alt="Room Image 3" loading="lazy">
+                        </div>
+                        <div class="swiper-slide">
+                            <img src="https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Room Image 4" loading="lazy">
+                        </div>
+                        <div class="swiper-slide">
+                            <video src="https://assets.mixkit.co/videos/preview/mixkit-student-studying-in-a-dorm-room-44475-large.mp4" controls poster="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1080&q=80" preload="metadata"></video>
+                            <div class="video-overlay">
+                                <div class="video-play-icon">
+                                    <i class="fas fa-play"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="gallery-button">
+                    <a href="#gallery" class="view-gallery-btn nepali">पूरै ग्यालरी हेर्नुहोस्</a>
+                </div>
             </div>
         </section>
         <!-- Statistics Section -->
@@ -1342,58 +1434,6 @@
                 </div>
             </div>
         </section>
-        <!-- Gallery Section -->
-        <section class="section gallery" id="gallery">
-            <div class="container">
-                <h2 class="section-title nepali">हाम्रो ग्यालरी</h2>
-                <p class="section-subtitle nepali">हाम्रा होस्टलहरूको फोटो र भिडियोहरू हेर्नुहोस्</p>
-                <div class="gallery-swiper swiper">
-                    <div class="swiper-wrapper">
-                        <div class="swiper-slide">
-                            <img src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Hostel Image 1" loading="lazy">
-                        </div>
-                        <div class="swiper-slide">
-                            <img src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Hostel Image 2" loading="lazy">
-                        </div>
-                        <div class="swiper-slide">
-                            <img src="https://images.unsplash.com/photo-1615876234886-fd9a39fda97f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1332&q=80" alt="Hostel Image 3" loading="lazy">
-                        </div>
-                        <div class="swiper-slide">
-                            <img src="https://images.unsplash.com/photo-1593696140826-c58b021acf8b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Hostel Image 4" loading="lazy">
-                        </div>
-                        <div class="swiper-slide">
-                            <img src="https://images.unsplash.com/photo-1582407947304-fd86f028f716?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1096&q=80" alt="Hostel Image 5" loading="lazy">
-                        </div>
-                        <div class="swiper-slide">
-                            <img src="https://images.unsplash.com/photo-1618221118493-9cfa1a1c00da?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1032&q=80" alt="Hostel Image 6" loading="lazy">
-                        </div>
-                        <div class="swiper-slide">
-                            <img src="https://images.unsplash.com/photo-1584622650111-993a426fbf0a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Room Image 1" loading="lazy">
-                        </div>
-                        <div class="swiper-slide">
-                            <img src="https://images.unsplash.com/photo-1554995207-c18c203602cb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Room Image 2" loading="lazy">
-                        </div>
-                        <div class="swiper-slide">
-                            <img src="https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1074&q=80" alt="Room Image 3" loading="lazy">
-                        </div>
-                        <div class="swiper-slide">
-                            <img src="https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Room Image 4" loading="lazy">
-                        </div>
-                        <div class="swiper-slide">
-                            <video src="https://assets.mixkit.co/videos/preview/mixkit-student-studying-in-a-dorm-room-44475-large.mp4" controls poster="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1080&q=80" preload="metadata"></video>
-                            <div class="video-overlay">
-                                <div class="video-play-icon">
-                                    <i class="fas fa-play"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="gallery-button">
-                    <a href="#gallery" class="view-gallery-btn nepali">पूरै ग्यालरी हेर्नुहोस्</a>
-                </div>
-            </div>
-        </section>
         <!-- Testimonials -->
         <section class="section testimonials" id="testimonials">
             <div class="container">
@@ -1478,7 +1518,7 @@
                         <ul class="pricing-features">
                             <li><i class="fas fa-check"></i> <span class="nepali">असीमित विद्यार्थी</span></li>
                             <li><i class="fas fa-check"></i> <span class="nepali">पूर्ण विद्यार्थी व्यवस्थापन</span></li>
-                            <li><i class="fas fa-check"></i> <span class="nepali">बहु-हоस्टल व्यवस्थापन</span></li>
+                            <li><i class="fas fa-check"></i> <span class="nepali">बहु-होस्टल व्यवस्थापन</span></li>
                             <li><i class="fas fa-check"></i> <span class="nepali">कस्टम भुक्तानी प्रणाली</span></li>
                             <li><i class="fas fa-check"></i> <span class="nepali">विस्तृत विवरण र विश्लेषण</span></li>
                             <li><i class="fas fa-check"></i> <span class="nepali">२४/७ समर्थन</span></li>
@@ -1510,12 +1550,12 @@
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-col">
-                    <!-- Updated Footer Logo -->
+                    <!-- Footer Logo -->
 <a href="/" class="footer-logo">
-    <?php echo $__env->make('components.application-logo', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+    <img src="<?php echo e(asset('storage/images/logo.png')); ?>" alt="HostelHub Logo" style="height: 40px; width: auto;">
+    <span>HostelHub</span>
 </a>
-
-                    <p class="nepali" style="color: rgba(249, 250, 251, 0.8); margin-top: 15px; line-height: 1.7;">
+                    <p class="nepali" style="color: rgba(249, 250, 251, 0.8); margin-top: 12px; line-height: 1.6;">
                         नेपालको नम्बर १ होस्टल प्रबन्धन प्रणाली। हामी होस्टल व्यवस्थापनलाई सहज, दक्ष र विश्वसनीय बनाउँछौं।
                     </p>
                     <div class="social-links">
@@ -1559,7 +1599,7 @@
                 </div>
                 <div class="footer-col">
                     <h3 class="nepali">समाचारपत्र</h3>
-                    <p class="nepali" style="color: rgba(249, 250, 251, 0.8); margin-bottom: 15px; line-height: 1.7;">
+                    <p class="nepali" style="color: rgba(249, 250, 251, 0.8); margin-bottom: 12px; line-height: 1.6;">
                         हाम्रो नवीनतम अपडेटहरू प्राप्त गर्न तपाईंको इमेल दर्ता गर्नुहोस्
                     </p>
                     <form class="newsletter-form" action="/subscribe" method="POST">
