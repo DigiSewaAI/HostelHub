@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Log;
 
 class GalleryController extends Controller
 {
@@ -104,7 +105,10 @@ class GalleryController extends Controller
         } elseif ($validated['media_type'] === 'local_video' && $request->hasFile('local_video')) {
             $path = $request->file('local_video')->store('gallery/videos', 'public');
             $validated['file_path'] = $path;
-            $validated['thumbnail'] = 'images/video-default.jpg';
+
+            // Generate thumbnail for video using FFmpeg
+            $thumbnailPath = $this->generateVideoThumbnail($path);
+            $validated['thumbnail'] = $thumbnailPath;
         } elseif ($validated['media_type'] === 'external_video') {
             $validated['file_path'] = null;
             // Generate YouTube thumbnail
@@ -205,6 +209,10 @@ class GalleryController extends Controller
             if ($gallery->file_path && Storage::disk('public')->exists($gallery->file_path)) {
                 Storage::disk('public')->delete($gallery->file_path);
             }
+            // Remove existing thumbnail if it's not the default
+            if ($gallery->thumbnail && $gallery->thumbnail !== 'images/video-default.jpg' && Storage::disk('public')->exists($gallery->thumbnail)) {
+                Storage::disk('public')->delete($gallery->thumbnail);
+            }
         }
 
         // Handle new file upload based on new media type
@@ -215,7 +223,10 @@ class GalleryController extends Controller
         } elseif ($newMediaType === 'local_video' && $request->hasFile('local_video')) {
             $path = $request->file('local_video')->store('gallery/videos', 'public');
             $validated['file_path'] = $path;
-            $validated['thumbnail'] = 'images/video-default.jpg';
+
+            // Generate thumbnail for video using FFmpeg
+            $thumbnailPath = $this->generateVideoThumbnail($path);
+            $validated['thumbnail'] = $thumbnailPath;
         } elseif ($newMediaType === 'external_video') {
             $validated['file_path'] = null;
             // Generate YouTube thumbnail
@@ -244,6 +255,11 @@ class GalleryController extends Controller
         // Delete associated file
         if ($gallery->file_path && Storage::disk('public')->exists($gallery->file_path)) {
             Storage::disk('public')->delete($gallery->file_path);
+        }
+
+        // Delete associated thumbnail if it's not the default
+        if ($gallery->thumbnail && $gallery->thumbnail !== 'images/video-default.jpg' && Storage::disk('public')->exists($gallery->thumbnail)) {
+            Storage::disk('public')->delete($gallery->thumbnail);
         }
 
         $gallery->delete();
@@ -312,5 +328,49 @@ class GalleryController extends Controller
         }
 
         return null;
+    }
+
+    /**
+     * Generate thumbnail for video using FFmpeg
+     */
+    private function generateVideoThumbnail($videoPath)
+    {
+        $videoFullPath = storage_path('app/public/' . $videoPath);
+
+        // Check if video file exists
+        if (!file_exists($videoFullPath)) {
+            Log::error("Video file not found: {$videoFullPath}");
+            return 'images/video-default.jpg';
+        }
+
+        $thumbnailName = 'thumb_' . uniqid() . '.jpg';
+        $thumbnailPath = 'gallery/thumbnails/' . $thumbnailName;
+        $thumbnailFullPath = storage_path('app/public/' . $thumbnailPath);
+
+        // Create thumbnails directory if it doesn't exist
+        $thumbnailDir = storage_path('app/public/gallery/thumbnails');
+        if (!file_exists($thumbnailDir)) {
+            mkdir($thumbnailDir, 0777, true);
+        }
+
+        // Generate thumbnail using FFmpeg (capture at 2 seconds)
+        // Use quotes to handle paths with spaces
+        $cmd = "ffmpeg -i \"{$videoFullPath}\" -ss 00:00:02 -vframes 1 -q:v 2 \"{$thumbnailFullPath}\" 2>&1";
+        $output = shell_exec($cmd);
+
+        // Check if thumbnail was generated successfully
+        if (file_exists($thumbnailFullPath)) {
+            return $thumbnailPath;
+        }
+
+        // Log error for debugging
+        Log::error("FFmpeg thumbnail generation failed", [
+            'video_path' => $videoFullPath,
+            'command' => $cmd,
+            'output' => $output
+        ]);
+
+        // Fallback to default thumbnail if FFmpeg fails
+        return 'images/video-default.jpg';
     }
 }

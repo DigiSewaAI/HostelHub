@@ -327,7 +327,17 @@
                 <div class="gallery-item animate-fade-in" data-category="{{ $item['category'] }}">
                     @if($item['media_type'] === 'external_video' || $item['media_type'] === 'local_video')
                         <div class="video-thumbnail">
-                            <img src="{{ $item['thumbnail_url'] }}" alt="{{ $item['title'] }}" class="w-full h-full object-cover">
+                            <!-- Use thumbnail if available, otherwise use file_path for local videos or default for external -->
+                            @if($item['media_type'] === 'local_video' && !empty($item['thumbnail_url']))
+                                <img src="{{ $item['thumbnail_url'] }}" alt="{{ $item['title'] }}" class="w-full h-full object-cover">
+                            @elseif($item['media_type'] === 'local_video' && !empty($item['file_url']))
+                                <img src="{{ $item['file_url'] }}" alt="{{ $item['title'] }}" class="w-full h-full object-cover">
+                            @elseif(!empty($item['thumbnail_url']))
+                                <img src="{{ $item['thumbnail_url'] }}" alt="{{ $item['title'] }}" class="w-full h-full object-cover">
+                            @else
+                                <!-- Default video thumbnail -->
+                                <img src="{{ asset('images/default-video-thumbnail.jpg') }}" alt="{{ $item['title'] }}" class="w-full h-full object-cover">
+                            @endif
                             <div class="play-icon">
                                 <i class="fas fa-play-circle"></i>
                             </div>
@@ -361,7 +371,14 @@
                         </div>
                     @else
                         <div class="gallery-img-container">
-                            <img src="{{ $item['thumbnail_url'] }}" alt="{{ $item['title'] }}" class="gallery-img">
+                            <!-- Use thumbnail if available, otherwise use file_path -->
+                            @if(!empty($item['thumbnail_url']))
+                                <img src="{{ $item['thumbnail_url'] }}" alt="{{ $item['title'] }}" class="gallery-img">
+                            @elseif(!empty($item['file_url']))
+                                <img src="{{ $item['file_url'] }}" alt="{{ $item['title'] }}" class="gallery-img">
+                            @else
+                                <img src="{{ asset('images/default-image.jpg') }}" alt="{{ $item['title'] }}" class="gallery-img">
+                            @endif
                             <div class="gallery-overlay">
                                 <button class="text-white font-medium view-image" 
                                         data-image="{{ $item['file_url'] }}" 

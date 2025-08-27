@@ -327,7 +327,17 @@
                 <div class="gallery-item animate-fade-in" data-category="<?php echo e($item['category']); ?>">
                     <?php if($item['media_type'] === 'external_video' || $item['media_type'] === 'local_video'): ?>
                         <div class="video-thumbnail">
-                            <img src="<?php echo e($item['thumbnail_url']); ?>" alt="<?php echo e($item['title']); ?>" class="w-full h-full object-cover">
+                            <!-- Use thumbnail if available, otherwise use file_path for local videos or default for external -->
+                            <?php if($item['media_type'] === 'local_video' && !empty($item['thumbnail_url'])): ?>
+                                <img src="<?php echo e($item['thumbnail_url']); ?>" alt="<?php echo e($item['title']); ?>" class="w-full h-full object-cover">
+                            <?php elseif($item['media_type'] === 'local_video' && !empty($item['file_url'])): ?>
+                                <img src="<?php echo e($item['file_url']); ?>" alt="<?php echo e($item['title']); ?>" class="w-full h-full object-cover">
+                            <?php elseif(!empty($item['thumbnail_url'])): ?>
+                                <img src="<?php echo e($item['thumbnail_url']); ?>" alt="<?php echo e($item['title']); ?>" class="w-full h-full object-cover">
+                            <?php else: ?>
+                                <!-- Default video thumbnail -->
+                                <img src="<?php echo e(asset('images/default-video-thumbnail.jpg')); ?>" alt="<?php echo e($item['title']); ?>" class="w-full h-full object-cover">
+                            <?php endif; ?>
                             <div class="play-icon">
                                 <i class="fas fa-play-circle"></i>
                             </div>
@@ -362,7 +372,14 @@
                         </div>
                     <?php else: ?>
                         <div class="gallery-img-container">
-                            <img src="<?php echo e($item['thumbnail_url']); ?>" alt="<?php echo e($item['title']); ?>" class="gallery-img">
+                            <!-- Use thumbnail if available, otherwise use file_path -->
+                            <?php if(!empty($item['thumbnail_url'])): ?>
+                                <img src="<?php echo e($item['thumbnail_url']); ?>" alt="<?php echo e($item['title']); ?>" class="gallery-img">
+                            <?php elseif(!empty($item['file_url'])): ?>
+                                <img src="<?php echo e($item['file_url']); ?>" alt="<?php echo e($item['title']); ?>" class="gallery-img">
+                            <?php else: ?>
+                                <img src="<?php echo e(asset('images/default-image.jpg')); ?>" alt="<?php echo e($item['title']); ?>" class="gallery-img">
+                            <?php endif; ?>
                             <div class="gallery-overlay">
                                 <button class="text-white font-medium view-image" 
                                         data-image="<?php echo e($item['file_url']); ?>" 
