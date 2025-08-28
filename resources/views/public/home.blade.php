@@ -30,6 +30,14 @@
             --glow: 0 8px 30px rgba(14, 165, 233, 0.25);
             --header-height: 70px;     /* Reduced header height */
         }
+        
+        /* Prevent horizontal overflow on mobile */
+        html, body {
+            overflow-x: hidden;
+            width: 100%;
+            max-width: 100vw;
+        }
+        
         * {
             margin: 0;
             padding: 0;
@@ -40,7 +48,6 @@
             background-color: #ffffff;
             font-family: 'Inter', sans-serif;
             line-height: 1.6;
-            overflow-x: hidden;
         }
         .nepali {
             font-family: 'Noto Sans Devanagari', sans-serif;
@@ -145,6 +152,8 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease;
             height: var(--header-height);
+            left: 0;
+            right: 0;
         }
         .header-scrolled {
             padding: 0.5rem 0; /* Reduced padding */
@@ -163,6 +172,7 @@
             align-items: center;
             width: 100%;
             height: 100%;
+            min-width: 0; /* Allow flex items to shrink */
         }
         /* Logo styles - UPDATED */
         .logo {
@@ -173,6 +183,8 @@
             font-weight: 700;
             font-size: 1.3rem; /* Reduced font size */
             color: var(--text-light);
+            flex-shrink: 1;
+            min-width: 0; /* Allow logo to shrink */
         }
         header .logo img {
             width: 75px; /* Reduced logo size */
@@ -189,6 +201,7 @@
             color: var(--text-light);
             font-weight: bold;
             font-size: 18px; /* Reduced font size */
+            flex-shrink: 0;
         }
         .logo-text {
             display: flex;
@@ -198,6 +211,7 @@
             font-size: 1.3rem; /* Reduced font size */
             line-height: 1.2;
             margin: 0;
+            white-space: nowrap;
         }
         .logo-text span {
             font-size: 0.7rem; /* Reduced font size */
@@ -246,6 +260,7 @@
             font-size: 1.3rem; /* Reduced font size */
             cursor: pointer;
             color: var(--text-light);
+            flex-shrink: 0; /* Prevent button from shrinking */
         }
         /* Hero Section - IMPROVED */
         .hero {
@@ -1100,6 +1115,9 @@
             }
         }
         @media (max-width: 480px) {
+            .container {
+                padding: 0 1rem; /* Added container padding adjustment for mobile */
+            }
             .hero-title {
                 font-size: 1.8rem; /* Adjusted for small mobile */
             }
@@ -1125,6 +1143,21 @@
             header .logo img {
                 width: 60px; /* Further reduced logo size for mobile */
                 height: 60px; /* Further reduced logo size for mobile */
+            }
+        }
+        @media (max-width: 360px) {
+            .container {
+                padding: 0 0.5rem; /* Further reduced padding for very small devices */
+            }
+            header .logo img {
+                width: 50px; /* Further reduced logo size for very small devices */
+                height: 50px; /* Further reduced logo size for very small devices */
+            }
+            .logo-text h1 {
+                font-size: 1rem; /* Reduced font size for very small devices */
+            }
+            .logo-text span {
+                font-size: 0.6rem; /* Reduced font size for very small devices */
             }
         }
         /* Accessibility Focus Styles */
@@ -1157,16 +1190,16 @@
             <div class="container">
                 <div class="navbar">
                     <!-- Header Logo -->
-<a href="/" class="logo">
-    <!-- Real Logo Image -->
-    <div class="logo-image">
-        <img src="{{ asset('storage/images/logo.png') }}" alt="HostelHub Logo" style="height: 50px; width: auto;">
-    </div>
-    <div class="logo-text">
-        <h1>HostelHub</h1>
-        <span class="nepali">होस्टल प्रबन्धन</span>
-    </div>
-</a>
+                    <a href="/" class="logo">
+                        <!-- Real Logo Image -->
+                        <div class="logo-image">
+                            <img src="{{ asset('storage/images/logo.png') }}" alt="HostelHub Logo" style="height: 50px; width: auto;">
+                        </div>
+                        <div class="logo-text">
+                            <h1>HostelHub</h1>
+                            <span class="nepali">होस्टल प्रबन्धन</span>
+                        </div>
+                    </a>
                     <div class="nav-links" id="main-nav">
                         <a href="{{ route('features') }}" class="nepali">सुविधाहरू</a>
                         <a href="{{ route('how-it-works') }}" class="nepali">कसरी काम गर्छ</a>
@@ -1551,10 +1584,10 @@
             <div class="footer-grid">
                 <div class="footer-col">
                     <!-- Footer Logo -->
-<a href="/" class="footer-logo">
-    <img src="{{ asset('storage/images/logo.png') }}" alt="HostelHub Logo" style="height: 146px; width: auto;">
-    <span>HostelHub</span>
-</a>
+                    <a href="/" class="footer-logo">
+                        <img src="{{ asset('storage/images/logo.png') }}" alt="HostelHub Logo" style="height: 146px; width: auto;">
+                        <span>HostelHub</span>
+                    </a>
                     <p class="nepali" style="color: rgba(249, 250, 251, 0.8); margin-top: 12px; line-height: 1.6;">
                         नेपालको नम्बर १ होस्टल प्रबन्धन प्रणाली। हामी होस्टल व्यवस्थापनलाई सहज, दक्ष र विश्वसनीय बनाउँछौं।
                     </p>
