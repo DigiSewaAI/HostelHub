@@ -8,14 +8,11 @@ use App\Models\Review;
 use App\Models\Room;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Storage;
 
 class HomeController extends Controller
 {
     /**
      * Show the application dashboard.
-     *
-     * @return \Illuminate\Contracts\Support\Renderable
      */
     public function index()
     {
@@ -36,69 +33,81 @@ class HomeController extends Controller
             return Room::distinct()->pluck('type');
         });
 
-        // Fetch 10 random active gallery items with optimized media handling
-        $galleryItems = Cache::remember('home_gallery_items_random', 3600, function () {
+        // Fetch 5 most recent active gallery items for the hero slider
+        $heroSliderItems = Cache::remember('home_hero_slider_items', 3600, function () {
             return Gallery::where('is_active', true)
-                ->inRandomOrder()
-                ->take(10)
+                ->orderBy('created_at', 'desc')
+                ->take(5)
                 ->get()
                 ->map(function ($item) {
-                    $processed = [
-                        'id' => $item->id,
-                        'title' => $item->title,
-                        'media_type' => $item->media_type,
-                        'description' => $item->description,
-                        'is_featured' => $item->is_featured,
-                        'created_at' => $item->created_at->format('M d, Y'),
-                        'thumbnail_url' => '',
-                        'file_url' => '',
-                        'youtube_id' => null,
-                    ];
-
-                    // Handle photo media
-                    if ($item->media_type === 'photo') {
-                        $processed['file_url'] = asset('storage/' . $item->file_path);
-                        $processed['thumbnail_url'] = $item->thumbnail
-                            ? asset('storage/' . $item->thumbnail)
-                            : $processed['file_url'];
-                    }
-                    // Handle local video media
-                    elseif ($item->media_type === 'local_video') {
-                        $processed['file_url'] = asset('storage/' . $item->file_path);
-                        $processed['thumbnail_url'] = $item->thumbnail
-                            ? asset('storage/' . $item->thumbnail)
-                            : asset('images/video-default.jpg');
-                    }
-                    // Handle external YouTube videos
-                    elseif ($item->media_type === 'external_video') {
-                        $youtubeId = $this->getYoutubeIdFromUrl($item->external_link);
-                        $processed['youtube_id'] = $youtubeId;
-
-                        $processed['thumbnail_url'] = $item->thumbnail
-                            ? asset('storage/' . $item->thumbnail)
-                            : ($youtubeId
-                                ? "https://img.youtube.com/vi/{$youtubeId}/mqdefault.jpg"
-                                : asset('images/video-default.jpg'));
-                    }
-
-                    return $processed;
+                    return $this->processGalleryItem($item);
                 });
         });
 
-        return view('welcome', compact(
+        // Fetch 10 most recent active gallery items for the gallery section
+        $galleryItems = Cache::remember('home_gallery_items', 3600, function () {
+            return Gallery::where('is_active', true)
+                ->orderBy('created_at', 'desc')
+                ->take(10)
+                ->get()
+                ->map(function ($item) {
+                    return $this->processGalleryItem($item);
+                });
+        });
+
+        // सुनिश्चित गर्नुहोस् कि View Path मिल्छ
+        return view('public.home', compact(
             'cities',
             'hostels',
             'reviews',
             'roomTypes',
+            'heroSliderItems',
             'galleryItems'
         ));
     }
 
     /**
+     * Process gallery item for consistent media handling
+     */
+    private function processGalleryItem(Gallery $item): array
+    {
+        $processed = [
+            'id' => $item->id,
+            'title' => $item->title,
+            'media_type' => $item->media_type,
+            'description' => $item->description,
+            'is_featured' => $item->is_featured,
+            'created_at' => $item->created_at->format('M d, Y'),
+            'thumbnail_url' => '',
+            'file_url' => '',
+            'youtube_id' => null,
+        ];
+
+        if ($item->media_type === 'photo') {
+            $processed['file_url'] = asset('storage/' . $item->file_path);
+            $processed['thumbnail_url'] = $item->thumbnail
+                ? asset('storage/' . $item->thumbnail)
+                : $processed['file_url'];
+        } elseif ($item->media_type === 'local_video') {
+            $processed['file_url'] = asset('storage/' . $item->file_path);
+            $processed['thumbnail_url'] = $item->thumbnail
+                ? asset('storage/' . $item->thumbnail)
+                : asset('images/video-default.jpg');
+        } elseif ($item->media_type === 'external_video') {
+            $youtubeId = $this->getYoutubeIdFromUrl($item->external_link);
+            $processed['youtube_id'] = $youtubeId;
+            $processed['thumbnail_url'] = $item->thumbnail
+                ? asset('storage/' . $item->thumbnail)
+                : ($youtubeId
+                    ? "https://img.youtube.com/vi/{$youtubeId}/mqdefault.jpg"
+                    : asset('images/video-default.jpg'));
+        }
+
+        return $processed;
+    }
+
+    /**
      * Handle search request
-     *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Contracts\View\View
      */
     public function search(Request $request)
     {
@@ -123,18 +132,23 @@ class HomeController extends Controller
     }
 
     /**
-     * Robust YouTube ID extraction (handles all URL formats)
-     *
-     * @param string $url
-     * @return string|null
+     * Extract YouTube ID from URL
      */
     private function getYoutubeIdFromUrl(string $url): ?string
     {
         if (empty($url)) return null;
 
-        $pattern = '%^ (?:https?://)? (?:www\.)? (?: youtu\.be/ | youtube\.com (?: /embed/ | /v/ | /watch\?v= | /watch\?.+&v= ) ) ([\w-]{11}) $%x';
-        preg_match($pattern, $url, $matches);
+        $pattern = '%^
+            (?:https?://)?
+            (?:www\.)?
+            (?: youtu\.be/ |
+                youtube\.com
+                (?: /embed/ | /v/ | /watch\?v= | /watch\?.+&v= )
+            )
+            ([\w-]{11})
+            $%x';
 
+        preg_match($pattern, $url, $matches);
         return $matches[1] ?? null;
     }
 }

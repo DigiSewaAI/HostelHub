@@ -386,6 +386,7 @@
         .form-group {
             margin-bottom: 0.9rem; /* Reduced margin */
             position: relative;
+            min-height: 85px; /* Ensure consistent height for error messages */
         }
         .form-group label {
             display: block;
@@ -702,6 +703,8 @@
             display: flex;
             align-items: center;
             gap: 1rem; /* Reduced gap */
+            position: relative;
+            z-index: 1;
         }
         .author-avatar {
             width: 55px; /* Reduced size */
@@ -829,12 +832,16 @@
             font-weight: 800;
             margin-bottom: 1.2rem; /* Reduced margin */
             color: var(--text-light);
+            position: relative;
+            z-index: 1;
         }
         .trial-subtitle {
             font-size: 1.2rem; /* Reduced font size */
             color: rgba(249, 250, 251, 0.9);
             margin-bottom: 2.2rem; /* Reduced margin */
             line-height: 1.6;
+            position: relative;
+            z-index: 1;
         }
         .trial-highlight {
             background: rgba(255, 255, 255, 0.15);
@@ -844,6 +851,8 @@
             margin: 1.8rem auto; /* Reduced margin */
             max-width: 600px;
             border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            z-index: 1;
         }
         .trial-highlight-text {
             font-size: 1.3rem; /* Reduced font size */
@@ -855,6 +864,8 @@
             justify-content: center;
             gap: 1.2rem; /* Reduced gap */
             flex-wrap: wrap;
+            position: relative;
+            z-index: 1;
         }
         /* Footer - REDUCED HEIGHT */
         footer {
@@ -1250,21 +1261,15 @@
                             </div>
                         </div>
                     </div>
+
                     <div class="hero-slideshow">
                         <div class="swiper hero-slider">
                             <div class="swiper-wrapper">
+                                @foreach($heroSliderItems as $item)
                                 <div class="swiper-slide">
-                                    <img src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Hostel Image 1" loading="lazy">
+                                    <img src="{{ $item['thumbnail_url'] }}" alt="{{ $item['title'] }}" loading="lazy">
                                 </div>
-                                <div class="swiper-slide">
-                                    <img src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwa90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Hostel Image 2" loading="lazy">
-                                </div>
-                                <div class="swiper-slide">
-                                    <img src="https://images.unsplash.com/photo-1615876234886-fd9a39fda97f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1332&q=80" alt="Hostel Image 3" loading="lazy">
-                                </div>
-                                <div class="swiper-slide">
-                                    <img src="https://images.unsplash.com/photo-1593696140826-c58b021acf8b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Hostel Image 4" loading="lazy">
-                                </div>
+                                @endforeach
                             </div>
                         </div>
                     </div>
@@ -1275,35 +1280,36 @@
         <section class="container">
             <div class="search-widget">
                 <h3 class="widget-title nepali">कोठा खोजी / रिजर्भ गर्नुहोस्</h3>
-                <form class="widget-form" id="booking-form" action="/search" method="GET">
+                <form class="widget-form" id="booking-form" action="{{ route('search') }}" method="GET">
+                    @csrf
                     <div class="form-group">
-                        <label class="nepali" for="location">स्थान / City</label>
-                        <select class="form-control" name="location" id="location" required aria-required="true">
-                            <option value="">काठमाडौं</option>
-                            <option value="pokhara">पोखरा</option>
-                            <option value="chitwan">चितवन</option>
-                            <option value="biratnagar">बिराटनगर</option>
+                        <label class="nepali" for="city">स्थान / City</label>
+                        <select class="form-control" name="city" id="city" required aria-required="true">
+                            <option value="">स्थान चयन गर्नुहोस्</option>
+                            @foreach($cities as $city)
+                                <option value="{{ $city }}">{{ $city }}</option>
+                            @endforeach
                         </select>
                         <div class="error-message nepali">स्थान चयन गर्नुहोस्</div>
                     </div>
                     <div class="form-group">
-                        <label class="nepali" for="hostel">होस्टल / Hostel</label>
-                        <select class="form-control" name="hostel" id="hostel" required aria-required="true">
+                        <label class="nepali" for="hostel_id">होस्टल / Hostel</label>
+                        <select class="form-control" name="hostel_id" id="hostel_id">
                             <option value="">सबै होस्टल</option>
-                            <option value="college">कलेज होस्टल</option>
-                            <option value="girls">बालिका होस्टल</option>
-                            <option value="community">सामुदायिक होस्टल</option>
+                            @foreach($hostels as $hostel)
+                                <option value="{{ $hostel->id }}">{{ $hostel->name }}</option>
+                            @endforeach
                         </select>
                         <div class="error-message nepali">होस्टल चयन गर्नुहोस्</div>
                     </div>
                     <div class="form-group">
-                        <label class="nepali" for="checkin-date">चेक-इन मिति</label>
-                        <input type="date" class="form-control" name="checkin" id="checkin-date" required aria-required="true">
+                        <label class="nepali" for="check_in">चेक-इन मिति</label>
+                        <input type="date" class="form-control" name="check_in" id="check_in" required aria-required="true" min="{{ date('Y-m-d') }}">
                         <div class="error-message nepali">चेक-इन मिति आवश्यक छ</div>
                     </div>
                     <div class="form-group">
-                        <label class="nepali" for="checkout-date">चेक-आउट मिति</label>
-                        <input type="date" class="form-control" name="checkout" id="checkout-date" required aria-required="true">
+                        <label class="nepali" for="check_out">चेक-आउट मिति</label>
+                        <input type="date" class="form-control" name="check_out" id="check_out" required aria-required="true" min="{{ date('Y-m-d', strtotime('+1 day')) }}">
                         <div class="error-message nepali">चेक-आउट मिति आवश्यक छ</div>
                     </div>
                     <div class="form-group">
@@ -1319,44 +1325,20 @@
                 <p class="section-subtitle nepali">हाम्रा होस्टलहरूको फोटो र भिडियोहरू हेर्नुहोस्</p>
                 <div class="gallery-swiper swiper">
                     <div class="swiper-wrapper">
+                        @foreach($galleryItems as $item)
                         <div class="swiper-slide">
-                            <img src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Hostel Image 1" loading="lazy">
-                        </div>
-                        <div class="swiper-slide">
-                            <img src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Hostel Image 2" loading="lazy">
-                        </div>
-                        <div class="swiper-slide">
-                            <img src="https://images.unsplash.com/photo-1615876234886-fd9a39fda97f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1332&q=80" alt="Hostel Image 3" loading="lazy">
-                        </div>
-                        <div class="swiper-slide">
-                            <img src="https://images.unsplash.com/photo-1593696140826-c58b021acf8b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Hostel Image 4" loading="lazy">
-                        </div>
-                        <div class="swiper-slide">
-                            <img src="https://images.unsplash.com/photo-1582407947304-fd86f028f716?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1096&q=80" alt="Hostel Image 5" loading="lazy">
-                        </div>
-                        <div class="swiper-slide">
-                            <img src="https://images.unsplash.com/photo-1618221118493-9cfa1a1c00da?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1032&q=80" alt="Hostel Image 6" loading="lazy">
-                        </div>
-                        <div class="swiper-slide">
-                            <img src="https://images.unsplash.com/photo-1584622650111-993a426fbf0a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Room Image 1" loading="lazy">
-                        </div>
-                        <div class="swiper-slide">
-                            <img src="https://images.unsplash.com/photo-1554995207-c18c203602cb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Room Image 2" loading="lazy">
-                        </div>
-                        <div class="swiper-slide">
-                            <img src="https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1074&q=80" alt="Room Image 3" loading="lazy">
-                        </div>
-                        <div class="swiper-slide">
-                            <img src="https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Room Image 4" loading="lazy">
-                        </div>
-                        <div class="swiper-slide">
-                            <video src="https://assets.mixkit.co/videos/preview/mixkit-student-studying-in-a-dorm-room-44475-large.mp4" controls poster="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1080&q=80" preload="metadata"></video>
-                            <div class="video-overlay">
-                                <div class="video-play-icon">
-                                    <i class="fas fa-play"></i>
+                            @if($item['media_type'] === 'image')
+                                <img src="{{ $item['thumbnail_url'] }}" alt="{{ $item['title'] }}" loading="lazy">
+                            @elseif($item['media_type'] === 'video')
+                                <img src="{{ $item['thumbnail_url'] }}" alt="{{ $item['title'] }}" loading="lazy" class="youtube-thumbnail" data-youtube-id="{{ $item['youtube_id'] ?? '' }}">
+                                <div class="video-overlay">
+                                    <div class="video-play-icon">
+                                        <i class="fas fa-play"></i>
+                                    </div>
                                 </div>
-                            </div>
+                            @endif
                         </div>
+                        @endforeach
                     </div>
                 </div>
                 <div class="gallery-button">
@@ -1372,21 +1354,21 @@
                         <div class="stat-icon">
                             <i class="fas fa-users" aria-hidden="true"></i>
                         </div>
-                        <div class="stat-count count-up" id="students-counter-stat" aria-live="polite">125</div>
+                        <div class="stat-count count-up" id="students-counter-stat" aria-live="polite">{{ $metrics['total_students'] ?? 125 }}</div>
                         <div class="stat-description nepali">खुसी विद्यार्थीहरू</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon">
                             <i class="fas fa-building" aria-hidden="true"></i>
                         </div>
-                        <div class="stat-count count-up" id="hostels-counter-stat" aria-live="polite">24</div>
+                        <div class="stat-count count-up" id="hostels-counter-stat" aria-live="polite">{{ $metrics['total_hostels'] ?? 24 }}</div>
                         <div class="stat-description nepali">सहयोगी होस्टल</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon">
                             <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
                         </div>
-                        <div class="stat-count count-up" id="cities-counter-stat" aria-live="polite">5</div>
+                        <div class="stat-count count-up" id="cities-counter-stat" aria-live="polite">{{ $cities->count() ?? 5 }}</div>
                         <div class="stat-description nepali">शहरहरूमा उपलब्ध</div>
                     </div>
                 </div>
@@ -1473,36 +1455,18 @@
                 <h2 class="section-title nepali" style="color: var(--text-light);">ग्राहकहरूको समीक्षा</h2>
                 <p class="section-subtitle" style="color: rgba(249, 250, 251, 0.9);">HostelHub प्रयोग गर्ने हाम्रा ग्राहकहरूले के भन्छन्</p>
                 <div class="testimonials-grid">
+                    @foreach($reviews as $review)
                     <div class="testimonial-card">
-                        <p class="testimonial-text nepali">"HostelHub ले हाम्रो होस्टल व्यवस्थापनलाई पूर्ण रूपमा बदल्यो। सबै कार्यहरू अब स्वचालित भएकाले समय बचत भएको छ र त्रुटि घटेको छ।"</p>
+                        <p class="testimonial-text nepali">{{ $review->content }}</p>
                         <div class="testimonial-author">
-                            <div class="author-avatar">RS</div>
+                            <div class="author-avatar">{{ substr($review->author, 0, 2) }}</div>
                             <div class="author-info">
-                                <h4>राम श्रेष्ठ</h4>
-                                <p>प्रबन्धक, काठमाडौं होस्टल</p>
+                                <h4>{{ $review->author }}</h4>
+                                <p>{{ $review->position }}</p>
                             </div>
                         </div>
                     </div>
-                    <div class="testimonial-card">
-                        <p class="testimonial-text">"The payment tracking and room allocation features have saved us countless hours. The mobile access allows me to manage everything on the go. Highly recommended!"</p>
-                        <div class="testimonial-author">
-                            <div class="author-avatar">SP</div>
-                            <div class="author-info">
-                                <h4>सुनिता पौडेल</h4>
-                                <p>मालिक, पोखरा स्टुडेन्ट होम</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="testimonial-card">
-                        <p class="testimonial-text nepali">"विद्यार्थी व्यवस्थापन र भोजन प्रणालीको एकीकरणले हामीलाई धेरै फाइदा गरायो। यो प्रणाली नेपाली होस्टलहरूको लागि उत्तम छ।"</p>
-                        <div class="testimonial-author">
-                            <div class="author-avatar">AK</div>
-                            <div class="author-info">
-                                <h4>अमित कुमार</h4>
-                                <p>प्रशासक, बिराटनगर कलेज होस्टल</p>
-                            </div>
-                        </div>
-                    </div>
+                    @endforeach
                 </div>
             </div>
         </section>
@@ -1636,6 +1600,7 @@
                         हाम्रो नवीनतम अपडेटहरू प्राप्त गर्न तपाईंको इमेल दर्ता गर्नुहोस्
                     </p>
                     <form class="newsletter-form" action="/subscribe" method="POST">
+                        @csrf
                         <input type="email" name="email" placeholder="तपाईंको इमेल" required aria-label="इमेल ठेगाना">
                         <input type="text" name="honeypot" style="display:none" aria-hidden="true">
                         <button type="submit" class="nepali">दर्ता गर्नुहोस्</button>
@@ -1649,26 +1614,8 @@
     </footer>
     <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
     <script>
-        // Helper function to shuffle an array
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
-        }
-
         // Initialize Swiper sliders
         document.addEventListener('DOMContentLoaded', function() {
-            // Randomize hero slides
-            const heroWrapper = document.querySelector('.hero-slider .swiper-wrapper');
-            if (heroWrapper) {
-                const slides = Array.from(heroWrapper.children);
-                shuffleArray(slides);
-                heroWrapper.innerHTML = '';
-                slides.forEach(slide => heroWrapper.appendChild(slide));
-            }
-
             // Hero Slideshow
             const heroSwiper = new Swiper('.hero-slider', {
                 loop: true,
@@ -1685,15 +1632,6 @@
             
             // Initialize gallery slider after all resources are loaded
             window.addEventListener('load', function() {
-                // Gallery Slideshow with randomization
-                const galleryWrapper = document.querySelector('.gallery-swiper .swiper-wrapper');
-                if (galleryWrapper) {
-                    const slides = Array.from(galleryWrapper.children);
-                    shuffleArray(slides);
-                    galleryWrapper.innerHTML = '';
-                    slides.forEach(slide => galleryWrapper.appendChild(slide));
-                }
-                
                 // Initialize gallery Swiper
                 const gallerySwiper = new Swiper('.gallery-swiper', {
                     slidesPerView: 1,
@@ -1738,6 +1676,49 @@
                 });
             }
             
+            // Form validation
+            const bookingForm = document.getElementById('booking-form');
+            if (bookingForm) {
+                bookingForm.addEventListener('submit', function(e) {
+                    let isValid = true;
+                    
+                    // Validate city
+                    const citySelect = document.getElementById('city');
+                    if (!citySelect.value) {
+                        citySelect.parentElement.classList.add('error');
+                        isValid = false;
+                    } else {
+                        citySelect.parentElement.classList.remove('error');
+                    }
+                    
+                    // Validate check-in date
+                    const checkIn = document.getElementById('check_in');
+                    if (!checkIn.value) {
+                        checkIn.parentElement.classList.add('error');
+                        isValid = false;
+                    } else {
+                        checkIn.parentElement.classList.remove('error');
+                    }
+                    
+                    // Validate check-out date
+                    const checkOut = document.getElementById('check_out');
+                    if (!checkOut.value) {
+                        checkOut.parentElement.classList.add('error');
+                        isValid = false;
+                    } else if (checkIn.value && checkOut.value <= checkIn.value) {
+                        checkOut.parentElement.classList.add('error');
+                        checkOut.parentElement.querySelector('.error-message').textContent = 'चेक-आउट मिति चेक-इन भन्दा पछि हुनुपर्छ';
+                        isValid = false;
+                    } else {
+                        checkOut.parentElement.classList.remove('error');
+                    }
+                    
+                    if (!isValid) {
+                        e.preventDefault();
+                    }
+                });
+            }
+            
             // Counter animation
             function animateCounter(elementId, finalValue, duration = 2000) {
                 const element = document.getElementById(elementId);
@@ -1776,6 +1757,16 @@
             if (statsSection) {
                 counterObserver.observe(statsSection);
             }
+            
+            // YouTube video handling
+            document.querySelectorAll('.youtube-thumbnail').forEach(thumb => {
+                thumb.addEventListener('click', function() {
+                    const youtubeId = this.getAttribute('data-youtube-id');
+                    if (youtubeId) {
+                        window.open(`https://www.youtube.com/watch?v=${youtubeId}`, '_blank');
+                    }
+                });
+            });
         });
     </script>
 </body>

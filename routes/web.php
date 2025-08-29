@@ -25,7 +25,8 @@ use App\Http\Controllers\{
     RegistrationController,
     RoomController as PublicRoomController,
     StudentController as PublicStudentController,
-    SubscriptionController
+    SubscriptionController,
+    SearchController // Added SearchController
 };
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
@@ -57,6 +58,9 @@ Route::get('/robots.txt', [PublicController::class, 'robots'])->name('robots');
 
 // ✅ नयाँ: Demo Page Route
 Route::get('/demo', [PublicController::class, 'demo'])->name('demo');
+
+// ✅ नयाँ: Search Route
+Route::get('/search', [SearchController::class, 'index'])->name('search');
 
 /*
 |--------------------------------------------------------------------------

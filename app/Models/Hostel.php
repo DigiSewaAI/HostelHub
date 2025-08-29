@@ -38,4 +38,10 @@ class Hostel extends Model
     {
         return $this->hasOne(User::class, 'id', 'manager_id');
     }
+
+    // Add this relationship for images
+    public function images(): HasMany
+    {
+        return $this->hasMany(HostelImage::class);
+    }
 }

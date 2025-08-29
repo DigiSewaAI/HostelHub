@@ -28,6 +28,9 @@ class Gallery extends Model
         'is_active' => 'boolean',
     ];
 
+    // Append thumbnail_url to model attributes
+    protected $appends = ['thumbnail_url'];
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
@@ -48,10 +51,12 @@ class Gallery extends Model
 
     public function getThumbnailUrlAttribute(): string
     {
+        // If thumbnail exists locally
         if ($this->thumbnail) {
             return asset('storage/' . ltrim($this->thumbnail, '/'));
         }
 
+        // For external videos (YouTube)
         if ($this->media_type === 'external_video' && $this->external_link) {
             $youtubeId = $this->getYoutubeId($this->external_link);
             if ($youtubeId) {
@@ -60,14 +65,16 @@ class Gallery extends Model
             return asset('images/video-thumbnail.jpg');
         }
 
+        // For local videos
         if ($this->media_type === 'local_video') {
             return asset('images/video-thumbnail.jpg');
         }
 
+        // Default thumbnail
         return asset('images/default-thumbnail.jpg');
     }
 
-    public function getYoutubeId($url): ?string
+    private function getYoutubeId($url): ?string
     {
         if (empty($url)) return null;
 
