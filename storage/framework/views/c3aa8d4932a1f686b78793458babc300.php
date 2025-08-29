@@ -858,6 +858,7 @@
             font-size: 1.3rem; /* Reduced font size */
             font-weight: 700;
             color: var(--text-light);
+            font-family: 'Noto Sans Devanagari', sans-serif;
         }
         .trial-cta {
             display: flex;
@@ -1267,7 +1268,12 @@
                             <div class="swiper-wrapper">
                                 <?php $__currentLoopData = $heroSliderItems; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <div class="swiper-slide">
-                                    <img src="<?php echo e($item['thumbnail_url']); ?>" alt="<?php echo e($item['title']); ?>" loading="lazy">
+                                    <?php if($item['media_type'] === 'image'): ?>
+                                        <img src="<?php echo e($item['thumbnail_url']); ?>" alt="<?php echo e($item['title']); ?>" loading="lazy">
+                                    <?php else: ?>
+                                        <!-- For videos, use a fallback thumbnail if default doesn't load -->
+                                        <img src="<?php echo e($item['thumbnail_url']); ?>" alt="<?php echo e($item['title']); ?>" loading="lazy" onerror="this.onerror=null;this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgZmlsbD0iIzFlM2E4YSI+PC9yZWN0Pjx0ZXh0IHg9IjQwMCIgeT0iMjI1IiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IiNmZmYiPlZpZGVvIFRodW1ibmFpbDwvdGV4dD48L3N2Zz4=';">
+                                    <?php endif; ?>
                                 </div>
                                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </div>
@@ -1328,9 +1334,10 @@
                         <?php $__currentLoopData = $galleryItems; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <div class="swiper-slide">
                             <?php if($item['media_type'] === 'image'): ?>
-                                <img src="<?php echo e($item['thumbnail_url']); ?>" alt="<?php echo e($item['title']); ?>" loading="lazy">
-                            <?php elseif($item['media_type'] === 'video'): ?>
-                                <img src="<?php echo e($item['thumbnail_url']); ?>" alt="<?php echo e($item['title']); ?>" loading="lazy" class="youtube-thumbnail" data-youtube-id="<?php echo e($item['youtube_id'] ?? ''); ?>">
+                                <img src="<?php echo e($item['thumbnail_url']); ?>" alt="<?php echo e($item['title']); ?>" loading="lazy" onerror="this.onerror=null;this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgZmlsbD0iI2YwZjlmZiI+PC9yZWN0Pjx0ZXh0IHg9IjQwMCIgeT0iMjI1IiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IiMxZjI5MzciPkltYWdlIFRodW1ibmFpbDwvdGV4dD48L3N2Zz4=';">
+                            <?php else: ?>
+                                <!-- For videos, use a fallback thumbnail if default doesn't load -->
+                                <img src="<?php echo e($item['thumbnail_url']); ?>" alt="<?php echo e($item['title']); ?>" loading="lazy" class="youtube-thumbnail" data-youtube-id="<?php echo e($item['youtube_id'] ?? ''); ?>" onerror="this.onerror=null;this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgZmlsbD0iIzFlM2E4YSI+PC9yZWN0Pjx0ZXh0IHg9IjQwMCIgeT0iMjI1IiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IiNmZmYiPlZpZGVvIFRodW1ibmFpbDwvdGV4dD48L3N2Zz4=';">
                                 <div class="video-overlay">
                                     <div class="video-play-icon">
                                         <i class="fas fa-play"></i>
@@ -1513,7 +1520,7 @@
                             <div class="pricing-price">रु. ८,९९९<span class="nepali">/महिना</span></div>
                         </div>
                         <ul class="pricing-features">
-                            <li><i class="fas fa-check"></i> <span class="nepali">असीमित विद्यार्थी</span></li>
+                            <li><i class="fas fa-check"></i> <span class="nepali">असीमित विद्यार्थी </span></li>
                             <li><i class="fas fa-check"></i> <span class="nepali">पूर्ण विद्यार्थी व्यवस्थापन</span></li>
                             <li><i class="fas fa-check"></i> <span class="nepali">बहु-होस्टल व्यवस्थापन</span></li>
                             <li><i class="fas fa-check"></i> <span class="nepali">कस्टम भुक्तानी प्रणाली</span></li>
