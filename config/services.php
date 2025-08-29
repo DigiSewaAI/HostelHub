@@ -35,4 +35,17 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Image Configuration
+    |--------------------------------------------------------------------------
+    |
+    | This section contains default image paths used throughout the application.
+    |
+    */
+
+    'images' => [
+        'default_gallery_thumbnail' => 'images/default-gallery-thumbnail.jpg',
+    ],
+
 ];
