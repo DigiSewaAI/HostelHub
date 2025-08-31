@@ -18,14 +18,43 @@
     RewriteCond %{REQUEST_URI} (.+)/$
     RewriteRule ^ %1 [L,R=301]
 
-    # ========== CRITICAL FIX: Gallery Rewrite Rule (MUST BE BEFORE Laravel's rule) ==========
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^storage/gallery/(.*)$ /storage/app/public/gallery/$1 [L]
-    # ======================================================================================
+    # ========== CRITICAL FIX: Gallery Rewrite Rule ==========
+    RewriteRule ^storage/gallery/(.*)$ /storage/app/public/gallery/$1 [L,NC]
 
     # Send Requests To Front Controller...
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
+</IfModule>
+
+# Enable CORS and byte-range requests for videos
+<IfModule mod_headers.c>
+    <FilesMatch "\.(mp4|mov|avi|wmv|flv|webm|m3u8|ts|m4v)$">
+        Header set Access-Control-Allow-Origin "*"
+        Header set Access-Control-Allow-Methods "GET, HEAD, OPTIONS"
+        Header set Access-Control-Allow-Headers "Range, Origin, Content-Type"
+        Header set Accept-Ranges bytes
+        Header set Access-Control-Expose-Headers "Content-Length, Content-Range"
+    </FilesMatch>
+</IfModule>
+
+# PHP configuration for large files
+<IfModule mod_php.c>
+    php_value upload_max_filesize 100M
+    php_value post_max_size 100M
+    php_value max_execution_time 300
+    php_value max_input_time 300
+</IfModule>
+
+# Additional optimization for video streaming
+<IfModule mod_mime.c>
+    AddType video/mp4 .mp4
+    AddType video/quicktime .mov
+    AddType video/x-msvideo .avi
+    AddType video/x-ms-wmv .wmv
+    AddType video/x-flv .flv
+    AddType video/webm .webm
+    AddType application/x-mpegURL .m3u8
+    AddType video/MP2T .ts
+    AddType video/mp4 .m4v
 </IfModule>

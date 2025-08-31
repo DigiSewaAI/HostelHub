@@ -102,9 +102,8 @@
             <option value="4 seater" {{ old('category', $gallery->category ?? '') == '4 seater' ? 'selected' : '' }}>4 Seater Room</option>
             <option value="common" {{ old('category', $gallery->category ?? '') == 'common' ? 'selected' : '' }}>Common Area</option>
             <option value="kitchen" {{ old('category', $gallery->category ?? '') == 'kitchen' ? 'selected' : '' }}>Kitchen</option>
-            <option value="living room" {{ old('category', $gallery->category ?? '') == 'living room' ? 'selected' : '' }}>Living Room</option>
-            <option value="study room" {{ old('category', $gallery->category ?? '') == 'study room' ? 'selected' : '' }}>Study Room</option>
             <option value="bathroom" {{ old('category', $gallery->category ?? '') == 'bathroom' ? 'selected' : '' }}>Bathroom</option>
+            <option value="study room" {{ old('category', $gallery->category ?? '') == 'study room' ? 'selected' : '' }}>Study Room</option>
             <option value="event" {{ old('category', $gallery->category ?? '') == 'event' ? 'selected' : '' }}>Event Photos</option>
         </select>
     </div>

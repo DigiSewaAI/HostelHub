@@ -11,16 +11,15 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('students', function (Blueprint $table) {
-            $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');
+        Schema::table('galleries', function (Blueprint $table) {
+            $table->string('media_type')->nullable()->after('description');
         });
     }
 
     public function down()
     {
-        Schema::table('students', function (Blueprint $table) {
-            $table->dropForeign(['user_id']);
-            $table->dropColumn('user_id');
+        Schema::table('galleries', function (Blueprint $table) {
+            $table->dropColumn('media_type');
         });
     }
 };

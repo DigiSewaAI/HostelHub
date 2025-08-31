@@ -364,7 +364,8 @@
                                 <span><i class="far fa-calendar-alt mr-1"></i> {{ $item['created_at'] }}</span>
                                 <button class="text-indigo-600 hover:text-indigo-800 font-medium play-video" 
                                         data-video="{{ $item['media_type'] === 'local_video' ? $item['file_url'] : $item['external_link'] }}" 
-                                        data-title="{{ $item['title'] }}">
+                                        data-title="{{ $item['title'] }}"
+                                        data-type="{{ $item['media_type'] }}">
                                     <i class="fas fa-play mr-1"></i> हेर्नुहोस्
                                 </button>
                             </div>
@@ -655,77 +656,191 @@
             });
 
             // Video modal functionality
-            const videoModal = document.getElementById('videoModal');
-            const modalVideo = document.getElementById('modalVideo');
-            const videoModalTitle = document.getElementById('videoModalTitle');
-            const closeVideoModal = document.getElementById('closeVideoModal');
-            const videoLoading = document.getElementById('videoLoading');
+const videoModal = document.getElementById('videoModal');
+const modalVideo = document.getElementById('modalVideo');
+const videoModalTitle = document.getElementById('videoModalTitle');
+const closeVideoModal = document.getElementById('closeVideoModal');
+const videoLoading = document.getElementById('videoLoading');
+
+// Add cache busting to video URLs
+function addCacheBuster(url) {
+    const separator = url.includes('?') ? '&' : '?';
+    return url + separator + 't=' + Date.now();
+}
+
+// Close video modal
+function closeVideoModalFunc() {
+    videoModal.classList.remove('open');
+    modalVideo.pause();
+    modalVideo.currentTime = 0;
+    modalVideo.removeAttribute('src');
+    modalVideo.load();
+    setTimeout(() => {
+        videoModal.classList.add('hidden');
+    }, 300);
+}
+
+// Preload videos to avoid loading issues
+function preloadVideo(url) {
+    return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', url, true);
+        xhr.responseType = 'blob';
+        
+        xhr.onload = function() {
+            if (this.status === 200) {
+                const blob = this.response;
+                const blobUrl = URL.createObjectURL(blob);
+                resolve(blobUrl);
+            } else {
+                reject(new Error('Video loading failed'));
+            }
+        };
+        
+        xhr.onerror = function() {
+            reject(new Error('Network error'));
+        };
+        
+        xhr.send();
+    });
+}
+
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('play-video')) {
+        let videoSrc = e.target.getAttribute('data-video');
+        const videoType = e.target.getAttribute('data-type');
+        videoModalTitle.textContent = e.target.getAttribute('data-title');
+        videoModal.classList.remove('hidden');
+        setTimeout(() => videoModal.classList.add('open'), 10);
+        
+        videoLoading.classList.remove('hidden');
+        
+        // Add cache buster to prevent browser caching issues
+        if (videoType === 'local_video') {
+            videoSrc = addCacheBuster(videoSrc);
+        }
+        
+        // Clear previous source
+        modalVideo.innerHTML = '';
+        
+        // For external videos (YouTube), use iframe
+        if (videoType === 'external_video') {
+            modalVideo.style.display = 'none';
+            const iframe = document.createElement('iframe');
+            iframe.src = videoSrc;
+            iframe.width = '100%';
+            iframe.height = '100%';
+            iframe.style.minHeight = '70vh';
+            iframe.setAttribute('frameborder', '0');
+            iframe.setAttribute('allowfullscreen', 'true');
+            modalVideo.parentNode.appendChild(iframe);
             
-            document.addEventListener('click', function(e) {
-                if (e.target.classList.contains('play-video')) {
-                    const videoSrc = e.target.getAttribute('data-video');
-                    videoModalTitle.textContent = e.target.getAttribute('data-title');
-                    videoModal.classList.remove('hidden');
-                    setTimeout(() => videoModal.classList.add('open'), 10);
+            iframe.onload = function() {
+                videoLoading.classList.add('hidden');
+            };
+            
+            iframe.onerror = function() {
+                videoLoading.classList.add('hidden');
+                videoModalTitle.textContent = 'भिडियो लोड गर्न असमर्थ';
+            };
+        } else {
+            // For local videos
+            modalVideo.style.display = 'block';
+            
+            // Try to preload the video first
+            preloadVideo(videoSrc)
+                .then(blobUrl => {
+                    const source = document.createElement('source');
+                    source.src = blobUrl;
                     
-                    videoLoading.classList.remove('hidden');
-                    modalVideo.src = videoSrc;
+                    if (videoSrc.endsWith('.mp4')) {
+                        source.type = 'video/mp4';
+                    } else if (videoSrc.endsWith('.webm')) {
+                        source.type = 'video/webm';
+                    } else if (videoSrc.endsWith('.ogg') || videoSrc.endsWith('.ogv')) {
+                        source.type = 'video/ogg';
+                    } else {
+                        source.type = 'video/mp4'; // Default
+                    }
+                    
+                    modalVideo.appendChild(source);
                     modalVideo.load();
                     
-                    modalVideo.addEventListener('canplay', () => {
+                    modalVideo.addEventListener('canplay', function canPlayHandler() {
                         videoLoading.classList.add('hidden');
                         modalVideo.play().catch(e => {
                             console.error('Video play failed:', e);
                             videoLoading.classList.add('hidden');
                         });
-                    });
+                    }, { once: true });
                     
-                    modalVideo.addEventListener('error', () => {
+                    modalVideo.addEventListener('error', function errorHandler() {
                         videoLoading.classList.add('hidden');
                         videoModalTitle.textContent = 'भिडियो लोड गर्न असमर्थ';
-                    });
-                }
-            });
-
-            closeVideoModal.addEventListener('click', () => {
-                videoModal.classList.remove('open');
-                modalVideo.pause();
-                setTimeout(() => {
-                    videoModal.classList.add('hidden');
-                    modalVideo.src = '';
-                }, 300);
-            });
-
-            videoModal.addEventListener('click', (e) => {
-                if (e.target === videoModal) {
-                    videoModal.classList.remove('open');
-                    modalVideo.pause();
-                    setTimeout(() => {
-                        videoModal.classList.add('hidden');
-                        modalVideo.src = '';
-                    }, 300);
-                }
-            });
-
-            // Keyboard events for modals
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape') {
-                    if (videoModal.classList.contains('open')) {
-                        videoModal.classList.remove('open');
-                        modalVideo.pause();
+                        
+                        // Try direct source as fallback
                         setTimeout(() => {
-                            videoModal.classList.add('hidden');
-                            modalVideo.src = '';
-                        }, 300);
-                    }
-                    if (imageModal.classList.contains('open')) {
-                        imageModal.classList.remove('open');
-                        setTimeout(() => {
-                            imageModal.classList.add('hidden');
-                        }, 300);
-                    }
-                }
-            });
+                            modalVideo.innerHTML = '';
+                            const fallbackSource = document.createElement('source');
+                            fallbackSource.src = videoSrc;
+                            fallbackSource.type = 'video/mp4';
+                            modalVideo.appendChild(fallbackSource);
+                            modalVideo.load();
+                        }, 1000);
+                    }, { once: true });
+                })
+                .catch(error => {
+                    console.error('Preloading failed:', error);
+                    // Fallback to direct loading
+                    const source = document.createElement('source');
+                    source.src = videoSrc;
+                    source.type = 'video/mp4';
+                    modalVideo.appendChild(source);
+                    modalVideo.load();
+                    
+                    modalVideo.addEventListener('canplay', function canPlayHandler() {
+                        videoLoading.classList.add('hidden');
+                        modalVideo.play().catch(e => {
+                            console.error('Video play failed:', e);
+                            videoLoading.classList.add('hidden');
+                        });
+                    }, { once: true });
+                    
+                    modalVideo.addEventListener('error', function errorHandler() {
+                        videoLoading.classList.add('hidden');
+                        videoModalTitle.textContent = 'भिडियो लोड गर्न असमर्थ';
+                    }, { once: true });
+                });
+        }
+    }
+});
+
+closeVideoModal.addEventListener('click', closeVideoModalFunc);
+
+videoModal.addEventListener('click', (e) => {
+    if (e.target === videoModal) {
+        closeVideoModalFunc();
+        // Remove any iframe that might have been added
+        const iframe = modalVideo.parentNode.querySelector('iframe');
+        if (iframe) {
+            iframe.parentNode.removeChild(iframe);
+        }
+    }
+});
+
+// Keyboard events for modals
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        if (videoModal.classList.contains('open')) {
+            closeVideoModalFunc();
+            // Remove any iframe that might have been added
+            const iframe = modalVideo.parentNode.querySelector('iframe');
+            if (iframe) {
+                iframe.parentNode.removeChild(iframe);
+            }
+        }
+    }
+});
 
             // Initialize animations
             setTimeout(() => {
