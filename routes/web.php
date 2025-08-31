@@ -5,6 +5,7 @@ use App\Http\Controllers\{
     Admin\HostelController as AdminHostelController,
     Admin\RoomController as AdminRoomController,
     Admin\StudentController as AdminStudentController,
+    Admin\GalleryController as AdminGalleryController, // Added Admin GalleryController
     Auth\AuthenticatedSessionController,
     Auth\ConfirmablePasswordController,
     Auth\EmailVerificationNotificationController,
@@ -190,7 +191,9 @@ Route::middleware(['auth', 'role:admin,hostel_manager', EnsureOrgContext::class,
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
-        Route::resource('gallery', \App\Http\Controllers\GalleryController::class);
+        Route::resource('gallery', AdminGalleryController::class);
+        // Add video streaming route
+        Route::get('gallery/stream/{gallery}', [AdminGalleryController::class, 'streamVideo'])->name('gallery.stream');
     });
 
 /*

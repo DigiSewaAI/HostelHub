@@ -19,7 +19,7 @@ class GalleryController extends Controller
     {
         $this->authorize('viewAny', Gallery::class);
 
-        // Updated categories with event
+        // Updated categories with all options
         $categories = [
             'all'         => 'सबै',
             'video'       => 'भिडियो टुर',
@@ -29,6 +29,9 @@ class GalleryController extends Controller
             '4 seater'    => '४ सिटर कोठा',
             'common'      => 'लिभिङ रूम',
             'bathroom'    => 'बाथरूम',
+            'kitchen'     => 'भान्सा',
+            'living room' => 'लिभिङ रूम',
+            'study room'  => 'अध्ययन कोठा',
             'event'       => 'कार्यक्रम'
         ];
 
@@ -50,7 +53,7 @@ class GalleryController extends Controller
     {
         $this->authorize('create', Gallery::class);
 
-        // Updated categories with event
+        // Updated categories with all options
         $categories = [
             'video'       => 'भिडियो टुर',
             '1 seater'    => '१ सिटर कोठा',
@@ -59,6 +62,9 @@ class GalleryController extends Controller
             '4 seater'    => '४ सिटर कोठा',
             'common'      => 'लिभिङ रूम',
             'bathroom'    => 'बाथरूम',
+            'kitchen'     => 'भान्सा',
+            'living room' => 'लिभिङ रूम',
+            'study room'  => 'अध्ययन कोठा',
             'event'       => 'कार्यक्रम'
         ];
 
@@ -72,7 +78,7 @@ class GalleryController extends Controller
     {
         $this->authorize('create', Gallery::class);
 
-        // Updated validation rules with event category
+        // Updated validation rules with all categories
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
@@ -82,7 +88,7 @@ class GalleryController extends Controller
             'local_video' => 'required_if:media_type,local_video|nullable|file|mimes:mp4,mov,avi|max:51200',
             'category' => [
                 'required',
-                Rule::in(['video', '1 seater', '2 seater', '3 seater', '4 seater', 'common', 'bathroom', 'event'])
+                Rule::in(['video', '1 seater', '2 seater', '3 seater', '4 seater', 'common', 'bathroom', 'kitchen', 'living room', 'study room', 'event'])
             ],
             'status' => 'required|in:active,inactive',
         ]);
@@ -144,7 +150,7 @@ class GalleryController extends Controller
     {
         $this->authorize('update', $gallery);
 
-        // Updated categories with event
+        // Updated categories with all options
         $categories = [
             'video'       => 'भिडियो टुर',
             '1 seater'    => '१ सिटर कोठा',
@@ -153,6 +159,9 @@ class GalleryController extends Controller
             '4 seater'    => '४ सिटर कोठा',
             'common'      => 'लिभिङ रूम',
             'bathroom'    => 'बाथरूम',
+            'kitchen'     => 'भान्सा',
+            'living room' => 'लिभिङ रूम',
+            'study room'  => 'अध्ययन कोठा',
             'event'       => 'कार्यक्रम'
         ];
 
@@ -166,7 +175,7 @@ class GalleryController extends Controller
     {
         $this->authorize('update', $gallery);
 
-        // Updated validation rules with event category
+        // Updated validation rules with all categories
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
@@ -176,7 +185,7 @@ class GalleryController extends Controller
             'local_video' => 'nullable|file|mimes:mp4,mov,avi|max:51200',
             'category' => [
                 'required',
-                Rule::in(['video', '1 seater', '2 seater', '3 seater', '4 seater', 'common', 'bathroom', 'event'])
+                Rule::in(['video', '1 seater', '2 seater', '3 seater', '4 seater', 'common', 'bathroom', 'kitchen', 'living room', 'study room', 'event'])
             ],
             'status' => 'required|in:active,inactive',
         ]);
@@ -286,7 +295,6 @@ class GalleryController extends Controller
         Cache::forget('public_gallery_items_all');
         Cache::forget('public_gallery_featured');
 
-
         return back()->with('success', $gallery->is_featured ?
             'ग्यालरी वस्तु फिचर्ड गरियो' :
             'ग्यालरी वस्तु फिचर्ड हटाइयो');
@@ -309,6 +317,73 @@ class GalleryController extends Controller
             'ग्यालरी वस्तु सक्रिय गरियो' :
             'ग्यालरी वस्तु निष्क्रिय गरियो');
     }
+
+    /**
+     * Stream video with proper support for byte-range requests
+     */
+    /**
+    public function streamVideo(Gallery $gallery)
+    {
+    // Check if file exists
+    $path = storage_path('app/public/' . $gallery->file_path);
+    
+    if (!file_exists($path)) {
+        abort(404, 'File not found');
+    }
+
+    $fileSize = filesize($path);
+    $file = fopen($path, 'rb');
+
+    // Set basic headers
+    $headers = [
+        'Content-Type' => 'video/mp4',
+        'Content-Length' => $fileSize,
+        'Accept-Ranges' => 'bytes',
+        'Cache-Control' => 'no-cache, no-store, must-revalidate, max-age=0',
+        'Pragma' => 'no-cache',
+        'Expires' => '0',
+    ];
+
+    // Handle range requests (for video seeking)
+    if (isset($_SERVER['HTTP_RANGE'])) {
+        $range = $_SERVER['HTTP_RANGE'];
+        $range = str_replace('bytes=', '', $range);
+        list($start, $end) = explode('-', $range, 2);
+        
+        $start = intval($start);
+        $end = $end === '' ? $fileSize - 1 : intval($end);
+        $length = $end - $start + 1;
+
+        // Validate range
+        if ($start >= $fileSize || $end >= $fileSize || $start > $end) {
+            header('HTTP/1.1 416 Requested Range Not Satisfiable');
+            header("Content-Range: bytes 0-{$fileSize}/{$fileSize}");
+            exit;
+        }
+
+        fseek($file, $start);
+        
+        header('HTTP/1.1 206 Partial Content');
+        $headers['Content-Length'] = $length;
+        $headers['Content-Range'] = "bytes {$start}-{$end}/{$fileSize}";
+    }
+
+    // Stream the video
+    return response()->stream(function () use ($file, $fileSize) {
+        $buffer = 8192; // 8KB buffer
+        $bytesSent = 0;
+        
+        while (!feof($file) && $bytesSent < $fileSize && connection_status() == 0) {
+            $bytesToRead = min($buffer, $fileSize - $bytesSent);
+            $data = fread($file, $bytesToRead);
+            echo $data;
+            flush();
+            $bytesSent += $bytesToRead;
+        }
+        
+        fclose($file);
+    }, isset($_SERVER['HTTP_RANGE']) ? 206 : 200, $headers);
+}
 
     /**
      * Extract YouTube ID from URL
