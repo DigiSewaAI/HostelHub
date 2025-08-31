@@ -1,4 +1,3 @@
-<!-- resources/views/components/footer.blade.php -->
 <footer class="bg-indigo-900 text-white py-8">
     <div class="container mx-auto px-4">
         <div class="flex flex-col md:flex-row justify-between">

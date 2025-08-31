@@ -5,7 +5,8 @@ use App\Http\Controllers\{
     Admin\HostelController as AdminHostelController,
     Admin\RoomController as AdminRoomController,
     Admin\StudentController as AdminStudentController,
-    Admin\GalleryController as AdminGalleryController, // Added Admin GalleryController
+    Admin\GalleryController as AdminGalleryController,
+    Admin\MealMenuController as AdminMealMenuController, // Already included
     Auth\AuthenticatedSessionController,
     Auth\ConfirmablePasswordController,
     Auth\EmailVerificationNotificationController,
@@ -27,7 +28,7 @@ use App\Http\Controllers\{
     RoomController as PublicRoomController,
     StudentController as PublicStudentController,
     SubscriptionController,
-    SearchController // Added SearchController
+    SearchController
 };
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
@@ -57,11 +58,17 @@ Route::get('/cookies', [PublicController::class, 'cookies'])->name('cookies');
 Route::get('/sitemap.xml', [PublicController::class, 'sitemap'])->name('sitemap');
 Route::get('/robots.txt', [PublicController::class, 'robots'])->name('robots');
 
-// ✅ नयाँ: Demo Page Route
+// Demo Page Route
 Route::get('/demo', [PublicController::class, 'demo'])->name('demo');
 
-// ✅ नयाँ: Search Route
+// Search Route
 Route::get('/search', [SearchController::class, 'index'])->name('search');
+
+// 🔥 NEW: Public Meal Gallery Route
+Route::get('/pages/meal-gallery', function () {
+    $mealMenus = \App\Models\MealMenu::with('hostel')->where('is_active', true)->get();
+    return view('pages.meal-gallery', compact('mealMenus'));
+})->name('meal.gallery');
 
 /*
 |--------------------------------------------------------------------------
@@ -184,16 +191,19 @@ Route::middleware(['auth', EnsureOrgContext::class, EnsureSubscriptionActive::cl
 
 /*
 |--------------------------------------------------------------------------
-| Admin Gallery Routes
+| Admin Routes (Admin & Hostel Manager)
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'role:admin,hostel_manager', EnsureOrgContext::class, EnsureSubscriptionActive::class])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
+        // Gallery Routes
         Route::resource('gallery', AdminGalleryController::class);
-        // Add video streaming route
         Route::get('gallery/stream/{gallery}', [AdminGalleryController::class, 'streamVideo'])->name('gallery.stream');
+
+        // 🔥 Meal Menu Routes
+        Route::resource('meal-menus', AdminMealMenuController::class);
     });
 
 /*
