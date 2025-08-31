@@ -1,0 +1,36 @@
+7397fe4 2025-08-31 Stable version - Gallery & Homepage working
+3444076 2025-08-31 gallery page finally recoverd after facing critical issues
+2c42577 2025-08-29 homepage gallery section also displaying images perfectly
+e506da4 2025-08-29 Now images are displaying in Homepage hero section
+82b0cb9 2025-08-28 homepage's UI improved, made mobile friendly
+26deed6 2025-08-27 homepage buttons linked to their seperate related pages
+c24dd22 2025-08-27 demo button works now on gallery page
+36be3fd 2025-08-27 Gallery section replacement at the suitalble location and improved other UI of home page
+1ee79bb 2025-08-27 gallery page improved with thumbnail auto generate
+1fe449c 2025-08-26 gallery category filer corrected, now it works perfectly
+b65dfb1 2025-08-26 public gallery page's images and videos not displaying major problelms solved
+da0f767 2025-08-25 gallery page UI made advanced, but still needs to improve backend as public gallery pages not working correctly while uploading files
+49ceedb 2025-08-24 CONFLICT: Remote changes अनुसार view files हटाइयो
+56ef29f 2025-08-24 company logo set on homepage
+4bd3e3d 2025-08-19 feat: added multilingual support (Nepali, Hindi, Chinese) with language switcher
+0a752dd 2025-08-19 Added multi-language support: English, Nepali, Hindi, and Chinese translations completed.
+eeae38d 2025-08-18 features, how-it-works, reviews, privacy-policy, terms pages improved
+c7df389 2025-08-18 public gallery page was not displaying before, now solved
+c2a3ec3 2025-08-18 feat: implemented student CRUD with search, filter, user-college-room dropdowns and fixed UI issues
+c94a252 2025-08-18 authorization system improved which is still need to make better
+006a67c 2025-08-16 Pricing page created and improved with creating related pages, header buttons now working perfectly while still need to improve with some other buttons
+ddfe213 2025-08-15 feat: Implement multi-tenant organization system with plans, subscriptions, and onboarding flow
+d3e326d 2025-08-15 gallery page is now working properly 98% completeted, homepage with gallery section improved, 90% work completed
+e8771ec 2025-08-15 public gallery working properly but needs to improve with thumbnail in videos uloads
+b7e8c6b 2025-08-14 target role class does not exist error solved finally
+cfca4ef 2025-08-13 Fixed incorrect view name in GalleryController (public.gallery.index → gallery), Removed duplicate gallery routes in web.php, Standardized route naming to Laravel convention (gallery.index), Fixed YouTube thumbnail URL spacing issue, Separated public and admin gallery routes clearly, Updated route names for better maintainability
+199cdb0 2025-08-13 target role class does not exist error solved
+bc41482 2025-08-12 dashboard page issues solved, all routes related issues solved
+89d7a50 2025-08-08 Fixed critical migration/seeding issues: resolved foreign key constraints, circular dependencies & table ordering. Added college/course models, implemented occupancy calculation, fixed model scopes (active/available), improved seeders with proper relationships, and refactored PublicController metrics.
+117a29b 2025-08-07 feat: Completed homepage implementation with all UI fixes
+98f516a 2025-08-07 homepage finalized
+7f68355 2025-08-07 homepage color improved into navy blue and sky blue
+ce734e2 2025-08-07 homepage UI color changed
+e87cd99 2025-08-06 Resolved README.md merge conflict with custom project description
+26caac5 2025-08-06 Hostel website HostelHub initialized
+2a355db 2025-08-06 Initial commit
