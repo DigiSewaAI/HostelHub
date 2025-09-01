@@ -1,7 +1,7 @@
-@extends('layouts.app')
+@extends('layouts.frontend')
 @section('title', 'हाम्रा सुविधाहरू - HostelHub')
 @section('content')
-<div style="max-width: 1200px; margin: 0 auto; padding: 3rem 1.5rem; font-family: 'Segoe UI', sans-serif;">
+<div style="max-width: 1200px; margin: 80px auto 0; padding: 3rem 1.5rem; font-family: 'Segoe UI', sans-serif;">
 
   <!-- Page Header -->
   <div style="text-align: center; margin-bottom: 3rem;">
