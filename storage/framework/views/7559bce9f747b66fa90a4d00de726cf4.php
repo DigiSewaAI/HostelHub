@@ -449,7 +449,7 @@
                     <a href="/" class="logo">
                         <!-- Real Logo Image -->
                         <div class="logo-image">
-                            <img src="{{ asset('storage/images/logo.png') }}" alt="HostelHub Logo" style="height: 50px; width: auto;">
+                            <img src="<?php echo e(asset('storage/images/logo.png')); ?>" alt="HostelHub Logo" style="height: 50px; width: auto;">
                         </div>
                         <div class="logo-text">
                             <h1>HostelHub</h1>
@@ -457,11 +457,11 @@
                         </div>
                     </a>
                     <div class="nav-links" id="main-nav">
-                        <a href="{{ route('features') }}" class="nepali">सुविधाहरू</a>
-                        <a href="{{ route('how-it-works') }}" class="nepali">कसरी काम गर्छ</a>
-                        <a href="{{ route('gallery.public') }}" class="nepali">ग्यालरी</a>
-                        <a href="{{ route('pricing') }}" class="nepali">मूल्य</a>
-                        <a href="{{ route('reviews') }}" class="nepali">समीक्षाहरू</a>
+                        <a href="<?php echo e(route('features')); ?>" class="nepali">सुविधाहरू</a>
+                        <a href="<?php echo e(route('how-it-works')); ?>" class="nepali">कसरी काम गर्छ</a>
+                        <a href="<?php echo e(route('gallery.public')); ?>" class="nepali">ग्यालरी</a>
+                        <a href="<?php echo e(route('pricing')); ?>" class="nepali">मूल्य</a>
+                        <a href="<?php echo e(route('reviews')); ?>" class="nepali">समीक्षाहरू</a>
                         <a href="/login" class="nepali">लगइन</a>
                     </div>
                     <div class="header-cta">
@@ -478,7 +478,7 @@
     <!-- Main Content -->
     <main id="main">
         <!-- Content from individual pages will go here -->
-        @yield('content')
+        <?php echo $__env->yieldContent('content'); ?>
     </main>
 
     <!-- Footer -->
@@ -488,7 +488,7 @@
                 <div class="footer-col">
                     <!-- Footer Logo -->
                     <a href="/" class="footer-logo">
-                        <img src="{{ asset('storage/images/logo.png') }}" alt="HostelHub Logo" style="height: 146px; width: auto;">
+                        <img src="<?php echo e(asset('storage/images/logo.png')); ?>" alt="HostelHub Logo" style="height: 146px; width: auto;">
                         <span>HostelHub</span>
                     </a>
                     <p class="nepali" style="color: rgba(249, 250, 251, 0.8); margin-top: 12px; line-height: 1.6;">
@@ -505,11 +505,11 @@
                     <h3 class="nepali">तिब्र लिङ्कहरू</h3>
                     <ul class="footer-links">
                         <li><a href="#"><i class="fas fa-chevron-right"></i> <span class="nepali">होम</span></a></li>
-                        <li><a href="{{ route('features') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">सुविधाहरू</span></a></li>
-                        <li><a href="{{ route('how-it-works') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">कसरी काम गर्छ</span></a></li>
-                        <li><a href="{{ route('gallery.public') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">ग्यालरी</span></a></li>
-                        <li><a href="{{ route('pricing') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">मूल्य</span></a></li>
-                        <li><a href="{{ route('reviews') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">समीक्षाहरू</span></a></li>
+                        <li><a href="<?php echo e(route('features')); ?>"><i class="fas fa-chevron-right"></i> <span class="nepali">सुविधाहरू</span></a></li>
+                        <li><a href="<?php echo e(route('how-it-works')); ?>"><i class="fas fa-chevron-right"></i> <span class="nepali">कसरी काम गर्छ</span></a></li>
+                        <li><a href="<?php echo e(route('gallery.public')); ?>"><i class="fas fa-chevron-right"></i> <span class="nepali">ग्यालरी</span></a></li>
+                        <li><a href="<?php echo e(route('pricing')); ?>"><i class="fas fa-chevron-right"></i> <span class="nepali">मूल्य</span></a></li>
+                        <li><a href="<?php echo e(route('reviews')); ?>"><i class="fas fa-chevron-right"></i> <span class="nepali">समीक्षाहरू</span></a></li>
                     </ul>
                 </div>
                 <div class="footer-col">
@@ -539,7 +539,7 @@
                         हाम्रो नवीनतम अपडेटहरू प्राप्त गर्न तपाईंको इमेल दर्ता गर्नुहोस्
                     </p>
                     <form class="newsletter-form" action="/subscribe" method="POST">
-                        @csrf
+                        <?php echo csrf_field(); ?>
                         <input type="email" name="email" placeholder="तपाईंको इमेल" required aria-label="इमेल ठेगाना">
                         <input type="text" name="honeypot" style="display:none" aria-hidden="true">
                         <button type="submit" class="nepali">दर्ता गर्नुहोस्</button>
@@ -575,6 +575,6 @@
         }
     </script>
     
-    @yield('scripts')
+    <?php echo $__env->yieldContent('scripts'); ?>
 </body>
-</html>
+</html><?php /**PATH D:\My Projects\HostelHub\resources\views/layouts/frontend.blade.php ENDPATH**/ ?>
