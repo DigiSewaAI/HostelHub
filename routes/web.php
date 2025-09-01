@@ -6,7 +6,7 @@ use App\Http\Controllers\{
     Admin\RoomController as AdminRoomController,
     Admin\StudentController as AdminStudentController,
     Admin\GalleryController as AdminGalleryController,
-    Admin\MealMenuController as AdminMealMenuController, // Already included
+    Admin\MealMenuController as AdminMealMenuController,
     Auth\AuthenticatedSessionController,
     Auth\ConfirmablePasswordController,
     Auth\EmailVerificationNotificationController,
@@ -64,11 +64,16 @@ Route::get('/demo', [PublicController::class, 'demo'])->name('demo');
 // Search Route
 Route::get('/search', [SearchController::class, 'index'])->name('search');
 
-// 🔥 NEW: Public Meal Gallery Route
+// Public Meal Gallery Route
 Route::get('/pages/meal-gallery', function () {
     $mealMenus = \App\Models\MealMenu::with('hostel')->where('is_active', true)->get();
     return view('pages.meal-gallery', compact('mealMenus'));
 })->name('meal.gallery');
+
+// Gallery API Routes
+Route::get('/api/gallery/data', [PublicGalleryController::class, 'getGalleryData']);
+Route::get('/api/gallery/categories', [PublicGalleryController::class, 'getGalleryCategories']);
+Route::get('/api/gallery/stats', [PublicGalleryController::class, 'getGalleryStats']);
 
 /*
 |--------------------------------------------------------------------------
@@ -198,12 +203,24 @@ Route::middleware(['auth', 'role:admin,hostel_manager', EnsureOrgContext::class,
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
+        // Dashboard
+        Route::get('dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+
         // Gallery Routes
         Route::resource('gallery', AdminGalleryController::class);
         Route::get('gallery/stream/{gallery}', [AdminGalleryController::class, 'streamVideo'])->name('gallery.stream');
 
-        // 🔥 Meal Menu Routes
+        // Meal Menu Routes
         Route::resource('meal-menus', AdminMealMenuController::class);
+
+        // Hostel Routes
+        Route::resource('hostels', AdminHostelController::class);
+
+        // Room Routes
+        Route::resource('rooms', AdminRoomController::class);
+
+        // Student Routes
+        Route::resource('students', AdminStudentController::class);
     });
 
 /*

@@ -1,0 +1,38 @@
+[33mf979df6[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m Meal galley page design with relevent header & footer with logo made perfect
+[33me4a4c91[m New pages meal menu, crete meal pages created
+[33m7397fe4[m[33m ([m[1;33mtag: [m[1;33mstable-gallery[m[33m)[m Stable version - Gallery & Homepage working
+[33m3444076[m gallery page finally recoverd after facing critical issues
+[33m2c42577[m homepage gallery section also displaying images perfectly
+[33me506da4[m Now images are displaying in Homepage hero section
+[33m82b0cb9[m homepage's UI improved, made mobile friendly
+[33m26deed6[m homepage buttons linked to their seperate related pages
+[33mc24dd22[m demo button works now on gallery page
+[33m36be3fd[m Gallery section replacement at the suitalble location and improved other UI of home page
+[33m1ee79bb[m gallery page improved with thumbnail auto generate
+[33m1fe449c[m gallery category filer corrected, now it works perfectly
+[33mb65dfb1[m public gallery page's images and videos not displaying major problelms solved
+[33mda0f767[m gallery page UI made advanced, but still needs to improve backend as public gallery pages not working correctly while uploading files
+[33m49ceedb[m CONFLICT: Remote changes अनुसार view files हटाइयो
+[33m56ef29f[m company logo set on homepage
+[33m4bd3e3d[m feat: added multilingual support (Nepali, Hindi, Chinese) with language switcher
+[33m0a752dd[m Added multi-language support: English, Nepali, Hindi, and Chinese translations completed.
+[33meeae38d[m features, how-it-works, reviews, privacy-policy, terms pages improved
+[33mc7df389[m public gallery page was not displaying before, now solved
+[33mc2a3ec3[m feat: implemented student CRUD with search, filter, user-college-room dropdowns and fixed UI issues
+[33mc94a252[m authorization system improved which is still need to make better
+[33m006a67c[m Pricing page created and improved with creating related pages, header buttons now working perfectly while still need to improve with some other buttons
+[33mddfe213[m feat: Implement multi-tenant organization system with plans, subscriptions, and onboarding flow
+[33md3e326d[m gallery page is now working properly 98% completeted, homepage with gallery section improved, 90% work completed
+[33me8771ec[m public gallery working properly but needs to improve with thumbnail in videos uloads
+[33mb7e8c6b[m target role class does not exist error solved finally
+[33mcfca4ef[m Fixed incorrect view name in GalleryController (public.gallery.index → gallery), Removed duplicate gallery routes in web.php, Standardized route naming to Laravel convention (gallery.index), Fixed YouTube thumbnail URL spacing issue, Separated public and admin gallery routes clearly, Updated route names for better maintainability
+[33m199cdb0[m target role class does not exist error solved
+[33mbc41482[m dashboard page issues solved, all routes related issues solved
+[33m89d7a50[m Fixed critical migration/seeding issues: resolved foreign key constraints, circular dependencies & table ordering. Added college/course models, implemented occupancy calculation, fixed model scopes (active/available), improved seeders with proper relationships, and refactored PublicController metrics.
+[33m117a29b[m feat: Completed homepage implementation with all UI fixes
+[33m98f516a[m homepage finalized
+[33m7f68355[m homepage color improved into navy blue and sky blue
+[33mce734e2[m homepage UI color changed
+[33me87cd99[m Resolved README.md merge conflict with custom project description
+[33m26caac5[m Hostel website HostelHub initialized
+[33m2a355db[m Initial commit

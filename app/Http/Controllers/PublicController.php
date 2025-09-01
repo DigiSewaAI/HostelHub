@@ -194,12 +194,12 @@ class PublicController extends Controller
 
     public function features(): View
     {
-        return view('public.features');
+        return view('features');
     }
 
     public function howItWorks(): View
     {
-        return view('public.how-it-works');
+        return view('how-it-works');
     }
 
     public function pricing(): View
@@ -209,7 +209,7 @@ class PublicController extends Controller
 
     public function reviews(): View
     {
-        return view('public.reviews');
+        return view('reviews');
     }
 
     public function contact(): View
@@ -220,12 +220,12 @@ class PublicController extends Controller
     // Legal pages
     public function privacy(): View
     {
-        return view('public.legal.privacy');
+        return view('legal.privacy');
     }
 
     public function terms(): View
     {
-        return view('public.legal.terms');
+        return view('legal.terms');
     }
 
     public function cookies(): View
