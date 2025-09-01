@@ -1,426 +1,725 @@
 <!DOCTYPE html>
-<html lang="ne">
+<html lang="ne" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>खानाको ग्यालरी - HostelHub</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>हाम्रो खानाको ग्यालरी - HostelHub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #3b82f6;
-            --secondary-color: #2563eb;
-            --accent-color: #f59e0b;
-            --light-bg: #f8fafc;
-            --dark-text: #1e293b;
+            --primary: #1e3a8a;
+            --primary-dark: #1e40af;
+            --secondary: #0ea5e9;
+            --secondary-dark: #0284c7;
+            --accent: #10b981;
+            --accent-dark: #059669;
+            --text-dark: #1f2937;
+            --text-light: #f9fafb;
+            --bg-light: #f0f9ff;
+            --light-bg: #FFFFFF;
+            --border: #e5e7eb;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --transition: all 0.3s ease-in-out;
+            --radius: 0.75rem;
+            --glow: 0 8px 30px rgba(14, 165, 233, 0.25);
+            --header-height: 70px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
         
         body {
+            color: var(--text-dark);
+            background-color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+        }
+        
+        .nepali {
             font-family: 'Noto Sans Devanagari', sans-serif;
-            background-color: var(--light-bg);
-            color: var(--dark-text);
-            padding-top: 80px;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+        
+        /* Header Styles */
+        #site-header {
+            position: sticky;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            background: var(--primary);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            height: var(--header-height);
+        }
+        
+        .header-inner {
+            padding: 0.5rem 0;
+            height: 100%;
+            display: flex;
+            align-items: center;
         }
         
         .navbar {
-            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-        
-        .hero-section {
-            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?ixlib=rb-4.0.3') center/cover;
-            padding: 80px 0;
-            color: white;
-            border-radius: 0 0 20px 20px;
-            margin-bottom: 40px;
-        }
-        
-        .meal-card {
-            border-radius: 12px;
-            overflow: hidden;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            border: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
             height: 100%;
         }
         
-        .meal-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.15);
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.3rem;
+            color: var(--text-light);
         }
         
-        .meal-image {
-            height: 220px;
-            object-fit: cover;
+        .logo img {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+        }
+        
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .logo-text h1 {
+            font-size: 1.3rem;
+            line-height: 1.2;
+            margin: 0;
+        }
+        
+        .logo-text span {
+            font-size: 0.7rem;
+            line-height: 1;
+            opacity: 0.9;
+        }
+        
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.85);
+            font-weight: 500;
+            transition: var(--transition);
+            position: relative;
+            padding: 0.4rem 0;
+            font-size: 0.95rem;
+        }
+        
+        .nav-links a:hover {
+            color: var(--text-light);
+        }
+        
+        .nav-links a::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--secondary);
+            transition: var(--transition);
+        }
+        
+        .nav-links a:hover::after {
             width: 100%;
         }
         
-        .meal-type-badge {
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1400&q=80');
+            background-size: cover;
+            background-position: center;
+            padding: 5rem 0;
+            text-align: center;
+            color: white;
+        }
+        
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .hero p {
+            font-size: 1.2rem;
+            max-width: 700px;
+            margin: 0 auto 2rem;
+            opacity: 0.9;
+        }
+        
+        /* Search Bar */
+        .search-bar {
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+        }
+        
+        .search-bar input {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            border-radius: 50px;
+            border: none;
+            font-size: 1rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .search-bar button {
             position: absolute;
-            top: 15px;
-            right: 15px;
-            background: var(--accent-color);
+            right: 8px;
+            top: 8px;
+            background: var(--secondary);
+            border: none;
             color: white;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 0.85rem;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: var(--transition);
         }
         
-        .day-badge {
-            background: var(--primary-color);
-            color: white;
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 0.8rem;
-            display: inline-block;
-            margin-bottom: 10px;
+        .search-bar button:hover {
+            background: var(--secondary-dark);
         }
         
-        .filter-buttons {
-            margin-bottom: 30px;
+        /* Filters */
+        .filters {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin: 2rem 0;
+            padding: 0 1rem;
         }
         
         .filter-btn {
-            border: 2px solid var(--primary-color);
-            background: transparent;
-            color: var(--primary-color);
-            padding: 8px 20px;
-            border-radius: 30px;
-            margin: 0 5px 10px;
-            transition: all 0.3s ease;
+            padding: 0.7rem 1.5rem;
+            border: 2px solid var(--primary);
+            background: white;
+            color: var(--primary);
+            border-radius: 50px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 600;
         }
         
         .filter-btn:hover, .filter-btn.active {
-            background: var(--primary-color);
+            background: var(--primary);
             color: white;
         }
         
-        .footer {
-            background: #1e293b;
+        /* Food Gallery */
+        .food-gallery {
+            padding: 3rem 0;
+        }
+        
+        .food-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            padding: 1rem;
+        }
+        
+        .food-card {
+            background: white;
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+        
+        .food-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .food-image {
+            height: 200px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .food-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+        
+        .food-card:hover .food-image img {
+            transform: scale(1.05);
+        }
+        
+        .food-badge {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            background: var(--accent);
             color: white;
-            padding: 50px 0 20px;
-            margin-top: 80px;
-        }
-        
-        .social-icons a {
-            color: white;
-            font-size: 1.2rem;
-            margin: 0 10px;
-            transition: color 0.3s ease;
-        }
-        
-        .social-icons a:hover {
-            color: var(--accent-color);
-        }
-        
-        .hostel-name {
-            color: var(--primary-color);
+            padding: 0.3rem 0.8rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
             font-weight: 600;
         }
         
-        .no-meals {
-            padding: 60px 20px;
-            text-align: center;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        .food-content {
+            padding: 1.5rem;
         }
         
-        .no-meals i {
-            font-size: 4rem;
-            color: #cbd5e1;
-            margin-bottom: 20px;
-        }
-        
-        .search-box {
-            max-width: 500px;
-            margin: 0 auto 30px;
-        }
-        
-        .nutrition-info {
+        .food-title {
             display: flex;
             justify-content: space-between;
-            margin-top: 15px;
-            font-size: 0.85rem;
+            align-items: center;
+            margin-bottom: 0.5rem;
         }
         
-        .nutrition-item {
-            text-align: center;
-            flex: 1;
+        .food-title h3 {
+            font-size: 1.3rem;
+            color: var(--primary);
         }
         
-        .nutrition-value {
+        .food-hostel {
+            color: var(--secondary);
             font-weight: 600;
-            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            display: block;
         }
         
-        .rating {
+        .food-day {
+            color: #6b7280;
+            margin-bottom: 1rem;
+            display: block;
+        }
+        
+        .food-description {
+            color: var(--text-dark);
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+        
+        .food-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .food-rating {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
             color: #f59e0b;
-            margin-bottom: 10px;
+            font-weight: 600;
         }
         
+        .food-time {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+        
+        /* Footer */
+        footer {
+            background-color: var(--primary);
+            color: var(--text-light);
+            padding: 3rem 0 1rem;
+            margin-top: 3rem;
+        }
+        
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .footer-col h3 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            position: relative;
+            padding-bottom: 0.5rem;
+        }
+        
+        .footer-col h3::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 50px;
+            height: 3px;
+            background: var(--secondary);
+        }
+        
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-light);
+        }
+        
+        .footer-logo img {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+        }
+        
+        .footer-about {
+            color: rgba(249, 250, 251, 0.8);
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 0.8rem;
+        }
+        
+        .social-links a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            color: var(--text-light);
+            font-size: 1.1rem;
+            transition: var(--transition);
+        }
+        
+        .social-links a:hover {
+            background: var(--secondary);
+            transform: translateY(-3px);
+        }
+        
+        .footer-links {
+            list-style: none;
+        }
+        
+        .footer-links li {
+            margin-bottom: 0.8rem;
+        }
+        
+        .footer-links a {
+            color: rgba(249, 250, 251, 0.8);
+            text-decoration: none;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+        }
+        
+        .footer-links a:hover {
+            color: var(--secondary);
+            transform: translateX(5px);
+        }
+        
+        .footer-links i {
+            margin-right: 10px;
+            color: var(--secondary);
+        }
+        
+        .contact-info {
+            list-style: none;
+        }
+        
+        .contact-info li {
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: flex-start;
+        }
+        
+        .contact-info i {
+            margin-right: 12px;
+            color: var(--secondary);
+            font-size: 1.1rem;
+            margin-top: 4px;
+        }
+        
+        .newsletter-form {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .newsletter-form input {
+            flex: 1;
+            padding: 0.7rem 1rem;
+            border: none;
+            border-radius: var(--radius);
+            font-family: inherit;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-light);
+        }
+        
+        .newsletter-form input::placeholder {
+            color: rgba(249, 255, 251, 0.6);
+        }
+        
+        .newsletter-form button {
+            background: var(--secondary);
+            color: var(--text-light);
+            border: none;
+            border-radius: var(--radius);
+            padding: 0 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .newsletter-form button:hover {
+            background: var(--secondary-dark);
+        }
+        
+        .copyright {
+            text-align: center;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(249, 250, 251, 0.1);
+            color: rgba(249, 250, 251, 0.6);
+        }
+        
+        /* Responsive Design */
         @media (max-width: 768px) {
-            .hero-section {
-                padding: 60px 0;
+            .nav-links {
+                display: none;
             }
             
-            .meal-card {
-                margin-bottom: 20px;
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .hero p {
+                font-size: 1rem;
+            }
+            
+            .filters {
+                overflow-x: auto;
+                justify-content: flex-start;
+                padding-bottom: 0.5rem;
+            }
+            
+            .food-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .footer-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Navigation Bar -->
-    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="#">
-                <i class="fas fa-utensils me-2"></i>
-                <span class="fw-bold">HostelHub</span>
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="#">होम</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">सुविधाहरू</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">कसरी काम गर्छ</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">ग्यालरी</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">समीक्षाहरू</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link btn btn-light text-primary btn-sm ms-2" href="#">लगइन</a>
-                    </li>
-                </ul>
+    <!-- Header -->
+    <header id="site-header">
+        <div class="header-inner">
+            <div class="container">
+                <div class="navbar">
+                    <a href="/" class="logo">
+                        <!-- Real Logo Image -->
+                        <img src="{{ asset('storage/images/logo.png') }}" alt="HostelHub Logo" style="height: 50px; width: auto;">
+                        <div class="logo-text">
+                            <h1>HostelHub</h1>
+                            <span class="nepali">होस्टल प्रबन्धन</span>
+                        </div>
+                    </a>
+                    <div class="nav-links">
+                        <a href="{{ route('features') }}" class="nepali">सुविधाहरू</a>
+                        <a href="{{ route('how-it-works') }}" class="nepali">कसरी काम गर्छ</a>
+                        <a href="{{ route('gallery.public') }}" class="nepali">ग्यालरी</a>
+                        <a href="{{ route('pricing') }}" class="nepali">मूल्य</a>
+                        <a href="{{ route('reviews') }}" class="nepali">समीक्षाहरू</a>
+                        <a href="/login" class="nepali">लगइन</a>
+                    </div>
+                </div>
             </div>
         </div>
-    </nav>
+    </header>
 
     <!-- Hero Section -->
-    <div class="hero-section">
-        <div class="container text-center">
-            <h1 class="display-4 fw-bold mb-3">हाम्रो खानाको ग्यालरी</h1>
-            <p class="lead mb-4">हाम्रा होस्टलहरूले ताजा, स्वस्थ र स्वादिष्ट खाना तयार गर्छन्</p>
-            <div class="search-box">
-                <div class="input-group">
-                    <input type="text" class="form-control" placeholder="खाना वा होस्टलको नामले खोज्नुहोस्...">
-                    <button class="btn btn-primary">
-                        <i class="fas fa-search me-1"></i> खोज्नुहोस्
-                    </button>
-                </div>
+    <section class="hero">
+        <div class="container">
+            <h1 class="nepali">हाम्रो खानाको ग्यालरी</h1>
+            <p class="nepali">हाम्रा होस्टलहरूले ताजा, स्वस्थ र स्वादिष्ट खाना तयार गर्छन्</p>
+            <div class="search-bar">
+                <input type="text" placeholder="खाना वा होस्टलको नामले खोज्नुहोस्..." class="nepali">
+                <button><i class="fas fa-search"></i></button>
             </div>
+        </div>
+    </section>
+
+    <!-- Filters -->
+    <div class="container">
+        <div class="filters">
+            <button class="filter-btn active nepali">सबै</button>
+            <button class="filter-btn nepali">विहानको खाना</button>
+            <button class="filter-btn nepali">दिउसोको खाना</button>
+            <button class="filter-btn nepali">बेलुकाको खाना</button>
+            <button class="filter-btn nepali">साप्ताहिक विशेष</button>
         </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="container mb-5">
-        <!-- Filter Buttons -->
-        <div class="filter-buttons text-center">
-            <button class="filter-btn active">सबै</button>
-            <button class="filter-btn">विहानको खाना</button>
-            <button class="filter-btn">दिउसोको खाना</button>
-            <button class="filter-btn">बेलुकाको खाना</button>
-            <button class="filter-btn">साप्ताहिक विशेष</button>
-        </div>
-
-        <!-- Meal Gallery -->
-        <div class="row">
-            <!-- Example Meal Cards (would be dynamically generated in real application) -->
-            <div class="col-lg-4 col-md-6 mb-4">
-                <div class="meal-card card">
-                    <div class="position-relative">
-                        <img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?ixlib=rb-4.0.3" class="meal-image" alt="मोमो">
-                        <span class="meal-type-badge">बेलुकाको खाना</span>
+    <!-- Food Gallery -->
+    <section class="food-gallery">
+        <div class="container">
+            <div class="food-grid">
+                <!-- Food Card 1 -->
+                <div class="food-card">
+                    <div class="food-image">
+                        <span class="food-badge nepali">बेलुकाको खाना</span>
+                        <img src="https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="मोमो">
                     </div>
-                    <div class="card-body">
-                        <span class="day-badge">सोमबार</span>
-                        <h5 class="card-title">काठमाडौं होस्टल</h5>
-                        <p class="card-text">
-                            <strong>मोमो:</strong><br>
-                            पकौडा, अचार, सुप, चिया
-                        </p>
-                        <div class="nutrition-info">
-                            <div class="nutrition-item">
-                                <div class="nutrition-value">३५०</div>
-                                <div>क्यालोरी</div>
-                            </div>
-                            <div class="nutrition-item">
-                                <div class="nutrition-value">१८g</div>
-                                <div>प्रोटिन</div>
-                            </div>
-                            <div class="nutrition-item">
-                                <div class="nutrition-value">४५g</div>
-                                <div>कार्बोहाइड्रेट</div>
+                    <div class="food-content">
+                        <div class="food-title">
+                            <h3 class="nepali">मोमो</h3>
+                            <div class="food-rating">
+                                <i class="fas fa-star"></i>
+                                <span>4.5</span>
                             </div>
                         </div>
-                        <div class="d-flex justify-content-between align-items-center mt-3">
-                            <div class="rating">
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star-half-alt"></i>
-                                <span class="ms-1">(४.५)</span>
-                            </div>
-                            <small class="text-muted"><i class="fas fa-clock me-1"></i> ६:०० - ८:०० बजे</small>
+                        <span class="food-hostel nepali">काठमाडौं होस्टल</span>
+                        <span class="food-day nepali">सोमबार</span>
+                        <p class="food-description nepali">पकौडा, अचार, सुप, चिया</p>
+                        <div class="food-footer">
+                            <span class="food-time nepali">६:०० - ८:०० बजे</span>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="col-lg-4 col-md-6 mb-4">
-                <div class="meal-card card">
-                    <div class="position-relative">
-                        <img src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?ixlib=rb-4.0.3" class="meal-image" alt="पिज्जा">
-                        <span class="meal-type-badge">दिउसोको खाना</span>
+                <!-- Food Card 2 -->
+                <div class="food-card">
+                    <div class="food-image">
+                        <span class="food-badge nepali">दिउसोको खाना</span>
+                        <img src="https://images.unsplash.com/photo-1513104890138-7c749659a591?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="पिज्जा">
                     </div>
-                    <div class="card-body">
-                        <span class="day-badge">मंगलबार</span>
-                        <h5 class="card-title">पोखरा होस्टल</h5>
-                        <p class="card-text">
-                            <strong>पिज्जा:</strong><br>
-                            मकै, कैप्सिकम, प्याज, चिज
-                        </p>
-                        <div class="nutrition-info">
-                            <div class="nutrition-item">
-                                <div class="nutrition-value">४२०</div>
-                                <div>क्यालोरी</div>
-                            </div>
-                            <div class="nutrition-item">
-                                <div class="nutrition-value">२२g</div>
-                                <div>प्रोटिन</div>
-                            </div>
-                            <div class="nutrition-item">
-                                <div class="nutrition-value">५०g</div>
-                                <div>कार्बोहाइड्रेट</div>
+                    <div class="food-content">
+                        <div class="food-title">
+                            <h3 class="nepali">पिज्जा</h3>
+                            <div class="food-rating">
+                                <i class="fas fa-star"></i>
+                                <span>4.0</span>
                             </div>
                         </div>
-                        <div class="d-flex justify-content-between align-items-center mt-3">
-                            <div class="rating">
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="far fa-star"></i>
-                                <span class="ms-1">(४.०)</span>
-                            </div>
-                            <small class="text-muted"><i class="fas fa-clock me-1"></i> १२:०० - २:०० बजे</small>
+                        <span class="food-hostel nepali">पोखरा होस्टल</span>
+                        <span class="food-day nepali">मंगलबार</span>
+                        <p class="food-description nepali">मकै, कैप्सिकम, प्याज, चिज</p>
+                        <div class="food-footer">
+                            <span class="food-time nepali">१२:०० - २:०० बजे</span>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="col-lg-4 col-md-6 mb-4">
-                <div class="meal-card card">
-                    <div class="position-relative">
-                        <img src="https://images.unsplash.com/photo-1563245372-f21724e3856d?ixlib=rb-4.0.3" class="meal-image" alt="थुक्पा">
-                        <span class="meal-type-badge">विहानको खाना</span>
+                <!-- Food Card 3 -->
+                <div class="food-card">
+                    <div class="food-image">
+                        <span class="food-badge nepali">विहानको खाना</span>
+                        <img src="https://images.unsplash.com/photo-1631515243349-e0cb75fb8d3a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80" alt="थुक्पा">
                     </div>
-                    <div class="card-body">
-                        <span class="day-badge">बुधबार</span>
-                        <h5 class="card-title">ललितपुर होस्टल</h5>
-                        <p class="card-text">
-                            <strong>थुक्पा:</strong><br>
-                            चाउचाउ, मासु, सब्जी, सुप
-                        </p>
-                        <div class="nutrition-info">
-                            <div class="nutrition-item">
-                                <div class="nutrition-value">३८०</div>
-                                <div>क्यालोरी</div>
-                            </div>
-                            <div class="nutrition-item">
-                                <div class="nutrition-value">२०g</div>
-                                <div>प्रोटिन</div>
-                            </div>
-                            <div class="nutrition-item">
-                                <div class="nutrition-value">४२g</div>
-                                <div>कार्बोहाइड्रेट</div>
+                    <div class="food-content">
+                        <div class="food-title">
+                            <h3 class="nepali">थुक्पा</h3>
+                            <div class="food-rating">
+                                <i class="fas fa-star"></i>
+                                <span>4.8</span>
                             </div>
                         </div>
-                        <div class="d-flex justify-content-between align-items-center mt-3">
-                            <div class="rating">
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <span class="ms-1">(४.८)</span>
-                            </div>
-                            <small class="text-muted"><i class="fas fa-clock me-1"></i> ७:०० - ९:०० बजे</small>
+                        <span class="food-hostel nepali">ललितपुर होस्टल</span>
+                        <span class="food-day nepali">बुधबार</span>
+                        <p class="food-description nepali">चाउचाउ, मासु, सब्जी, सुप</p>
+                        <div class="food-footer">
+                            <span class="food-time nepali">७:०० - ९:०० बजे</span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
-        <!-- View More Button -->
-        <div class="text-center mt-4">
-            <button class="btn btn-primary btn-lg">
-                थप खानाहरू हेर्नुहोस् <i class="fas fa-arrow-right ms-2"></i>
-            </button>
-        </div>
-    </div>
+    </section>
 
     <!-- Footer -->
-    <footer class="footer">
+    <footer>
         <div class="container">
-            <div class="row">
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <h5 class="mb-4">HostelHub</h5>
-                    <p>नेपालको नम्बर १ होस्टल प्रबन्धन प्रणाली। हामी होस्टल व्यवस्थापनलाई सहज, दक्ष र विश्वसनीय बनाउँछौं।</p>
-                    <div class="social-icons mt-4">
-                        <a href="#"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#"><i class="fab fa-instagram"></i></a>
-                        <a href="#"><i class="fab fa-twitter"></i></a>
-                        <a href="#"><i class="fab fa-youtube"></i></a>
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <div class="footer-logo">
+                        <!-- Real Logo Image -->
+                        <img src="{{ asset('storage/images/logo.png') }}" alt="HostelHub Logo" style="height: 146px; width: auto;">
+                        <span>HostelHub</span>
+                    </div>
+                    <p class="footer-about nepali">नेपालको नम्बर १ होस्टल प्रबन्धन प्रणाली। हामी होस्टल व्यवस्थापनलाई सहज, दक्ष र विश्वसनीय बनाउँछौं।</p>
+                    <div class="social-links">
+                        <a href="#" aria-label="फेसबुक"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" aria-label="ट्विटर"><i class="fab fa-twitter"></i></a>
+                        <a href="#" aria-label="इन्स्टाग्राम"><i class="fab fa-instagram"></i></a>
+                        <a href="#" aria-label="लिङ्क्डइन"><i class="fab fa-linkedin-in"></i></a>
                     </div>
                 </div>
-                <div class="col-lg-2 col-md-6 mb-4">
-                    <h5 class="mb-4">तिब्र लिङ्कहरू</h5>
-                    <ul class="list-unstyled">
-                        <li class="mb-2"><a href="#" class="text-white text-decoration-none">होम</a></li>
-                        <li class="mb-2"><a href="#" class="text-white text-decoration-none">सुविधाहरू</a></li>
-                        <li class="mb-2"><a href="#" class="text-white text-decoration-none">कसरी काम गर्छ</a></li>
-                        <li class="mb-2"><a href="#" class="text-white text-decoration-none">ग्यालरी</a></li>
+                <div class="footer-col">
+                    <h3 class="nepali">तिब्र लिङ्कहरू</h3>
+                    <ul class="footer-links">
+                        <li><a href="/"><i class="fas fa-chevron-right"></i> <span class="nepali">होम</span></a></li>
+                        <li><a href="{{ route('features') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">सुविधाहरू</span></a></li>
+                        <li><a href="{{ route('how-it-works') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">कसरी काम गर्छ</span></a></li>
+                        <li><a href="{{ route('gallery.public') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">ग्यालरी</span></a></li>
+                        <li><a href="{{ route('pricing') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">मूल्य</span></a></li>
+                        <li><a href="{{ route('reviews') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">समीक्षाहरू</span></a></li>
                     </ul>
                 </div>
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <h5 class="mb-4">सम्पर्क जानकारी</h5>
-                    <ul class="list-unstyled">
-                        <li class="mb-2"><i class="fas fa-map-marker-alt me-2"></i> कमलपोखरी, काठमाडौं, नेपाल</li>
-                        <li class="mb-2"><i class="fas fa-phone me-2"></i> +९७७ ९८०१२३४५६७</li>
-                        <li class="mb-2"><i class="fas fa-envelope me-2"></i> info@hostelhub.com</li>
-                        <li class="mb-2"><i class="fas fa-clock me-2"></i> सोम-शुक्र: ९:०० बिहान - ५:०० बेलुका</li>
+                <div class="footer-col">
+                    <h3 class="nepali">सम्पर्क जानकारी</h3>
+                    <ul class="contact-info">
+                        <li>
+                            <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
+                            <span class="nepali">कमलपोखरी, काठमाडौं, नेपाल</span>
+                        </li>
+                        <li>
+                            <i class="fas fa-phone-alt" aria-hidden="true"></i>
+                            <span>+९७७ ९८०१२३४५६७</span>
+                        </li>
+                        <li>
+                            <i class="fas fa-envelope" aria-hidden="true"></i>
+                            <span>info@hostelhub.com</span>
+                        </li>
+                        <li>
+                            <i class="fas fa-clock" aria-hidden="true"></i>
+                            <span class="nepali">सोम-शुक्र: ९:०० बिहान - ५:०० बेलुका</span>
+                        </li>
                     </ul>
                 </div>
-                <div class="col-lg-3 col-md-6 mb-4">
-                    <h5 class="mb-4">समाचारपत्र</h5>
-                    <p>हाम्रो नवीनतम अपडेटहरू प्राप्त गर्न तपाईंको इमेल दर्ता गर्नुहोस्</p>
-                    <div class="input-group mb-3">
-                        <input type="email" class="form-control" placeholder="तपाईंको इमेल">
-                        <button class="btn btn-primary">पठाउनुहोस्</button>
-                    </div>
+                <div class="footer-col">
+                    <h3 class="nepali">समाचारपत्र</h3>
+                    <p class="nepali">हाम्रो नवीनतम अपडेटहरू प्राप्त गर्न तपाईंको इमेल दर्ता गर्नुहोस्</p>
+                    <form class="newsletter-form" action="/subscribe" method="POST">
+                        @csrf
+                        <input type="email" name="email" placeholder="तपाईंको इमेल" required aria-label="इमेल ठेगाना" class="nepali">
+                        <input type="text" name="honeypot" style="display:none" aria-hidden="true">
+                        <button type="submit" class="nepali">दर्ता गर्नुहोस्</button>
+                    </form>
                 </div>
             </div>
-            <hr class="mt-4 mb-4">
-            <div class="text-center">
-                <p>© २०२५ HostelHub. सबै अधिकार सुरक्षित।</p>
+            <div class="copyright">
+                <p class="nepali">© २०२५ HostelHub. सबै अधिकार सुरक्षित।</p>
             </div>
         </div>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Filter functionality
         document.addEventListener('DOMContentLoaded', function() {
@@ -434,25 +733,10 @@
                     // Add active class to clicked button
                     this.classList.add('active');
                     
-                    // In a real application, this would filter the meal cards
+                    // Here you would filter the food items based on the selected category
+                    // This is just a placeholder for the actual filtering logic
                     console.log('Filtering by: ' + this.textContent);
                 });
-            });
-            
-            // Search functionality
-            const searchInput = document.querySelector('.search-box input');
-            const searchButton = document.querySelector('.search-box button');
-            
-            searchButton.addEventListener('click', function() {
-                if (searchInput.value.trim() !== '') {
-                    console.log('Searching for: ' + searchInput.value);
-                }
-            });
-            
-            searchInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter' && this.value.trim() !== '') {
-                    console.log('Searching for: ' + this.value);
-                }
             });
         });
     </script>
