@@ -230,12 +230,12 @@ class PublicController extends Controller
 
     public function cookies(): View
     {
-        return view('public.legal.cookies');
+        return view('legal.cookies');
     }
 
     public function demo(): View
     {
-        return view('public.pages.demo');
+        return view('pages.demo');
     }
 
     // SEO routes

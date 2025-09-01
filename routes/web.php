@@ -7,6 +7,7 @@ use App\Http\Controllers\{
     Admin\StudentController as AdminStudentController,
     Admin\GalleryController as AdminGalleryController,
     Admin\MealMenuController as AdminMealMenuController,
+    Admin\ReviewController as AdminReviewController, // नयाँ थपिएको
     Auth\AuthenticatedSessionController,
     Auth\ConfirmablePasswordController,
     Auth\EmailVerificationNotificationController,
@@ -173,6 +174,9 @@ Route::middleware(['auth', EnsureOrgContext::class, EnsureSubscriptionActive::cl
         Route::get('rooms/availability', [AdminRoomController::class, 'availability'])->name('rooms.availability');
 
         Route::resource('students', AdminStudentController::class)->only(['index', 'show']);
+
+        // Reviews Management for Hostel Manager
+        Route::resource('reviews', AdminReviewController::class);
     });
 
 // Student Routes
@@ -221,6 +225,9 @@ Route::middleware(['auth', 'role:admin,hostel_manager', EnsureOrgContext::class,
 
         // Student Routes
         Route::resource('students', AdminStudentController::class);
+
+        // Review Routes (नयाँ थपिएको)
+        Route::resource('reviews', AdminReviewController::class);
     });
 
 /*

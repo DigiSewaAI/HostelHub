@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.frontend')
 @section('title', 'समीक्षाहरू - HostelHub')
 @section('content')
 <div style="

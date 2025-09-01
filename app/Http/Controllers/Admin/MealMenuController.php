@@ -13,7 +13,7 @@ class MealMenuController extends Controller
     public function index()
     {
         $mealMenus = MealMenu::with('hostel')->latest()->get();
-        return view('admin.meal_menus.index', compact('mealMenus'));
+        return view('admin.meal-menus.index', compact('mealMenus'));
     }
 
     public function create()
@@ -21,7 +21,7 @@ class MealMenuController extends Controller
         $hostels = Hostel::all();
         $days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
         $mealTypes = ['breakfast', 'lunch', 'dinner'];
-        return view('admin.meal_menus.create', compact('hostels', 'days', 'mealTypes'));
+        return view('admin.meal-menus.create', compact('hostels', 'days', 'mealTypes'));
     }
 
     public function store(Request $request)
@@ -55,7 +55,7 @@ class MealMenuController extends Controller
         $hostels = Hostel::all();
         $days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
         $mealTypes = ['breakfast', 'lunch', 'dinner'];
-        return view('admin.meal_menus.edit', compact('mealMenu', 'hostels', 'days', 'mealTypes'));
+        return view('admin.meal-menus.edit', compact('mealMenu', 'hostels', 'days', 'mealTypes'));
     }
 
     public function update(Request $request, MealMenu $mealMenu)
