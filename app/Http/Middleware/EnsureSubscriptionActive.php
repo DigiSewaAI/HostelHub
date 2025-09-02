@@ -12,6 +12,11 @@ class EnsureSubscriptionActive
 {
     public function handle(Request $request, Closure $next): Response
     {
+        // Development मा subscription check skip गर्ने
+        if (app()->environment('local')) {
+            return $next($request);
+        }
+
         // Skip for relevant routes
         $exemptRoutes = [
             'pricing',
