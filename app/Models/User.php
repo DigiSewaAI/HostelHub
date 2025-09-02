@@ -7,11 +7,11 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Spatie\Permission\Traits\HasRoles;  // ✅ Spatie Permission Trait
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, HasRoles;  // ✅ HasRoles trait थपियो
+    use HasFactory, Notifiable, HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -68,24 +68,11 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if the user has a specific role.
-     */
-    public function hasRole($roleName): bool
-    {
-        // Admin has all roles
-        if ($this->isAdmin()) {
-            return true;
-        }
-
-        return $this->role && $this->role->name === $roleName;
-    }
-
-    /**
      * Check if the user is an admin.
      */
     public function isAdmin(): bool
     {
-        return $this->getRoleName() === 'admin';
+        return $this->hasRole('admin');
     }
 
     /**
@@ -93,7 +80,7 @@ class User extends Authenticatable
      */
     public function isHostelManager(): bool
     {
-        return $this->getRoleName() === 'hostel_manager';
+        return $this->hasRole('hostel_manager');
     }
 
     /**
@@ -101,6 +88,6 @@ class User extends Authenticatable
      */
     public function isStudent(): bool
     {
-        return $this->getRoleName() === 'student';
+        return $this->hasRole('student');
     }
 }

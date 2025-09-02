@@ -7,7 +7,7 @@ use App\Http\Controllers\{
     Admin\StudentController as AdminStudentController,
     Admin\GalleryController as AdminGalleryController,
     Admin\MealMenuController as AdminMealMenuController,
-    Admin\ReviewController as AdminReviewController, // नयाँ थपिएको
+    Admin\ReviewController as AdminReviewController,
     Auth\AuthenticatedSessionController,
     Auth\ConfirmablePasswordController,
     Auth\EmailVerificationNotificationController,
@@ -33,8 +33,6 @@ use App\Http\Controllers\{
 };
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
-use App\Http\Middleware\EnsureOrgContext;
-use App\Http\Middleware\EnsureSubscriptionActive;
 
 // Force HTTPS in production
 if (app()->environment('production')) {
@@ -112,10 +110,29 @@ Route::middleware('guest')->group(function () {
 
 /*
 |--------------------------------------------------------------------------
+| Global Dashboard Redirect (Role-based)
+|--------------------------------------------------------------------------
+*/
+Route::get('/dashboard', function () {
+    $user = auth()->user();
+
+    if ($user->hasRole('admin')) {
+        return redirect()->route('admin.dashboard');
+    } elseif ($user->hasRole('hostel_manager')) {
+        return redirect()->route('hostel.manager.dashboard');
+    } elseif ($user->hasRole('student')) {
+        return redirect()->route('student.dashboard');
+    }
+
+    return redirect('/');
+})->middleware('auth')->name('dashboard'); // Removed EnsureOrgContext and EnsureSubscriptionActive
+
+/*
+|--------------------------------------------------------------------------
 | Authenticated Routes
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', EnsureOrgContext::class])->group(function () {
+Route::middleware(['auth'])->group(function () { // Removed EnsureOrgContext
     // Logout
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
@@ -125,7 +142,7 @@ Route::middleware(['auth', EnsureOrgContext::class])->group(function () {
     Route::post('/subscription/start-trial', [SubscriptionController::class, 'startTrial'])->name('subscription.start-trial');
 
     // Active Subscription Routes
-    Route::middleware([EnsureSubscriptionActive::class])->group(function () {
+    Route::middleware([])->group(function () { // Removed EnsureSubscriptionActive
         // Onboarding
         Route::get('/onboarding', [OnboardingController::class, 'index'])->name('onboarding.index');
         Route::post('/onboarding/step/{step}', [OnboardingController::class, 'store'])->name('onboarding.store');
@@ -158,7 +175,7 @@ Route::middleware(['auth', EnsureOrgContext::class])->group(function () {
 */
 
 // Hostel Manager Routes
-Route::middleware(['auth', EnsureOrgContext::class, EnsureSubscriptionActive::class, 'role:hostel_manager'])
+Route::middleware(['auth', 'role:hostel_manager']) // Removed EnsureOrgContext and EnsureSubscriptionActive
     ->prefix('owner')
     ->name('hostel.manager.')
     ->group(function () {
@@ -180,7 +197,7 @@ Route::middleware(['auth', EnsureOrgContext::class, EnsureSubscriptionActive::cl
     });
 
 // Student Routes
-Route::middleware(['auth', EnsureOrgContext::class, EnsureSubscriptionActive::class, 'role:student'])
+Route::middleware(['auth', 'role:student']) // Removed EnsureOrgContext and EnsureSubscriptionActive
     ->prefix('student')
     ->name('student.')
     ->group(function () {
@@ -203,7 +220,7 @@ Route::middleware(['auth', EnsureOrgContext::class, EnsureSubscriptionActive::cl
 | Admin Routes (Admin & Hostel Manager)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'role:admin,hostel_manager', EnsureOrgContext::class, EnsureSubscriptionActive::class])
+Route::middleware(['auth', 'role:admin,hostel_manager']) // Removed EnsureOrgContext and EnsureSubscriptionActive
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
@@ -226,7 +243,7 @@ Route::middleware(['auth', 'role:admin,hostel_manager', EnsureOrgContext::class,
         // Student Routes
         Route::resource('students', AdminStudentController::class);
 
-        // Review Routes (नयाँ थपिएको)
+        // Review Routes
         Route::resource('reviews', AdminReviewController::class);
     });
 
@@ -243,22 +260,3 @@ if (app()->environment('local')) {
         return redirect('/');
     })->middleware('auth');
 }
-
-/*
-|--------------------------------------------------------------------------
-| Global Dashboard Redirect (Role-based)
-|--------------------------------------------------------------------------
-*/
-Route::get('/dashboard', function () {
-    $user = auth()->user();
-
-    if ($user->isAdmin()) {
-        return redirect()->route('admin.dashboard');
-    } elseif ($user->isHostelManager()) {
-        return redirect()->route('hostel.manager.dashboard');
-    } elseif ($user->isStudent()) {
-        return redirect()->route('student.dashboard');
-    }
-
-    return redirect('/');
-})->middleware('auth')->name('dashboard');
