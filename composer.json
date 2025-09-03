@@ -10,6 +10,7 @@
         "laravel/breeze": "^2.3",
         "laravel/framework": "*",
         "laravel/tinker": "^2.10.1",
+        "laravel/ui": "^4.6",
         "maatwebsite/excel": "3.1.65",
         "phpoffice/phpspreadsheet": "1.30.0",
         "spatie/laravel-permission": "^6.21"
