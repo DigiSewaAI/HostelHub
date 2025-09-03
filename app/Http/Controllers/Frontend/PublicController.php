@@ -59,8 +59,8 @@ class PublicController extends Controller
                 return Hostel::with('images')->take(4)->get();
             });
 
-            // 5. Recent Reviews (with caching)
-            $reviews = Cache::remember('home_reviews', 3600, function () {
+            // 5. Recent Testimonials (with caching) - Updated from reviews
+            $testimonials = Cache::remember('home_testimonials', 3600, function () {
                 return Review::with('student')->take(3)->get();
             });
 
@@ -108,7 +108,7 @@ class PublicController extends Controller
                 'metrics',
                 'cities',
                 'hostels',
-                'reviews',
+                'testimonials',
                 'roomTypes',
                 'heroSliderItems',
                 'galleryItems',
@@ -129,7 +129,7 @@ class PublicController extends Controller
                 ],
                 'cities' => collect(),
                 'hostels' => collect(),
-                'reviews' => collect(),
+                'testimonials' => collect(), // Updated from reviews
                 'roomTypes' => collect(),
                 'heroSliderItems' => collect(),
                 'galleryItems' => collect(),
@@ -349,10 +349,10 @@ class PublicController extends Controller
         return view('frontend.pricing');
     }
 
-    public function reviews(): View
+    public function testimonials(): View
     {
-        $reviews = Review::with('student')->latest()->paginate(6);
-        return view('frontend.reviews', compact('reviews'));
+        $testimonials = Review::with('student')->latest()->paginate(6);
+        return view('frontend.testimonials', compact('testimonials'));
     }
 
     public function contact(): View

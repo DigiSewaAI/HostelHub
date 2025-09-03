@@ -34,7 +34,7 @@
     </div>
 
     <div class="mt-6">
-        <a href="{{ route('admin.gallery.index') }}" class="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded">
+        <a href="{{ route('admin.galleries.index') }}" class="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded">
             Back to List
         </a>
     </div>

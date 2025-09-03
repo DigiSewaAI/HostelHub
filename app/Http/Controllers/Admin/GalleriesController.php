@@ -43,7 +43,7 @@ class GalleriesController extends Controller
             ->latest()
             ->paginate(12);
 
-        return view('admin.gallery.index', compact('galleries', 'categories', 'selectedCategory'));
+        return view('admin.galleries.index', compact('galleries', 'categories', 'selectedCategory'));
     }
 
     /**
@@ -68,7 +68,7 @@ class GalleriesController extends Controller
             'event'       => 'कार्यक्रम'
         ];
 
-        return view('admin.gallery.create', compact('categories'));
+        return view('admin.galleries.create', compact('categories'));
     }
 
     /**
@@ -129,7 +129,7 @@ class GalleriesController extends Controller
         Cache::forget('public_gallery_items_all');
         Cache::forget('public_gallery_featured');
 
-        return redirect()->route('admin.gallery.index')
+        return redirect()->route('admin.galleries.index')
             ->with('success', 'ग्यालरी वस्तु सफलतापूर्वक थपियो');
     }
 
@@ -140,7 +140,7 @@ class GalleriesController extends Controller
     {
         $this->authorize('view', $gallery);
 
-        return view('admin.gallery.show', compact('gallery'));
+        return view('admin.galleries.show', compact('gallery'));
     }
 
     /**
@@ -165,7 +165,7 @@ class GalleriesController extends Controller
             'event'       => 'कार्यक्रम'
         ];
 
-        return view('admin.gallery.edit', compact('gallery', 'categories'));
+        return view('admin.galleries.edit', compact('gallery', 'categories'));
     }
 
     /**
@@ -250,7 +250,7 @@ class GalleriesController extends Controller
         Cache::forget('public_gallery_items_all');
         Cache::forget('public_gallery_featured');
 
-        return redirect()->route('admin.gallery.index')
+        return redirect()->route('admin.galleries.index')
             ->with('success', 'ग्यालरी वस्तु सफलतापूर्वक अपडेट गरियो');
     }
 
@@ -278,7 +278,7 @@ class GalleriesController extends Controller
         Cache::forget('public_gallery_items_all');
         Cache::forget('public_gallery_featured');
 
-        return redirect()->route('admin.gallery.index')
+        return redirect()->route('admin.galleries.index')
             ->with('success', 'ग्यालरी वस्तु सफलतापूर्वक हटाइयो');
     }
 
