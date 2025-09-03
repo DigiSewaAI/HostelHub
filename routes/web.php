@@ -64,7 +64,10 @@ Route::group(['middleware' => 'web'], function () {
     Route::get('/how-it-works', [PublicController::class, 'howItWorks'])->name('how-it-works');
     Route::get('/gallery', [GalleryController::class, 'index'])->name('gallery');
     Route::get('/pricing', [PricingController::class, 'index'])->name('pricing');
-    Route::get('/reviews', [PublicController::class, 'reviews'])->name('reviews');
+
+    // Updated route for testimonials (previously reviews)
+    Route::get('/testimonials', [PublicController::class, 'testimonials'])->name('testimonials');
+
     Route::get('/contact', [PublicContactController::class, 'index'])->name('contact');
     Route::post('/contact', [PublicContactController::class, 'store'])->name('contact.store');
 
@@ -74,7 +77,7 @@ Route::group(['middleware' => 'web'], function () {
 
     // Public Routes भित्र, अन्य routes सँगै
     Route::get('/demo', function () {
-        return view('pages.demo'); // किनभने तपाईंको demo.blade.php 'pages' folder मा छ
+        return view('pages.demo');
     })->name('demo');
 });
 
@@ -136,8 +139,9 @@ Route::get('/dashboard', function () {
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
+    // FIXED: Consistent plural naming for all resources to avoid route name issues
     Route::resource('contacts', ContactsController::class);
-    Route::resource('galleries', GalleriesController::class);
+    Route::resource('galleries', GalleriesController::class); // Uses admin.galleries.* routes
     Route::resource('hostels', HostelsController::class);
     Route::resource('meals', MealsController::class);
     Route::resource('payments', PaymentsController::class);
@@ -153,8 +157,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 Route::middleware(['auth', 'role:hostel_manager'])->prefix('owner')->name('owner.')->group(function () {
     Route::get('/dashboard', [OwnerDashboardController::class, 'index'])->name('dashboard');
 
+    // FIXED: Consistent plural naming for all resources to avoid route name issues
     Route::resource('contacts', OwnerContactsController::class);
-    Route::resource('galleries', OwnerGalleriesController::class);
+    Route::resource('galleries', OwnerGalleriesController::class); // Uses owner.galleries.* routes
     Route::resource('hostels', HostelController::class);
     Route::resource('meal-menus', MealMenusController::class);
     Route::resource('payments', OwnerPaymentsController::class);
@@ -221,7 +226,7 @@ Route::middleware(['auth'])->group(function () {
 | Redirect Old Admin URLs
 |--------------------------------------------------------------------------
 */
-// Admin gallery -> galleries redirect
+// Admin gallery -> galleries redirect (plural form)
 Route::redirect('/admin/gallery', '/admin/galleries', 301);
 Route::redirect('/admin/gallery/{any?}', '/admin/galleries/{any?}', 301)
     ->where('any', '.*');

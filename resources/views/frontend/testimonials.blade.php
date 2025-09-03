@@ -1,5 +1,5 @@
 @extends('layouts.frontend')
-@section('title', 'समीक्षाहरू - HostelHub')
+@section('title', 'प्रशंसापत्रहरू - HostelHub')
 @section('content')
 <div style="
   max-width: 1200px;
@@ -19,7 +19,8 @@
       color: #1f2937;
       margin-bottom: 1rem;
     ">
-      हाम्रा ग्राहकहरूको समीक्षा
+      हाम्रा ग्राहकहरूको प्रशंसापत्र
+
     </h1>
     <p style="
       font-size: 1.125rem;

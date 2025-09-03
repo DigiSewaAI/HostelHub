@@ -1,25 +1,24 @@
-@extends('layouts.admin')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container mx-auto px-4 py-6">
     <h1 class="text-2xl font-bold text-gray-800 mb-6">📸 ग्यालेरी आइटम थप्नुहोस्</h1>
 
-    @if(session('success'))
+    <?php if(session('success')): ?>
         <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6">
-            {{ session('success') }}
+            <?php echo e(session('success')); ?>
+
         </div>
-    @endif
+    <?php endif; ?>
 
     <!-- FIXED: Changed from 'admin.gallery.store' to 'admin.galleries.store' (plural) -->
-    <form action="{{ route('admin.galleries.store') }}" method="POST" enctype="multipart/form-data" class="max-w-3xl bg-white p-6 rounded-lg shadow">
-        @csrf
+    <form action="<?php echo e(route('admin.galleries.store')); ?>" method="POST" enctype="multipart/form-data" class="max-w-3xl bg-white p-6 rounded-lg shadow">
+        <?php echo csrf_field(); ?>
 
-        @include('admin.galleries._form')
+        <?php echo $__env->make('admin.galleries._form', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
         <!-- Save & Cancel Buttons -->
         <div class="flex justify-end space-x-4 mt-8">
             <!-- FIXED: Changed from 'admin.gallery.index' to 'admin.galleries.index' (plural) -->
-            <a href="{{ route('admin.galleries.index') }}" 
+            <a href="<?php echo e(route('admin.galleries.index')); ?>" 
                class="bg-gray-400 hover:bg-gray-500 text-white px-5 py-2 rounded transition duration-200">
                 Cancel
             </a>
@@ -30,9 +29,9 @@
         </div>
     </form>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section('scripts')
+<?php $__env->startSection('scripts'); ?>
 <script>
 // Media type based field toggling
 document.addEventListener('DOMContentLoaded', function () {
@@ -61,4 +60,5 @@ document.addEventListener('DOMContentLoaded', function () {
     toggleFields(); // Initialize on load
 });
 </script>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.admin', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\My Projects\HostelHub\resources\views/admin/galleries/create.blade.php ENDPATH**/ ?>

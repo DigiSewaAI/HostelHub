@@ -2,18 +2,18 @@
 
 namespace App\Http\Controllers\Frontend;
 
+use App\Http\Controllers\Controller;
 use App\Models\Gallery;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
-use App\Http\Controllers\Controller;
 
 class GalleryController extends Controller
 {
     /**
      * Display the public gallery with filtering and caching.
      */
-    public function publicIndex(Request $request)
+    public function index(Request $request)
     {
         $categories = $this->getCategoriesList();
         $selectedCategory = $request->input('category', 'all');
@@ -22,11 +22,10 @@ class GalleryController extends Controller
             $selectedCategory = 'all';
         }
 
-        $cacheKey = 'public_gallery_' . $selectedCategory;
         $galleryItems = $this->getGalleryItems($selectedCategory);
         $stats = $this->getStats();
 
-        return view('gallery', compact(
+        return view('frontend.gallery.index', compact(
             'galleryItems',
             'categories',
             'selectedCategory',
@@ -81,9 +80,7 @@ class GalleryController extends Controller
             'video'     => 'video',
         ];
 
-        $cacheKey = 'public_gallery_' . $selectedCategory;
-
-        return Cache::remember($cacheKey, 3600, function () use ($selectedCategory, $categoryMap) {
+        return Cache::remember('public_gallery_' . $selectedCategory, 3600, function () use ($selectedCategory, $categoryMap) {
             $query = Gallery::where('is_active', true);
 
             if ($selectedCategory !== 'all') {
@@ -143,15 +140,6 @@ class GalleryController extends Controller
             'cities_available' => Cache::remember('stats_cities', 3600, fn() => 5),
             'satisfaction_rate' => Cache::remember('stats_satisfaction', 3600, fn() => '98%')
         ];
-    }
-
-    /**
-     * Display admin gallery management page.
-     */
-    public function index(Request $request)
-    {
-        $galleryItems = Gallery::orderBy('created_at', 'desc')->paginate(20);
-        return view('frontend.gallery.index', compact('galleryItems'));
     }
 
     /**

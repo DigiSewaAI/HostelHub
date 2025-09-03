@@ -1217,7 +1217,7 @@
                         <a href="{{ route('how-it-works') }}" class="nepali">कसरी काम गर्छ</a>
                         <a href="{{ route('gallery') }}" class="nepali">ग्यालरी</a>
                         <a href="{{ route('pricing') }}" class="nepali">मूल्य</a>
-                        <a href="{{ route('reviews') }}" class="nepali">समीक्षाहरू</a>
+                        <a href="{{ route('testimonials') }}" class="nepali">प्रशंसापत्रहरू</a>
                         <a href="/login" class="nepali">लगइन</a>
                     </div>
                     <div class="header-cta">
@@ -1459,10 +1459,10 @@
         <!-- Testimonials -->
         <section class="section testimonials" id="testimonials">
             <div class="container">
-                <h2 class="section-title nepali" style="color: var(--text-light);">ग्राहकहरूको समीक्षा</h2>
+                <h2 class="section-title nepali" style="color: var(--text-light);">ग्राहकहरूको प्रशंसापत्रहरू हेर्नुहोस्</h2>
                 <p class="section-subtitle" style="color: rgba(249, 250, 251, 0.9);">HostelHub प्रयोग गर्ने हाम्रा ग्राहकहरूले के भन्छन्</p>
                 <div class="testimonials-grid">
-                    @foreach($reviews as $review)
+                    @foreach($testimonials as $testimonial)
                     <div class="testimonial-card">
                         <p class="testimonial-text nepali">{{ $review->content }}</p>
                         <div class="testimonial-author">
@@ -1577,7 +1577,7 @@
                         <li><a href="{{ route('how-it-works') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">कसरी काम गर्छ</span></a></li>
                         <li><a href="{{ route('gallery') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">ग्यालरी</span></a></li>
                         <li><a href="{{ route('pricing') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">मूल्य</span></a></li>
-                        <li><a href="{{ route('reviews') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">समीक्षाहरू</span></a></li>
+                        <li><a href="{{ route('testimonials') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">समीक्षाहरू</span></a></li>
                     </ul>
                 </div>
                 <div class="footer-col">

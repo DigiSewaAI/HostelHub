@@ -16,7 +16,7 @@
                     <li><a href="{{ route('how-it-works') }}" class="hover:text-blue-200">कसरी काम गर्छ</a></li>
                     <li><a href="{{ route('gallery.public') }}" class="hover:text-blue-200">ग्यालरी</a></li>
                     <li><a href="{{ route('pricing') }}" class="hover:text-blue-200">मूल्य</a></li>
-                    <li><a href="{{ route('reviews') }}" class="hover:text-blue-200">समीक्षाहरू</a></li>
+                    <li><a href="{{ route('testimonials') }}" class="hover:text-blue-200">प्रशंसापत्रहरू</a></li> {{-- Updated --}}
                 </ul>
             </div>
 
