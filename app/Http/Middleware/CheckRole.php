@@ -9,37 +9,31 @@ use Symfony\Component\HttpFoundation\Response;
 
 class CheckRole
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     */
     public function handle(Request $request, Closure $next, string $role): Response
     {
         $user = Auth::user();
-
-        // Check if user is authenticated
         if (!$user) {
             return redirect()->route('login');
         }
 
-        // Role mapping
+        // role_id म्यापिङ (तपाईंको प्रोजेक्ट अनुसार)
         $roleMap = [
-            'admin' => 'admin',
-            'owner' => 'hostel_manager',
-            'student' => 'student'
+            'admin' => 1,    // role_id = 1
+            'owner' => 2,    // role_id = 2 (hostel_manager)
+            'student' => 3   // role_id = 3
         ];
 
-        $requiredRole = $roleMap[$role] ?? $role;
+        // यदि role म्यापमा छैन भने, सीधा role_id जाँच गर्ने
+        $requiredRoleId = $roleMap[$role] ?? $role;
 
-        // Allow admin to access any route
-        if ($user->isAdmin()) {
+        // Admin (role_id=1) लाई सबै रूटमा प्रवेश दिने
+        if ($user->role_id == 1) {
             return $next($request);
         }
 
-        // Check if user has the required role
-        if (!$user->hasRole($requiredRole)) {
-            abort(403, 'Unauthorized action.');
+        // Required role_id जाँच गर्ने
+        if ($user->role_id != $requiredRoleId) {
+            abort(403, 'तपाईंलाई यो पृष्ठ हेर्न अनुमति छैन।');
         }
 
         return $next($request);
