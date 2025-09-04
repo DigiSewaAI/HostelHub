@@ -2,17 +2,23 @@
 
 namespace App\Http\Controllers\Frontend;
 
+use App\Http\Controllers\Controller;
 use App\Models\Plan;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class PricingController extends Controller
 {
-    public function index()
+    /**
+     * Display pricing plans.
+     */
+    public function index(): View
     {
         $plans = Plan::where('is_active', true)
             ->orderBy('sort_order')
             ->get();
 
-        return view('pricing.index', compact('plans'));
+        // ✅ सही view path: frontend.partials.pricing.index
+        return view('frontend.partials.pricing.index', compact('plans'));
     }
 }

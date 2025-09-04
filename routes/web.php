@@ -65,8 +65,21 @@ Route::group(['middleware' => 'web'], function () {
     Route::get('/gallery', [GalleryController::class, 'index'])->name('gallery');
     Route::get('/pricing', [PricingController::class, 'index'])->name('pricing');
 
+    // Gallery API Routes
+    Route::get('/api/gallery/data', [GalleryController::class, 'getGalleryData']);
+    Route::get('/api/gallery/categories', [GalleryController::class, 'getGalleryCategories']);
+    Route::get('/api/gallery/stats', [GalleryController::class, 'getGalleryStats']);
+
     // Updated route for testimonials (previously reviews)
     Route::get('/testimonials', [PublicController::class, 'testimonials'])->name('testimonials');
+
+    // 🔵 Admin: Reviews (प्रबन्धन गर्नको लागि)
+    Route::get('/reviews', [PublicController::class, 'reviews'])->name('reviews');
+
+    // ✅ Legal pages routes
+    Route::get('/privacy-policy', [PublicController::class, 'privacy'])->name('privacy');
+    Route::get('/terms-of-service', [PublicController::class, 'terms'])->name('terms');
+    Route::get('/cookies', [PublicController::class, 'cookies'])->name('cookies');
 
     Route::get('/contact', [PublicContactController::class, 'index'])->name('contact');
     Route::post('/contact', [PublicContactController::class, 'store'])->name('contact.store');
@@ -75,10 +88,14 @@ Route::group(['middleware' => 'web'], function () {
     Route::get('/rooms', [PublicRoomController::class, 'index'])->name('rooms.index');
     Route::get('/students', [PublicStudentController::class, 'index'])->name('students.index');
 
-    // Public Routes भित्र, अन्य routes सँगै
+    // Demo route
     Route::get('/demo', function () {
         return view('pages.demo');
     })->name('demo');
+
+    // ✅ Newsletter subscription route
+    Route::post('/newsletter/subscribe', [PublicController::class, 'subscribeNewsletter'])
+        ->name('newsletter.subscribe');
 });
 
 /*|--------------------------------------------------------------------------
@@ -140,6 +157,13 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // FIXED: Consistent plural naming for all resources to avoid route name issues
+
+    // ✅ Add report route for payments
+    Route::get('/payments/report', [PaymentsController::class, 'report'])->name('payments.report');
+
+    // ✅ Add export route for payments
+    Route::get('/payments/export', [PaymentsController::class, 'export'])->name('payments.export');
+
     Route::resource('contacts', ContactsController::class);
     Route::resource('galleries', GalleriesController::class); // Uses admin.galleries.* routes
     Route::resource('hostels', HostelsController::class);

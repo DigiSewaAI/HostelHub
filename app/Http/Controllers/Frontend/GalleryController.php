@@ -143,209 +143,6 @@ class GalleryController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        $categories = [
-            '1 seater' => '1 Seater Room',
-            '2 seater' => '2 Seater Room',
-            '3 seater' => '3 Seater Room',
-            '4 seater' => '4 Seater Room',
-            'common' => 'Common Living Room',
-            'bathroom' => 'Bathroom',
-            'kitchen' => 'Kitchen',
-            'study room' => 'Study Room',
-            'event' => 'Event',
-            'video' => 'Video Tour',
-        ];
-
-        return view('admin.gallery.create', compact('categories'));
-    }
-
-    /**
-     * Store a new gallery item (Admin)
-     */
-    public function store(Request $request)
-    {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'media_type' => 'required|in:photo,local_video,external_video',
-            'category' => [
-                'required',
-                'string',
-                'in:1 seater,2 seater,3 seater,4 seater,common,bathroom,kitchen,study room,event,video'
-            ],
-            'description' => 'nullable|string',
-            'status' => 'required|in:active,inactive',
-            'featured' => 'boolean',
-            'image' => $request->media_type === 'photo' ? 'required|image|max:5120' : 'nullable',
-            'local_video' => $request->media_type === 'local_video' ? 'required|mimes:mp4,mov,webm|max:51200' : 'nullable',
-            'external_link' => $request->media_type === 'external_video' ? 'required|url' : 'nullable',
-        ]);
-
-        $gallery = new Gallery();
-        $gallery->title = $request->title;
-        $gallery->description = $request->description;
-        $gallery->category = $request->category;
-        $gallery->media_type = $request->media_type;
-        $gallery->is_active = $request->status === 'active';
-        $gallery->is_featured = (bool) $request->featured;
-        $gallery->user_id = auth()->id();
-
-        if ($request->media_type === 'photo' && $request->hasFile('image')) {
-            $path = $request->file('image')->store('gallery/images', 'public');
-            $gallery->file_path = $path;
-            $gallery->thumbnail = $path;
-        }
-
-        if ($request->media_type === 'local_video' && $request->hasFile('local_video')) {
-            $path = $request->file('local_video')->store('gallery/videos', 'public');
-            $gallery->file_path = $path;
-            $gallery->thumbnail = 'images/video-default.jpg';
-        }
-
-        if ($request->media_type === 'external_video') {
-            $gallery->external_link = $request->external_link;
-            $youtubeId = $this->getYoutubeIdFromUrl($request->external_link);
-            $gallery->thumbnail = $youtubeId
-                ? "https://img.youtube.com/vi/{$youtubeId}/mqdefault.jpg"
-                : 'images/video-default.jpg';
-        }
-
-        $gallery->save();
-
-        // Clear all gallery caches
-        $categories = array_keys($this->getCategoriesList());
-        foreach ($categories as $category) {
-            Cache::forget('public_gallery_' . $category);
-        }
-
-        return redirect()->route('admin.gallery.index')->with('success', '🎉 ग्यालेरी आइटम सफलतापूर्वक थपियो!');
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Gallery $gallery)
-    {
-        return view('admin.gallery.show', compact('gallery'));
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Gallery $gallery)
-    {
-        $categories = [
-            '1 seater' => '1 Seater Room',
-            '2 seater' => '2 Seater Room',
-            '3 seater' => '3 Seater Room',
-            '4 seater' => '4 Seater Room',
-            'common' => 'Common Living Room',
-            'bathroom' => 'Bathroom',
-            'kitchen' => 'Kitchen',
-            'study room' => 'Study Room',
-            'event' => 'Event',
-            'video' => 'Video Tour',
-        ];
-
-        return view('admin.gallery.edit', compact('gallery', 'categories'));
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Gallery $gallery)
-    {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'media_type' => 'required|in:photo,local_video,external_video',
-            'category' => [
-                'required',
-                'string',
-                'in:1 seater,2 seater,3 seater,4 seater,common,bathroom,kitchen,study room,event,video'
-            ],
-            'description' => 'nullable|string',
-            'status' => 'required|in:active,inactive',
-            'featured' => 'boolean',
-            'image' => $request->media_type === 'photo' ? 'sometimes|image|max:5120' : 'nullable',
-            'local_video' => $request->media_type === 'local_video' ? 'sometimes|mimes:mp4,mov,webm|max:51200' : 'nullable',
-            'external_link' => $request->media_type === 'external_video' ? 'required|url' : 'nullable',
-        ]);
-
-        $gallery->title = $request->title;
-        $gallery->description = $request->description;
-        $gallery->category = $request->category;
-        $gallery->media_type = $request->media_type;
-        $gallery->is_active = $request->status === 'active';
-        $gallery->is_featured = (bool) $request->featured;
-
-        if ($request->media_type === 'photo' && $request->hasFile('image')) {
-            // Delete old file if exists
-            if ($gallery->file_path) {
-                Storage::disk('public')->delete($gallery->file_path);
-            }
-
-            $path = $request->file('image')->store('gallery/images', 'public');
-            $gallery->file_path = $path;
-            $gallery->thumbnail = $path;
-        }
-
-        if ($request->media_type === 'local_video' && $request->hasFile('local_video')) {
-            // Delete old file if exists
-            if ($gallery->file_path) {
-                Storage::disk('public')->delete($gallery->file_path);
-            }
-
-            $path = $request->file('local_video')->store('gallery/videos', 'public');
-            $gallery->file_path = $path;
-            $gallery->thumbnail = 'images/video-default.jpg';
-        }
-
-        if ($request->media_type === 'external_video') {
-            $gallery->external_link = $request->external_link;
-            $gallery->file_path = null;
-
-            $youtubeId = $this->getYoutubeIdFromUrl($request->external_link);
-            $gallery->thumbnail = $youtubeId
-                ? "https://img.youtube.com/vi/{$youtubeId}/mqdefault.jpg"
-                : 'images/video-default.jpg';
-        }
-
-        $gallery->save();
-
-        // Clear all gallery caches
-        $categories = array_keys($this->getCategoriesList());
-        foreach ($categories as $category) {
-            Cache::forget('public_gallery_' . $category);
-        }
-
-        return redirect()->route('admin.gallery.index')->with('success', '🎉 ग्यालेरी आइटम सफलतापूर्वक अद्यावधिक गरियो!');
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Gallery $gallery)
-    {
-        // Delete associated files
-        if ($gallery->file_path) {
-            Storage::disk('public')->delete($gallery->file_path);
-        }
-
-        $gallery->delete();
-
-        // Clear all gallery caches
-        $categories = array_keys($this->getCategoriesList());
-        foreach ($categories as $category) {
-            Cache::forget('public_gallery_' . $category);
-        }
-
-        return redirect()->route('admin.gallery.index')->with('success', '🗑️ ग्यालेरी आइटम सफलतापूर्वक मेटियो!');
-    }
-
-    /**
      * Process media item based on its type
      */
     private function processMediaItem(Gallery $item): array
@@ -378,18 +175,28 @@ class GalleryController extends Controller
      */
     private function processPhotoItem(Gallery $item, array $result): array
     {
-        $absolutePath = storage_path('app/public/' . $item->file_path);
-        $absolutePath = str_replace('/', DIRECTORY_SEPARATOR, $absolutePath);
-        $fileExists = file_exists($absolutePath);
+        // Fix the file path by removing duplicate 'admin/' prefixes
+        $filePath = $this->fixFilePath($item->file_path);
+        
+        $fileExists = Storage::disk('public')->exists($filePath);
 
         $result['file_exists'] = $fileExists ? '✅ हुन्छ' : '❌ हुँदैन';
-        $result['absolute_path'] = $absolutePath;
+        $result['absolute_path'] = Storage::disk('public')->path($filePath);
 
         if ($fileExists) {
-            $result['file_url'] = asset('storage/' . $item->file_path);
-            $result['thumbnail_url'] = $item->thumbnail
-                ? asset('storage/' . $item->thumbnail)
-                : $result['file_url'];
+            $result['file_url'] = Storage::disk('public')->url($filePath);
+
+            // Handle thumbnail
+            if ($item->thumbnail) {
+                $thumbnailPath = $this->fixFilePath($item->thumbnail);
+                if (Storage::disk('public')->exists($thumbnailPath)) {
+                    $result['thumbnail_url'] = Storage::disk('public')->url($thumbnailPath);
+                } else {
+                    $result['thumbnail_url'] = $result['file_url'];
+                }
+            } else {
+                $result['thumbnail_url'] = $result['file_url'];
+            }
         }
 
         return $result;
@@ -400,19 +207,34 @@ class GalleryController extends Controller
      */
     private function processLocalVideoItem(Gallery $item, array $result): array
     {
-        $absolutePath = storage_path('app/public/' . $item->file_path);
-        $absolutePath = str_replace('/', DIRECTORY_SEPARATOR, $absolutePath);
-        $fileExists = file_exists($absolutePath);
+        // Fix the file path by removing duplicate 'admin/' prefixes
+        $filePath = $this->fixFilePath($item->file_path);
+        
+        $fileExists = Storage::disk('public')->exists($filePath);
 
         $result['file_exists'] = $fileExists ? '✅ हुन्छ' : '❌ हुँदैन';
-        $result['absolute_path'] = $absolutePath;
+        $result['absolute_path'] = Storage::disk('public')->path($filePath);
 
         if ($fileExists) {
-            $result['file_url'] = asset('storage/' . $item->file_path);
+            $result['file_url'] = Storage::disk('public')->url($filePath);
             $result['video_url'] = $result['file_url'];
-            $result['thumbnail_url'] = $item->thumbnail
-                ? asset('storage/' . $item->thumbnail)
-                : asset('images/video-default.jpg');
+
+            // Handle thumbnail
+            if ($item->thumbnail) {
+                $thumbnailPath = $this->fixFilePath($item->thumbnail);
+                
+                if (filter_var($thumbnailPath, FILTER_VALIDATE_URL)) {
+                    $result['thumbnail_url'] = $thumbnailPath;
+                } else {
+                    if (Storage::disk('public')->exists($thumbnailPath)) {
+                        $result['thumbnail_url'] = Storage::disk('public')->url($thumbnailPath);
+                    } else {
+                        $result['thumbnail_url'] = asset('images/video-default.jpg');
+                    }
+                }
+            } else {
+                $result['thumbnail_url'] = asset('images/video-default.jpg');
+            }
         }
 
         return $result;
@@ -427,13 +249,41 @@ class GalleryController extends Controller
         $youtubeId = $this->getYoutubeIdFromUrl($item->external_link);
 
         $result['youtube_id'] = $youtubeId;
-        $result['thumbnail_url'] = $item->thumbnail
-            ? asset('storage/' . $item->thumbnail)
-            : ($youtubeId
-                ? "https://img.youtube.com/vi/{$youtubeId}/mqdefault.jpg"
-                : asset('images/video-default.jpg'));
+
+        // Handle thumbnail
+        if ($item->thumbnail) {
+            if (filter_var($item->thumbnail, FILTER_VALIDATE_URL)) {
+                $result['thumbnail_url'] = $item->thumbnail;
+            } else {
+                $result['thumbnail_url'] = asset($item->thumbnail);
+            }
+        } else {
+            $result['thumbnail_url'] = asset('images/video-default.jpg');
+        }
 
         return $result;
+    }
+
+    /**
+     * Fix file path by removing duplicate 'admin/' prefixes
+     */
+    private function fixFilePath($path)
+    {
+        if (empty($path)) {
+            return $path;
+        }
+
+        // Remove any duplicate 'admin/' prefixes
+        while (strpos($path, 'admin/admin/') === 0) {
+            $path = substr($path, 6); // Remove the first 'admin/'
+        }
+        
+        // Also remove single leading 'admin/' if present
+        if (strpos($path, 'admin/') === 0) {
+            $path = substr($path, 6);
+        }
+        
+        return $path;
     }
 
     /**

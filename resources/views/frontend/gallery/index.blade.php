@@ -565,9 +565,11 @@
                 </button>
             </div>
             <div class="bg-gray-800 p-2 rounded-b-lg relative">
-                <video id="modalVideo" controls class="w-full h-auto" style="max-height: 70vh;">
-                    Your browser does not support the video tag.
-                </video>
+                <div id="videoPlayerContainer">
+                    <video id="modalVideo" controls class="w-full h-auto" style="max-height: 70vh;">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
                 <div id="videoLoading" class="absolute inset-0 flex items-center justify-center hidden">
                     <div class="spinner"></div>
                 </div>
@@ -584,9 +586,9 @@
         document.addEventListener('DOMContentLoaded', function() {
             // API endpoints
             const API_BASE = window.location.origin;
-            const GALLERY_API = `${API_BASE}/api/gallery/data`;
-            const CATEGORIES_API = `${API_BASE}/api/gallery/categories`;
-            const STATS_API = `${API_BASE}/api/gallery/stats`;
+            const GALLERY_API = `/api/gallery/data`;
+            const CATEGORIES_API = `/api/gallery/categories`;
+            const STATS_API = `/api/gallery/stats`;
             
             // DOM elements
             const galleryGrid = document.getElementById('galleryGrid');
@@ -994,6 +996,7 @@
                 const closeVideoModal = document.getElementById('closeVideoModal');
                 const videoLoading = document.getElementById('videoLoading');
                 const videoModalError = document.getElementById('videoModalError');
+                const videoPlayerContainer = document.getElementById('videoPlayerContainer');
                 
                 // Close video modal
                 function closeVideoModalFunc() {
@@ -1003,6 +1006,16 @@
                     modalVideo.removeAttribute('src');
                     modalVideo.load();
                     videoModalError.classList.add('hidden');
+                    
+                    // Remove any iframe that might have been added
+                    const iframe = videoPlayerContainer.querySelector('iframe');
+                    if (iframe) {
+                        iframe.parentNode.removeChild(iframe);
+                    }
+                    
+                    // Show the video element again
+                    modalVideo.style.display = 'block';
+                    
                     setTimeout(() => {
                         videoModal.classList.add('hidden');
                     }, 300);
@@ -1020,12 +1033,18 @@
                         videoLoading.classList.remove('hidden');
                         videoModalError.classList.add('hidden');
                         
-                        // Clear previous source
+                        // Clear previous content
+                        modalVideo.style.display = 'none';
                         modalVideo.innerHTML = '';
+                        
+                        // Remove any existing iframe
+                        const existingIframe = videoPlayerContainer.querySelector('iframe');
+                        if (existingIframe) {
+                            existingIframe.parentNode.removeChild(existingIframe);
+                        }
                         
                         if (videoType === 'external_video') {
                             // For external videos (YouTube), use iframe
-                            modalVideo.style.display = 'none';
                             const iframe = document.createElement('iframe');
                             iframe.src = videoSrc;
                             iframe.width = '100%';
@@ -1033,7 +1052,8 @@
                             iframe.style.minHeight = '70vh';
                             iframe.setAttribute('frameborder', '0');
                             iframe.setAttribute('allowfullscreen', 'true');
-                            modalVideo.parentNode.appendChild(iframe);
+                            iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
+                            videoPlayerContainer.appendChild(iframe);
                             
                             iframe.onload = function() {
                                 videoLoading.classList.add('hidden');
@@ -1069,6 +1089,11 @@
                                 // Check if video has valid dimensions (not 0x0 which indicates decoding issue)
                                 if (modalVideo.videoWidth === 0 && modalVideo.videoHeight === 0) {
                                     showVideoError(itemId);
+                                } else {
+                                    // Video loaded successfully with visual content
+                                    modalVideo.play().catch(e => {
+                                        console.error('Autoplay prevented:', e);
+                                    });
                                 }
                             });
                             
@@ -1094,11 +1119,6 @@
                 videoModal.addEventListener('click', (e) => {
                     if (e.target === videoModal) {
                         closeVideoModalFunc();
-                        // Remove any iframe that might have been added
-                        const iframe = modalVideo.parentNode.querySelector('iframe');
-                        if (iframe) {
-                            iframe.parentNode.removeChild(iframe);
-                        }
                     }
                 });
 
@@ -1107,11 +1127,6 @@
                     if (e.key === 'Escape') {
                         if (videoModal.classList.contains('open')) {
                             closeVideoModalFunc();
-                            // Remove any iframe that might have been added
-                            const iframe = modalVideo.parentNode.querySelector('iframe');
-                            if (iframe) {
-                                iframe.parentNode.removeChild(iframe);
-                            }
                         }
                         if (imageModal.classList.contains('open')) {
                             closeImageModalFunc();
