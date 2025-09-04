@@ -446,7 +446,7 @@
             <div class="container">
                 <div class="navbar">
                     <!-- Header Logo -->
-                    <a href="/" class="logo">
+                    <a href="{{ route('home') }}" class="logo">
                         <!-- Real Logo Image -->
                         <div class="logo-image">
                             <img src="{{ asset('storage/images/logo.png') }}" alt="HostelHub Logo" style="height: 50px; width: auto;">
@@ -459,13 +459,16 @@
                     <div class="nav-links" id="main-nav">
                         <a href="{{ route('features') }}" class="nepali">सुविधाहरू</a>
                         <a href="{{ route('how-it-works') }}" class="nepali">कसरी काम गर्छ</a>
-                        <a href="{{ route('gallery.public') }}" class="nepali">ग्यालरी</a>
+                        <a href="{{ route('gallery') }}" class="nepali">ग्यालरी</a>
                         <a href="{{ route('pricing') }}" class="nepali">मूल्य</a>
+                        <a href="{{ route('testimonials') }}" class="nepali">प्रशंसापत्रहरू</a>
                         <a href="{{ route('reviews') }}" class="nepali">समीक्षाहरू</a>
-                        <a href="/login" class="nepali">लगइन</a>
+                        <a href="{{ route('privacy') }}" class="nepali">गोप्यता नीति</a>
+                        <a href="{{ route('terms') }}" class="nepali">सेवा सर्तहरू</a>
                     </div>
                     <div class="header-cta">
-                        <a href="/register" class="btn btn-primary nepali">साइन अप</a>
+                        <a href="{{ route('login') }}" class="btn btn-outline nepali">लगइन</a>
+                        <a href="{{ route('register') }}" class="btn btn-primary nepali">साइन अप</a>
                     </div>
                     <button class="mobile-menu-btn" aria-label="मेनु खोल्नुहोस्" aria-expanded="false" aria-controls="main-nav">
                         <i class="fas fa-bars"></i>
@@ -487,7 +490,7 @@
             <div class="footer-grid">
                 <div class="footer-col">
                     <!-- Footer Logo -->
-                    <a href="/" class="footer-logo">
+                    <a href="{{ route('home') }}" class="footer-logo">
                         <img src="{{ asset('storage/images/logo.png') }}" alt="HostelHub Logo" style="height: 146px; width: auto;">
                         <span>HostelHub</span>
                     </a>
@@ -504,12 +507,15 @@
                 <div class="footer-col">
                     <h3 class="nepali">तिब्र लिङ्कहरू</h3>
                     <ul class="footer-links">
-                        <li><a href="#"><i class="fas fa-chevron-right"></i> <span class="nepali">होम</span></a></li>
+                        <li><a href="{{ route('home') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">होम</span></a></li>
                         <li><a href="{{ route('features') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">सुविधाहरू</span></a></li>
                         <li><a href="{{ route('how-it-works') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">कसरी काम गर्छ</span></a></li>
-                        <li><a href="{{ route('gallery.public') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">ग्यालरी</span></a></li>
+                        <li><a href="{{ route('gallery') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">ग्यालरी</span></a></li>
                         <li><a href="{{ route('pricing') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">मूल्य</span></a></li>
+                        <li><a href="{{ route('testimonials') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">प्रशंसापत्रहरू</span></a></li>
                         <li><a href="{{ route('reviews') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">समीक्षाहरू</span></a></li>
+                        <li><a href="{{ route('privacy') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">गोप्यता नीति</span></a></li>
+                        <li><a href="{{ route('terms') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">सेवा सर्तहरू</span></a></li>
                     </ul>
                 </div>
                 <div class="footer-col">
@@ -538,7 +544,7 @@
                     <p class="nepali" style="color: rgba(249, 250, 251, 0.8); margin-bottom: 12px; line-height: 1.6;">
                         हाम्रो नवीनतम अपडेटहरू प्राप्त गर्न तपाईंको इमेल दर्ता गर्नुहोस्
                     </p>
-                    <form class="newsletter-form" action="/subscribe" method="POST">
+                    <form class="newsletter-form" action="{{ route('newsletter.subscribe') }}" method="POST">
                         @csrf
                         <input type="email" name="email" placeholder="तपाईंको इमेल" required aria-label="इमेल ठेगाना">
                         <input type="text" name="honeypot" style="display:none" aria-hidden="true">

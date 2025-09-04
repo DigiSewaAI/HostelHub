@@ -3,10 +3,10 @@
 namespace App\Policies;
 
 use App\Models\User;
-use App\Models\Organization;
+use App\Models\Meal;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
-class OrganizationPolicy
+class MealPolicy
 {
     use HandlesAuthorization;
 
@@ -15,24 +15,29 @@ class OrganizationPolicy
      */
     public function viewAny(User $user)
     {
-        return $user->can('organizations_access');
+        return $user->can('meals_access');
     }
 
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, Organization $organization)
+    public function view(User $user, Meal $meal)
     {
         // Admin हरूले सबै हेर्न सक्छन्
         if ($user->hasRole('admin')) {
             return true;
         }
-        
-        // Hostel Manager हरूले आफ्नो सम्बन्धित organization मात्र हेर्न सक्छन्
+
+        // Hostel Manager हरूले आफ्नो होस्टलका meals मात्र हेर्न सक्छन्
         if ($user->hasRole('hostel_manager')) {
-            return $organization->hostels->contains('manager_id', $user->id);
+            return $meal->hostel_id && $meal->hostel->manager_id === $user->id;
         }
-        
+
+        // Student हरूले सबै meals हेर्न सक्छन्
+        if ($user->hasRole('student')) {
+            return true;
+        }
+
         return false;
     }
 
@@ -41,22 +46,22 @@ class OrganizationPolicy
      */
     public function create(User $user)
     {
-        return $user->can('organizations_create');
+        return $user->can('meals_create');
     }
 
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, Organization $organization)
+    public function update(User $user, Meal $meal)
     {
-        return $user->can('organizations_edit');
+        return $user->can('meals_edit');
     }
 
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, Organization $organization)
+    public function delete(User $user, Meal $meal)
     {
-        return $user->can('organizations_delete');
+        return $user->can('meals_delete');
     }
 }

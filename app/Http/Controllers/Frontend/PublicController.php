@@ -59,12 +59,15 @@ class PublicController extends Controller
                 return Hostel::with('images')->take(4)->get();
             });
 
-            // 5. Recent Testimonials (with caching) - Updated from reviews
+            // 5. Recent Testimonials (with caching)
             $testimonials = Cache::remember('home_testimonials', 3600, function () {
-                return Review::with('student')->take(3)->get();
+                return Review::with('student')
+                    ->where('is_published', true)
+                    ->take(3)
+                    ->get();
             });
 
-            // 6. Room Types (from HomeController)
+            // 6. Room Types (with caching)
             $roomTypes = Cache::remember('home_room_types', 3600, function () {
                 return Room::distinct()->pluck('type');
             });
@@ -129,7 +132,7 @@ class PublicController extends Controller
                 ],
                 'cities' => collect(),
                 'hostels' => collect(),
-                'testimonials' => collect(), // Updated from reviews
+                'testimonials' => collect(),
                 'roomTypes' => collect(),
                 'heroSliderItems' => collect(),
                 'galleryItems' => collect(),
@@ -139,7 +142,7 @@ class PublicController extends Controller
     }
 
     /**
-     * Process gallery item for home page (from HomeController)
+     * Process gallery item for home page
      */
     private function processGalleryItemForHome(Gallery $item): array
     {
@@ -179,7 +182,7 @@ class PublicController extends Controller
     }
 
     /**
-     * Process gallery item for frontend display (original method)
+     * Process gallery item for frontend display
      */
     private function processGalleryItem($item): array
     {
@@ -192,28 +195,17 @@ class PublicController extends Controller
             'media_url' => null
         ];
 
-        Log::debug('Processing gallery item:', [
-            'id' => $item->id,
-            'title' => $item->title,
-            'media_type' => $item->media_type,
-            'file_path' => $item->file_path
-        ]);
-
         try {
-            // Check if file_path is not null
             if ($item->file_path) {
                 if (in_array($item->media_type, ['image', 'photo'])) {
                     $url = $this->imageService->getUrl($item->file_path);
                     $processed['media_url'] = $url;
                     $processed['thumbnail_url'] = $url;
-                    Log::debug('Image URL:', ['url' => $url]);
                 } elseif (in_array($item->media_type, ['video', 'local_video'])) {
-                    // For local videos
                     $url = $this->imageService->getUrl($item->file_path);
                     $processed['media_url'] = $url;
                     $processed['thumbnail_url'] = asset('images/default-video-thumbnail.jpg');
 
-                    // If it's a YouTube video
                     if (
                         strpos($item->file_path, 'youtube.com') !== false ||
                         strpos($item->file_path, 'youtu.be') !== false
@@ -223,20 +215,13 @@ class PublicController extends Controller
                             $processed['thumbnail_url'] = $youtubeThumbnail;
                         }
                     }
-                    Log::debug('Video URLs:', [
-                        'media_url' => $url,
-                        'thumbnail_url' => $processed['thumbnail_url']
-                    ]);
                 } else {
-                    // Default fallback
                     $url = $this->imageService->getUrl(null);
                     $processed['thumbnail_url'] = $processed['media_url'] = $url;
                 }
             } else {
-                // If file_path is null, use a default image
                 $url = $this->imageService->getUrl(null);
                 $processed['thumbnail_url'] = $processed['media_url'] = $url;
-                Log::debug('Using default URL:', ['url' => $url]);
             }
         } catch (\Exception $e) {
             Log::error('Error processing gallery item ' . $item->id . ': ' . $e->getMessage());
@@ -248,22 +233,13 @@ class PublicController extends Controller
     }
 
     /**
-     * Extract YouTube ID from URL (HomeController version)
+     * Extract YouTube ID from URL
      */
     private function getYoutubeIdFromUrl(string $url): ?string
     {
         if (empty($url)) return null;
 
-        $pattern = '%^
-            (?:https?://)?
-            (?:www\.)?
-            (?: youtu\.be/ |
-                youtube\.com
-                (?: /embed/ | /v/ | /watch\?v= | /watch\?.+&v= )
-            )
-            ([\w-]{11})
-            $%x';
-
+        $pattern = '%^(?:https?://)?(?:www\.)?(?:youtu\.be/|youtube\.com(?:/embed/|/v/|/watch\?v=|/.+&v=))([\w-]{11})$%x';
         preg_match($pattern, $url, $matches);
         return $matches[1] ?? null;
     }
@@ -278,11 +254,7 @@ class PublicController extends Controller
             return null;
         }
 
-        // Try high quality thumbnail first
-        $highRes = "https://img.youtube.com/vi/{$id}/maxresdefault.jpg";
-
-        // You can add logic to check if the image exists, but for now return it
-        return $highRes;
+        return "https://img.youtube.com/vi/{$id}/maxresdefault.jpg";
     }
 
     /**
@@ -304,7 +276,7 @@ class PublicController extends Controller
     }
 
     /**
-     * Handle search request (from HomeController)
+     * Handle search request
      */
     public function search(Request $request)
     {
@@ -325,7 +297,7 @@ class PublicController extends Controller
             ->with('hostel')
             ->get();
 
-        return view('search-results', compact('rooms'));
+        return view('frontend.search-results', compact('rooms'));
     }
 
     // Basic page routes
@@ -349,10 +321,26 @@ class PublicController extends Controller
         return view('frontend.pricing');
     }
 
+    /**
+     * Display testimonials page
+     */
     public function testimonials(): View
     {
-        $testimonials = Review::with('student')->latest()->paginate(6);
+        $testimonials = Review::with('student')
+            ->where('is_published', true)
+            ->latest()
+            ->paginate(6);
+
         return view('frontend.testimonials', compact('testimonials'));
+    }
+
+    /**
+     * Display full reviews list (for admin/owner reference)
+     */
+    public function reviews(): View
+    {
+        $reviews = Review::with('student')->latest()->paginate(6);
+        return view('frontend.reviews', compact('reviews'));
     }
 
     public function contact(): View
@@ -395,6 +383,19 @@ class PublicController extends Controller
         }
     }
 
+    public function subscribeNewsletter(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|unique:newsletters,email',
+        ]);
+
+        // Store newsletter subscription
+        Newsletter::create([
+            'email' => $request->email,
+        ]);
+
+        return back()->with('success', 'धन्यवाद! तपाईंको सदस्यता सफलतापूर्वक दर्ता गरियो।');
+    }
     public function robots()
     {
         try {

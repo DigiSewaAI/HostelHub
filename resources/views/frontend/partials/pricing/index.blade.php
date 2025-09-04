@@ -47,7 +47,7 @@
                     <a href="{{ route('features') }}" class="nav-button text-gray-700 hover:bg-indigo-100">सुविधाहरू</a>
                     <a href="{{ route('how-it-works') }}" class="nav-button text-gray-700 hover:bg-indigo-100">कसरी काम गर्छ</a>
                     <a href="{{ route('pricing') }}" class="nav-button active-nav">मूल्य</a>
-                    <a href="{{ route('gallery.public') }}" class="nav-button text-gray-700 hover:bg-indigo-100">ग्यालरी</a>
+                    <a href="{{ route('gallery') }}" class="nav-button text-gray-700 hover:bg-indigo-100">ग्यालरी</a>
                     <a href="{{ route('reviews') }}" class="nav-button text-gray-700 hover:bg-indigo-100">समीक्षाहरू</a>
                 </nav>
                 <!-- Login/Signup Buttons -->
@@ -289,7 +289,7 @@
                         <li><a href="{{ route('features') }}" class="hover:text-white transition-colors">सुविधाहरू</a></li>
                         <li><a href="{{ route('how-it-works') }}" class="hover:text-white transition-colors">कसरी काम गर्छ</a></li>
                         <li><a href="{{ route('pricing') }}" class="hover:text-white transition-colors">मूल्य</a></li>
-                        <li><a href="{{ route('gallery.public') }}" class="hover:text-white transition-colors">ग्यालरी</a></li>
+                        <li><a href="{{ route('gallery') }}" class="hover:text-white transition-colors">ग्यालरी</a></li>
                     </ul>
                 </div>
                 <div>

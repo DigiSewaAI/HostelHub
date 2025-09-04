@@ -6,9 +6,13 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use App\Models\Payment; // तपाईंको Payment मोडेल अनुसार परिवर्तन गर्नुहोस्
+use Illuminate\Support\Facades\Response;
+use App\Models\Payment;
 use App\Models\Student;
 use App\Models\Hostel;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\PaymentsExport;
+use Illuminate\Support\Facades\Gate;
 
 class PaymentsController extends Controller
 {
@@ -17,6 +21,8 @@ class PaymentsController extends Controller
      */
     public function index()
     {
+        $this->authorize('viewAny', Payment::class);
+
         $payments = Payment::with(['student', 'hostel'])
             ->latest()
             ->paginate(10);
@@ -29,6 +35,8 @@ class PaymentsController extends Controller
      */
     public function create()
     {
+        $this->authorize('create', Payment::class);
+
         $students = Student::where('status', 'active')->get();
         $hostels = Hostel::all();
 
@@ -40,6 +48,8 @@ class PaymentsController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize('create', Payment::class);
+
         $request->validate([
             'student_id' => 'required|exists:students,id',
             'hostel_id' => 'required|exists:hostels,id',
@@ -74,6 +84,7 @@ class PaymentsController extends Controller
         } catch (\Exception $e) {
             DB::rollback();
             Log::error('Payment creation failed: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
 
             return back()
                 ->withInput()
@@ -86,7 +97,9 @@ class PaymentsController extends Controller
      */
     public function show(Payment $payment)
     {
-        $payment->load(['student', 'hostel', 'createdBy']);
+        $this->authorize('view', $payment);
+
+        $payment->load(['student', 'hostel', 'createdBy', 'updatedBy']);
 
         return view('admin.payments.show', compact('payment'));
     }
@@ -96,6 +109,8 @@ class PaymentsController extends Controller
      */
     public function edit(Payment $payment)
     {
+        $this->authorize('update', $payment);
+
         $students = Student::where('status', 'active')->get();
         $hostels = Hostel::all();
 
@@ -107,6 +122,8 @@ class PaymentsController extends Controller
      */
     public function update(Request $request, Payment $payment)
     {
+        $this->authorize('update', $payment);
+
         $request->validate([
             'student_id' => 'required|exists:students,id',
             'hostel_id' => 'required|exists:hostels,id',
@@ -141,6 +158,7 @@ class PaymentsController extends Controller
         } catch (\Exception $e) {
             DB::rollback();
             Log::error('Payment update failed: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
 
             return back()
                 ->withInput()
@@ -149,10 +167,42 @@ class PaymentsController extends Controller
     }
 
     /**
+     * Generate payment report
+     */
+    public function report(Request $request)
+    {
+        // Get date range from request or default to last 30 days
+        $startDate = $request->input('start_date', now()->subDays(30)->format('Y-m-d'));
+        $endDate = $request->input('end_date', now()->format('Y-m-d'));
+
+        // Get payments within date range
+        $payments = Payment::with(['student', 'hostel'])
+            ->whereBetween('payment_date', [$startDate, $endDate])
+            ->orderBy('payment_date', 'desc')
+            ->get();
+
+        // Calculate summary data
+        $totalAmount = $payments->sum('amount');
+        $completedCount = $payments->where('status', 'completed')->count();
+        $pendingCount = $payments->where('status', 'pending')->count();
+
+        return view('admin.payments.report', compact(
+            'payments',
+            'totalAmount',
+            'completedCount',
+            'pendingCount',
+            'startDate',
+            'endDate'
+        ));
+    }
+
+    /**
      * Remove the specified payment from storage.
      */
     public function destroy(Payment $payment)
     {
+        $this->authorize('delete', $payment);
+
         try {
             $payment->delete();
 
@@ -161,6 +211,7 @@ class PaymentsController extends Controller
                 ->with('success', 'Payment deleted successfully!');
         } catch (\Exception $e) {
             Log::error('Payment deletion failed: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
 
             return redirect()
                 ->route('admin.payments.index')
@@ -169,36 +220,21 @@ class PaymentsController extends Controller
     }
 
     /**
-     * Export payments to CSV
+     * Export payments to Excel
      */
     public function export()
     {
-        return response()->stream(function () {
-            $handle = fopen('php://output', 'w');
-            fputcsv($handle, ['ID', 'Student', 'Hostel', 'Amount', 'Date', 'Method', 'Status', 'Transaction ID', 'Created At']);
+        $this->authorize('export', Payment::class);
 
-            Payment::with(['student', 'hostel'])
-                ->orderBy('payment_date', 'desc')
-                ->chunk(100, function ($payments) use ($handle) {
-                    foreach ($payments as $payment) {
-                        fputcsv($handle, [
-                            $payment->id,
-                            $payment->student->name ?? 'N/A',
-                            $payment->hostel->name ?? 'N/A',
-                            $payment->amount,
-                            $payment->payment_date,
-                            $payment->payment_method,
-                            $payment->status,
-                            $payment->transaction_id,
-                            $payment->created_at,
-                        ]);
-                    }
-                });
+        try {
+            return Excel::download(new PaymentsExport, 'payments-' . now()->format('Y-m-d') . '.xlsx');
+        } catch (\Exception $e) {
+            Log::error('Payment export failed: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
 
-            fclose($handle);
-        }, 200, [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="payments-export-' . now()->format('Y-m-d') . '.csv"',
-        ]);
+            return redirect()
+                ->route('admin.payments.index')
+                ->with('error', 'Failed to export payments. Please try again.');
+        }
     }
 }
