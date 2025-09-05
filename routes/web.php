@@ -1,34 +1,32 @@
 <?php
 
 use App\Http\Controllers\{
-    Admin\ContactsController,
+    Admin\ContactController,
     Admin\DashboardController,
-    Admin\GalleriesController,
-    Admin\HostelsController,
-    Admin\MealsController,
-    Admin\PaymentsController,
-    Admin\ReviewsController,
-    Admin\RoomsController,
-    Admin\StudentsController,
-    Owner\ContactsController as OwnerContactsController,
+    Admin\GalleryController,
+    Admin\HostelController,
+    Admin\MealController,
+    Admin\PaymentController,
+    Admin\ReviewController,
+    Admin\RoomController,
+    Admin\StudentController,
+    Owner\ContactController as OwnerContactController,
     Owner\DashboardController as OwnerDashboardController,
-    Owner\GalleriesController as OwnerGalleriesController,
-    Owner\HostelController,
-    Owner\MealMenusController,
-    Owner\PaymentsController as OwnerPaymentsController,
-    Owner\ReviewsController as OwnerReviewsController,
-    Owner\RoomsController as OwnerRoomsController,
-    Owner\StudentsController as OwnerStudentsController,
+    Owner\GalleryController as OwnerGalleryController,
+    Owner\HostelController as OwnerHostelController,
+    Owner\MealMenuController,
+    Owner\PaymentController as OwnerPaymentController,
+    Owner\ReviewController as OwnerReviewController,
+    Owner\RoomController as OwnerRoomController,
+    Owner\StudentController as OwnerStudentController,
     Student\DashboardController as StudentDashboardController,
-    Student\MealMenusController as StudentMealMenusController,
-    Student\PaymentsController as StudentPaymentsController,
+    Student\MealMenuController as StudentMealMenuController,
+    Student\PaymentController as StudentPaymentController,
     Student\ProfileController as StudentProfileController,
-    Frontend\GalleryController,
+    Frontend\GalleryController as FrontendGalleryController,
     Frontend\PublicContactController,
     Frontend\PublicController,
     Frontend\PricingController,
-    Frontend\StudentController as PublicStudentController,
-    Frontend\RoomController as PublicRoomController,
     Auth\AuthenticatedSessionController,
     Auth\ConfirmablePasswordController,
     Auth\EmailVerificationNotificationController,
@@ -53,30 +51,26 @@ if (app()->environment('production')) {
 }
 
 /*|--------------------------------------------------------------------------
-| Public Routes
+| Public Routes (Marketing Site - Homepage, Features, Pricing, etc.)
 |--------------------------------------------------------------------------
 */
 Route::group(['middleware' => 'web'], function () {
-    // Updated to use correct controller references
     Route::get('/', [PublicController::class, 'home'])->name('home');
     Route::get('/about', [PublicController::class, 'about'])->name('about');
     Route::get('/features', [PublicController::class, 'features'])->name('features');
     Route::get('/how-it-works', [PublicController::class, 'howItWorks'])->name('how-it-works');
-    Route::get('/gallery', [GalleryController::class, 'index'])->name('gallery');
+    Route::get('/gallery', [FrontendGalleryController::class, 'index'])->name('gallery');
     Route::get('/pricing', [PricingController::class, 'index'])->name('pricing');
 
     // Gallery API Routes
-    Route::get('/api/gallery/data', [GalleryController::class, 'getGalleryData']);
-    Route::get('/api/gallery/categories', [GalleryController::class, 'getGalleryCategories']);
-    Route::get('/api/gallery/stats', [GalleryController::class, 'getGalleryStats']);
+    Route::get('/api/gallery/data', [FrontendGalleryController::class, 'getGalleryData']);
+    Route::get('/api/gallery/categories', [FrontendGalleryController::class, 'getGalleryCategories']);
+    Route::get('/api/gallery/stats', [FrontendGalleryController::class, 'getGalleryStats']);
 
-    // Updated route for testimonials (previously reviews)
     Route::get('/testimonials', [PublicController::class, 'testimonials'])->name('testimonials');
-
-    // 🔵 Admin: Reviews (प्रबन्धन गर्नको लागि)
     Route::get('/reviews', [PublicController::class, 'reviews'])->name('reviews');
 
-    // ✅ Legal pages routes
+    // Legal pages routes
     Route::get('/privacy-policy', [PublicController::class, 'privacy'])->name('privacy');
     Route::get('/terms-of-service', [PublicController::class, 'terms'])->name('terms');
     Route::get('/cookies', [PublicController::class, 'cookies'])->name('cookies');
@@ -84,16 +78,16 @@ Route::group(['middleware' => 'web'], function () {
     Route::get('/contact', [PublicContactController::class, 'index'])->name('contact');
     Route::post('/contact', [PublicContactController::class, 'store'])->name('contact.store');
 
-    // Public room and student routes
-    Route::get('/rooms', [PublicRoomController::class, 'index'])->name('rooms.index');
-    Route::get('/students', [PublicStudentController::class, 'index'])->name('students.index');
+    // Room search functionality (NOT room management)
+    Route::get('/rooms', [PublicController::class, 'roomSearch'])->name('rooms.search');
+    Route::post('/rooms/search', [PublicController::class, 'searchRooms'])->name('rooms.search.post');
 
     // Demo route
     Route::get('/demo', function () {
         return view('pages.demo');
     })->name('demo');
 
-    // ✅ Newsletter subscription route
+    // Newsletter subscription route
     Route::post('/newsletter/subscribe', [PublicController::class, 'subscribeNewsletter'])
         ->name('newsletter.subscribe');
 });
@@ -153,54 +147,59 @@ Route::get('/dashboard', function () {
 | Admin Routes (Super Admin - You)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'checkrole:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // FIXED: Consistent plural naming for all resources to avoid route name issues
+    // Add report route for payments
+    Route::get('/payment/report', [PaymentController::class, 'report'])->name('payment.report');
 
-    // ✅ Add report route for payments
-    Route::get('/payments/report', [PaymentsController::class, 'report'])->name('payments.report');
+    // Add export route for payments
+    Route::get('/payment/export', [PaymentController::class, 'export'])->name('payment.export');
 
-    // ✅ Add export route for payments
-    Route::get('/payments/export', [PaymentsController::class, 'export'])->name('payments.export');
+    // Gallery toggle routes
+    Route::post('/gallery/{gallery}/toggle-status', [GalleryController::class, 'toggleStatus'])
+        ->name('gallery.toggle-status');
+    Route::post('/gallery/{gallery}/toggle-featured', [GalleryController::class, 'toggleFeatured'])
+        ->name('gallery.toggle-featured');
 
-    Route::resource('contacts', ContactsController::class);
-    Route::resource('galleries', GalleriesController::class); // Uses admin.galleries.* routes
-    Route::resource('hostels', HostelsController::class);
-    Route::resource('meals', MealsController::class);
-    Route::resource('payments', PaymentsController::class);
-    Route::resource('reviews', ReviewsController::class);
-    Route::resource('rooms', RoomsController::class);
-    Route::resource('students', StudentsController::class);
+    // Resource routes
+    Route::resource('contact', ContactController::class);
+    Route::resource('gallery', GalleryController::class);
+    Route::resource('hostel', HostelController::class);
+    Route::resource('meal', MealController::class);
+    Route::resource('payment', PaymentController::class);
+    Route::resource('review', ReviewController::class);
+    Route::resource('room', RoomController::class);
+    Route::resource('student', StudentController::class);
 });
 
 /*|--------------------------------------------------------------------------
 | Owner Routes (Hostel Managers)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'role:hostel_manager'])->prefix('owner')->name('owner.')->group(function () {
+Route::middleware(['auth', 'checkrole:hostel_manager'])->prefix('owner')->name('owner.')->group(function () {
     Route::get('/dashboard', [OwnerDashboardController::class, 'index'])->name('dashboard');
 
-    // FIXED: Consistent plural naming for all resources to avoid route name issues
-    Route::resource('contacts', OwnerContactsController::class);
-    Route::resource('galleries', OwnerGalleriesController::class); // Uses owner.galleries.* routes
-    Route::resource('hostels', HostelController::class);
-    Route::resource('meal-menus', MealMenusController::class);
-    Route::resource('payments', OwnerPaymentsController::class);
-    Route::resource('reviews', OwnerReviewsController::class);
-    Route::resource('rooms', OwnerRoomsController::class);
-    Route::resource('students', OwnerStudentsController::class);
+    // Resource routes
+    Route::resource('contact', OwnerContactController::class);
+    Route::resource('gallery', OwnerGalleryController::class);
+    Route::resource('hostel', OwnerHostelController::class);
+    Route::resource('meal-menu', MealMenuController::class);
+    Route::resource('payment', OwnerPaymentController::class);
+    Route::resource('review', OwnerReviewController::class);
+    Route::resource('room', OwnerRoomController::class);
+    Route::resource('student', OwnerStudentController::class);
 });
 
 /*|--------------------------------------------------------------------------
 | Student Routes
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'role:student'])->prefix('student')->name('student.')->group(function () {
+Route::middleware(['auth', 'checkrole:student'])->prefix('student')->name('student.')->group(function () {
     Route::get('/dashboard', [StudentDashboardController::class, 'index'])->name('dashboard');
     Route::get('/profile', [StudentProfileController::class, 'index'])->name('profile');
-    Route::get('/payments', [StudentPaymentsController::class, 'index'])->name('payments');
-    Route::resource('meal-menus', StudentMealMenusController::class)->only(['index', 'show']);
+    Route::get('/payment', [StudentPaymentController::class, 'index'])->name('payment');
+    Route::resource('meal-menu', StudentMealMenuController::class)->only(['index', 'show']);
 });
 
 /*|--------------------------------------------------------------------------
@@ -238,44 +237,18 @@ Route::middleware(['auth'])->group(function () {
 */
 Route::middleware(['auth'])->group(function () {
     // User Features
-    Route::get('/my-students', [PublicStudentController::class, 'myStudents'])->name('students.my');
-    Route::get('/my-bookings', [PublicRoomController::class, 'myBookings'])->name('bookings.my');
+    Route::get('/my-student', [OwnerStudentController::class, 'myStudents'])->name('student.my');
+    Route::get('/my-booking', [OwnerRoomController::class, 'myBookings'])->name('booking.my');
 
     // Payments
-    Route::resource('payments', PaymentController::class)->only(['index', 'show', 'create', 'store']);
-    Route::post('payments/khalti-callback', [PaymentController::class, 'khaltiCallback'])->name('payments.khalti.callback');
+    Route::resource('payment', PaymentController::class)->only(['index', 'show', 'create', 'store']);
+    Route::post('payment/khalti-callback', [PaymentController::class, 'khaltiCallback'])->name('payment.khalti.callback');
 });
 
 /*|--------------------------------------------------------------------------
-| Redirect Old Admin URLs
+| Search route
 |--------------------------------------------------------------------------
 */
-// Admin gallery -> galleries redirect (plural form)
-Route::redirect('/admin/gallery', '/admin/galleries', 301);
-Route::redirect('/admin/gallery/{any?}', '/admin/galleries/{any?}', 301)
-    ->where('any', '.*');
-
-// Admin meal-menus -> meals redirect
-Route::redirect('/admin/meal-menus', '/admin/meals', 301);
-Route::redirect('/admin/meal-menus/{any?}', '/admin/meals/{any?}', 301)
-    ->where('any', '.*');
-
-// Admin contact -> contacts redirect
-Route::redirect('/admin/contact', '/admin/contacts', 301);
-Route::redirect('/admin/contact/{any?}', '/admin/contacts/{any?}', 301)
-    ->where('any', '.*');
-
-// Admin payment -> payments redirect
-Route::redirect('/admin/payment', '/admin/payments', 301);
-Route::redirect('/admin/payment/{any?}', '/admin/payments/{any?}', 301)
-    ->where('any', '.*');
-
-// Admin review -> reviews redirect
-Route::redirect('/admin/review', '/admin/reviews', 301);
-Route::redirect('/admin/review/{any?}', '/admin/reviews/{any?}', 301)
-    ->where('any', '.*');
-
-// Add this route in your web.php
 Route::post('/search', [PublicController::class, 'search'])->name('search');
 
 /*|--------------------------------------------------------------------------
@@ -283,6 +256,10 @@ Route::post('/search', [PublicController::class, 'search'])->name('search');
 |--------------------------------------------------------------------------
 */
 if (app()->environment('local')) {
+    Route::get('/test-route', function () {
+        return 'Test route';
+    })->name('test.route');
+
     Route::get('/logout', function () {
         auth()->logout();
         request()->session()->invalidate();

@@ -1,26 +1,28 @@
-<?php $__env->startSection('content'); ?>
+@extends('layouts.admin')
+
+@section('content')
 <div class="container mx-auto px-4 py-6">
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold">Gallery Management</h1>
-        <a href="<?php echo e(route('admin.galleries.create')); ?>" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+        <a href="{{ route('admin.galleries.create') }}" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
             + Add New
         </a>
     </div>
 
     <!-- Category Filter -->
     <div class="mb-6 bg-white p-4 rounded shadow">
-        <form method="GET" action="<?php echo e(route('admin.galleries.index')); ?>">
+        <form method="GET" action="{{ route('admin.galleries.index') }}">
             <label for="category" class="block text-sm font-medium text-gray-700 mb-2">Filter by Category:</label>
             <div class="flex items-center space-x-4">
                 <select name="category" id="category" class="rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
-                    <?php $__currentLoopData = $categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $value): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                        <option value="<?php echo e($key); ?>" <?php echo e($selectedCategory == $key ? 'selected' : ''); ?>><?php echo e($value); ?></option>
-                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                    @foreach($categories as $key => $value)
+                        <option value="{{ $key }}" {{ $selectedCategory == $key ? 'selected' : '' }}>{{ $value }}</option>
+                    @endforeach
                 </select>
                 <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
                     Filter
                 </button>
-                <a href="<?php echo e(route('admin.galleries.index')); ?>" class="text-gray-500 hover:text-gray-700">
+                <a href="{{ route('admin.galleries.index') }}" class="text-gray-500 hover:text-gray-700">
                     Clear
                 </a>
             </div>
@@ -41,70 +43,67 @@
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-200">
-                <?php $__currentLoopData = $galleries; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                @foreach($galleries as $item)
                 <tr>
                     <td class="px-6 py-4">
-                        <?php if($item->file_path): ?>
-                            <?php if(Str::contains($item->mime_type, 'video')): ?>
+                        @if($item->file_path)
+                            @if(Str::contains($item->mime_type, 'video'))
                                 <video width="64" height="64" class="w-16 h-16 object-cover rounded" controls>
-                                    <source src="<?php echo e(asset('storage/'.$item->file_path)); ?>" type="<?php echo e($item->mime_type); ?>">
+                                    <source src="{{ asset('storage/'.$item->file_path) }}" type="{{ $item->mime_type }}">
                                 </video>
-                            <?php else: ?>
-                                <img src="<?php echo e(asset('storage/'.$item->file_path)); ?>" alt="Gallery Image" class="w-16 h-16 object-cover rounded">
-                            <?php endif; ?>
-                        <?php else: ?>
+                            @else
+                                <img src="{{ asset('storage/'.$item->file_path) }}" alt="Gallery Image" class="w-16 h-16 object-cover rounded">
+                            @endif
+                        @else
                             <div class="bg-gray-200 border-2 border-dashed rounded-xl w-16 h-16 flex items-center justify-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                 </svg>
                             </div>
-                        <?php endif; ?>
+                        @endif
                     </td>
-                    <td class="px-6 py-4"><?php echo e($item->title); ?></td>
-                    <td class="px-6 py-4 capitalize"><?php echo e($item->category); ?></td>
-                    <td class="px-6 py-4 capitalize"><?php echo e($item->media_type); ?></td>
+                    <td class="px-6 py-4">{{ $item->title }}</td>
+                    <td class="px-6 py-4 capitalize">{{ $item->category }}</td>
+                    <td class="px-6 py-4 capitalize">{{ $item->media_type }}</td>
                     <td class="px-6 py-4">
-                        <form action="<?php echo e(route('admin.galleries.toggle-status', $item)); ?>" method="POST">
-                            <?php echo csrf_field(); ?>
+                        <form action="{{ route('admin.galleries.toggle-status', $item) }}" method="POST">
+                            @csrf
                             <button type="submit" 
                                     class="px-3 py-1 rounded-full text-xs font-medium 
-                                            <?php echo e($item->is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'); ?>">
-                                <?php echo e($item->is_active ? 'Active' : 'Inactive'); ?>
-
+                                            {{ $item->is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                {{ $item->is_active ? 'Active' : 'Inactive' }}
                             </button>
                         </form>
                     </td>
                     <td class="px-6 py-4">
-                        <form action="<?php echo e(route('admin.galleries.toggle-featured', $item)); ?>" method="POST">
-                            <?php echo csrf_field(); ?>
+                        <form action="{{ route('admin.galleries.toggle-featured', $item) }}" method="POST">
+                            @csrf
                             <button type="submit" 
                                     class="px-3 py-1 rounded-full text-xs font-medium 
-                                            <?php echo e($item->is_featured ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'); ?>">
-                                <?php echo e($item->is_featured ? 'Yes' : 'No'); ?>
-
+                                            {{ $item->is_featured ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800' }}">
+                                {{ $item->is_featured ? 'Yes' : 'No' }}
                             </button>
                         </form>
                     </td>
                     <td class="px-6 py-4 flex space-x-2">
-                        <a href="<?php echo e(route('admin.galleries.edit', $item)); ?>" class="text-blue-500 hover:text-blue-700">
+                        <a href="{{ route('admin.galleries.edit', $item) }}" class="text-blue-500 hover:text-blue-700">
                             Edit
                         </a>
-                        <form action="<?php echo e(route('admin.galleries.destroy', $item)); ?>" method="POST">
-                            <?php echo csrf_field(); ?>
-                            <?php echo method_field('DELETE'); ?>
+                        <form action="{{ route('admin.galleries.destroy', $item) }}" method="POST">
+                            @csrf
+                            @method('DELETE')
                             <button type="submit" class="text-red-500 hover:text-red-700" 
                                 onclick="return confirm('Are you sure?')">Delete</button>
                         </form>
                     </td>
                 </tr>
-                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                @endforeach
             </tbody>
         </table>
     </div>
     
     <div class="mt-4">
-        <?php echo e($galleries->links()); ?>
-
+        {{ $galleries->links() }}
     </div>
 </div>
 
@@ -169,5 +168,4 @@ document.getElementById('mediaModal').addEventListener('click', function(e) {
     }
 });
 </script>
-<?php $__env->stopSection(); ?>
-<?php echo $__env->make('layouts.admin', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\My Projects\HostelHub\resources\views/admin/galleries/index.blade.php ENDPATH**/ ?>
+@endsection

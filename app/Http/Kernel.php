@@ -16,6 +16,7 @@ class Kernel extends HttpKernel
         \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
         \App\Http\Middleware\TrimStrings::class,
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
+        \App\Http\Middleware\Localize::class, // Added localization middleware globally
     ];
 
     /**
@@ -29,6 +30,7 @@ class Kernel extends HttpKernel
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            \App\Http\Middleware\EnsureOrgContext::class, // Added organization context
         ],
 
         'api' => [
@@ -57,5 +59,15 @@ class Kernel extends HttpKernel
         'role' => \Spatie\Permission\Middlewares\RoleMiddleware::class,
         'permission' => \Spatie\Permission\Middlewares\PermissionMiddleware::class,
         'role_or_permission' => \Spatie\Permission\Middlewares\RoleOrPermissionMiddleware::class,
+
+        // Custom Application Middlewares
+        'checkrole' => \App\Http\Middleware\CheckRole::class,
+        'role.multiple' => \App\Http\Middleware\RoleMiddleware::class,
+        'admin' => \App\Http\Middleware\AdminMiddleware::class,
+        'subscription.active' => \App\Http\Middleware\EnsureSubscriptionActive::class,
+        'payment.verified' => \App\Http\Middleware\PaymentVerified::class,
+        'plan.limits' => \App\Http\Middleware\EnforcePlanLimits::class,
+        'org.context' => \App\Http\Middleware\EnsureOrgContext::class,
+        'localize' => \App\Http\Middleware\Localize::class,
     ];
 }

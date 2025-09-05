@@ -1,26 +1,27 @@
-<?php $__env->startSection('content'); ?>
+@extends('layouts.admin')
+
+@section('content')
 <div class="container mx-auto px-4 py-6">
     <h1 class="text-2xl font-bold text-gray-800 mb-6">📸 ग्यालेरी आइटम थप्नुहोस्</h1>
 
-    <?php if($errors->any()): ?>
+    @if ($errors->any())
         <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
             <ul>
-                <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                    <li><?php echo e($error); ?></li>
-                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
             </ul>
         </div>
-    <?php endif; ?>
+    @endif
 
-    <?php if(session('success')): ?>
+    @if(session('success'))
         <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6">
-            <?php echo e(session('success')); ?>
-
+            {{ session('success') }}
         </div>
-    <?php endif; ?>
+    @endif
 
-    <form action="<?php echo e(route('admin.galleries.store')); ?>" method="POST" enctype="multipart/form-data">
-        <?php echo csrf_field(); ?>
+    <form action="{{ route('admin.galleries.store') }}" method="POST" enctype="multipart/form-data">
+        @csrf
 
         <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
             <div class="mb-4">
@@ -28,7 +29,7 @@
                     शीर्षक
                 </label>
                 <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
-                       id="title" name="title" type="text" placeholder="शीर्षक" value="<?php echo e(old('title')); ?>" required>
+                       id="title" name="title" type="text" placeholder="शीर्षक" value="{{ old('title') }}" required>
             </div>
 
             <div class="mb-4">
@@ -36,7 +37,7 @@
                     विवरण
                 </label>
                 <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
-                          id="description" name="description" rows="3" placeholder="विवरण" required><?php echo e(old('description')); ?></textarea>
+                          id="description" name="description" rows="3" placeholder="विवरण" required>{{ old('description') }}</textarea>
             </div>
 
             <div class="mb-4">
@@ -46,9 +47,9 @@
                 <select class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
                         id="category" name="category" required>
                     <option value="">श्रेणी छान्नुहोस्</option>
-                    <?php $__currentLoopData = $categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $value): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                        <option value="<?php echo e($key); ?>" <?php echo e(old('category') == $key ? 'selected' : ''); ?>><?php echo e($value); ?></option>
-                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                    @foreach($categories as $key => $value)
+                        <option value="{{ $key }}" {{ old('category') == $key ? 'selected' : '' }}>{{ $value }}</option>
+                    @endforeach
                 </select>
             </div>
 
@@ -59,9 +60,9 @@
                 <select class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
                         id="media_type" name="media_type" required>
                     <option value="">मिडिया प्रकार छान्नुहोस्</option>
-                    <option value="photo" <?php echo e(old('media_type') == 'photo' ? 'selected' : 'selected'); ?>>तस्वीर</option>
-                    <option value="local_video" <?php echo e(old('media_type') == 'local_video' ? 'selected' : ''); ?>>स्थानिय भिडियो</option>
-                    <option value="external_video" <?php echo e(old('media_type') == 'external_video' ? 'selected' : ''); ?>>यूट्युब लिंक</option>
+                    <option value="photo" {{ old('media_type') == 'photo' ? 'selected' : 'selected' }}>तस्वीर</option>
+                    <option value="local_video" {{ old('media_type') == 'local_video' ? 'selected' : '' }}>स्थानिय भिडियो</option>
+                    <option value="external_video" {{ old('media_type') == 'external_video' ? 'selected' : '' }}>यूट्युब लिंक</option>
                 </select>
             </div>
 
@@ -91,7 +92,7 @@
                     यूट्युब लिंक
                 </label>
                 <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
-                       id="external_link" name="external_link" type="url" placeholder="https://www.youtube.com/watch?v=..." value="<?php echo e(old('external_link')); ?>">
+                       id="external_link" name="external_link" type="url" placeholder="https://www.youtube.com/watch?v=..." value="{{ old('external_link') }}">
             </div>
 
             <div class="mb-4">
@@ -100,14 +101,14 @@
                 </label>
                 <select class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
                         id="status" name="status" required>
-                    <option value="active" <?php echo e(old('status', 'active') == 'active' ? 'selected' : ''); ?>>सक्रिय</option>
-                    <option value="inactive" <?php echo e(old('status') == 'inactive' ? 'selected' : ''); ?>>निष्क्रिय</option>
+                    <option value="active" {{ old('status', 'active') == 'active' ? 'selected' : '' }}>सक्रिय</option>
+                    <option value="inactive" {{ old('status') == 'inactive' ? 'selected' : '' }}>निष्क्रिय</option>
                 </select>
             </div>
 
             <div class="mb-4">
                 <label class="flex items-center">
-                    <input type="checkbox" name="featured" class="form-checkbox" <?php echo e(old('featured') ? 'checked' : ''); ?>>
+                    <input type="checkbox" name="featured" class="form-checkbox" {{ old('featured') ? 'checked' : '' }}>
                     <span class="ml-2 text-gray-700">फिचर्ड गर्नुहोस्</span>
                 </label>
             </div>
@@ -115,7 +116,7 @@
 
         <!-- Save & Cancel Buttons -->
         <div class="flex justify-end space-x-4 mt-8">
-            <a href="<?php echo e(route('admin.galleries.index')); ?>" 
+            <a href="{{ route('admin.galleries.index') }}" 
                class="bg-gray-400 hover:bg-gray-500 text-white px-5 py-2 rounded transition duration-200">
                 Cancel
             </a>
@@ -126,9 +127,9 @@
         </div>
     </form>
 </div>
-<?php $__env->stopSection(); ?>
+@endsection
 
-<?php $__env->startSection('scripts'); ?>
+@section('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const mediaType = document.getElementById('media_type');
@@ -200,5 +201,4 @@ document.addEventListener('DOMContentLoaded', function() {
     mediaType.addEventListener('change', toggleMediaFields);
 });
 </script>
-<?php $__env->stopSection(); ?>
-<?php echo $__env->make('layouts.admin', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\My Projects\HostelHub\resources\views/admin/galleries/create.blade.php ENDPATH**/ ?>
+@endsection
