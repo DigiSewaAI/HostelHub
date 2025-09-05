@@ -3,15 +3,15 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
     <meta name="robots" content="noindex, nofollow">
-    <title>@yield('title', 'ड्यासबोर्ड') - HostelHub Admin</title>
+    <title><?php echo $__env->yieldContent('title', 'ड्यासबोर्ड'); ?> - HostelHub Admin</title>
     <!-- Favicon -->
-    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
+    <link rel="shortcut icon" href="<?php echo e(asset('favicon.ico')); ?>" type="image/x-icon">
     <!-- Google Fonts for Nepali -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Tailwind CSS with Vite -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <?php echo app('Illuminate\Foundation\Vite')(['resources/css/app.css', 'resources/js/app.js']); ?>
     <!-- Font Awesome 6.4.0 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
           integrity="sha512-iecdLmaskl7CVskpV0uYGFkTd73EVdjGN7teJQ8N+2ER5yiJHHIyMI1GAa5I80LzvcpbKjByZcXc9j5QFZUvSJQ=="
@@ -203,7 +203,7 @@
         }
     </style>
     <!-- Page-specific CSS -->
-    @stack('styles')
+    <?php echo $__env->yieldPushContent('styles'); ?>
 </head>
 <body class="bg-gray-50 font-sans" x-data="{ darkMode: false }">
     <a href="#main-content" class="skip-link nepali">मुख्य सामग्रीमा जानुहोस्</a>
@@ -221,160 +221,160 @@
             </div>
             <nav class="mt-5 px-2 flex-1 overflow-y-auto">
                 <!-- Dashboard -->
-                <a href="{{ route('admin.dashboard') }}"
-                   class="sidebar-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}"
-                   aria-current="{{ request()->routeIs('admin_meals_*') ? 'page' : 'false' }}">
+                <a href="<?php echo e(route('admin.dashboard')); ?>"
+                   class="sidebar-link <?php echo e(request()->routeIs('admin.dashboard') ? 'active' : ''); ?>"
+                   aria-current="<?php echo e(request()->routeIs('admin_meals_*') ? 'page' : 'false'); ?>">
                     <i class="fas fa-tachometer-alt sidebar-icon"></i>
                     <span class="sidebar-text">ड्यासबोर्ड</span>
                 </a>
                 <!-- Hostels -->
-                @if(Route::has('admin_hostels_index'))
-                    <a href="{{ route('admin_hostels_index') }}"
-                       class="sidebar-link {{ request()->routeIs('admin_hostels_*') ? 'active' : '' }}"
-                       aria-current="{{ request()->routeIs('admin_hostels_*') ? 'page' : 'false' }}">
+                <?php if(Route::has('admin_hostels_index')): ?>
+                    <a href="<?php echo e(route('admin_hostels_index')); ?>"
+                       class="sidebar-link <?php echo e(request()->routeIs('admin_hostels_*') ? 'active' : ''); ?>"
+                       aria-current="<?php echo e(request()->routeIs('admin_hostels_*') ? 'page' : 'false'); ?>">
                         <i class="fas fa-hotel sidebar-icon"></i>
                         <span class="sidebar-text">होस्टलहरू</span>
                     </a>
-                @else
+                <?php else: ?>
                     <a href="#"
                        class="sidebar-link opacity-50 cursor-not-allowed"
                        aria-disabled="true">
                         <i class="fas fa-hotel sidebar-icon"></i>
                         <span class="sidebar-text">होस्टलहरू (प्रावधिक)</span>
                     </a>
-                @endif
+                <?php endif; ?>
                 <!-- Rooms -->
-                @if(Route::has('admin_rooms_index'))
-                    <a href="{{ route('admin_rooms_index') }}"
-                       class="sidebar-link {{ request()->routeIs('admin_rooms_*') ? 'active' : '' }}"
-                       aria-current="{{ request()->routeIs('admin_rooms_*') ? 'page' : 'false' }}">
+                <?php if(Route::has('admin_rooms_index')): ?>
+                    <a href="<?php echo e(route('admin_rooms_index')); ?>"
+                       class="sidebar-link <?php echo e(request()->routeIs('admin_rooms_*') ? 'active' : ''); ?>"
+                       aria-current="<?php echo e(request()->routeIs('admin_rooms_*') ? 'page' : 'false'); ?>">
                         <i class="fas fa-door-open sidebar-icon"></i>
                         <span class="sidebar-text">कोठाहरू</span>
                     </a>
-                @else
+                <?php else: ?>
                     <a href="#"
                        class="sidebar-link opacity-50 cursor-not-allowed"
                        aria-disabled="true">
                         <i class="fas fa-door-open sidebar-icon"></i>
                         <span class="sidebar-text">कोठाहरू (प्रावधिक)</span>
                     </a>
-                @endif
+                <?php endif; ?>
                 <!-- Students -->
-                @if(Route::has('admin_students_index'))
-                    <a href="{{ route('admin_students_index') }}"
-                       class="sidebar-link {{ request()->routeIs('admin_students_*') ? 'active' : '' }}"
-                       aria-current="{{ request()->routeIs('admin_students_*') ? 'page' : 'false' }}">
+                <?php if(Route::has('admin_students_index')): ?>
+                    <a href="<?php echo e(route('admin_students_index')); ?>"
+                       class="sidebar-link <?php echo e(request()->routeIs('admin_students_*') ? 'active' : ''); ?>"
+                       aria-current="<?php echo e(request()->routeIs('admin_students_*') ? 'page' : 'false'); ?>">
                         <i class="fas fa-users sidebar-icon"></i>
                         <span class="sidebar-text">विद्यार्थीहरू</span>
                     </a>
-                @else
+                <?php else: ?>
                     <a href="#"
                        class="sidebar-link opacity-50 cursor-not-allowed"
                        aria-disabled="true">
                         <i class="fas fa-users sidebar-icon"></i>
                         <span class="sidebar-text">विद्यार्थीहरू (प्रावधिक)</span>
                     </a>
-                @endif
+                <?php endif; ?>
                 <!-- Payments -->
-                @if(Route::has('admin_payments_index'))
-                    <a href="{{ route('admin_payments_index') }}"
-                       class="sidebar-link {{ request()->routeIs('admin_payments_*') ? 'active' : '' }}"
-                       aria-current="{{ request()->routeIs('admin_payments_*') ? 'page' : 'false' }}">
+                <?php if(Route::has('admin_payments_index')): ?>
+                    <a href="<?php echo e(route('admin_payments_index')); ?>"
+                       class="sidebar-link <?php echo e(request()->routeIs('admin_payments_*') ? 'active' : ''); ?>"
+                       aria-current="<?php echo e(request()->routeIs('admin_payments_*') ? 'page' : 'false'); ?>">
                         <i class="fas fa-credit-card sidebar-icon"></i>
                         <span class="sidebar-text">भुक्तानीहरू</span>
                     </a>
-                @else
+                <?php else: ?>
                     <a href="#"
                        class="sidebar-link opacity-50 cursor-not-allowed"
                        aria-disabled="true">
                         <i class="fas fa-credit-card sidebar-icon"></i>
                         <span class="sidebar-text">भुक्तानीहरू (प्रावधिक)</span>
                     </a>
-                @endif
+                <?php endif; ?>
                 <!-- Meals -->
-                @if(Route::has('admin_meals_index'))
-                    <a href="{{ route('admin_meals_index') }}"
-                       class="sidebar-link {{ request()->routeIs('admin_meals_*') ? 'active' : '' }}"
-                       aria-current="{{ request()->routeIs('admin_meals_*') ? 'page' : 'false' }}">
+                <?php if(Route::has('admin_meals_index')): ?>
+                    <a href="<?php echo e(route('admin_meals_index')); ?>"
+                       class="sidebar-link <?php echo e(request()->routeIs('admin_meals_*') ? 'active' : ''); ?>"
+                       aria-current="<?php echo e(request()->routeIs('admin_meals_*') ? 'page' : 'false'); ?>">
                         <i class="fas fa-utensils sidebar-icon"></i>
                         <span class="sidebar-text">भोजन</span>
                     </a>
-                @else
+                <?php else: ?>
                     <a href="#"
                        class="sidebar-link opacity-50 cursor-not-allowed"
                        aria-disabled="true">
                         <i class="fas fa-utensils sidebar-icon"></i>
                         <span class="sidebar-text">भोजन (प्रावधिक)</span>
                     </a>
-                @endif
+                <?php endif; ?>
                 <!-- Gallery -->
-                @if(Route::has('admin_gallery_index'))
-                    <a href="{{ route('admin_gallery_index') }}"
-                       class="sidebar-link {{ request()->routeIs('admin_gallery_*') ? 'active' : '' }}"
-                       aria-current="{{ request()->routeIs('admin_gallery_*') ? 'page' : 'false' }}">
+                <?php if(Route::has('admin_gallery_index')): ?>
+                    <a href="<?php echo e(route('admin_gallery_index')); ?>"
+                       class="sidebar-link <?php echo e(request()->routeIs('admin_gallery_*') ? 'active' : ''); ?>"
+                       aria-current="<?php echo e(request()->routeIs('admin_gallery_*') ? 'page' : 'false'); ?>">
                         <i class="fas fa-image sidebar-icon"></i>
                         <span class="sidebar-text">ग्यालरी</span>
                     </a>
-                @else
+                <?php else: ?>
                     <a href="#"
                        class="sidebar-link opacity-50 cursor-not-allowed"
                        aria-disabled="true">
                         <i class="fas fa-image sidebar-icon"></i>
                         <span class="sidebar-text">ग्यालरी (प्रावधिक)</span>
                     </a>
-                @endif
+                <?php endif; ?>
                 <!-- Contacts -->
-                @if(Route::has('admin_contacts_index'))
-                    <a href="{{ route('admin_contacts_index') }}"
-                       class="sidebar-link {{ request()->routeIs('admin_contacts_*') ? 'active' : '' }}"
-                       aria-current="{{ request()->routeIs('admin_contacts_*') ? 'page' : 'false' }}">
+                <?php if(Route::has('admin_contacts_index')): ?>
+                    <a href="<?php echo e(route('admin_contacts_index')); ?>"
+                       class="sidebar-link <?php echo e(request()->routeIs('admin_contacts_*') ? 'active' : ''); ?>"
+                       aria-current="<?php echo e(request()->routeIs('admin_contacts_*') ? 'page' : 'false'); ?>">
                         <i class="fas fa-address-book sidebar-icon"></i>
                         <span class="sidebar-text">सम्पर्क</span>
                     </a>
-                @else
+                <?php else: ?>
                     <a href="#"
                        class="sidebar-link opacity-50 cursor-not-allowed"
                        aria-disabled="true">
                         <i class="fas fa-address-book sidebar-icon"></i>
                         <span class="sidebar-text">सम्पर्क (प्रावधिक)</span>
                     </a>
-                @endif
+                <?php endif; ?>
                 <!-- Reports -->
-                @if(Route::has('admin.reports.index'))
-                    <a href="{{ route('admin.reports.index') }}"
-                       class="sidebar-link {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}"
-                       aria-current="{{ request()->routeIs('admin.reports.*') ? 'page' : 'false' }}">
+                <?php if(Route::has('admin.reports.index')): ?>
+                    <a href="<?php echo e(route('admin.reports.index')); ?>"
+                       class="sidebar-link <?php echo e(request()->routeIs('admin.reports.*') ? 'active' : ''); ?>"
+                       aria-current="<?php echo e(request()->routeIs('admin.reports.*') ? 'page' : 'false'); ?>">
                         <i class="fas fa-chart-bar sidebar-icon"></i>
                         <span class="sidebar-text">प्रतिवेदनहरू</span>
                     </a>
-                @else
+                <?php else: ?>
                     <a href="#"
                        class="sidebar-link opacity-50 cursor-not-allowed"
                        aria-disabled="true">
                         <i class="fas fa-chart-bar sidebar-icon"></i>
                         <span class="sidebar-text">प्रतिवेदनहरू (प्रावधिक)</span>
                     </a>
-                @endif
+                <?php endif; ?>
                 <!-- Settings -->
-                @if(Route::has('admin.settings'))
-                    <a href="{{ route('admin.settings') }}"
-                       class="sidebar-link {{ request()->routeIs('admin.settings') ? 'active' : '' }}"
-                       aria-current="{{ request()->routeIs('admin.settings') ? 'page' : 'false' }}">
+                <?php if(Route::has('admin.settings')): ?>
+                    <a href="<?php echo e(route('admin.settings')); ?>"
+                       class="sidebar-link <?php echo e(request()->routeIs('admin.settings') ? 'active' : ''); ?>"
+                       aria-current="<?php echo e(request()->routeIs('admin.settings') ? 'page' : 'false'); ?>">
                         <i class="fas fa-cogs sidebar-icon"></i>
                         <span class="sidebar-text">सेटिङ्हरू</span>
                     </a>
-                @else
+                <?php else: ?>
                     <a href="#"
                        class="sidebar-link opacity-50 cursor-not-allowed"
                        aria-disabled="true">
                         <i class="fas fa-cogs sidebar-icon"></i>
                         <span class="sidebar-text">सेटिङ्हरू (प्रावधिक)</span>
                     </a>
-                @endif
+                <?php endif; ?>
                 <!-- Logout Section - FIXED: Changed mt-6 to mt-auto to push to bottom -->
                 <div class="mt-auto pt-4 border-t border-blue-700">
-                    <form method="POST" action="{{ route('logout') }}" id="logout-form">
-                        @csrf
+                    <form method="POST" action="<?php echo e(route('logout')); ?>" id="logout-form">
+                        <?php echo csrf_field(); ?>
                         <button type="submit" class="w-full flex items-center px-2 py-2 text-sm rounded-md hover:bg-blue-700 transition-colors">
                             <i class="fas fa-sign-out-alt sidebar-icon"></i>
                             <span class="sidebar-text">लगआउट</span>
@@ -469,8 +469,8 @@
                                     <li><a class="dropdown-item nepali" href="#"><i class="fas fa-cog me-2"></i>सेटिङ्हरू</a></li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li>
-                                        <form method="POST" action="{{ route('logout') }}" id="logout-form">
-                                            @csrf
+                                        <form method="POST" action="<?php echo e(route('logout')); ?>" id="logout-form">
+                                            <?php echo csrf_field(); ?>
                                             <button type="submit" class="dropdown-item nepali" style="border: none; background: none; width: 100%; text-align: left;">
                                                 <i class="fas fa-sign-out-alt me-2"></i>लगआउट
                                             </button>
@@ -489,45 +489,45 @@
                     <div class="mb-6">
                         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                             <div>
-                                <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-1 md:block">@yield('title')</h1>
-                                @if(View::hasSection('page-description'))
-                                    <p class="text-gray-600 text-sm">@yield('page-description')</p>
-                                @endif
+                                <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-1 md:block"><?php echo $__env->yieldContent('title'); ?></h1>
+                                <?php if(View::hasSection('page-description')): ?>
+                                    <p class="text-gray-600 text-sm"><?php echo $__env->yieldContent('page-description'); ?></p>
+                                <?php endif; ?>
                             </div>
                             <div>
-                                @yield('header-buttons')
+                                <?php echo $__env->yieldContent('header-buttons'); ?>
                             </div>
                         </div>
                     </div>
                     <!-- Session Messages -->
-                    @if (session('success'))
+                    <?php if(session('success')): ?>
                         <div class="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg flex items-center">
                             <i class="fas fa-check-circle mr-2"></i>
-                            <span>{{ session('success') }}</span>
+                            <span><?php echo e(session('success')); ?></span>
                         </div>
-                    @endif
-                    @if (session('error'))
+                    <?php endif; ?>
+                    <?php if(session('error')): ?>
                         <div class="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg flex items-center">
                             <i class="fas fa-exclamation-circle mr-2"></i>
-                            <span>{{ session('error') }}</span>
+                            <span><?php echo e(session('error')); ?></span>
                         </div>
-                    @endif
-                    @if ($errors->any())
+                    <?php endif; ?>
+                    <?php if($errors->any()): ?>
                         <div class="mb-6 p-4 bg-yellow-50 border border-yellow-200 text-yellow-700 rounded-lg">
                             <div class="flex items-center mb-2">
                                 <i class="fas fa-exclamation-triangle mr-2"></i>
                                 <strong class="font-medium">त्रुटिहरू पत्ता लाग्यो:</strong>
                             </div>
                             <ul class="list-disc pl-5 space-y-1">
-                                @foreach ($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
+                                <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <li><?php echo e($error); ?></li>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </ul>
                         </div>
-                    @endif
+                    <?php endif; ?>
                     <!-- Page Content -->
                     <div class="main-content bg-white rounded-xl shadow-sm overflow-hidden">
-                        @yield('content')
+                        <?php echo $__env->yieldContent('content'); ?>
                     </div>
                 </div>
             </main>
@@ -535,7 +535,7 @@
             <footer class="bg-white border-t border-gray-200 py-4">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div class="flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
-                        <p class="mb-2 md:mb-0">&copy; {{ date('Y') }} HostelHub. सबै अधिकार सुरक्षित।</p>
+                        <p class="mb-2 md:mb-0">&copy; <?php echo e(date('Y')); ?> HostelHub. सबै अधिकार सुरक्षित।</p>
                         <div class="flex space-x-4">
                             <a href="#" class="hover:text-gray-700">गोपनीयता नीति</a>
                             <a href="#" class="hover:text-gray-700">सेवा सर्तहरू</a>
@@ -569,7 +569,7 @@
         </div>
     </div>
     <!-- Scripts -->
-    @stack('scripts')
+    <?php echo $__env->yieldPushContent('scripts'); ?>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -766,4 +766,4 @@
         });
     </script>
 </body>
-</html>
+</html><?php /**PATH D:\My Projects\HostelHub\resources\views/layouts/admin.blade.php ENDPATH**/ ?>
