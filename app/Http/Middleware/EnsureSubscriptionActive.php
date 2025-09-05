@@ -23,7 +23,9 @@ class EnsureSubscriptionActive
             'register.*',
             'subscription.*',
             'login',
-            'logout'
+            'logout',
+            'password.*',
+            'verification.*'
         ];
 
         foreach ($exemptRoutes as $route) {
@@ -32,19 +34,28 @@ class EnsureSubscriptionActive
             }
         }
 
-        // If user is not authenticated or no org context, proceed
-        if (!Auth::check() || !$request->attributes->has('organization')) {
+        // If user is not authenticated, proceed
+        if (!Auth::check()) {
             return $next($request);
         }
 
-        $organization = $request->attributes->get('organization');
+        $user = Auth::user();
+
+        // Get organization from user relationship
+        $organization = $user->organization;
+
+        // If no organization found, redirect to organization registration
+        if (!$organization) {
+            return redirect()->route('register.organization')
+                ->with('error', 'कृपया पहिले आफ्नो होस्टल दर्ता गर्नुहोस्।');
+        }
 
         // Check subscription status
         $subscription = $organization->subscription;
 
         $subscriptionActive = $subscription &&
-            !($subscription->status === 'cancelled' && now()->greaterThan($subscription->renews_at)) &&
-            !($subscription->status === 'past_due' && now()->greaterThan($subscription->renews_at));
+            $subscription->status === 'active' &&
+            now()->lessThanOrEqualTo($subscription->expires_at);
 
         if (!$subscriptionActive) {
             // Allow access to subscription and exempted pages
@@ -53,7 +64,7 @@ class EnsureSubscriptionActive
             }
 
             return redirect()->route('subscription.show')
-                ->with('error', 'तपाईंको सदस्यता सकिएको छ। कृपया नवीकरण गर्नुहोस्।');
+                ->with('error', 'तपाईंको सदस्यता सकिएको छ वा सक्रिय छैन। कृपया नवीकरण गर्नुहोस्।');
         }
 
         return $next($request);

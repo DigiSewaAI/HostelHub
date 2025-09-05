@@ -12,10 +12,8 @@ class RouteServiceProvider extends ServiceProvider
 {
     /**
      * The path to the "home" route for your application.
-     *
-     * This is where users are redirected after login.
      */
-    public const HOME = '/home'; // ✅ default safe route (override in controllers if needed)
+    public const HOME = '/home';
 
     /**
      * Define your route model bindings, pattern filters, and other route configuration.
@@ -25,27 +23,14 @@ class RouteServiceProvider extends ServiceProvider
         $this->configureRateLimiting();
 
         $this->routes(function () {
-            // Public web routes
+            // All routes are now in web.php
             Route::middleware('web')
                 ->group(base_path('routes/web.php'));
 
-            // Admin routes
-            Route::middleware('web')
-                ->prefix('admin')
-                ->as('admin.')
-                ->group(base_path('routes/admin.php'));
-
-            // Owner routes
-            Route::middleware('web')
-                ->prefix('owner')
-                ->as('owner.')
-                ->group(base_path('routes/owner.php'));
-
-            // Student routes
-            Route::middleware('web')
-                ->prefix('student')
-                ->as('student.')
-                ->group(base_path('routes/student.php'));
+            // API routes
+            Route::prefix('api')
+                ->middleware('api')
+                ->group(base_path('routes/api.php'));
         });
     }
 
