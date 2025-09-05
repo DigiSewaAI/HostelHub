@@ -830,4 +830,4 @@
         });
     </script>
 </body>
-</html>
+</html><?php /**PATH D:\My Projects\HostelHub\resources\views/admin/payments/index.blade.php ENDPATH**/ ?>

@@ -1,0 +1,104 @@
+Here is a list of all functional parts in the admin.blade.php file and their purposes, structured for easy reference:
+
+Navigation & Layout
+Sidebar Navigation Menu
+
+Dashboard Link: Navigates to the admin dashboard.
+
+Hostels Link: Navigates to hostels management (disabled if route not defined).
+
+Rooms Link: Navigates to rooms management (disabled if route not defined).
+
+Students Link: Navigates to students management (disabled if route not defined).
+
+Payments Link: Navigates to payments management (disabled if route not defined).
+
+Meals Link: Navigates to meals management (disabled if route not defined).
+
+Gallery Link: Navigates to gallery management (disabled if route not defined).
+
+Contacts Link: Navigates to contacts management (disabled if route not defined).
+
+Reports Link: Navigates to reports (disabled if route not defined).
+
+Settings Link: Navigates to settings (disabled if route not defined).
+
+Logout Button: Submits the logout form.
+
+Sidebar Toggle (Collapse/Expand):
+
+Expands or collapses the sidebar. The state (collapsed/expanded) is saved in the browser's local storage.
+
+Mobile Sidebar Toggle:
+
+Button to open the sidebar on mobile devices. Clicking an overlay closes it.
+
+Breadcrumb Navigation:
+
+Shows the current page location and parent pages for navigation (e.g., Home > Hostels).
+
+Skip Link:
+
+Allows keyboard users to skip navigation and jump directly to the main content.
+
+User Interface & Controls
+Dark Mode Toggle:
+
+Switches the interface between light and dark themes. The user's preference is saved in local storage.
+
+Notifications Dropdown:
+
+Displays a list of notification items (e.g., new student registration, payment due). Clicking the bell icon opens/closes the dropdown.
+
+User Profile Dropdown:
+
+Contains links to "My Profile," "Settings," and a logout button. Clicking the user's avatar opens/closes the menu.
+
+Session Message Alerts:
+
+Displays temporary success, error, or validation messages after an action like form submission. They auto-dismiss after a period.
+
+Video Modal:
+
+A popup that plays a video when triggered (e.g., by a .play-video-btn). It can be closed by clicking a button, clicking outside, or pressing the Escape key.
+
+Content & Data Display
+Main Content Area:
+
+The central area where the page-specific content (defined by @yield('content')) is displayed.
+
+Page Header:
+
+Displays the page title (@yield('title')), an optional description, and a section for action buttons (@yield('header-buttons')).
+
+DataTables Initialization:
+
+Automatically initializes DataTables on any table with the class .data-table, adding features like sorting, searching, and responsive design.
+
+Forms & Actions
+Form Submission Handling:
+
+Disables the submit button and shows a "Processing..." spinner when any form is submitted to prevent duplicate submissions.
+
+Logout Confirmation:
+
+Shows a confirmation dialog when the user attempts to log out.
+
+Accessibility & User Experience (UX)
+Focus Trapping (Mobile Sidebar):
+
+When the mobile sidebar is open, the user's keyboard focus is trapped within it for better accessibility.
+
+Auto-Dismissing Alerts:
+
+Success/error messages automatically fade out and are removed after a set time.
+
+Conditional Menu Items:
+
+Menu items are grayed out and non-clickable (cursor-not-allowed) if their corresponding Laravel route is not yet defined, indicating a "Provisional" feature.
+
+Footer
+Site Footer:
+
+Displays copyright information, links to privacy policy/terms of service, and the current version number.
+

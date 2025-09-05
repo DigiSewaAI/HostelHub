@@ -14,13 +14,11 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <!-- Font Awesome 6.4.0 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-          integrity="sha512-iecdLmaskl7CVskpV0uYGFkTd73EVdjGN7teJQ8N+2ER5yiJHHIyMI1GAa5I80LzvcpbKjByZcXc9j5QFZUvSJQ=="
+          integrity="sha512-iecdLmaskl7CVskpV0uYGFkTd73EVdjGN7teJQ8N+2ER5yiJHHIyMI1GAa5I80LzvcpbKjByZcXcC9j5QFZUvSJQ=="
           crossorigin="anonymous" referrerpolicy="no-referrer">
     <!-- DataTables CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.tailwindcss.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.tailwindcss.min.css">
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Custom Styles -->
     <style>
         :root {
@@ -31,15 +29,14 @@
         .sidebar {
             width: var(--sidebar-width);
             transition: width var(--transition-speed);
-            background: linear-gradient(45deg, #4e73df, #224abe) !important;
         }
         .sidebar.collapsed {
             width: var(--sidebar-collapsed-width);
         }
         .sidebar-link.active {
-            background-color: rgba(255, 255, 255, 0.15) !important;
-            color: #ffffff !important;
-            border-left: 4px solid #ffffff;
+            background-color: #e0f2fe;
+            color: #1d4ed8;
+            border-left: 4px solid #3b82f6;
             font-weight: 600;
         }
         .sidebar.collapsed .sidebar-text {
@@ -76,21 +73,26 @@
         .sidebar-link {
             display: flex;
             align-items: center;
-            padding: 0.8rem 1rem;
+            padding: 0.75rem 1rem;
             border-radius: 0.375rem;
             color: #ffffff;
-            transition: all 0.3s;
+            transition: all 0.2s;
             margin-bottom: 0.25rem;
         }
         .sidebar-link:hover {
-            background-color: rgba(255, 255, 255, 0.15) !important;
-            transform: translateX(3px);
+            background-color: #2563eb;
             color: white;
         }
         .sidebar-link i {
             width: 1.5rem;
             text-align: center;
             margin-right: 0.75rem;
+        }
+        .sidebar-link.active {
+            background-color: #e0f2fe;
+            color: #1d4ed8;
+            border-left: 4px solid #3b82f6;
+            font-weight: 600;
         }
         .skip-link {
             position: absolute;
@@ -115,14 +117,9 @@
             border-radius: 50%;
             z-index: 10;
         }
-        .notification-button {
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
         .notification-button i {
-            font-size: 1.25rem;
+            position: relative;
+            z-index: 5;
         }
         /* साइडबार स्क्रोलबार स्टाइल */
         .sidebar::-webkit-scrollbar {
@@ -135,72 +132,6 @@
             background: rgba(0, 0, 0, 0.3);
             border-radius: 3px;
         }
-        .bg-gradient-primary {
-            background: linear-gradient(45deg, #4e73df, #224abe) !important;
-        }
-        .btn {
-            border-radius: 0.5rem;
-            font-weight: 600;
-            padding: 0.5rem 1rem;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s;
-        }
-        .btn-primary {
-            background: linear-gradient(45deg, #4e73df, #224abe);
-            border: none;
-            box-shadow: 0 2px 5px rgba(78, 115, 223, 0.3);
-        }
-        .btn-primary:hover {
-            background: linear-gradient(45deg, #224abe, #4e73df);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(78, 115, 223, 0.4);
-        }
-        .btn-success {
-            background: linear-gradient(45deg, #1cc88a, #13855c);
-            border: none;
-            box-shadow: 0 2px 5px rgba(28, 200, 138, 0.3);
-        }
-        .btn-success:hover {
-            background: linear-gradient(45deg, #13855c, #1cc88a);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(28, 200, 138, 0.4);
-        }
-        .dropdown-item {
-            padding: 0.5rem 1rem;
-            border-radius: 0.35rem;
-            margin: 0.1rem 0.25rem;
-            width: auto;
-            display: flex;
-            align-items: center;
-        }
-        .dropdown-item:hover {
-            background-color: #f8f9fc;
-        }
-        .dropdown-menu {
-            border: none;
-            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
-            border-radius: 0.5rem;
-        }
-        .nepali {
-            font-family: 'Preeti', 'Roboto', sans-serif;
-        }
-        
-        /* Reduced header height by 20% */
-        .header-content {
-            padding-top: 0.75rem !important;
-            padding-bottom: 0.75rem !important;
-        }
-        .navbar-brand {
-            font-size: 1.1rem !important;
-        }
-        .notification-button, .dark-mode-toggle {
-            padding: 0.4rem !important;
-        }
-        .user-dropdown .btn {
-            padding: 0.4rem 0.75rem !important;
-        }
     </style>
     <!-- Page-specific CSS -->
     @stack('styles')
@@ -209,11 +140,11 @@
     <a href="#main-content" class="skip-link nepali">मुख्य सामग्रीमा जानुहोस्</a>
     <div class="flex h-screen overflow-hidden">
         <!-- Sidebar -->
-        <aside id="sidebar" class="sidebar text-white z-20 flex-shrink-0 transition-all duration-300 ease-in-out flex flex-col h-full">
+        <aside id="sidebar" class="sidebar bg-blue-800 text-white z-20 flex-shrink-0 transition-all duration-300 ease-in-out flex flex-col h-full">
             <div class="p-4 border-b border-blue-700 flex items-center justify-between">
                 <div class="flex items-center">
-                    <i class="fas fa-hotel text-2xl mr-2"></i>
-                    <h1 class="text-xl font-bold sidebar-text">होस्टलहब - प्रशासक</h1>
+                    <i class="fas fa-university text-2xl mr-2"></i>
+                    <h1 class="text-xl font-bold sidebar-text">होस्टल प्रबन्धन</h1>
                 </div>
                 <button id="sidebar-collapse" class="text-gray-300 hover:text-white sidebar-text" aria-label="साइडबार सङ्कुचित गर्नुहोस्">
                     <i class="fas fa-bars-staggered"></i>
@@ -223,7 +154,7 @@
                 <!-- Dashboard -->
                 <a href="{{ route('admin.dashboard') }}"
                    class="sidebar-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}"
-                   aria-current="{{ request()->routeIs('admin_meals_*') ? 'page' : 'false' }}">
+                   aria-current="{{ request()->routeIs('admin.dashboard') ? 'page' : 'false' }}">
                     <i class="fas fa-tachometer-alt sidebar-icon"></i>
                     <span class="sidebar-text">ड्यासबोर्ड</span>
                 </a>
@@ -232,14 +163,14 @@
                     <a href="{{ route('admin_hostels_index') }}"
                        class="sidebar-link {{ request()->routeIs('admin_hostels_*') ? 'active' : '' }}"
                        aria-current="{{ request()->routeIs('admin_hostels_*') ? 'page' : 'false' }}">
-                        <i class="fas fa-hotel sidebar-icon"></i>
+                        <i class="fas fa-building sidebar-icon"></i>
                         <span class="sidebar-text">होस्टलहरू</span>
                     </a>
                 @else
                     <a href="#"
                        class="sidebar-link opacity-50 cursor-not-allowed"
                        aria-disabled="true">
-                        <i class="fas fa-hotel sidebar-icon"></i>
+                        <i class="fas fa-building sidebar-icon"></i>
                         <span class="sidebar-text">होस्टलहरू (प्रावधिक)</span>
                     </a>
                 @endif
@@ -280,14 +211,14 @@
                     <a href="{{ route('admin_payments_index') }}"
                        class="sidebar-link {{ request()->routeIs('admin_payments_*') ? 'active' : '' }}"
                        aria-current="{{ request()->routeIs('admin_payments_*') ? 'page' : 'false' }}">
-                        <i class="fas fa-credit-card sidebar-icon"></i>
+                        <i class="fas fa-money-bill-wave sidebar-icon"></i>
                         <span class="sidebar-text">भुक्तानीहरू</span>
                     </a>
                 @else
                     <a href="#"
                        class="sidebar-link opacity-50 cursor-not-allowed"
                        aria-disabled="true">
-                        <i class="fas fa-credit-card sidebar-icon"></i>
+                        <i class="fas fa-money-bill-wave sidebar-icon"></i>
                         <span class="sidebar-text">भुक्तानीहरू (प्रावधिक)</span>
                     </a>
                 @endif
@@ -312,14 +243,14 @@
                     <a href="{{ route('admin_gallery_index') }}"
                        class="sidebar-link {{ request()->routeIs('admin_gallery_*') ? 'active' : '' }}"
                        aria-current="{{ request()->routeIs('admin_gallery_*') ? 'page' : 'false' }}">
-                        <i class="fas fa-image sidebar-icon"></i>
+                        <i class="fas fa-images sidebar-icon"></i>
                         <span class="sidebar-text">ग्यालरी</span>
                     </a>
                 @else
                     <a href="#"
                        class="sidebar-link opacity-50 cursor-not-allowed"
                        aria-disabled="true">
-                        <i class="fas fa-image sidebar-icon"></i>
+                        <i class="fas fa-images sidebar-icon"></i>
                         <span class="sidebar-text">ग्यालरी (प्रावधिक)</span>
                     </a>
                 @endif
@@ -328,14 +259,14 @@
                     <a href="{{ route('admin_contacts_index') }}"
                        class="sidebar-link {{ request()->routeIs('admin_contacts_*') ? 'active' : '' }}"
                        aria-current="{{ request()->routeIs('admin_contacts_*') ? 'page' : 'false' }}">
-                        <i class="fas fa-address-book sidebar-icon"></i>
+                        <i class="fas fa-envelope sidebar-icon"></i>
                         <span class="sidebar-text">सम्पर्क</span>
                     </a>
                 @else
                     <a href="#"
                        class="sidebar-link opacity-50 cursor-not-allowed"
                        aria-disabled="true">
-                        <i class="fas fa-address-book sidebar-icon"></i>
+                        <i class="fas fa-envelope sidebar-icon"></i>
                         <span class="sidebar-text">सम्पर्क (प्रावधिक)</span>
                     </a>
                 @endif
@@ -360,14 +291,14 @@
                     <a href="{{ route('admin.settings') }}"
                        class="sidebar-link {{ request()->routeIs('admin.settings') ? 'active' : '' }}"
                        aria-current="{{ request()->routeIs('admin.settings') ? 'page' : 'false' }}">
-                        <i class="fas fa-cogs sidebar-icon"></i>
+                        <i class="fas fa-cog sidebar-icon"></i>
                         <span class="sidebar-text">सेटिङ्हरू</span>
                     </a>
                 @else
                     <a href="#"
                        class="sidebar-link opacity-50 cursor-not-allowed"
                        aria-disabled="true">
-                        <i class="fas fa-cogs sidebar-icon"></i>
+                        <i class="fas fa-cog sidebar-icon"></i>
                         <span class="sidebar-text">सेटिङ्हरू (प्रावधिक)</span>
                     </a>
                 @endif
@@ -386,27 +317,71 @@
         <!-- Main Content -->
         <div class="flex-1 flex flex-col overflow-hidden">
             <!-- Top Navigation -->
-            <header class="bg-gradient-primary shadow-sm z-10">
-                <div class="flex items-center justify-between px-6 header-content">
+            <header class="bg-white shadow-sm z-10">
+                <div class="flex items-center justify-between px-6 py-4">
                     <div class="flex items-center">
-                        <button id="mobile-sidebar-toggle" class="lg:hidden text-white hover:text-gray-200 mr-4" aria-label="मोबाइल साइडबार खोल्नुहोस्">
+                        <button id="mobile-sidebar-toggle" class="lg:hidden text-gray-500 hover:text-gray-700 mr-4" aria-label="मोबाइल साइडबार खोल्नुहोस्">
                             <i class="fas fa-bars text-xl"></i>
                         </button>
-                        <!-- Brand -->
-                        <a class="navbar-brand text-white" href="#">
-                            <i class="fas fa-hotel me-2"></i>होस्टलहब - प्रशासक प्यानल
-                        </a>
+                        <!-- Breadcrumb -->
+                        <nav class="hidden md:flex" aria-label="Breadcrumb">
+                            <ol class="flex items-center space-x-2 text-sm">
+                                <li>
+                                    <a href="{{ route('admin.dashboard') }}" class="text-gray-500 hover:text-indigo-600">
+                                        <i class="fas fa-home"></i>
+                                    </a>
+                                </li>
+                                @if(request()->routeIs('admin.dashboard'))
+                                    <li class="text-gray-500">
+                                        <i class="fas fa-chevron-right text-xs mx-2"></i>
+                                        <span>ड्यासबोर्ड</span>
+                                    </li>
+                                @elseif(Route::has('admin_hostels_index') && request()->routeIs('admin_hostels_*'))
+                                    <li class="text-gray-500">
+                                        <i class="fas fa-chevron-right text-xs mx-2"></i>
+                                        <a href="{{ route('admin_hostels_index') }}" class="hover:text-indigo-600">होस्टलहरू</a>
+                                    </li>
+                                    @if(Route::has('admin_hostels_create') && request()->routeIs('admin_hostels_create'))
+                                        <li class="text-gray-500">
+                                            <i class="fas fa-chevron-right text-xs mx-2"></i>
+                                            <span>थप्नुहोस्</span>
+                                        </li>
+                                    @elseif(Route::has('admin_hostels_edit') && request()->routeIs('admin_hostels_edit'))
+                                        <li class="text-gray-500">
+                                            <i class="fas fa-chevron-right text-xs mx-2"></i>
+                                            <span>सम्पादन गर्नुहोस्</span>
+                                        </li>
+                                    @endif
+                                @elseif(Route::has('admin_rooms_index') && request()->routeIs('admin_rooms_*'))
+                                    <li class="text-gray-500">
+                                        <i class="fas fa-chevron-right text-xs mx-2"></i>
+                                        <a href="{{ route('admin_rooms_index') }}" class="hover:text-indigo-600">कोठाहरू</a>
+                                    </li>
+                                @elseif(Route::has('admin_students_index') && request()->routeIs('admin_students_*'))
+                                    <li class="text-gray-500">
+                                        <i class="fas fa-chevron-right text-xs mx-2"></i>
+                                        <a href="{{ route('admin_students_index') }}" class="hover:text-indigo-600">विद्यार्थीहरू</a>
+                                    </li>
+                                @elseif(Route::has('admin_gallery_index') && request()->routeIs('admin_gallery_*'))
+                                    <li class="text-gray-500">
+                                        <i class="fas fa-chevron-right text-xs mx-2"></i>
+                                        <a href="{{ route('admin_gallery_index') }}" class="hover:text-indigo-600">ग्यालरी</a>
+                                    </li>
+                                @endif
+                            </ol>
+                        </nav>
                     </div>
+                    <h1 class="text-xl md:text-2xl font-semibold text-gray-800 hidden md:block">@yield('title')</h1>
                     <div class="flex items-center space-x-3">
                         <!-- Dark Mode Toggle -->
-                        <button id="dark-mode-toggle" class="text-white hover:text-gray-200 dark-mode-toggle p-2 rounded-full hover:bg-blue-700" aria-label="डार्क मोड टगल गर्नुहोस्">
+                        <button id="dark-mode-toggle" class="text-gray-500 hover:text-gray-700 p-2 rounded-full hover:bg-gray-100" aria-label="डार्क मोड टगल गर्नुहोस्">
                             <i class="fas fa-moon hidden dark-icon"></i>
                             <i class="fas fa-sun dark-icon"></i>
                         </button>
                         <!-- Notifications -->
                         <div class="relative" x-data="{ open: false }">
-                            <!-- FIXED: Notification button with proper bell icon -->
-                            <button @click="open = !open" class="notification-button text-white hover:text-gray-200 p-2 rounded-full hover:bg-blue-700" aria-label="सूचनाहरू हेर्नुहोस्">
+                            <!-- FIXED: Added notification-button class for better targeting -->
+                            <button @click="open = !open" class="notification-button text-blue-600 hover:text-blue-800 p-2 rounded-full hover:bg-gray-100" aria-label="सूचनाहरू हेर्नुहोस्">
                                 <i class="fas fa-bell text-lg"></i>
                                 <span class="notification-dot" aria-hidden="true"></span>
                             </button>
@@ -456,27 +431,48 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- User Dropdown - Updated to match index.blade.php -->
-                        <div class="d-flex align-items-center user-dropdown">
-                            <span class="text-white me-3 nepali">पराशर रेग्मी</span>
-                            <div class="dropdown">
-                                <button class="btn btn-outline-light dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="fas fa-user-circle me-1"></i>
-                                    <span class="nepali">प्रशासक</span>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end shadow">
-                                    <li><a class="dropdown-item nepali" href="#"><i class="fas fa-user me-2"></i>मेरो प्रोफाइल</a></li>
-                                    <li><a class="dropdown-item nepali" href="#"><i class="fas fa-cog me-2"></i>सेटिङ्हरू</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li>
-                                        <form method="POST" action="{{ route('logout') }}" id="logout-form">
-                                            @csrf
-                                            <button type="submit" class="dropdown-item nepali" style="border: none; background: none; width: 100%; text-align: left;">
-                                                <i class="fas fa-sign-out-alt me-2"></i>लगआउट
-                                            </button>
-                                        </form>
-                                    </li>
-                                </ul>
+                        <!-- User Dropdown -->
+                        <div class="relative" x-data="{ open: false }">
+                            <button @click="open = !open" class="flex items-center space-x-2 focus:outline-none" aria-expanded="false" aria-haspopup="true">
+                                <div class="h-9 w-9 rounded-full bg-indigo-100 flex items-center justify-center">
+                                    <span class="text-indigo-600 font-medium">
+                                        {{ strtoupper(substr(optional(auth()->user())->name ?? 'U', 0, 2)) }}
+                                    </span>
+                                </div>
+                                <span class="hidden md:inline text-gray-700 font-medium">
+                                    {{ optional(auth()->user())->name ?? 'प्रशासक' }}
+                                </span>
+                                <i class="fas fa-chevron-down text-xs text-gray-500"></i>
+                            </button>
+                            <div x-show="open" @click.away="open = false"
+                                 x-transition:enter="transition ease-out duration-200"
+                                 x-transition:enter-start="opacity-0 transform scale-95"
+                                 x-transition:enter-end="opacity-100 transform scale-100"
+                                 x-transition:leave="transition ease-in duration-75"
+                                 x-transition:leave-start="opacity-100 transform scale-100"
+                                 x-transition:leave-end="opacity-0 transform scale-95"
+                                 class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg py-1 z-20 border border-gray-200"
+                                 role="menu"
+                                 aria-orientation="vertical"
+                                 aria-labelledby="user-menu">
+                                <a href="{{ route('profile.edit') }}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" role="menuitem">
+                                    <i class="fas fa-user mr-3 text-gray-400"></i>
+                                    <span>मेरो प्रोफाइल</span>
+                                </a>
+                                @if(Route::has('admin.settings'))
+                                    <a href="{{ route('admin.settings') }}" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" role="menuitem">
+                                        <i class="fas fa-cog mr-3 text-gray-400"></i>
+                                        <span>सेटिङ्हरू</span>
+                                    </a>
+                                @endif
+                                <hr class="my-1 border-gray-200">
+                                <form method="POST" action="{{ route('logout') }}" id="logout-form">
+                                    @csrf
+                                    <button type="submit" class="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" role="menuitem">
+                                        <i class="fas fa-sign-out-alt mr-3 text-gray-400"></i>
+                                        <span>लगआउट</span>
+                                    </button>
+                                </form>
                             </div>
                         </div>
                     </div>
@@ -552,7 +548,7 @@
     <div id="video-modal" class="fixed inset-0 bg-black bg-opacity-90 z-50 hidden flex items-center justify-center p-4">
         <div class="relative w-full max-w-4xl">
             <button id="close-video-modal" class="absolute -top-12 right-0 text-white text-xl hover:text-gray-300 transition-colors" aria-label="भिडियो मोडल बन्द गर्नुहोस्">
-                बन्द गर्नुहオス ×
+                बन्द गर्नुहोस् ×
             </button>
             <div class="bg-black rounded-xl overflow-hidden">
                 <div class="relative pb-[56.25%] h-0">
@@ -565,12 +561,10 @@
                     <h3 id="video-title" class="text-white font-bold text-xl"></h3>
                 </div>
             </div>
-            </div>
         </div>
     </div>
     <!-- Scripts -->
     @stack('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Sidebar functionality
