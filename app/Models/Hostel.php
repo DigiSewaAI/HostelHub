@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Hostel extends Model
 {
@@ -22,7 +22,9 @@ class Hostel extends Model
         'total_rooms',
         'available_rooms',
         'status',
-        'facilities'
+        'facilities',
+        'owner_id', // Added owner_id to fillable
+        'manager_id' // Added manager_id to fillable (if not already present)
     ];
 
     protected $casts = [
@@ -34,12 +36,16 @@ class Hostel extends Model
         return $this->hasMany(Room::class);
     }
 
-    public function manager(): HasOne
+    public function owner(): BelongsTo
     {
-        return $this->hasOne(User::class, 'id', 'manager_id');
+        return $this->belongsTo(User::class, 'owner_id');
     }
 
-    // Add this relationship for images
+    public function manager(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'manager_id');
+    }
+
     public function images(): HasMany
     {
         return $this->hasMany(HostelImage::class);

@@ -37,6 +37,15 @@ class Student extends Model
         'admission_date' => 'date',
     ];
 
+    public function college()
+    {
+        return $this->belongsTo(College::class);
+    }
+
+    public function course()
+    {
+        return $this->belongsTo(Course::class);
+    }
     /**
      * Get the room that this student belongs to.
      */
