@@ -57,17 +57,17 @@ D:.
 ³   ³   ³   ³   SubscriptionController.php
 ³   ³   ³   ³   
 ³   ³   ³   ÃÄÄÄAdmin
-³   ³   ³   ³       ContactsController.php
+³   ³   ³   ³       ContactController.php
 ³   ³   ³   ³       DashboardController.php
-³   ³   ³   ³       GalleriesController.php
-³   ³   ³   ³       HostelsController.php
+³   ³   ³   ³       GalleryController.php
+³   ³   ³   ³       HostelController.php
 ³   ³   ³   ³       ImpersonationController.php
+³   ³   ³   ³       MealController.php
 ³   ³   ³   ³       MealMenuController.php
-³   ³   ³   ³       MealsController.php
-³   ³   ³   ³       PaymentsController.php
-³   ³   ³   ³       ReviewsController.php
-³   ³   ³   ³       RoomsController.php
-³   ³   ³   ³       StudentsController.php
+³   ³   ³   ³       PaymentController.php
+³   ³   ³   ³       ReviewController.php
+³   ³   ³   ³       RoomController.php
+³   ³   ³   ³       StudentController.php
 ³   ³   ³   ³       
 ³   ³   ³   ÃÄÄÄAuth
 ³   ³   ³   ³       AuthController.php
@@ -93,20 +93,20 @@ D:.
 ³   ³   ³   ³       StudentController.php
 ³   ³   ³   ³       
 ³   ³   ³   ÃÄÄÄOwner
-³   ³   ³   ³       ContactsController.php
+³   ³   ³   ³       ContactController.php
 ³   ³   ³   ³       DashboardController.php
-³   ³   ³   ³       GalleriesController.php
+³   ³   ³   ³       GalleryController.php
 ³   ³   ³   ³       HostelController.php
-³   ³   ³   ³       MealMenusController.php
-³   ³   ³   ³       PaymentsController.php
-³   ³   ³   ³       ReviewsController.php
-³   ³   ³   ³       RoomsController.php
-³   ³   ³   ³       StudentsController.php
+³   ³   ³   ³       MealMenuController.php
+³   ³   ³   ³       PaymentController.php
+³   ³   ³   ³       ReviewController.php
+³   ³   ³   ³       RoomController.php
+³   ³   ³   ³       StudentController.php
 ³   ³   ³   ³       
 ³   ³   ³   ÀÄÄÄStudent
 ³   ³   ³           DashboardController.php
-³   ³   ³           MealMenusController.php
-³   ³   ³           PaymentsController.php
+³   ³   ³           MealMenuController.php
+³   ³   ³           PaymentController.php
 ³   ³   ³           ProfileController.php
 ³   ³   ³           
 ³   ³   ÃÄÄÄMiddleware
@@ -117,7 +117,6 @@ D:.
 ³   ³   ³       EnforcePlanLimits.php
 ³   ³   ³       EnsureOrgContext.php
 ³   ³   ³       EnsureSubscriptionActive.php
-³   ³   ³       HostelOwner.php
 ³   ³   ³       Localize.php
 ³   ³   ³       PaymentVerified.php
 ³   ³   ³       RedirectIfAuthenticated.php
@@ -9662,8 +9661,11 @@ D:.
 ³                   yargs-parser.js
 ³                   
 ÃÄÄÄprojets plannings and all
-³       planning all.docx
-³       
+³   ³   planning all.docx
+³   ³   
+³   ÀÄÄÄproject structure summery-qwen
+³           structures summery by qwen.docx
+³           
 ÃÄÄÄpublic
 ³   ³   .htaccess
 ³   ³   favicon.ico
@@ -9710,41 +9712,41 @@ D:.
 ³       ÃÄÄÄadmin
 ³       ³   ³   dashboard.blade.php
 ³       ³   ³   
-³       ³   ÃÄÄÄcontacts
-³       ³   ÃÄÄÄgalleries
+³       ³   ÃÄÄÄcontact
+³       ³   ÃÄÄÄgallery
 ³       ³   ³       create.blade.php
 ³       ³   ³       edit.blade.php
 ³       ³   ³       index.blade.php
 ³       ³   ³       show.blade.php
 ³       ³   ³       _form.blade.php
 ³       ³   ³       
-³       ³   ÃÄÄÄhostels
+³       ³   ÃÄÄÄhostel
 ³       ³   ³       availability.blade.php
 ³       ³   ³       create.blade.php
 ³       ³   ³       edit.blade.php
 ³       ³   ³       index.blade.php
 ³       ³   ³       show.blade.php
 ³       ³   ³       
-³       ³   ÃÄÄÄmeals
+³       ³   ÃÄÄÄmeal
 ³       ³   ³       create.blade.php
 ³       ³   ³       edit.blade.php
 ³       ³   ³       index.blade.php
 ³       ³   ³       
-³       ³   ÃÄÄÄpayments
+³       ³   ÃÄÄÄpayment
 ³       ³   ³       create.blade.php
 ³       ³   ³       edit.blade.php
 ³       ³   ³       index.blade.php
 ³       ³   ³       report.blade.php
 ³       ³   ³       show.blade.php
 ³       ³   ³       
-³       ³   ÃÄÄÄreviews
+³       ³   ÃÄÄÄreview
 ³       ³   ³       index.blade.php
 ³       ³   ³       
-³       ³   ÃÄÄÄrooms
+³       ³   ÃÄÄÄroom
 ³       ³   ³       create.blade.php
 ³       ³   ³       index.blade.php
 ³       ³   ³       
-³       ³   ÀÄÄÄstudents
+³       ³   ÀÄÄÄstudent
 ³       ³           create.blade.php
 ³       ³           edit.blade.php
 ³       ³           index.blade.php
@@ -9844,50 +9846,50 @@ D:.
 ³       ÃÄÄÄowner
 ³       ³   ³   dashboard.blade.php
 ³       ³   ³   
-³       ³   ÃÄÄÄcontacts
+³       ³   ÃÄÄÄcontact
 ³       ³   ³       create.blade.php
 ³       ³   ³       edit.blade.php
 ³       ³   ³       index.blade.php
 ³       ³   ³       show.blade.php
 ³       ³   ³       
-³       ³   ÃÄÄÄgalleries
+³       ³   ÃÄÄÄgallery
 ³       ³   ³       create.blade.php
 ³       ³   ³       edit.blade.php
 ³       ³   ³       index.blade.php
 ³       ³   ³       show.blade.php
 ³       ³   ³       _form.blade.php
 ³       ³   ³       
-³       ³   ÃÄÄÄhostels
+³       ³   ÃÄÄÄhostel
 ³       ³   ³       availability.blade.php
 ³       ³   ³       create.blade.php
 ³       ³   ³       edit.blade.php
 ³       ³   ³       index.blade.php
 ³       ³   ³       show.blade.php
 ³       ³   ³       
-³       ³   ÃÄÄÄmeal-menus
+³       ³   ÃÄÄÄmeal-menu
 ³       ³   ³       create.blade.php
 ³       ³   ³       edit.blade.php
 ³       ³   ³       index.blade.php
 ³       ³   ³       
-³       ³   ÃÄÄÄpayments
-³       ³   ³       create.blade.php
-³       ³   ³       edit.blade.php
-³       ³   ³       index.blade.php
-³       ³   ³       show.blade.php
-³       ³   ³       
-³       ³   ÃÄÄÄreviews
+³       ³   ÃÄÄÄpayment
 ³       ³   ³       create.blade.php
 ³       ³   ³       edit.blade.php
 ³       ³   ³       index.blade.php
 ³       ³   ³       show.blade.php
 ³       ³   ³       
-³       ³   ÃÄÄÄrooms
+³       ³   ÃÄÄÄreview
 ³       ³   ³       create.blade.php
 ³       ³   ³       edit.blade.php
 ³       ³   ³       index.blade.php
 ³       ³   ³       show.blade.php
 ³       ³   ³       
-³       ³   ÀÄÄÄstudents
+³       ³   ÃÄÄÄroom
+³       ³   ³       create.blade.php
+³       ³   ³       edit.blade.php
+³       ³   ³       index.blade.php
+³       ³   ³       show.blade.php
+³       ³   ³       
+³       ³   ÀÄÄÄstudent
 ³       ³           create.blade.php
 ³       ³           edit.blade.php
 ³       ³           index.blade.php
@@ -9909,7 +9911,7 @@ D:.
 ³           ÃÄÄÄdashboard
 ³           ³       dashboard.blade.php
 ³           ³       
-³           ÃÄÄÄpayments
+³           ÃÄÄÄpayment
 ³           ÀÄÄÄprofile
 ³                   profile.blade.php
 ³                   

@@ -6,7 +6,6 @@ use App\Http\Controllers\{
     Admin\GalleryController,
     Admin\HostelController,
     Admin\MealController,
-    Admin\PaymentController,
     Admin\ReviewController,
     Admin\RoomController,
     Admin\StudentController,
