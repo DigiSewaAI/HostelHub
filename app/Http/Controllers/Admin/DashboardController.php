@@ -77,7 +77,6 @@ class DashboardController extends Controller
             ];
 
             return view('admin.dashboard', compact('metrics'));
-
         } catch (\Exception $e) {
             // Log error details for debugging
             Log::error('Dashboard loading failed: ' . $e->getMessage(), [
@@ -108,6 +107,39 @@ class DashboardController extends Controller
         }
     }
 
+    // DashboardController को reports method मा यसरी data तयार गर्नुहोस्
+    public function reports()
+    {
+        try {
+            $reportData = [
+                'student_registrations' => Student::count(),
+                'room_occupancy' => Room::where('status', 'occupied')->count(),
+                'total_rooms' => Room::count(),
+                'revenue' => Payment::sum('amount'),
+                'monthly_revenue' => Payment::whereMonth('created_at', now()->month)->sum('amount'),
+                'available_rooms' => Room::where('status', 'available')->count(),
+                'recent_payments' => Payment::with('student.user')
+                    ->latest()
+                    ->take(5)
+                    ->get()
+                    ->map(function ($payment) {
+                        return [
+                            'student_name' => $payment->student->user->name,
+                            'date' => $payment->created_at->format('Y-m-d'),
+                            'amount' => $payment->amount,
+                            'method' => $payment->payment_method,
+                            'status' => $payment->status
+                        ];
+                    })
+            ];
+
+            return view('admin.reports.index', compact('reportData'));
+        } catch (\Exception $e) {
+            Log::error('Reports loading failed: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'प्रतिवेदन लोड गर्न असफल भयो');
+        }
+    }
+
     /**
      * Get dashboard statistics for AJAX requests
      *
@@ -128,10 +160,10 @@ class DashboardController extends Controller
 
             // Room occupancy trend data
             $occupancyTrend = Room::select(
-                    DB::raw('DATE(created_at) as date'),
-                    DB::raw('COUNT(CASE WHEN status = "occupied" THEN 1 END) as occupied_count'),
-                    DB::raw('COUNT(*) as total_count')
-                )
+                DB::raw('DATE(created_at) as date'),
+                DB::raw('COUNT(CASE WHEN status = "occupied" THEN 1 END) as occupied_count'),
+                DB::raw('COUNT(*) as total_count')
+            )
                 ->whereBetween('created_at', [$startDate, $endDate])
                 ->groupBy('date')
                 ->orderBy('date')
@@ -147,9 +179,9 @@ class DashboardController extends Controller
 
             // Student registration trend
             $studentTrend = Student::select(
-                    DB::raw('DATE(created_at) as date'),
-                    DB::raw('COUNT(*) as count')
-                )
+                DB::raw('DATE(created_at) as date'),
+                DB::raw('COUNT(*) as count')
+            )
                 ->whereBetween('created_at', [$startDate, $endDate])
                 ->groupBy('date')
                 ->orderBy('date')
@@ -165,7 +197,6 @@ class DashboardController extends Controller
                     'student_trend' => $studentTrend,
                 ]
             ]);
-
         } catch (\Exception $e) {
             Log::error('Dashboard statistics API failed: ' . $e->getMessage(), [
                 'exception' => $e,
@@ -220,7 +251,6 @@ class DashboardController extends Controller
             // For demonstration, we'll just return a success message
             return redirect()->route('admin.dashboard')
                 ->with('success', 'सेटिङ्स सफलतापूर्वक अपडेट गरियो!');
-
         } catch (\Exception $e) {
             Log::error('Settings update failed: ' . $e->getMessage(), [
                 'exception' => $e,

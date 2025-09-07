@@ -6,9 +6,11 @@ use App\Http\Controllers\{
     Admin\GalleryController,
     Admin\HostelController,
     Admin\MealController,
+    Admin\ReportController,
     Admin\ReviewController,
     Admin\RoomController,
     Admin\StudentController,
+    Admin\SettingsController,
     Owner\ContactController as OwnerContactController,
     Owner\DashboardController as OwnerDashboardController,
     Owner\GalleryController as OwnerGalleryController,
@@ -146,59 +148,79 @@ Route::get('/dashboard', function () {
 | Admin Routes (Super Admin - You)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'checkrole:admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Add report route for payments
-    Route::get('/payment/report', [PaymentController::class, 'report'])->name('payment.report');
+    // Settings routes with full CRUD
+    Route::resource('settings', SettingsController::class);
 
-    // Add export route for payments
-    Route::get('/payment/export', [PaymentController::class, 'export'])->name('payment.export');
+    // Add the missing admin.settings route (likely referenced in admin layout)
+    Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
+
+    // Report route for payments
+    Route::get('/payments/report', [ReportController::class, 'paymentReport'])->name('payments.report');
+
+    // Export route for payments
+    Route::get('/payments/export', [ReportController::class, 'paymentExport'])->name('payments.export');
+
+    // Report routes
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::get('/reports/monthly', [ReportController::class, 'monthlyReport'])->name('reports.monthly');
+    Route::get('/reports/download-pdf', [ReportController::class, 'downloadPdf'])->name('reports.download.pdf');
+    Route::get('/reports/download-excel', [ReportController::class, 'downloadExcel'])->name('reports.download.excel');
 
     // Gallery toggle routes
-    Route::post('/gallery/{gallery}/toggle-status', [GalleryController::class, 'toggleStatus'])
-        ->name('gallery.toggle-status');
-    Route::post('/gallery/{gallery}/toggle-featured', [GalleryController::class, 'toggleFeatured'])
-        ->name('gallery.toggle-featured');
+    Route::post('/galleries/{gallery}/toggle-status', [GalleryController::class, 'toggleStatus'])
+        ->name('galleries.toggle-status');
+    Route::post('/galleries/{gallery}/toggle-featured', [GalleryController::class, 'toggleFeatured'])
+        ->name('galleries.toggle-featured');
 
-    // Resource routes
-    Route::resource('contact', ContactController::class);
-    Route::resource('gallery', GalleryController::class);
-    Route::resource('hostel', HostelController::class);
-    Route::resource('meal', MealController::class);
-    Route::resource('payment', PaymentController::class);
-    Route::resource('review', ReviewController::class);
-    Route::resource('room', RoomController::class);
-    Route::resource('student', StudentController::class);
+    // Add the missing search route for admin rooms
+    Route::get('/rooms/search', [RoomController::class, 'search'])->name('rooms.search');
+
+    // Add the missing search route for admin contacts
+    Route::get('/contacts/search', [ContactController::class, 'search'])->name('contacts.search');
+
+    // Resource routes (all plural)
+    Route::resource('contacts', ContactController::class);
+    Route::resource('galleries', GalleryController::class);
+    Route::resource('hostels', HostelController::class);
+    Route::resource('meals', MealController::class);
+    Route::resource('reviews', ReviewController::class);
+    Route::resource('rooms', RoomController::class);
+    Route::resource('students', StudentController::class);
+
+    // Payment routes (using ReportController instead of PaymentController)
+    Route::resource('payments', ReportController::class)->only(['index', 'show']);
 });
 
 /*|--------------------------------------------------------------------------
 | Owner Routes (Hostel Managers)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'checkrole:hostel_manager'])->prefix('owner')->name('owner.')->group(function () {
+Route::middleware(['auth', 'role:hostel_manager'])->prefix('owner')->name('owner.')->group(function () {
     Route::get('/dashboard', [OwnerDashboardController::class, 'index'])->name('dashboard');
 
-    // Resource routes
-    Route::resource('contact', OwnerContactController::class);
-    Route::resource('gallery', OwnerGalleryController::class);
-    Route::resource('hostel', OwnerHostelController::class);
-    Route::resource('meal-menu', MealMenuController::class);
-    Route::resource('payment', OwnerPaymentController::class);
-    Route::resource('review', OwnerReviewController::class);
-    Route::resource('room', OwnerRoomController::class);
-    Route::resource('student', OwnerStudentController::class);
+    // Resource routes (all plural)
+    Route::resource('contacts', OwnerContactController::class);
+    Route::resource('galleries', OwnerGalleryController::class);
+    Route::resource('hostels', OwnerHostelController::class);
+    Route::resource('meal-menus', MealMenuController::class);
+    Route::resource('payments', OwnerPaymentController::class);
+    Route::resource('reviews', OwnerReviewController::class);
+    Route::resource('rooms', OwnerRoomController::class);
+    Route::resource('students', OwnerStudentController::class);
 });
 
 /*|--------------------------------------------------------------------------
 | Student Routes
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'checkrole:student'])->prefix('student')->name('student.')->group(function () {
+Route::middleware(['auth', 'role:student'])->prefix('student')->name('student.')->group(function () {
     Route::get('/dashboard', [StudentDashboardController::class, 'index'])->name('dashboard');
     Route::get('/profile', [StudentProfileController::class, 'index'])->name('profile');
-    Route::get('/payment', [StudentPaymentController::class, 'index'])->name('payment');
-    Route::resource('meal-menu', StudentMealMenuController::class)->only(['index', 'show']);
+    Route::get('/payments', [StudentPaymentController::class, 'index'])->name('payments');
+    Route::resource('meal-menus', StudentMealMenuController::class)->only(['index', 'show']);
 });
 
 /*|--------------------------------------------------------------------------
@@ -236,12 +258,12 @@ Route::middleware(['auth'])->group(function () {
 */
 Route::middleware(['auth'])->group(function () {
     // User Features
-    Route::get('/my-student', [OwnerStudentController::class, 'myStudents'])->name('student.my');
-    Route::get('/my-booking', [OwnerRoomController::class, 'myBookings'])->name('booking.my');
+    Route::get('/my-students', [OwnerStudentController::class, 'myStudents'])->name('students.my');
+    Route::get('/my-bookings', [OwnerRoomController::class, 'myBookings'])->name('bookings.my');
 
     // Payments
-    Route::resource('payment', PaymentController::class)->only(['index', 'show', 'create', 'store']);
-    Route::post('payment/khalti-callback', [PaymentController::class, 'khaltiCallback'])->name('payment.khalti.callback');
+    Route::resource('payments', PaymentController::class)->only(['index', 'show', 'create', 'store']);
+    Route::post('payments/khalti-callback', [PaymentController::class, 'khaltiCallback'])->name('payments.khalti.callback');
 });
 
 /*|--------------------------------------------------------------------------

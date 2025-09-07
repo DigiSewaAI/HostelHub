@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;  // ✅ थपियो
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
@@ -18,13 +18,13 @@ class Room extends Model
      */
     protected $fillable = [
         'hostel_id',
-        'room_number',
-        'type',
-        'capacity',
-        'price',
-        'status',
-        'description',
-        'image',
+        'room_number',  // पहिले: कोठा_नम्बर
+        'type',         // पहिले: प्रकार  
+        'capacity',     // पहिले: क्षमता
+        'price',        // पहिले: मूल्य
+        'status',       // पहिले: स्थिति
+        'image',        // पहिले: तस्वीर
+        'description',  // पहिले: विवरण
         'floor',
     ];
 
@@ -33,6 +33,7 @@ class Room extends Model
      */
     protected $casts = [
         'price' => 'decimal:2',
+        'capacity' => 'integer',
     ];
 
     /**
@@ -52,26 +53,11 @@ class Room extends Model
     }
 
     /**
-     * Get all payments for the room through students.
-     */
-    public function payments(): HasManyThrough
-    {
-        return $this->hasManyThrough(
-            Payment::class,
-            Student::class,
-            'room_id',
-            'student_id',
-            'id',
-            'id'
-        );
-    }
-
-    /**
      * Scope a query to only include available rooms.
      */
     public function scopeAvailable(Builder $query): Builder
     {
-        return $query->where('status', 'available');
+        return $query->where('status', 'उपलब्ध');
     }
 
     /**
@@ -83,28 +69,12 @@ class Room extends Model
     }
 
     /**
-     * Scope a query to get rooms by floor.
-     */
-    public function scopeFloor(Builder $query, string $floor): Builder
-    {
-        return $query->where('floor', $floor);
-    }
-
-    /**
-     * Scope for occupied rooms.
-     */
-    public function scopeOccupied($query)
-    {
-        return $query->where('status', 'occupied');
-    }
-
-    /**
      * Calculate the overall room occupancy rate.
      */
     public static function getOccupancyRate(): float
     {
         $totalRooms = self::count();
-        $occupiedRooms = self::where('status', 'occupied')->count();
+        $occupiedRooms = self::where('status', 'बुक भएको')->count();
 
         if ($totalRooms > 0) {
             return round(($occupiedRooms / $totalRooms) * 100, 2);
@@ -130,17 +100,32 @@ class Room extends Model
         $currentOccupancy = $this->students_count ?? $this->students()->count();
         return max(0, $this->capacity - $currentOccupancy);
     }
-    // app/Models/Room.php
 
-    // यो नयाँ फंक्शन थप्नुहोस्
+    /**
+     * Get Nepali room type
+     */
     public function getNepaliTypeAttribute(): string
     {
         $types = [
-            'single' => '१ सिटर कोठा',
-            'double' => '२ सिटर कोठा',
-            'dorm'   => '४ सिटर कोठा',
+            'स्ट्यान्डर्ड' => 'स्ट्यान्डर्ड कोठा',
+            'डीलक्स' => 'डीलक्स कोठा',
+            'विआईपी' => 'विआईपी कोठा',
         ];
 
         return $types[$this->type] ?? $this->type;
+    }
+
+    /**
+     * Get Nepali status
+     */
+    public function getNepaliStatusAttribute(): string
+    {
+        $statuses = [
+            'उपलब्ध' => 'उपलब्ध',
+            'बुक भएको' => 'बुक भएको',
+            'रिङ्गोट' => 'रिङ्गोट',
+        ];
+
+        return $statuses[$this->status] ?? $this->status;
     }
 }
