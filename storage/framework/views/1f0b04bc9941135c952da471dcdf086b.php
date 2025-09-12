@@ -1205,7 +1205,7 @@
                     <a href="/" class="logo">
                         <!-- Real Logo Image -->
                         <div class="logo-image">
-                            <img src="{{ asset('storage/images/logo.png') }}" alt="HostelHub Logo" style="height: 50px; width: auto;">
+                            <img src="<?php echo e(asset('storage/images/logo.png')); ?>" alt="HostelHub Logo" style="height: 50px; width: auto;">
                         </div>
                         <div class="logo-text">
                             <h1>HostelHub</h1>
@@ -1213,11 +1213,11 @@
                         </div>
                     </a>
                     <div class="nav-links" id="main-nav">
-                        <a href="{{ route('features') }}" class="nepali">सुविधाहरू</a>
-                        <a href="{{ route('how-it-works') }}" class="nepali">कसरी काम गर्छ</a>
-                        <a href="{{ route('gallery') }}" class="nepali">ग्यालरी</a>
-                        <a href="{{ route('pricing') }}" class="nepali">मूल्य</a>
-                        <a href="{{ route('testimonials') }}" class="nepali">प्रशंसापत्रहरू</a>
+                        <a href="<?php echo e(route('features')); ?>" class="nepali">सुविधाहरू</a>
+                        <a href="<?php echo e(route('how-it-works')); ?>" class="nepali">कसरी काम गर्छ</a>
+                        <a href="<?php echo e(route('gallery')); ?>" class="nepali">ग्यालरी</a>
+                        <a href="<?php echo e(route('pricing')); ?>" class="nepali">मूल्य</a>
+                        <a href="<?php echo e(route('testimonials')); ?>" class="nepali">प्रशंसापत्रहरू</a>
                         <a href="/login" class="nepali">लगइन</a>
                     </div>
                     <div class="header-cta">
@@ -1244,7 +1244,7 @@
                         <h1 class="hero-title nepali">HostelHub — तपाइँको होस्टल व्यवस्थापन अब सजिलो, द्रुत र भरपर्दो</h1>
                         <p class="hero-subtitle nepali">विद्यार्थी व्यवस्थापन, कोठा आवंटन, भुक्तानी र भोजन प्रणाली—एकै प्लेटफर्मबाट चलाउनुहोस्। ७ दिन निःशुल्क।</p>
                         <div class="hero-cta">
-                            <a href="{{ route('demo') }}" class="btn btn-primary nepali">डेमो हेर्नुहोस्</a>
+                            <a href="<?php echo e(route('demo')); ?>" class="btn btn-primary nepali">डेमो हेर्नुहोस्</a>
                             <a href="#gallery" class="btn btn-outline nepali">खोजी सुरु गर्नुहोस्</a>
                         </div>
                         <div class="hero-stats">
@@ -1266,16 +1266,16 @@
                     <div class="hero-slideshow">
                         <div class="swiper hero-slider">
                             <div class="swiper-wrapper">
-                                @foreach($heroSliderItems as $item)
+                                <?php $__currentLoopData = $heroSliderItems; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <div class="swiper-slide">
-                                    @if($item['media_type'] === 'image')
-                                        <img src="{{ $item['thumbnail_url'] }}" alt="{{ $item['title'] }}" loading="lazy">
-                                    @else
+                                    <?php if($item['media_type'] === 'image'): ?>
+                                        <img src="<?php echo e($item['thumbnail_url']); ?>" alt="<?php echo e($item['title']); ?>" loading="lazy">
+                                    <?php else: ?>
                                         <!-- For videos, use a fallback thumbnail if default doesn't load -->
-                                        <img src="{{ $item['thumbnail_url'] }}" alt="{{ $item['title'] }}" loading="lazy" onerror="this.onerror=null;this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgZmlsbD0iIzFlM2E4YSI+PC9yZWN0Pjx0ZXh0IHg9IjQwMCIgeT0iMjI1IiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IiNmZmYiPlZpZGVvIFRodW1ibmFpbDwvdGV4dD48L3N2Zz4=';">
-                                    @endif
+                                        <img src="<?php echo e($item['thumbnail_url']); ?>" alt="<?php echo e($item['title']); ?>" loading="lazy" onerror="this.onerror=null;this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgZmlsbD0iIzFlM2E4YSI+PC9yZWN0Pjx0ZXh0IHg9IjQwMCIgeT0iMjI1IiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IiNmZmYiPlZpZGVvIFRodW1ibmFpbDwvdGV4dD48L3N2Zz4=';">
+                                    <?php endif; ?>
                                 </div>
-                                @endforeach
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </div>
                         </div>
                     </div>
@@ -1286,15 +1286,15 @@
         <section class="container">
             <div class="search-widget">
                 <h3 class="widget-title nepali">कोठा खोजी / रिजर्भ गर्नुहोस्</h3>
-                <form class="widget-form" id="booking-form" action="{{ route('search') }}" method="GET">
-                    @csrf
+                <form class="widget-form" id="booking-form" action="<?php echo e(route('search')); ?>" method="GET">
+                    <?php echo csrf_field(); ?>
                     <div class="form-group">
                         <label class="nepali" for="city">स्थान / City</label>
                         <select class="form-control" name="city" id="city" required aria-required="true">
                             <option value="">स्थान चयन गर्नुहोस्</option>
-                            @foreach($cities as $city)
-                                <option value="{{ $city }}">{{ $city }}</option>
-                            @endforeach
+                            <?php $__currentLoopData = $cities; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $city): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($city); ?>"><?php echo e($city); ?></option>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </select>
                         <div class="error-message nepali">स्थान चयन गर्नुहोस्</div>
                     </div>
@@ -1302,20 +1302,20 @@
                         <label class="nepali" for="hostel_id">होस्टल / Hostel</label>
                         <select class="form-control" name="hostel_id" id="hostel_id">
                             <option value="">सबै होस्टल</option>
-                            @foreach($hostels as $hostel)
-                                <option value="{{ $hostel->id }}">{{ $hostel->name }}</option>
-                            @endforeach
+                            <?php $__currentLoopData = $hostels; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $hostel): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($hostel->id); ?>"><?php echo e($hostel->name); ?></option>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </select>
                         <div class="error-message nepali">होस्टल चयन गर्नुहोस्</div>
                     </div>
                     <div class="form-group">
                         <label class="nepali" for="check_in">चेक-इन मिति</label>
-                        <input type="date" class="form-control" name="check_in" id="check_in" required aria-required="true" min="{{ date('Y-m-d') }}">
+                        <input type="date" class="form-control" name="check_in" id="check_in" required aria-required="true" min="<?php echo e(date('Y-m-d')); ?>">
                         <div class="error-message nepali">चेक-इन मिति आवश्यक छ</div>
                     </div>
                     <div class="form-group">
                         <label class="nepali" for="check_out">चेक-आउट मिति</label>
-                        <input type="date" class="form-control" name="check_out" id="check_out" required aria-required="true" min="{{ date('Y-m-d', strtotime('+1 day')) }}">
+                        <input type="date" class="form-control" name="check_out" id="check_out" required aria-required="true" min="<?php echo e(date('Y-m-d', strtotime('+1 day'))); ?>">
                         <div class="error-message nepali">चेक-आउट मिति आवश्यक छ</div>
                     </div>
                     <div class="form-group">
@@ -1331,25 +1331,25 @@
                 <p class="section-subtitle nepali">हाम्रा होस्टलहरूको फोटो र भिडियोहरू हेर्नुहोस्</p>
                 <div class="gallery-swiper swiper">
                     <div class="swiper-wrapper">
-                        @foreach($galleryItems as $item)
+                        <?php $__currentLoopData = $galleryItems; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <div class="swiper-slide">
-                            @if($item['media_type'] === 'image')
-                                <img src="{{ $item['thumbnail_url'] }}" alt="{{ $item['title'] }}" loading="lazy" onerror="this.onerror=null;this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgZmlsbD0iI2YwZjlmZiI+PC9yZWN0Pjx0ZXh0IHg9IjQwMCIgeT0iMjI1IiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IiMxZjI5MzciPkltYWdlIFRodW1ibmFpbDwvdGV4dD48L3N2Zz4=';">
-                            @else
+                            <?php if($item['media_type'] === 'image'): ?>
+                                <img src="<?php echo e($item['thumbnail_url']); ?>" alt="<?php echo e($item['title']); ?>" loading="lazy" onerror="this.onerror=null;this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgZmlsbD0iI2YwZjlmZiI+PC9yZWN0Pjx0ZXh0IHg9IjQwMCIgeT0iMjI1IiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IiMxZjI5MzciPkltYWdlIFRodW1ibmFpbDwvdGV4dD48L3N2Zz4=';">
+                            <?php else: ?>
                                 <!-- For videos, use a fallback thumbnail if default doesn't load -->
-                                <img src="{{ $item['thumbnail_url'] }}" alt="{{ $item['title'] }}" loading="lazy" class="youtube-thumbnail" data-youtube-id="{{ $item['youtube_id'] ?? '' }}" onerror="this.onerror=null;this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgZmlsbD0iIzFlM2E4YSI+PC9yZWN0Pjx0ZXh0IHg9IjQwMCIgeT0iMjI1IiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IiNmZmYiPlZpZGVvIFRodW1ibmFpbDwvdGV4dD48L3N2Zz4=';">
+                                <img src="<?php echo e($item['thumbnail_url']); ?>" alt="<?php echo e($item['title']); ?>" loading="lazy" class="youtube-thumbnail" data-youtube-id="<?php echo e($item['youtube_id'] ?? ''); ?>" onerror="this.onerror=null;this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgZmlsbD0iIzFlM2E4YSI+PC9yZWN0Pjx0ZXh0IHg9IjQwMCIgeT0iMjI1IiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IiNmZmYiPlZpZGVvIFRodW1ibmFpbDwvdGV4dD48L3N2Zz4=';">
                                 <div class="video-overlay">
                                     <div class="video-play-icon">
                                         <i class="fas fa-play"></i>
                                     </div>
                                 </div>
-                            @endif
+                            <?php endif; ?>
                         </div>
-                        @endforeach
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </div>
                 </div>
                 <div class="gallery-button">
-                    <a href="{{ route('gallery') }}" class="view-gallery-btn nepali">पूरै ग्यालरी हेर्नुहोस्</a>
+                    <a href="<?php echo e(route('gallery')); ?>" class="view-gallery-btn nepali">पूरै ग्यालरी हेर्नुहोस्</a>
                 </div>
             </div>
         </section>
@@ -1361,21 +1361,21 @@
                         <div class="stat-icon">
                             <i class="fas fa-users" aria-hidden="true"></i>
                         </div>
-                        <div class="stat-count count-up" id="students-counter-stat" aria-live="polite">{{ $metrics['total_students'] ?? 125 }}</div>
+                        <div class="stat-count count-up" id="students-counter-stat" aria-live="polite"><?php echo e($metrics['total_students'] ?? 125); ?></div>
                         <div class="stat-description nepali">खुसी विद्यार्थीहरू</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon">
                             <i class="fas fa-building" aria-hidden="true"></i>
                         </div>
-                        <div class="stat-count count-up" id="hostels-counter-stat" aria-live="polite">{{ $metrics['total_hostels'] ?? 24 }}</div>
+                        <div class="stat-count count-up" id="hostels-counter-stat" aria-live="polite"><?php echo e($metrics['total_hostels'] ?? 24); ?></div>
                         <div class="stat-description nepali">सहयोगी होस्टल</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon">
                             <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
                         </div>
-                        <div class="stat-count count-up" id="cities-counter-stat" aria-live="polite">{{ $cities->count() ?? 5 }}</div>
+                        <div class="stat-count count-up" id="cities-counter-stat" aria-live="polite"><?php echo e($cities->count() ?? 5); ?></div>
                         <div class="stat-description nepali">शहरहरूमा उपलब्ध</div>
                     </div>
                 </div>
@@ -1462,18 +1462,18 @@
                 <h2 class="section-title nepali" style="color: var(--text-light);">ग्राहकहरूको प्रशंसापत्रहरू हेर्नुहोस्</h2>
                 <p class="section-subtitle" style="color: rgba(249, 250, 251, 0.9);">HostelHub प्रयोग गर्ने हाम्रा ग्राहकहरूले के भन्छन्</p>
                 <div class="testimonials-grid">
-                    @foreach($testimonials as $testimonial)
+                    <?php $__currentLoopData = $testimonials; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $testimonial): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     <div class="testimonial-card">
-                        <p class="testimonial-text nepali">{{ $review->content }}</p>
+                        <p class="testimonial-text nepali"><?php echo e($review->content); ?></p>
                         <div class="testimonial-author">
-                            <div class="author-avatar">{{ substr($review->author, 0, 2) }}</div>
+                            <div class="author-avatar"><?php echo e(substr($review->author, 0, 2)); ?></div>
                             <div class="author-info">
-                                <h4>{{ $review->author }}</h4>
-                                <p>{{ $review->position }}</p>
+                                <h4><?php echo e($review->author); ?></h4>
+                                <p><?php echo e($review->position); ?></p>
                             </div>
                         </div>
                     </div>
-                    @endforeach
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </div>
             </div>
         </section>
@@ -1543,7 +1543,7 @@
                     </div>
                     <div class="trial-cta">
                         <a href="/register" class="btn btn-primary nepali">निःशुल्क साइन अप गर्नुहोस्</a>
-                        <a href="{{ route('demo') }}" class="btn btn-outline nepali" style="background: white; color: var(--primary);">डेमो हेर्नुहोस्</a>
+                        <a href="<?php echo e(route('demo')); ?>" class="btn btn-outline nepali" style="background: white; color: var(--primary);">डेमो हेर्नुहोस्</a>
                     </div>
                 </div>
             </div>
@@ -1556,7 +1556,7 @@
                 <div class="footer-col">
                     <!-- Footer Logo -->
                     <a href="/" class="footer-logo">
-                        <img src="{{ asset('storage/images/logo.png') }}" alt="HostelHub Logo" style="height: 146px; width: auto;">
+                        <img src="<?php echo e(asset('storage/images/logo.png')); ?>" alt="HostelHub Logo" style="height: 146px; width: auto;">
                         <span>HostelHub</span>
                     </a>
                     <p class="nepali" style="color: rgba(249, 250, 251, 0.8); margin-top: 12px; line-height: 1.6;">
@@ -1573,11 +1573,11 @@
                     <h3 class="nepali">तिब्र लिङ्कहरू</h3>
                     <ul class="footer-links">
                         <li><a href="#"><i class="fas fa-chevron-right"></i> <span class="nepali">होम</span></a></li>
-                        <li><a href="{{ route('features') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">सुविधाहरू</span></a></li>
-                        <li><a href="{{ route('how-it-works') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">कसरी काम गर्छ</span></a></li>
-                        <li><a href="{{ route('gallery') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">ग्यालरी</span></a></li>
-                        <li><a href="{{ route('pricing') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">मूल्य</span></a></li>
-                        <li><a href="{{ route('testimonials') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">समीक्षाहरू</span></a></li>
+                        <li><a href="<?php echo e(route('features')); ?>"><i class="fas fa-chevron-right"></i> <span class="nepali">सुविधाहरू</span></a></li>
+                        <li><a href="<?php echo e(route('how-it-works')); ?>"><i class="fas fa-chevron-right"></i> <span class="nepali">कसरी काम गर्छ</span></a></li>
+                        <li><a href="<?php echo e(route('gallery')); ?>"><i class="fas fa-chevron-right"></i> <span class="nepali">ग्यालरी</span></a></li>
+                        <li><a href="<?php echo e(route('pricing')); ?>"><i class="fas fa-chevron-right"></i> <span class="nepali">मूल्य</span></a></li>
+                        <li><a href="<?php echo e(route('testimonials')); ?>"><i class="fas fa-chevron-right"></i> <span class="nepali">समीक्षाहरू</span></a></li>
                     </ul>
                 </div>
                 <div class="footer-col">
@@ -1589,7 +1589,7 @@
                         </li>
                         <li>
                             <i class="fas fa-phone-alt" aria-hidden="true"></i>
-                            <div>+९७७ ९७६१७६२०३६</div>
+                            <div>+९७७ ९८०१२३४५६७</div>
                         </li>
                         <li>
                             <i class="fas fa-envelope" aria-hidden="true"></i>
@@ -1607,7 +1607,7 @@
                         हाम्रो नवीनतम अपडेटहरू प्राप्त गर्न तपाईंको इमेल दर्ता गर्नुहोस्
                     </p>
                     <form class="newsletter-form" action="/subscribe" method="POST">
-                        @csrf
+                        <?php echo csrf_field(); ?>
                         <input type="email" name="email" placeholder="तपाईंको इमेल" required aria-label="इमेल ठेगाना">
                         <input type="text" name="honeypot" style="display:none" aria-hidden="true">
                         <button type="submit" class="nepali">दर्ता गर्नुहोस्</button>
@@ -1777,4 +1777,4 @@
         });
     </script>
 </body>
-</html>
+</html><?php /**PATH D:\My Projects\HostelHub\resources\views/frontend/home.blade.php ENDPATH**/ ?>

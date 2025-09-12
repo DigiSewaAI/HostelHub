@@ -1,22 +1,16 @@
 Folder PATH listing for volume New Volume
 Volume serial number is D08E-05B6
 D:.
-³   'array'
 ³   'boolean'
 ³   .editorconfig
 ³   .env
 ³   .env.example
 ³   .gitattributes
 ³   .gitignore
-³   2BContinue.docx
-³   ad scripts.txt
 ³   artisan
 ³   composer.json
 ³   composer.lock
 ³   et --hard f979df6
-³   first()
-³   logo-extra1.png
-³   logo2.png
 ³   package-lock.json
 ³   package.json
 ³   phpunit.xml
@@ -292,15 +286,6 @@ D:.
 ³           SubscriptionSeeder.php
 ³           UserSeeder.php
 ³           
-ÃÄÄÄhostelsNrooms-Images
-³       pexels-caleboquendo-3042432.jpg
-³       pexels-cottonbro-5137787.jpg
-³       pexels-cottonbro-5137986.jpg
-³       pexels-cottonbro-5158948.jpg
-³       pexels-diwata-3393999-5152833.jpg
-³       pexels-george-pak-7969105.jpg
-³       pexels-heyho-8146330.jpg
-³       
 ÃÄÄÄnode_modules
 ³   ³   .package-lock.json
 ³   ³   
@@ -9975,6 +9960,13 @@ D:.
 ÃÄÄÄtemplates
 ³   ÀÄÄÄhome
 ³           home.html
+³           
+ÃÄÄÄtests
+³   ÃÄÄÄFeature
+³   ³       ExampleTest.php
+³   ³       
+³   ÀÄÄÄUnit
+³           ExampleTest.php
 ³           
 ÀÄÄÄvendor
     ³   autoload.php
