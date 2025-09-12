@@ -59,8 +59,8 @@ Route::group(['middleware' => 'web'], function () {
     Route::get('/api/gallery/categories', [FrontendGalleryController::class, 'getGalleryCategories']);
     Route::get('/api/gallery/stats', [FrontendGalleryController::class, 'getGalleryStats']);
 
+    // 👇 ONLY PUBLIC TESTIMONIALS PAGE — NOT REVIEWS!
     Route::get('/testimonials', [PublicController::class, 'testimonials'])->name('testimonials');
-    Route::get('/reviews', [PublicController::class, 'reviews'])->name('reviews');
 
     // Legal pages routes
     Route::get('/privacy-policy', [PublicController::class, 'privacy'])->name('privacy');
@@ -76,7 +76,7 @@ Route::group(['middleware' => 'web'], function () {
 
     // Demo route
     Route::get('/demo', function () {
-        return view('pages.demo');
+        return view('frontend.pages.demo');
     })->name('demo');
 
     // Newsletter subscription route
@@ -136,7 +136,7 @@ Route::get('/dashboard', function () {
 })->middleware('auth')->name('dashboard');
 
 /*|--------------------------------------------------------------------------
-| Unified Role-Based Routes
+| Unified Role-Based Routes (Protected Routes)
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth'])->group(function () {
@@ -177,7 +177,7 @@ Route::middleware(['auth'])->group(function () {
         // Meals - Accessible by both admin and owner
         Route::resource('meals', MealController::class);
 
-        // Reviews
+        // 👇 ADMIN/OWNER ONLY: Full Reviews List (Not public testimonials!)
         Route::resource('reviews', ReviewController::class);
 
         // Rooms
@@ -225,11 +225,10 @@ Route::middleware(['auth'])->group(function () {
 
     // Settings - admin only
     Route::middleware('role:admin')->group(function () {
-        // Corrected settings routes - remove duplicate definition
         Route::resource('settings', SettingsController::class)->names('admin.settings');
         Route::post('settings/bulk-update', [SettingsController::class, 'bulkUpdate'])->name('admin.settings.bulk-update');
 
-        // Reports - Add all necessary report routes
+        // Reports
         Route::get('/reports', [ReportController::class, 'index'])->name('admin.reports.index');
         Route::post('/reports/monthly', [ReportController::class, 'monthlyReport'])->name('admin.reports.monthly');
         Route::post('/reports/yearly', [ReportController::class, 'yearlyReport'])->name('admin.reports.yearly');
@@ -320,6 +319,7 @@ if (app()->environment('local')) {
         request()->session()->regenerateToken();
         return redirect('/');
     })->middleware('auth');
+
     Route::get('/test-pdf', function () {
         $pdf = Pdf::loadHTML('<h1>Test PDF</h1><p>This is working!</p>');
         return $pdf->download('test.pdf');

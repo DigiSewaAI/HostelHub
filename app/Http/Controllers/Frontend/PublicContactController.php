@@ -17,7 +17,7 @@ class PublicContactController extends Controller
      */
     public function index(): \Illuminate\View\View
     {
-        return view('contact');
+        return view('frontend.contact');
     }
 
     /**

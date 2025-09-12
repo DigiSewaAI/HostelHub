@@ -1,34 +1,35 @@
-@extends('layouts.frontend')
 
-@section('page-title', 'सम्पर्क - HostelHub')
-@section('page-header', 'सम्पर्क गर्नुहोस्')
-@section('page-description', 'तपाईंसँग कुनै प्रश्न वा सुझाव छ भने हामीलाई तलको फारम वा नक्सा प्रयोग गरेर सम्पर्क गर्न सक्नुहुन्छ।')
 
-@section('content')
+<?php $__env->startSection('page-title', 'सम्पर्क - HostelHub'); ?>
+<?php $__env->startSection('page-header', 'सम्पर्क गर्नुहोस्'); ?>
+<?php $__env->startSection('page-description', 'तपाईंसँग कुनै प्रश्न वा सुझाव छ भने हामीलाई तलको फारम वा नक्सा प्रयोग गरेर सम्पर्क गर्न सक्नुहुन्छ।'); ?>
+
+<?php $__env->startSection('content'); ?>
 <div class="contact-container">
     <div class="contact-grid">
-        {{-- Contact Form --}}
+        
         <div class="contact-form-container">
-            @if(session('success'))
+            <?php if(session('success')): ?>
                 <div class="success-message">
                     <i class="fas fa-check-circle"></i>
-                    {{ session('success') }}
-                </div>
-            @endif
+                    <?php echo e(session('success')); ?>
 
-            @if($errors->any())
+                </div>
+            <?php endif; ?>
+
+            <?php if($errors->any()): ?>
                 <div class="error-message">
                     <i class="fas fa-exclamation-circle"></i>
                     <ul>
-                        @foreach($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
+                        <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <li><?php echo e($error); ?></li>
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </ul>
                 </div>
-            @endif
+            <?php endif; ?>
 
-            <form method="POST" action="{{ route('contact.store') }}" class="contact-form">
-                @csrf
+            <form method="POST" action="<?php echo e(route('contact.store')); ?>" class="contact-form">
+                <?php echo csrf_field(); ?>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="name" class="form-label">नाम</label>
@@ -36,7 +37,7 @@
                             type="text" 
                             id="name"
                             name="name" 
-                            value="{{ old('name') }}" 
+                            value="<?php echo e(old('name')); ?>" 
                             required 
                             class="form-input"
                             placeholder="तपाईंको नाम"
@@ -48,7 +49,7 @@
                             type="email" 
                             id="email"
                             name="email" 
-                            value="{{ old('email') }}" 
+                            value="<?php echo e(old('email')); ?>" 
                             required 
                             class="form-input"
                             placeholder="तपाईंको इमेल ठेगाना"
@@ -65,7 +66,7 @@
                         required 
                         class="form-input"
                         placeholder="तपाईंको सन्देश यहाँ लेख्नुहोस्..."
-                    >{{ old('message') }}</textarea>
+                    ><?php echo e(old('message')); ?></textarea>
                 </div>
 
                 <div class="form-submit">
@@ -76,7 +77,7 @@
             </form>
         </div>
 
-        {{-- Google Maps --}}
+        
         <div class="map-container">
             <iframe 
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3532.310614597818!2d85.3240!3d27.7079!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39eb190a6d1c9d9f%3A0x2ef7c9dfb4b6a0d!2sKathmandu%20Durbar%20Square!5e0!3m2!1sen!2snp!4v1639397261912!5m2!1sen!2snp" 
@@ -89,7 +90,7 @@
         </div>
     </div>
 
-    {{-- Contact Info Section --}}
+    
     <div class="contact-info-grid">
         <div class="contact-info-card">
             <div class="contact-icon">
@@ -289,4 +290,5 @@
         }
     }
 </style>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.frontend', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\My Projects\HostelHub\resources\views/frontend/contact.blade.php ENDPATH**/ ?>

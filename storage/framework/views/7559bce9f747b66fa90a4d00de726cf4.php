@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="HostelHub — होस्टल व्यवस्थापन सजिलो बनाउने SaaS: कोठा, विद्यार्थी, भुक्तानी र भोजन व्यवस्थापन। ७ दिन निःशुल्क ट्रयाल।">
-    <title>@yield('page-title', 'HostelHub — होस्टल प्रबन्धन प्रणाली | Nepal')</title>
-    <meta property="og:title" content="@yield('og-title', 'HostelHub — होस्टल प्रबन्धन प्रणाली')">
-    <meta property="og:description" content="@yield('og-description', 'HostelHub — होस्टल व्यवस्थापन सजिलो बनाउने SaaS')">
+    <title><?php echo $__env->yieldContent('page-title', 'HostelHub — होस्टल प्रबन्धन प्रणाली | Nepal'); ?></title>
+    <meta property="og:title" content="<?php echo $__env->yieldContent('og-title', 'HostelHub — होस्टल प्रबन्धन प्रणाली'); ?>">
+    <meta property="og:description" content="<?php echo $__env->yieldContent('og-description', 'HostelHub — होस्टल व्यवस्थापन सजिलो बनाउने SaaS'); ?>">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
@@ -513,10 +513,10 @@
             <div class="container">
                 <div class="navbar">
                     <!-- Header Logo -->
-                    <a href="{{ route('home') }}" class="logo">
+                    <a href="<?php echo e(route('home')); ?>" class="logo">
                         <!-- Real Logo Image -->
                         <div class="logo-image">
-                            <img src="{{ asset('storage/images/logo.png') }}" alt="HostelHub Logo" style="height: 50px; width: auto;">
+                            <img src="<?php echo e(asset('storage/images/logo.png')); ?>" alt="HostelHub Logo" style="height: 50px; width: auto;">
                         </div>
                         <div class="logo-text">
                             <h1>HostelHub</h1>
@@ -524,18 +524,18 @@
                         </div>
                     </a>
                     <div class="nav-links" id="main-nav">
-                        <a href="{{ route('features') }}" class="nepali">सुविधाहरू</a>
-                        <a href="{{ route('how-it-works') }}" class="nepali">कसरी काम गर्छ</a>
-                        <a href="{{ route('gallery') }}" class="nepali">ग्यालरी</a>
-                        <a href="{{ route('pricing') }}" class="nepali">मूल्य</a>
-                        <a href="{{ route('testimonials') }}" class="nepali">प्रशंसापत्रहरू</a>
-                        <a href="{{ route('about') }}" class="nepali">हाम्रो बारेमा</a>
-                        <a href="{{ route('privacy') }}" class="nepali">गोप्यता नीति</a>
-                        <a href="{{ route('terms') }}" class="nepali">सेवा सर्तहरू</a>
+                        <a href="<?php echo e(route('features')); ?>" class="nepali">सुविधाहरू</a>
+                        <a href="<?php echo e(route('how-it-works')); ?>" class="nepali">कसरी काम गर्छ</a>
+                        <a href="<?php echo e(route('gallery')); ?>" class="nepali">ग्यालरी</a>
+                        <a href="<?php echo e(route('pricing')); ?>" class="nepali">मूल्य</a>
+                        <a href="<?php echo e(route('testimonials')); ?>" class="nepali">प्रशंसापत्रहरू</a>
+                        <a href="<?php echo e(route('about')); ?>" class="nepali">हाम्रो बारेमा</a>
+                        <a href="<?php echo e(route('privacy')); ?>" class="nepali">गोप्यता नीति</a>
+                        <a href="<?php echo e(route('terms')); ?>" class="nepali">सेवा सर्तहरू</a>
                     </div>
                     <div class="header-cta">
-                        <a href="{{ route('login') }}" class="btn btn-outline nepali">लगइन</a>
-                        <a href="{{ route('register') }}" class="btn btn-primary nepali">साइन अप</a>
+                        <a href="<?php echo e(route('login')); ?>" class="btn btn-outline nepali">लगइन</a>
+                        <a href="<?php echo e(route('register')); ?>" class="btn btn-primary nepali">साइन अप</a>
                     </div>
                     <button class="mobile-menu-btn" aria-label="मेनु खोल्नुहोस्" aria-expanded="false" aria-controls="main-nav">
                         <i class="fas fa-bars"></i>
@@ -546,21 +546,21 @@
     </header>
 
     <!-- Page Header Section -->
-    @hasSection('page-header')
+    <?php if (! empty(trim($__env->yieldContent('page-header')))): ?>
         <section class="page-header">
             <div class="container">
-                <h1 class="nepali">@yield('page-header')</h1>
-                @hasSection('page-description')
-                    <p class="nepali">@yield('page-description')</p>
-                @endif
+                <h1 class="nepali"><?php echo $__env->yieldContent('page-header'); ?></h1>
+                <?php if (! empty(trim($__env->yieldContent('page-description')))): ?>
+                    <p class="nepali"><?php echo $__env->yieldContent('page-description'); ?></p>
+                <?php endif; ?>
             </div>
         </section>
-    @endif
+    <?php endif; ?>
 
     <!-- Main Content -->
     <main id="main">
         <div class="content-container">
-            @yield('content')
+            <?php echo $__env->yieldContent('content'); ?>
         </div>
     </main>
 
@@ -570,8 +570,8 @@
             <div class="footer-grid">
                 <div class="footer-col">
                     <!-- Footer Logo -->
-                    <a href="{{ route('home') }}" class="footer-logo">
-                        <img src="{{ asset('storage/images/logo.png') }}" alt="HostelHub Logo" style="height: 146px; width: auto;">
+                    <a href="<?php echo e(route('home')); ?>" class="footer-logo">
+                        <img src="<?php echo e(asset('storage/images/logo.png')); ?>" alt="HostelHub Logo" style="height: 146px; width: auto;">
                         <span>HostelHub</span>
                     </a>
                     <p class="nepali" style="color: rgba(249, 250, 251, 0.8); margin-top: 12px; line-height: 1.6;">
@@ -587,15 +587,15 @@
                 <div class="footer-col">
                     <h3 class="nepali">तिब्र लिङ्कहरू</h3>
                     <ul class="footer-links">
-                        <li><a href="{{ route('home') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">होम</span></a></li>
-                        <li><a href="{{ route('features') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">सुविधाहरू</span></a></li>
-                        <li><a href="{{ route('how-it-works') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">कसरी काम गर्छ</span></a></li>
-                        <li><a href="{{ route('gallery') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">ग्यालरी</span></a></li>
-                        <li><a href="{{ route('pricing') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">मूल्य</span></a></li>
-                        <li><a href="{{ route('testimonials') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">प्रशंसापत्रहरू</span></a></li>
-                        <li><a href="{{ route('about') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">हाम्रो बारेमा</span></a></li>
-                        <li><a href="{{ route('privacy') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">गोप्यता नीति</span></a></li>
-                        <li><a href="{{ route('terms') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">सेवा सर्तहरू</span></a></li>
+                        <li><a href="<?php echo e(route('home')); ?>"><i class="fas fa-chevron-right"></i> <span class="nepali">होम</span></a></li>
+                        <li><a href="<?php echo e(route('features')); ?>"><i class="fas fa-chevron-right"></i> <span class="nepali">सुविधाहरू</span></a></li>
+                        <li><a href="<?php echo e(route('how-it-works')); ?>"><i class="fas fa-chevron-right"></i> <span class="nepali">कसरी काम गर्छ</span></a></li>
+                        <li><a href="<?php echo e(route('gallery')); ?>"><i class="fas fa-chevron-right"></i> <span class="nepali">ग्यालरी</span></a></li>
+                        <li><a href="<?php echo e(route('pricing')); ?>"><i class="fas fa-chevron-right"></i> <span class="nepali">मूल्य</span></a></li>
+                        <li><a href="<?php echo e(route('testimonials')); ?>"><i class="fas fa-chevron-right"></i> <span class="nepali">प्रशंसापत्रहरू</span></a></li>
+                        <li><a href="<?php echo e(route('about')); ?>"><i class="fas fa-chevron-right"></i> <span class="nepali">हाम्रो बारेमा</span></a></li>
+                        <li><a href="<?php echo e(route('privacy')); ?>"><i class="fas fa-chevron-right"></i> <span class="nepali">गोप्यता नीति</span></a></li>
+                        <li><a href="<?php echo e(route('terms')); ?>"><i class="fas fa-chevron-right"></i> <span class="nepali">सेवा सर्तहरू</span></a></li>
                     </ul>
                 </div>
                 <div class="footer-col">
@@ -624,8 +624,8 @@
                     <p class="nepali" style="color: rgba(249, 250, 251, 0.8); margin-bottom: 12px; line-height: 1.6;">
                         हाम्रो नवीनतम अपडेटहरू प्राप्त गर्न तपाईंको इमेल दर्ता गर्नुहोस्
                     </p>
-                    <form class="newsletter-form" action="{{ route('newsletter.subscribe') }}" method="POST">
-                        @csrf
+                    <form class="newsletter-form" action="<?php echo e(route('newsletter.subscribe')); ?>" method="POST">
+                        <?php echo csrf_field(); ?>
                         <input type="email" name="email" placeholder="तपाईंको इमेल" required aria-label="इमेल ठेगाना">
                         <input type="text" name="honeypot" style="display:none" aria-hidden="true">
                         <button type="submit" class="nepali">दर्ता गर्नुहोस्</button>
@@ -661,6 +661,6 @@
         }
     </script>
     
-    @yield('scripts')
+    <?php echo $__env->yieldContent('scripts'); ?>
 </body>
-</html>
+</html><?php /**PATH D:\My Projects\HostelHub\resources\views/layouts/frontend.blade.php ENDPATH**/ ?>

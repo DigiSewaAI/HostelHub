@@ -9,6 +9,7 @@
         "php": "^8.2",
         "barryvdh/laravel-dompdf": "^3.1",
         "laravel/breeze": "^2.3",
+        "laravel/cashier": "^15.7",
         "laravel/framework": "*",
         "laravel/tinker": "^2.10.1",
         "laravel/ui": "^4.6",
