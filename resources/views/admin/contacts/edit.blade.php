@@ -1,8 +1,8 @@
 @extends('layouts.admin')
 
-@section('शीर्षक', 'सम्पर्क सम्पादन गर्नुहोस्')
+@section('title', 'सम्पर्क सम्पादन गर्नुहोस्')
 
-@section('विस्तार')
+@section('content')
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
@@ -39,6 +39,26 @@
                             <label for="message">सन्देश</label>
                             <textarea class="form-control" id="message" name="message" rows="5" required>{{ $contact->message }}</textarea>
                         </div>
+                        
+                        @role('admin')
+                        <div class="form-group">
+                            <label for="status">स्थिति</label>
+                            <select class="form-control" id="status" name="status">
+                                <option value="नयाँ" {{ $contact->status == 'नयाँ' ? 'selected' : '' }}>नयाँ</option>
+                                <option value="पढियो" {{ $contact->status == 'पढियो' ? 'selected' : '' }}>पढियो</option>
+                                <option value="जवाफ दिइयो" {{ $contact->status == 'जवाफ दिइयो' ? 'selected' : '' }}>जवाफ दिइयो</option>
+                            </select>
+                        </div>
+                        @else
+                        <div class="form-group">
+                            <label for="status">स्थिति</label>
+                            <select class="form-control" id="status" name="status">
+                                <option value="pending" {{ $contact->status == 'pending' ? 'selected' : '' }}>प्रतीक्षामा</option>
+                                <option value="read" {{ $contact->status == 'read' ? 'selected' : '' }}>पढियो</option>
+                                <option value="replied" {{ $contact->status == 'replied' ? 'selected' : '' }}>जवाफ दिइयो</option>
+                            </select>
+                        </div>
+                        @endrole
                     </div>
 
                     <div class="card-footer">

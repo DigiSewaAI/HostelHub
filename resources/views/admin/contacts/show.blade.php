@@ -1,8 +1,8 @@
 @extends('layouts.admin')
 
-@section('शीर्षक', 'सम्पर्क विवरण')
+@section('title', 'सम्पर्क विवरण')
 
-@section('विस्तार')
+@section('content')
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
@@ -17,49 +17,55 @@
                             <table class="table table-bordered">
                                 <tr>
                                     <th style="width: 30%;">नाम:</th>
-                                    <td>{{ $submission->name }}</td>
+                                    <td>{{ $contact->name }}</td>
                                 </tr>
                                 <tr>
                                     <th>इमेल:</th>
-                                    <td>{{ $submission->email }}</td>
+                                    <td>{{ $contact->email }}</td>
                                 </tr>
                                 <tr>
                                     <th>फोन:</th>
-                                    <td>{{ $submission->phone ?? 'N/A' }}</td>
+                                    <td>{{ $contact->phone ?? 'N/A' }}</td>
                                 </tr>
                                 <tr>
                                     <th>विषय:</th>
-                                    <td>{{ $submission->subject }}</td>
+                                    <td>{{ $contact->subject }}</td>
                                 </tr>
                                 <tr>
                                     <th>स्थिति:</th>
                                     <td>
-                                        <form action="{{ route('admin.contacts.updateStatus', $submission->id) }}" method="POST" class="form-inline">
+                                        <form action="{{ route('admin.contacts.updateStatus', $contact->id) }}" method="POST" class="form-inline">
                                             @csrf
                                             <select name="status" class="form-control form-control-sm" onchange="this.form.submit()">
-                                                <option value="नयाँ" {{ $submission->status == 'नयाँ' ? 'selected' : '' }}>नयाँ</option>
-                                                <option value="पढियो" {{ $submission->status == 'पढियो' ? 'selected' : '' }}>पढियो</option>
-                                                <option value="जवाफ दिइयो" {{ $submission->status == 'जवाफ दिइयो' ? 'selected' : '' }}>जवाफ दिइयो</option>
+                                                @role('admin')
+                                                <option value="नयाँ" {{ $contact->status == 'नयाँ' ? 'selected' : '' }}>नयाँ</option>
+                                                <option value="पढियो" {{ $contact->status == 'पढियो' ? 'selected' : '' }}>पढियो</option>
+                                                <option value="जवाफ दिइयो" {{ $contact->status == 'जवाफ दिइयो' ? 'selected' : '' }}>जवाफ दिइयो</option>
+                                                @else
+                                                <option value="pending" {{ $contact->status == 'pending' ? 'selected' : '' }}>प्रतीक्षामा</option>
+                                                <option value="read" {{ $contact->status == 'read' ? 'selected' : '' }}>पढिएको</option>
+                                                <option value="replied" {{ $contact->status == 'replied' ? 'selected' : '' }}>जवाफ दिइयो</option>
+                                                @endrole
                                             </select>
                                         </form>
                                     </td>
                                 </tr>
                                 <tr>
                                     <th>पठाइएको मिति:</th>
-                                    <td>{{ $submission->created_at->format('Y-m-d H:i:s') }}</td>
+                                    <td>{{ $contact->created_at->format('Y-m-d H:i:s') }}</td>
                                 </tr>
                             </table>
                         </div>
 
                         <div class="col-md-6">
                             <h5>सन्देश:</h5>
-                            <p>{{ $submission->message }}</p>
+                            <p>{{ $contact->message }}</p>
                         </div>
                     </div>
                 </div>
 
                 <div class="card-footer">
-                    <a href="{{ route('admin.contacts.edit', $submission->id) }}" class="btn btn-primary">
+                    <a href="{{ route('admin.contacts.edit', $contact->id) }}" class="btn btn-primary">
                         <i class="fas fa-edit"></i> सम्पादन गर्नुहोस्
                     </a>
                     <a href="{{ route('admin.contacts.index') }}" class="btn btn-default">

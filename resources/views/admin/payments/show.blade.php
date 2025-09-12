@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends('layouts.app')
 
 @section('title', 'भुक्तानी विवरण #'.str_pad($payment->id, 6, '0', STR_PAD_LEFT))
 
@@ -6,7 +6,7 @@
 <div class="container-fluid py-4">
     <div class="row mb-4">
         <div class="col-12">
-            <a href="{{ route('admin.payments.index') }}" class="btn btn-outline-primary mb-3 nepali">
+            <a href="{{ route('payments.index') }}" class="btn btn-outline-primary mb-3 nepali">
                 <i class="fas fa-arrow-left me-1"></i> भुक्तानीहरूमा फर्कनुहोस्
             </a>
         </div>
@@ -42,19 +42,22 @@
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center nepali">
                             <strong>मिति</strong>
-                            <span>{{ \Carbon\Carbon::parse($payment->created_at)->format('d M Y, h:i A') }}</span>
+                            <span>{{ $payment->created_at->format('d M Y, h:i A') }}</span>
                         </li>
+                        @role(['admin', 'owner'])
                         <li class="list-group-item d-flex justify-content-between align-items-center nepali">
                             <strong>लेनदेन आईडी</strong>
                             <span class="text-truncate" style="max-width: 150px;" title="{{ $payment->transaction_id }}">
                                 {{ $payment->transaction_id }}
                             </span>
                         </li>
+                        @endrole
                     </ul>
 
+                    @role(['admin', 'owner'])
                     @if($payment->status === 'pending')
                     <div class="mt-4">
-                        <form action="{{ route('admin.payments.updateStatus', $payment) }}" method="POST">
+                        <form action="{{ route('payments.updateStatus', $payment) }}" method="POST">
                             @csrf
                             @method('PUT')
                             <input type="hidden" name="status" value="completed">
@@ -65,22 +68,24 @@
                         </form>
                     </div>
                     @endif
+                    @endrole
                 </div>
             </div>
 
+            @role(['admin', 'owner'])
             <div class="card shadow">
                 <div class="card-header bg-white py-3">
                     <h6 class="m-0 font-weight-bold text-primary nepali">कार्यहरू</h6>
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-2">
-                        <a href="{{ route('admin.students.show', $payment->student) }}" class="btn btn-info nepali">
+                        <a href="{{ route('students.show', $payment->student) }}" class="btn btn-info nepali">
                             <i class="fas fa-user me-1"></i> विद्यार्थी प्रोफाइल हेर्नुहोस्
                         </a>
-                        <a href="{{ route('admin.rooms.show', $payment->student->room) }}" class="btn btn-primary nepali">
+                        <a href="{{ route('rooms.show', $payment->student->room) }}" class="btn btn-primary nepali">
                             <i class="fas fa-door-open me-1"></i> कोठा विवरण हेर्नुहोस्
                         </a>
-                        <form action="{{ route('admin.payments.destroy', $payment) }}" method="POST" class="mt-2">
+                        <form action="{{ route('payments.destroy', $payment) }}" method="POST" class="mt-2">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="btn btn-danger w-100 nepali"
@@ -91,6 +96,7 @@
                     </div>
                 </div>
             </div>
+            @endrole
         </div>
 
         <div class="col-lg-8">
@@ -108,7 +114,7 @@
                             @else
                                 <div class="bg-light rounded"
                                      style="height: 150px; width: 100%; display: flex; align-items: center; justify-content: center;">
-                                    <span class="text-muted">चित्र उपलब्ध छैन</span>
+                                    <span class="text-muted nepali">चित्र उपलब्ध छैन</span>
                                 </div>
                             @endif
                         </div>
@@ -131,11 +137,13 @@
             <div class="card shadow">
                 <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
                     <h6 class="m-0 font-weight-bold text-primary nepali">भुक्तानी विवरण</h6>
+                    @role(['admin', 'owner'])
                     <div>
-                        <a href="{{ route('admin.payments.index') }}" class="btn btn-sm btn-outline-secondary nepali">
+                        <a href="#" class="btn btn-sm btn-outline-secondary nepali">
                             <i class="fas fa-print me-1"></i> रसिद प्रिन्ट गर्नुहोस्
                         </a>
                     </div>
+                    @endrole
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -146,7 +154,7 @@
                             </tr>
                             <tr>
                                 <th>मिति र समय</th>
-                                <td>{{ \Carbon\Carbon::parse($payment->created_at)->format('d M Y, h:i A') }}</td>
+                                <td>{{ $payment->created_at->format('d M Y, h:i A') }}</td>
                             </tr>
                             <tr>
                                 <th>विद्यार्थीको नाम</th>
@@ -164,10 +172,12 @@
                                     </span>
                                 </td>
                             </tr>
+                            @role(['admin', 'owner'])
                             <tr>
                                 <th>लेनदेन आईडी</th>
                                 <td>{{ $payment->transaction_id }}</td>
                             </tr>
+                            @endrole
                             <tr>
                                 <th>रकम</th>
                                 <td class="h4 text-success">रु {{ number_format($payment->amount, 2) }}</td>
@@ -195,25 +205,25 @@
                             <li class="list-group-item d-flex justify-content-between align-items-center nepali">
                                 <div>
                                     <h6 class="mb-1">भुक्तानी सुरु गरियो</h6>
-                                    <small class="text-muted">{{ \Carbon\Carbon::parse($payment->created_at)->format('d M Y, h:i A') }}</small>
+                                    <small class="text-muted">{{ $payment->created_at->format('d M Y, h:i A') }}</small>
                                 </div>
-                                <span class="badge bg-primary">सिर्जना गरियो</span>
+                                <span class="badge bg-primary nepali">सिर्जना गरियो</span>
                             </li>
                             @if($payment->status === 'completed' && $payment->completed_at)
                             <li class="list-group-item d-flex justify-content-between align-items-center nepali">
                                 <div>
                                     <h6 class="mb-1">भुक्तानी पूर्ण भयो</h6>
-                                    <small class="text-muted">{{ \Carbon\Carbon::parse($payment->completed_at)->format('d M Y, h:i A') }}</small>
+                                    <small class="text-muted">{{ $payment->completed_at->format('d M Y, h:i A') }}</small>
                                 </div>
-                                <span class="badge bg-success">पूर्ण</span>
+                                <span class="badge bg-success nepali">पूर्ण</span>
                             </li>
                             @elseif($payment->status === 'failed' && $payment->failed_at)
                             <li class="list-group-item d-flex justify-content-between align-items-center nepali">
                                 <div>
                                     <h6 class="mb-1">भुक्तानी असफल भयो</h6>
-                                    <small class="text-muted">{{ \Carbon\Carbon::parse($payment->failed_at)->format('d M Y, h:i A') }}</small>
+                                    <small class="text-muted">{{ $payment->failed_at->format('d M Y, h:i A') }}</small>
                                 </div>
-                                <span class="badge bg-danger">असफल</span>
+                                <span class="badge bg-danger nepali">असफल</span>
                             </li>
                             @endif
                         </ul>

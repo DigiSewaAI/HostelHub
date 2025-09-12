@@ -4,26 +4,16 @@ use App\Http\Controllers\{
     Admin\ContactController,
     Admin\DashboardController,
     Admin\GalleryController,
-    Admin\HostelController,
+    Admin\HostelController as AdminHostelController,
     Admin\MealController,
+    Admin\MealMenuController as AdminMealMenuController,
     Admin\ReportController,
     Admin\ReviewController,
     Admin\RoomController,
     Admin\StudentController,
     Admin\SettingsController,
-    Owner\ContactController as OwnerContactController,
-    Owner\DashboardController as OwnerDashboardController,
-    Owner\GalleryController as OwnerGalleryController,
     Owner\HostelController as OwnerHostelController,
-    Owner\MealMenuController,
-    Owner\PaymentController as OwnerPaymentController,
-    Owner\ReviewController as OwnerReviewController,
-    Owner\RoomController as OwnerRoomController,
-    Owner\StudentController as OwnerStudentController,
-    Student\DashboardController as StudentDashboardController,
-    Student\MealMenuController as StudentMealMenuController,
-    Student\PaymentController as StudentPaymentController,
-    Student\ProfileController as StudentProfileController,
+    Owner\MealMenuController as OwnerMealMenuController,
     Frontend\GalleryController as FrontendGalleryController,
     Frontend\PublicContactController,
     Frontend\PublicController,
@@ -45,6 +35,7 @@ use App\Http\Controllers\{
 };
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 // Force HTTPS in production
 if (app()->environment('production')) {
@@ -145,90 +136,146 @@ Route::get('/dashboard', function () {
 })->middleware('auth')->name('dashboard');
 
 /*|--------------------------------------------------------------------------
-| Admin Routes (Super Admin - You)
-|--------------------------------------------------------------------------
-*/
-Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-
-    // Settings routes with full CRUD
-    Route::resource('settings', SettingsController::class);
-
-    // Add the missing admin.settings route (likely referenced in admin layout)
-    Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
-
-    // Report route for payments
-    Route::get('/payments/report', [ReportController::class, 'paymentReport'])->name('payments.report');
-
-    // Export route for payments
-    Route::get('/payments/export', [ReportController::class, 'paymentExport'])->name('payments.export');
-
-    // Report routes
-    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
-    Route::get('/reports/monthly', [ReportController::class, 'monthlyReport'])->name('reports.monthly');
-    Route::get('/reports/download-pdf', [ReportController::class, 'downloadPdf'])->name('reports.download.pdf');
-    Route::get('/reports/download-excel', [ReportController::class, 'downloadExcel'])->name('reports.download.excel');
-
-    // Gallery toggle routes
-    Route::post('/galleries/{gallery}/toggle-status', [GalleryController::class, 'toggleStatus'])
-        ->name('galleries.toggle-status');
-    Route::post('/galleries/{gallery}/toggle-featured', [GalleryController::class, 'toggleFeatured'])
-        ->name('galleries.toggle-featured');
-
-    // Add the missing search route for admin rooms
-    Route::get('/rooms/search', [RoomController::class, 'search'])->name('rooms.search');
-
-    // Add the missing search route for admin contacts
-    Route::get('/contacts/search', [ContactController::class, 'search'])->name('contacts.search');
-
-    // Resource routes (all plural)
-    Route::resource('contacts', ContactController::class);
-    Route::resource('galleries', GalleryController::class);
-    Route::resource('hostels', HostelController::class);
-    Route::resource('meals', MealController::class);
-    Route::resource('reviews', ReviewController::class);
-    Route::resource('rooms', RoomController::class);
-    Route::resource('students', StudentController::class);
-
-    // Payment routes (using ReportController instead of PaymentController)
-    Route::resource('payments', ReportController::class)->only(['index', 'show']);
-});
-
-/*|--------------------------------------------------------------------------
-| Owner Routes (Hostel Managers)
-|--------------------------------------------------------------------------
-*/
-Route::middleware(['auth', 'role:hostel_manager'])->prefix('owner')->name('owner.')->group(function () {
-    Route::get('/dashboard', [OwnerDashboardController::class, 'index'])->name('dashboard');
-
-    // Resource routes (all plural)
-    Route::resource('contacts', OwnerContactController::class);
-    Route::resource('galleries', OwnerGalleryController::class);
-    Route::resource('hostels', OwnerHostelController::class);
-    Route::resource('meal-menus', MealMenuController::class);
-    Route::resource('payments', OwnerPaymentController::class);
-    Route::resource('reviews', OwnerReviewController::class);
-    Route::resource('rooms', OwnerRoomController::class);
-    Route::resource('students', OwnerStudentController::class);
-});
-
-/*|--------------------------------------------------------------------------
-| Student Routes
-|--------------------------------------------------------------------------
-*/
-Route::middleware(['auth', 'role:student'])->prefix('student')->name('student.')->group(function () {
-    Route::get('/dashboard', [StudentDashboardController::class, 'index'])->name('dashboard');
-    Route::get('/profile', [StudentProfileController::class, 'index'])->name('profile');
-    Route::get('/payments', [StudentPaymentController::class, 'index'])->name('payments');
-    Route::resource('meal-menus', StudentMealMenuController::class)->only(['index', 'show']);
-});
-
-/*|--------------------------------------------------------------------------
-| Authenticated Routes (Common for all authenticated users)
+| Unified Role-Based Routes
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth'])->group(function () {
-    // Logout
+    // Dashboard routes
+    Route::get('/admin/dashboard', [DashboardController::class, 'index'])
+        ->middleware('role:admin')
+        ->name('admin.dashboard');
+
+    Route::get('/owner/dashboard', [DashboardController::class, 'ownerDashboard'])
+        ->middleware('role:hostel_manager')
+        ->name('owner.dashboard');
+
+    // Student dashboard using StudentController
+    Route::get('/student/dashboard', [StudentController::class, 'studentDashboard'])
+        ->middleware('role:student')
+        ->name('student.dashboard');
+
+    // Unified Contact Routes for both admin and owner
+    Route::middleware('role:admin,hostel_manager')->group(function () {
+        Route::resource('contacts', ContactController::class)->names('admin.contacts');
+        Route::get('/contacts/search', [ContactController::class, 'search'])->name('admin.contacts.search');
+        Route::post('/contacts/bulk-delete', [ContactController::class, 'bulkDestroy'])->name('admin.contacts.bulk-delete');
+        Route::post('/contacts/{id}/update-status', [ContactController::class, 'updateStatus'])->name('admin.contacts.update-status');
+        Route::get('/contacts/export/csv', [ContactController::class, 'exportCSV'])->name('admin.contacts.export-csv');
+    });
+
+    // Unified Gallery Routes for both admin and owner
+    Route::middleware('role:admin,hostel_manager')->group(function () {
+        Route::resource('galleries', GalleryController::class)->names('admin.galleries');
+        Route::post('/galleries/{gallery}/toggle-status', [GalleryController::class, 'toggleStatus'])
+            ->name('admin.galleries.toggle-status');
+        Route::post('/galleries/{gallery}/toggle-featured', [GalleryController::class, 'toggleFeatured'])
+            ->name('admin.galleries.toggle-featured');
+    });
+
+    // Resource routes with role-based access control
+    Route::middleware('role:admin,hostel_manager')->group(function () {
+        // Meals - Accessible by both admin and owner
+        Route::resource('meals', MealController::class);
+
+        // Reviews
+        Route::resource('reviews', ReviewController::class);
+
+        // Rooms
+        Route::resource('rooms', RoomController::class);
+        Route::get('/rooms/search', [RoomController::class, 'search'])->name('rooms.search');
+    });
+
+    // Students routes - separated for clarity
+    Route::middleware('role:admin')->group(function () {
+        Route::resource('students', StudentController::class)->names('admin.students');
+    });
+
+    Route::middleware('role:hostel_manager')->group(function () {
+        Route::resource('students', StudentController::class)->names('owner.students');
+    });
+
+    // Hostels - Admin only routes
+    Route::middleware('role:admin')->group(function () {
+        Route::resource('hostels', AdminHostelController::class);
+        Route::get('hostels/{hostel}/availability', [AdminHostelController::class, 'showAvailability'])->name('admin.hostels.availability');
+        Route::put('hostels/{hostel}/availability', [AdminHostelController::class, 'updateAvailability'])->name('admin.hostels.availability.update');
+    });
+
+    // Owner specific routes
+    Route::middleware('role:hostel_manager')->prefix('owner')->name('owner.')->group(function () {
+        Route::resource('meal-menus', OwnerMealMenuController::class);
+        Route::resource('hostels', OwnerHostelController::class)->only(['index', 'edit', 'update']);
+
+        // Add owner student routes with proper naming
+        Route::resource('students', StudentController::class)->names([
+            'index' => 'students.index',
+            'create' => 'students.create',
+            'store' => 'students.store',
+            'show' => 'students.show',
+            'edit' => 'students.edit',
+            'update' => 'students.update',
+            'destroy' => 'students.destroy'
+        ]);
+    });
+
+    // Meal Menus - Admin can also view (optional)
+    Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
+        Route::resource('meal-menus', AdminMealMenuController::class)->only(['index', 'show']);
+    });
+
+    // Settings - admin only
+    Route::middleware('role:admin')->group(function () {
+        // Corrected settings routes - remove duplicate definition
+        Route::resource('settings', SettingsController::class)->names('admin.settings');
+        Route::post('settings/bulk-update', [SettingsController::class, 'bulkUpdate'])->name('admin.settings.bulk-update');
+
+        // Reports - Add all necessary report routes
+        Route::get('/reports', [ReportController::class, 'index'])->name('admin.reports.index');
+        Route::post('/reports/monthly', [ReportController::class, 'monthlyReport'])->name('admin.reports.monthly');
+        Route::post('/reports/yearly', [ReportController::class, 'yearlyReport'])->name('admin.reports.yearly');
+        Route::post('/reports/custom', [ReportController::class, 'customDateReport'])->name('admin.reports.custom');
+        Route::post('/reports/filter', [ReportController::class, 'filterReport'])->name('admin.reports.filter');
+        Route::post('/reports/download-pdf', [ReportController::class, 'downloadPdf'])->name('admin.reports.download.pdf');
+        Route::post('/reports/download-excel', [ReportController::class, 'downloadExcel'])->name('admin.reports.download.excel');
+
+        // Payment reports
+        Route::get('/payments/report', [ReportController::class, 'paymentReport'])->name('payments.report');
+        Route::get('/payments/export', [ReportController::class, 'paymentExport'])->name('payments.export');
+    });
+
+    // Student routes
+    Route::middleware('role:student')->group(function () {
+        Route::get('/student/profile', [StudentController::class, 'profile'])->name('student.profile');
+        Route::get('/student/payments', [StudentController::class, 'payments'])->name('student.payments');
+        Route::get('/student/meal-menus', [StudentController::class, 'mealMenus'])->name('student.meal-menus.index');
+        Route::get('/student/meal-menus/{mealMenu}', [StudentController::class, 'showMealMenu'])->name('student.meal-menus.show');
+
+        // Room viewing for students (read-only)
+        Route::get('/student/rooms', [RoomController::class, 'studentIndex'])->name('student.rooms.index');
+        Route::get('/student/rooms/{room}', [RoomController::class, 'studentShow'])->name('student.rooms.show');
+
+        // Bookings
+        Route::get('/my-bookings', [RoomController::class, 'myBookings'])->name('bookings.my');
+    });
+
+    // Payments - accessible by all authenticated users with appropriate permissions
+    Route::middleware('role:admin,hostel_manager')->group(function () {
+        Route::resource('payments', PaymentController::class)->except(['edit', 'update']);
+        Route::get('/payments/{payment}/edit', [PaymentController::class, 'edit'])->name('payments.edit');
+        Route::put('/payments/{payment}', [PaymentController::class, 'update'])->name('payments.update');
+        Route::delete('/payments/{payment}', [PaymentController::class, 'destroy'])->name('payments.destroy');
+    });
+
+    // Student payment viewing (read-only)
+    Route::middleware('role:student')->group(function () {
+        Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
+        Route::get('/payments/{payment}', [PaymentController::class, 'show'])->name('payments.show');
+    });
+
+    // Khalti callback route (publicly accessible)
+    Route::post('payments/khalti-callback', [PaymentController::class, 'khaltiCallback'])->name('payments.khalti.callback');
+
+    // Common authenticated routes
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
     // Subscription Management
@@ -253,20 +300,6 @@ Route::middleware(['auth'])->group(function () {
 });
 
 /*|--------------------------------------------------------------------------
-| Public User Features (Accessible to all users with appropriate permissions)
-|--------------------------------------------------------------------------
-*/
-Route::middleware(['auth'])->group(function () {
-    // User Features
-    Route::get('/my-students', [OwnerStudentController::class, 'myStudents'])->name('students.my');
-    Route::get('/my-bookings', [OwnerRoomController::class, 'myBookings'])->name('bookings.my');
-
-    // Payments
-    Route::resource('payments', PaymentController::class)->only(['index', 'show', 'create', 'store']);
-    Route::post('payments/khalti-callback', [PaymentController::class, 'khaltiCallback'])->name('payments.khalti.callback');
-});
-
-/*|--------------------------------------------------------------------------
 | Search route
 |--------------------------------------------------------------------------
 */
@@ -287,4 +320,8 @@ if (app()->environment('local')) {
         request()->session()->regenerateToken();
         return redirect('/');
     })->middleware('auth');
+    Route::get('/test-pdf', function () {
+        $pdf = Pdf::loadHTML('<h1>Test PDF</h1><p>This is working!</p>');
+        return $pdf->download('test.pdf');
+    });
 }

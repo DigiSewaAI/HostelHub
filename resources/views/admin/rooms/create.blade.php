@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends('layouts.app')
 
 @section('content')
     <div class="container-fluid">
@@ -17,6 +17,7 @@
                 <form action="{{ route('admin.rooms.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="row">
+                        @role('admin')
                         <div class="col-md-6 mb-3">
                             <label for="hostel_id" class="form-label">होस्टल</label>
                             <select name="hostel_id" id="hostel_id" class="form-select @error('hostel_id') is-invalid @enderror" required>
@@ -31,6 +32,10 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
+                        @else
+                        <input type="hidden" name="hostel_id" value="{{ auth()->user()->hostel_id }}">
+                        @endrole
+                        
                         <div class="col-md-6 mb-3">
                             <label for="room_number" class="form-label">कोठा नम्बर</label>
                             <input type="text" name="room_number" id="room_number" class="form-control @error('room_number') is-invalid @enderror"
@@ -45,9 +50,9 @@
                         <div class="col-md-6 mb-3">
                             <label for="type" class="form-label">कोठा प्रकार</label>
                             <select name="type" id="type" class="form-select @error('type') is-invalid @enderror" required>
-                                <option value="स्ट्यान्डर्ड" {{ old('type') == 'स्ट्यान्डर्ड' ? 'selected' : '' }}>स्ट्यान्डर्ड</option>
-                                <option value="डीलक्स" {{ old('type') == 'डीलक्स' ? 'selected' : '' }}>डीलक्स</option>
-                                <option value="विआईपी" {{ old('type') == 'विआईपी' ? 'selected' : '' }}>विआईपी</option>
+                                <option value="single" {{ old('type') == 'single' ? 'selected' : '' }}>एकल कोठा</option>
+                                <option value="double" {{ old('type') == 'double' ? 'selected' : '' }}>दुई ब्यक्ति कोठा</option>
+                                <option value="shared" {{ old('type') == 'shared' ? 'selected' : '' }}>साझा कोठा</option>
                             </select>
                             @error('type')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -78,9 +83,9 @@
                         <div class="col-md-6 mb-3">
                             <label for="status" class="form-label">स्थिति</label>
                             <select name="status" id="status" class="form-select @error('status') is-invalid @enderror" required>
-                                <option value="उपलब्ध" {{ old('status', 'उपलब्ध') == 'उपलब्ध' ? 'selected' : '' }}>उपलब्ध</option>
-                                <option value="बुक भएको" {{ old('status') == 'बुक भएको' ? 'selected' : '' }}>बुक भएको</option>
-                                <option value="रिङ्गोट" {{ old('status') == 'रिङ्गोट' ? 'selected' : '' }}>रिङ्गोट</option>
+                                <option value="available" {{ old('status', 'available') == 'available' ? 'selected' : '' }}>उपलब्ध</option>
+                                <option value="occupied" {{ old('status') == 'occupied' ? 'selected' : '' }}>व्यस्त</option>
+                                <option value="maintenance" {{ old('status') == 'maintenance' ? 'selected' : '' }}>मर्मत सम्भार</option>
                             </select>
                             @error('status')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -88,6 +93,7 @@
                         </div>
                     </div>
 
+                    @role('admin')
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="floor" class="form-label">तल्ला</label>
@@ -105,6 +111,7 @@
                             @enderror
                         </div>
                     </div>
+                    @endrole
 
                     <div class="mb-3">
                         <label for="description" class="form-label">विवरण</label>

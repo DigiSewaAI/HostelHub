@@ -5,15 +5,28 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Contact;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ContactController extends Controller
 {
+    /**
+     * Get data based on user role
+     */
+    private function getDataByRole()
+    {
+        if (Auth::user()->hasRole('owner')) {
+            return Contact::where('hostel_id', Auth::user()->hostel_id);
+        }
+
+        return Contact::query();
+    }
+
     /**
      * Display a listing of contact form submissions.
      */
     public function index()
     {
-        $submissions = Contact::latest()->paginate(10);
+        $submissions = $this->getDataByRole()->latest()->paginate(10);
         return view('admin.contacts.index', compact('submissions'));
     }
 
@@ -44,17 +57,25 @@ class ContactController extends Controller
             'message.required' => 'सन्देश अनिवार्य छ।',
         ]);
 
-        Contact::create([
+        $contactData = [
             'name' => $request->name,
             'email' => $request->email,
             'phone' => $request->phone,
             'subject' => $request->subject,
             'message' => $request->message,
             'status' => 'नयाँ'
-        ]);
+        ];
+
+        // Add hostel_id for owners
+        if (Auth::user()->hasRole('owner')) {
+            $contactData['hostel_id'] = Auth::user()->hostel_id;
+            $contactData['status'] = 'pending'; // Use English status for owners
+        }
+
+        Contact::create($contactData);
 
         return redirect()->route('admin.contacts.index')
-            ->with('success', 'सम्पर्क सफलतापूर्वक थपियो!');
+            ->with('success', Auth::user()->hasRole('owner') ? 'सन्देश सफलतापूर्वक पठाइयो!' : 'सम्पर्क सफलतापूर्वक थपियो!');
     }
 
     /**
@@ -62,7 +83,7 @@ class ContactController extends Controller
      */
     public function show($id)
     {
-        $submission = Contact::findOrFail($id);
+        $submission = $this->getDataByRole()->findOrFail($id);
         return view('admin.contacts.show', compact('submission'));
     }
 
@@ -71,7 +92,7 @@ class ContactController extends Controller
      */
     public function edit($id)
     {
-        $contact = Contact::findOrFail($id);
+        $contact = $this->getDataByRole()->findOrFail($id);
         return view('admin.contacts.edit', compact('contact'));
     }
 
@@ -80,6 +101,21 @@ class ContactController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $contact = $this->getDataByRole()->findOrFail($id);
+
+        // Owners can only update status
+        if (Auth::user()->hasRole('owner')) {
+            $request->validate([
+                'status' => 'required|in:pending,read,replied',
+            ]);
+
+            $contact->update($request->only('status'));
+
+            return redirect()->route('admin.contacts.index')
+                ->with('success', 'सन्देश स्थिति सफलतापूर्वक अद्यावधिक गरियो!');
+        }
+
+        // Admin can update all fields
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
@@ -94,7 +130,6 @@ class ContactController extends Controller
             'message.required' => 'सन्देश अनिवार्य छ।',
         ]);
 
-        $contact = Contact::findOrFail($id);
         $contact->update([
             'name' => $request->name,
             'email' => $request->email,
@@ -112,11 +147,11 @@ class ContactController extends Controller
      */
     public function destroy($id)
     {
-        $submission = Contact::findOrFail($id);
+        $submission = $this->getDataByRole()->findOrFail($id);
         $submission->delete();
 
         return redirect()->route('admin.contacts.index')
-            ->with('success', 'सम्पर्क जानकारी सफलतापूर्वक मेटाइयो!');
+            ->with('success', Auth::user()->hasRole('owner') ? 'सन्देश सफलतापूर्वक हटाइयो!' : 'सम्पर्क जानकारी सफलतापूर्वक मेटाइयो!');
     }
 
     /**
@@ -131,7 +166,14 @@ class ContactController extends Controller
                 ->with('error', 'कुनै सम्पर्क जानकारी चयन गरिएन!');
         }
 
-        Contact::whereIn('id', $ids)->delete();
+        // For owners, only allow deleting their hostel's contacts
+        if (Auth::user()->hasRole('owner')) {
+            Contact::where('hostel_id', Auth::user()->hostel_id)
+                ->whereIn('id', $ids)
+                ->delete();
+        } else {
+            Contact::whereIn('id', $ids)->delete();
+        }
 
         return redirect()->route('admin.contacts.index')
             ->with('success', 'चयन गरिएका सम्पर्क जानकारीहरू सफलतापूर्वक मेटाइयो!');
@@ -144,11 +186,12 @@ class ContactController extends Controller
     {
         $query = $request->input('search');
 
-        $submissions = Contact::where('name', 'like', "%$query%")
+        $searchQuery = $this->getDataByRole()
+            ->where('name', 'like', "%$query%")
             ->orWhere('email', 'like', "%$query%")
-            ->orWhere('subject', 'like', "%$query%")
-            ->latest()
-            ->paginate(10);
+            ->orWhere('subject', 'like', "%$query%");
+
+        $submissions = $searchQuery->latest()->paginate(10);
 
         return view('admin.contacts.index', compact('submissions'));
     }
@@ -159,13 +202,13 @@ class ContactController extends Controller
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
-            'status' => 'required|in:नयाँ,पढियो,जवाफ दिइयो'
+            'status' => 'required|in:नयाँ,पढियो,जवाफ दिइयो,pending,read,replied'
         ], [
             'status.required' => 'स्थिति अनिवार्य छ।',
             'status.in' => 'अमान्य स्थिति चयन गरिएको छ।'
         ]);
 
-        $submission = Contact::findOrFail($id);
+        $submission = $this->getDataByRole()->findOrFail($id);
         $submission->update(['status' => $request->status]);
 
         return redirect()->back()
@@ -178,7 +221,7 @@ class ContactController extends Controller
     public function exportCSV()
     {
         $fileName = 'contacts_' . date('Y-m-d') . '.csv';
-        $contacts = Contact::all();
+        $contacts = $this->getDataByRole()->get();
 
         $headers = array(
             "Content-type"        => "text/csv",

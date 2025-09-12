@@ -1,141 +1,97 @@
-@extends('layouts.admin')
+@extends('layouts.app')
 
 @section('title', 'भुक्तानी सम्पादन गर्नुहोस्')
 
 @section('content')
-<div class="container-fluid py-4">
-    <div class="row">
-        <div class="col-md-8 offset-md-2">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="h4 nepali">भुक्तानी सम्पादन गर्नुहोस्</h2>
-                <div>
-                    <a href="{{ route('admin.payments.show', $payment) }}" class="btn btn-secondary me-2 nepali">
-                        <i class="fas fa-eye me-1"></i> हेर्नुहोस्
-                    </a>
-                    <a href="{{ route('admin.payments.index') }}" class="btn btn-outline-secondary nepali">
-                        <i class="fas fa-arrow-left me-1"></i> फर्कनुहोस्
-                    </a>
-                </div>
-            </div>
-
-            <div class="card shadow">
-                <div class="card-header bg-white nepali">
-                    <h5 class="mb-0">भुक्तानी विवरण सम्पादन गर्नुहोस्</h5>
-                </div>
-                <div class="card-body">
-                    <form action="{{ route('admin.payments.update', $payment) }}" method="POST">
-                        @csrf
-                        @method('PUT')
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="form-label nepali">विद्यार्थी</label>
-                                    <select name="student_id" class="form-select nepali @error('student_id') is-invalid @enderror" required>
-                                        <option value="">विद्यार्थी छान्नुहोस्</option>
-                                        @foreach($students as $student)
-                                        <option value="{{ $student->id }}" {{ $payment->student_id == $student->id ? 'selected' : '' }}>
-                                            {{ $student->name }} ({{ $student->mobile }})
-                                        </option>
-                                        @endforeach
-                                    </select>
-                                    @error('student_id')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="form-label nepali">होस्टल</label>
-                                    <select name="hostel_id" class="form-select nepali @error('hostel_id') is-invalid @enderror" required>
-                                        <option value="">होस्टल छान्नुहोस्</option>
-                                        @foreach($hostels as $hostel)
-                                        <option value="{{ $hostel->id }}" {{ $payment->hostel_id == $hostel->id ? 'selected' : '' }}>
-                                            {{ $hostel->name }}
-                                        </option>
-                                        @endforeach
-                                    </select>
-                                    @error('hostel_id')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="form-label nepali">रकम (रु)</label>
-                                    <input type="number" name="amount" class="form-control nepali @error('amount') is-invalid @enderror" 
-                                           value="{{ old('amount', $payment->amount) }}" step="0.01" min="0" required>
-                                    @error('amount')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="form-label nepali">भुक्तानी मिति</label>
-                                    <input type="date" name="payment_date" class="form-control nepali @error('payment_date') is-invalid @enderror" 
-                                           value="{{ old('payment_date', $payment->payment_date) }}" required>
-                                    @error('payment_date')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="form-label nepali">भुक्तानी विधि</label>
-                                    <select name="payment_method" class="form-select nepali @error('payment_method') is-invalid @enderror" required>
-                                        <option value="cash" {{ $payment->payment_method == 'cash' ? 'selected' : '' }}>नगद</option>
-                                        <option value="khalti" {{ $payment->payment_method == 'khalti' ? 'selected' : '' }}>खल्ती</option>
-                                        <option value="bank" {{ $payment->payment_method == 'bank' ? 'selected' : '' }}>बैंक हस्तान्तरण</option>
-                                    </select>
-                                    @error('payment_method')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="form-label nepali">लेनदेन आईडी (वैकल्पिक)</label>
-                                    <input type="text" name="transaction_id" class="form-control nepali @error('transaction_id') is-invalid @enderror" 
-                                           value="{{ old('transaction_id', $payment->transaction_id) }}">
-                                    @error('transaction_id')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label class="form-label nepali">स्थिति</label>
-                                    <select name="status" class="form-select nepali @error('status') is-invalid @enderror" required>
-                                        <option value="completed" {{ $payment->status == 'completed' ? 'selected' : '' }}>पूर्ण</option>
-                                        <option value="pending" {{ $payment->status == 'pending' ? 'selected' : '' }}>प्रतीक्षामा</option>
-                                        <option value="failed" {{ $payment->status == 'failed' ? 'selected' : '' }}>असफल</option>
-                                    </select>
-                                    @error('status')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-                            <div class="col-12">
-                                <div class="form-group">
-                                    <label class="form-label nepali">टिप्पणी (वैकल्पिक)</label>
-                                    <textarea name="notes" class="form-control nepali @error('notes') is-invalid @enderror" 
-                                              rows="3">{{ old('notes', $payment->notes) }}</textarea>
-                                    @error('notes')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="d-flex justify-content-end mt-4">
-                            <button type="submit" class="btn btn-primary nepali px-4">
-                                <i class="fas fa-save me-2"></i> परिवर्तनहरू सुरक्षित गर्नुहोस्
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+<div class="container mx-auto px-4 py-6">
+    <div class="max-w-3xl mx-auto bg-white rounded-lg shadow-md p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold text-gray-800 nepali">भुक्तानी सम्पादन गर्नुहोस्</h1>
+            <a href="{{ route('payments.show', $payment) }}" class="text-indigo-600 hover:text-indigo-900 flex items-center nepali">
+                <i class="fas fa-arrow-left mr-2"></i> पछाडि जानुहोस्
+            </a>
         </div>
+
+        <form action="{{ route('payments.update', $payment) }}" method="POST">
+            @csrf
+            @method('PUT')
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                    <label for="student_id" class="block text-sm font-medium text-gray-700 mb-1 nepali">विद्यार्थी <span class="text-red-500">*</span></label>
+                    <select name="student_id" id="student_id" class="w-full border border-gray-300 rounded-md p-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+                        <option value="" class="nepali">विद्यार्थी छान्नुहोस्</option>
+                        @foreach($students as $student)
+                            <option value="{{ $student->id }}" {{ $payment->student_id == $student->id ? 'selected' : '' }}>
+                                {{ $student->name }} ({{ $student->room->room_number ?? 'N/A' }})
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('student_id')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+                
+                <div>
+                    <label for="amount" class="block text-sm font-medium text-gray-700 mb-1 nepali">रकम <span class="text-red-500">*</span></label>
+                    <input type="number" name="amount" id="amount" class="w-full border border-gray-300 rounded-md p-2 focus:ring-indigo-500 focus:border-indigo-500" 
+                           required min="0" step="0.01" value="{{ old('amount', $payment->amount) }}">
+                    @error('amount')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                    <label for="payment_date" class="block text-sm font-medium text-gray-700 mb-1 nepali">भुक्तानी मिति <span class="text-red-500">*</span></label>
+                    <input type="date" name="payment_date" id="payment_date" class="w-full border border-gray-300 rounded-md p-2 focus:ring-indigo-500 focus:border-indigo-500" 
+                           required value="{{ old('payment_date', $payment->payment_date->format('Y-m-d')) }}">
+                    @error('payment_date')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+                
+                <div>
+                    <label for="payment_method" class="block text-sm font-medium text-gray-700 mb-1 nepali">भुक्तानी विधि <span class="text-red-500">*</span></label>
+                    <select name="payment_method" id="payment_method" class="w-full border border-gray-300 rounded-md p-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+                        <option value="cash" {{ $payment->payment_method == 'cash' ? 'selected' : '' }} class="nepali">नगद</option>
+                        <option value="bank_transfer" {{ $payment->payment_method == 'bank_transfer' ? 'selected' : '' }} class="nepali">बैंक ट्रान्सफर</option>
+                        <option value="online" {{ $payment->payment_method == 'online' ? 'selected' : '' }} class="nepali">अनलाइन</option>
+                    </select>
+                    @error('payment_method')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+            </div>
+            
+            <div class="mb-6">
+                <label for="description" class="block text-sm font-medium text-gray-700 mb-1 nepali">विवरण</label>
+                <textarea name="description" id="description" rows="3" class="w-full border border-gray-300 rounded-md p-2 focus:ring-indigo-500 focus:border-indigo-500" 
+                          placeholder="भुक्तानी सम्बन्धी थप जानकारी">{{ old('description', $payment->description) }}</textarea>
+                @error('description')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+            
+            <div class="mb-6">
+                <label for="status" class="block text-sm font-medium text-gray-700 mb-1 nepali">स्थिति <span class="text-red-500">*</span></label>
+                <select name="status" id="status" class="w-full border border-gray-300 rounded-md p-2 focus:ring-indigo-500 focus:border-indigo-500" required>
+                    <option value="pending" {{ $payment->status == 'pending' ? 'selected' : '' }} class="nepali">प्रतीक्षामा</option>
+                    <option value="completed" {{ $payment->status == 'completed' ? 'selected' : '' }} class="nepali">पूरा भएको</option>
+                    <option value="failed" {{ $payment->status == 'failed' ? 'selected' : '' }} class="nepali">असफल</option>
+                </select>
+                @error('status')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+            
+            <div class="flex justify-end">
+                <button type="submit" class="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 flex items-center nepali">
+                    <i class="fas fa-save mr-2"></i> सुरक्षित गर्नुहोस्
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 @endsection

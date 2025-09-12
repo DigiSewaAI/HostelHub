@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Owner;
 use App\Models\Hostel;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Owner\UpdateHostelRequest;
 
 class HostelController extends Controller
 {
@@ -16,13 +17,11 @@ class HostelController extends Controller
 
     public function create()
     {
-        // होस्टल मालिकले नयाँ होस्टल बनाउन पाउँदैनन्
         abort(403, 'तपाईंसँग नयाँ होस्टल बनाउने अनुमति छैन');
     }
 
     public function store(Request $request)
     {
-        // होस्टल मालिकले नयाँ होस्टल बनाउन पाउँदैनन्
         abort(403, 'तपाईंसँग नयाँ होस्टल बनाउने अनुमति छैन');
     }
 
@@ -35,26 +34,29 @@ class HostelController extends Controller
         return view('owner.hostels.edit', compact('hostel'));
     }
 
-    public function update(Request $request, Hostel $hostel)
+    public function update(UpdateHostelRequest $request, Hostel $hostel)
     {
         if ($hostel->id != auth()->user()->hostel_id) {
             abort(403, 'तपाईंसँग यो होस्टल सम्पादन गर्ने अनुमति छैन');
         }
 
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'address' => 'required|string',
-            'city' => 'required|string',
-            'state' => 'required|string',
-            'postal_code' => 'required|string',
-            'phone' => 'required|string',
-            'email' => 'required|email',
-            'description' => 'nullable|string',
-            'max_capacity' => 'required|integer',
-            'price_per_month' => 'required|numeric',
-        ]);
+        $validated = $request->validated();
 
-        $hostel->update($request->all());
+        // Handle facilities field
+        if ($request->has('facilities')) {
+            $validated['facilities'] = json_encode(explode(',', $request->facilities));
+        }
+
+        // Handle image upload
+        if ($request->hasFile('image')) {
+            // Delete old image if exists
+            if ($hostel->image) {
+                Storage::disk('public')->delete($hostel->image);
+            }
+            $validated['image'] = $request->file('image')->store('hostels', 'public');
+        }
+
+        $hostel->update($validated);
 
         return redirect()->route('owner.hostels.index')
             ->with('success', 'होस्टल विवरण सफलतापूर्वक अद्यावधिक गरियो!');
@@ -62,7 +64,6 @@ class HostelController extends Controller
 
     public function destroy(Hostel $hostel)
     {
-        // होस्टल मालिकले होस्टल हटाउन पाउँदैनन्
         abort(403, 'तपाईंसँग होस्टल हटाउने अनुमति छैन');
     }
 }

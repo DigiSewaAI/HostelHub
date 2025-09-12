@@ -13,12 +13,26 @@ use Illuminate\Support\Facades\Storage;
 class RoomController extends Controller
 {
     /**
-     * Display a listing of rooms.
+     * Display a listing of rooms based on user role.
      */
     public function index()
     {
-        $rooms = Room::with('hostel')->latest()->paginate(10);
-        return view('admin.rooms.index', compact('rooms'));
+        $user = auth()->user();
+
+        // Check user role and fetch rooms accordingly
+        if ($user->hasRole('admin')) {
+            $rooms = Room::with('hostel')->latest()->paginate(10);
+            return view('admin.rooms.index', compact('rooms'));
+        } elseif ($user->hasRole('owner')) {
+            $rooms = Room::where('hostel_id', $user->hostel_id)->get();
+            return view('owner.rooms.index', compact('rooms'));
+        } elseif ($user->hasRole('student')) {
+            // Student view - typically read-only with availability status
+            $rooms = Room::with('hostel')->where('status', 'available')->get();
+            return view('student.rooms.index', compact('rooms'));
+        }
+
+        abort(403, 'Unauthorized action.');
     }
 
     /**
@@ -26,27 +40,52 @@ class RoomController extends Controller
      */
     public function create()
     {
-        $hostels = Hostel::all();
-        return view('admin.rooms.create', compact('hostels'));
+        $user = auth()->user();
+
+        if ($user->hasRole('admin')) {
+            $hostels = Hostel::all();
+            return view('admin.rooms.create', compact('hostels'));
+        } elseif ($user->hasRole('owner')) {
+            return view('owner.rooms.create');
+        }
+
+        abort(403, 'Unauthorized action.');
     }
 
     /**
      * Store a newly created room in database.
      */
-    public function store(StoreRoomRequest $request)
+    public function store(Request $request)
     {
-        try {
-            $validated = $request->validated();
+        $user = auth()->user();
 
-            // Upload image
-            if ($request->hasFile('image')) {
+        try {
+            if ($user->hasRole('admin')) {
+                $validated = (new StoreRoomRequest)->validated();
+            } elseif ($user->hasRole('owner')) {
+                $validated = $request->validate([
+                    'room_number' => 'required|string|unique:rooms,room_number,NULL,id,hostel_id,' . $user->hostel_id,
+                    'type' => 'required|in:single,double,shared',
+                    'capacity' => 'required|integer|min:1',
+                    'price' => 'required|numeric|min:0',
+                    'description' => 'nullable|string',
+                    'status' => 'required|in:available,occupied,maintenance',
+                ]);
+                $validated['hostel_id'] = $user->hostel_id;
+            } else {
+                abort(403, 'Unauthorized action.');
+            }
+
+            // Upload image (for admin only, owner doesn't have image field in form)
+            if ($user->hasRole('admin') && $request->hasFile('image')) {
                 $imagePath = $request->file('image')->store('room_images', 'public');
                 $validated['image'] = $imagePath;
             }
 
             Room::create($validated);
 
-            return redirect()->route('admin.rooms.index')
+            $route = $user->hasRole('admin') ? 'admin.rooms.index' : 'owner.rooms.index';
+            return redirect()->route($route)
                 ->with('success', 'कोठा सफलतापूर्वक थपियो!');
         } catch (\Exception $e) {
             return redirect()->back()
@@ -60,8 +99,25 @@ class RoomController extends Controller
      */
     public function show(Room $room)
     {
+        $user = auth()->user();
+
+        // Check if user has permission to view this room
+        if ($user->hasRole('owner') && $room->hostel_id != $user->hostel_id) {
+            abort(403, 'तपाईंसँग यो कोठा हेर्ने अनुमति छैन');
+        }
+
         $room->load('hostel');
-        return view('admin.rooms.show', compact('room'));
+
+        // Return appropriate view based on role
+        if ($user->hasRole('admin')) {
+            return view('admin.rooms.show', compact('room'));
+        } elseif ($user->hasRole('owner')) {
+            return view('owner.rooms.show', compact('room'));
+        } elseif ($user->hasRole('student')) {
+            return view('student.rooms.show', compact('room'));
+        }
+
+        abort(403, 'Unauthorized action.');
     }
 
     /**
@@ -69,33 +125,67 @@ class RoomController extends Controller
      */
     public function edit(Room $room)
     {
-        $hostels = Hostel::all();
-        return view('admin.rooms.edit', compact('room', 'hostels'));
+        $user = auth()->user();
+
+        // Check if user has permission to edit this room
+        if ($user->hasRole('owner') && $room->hostel_id != $user->hostel_id) {
+            abort(403, 'तपाईंसँग यो कोठा सम्पादन गर्ने अनुमति छैन');
+        }
+
+        if ($user->hasRole('admin')) {
+            $hostels = Hostel::all();
+            return view('admin.rooms.edit', compact('room', 'hostels'));
+        } elseif ($user->hasRole('owner')) {
+            return view('owner.rooms.edit', compact('room'));
+        }
+
+        abort(403, 'Unauthorized action.');
     }
 
     /**
      * Update the specified room in database.
      */
-    public function update(UpdateRoomRequest $request, Room $room)
+    public function update(Request $request, Room $room)
     {
+        $user = auth()->user();
+
+        // Check if user has permission to update this room
+        if ($user->hasRole('owner') && $room->hostel_id != $user->hostel_id) {
+            abort(403, 'तपाईंसँग यो कोठा अपडेट गर्ने अनुमति छैन');
+        }
+
         try {
-            $validated = $request->validated();
+            if ($user->hasRole('admin')) {
+                $validated = (new UpdateRoomRequest)->validated();
 
-            // Update image
-            if ($request->hasFile('image')) {
-                // Delete old image
-                if ($room->image) {
-                    Storage::disk('public')->delete($room->image);
+                // Update image (admin only)
+                if ($request->hasFile('image')) {
+                    // Delete old image
+                    if ($room->image) {
+                        Storage::disk('public')->delete($room->image);
+                    }
+
+                    // Save new image
+                    $imagePath = $request->file('image')->store('room_images', 'public');
+                    $validated['image'] = $imagePath;
                 }
-
-                // Save new image
-                $imagePath = $request->file('image')->store('room_images', 'public');
-                $validated['image'] = $imagePath;
+            } elseif ($user->hasRole('owner')) {
+                $validated = $request->validate([
+                    'room_number' => 'required|string|unique:rooms,room_number,' . $room->id . ',id,hostel_id,' . $user->hostel_id,
+                    'type' => 'required|in:single,double,shared',
+                    'capacity' => 'required|integer|min:1',
+                    'price' => 'required|numeric|min:0',
+                    'description' => 'nullable|string',
+                    'status' => 'required|in:available,occupied,maintenance',
+                ]);
+            } else {
+                abort(403, 'Unauthorized action.');
             }
 
             $room->update($validated);
 
-            return redirect()->route('admin.rooms.index')
+            $route = $user->hasRole('admin') ? 'admin.rooms.index' : 'owner.rooms.index';
+            return redirect()->route($route)
                 ->with('success', 'कोठा सफलतापूर्वक अपडेट गरियो!');
         } catch (\Exception $e) {
             return redirect()->back()
@@ -109,15 +199,23 @@ class RoomController extends Controller
      */
     public function destroy(Room $room)
     {
+        $user = auth()->user();
+
+        // Check if user has permission to delete this room
+        if ($user->hasRole('owner') && $room->hostel_id != $user->hostel_id) {
+            abort(403, 'तपाईंसँग यो कोठा हटाउने अनुमति छैन');
+        }
+
         try {
-            // Delete related image
-            if ($room->image) {
+            // Delete related image (admin only)
+            if ($user->hasRole('admin') && $room->image) {
                 Storage::disk('public')->delete($room->image);
             }
 
             $room->delete();
 
-            return redirect()->route('admin.rooms.index')
+            $route = $user->hasRole('admin') ? 'admin.rooms.index' : 'owner.rooms.index';
+            return redirect()->route($route)
                 ->with('success', 'कोठा सफलतापूर्वक हटाइयो!');
         } catch (\Exception $e) {
             return redirect()->back()
@@ -130,8 +228,17 @@ class RoomController extends Controller
      */
     public function availability()
     {
-        $rooms = Room::with('hostel')->get();
-        return view('admin.rooms.availability', compact('rooms'));
+        $user = auth()->user();
+
+        if ($user->hasRole('admin')) {
+            $rooms = Room::with('hostel')->get();
+            return view('admin.rooms.availability', compact('rooms'));
+        } elseif ($user->hasRole('student')) {
+            $rooms = Room::with('hostel')->where('status', 'available')->get();
+            return view('student.rooms.availability', compact('rooms'));
+        }
+
+        abort(403, 'Unauthorized action.');
     }
 
     /**
@@ -139,6 +246,8 @@ class RoomController extends Controller
      */
     public function search(Request $request)
     {
+        $user = auth()->user();
+
         $request->validate([
             'search' => 'required|string|min:2'
         ], [
@@ -148,16 +257,43 @@ class RoomController extends Controller
 
         $query = $request->input('search');
 
-        $rooms = Room::where('room_number', 'like', "%$query%")
-            ->orWhere('type', 'like', "%$query%")
-            ->orWhere('status', 'like', "%$query%")
-            ->orWhereHas('hostel', function ($q) use ($query) {
-                $q->where('name', 'like', "%$query%");
-            })
-            ->with('hostel')
-            ->paginate(10);
+        if ($user->hasRole('admin')) {
+            $rooms = Room::where('room_number', 'like', "%$query%")
+                ->orWhere('type', 'like', "%$query%")
+                ->orWhere('status', 'like', "%$query%")
+                ->orWhereHas('hostel', function ($q) use ($query) {
+                    $q->where('name', 'like', "%$query%");
+                })
+                ->with('hostel')
+                ->paginate(10);
 
-        return view('admin.rooms.index', compact('rooms'));
+            return view('admin.rooms.index', compact('rooms'));
+        } elseif ($user->hasRole('owner')) {
+            $rooms = Room::where('hostel_id', $user->hostel_id)
+                ->where(function ($q) use ($query) {
+                    $q->where('room_number', 'like', "%$query%")
+                        ->orWhere('type', 'like', "%$query%")
+                        ->orWhere('status', 'like', "%$query%");
+                })
+                ->paginate(10);
+
+            return view('owner.rooms.index', compact('rooms'));
+        } elseif ($user->hasRole('student')) {
+            $rooms = Room::where('status', 'available')
+                ->where(function ($q) use ($query) {
+                    $q->where('room_number', 'like', "%$query%")
+                        ->orWhere('type', 'like', "%$query%")
+                        ->orWhereHas('hostel', function ($q2) use ($query) {
+                            $q2->where('name', 'like', "%$query%");
+                        });
+                })
+                ->with('hostel')
+                ->paginate(10);
+
+            return view('student.rooms.index', compact('rooms'));
+        }
+
+        abort(403, 'Unauthorized action.');
     }
 
     /**
@@ -165,8 +301,15 @@ class RoomController extends Controller
      */
     public function changeStatus(Request $request, Room $room)
     {
+        $user = auth()->user();
+
+        // Check if user has permission to change status of this room
+        if ($user->hasRole('owner') && $room->hostel_id != $user->hostel_id) {
+            abort(403, 'तपाईंसँग यो कोठाको स्थिति परिवर्तन गर्ने अनुमति छैन');
+        }
+
         $request->validate([
-            'new_status' => 'required|in:उपलब्ध,बुक भएको,रिङ्गोट'
+            'new_status' => 'required|in:उपलब्ध,बुक भएको,रिङ्गोट,available,occupied,maintenance'
         ], [
             'new_status.required' => 'नयाँ स्थिति अनिवार्य छ',
             'new_status.in' => 'अमान्य स्थिति चयन गरिएको छ'
@@ -188,6 +331,12 @@ class RoomController extends Controller
      */
     public function exportCSV()
     {
+        $user = auth()->user();
+
+        if (!$user->hasRole('admin')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         try {
             $fileName = 'rooms_' . date('Y-m-d') . '.csv';
             $rooms = Room::with('hostel')->get();

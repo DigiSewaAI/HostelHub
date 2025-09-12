@@ -5,22 +5,46 @@ namespace App\Http\Controllers\Admin;
 use App\Models\Contact;
 use App\Models\Room;
 use App\Models\Student;
-use App\Models\Gallery;
 use App\Models\Hostel;
+use App\Models\MealMenu;
+use App\Models\Payment;
 use App\Models\User;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
-use App\Http\Controllers\Controller;
 
 class DashboardController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('role:admin')->only(['reports', 'statistics']);
+    }
+
     /**
-     * Display the admin dashboard with key metrics and recent activities.
+     * Display role-specific dashboard
      *
      * @return \Illuminate\Contracts\View\View
      */
     public function index()
+    {
+        $user = auth()->user();
+
+        if ($user->hasRole('admin')) {
+            return $this->adminDashboard();
+        } elseif ($user->hasRole('owner')) {
+            return $this->ownerDashboard();
+        } elseif ($user->hasRole('student')) {
+            return $this->studentDashboard();
+        }
+
+        abort(403, 'अनधिकृत पहुँच');
+    }
+
+    /**
+     * Admin dashboard with system-wide metrics
+     */
+    private function adminDashboard()
     {
         try {
             // Fetch core metrics with optimized queries
@@ -79,7 +103,7 @@ class DashboardController extends Controller
             return view('admin.dashboard', compact('metrics'));
         } catch (\Exception $e) {
             // Log error details for debugging
-            Log::error('Dashboard loading failed: ' . $e->getMessage(), [
+            Log::error('ड्यासबोर्ड लोड गर्न असफल: ' . $e->getMessage(), [
                 'exception' => $e,
                 'user_id' => auth()->id(),
                 'trace' => $e->getTraceAsString()
@@ -102,12 +126,69 @@ class DashboardController extends Controller
                     'recent_contacts' => collect(),
                     'recent_hostels' => collect(),
                 ],
-                'error' => 'Dashboard data could not be loaded. Please try again later or contact support.'
+                'error' => 'ड्यासबोर्ड डाटा लोड गर्न सकिएन। कृपया पछि प्रयास गर्नुहोस् वा समर्थन सम्पर्क गर्नुहोस्।'
             ]);
         }
     }
 
-    // DashboardController को reports method मा यसरी data तयार गर्नुहोस्
+    /**
+     * Owner dashboard with hostel-specific metrics
+     */
+    private function ownerDashboard()
+    {
+        try {
+            // होस्टेल मालिकको आफ्नै होस्टेलको डाटा मात्र
+            $hostel = Hostel::where('id', auth()->user()->hostel_id)->first();
+
+            if (!$hostel) {
+                return view('owner.dashboard.index')->with('error', 'तपाईंको होस्टेल फेला परेन');
+            }
+
+            $totalRooms = Room::where('hostel_id', auth()->user()->hostel_id)->count();
+            $occupiedRooms = Room::where('hostel_id', auth()->user()->hostel_id)
+                ->where('status', 'occupied')
+                ->count();
+            $totalStudents = Student::where('hostel_id', auth()->user()->hostel_id)->count();
+            $todayMeal = MealMenu::where('hostel_id', auth()->user()->hostel_id)
+                ->where('day', now()->format('l'))
+                ->first();
+
+            return view('owner.dashboard.index', compact(
+                'hostel',
+                'totalRooms',
+                'occupiedRooms',
+                'totalStudents',
+                'todayMeal'
+            ));
+        } catch (\Exception $e) {
+            Log::error('होस्टेल मालिक ड्यासबोर्ड त्रुटि: ' . $e->getMessage());
+            return view('owner.dashboard.index')->with('error', 'डाटा लोड गर्न असफल भयो');
+        }
+    }
+
+    /**
+     * Student dashboard
+     */
+    private function studentDashboard()
+    {
+        try {
+            $student = auth()->user()->student;
+            $room = $student->room;
+            $hostel = $room->hostel;
+            $mealMenu = MealMenu::where('hostel_id', $hostel->id)
+                ->where('day', now()->format('l'))
+                ->first();
+
+            return view('student.dashboard', compact('student', 'room', 'hostel', 'mealMenu'));
+        } catch (\Exception $e) {
+            Log::error('विद्यार्थी ड्यासबोर्ड त्रुटि: ' . $e->getMessage());
+            return view('student.dashboard')->with('error', 'डाटा लोड गर्न असफल भयो');
+        }
+    }
+
+    /**
+     * Admin reports page
+     */
     public function reports()
     {
         try {
@@ -135,16 +216,13 @@ class DashboardController extends Controller
 
             return view('admin.reports.index', compact('reportData'));
         } catch (\Exception $e) {
-            Log::error('Reports loading failed: ' . $e->getMessage());
+            Log::error('प्रतिवेदन लोड गर्न असफल: ' . $e->getMessage());
             return redirect()->back()->with('error', 'प्रतिवेदन लोड गर्न असफल भयो');
         }
     }
 
     /**
-     * Get dashboard statistics for AJAX requests
-     *
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * Get dashboard statistics for AJAX requests (Admin only)
      */
     public function statistics(Request $request)
     {
@@ -198,69 +276,15 @@ class DashboardController extends Controller
                 ]
             ]);
         } catch (\Exception $e) {
-            Log::error('Dashboard statistics API failed: ' . $e->getMessage(), [
+            Log::error('ड्यासबोर्ड तथ्याङ्क API असफल: ' . $e->getMessage(), [
                 'exception' => $e,
                 'user_id' => auth()->id()
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to load statistics data'
+                'message' => 'तथ्याङ्क डाटा लोड गर्न असफल भयो'
             ], 500);
-        }
-    }
-
-    /**
-     * Get dashboard settings
-     *
-     * @return \Illuminate\Contracts\View\View
-     */
-    public function settings()
-    {
-        $settings = [
-            'app_name' => config('app.name', 'HostelHub'),
-            'timezone' => config('app.timezone', 'Asia/Kathmandu'),
-            'date_format' => config('app.date_format', 'd/m/Y'),
-            'currency' => config('app.currency', 'NPR'),
-            'default_language' => config('app.locale', 'ne'),
-            'max_upload_size' => ini_get('upload_max_filesize'),
-            'payment_gateway' => config('services.payment_gateway', 'cash'),
-        ];
-
-        return view('admin.settings', compact('settings'));
-    }
-
-    /**
-     * Update dashboard settings
-     *
-     * @param Request $request
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function updateSettings(Request $request)
-    {
-        $validated = $request->validate([
-            'app_name' => 'required|string|max:255',
-            'timezone' => 'required|string',
-            'date_format' => 'required|string',
-            'currency' => 'required|string',
-            'default_language' => 'required|string',
-        ]);
-
-        try {
-            // In a real application, you would update the .env file or a settings table
-            // For demonstration, we'll just return a success message
-            return redirect()->route('admin.dashboard')
-                ->with('success', 'सेटिङ्स सफलतापूर्वक अपडेट गरियो!');
-        } catch (\Exception $e) {
-            Log::error('Settings update failed: ' . $e->getMessage(), [
-                'exception' => $e,
-                'user_id' => auth()->id(),
-                'data' => $validated
-            ]);
-
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'सेटिङ्स अपडेट गर्न असफल भयो। कृपया पुनः प्रयास गर्नुहोस्।');
         }
     }
 }

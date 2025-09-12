@@ -10,6 +10,7 @@ use App\Models\Hostel;
 use App\Models\Room;
 use App\Models\User;
 use App\Models\College;
+use App\Models\MealMenu;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -20,11 +21,24 @@ class StudentController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Student::query()->with(['hostel', 'room']);
+        // Role-based query
+        if (auth()->user()->hasRole('admin')) {
+            $query = Student::query()->with(['user', 'room']);
+            $hostels = Hostel::all();
+            $rooms = Room::all();
+        } else {
+            // For hostel managers, only show their hostel's students
+            $query = Student::whereHas('room', function ($q) {
+                $q->where('hostel_id', auth()->user()->hostel_id);
+            })->with(['user', 'room']);
+            $hostels = Hostel::where('id', auth()->user()->hostel_id)->get();
+            $rooms = Room::where('hostel_id', auth()->user()->hostel_id)->get();
+        }
 
+        // Search and filters (common for both roles)
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function ($q) use ($search) {
+            $query->whereHas('user', function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%");
             });
@@ -34,8 +48,10 @@ class StudentController extends Controller
             $query->where('status', $request->status);
         }
 
-        if ($request->filled('hostel_id')) {
-            $query->where('hostel_id', $request->hostel_id);
+        if ($request->filled('hostel_id') && auth()->user()->hasRole('admin')) {
+            $query->whereHas('room', function ($q) use ($request) {
+                $q->where('hostel_id', $request->hostel_id);
+            });
         }
 
         if ($request->filled('room_id')) {
@@ -44,10 +60,12 @@ class StudentController extends Controller
 
         $students = $query->latest()->paginate(10)->appends($request->except('page'));
 
-        $hostels = Hostel::all();
-        $rooms = Room::all();
-
-        return view('admin.students.index', compact('students', 'hostels', 'rooms'));
+        // Return appropriate view based on role
+        if (auth()->user()->hasRole('admin')) {
+            return view('admin.students.index', compact('students', 'hostels', 'rooms'));
+        } else {
+            return view('owner.students.index', compact('students', 'hostels', 'rooms'));
+        }
     }
 
     /**
@@ -55,33 +73,82 @@ class StudentController extends Controller
      */
     public function create()
     {
-        $hostels = Hostel::all();
-        $rooms = Room::where('status', 'available')->with('hostel')->get();
-        $users = User::whereDoesntHave('student')->get();
-        $colleges = College::all(); // ✅ Add this
+        if (auth()->user()->hasRole('admin')) {
+            $hostels = Hostel::all();
+            $rooms = Room::where('status', 'available')->with('hostel')->get();
+            $users = User::whereDoesntHave('student')->get();
+            $colleges = College::all();
 
-        return view('admin.students.create', compact('hostels', 'rooms', 'users', 'colleges'));
+            return view('admin.students.create', compact('hostels', 'rooms', 'users', 'colleges'));
+        } else {
+            $hostels = Hostel::where('id', auth()->user()->hostel_id)->get();
+            $rooms = Room::where('hostel_id', auth()->user()->hostel_id)
+                ->where('status', 'available')
+                ->get();
+            $users = User::whereDoesntHave('student')->get();
+            $colleges = College::all();
+
+            return view('owner.students.create', compact('hostels', 'rooms', 'users', 'colleges'));
+        }
     }
 
     /**
      * Store a newly created student in storage.
      */
-    public function store(StoreStudentRequest $request)
+    public function store(Request $request)
     {
-        $data = $request->validated();
+        // Role-based validation and data handling
+        if (auth()->user()->hasRole('admin')) {
+            $validatedData = $request->validate((new StoreStudentRequest)->rules());
+        } else {
+            $validatedData = $request->validate([
+                'user_id' => 'nullable|exists:users,id',
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|unique:students,email',
+                'phone' => 'required|string',
+                'college' => 'required|string',
+                'dob' => 'nullable|date',
+                'gender' => 'nullable|in:male,female,other',
+                'guardian_name' => 'required|string',
+                'guardian_phone' => 'required|string',
+                'guardian_relation' => 'required|string',
+                'room_id' => 'nullable|exists:rooms,id',
+                'admission_date' => 'required|date',
+                'status' => 'required|in:pending,approved,active,inactive',
+                'payment_status' => 'required|in:pending,paid',
+                'address' => 'required|string',
+                'guardian_address' => 'required|string',
+            ]);
 
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('students', 'public');
+            // Add hostel_id for owner
+            if ($request->filled('room_id')) {
+                $room = Room::find($request->room_id);
+                $validatedData['hostel_id'] = $room->hostel_id;
+            } else {
+                $validatedData['hostel_id'] = auth()->user()->hostel_id;
+            }
         }
 
-        $student = Student::create($data);
-
-        if (isset($data['room_id'])) {
-            Room::find($data['room_id'])->update(['status' => 'occupied']);
+        // Handle image upload (for admin only)
+        if (auth()->user()->hasRole('admin') && $request->hasFile('image')) {
+            $validatedData['image'] = $request->file('image')->store('students', 'public');
         }
 
-        return redirect()->route('admin.students.index')
-            ->with('success', 'विद्यार्थी सफलतापूर्वक दर्ता गरियो');
+        $student = Student::create($validatedData);
+
+        // Update room status
+        if (isset($validatedData['room_id'])) {
+            Room::find($validatedData['room_id'])->update(['status' => 'occupied']);
+        }
+
+        // Role-based redirect with appropriate message
+        if (auth()->user()->hasRole('admin')) {
+            return redirect()->route('students.index')
+                ->with('success', 'विद्यार्थी सफलतापूर्वक दर्ता गरियो');
+        } else {
+            return redirect()->route('students.index')
+                ->with('success', 'विद्यार्थी सफलतापूर्वक थपियो!');
+        }
     }
 
     /**
@@ -89,8 +156,21 @@ class StudentController extends Controller
      */
     public function show(Student $student)
     {
-        $student->load(['hostel', 'room', 'payments', 'meals']);
-        return view('admin.students.show', compact('student'));
+        // Authorization
+        if (auth()->user()->hasRole('owner')) {
+            $room = $student->room;
+            if (!$room || $room->hostel_id != auth()->user()->hostel_id) {
+                abort(403, 'तपाईंसँग यो विद्यार्थी हेर्ने अनुमति छैन');
+            }
+        }
+
+        $student->load(['user', 'room.hostel', 'payments', 'meals']);
+
+        if (auth()->user()->hasRole('admin')) {
+            return view('admin.students.show', compact('student'));
+        } else {
+            return view('owner.students.show', compact('student'));
+        }
     }
 
     /**
@@ -98,42 +178,116 @@ class StudentController extends Controller
      */
     public function edit(Student $student)
     {
-        $student->load(['hostel', 'room']);
+        // Authorization
+        if (auth()->user()->hasRole('owner')) {
+            $room = $student->room;
+            if (!$room || $room->hostel_id != auth()->user()->hostel_id) {
+                abort(403, 'तपाईंसँग यो विद्यार्थी सम्पादन गर्ने अनुमति छैन');
+            }
+        }
 
-        $hostels = Hostel::all();
-        $rooms = Room::where('status', 'available')
-            ->orWhere('id', $student->room_id)
-            ->get();
+        if (auth()->user()->hasRole('admin')) {
+            $student->load(['user', 'room.hostel']);
+            $hostels = Hostel::all();
+            $rooms = Room::where('status', 'available')
+                ->orWhere('id', $student->room_id)
+                ->with('hostel')
+                ->get();
+            $users = User::all();
+            $colleges = College::all();
 
-        // ✅ Edit मा पनि users चाहिन्छ भने (optional)
-        $users = User::all(); // वा whereDoesntHave + $student->user_id
+            return view('admin.students.edit', compact('student', 'hostels', 'rooms', 'users', 'colleges'));
+        } else {
+            $student->load(['user', 'room.hostel']);
+            $hostels = Hostel::where('id', auth()->user()->hostel_id)->get();
+            $rooms = Room::where('hostel_id', auth()->user()->hostel_id)
+                ->where(function ($query) use ($student) {
+                    $query->where('status', 'available')
+                        ->orWhere('id', $student->room_id);
+                })
+                ->with('hostel')
+                ->get();
+            $users = User::all();
+            $colleges = College::all();
 
-        return view('admin.students.edit', compact('student', 'hostels', 'rooms', 'users'));
+            return view('owner.students.edit', compact('student', 'hostels', 'rooms', 'users', 'colleges'));
+        }
     }
 
     /**
      * Update the specified student in storage.
      */
-    public function update(UpdateStudentRequest $request, Student $student)
+    public function update(Request $request, Student $student)
     {
-        $data = $request->validated();
+        // Authorization
+        if (auth()->user()->hasRole('owner')) {
+            $room = $student->room;
+            if (!$room || $room->hostel_id != auth()->user()->hostel_id) {
+                abort(403, 'तपाईंसँग यो विद्यार्थी सम्पादन गर्ने अनुमति छैन');
+            }
+        }
 
-        if ($request->hasFile('image')) {
+        // Role-based validation
+        if (auth()->user()->hasRole('admin')) {
+            $validatedData = $request->validate((new UpdateStudentRequest)->rules());
+        } else {
+            $validatedData = $request->validate([
+                'user_id' => 'nullable|exists:users,id',
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|unique:students,email,' . $student->id,
+                'phone' => 'required|string',
+                'college' => 'required|string',
+                'dob' => 'nullable|date',
+                'gender' => 'nullable|in:male,female,other',
+                'guardian_name' => 'required|string',
+                'guardian_phone' => 'required|string',
+                'guardian_relation' => 'required|string',
+                'room_id' => 'nullable|exists:rooms,id',
+                'admission_date' => 'required|date',
+                'status' => 'required|in:pending,approved,active,inactive',
+                'payment_status' => 'required|in:pending,paid',
+                'address' => 'required|string',
+                'guardian_address' => 'required|string',
+            ]);
+        }
+
+        // Handle image upload (for admin only)
+        if (auth()->user()->hasRole('admin') && $request->hasFile('image')) {
             if ($student->image) {
                 Storage::disk('public')->delete($student->image);
             }
-            $data['image'] = $request->file('image')->store('students', 'public');
+            $validatedData['image'] = $request->file('image')->store('students', 'public');
         }
 
-        if ($student->room_id != $data['room_id']) {
-            Room::find($student->room_id)->update(['status' => 'available']);
-            Room::find($data['room_id'])->update(['status' => 'occupied']);
+        // Handle room change
+        if ($student->room_id != $validatedData['room_id']) {
+            // Free the old room
+            if ($student->room_id) {
+                Room::find($student->room_id)->update(['status' => 'available']);
+            }
+
+            // Occupy the new room
+            if ($validatedData['room_id']) {
+                Room::find($validatedData['room_id'])->update(['status' => 'occupied']);
+
+                // Update hostel_id for owner
+                if (auth()->user()->hasRole('owner')) {
+                    $room = Room::find($validatedData['room_id']);
+                    $validatedData['hostel_id'] = $room->hostel_id;
+                }
+            }
         }
 
-        $student->update($data);
+        $student->update($validatedData);
 
-        return redirect()->route('admin.students.index')
-            ->with('success', 'विद्यार्थी विवरण सफलतापूर्वक अद्यावधिक गरियो');
+        // Role-based redirect
+        if (auth()->user()->hasRole('admin')) {
+            return redirect()->route('students.index')
+                ->with('success', 'विद्यार्थी विवरण सफलतापूर्वक अद्यावधिक गरियो');
+        } else {
+            return redirect()->route('students.index')
+                ->with('success', 'विद्यार्थी विवरण सफलतापूर्वक अद्यावधिक गरियो!');
+        }
     }
 
     /**
@@ -141,17 +295,55 @@ class StudentController extends Controller
      */
     public function destroy(Student $student)
     {
-        if ($student->image) {
+        // Authorization
+        if (auth()->user()->hasRole('owner')) {
+            $room = $student->room;
+            if (!$room || $room->hostel_id != auth()->user()->hostel_id) {
+                abort(403, 'तपाईंसँग यो विद्यार्थी हटाउने अनुमति छैन');
+            }
+        }
+
+        // Delete image (for admin only)
+        if (auth()->user()->hasRole('admin') && $student->image) {
             Storage::disk('public')->delete($student->image);
         }
 
+        // Update room status
         if ($student->room_id) {
             Room::find($student->room_id)->update(['status' => 'available']);
         }
 
         $student->delete();
 
-        return redirect()->route('admin.students.index')
-            ->with('success', 'विद्यार्थी रेकर्ड सफलतापूर्वक मेटाइयो');
+        // Role-based redirect
+        if (auth()->user()->hasRole('admin')) {
+            return redirect()->route('students.index')
+                ->with('success', 'विद्यार्थी रेकर्ड सफलतापूर्वक मेटाइयो');
+        } else {
+            return redirect()->route('students.index')
+                ->with('success', 'विद्यार्थी सफलतापूर्वक हटाइयो!');
+        }
+    }
+
+    /**
+     * Student dashboard for student role
+     */
+    public function studentDashboard()
+    {
+        $user = auth()->user();
+        $student = Student::where('user_id', $user->id)->first();
+
+        if (!$student) {
+            return view('student.dashboard')->with('error', 'विद्यार्थी प्रोफाइल फेला परेन');
+        }
+
+        $todayMeal = null;
+        if ($student->hostel_id) {
+            $todayMeal = MealMenu::where('hostel_id', $student->hostel_id)
+                ->where('day', now()->format('l'))
+                ->first();
+        }
+
+        return view('student.dashboard', compact('student', 'todayMeal'));
     }
 }

@@ -3,6 +3,13 @@
 @section('title', 'ड्यासबोर्ड')
 
 @section('content')
+    @isset($error)
+        <!-- Error Alert -->
+        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded">
+            <p>{{ $error }}</p>
+        </div>
+    @endisset
+
     <!-- Notification Bell Bar -->
     <div class="bg-white rounded-lg shadow-sm p-4 mb-6 flex items-center justify-between">
         <div class="flex items-center">
@@ -10,8 +17,8 @@
                 <i class="fas fa-bell text-blue-600 text-xl"></i>
             </div>
             <div>
-                <h3 class="font-semibold">तपाईंसँग ३ नयाँ सूचनाहरू छन्</h3>
-                <p class="text-sm text-gray-600">हालसम्म १२ सूचनाहरू प्राप्त भएका छन्</p>
+                <h3 class="font-semibold">तपाईंसँग {{ $metrics['total_contacts'] }} सम्पर्क सूचनाहरू छन्</h3>
+                <p class="text-sm text-gray-600">हालसम्म {{ $metrics['total_contacts'] }} सूचनाहरू प्राप्त भएका छन्</p>
             </div>
         </div>
         <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center">
@@ -20,73 +27,94 @@
         </button>
     </div>
 
-    <!-- Nepali Guide Section -->
-    <div class="guide-note mb-6">
-        <h3 class="font-bold text-lg text-amber-800">नमस्ते! HostelHub मा स्वागत छ</h3>
-        <p class="mt-2">यो ड्यासबोर्ड HostelHub प्रणालीको लागि बनाइएको हो। यसले तीनवटा भूमिकाहरू (प्रशासक, मालिक, विद्यार्थी) को लागि अलग-अलग इन्टरफेस देखाउँछ।</p>
-        <p class="mt-2"><strong>यो के मात्र UI प्रदर्शन हो</strong> - वास्तविक प्रणालीमा तपाईंको भूमिका अनुसार तपाईंलाई फरक-फरक विकल्पहरू देखिनेछन्।</p>
-    </div>
-    
+    <!-- System Overview Section -->
     <div class="bg-white rounded-lg shadow-md p-6 mb-6">
         <h2 class="text-2xl font-bold mb-6">प्रणाली संक्षिप्त विवरण</h2>
         
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Hostels Card -->
             <div class="stat-card bg-gradient-to-r from-blue-50 to-blue-100 border-l-4 border-blue-500 p-5 rounded-lg shadow-sm card-hover">
                 <div class="flex justify-between items-start">
                     <div>
                         <h3 class="text-lg font-bold text-gray-800">होस्टलहरू</h3>
-                        <p class="text-3xl font-bold mt-2 text-gray-900">१२</p>
+                        <p class="text-3xl font-bold mt-2 text-gray-900">{{ $metrics['total_hostels'] }}</p>
                     </div>
                     <div class="bg-blue-500 text-white p-3 rounded-lg">
                         <i class="fas fa-building text-xl"></i>
                     </div>
                 </div>
-                <p class="text-sm text-gray-600 mt-3"><span class="text-green-600 font-medium"><i class="fas fa-arrow-up"></i> २ नयाँ</span> यस महिना</p>
+                <p class="text-sm text-gray-600 mt-3">कुल दर्ता भएका होस्टलहरू</p>
             </div>
             
+            <!-- Rooms Card -->
             <div class="stat-card bg-gradient-to-r from-green-50 to-green-100 border-l-4 border-green-500 p-5 rounded-lg shadow-sm card-hover">
                 <div class="flex justify-between items-start">
                     <div>
                         <h3 class="text-lg font-bold text-gray-800">कोठाहरू</h3>
-                        <p class="text-3xl font-bold mt-2 text-gray-900">८४</p>
+                        <p class="text-3xl font-bold mt-2 text-gray-900">{{ $metrics['total_rooms'] }}</p>
                     </div>
                     <div class="bg-green-500 text-white p-3 rounded-lg">
                         <i class="fas fa-door-open text-xl"></i>
                     </div>
                 </div>
-                <p class="text-sm text-gray-600 mt-3"><span class="text-green-600 font-medium"><i class="fas fa-arrow-up"></i> ५%</span> अधिभोग वृद्धि</p>
+                <p class="text-sm text-gray-600 mt-3">
+                    <span class="text-green-600 font-medium">{{ $metrics['room_occupancy'] }}%</span> अधिभोग दर
+                </p>
             </div>
             
+            <!-- Students Card -->
             <div class="stat-card bg-gradient-to-r from-amber-50 to-amber-100 border-l-4 border-amber-500 p-5 rounded-lg shadow-sm card-hover">
                 <div class="flex justify-between items-start">
                     <div>
                         <h3 class="text-lg font-bold text-gray-800">विद्यार्थीहरू</h3>
-                        <p class="text-3xl font-bold mt-2 text-gray-900">२१६</p>
+                        <p class="text-3xl font-bold mt-2 text-gray-900">{{ $metrics['total_students'] }}</p>
                     </div>
                     <div class="bg-amber-500 text-white p-3 rounded-lg">
                         <i class="fas fa-users text-xl"></i>
                     </div>
                 </div>
-                <p class="text-sm text-gray-600 mt-3"><span class="text-green-600 font-medium"><i class="fas fa-arrow-up"></i> १२ नयाँ</span> दर्ताहरू</p>
+                <p class="text-sm text-gray-600 mt-3">कुल दर्ता भएका विद्यार्थीहरू</p>
             </div>
             
+            <!-- Contacts Card -->
             <div class="stat-card bg-gradient-to-r from-red-50 to-red-100 border-l-4 border-red-500 p-5 rounded-lg shadow-sm card-hover">
                 <div class="flex justify-between items-start">
                     <div>
-                        <h3 class="text-lg font-bold text-gray-800">आम्दानी</h3>
-                        <p class="text-3xl font-bold mt-2 text-gray-900">रु १८.२K</p>
+                        <h3 class="text-lg font-bold text-gray-800">सम्पर्कहरू</h3>
+                        <p class="text-3xl font-bold mt-2 text-gray-900">{{ $metrics['total_contacts'] }}</p>
                     </div>
                     <div class="bg-red-500 text-white p-3 rounded-lg">
-                        <i class="fas fa-dollar-sign text-xl"></i>
+                        <i class="fas fa-envelope text-xl"></i>
                     </div>
                 </div>
-                <p class="text-sm text-gray-600 mt-3"><span class="text-green-600 font-medium"><i class="fas fa-arrow-up"></i> ८%</span> गत महिना भन्दा</p>
+                <p class="text-sm text-gray-600 mt-3">कुल प्राप्त सम्पर्क सूचनाहरू</p>
             </div>
         </div>
         
+        <!-- Room Status Overview -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div class="bg-blue-50 p-4 rounded-lg text-center">
+                <div class="text-blue-600 text-2xl font-bold">{{ $metrics['available_rooms'] }}</div>
+                <div class="text-sm text-blue-800">उपलब्ध कोठाहरू</div>
+            </div>
+            <div class="bg-green-50 p-4 rounded-lg text-center">
+                <div class="text-green-600 text-2xl font-bold">{{ $metrics['occupied_rooms'] }}</div>
+                <div class="text-sm text-green-800">अधिभृत कोठाहरू</div>
+            </div>
+            <div class="bg-amber-50 p-4 rounded-lg text-center">
+                <div class="text-amber-600 text-2xl font-bold">{{ $metrics['reserved_rooms'] }}</div>
+                <div class="text-sm text-amber-800">आरक्षित कोठाहरू</div>
+            </div>
+            <div class="bg-red-50 p-4 rounded-lg text-center">
+                <div class="text-red-600 text-2xl font-bold">{{ $metrics['maintenance_rooms'] }}</div>
+                <div class="text-sm text-red-800">मर्मतकोठाहरू</div>
+            </div>
+        </div>
+        
+        <!-- Recent Activities -->
         <div class="border-t pt-6">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-xl font-bold">हालको गतिविधिहरू</h3>
+                <h3 class="text-xl font-bold">हालका गतिविधिहरू</h3>
                 <button class="text-blue-600 hover:text-blue-800 text-sm font-medium">
                     <i class="fas fa-history mr-1"></i> सबै गतिविधि हेर्नुहोस्
                 </button>
@@ -95,52 +123,83 @@
             <div class="relative">
                 <!-- Timeline style activities -->
                 <div class="border-l-2 border-gray-200 ml-4 pb-10">
+                    <!-- Recent Students -->
+                    @foreach($metrics['recent_students'] as $student)
                     <div class="flex items-start mb-6">
-                        <div class="bg-blue-500 rounded-full p-2 -ml-3 mt-1 relative">
-                            <i class="fas fa-key text-white text-sm"></i>
+                        <div class="bg-red-500 rounded-full p-2 -ml-3 mt-1 relative">
+                            <i class="fas fa-user-plus text-white text-sm"></i>
                         </div>
                         <div class="ml-6">
-                            <h4 class="font-semibold text-gray-800">अनुमति अपडेट गरियो</h4>
-                            <p class="text-sm text-gray-600 mt-1">प्रशासकले होस्टल प्रबन्धकको लागि भूमिका अनुमतिहरू अपडेट गरे</p>
+                            <h4 class="font-semibold text-gray-800">नयाँ विद्यार्थी दर्ता</h4>
+                            <p class="text-sm text-gray-600 mt-1">
+                                {{ $student->name }} ({{ $student->room->hostel->name ?? 'अज्ञात होस्टल' }})
+                            </p>
                             <div class="flex items-center mt-2">
-                                <span class="text-xs text-gray-500 bg-gray-100 py-1 px-2 rounded-full"><i class="far fa-clock mr-1"></i> २ घण्टा अघि</span>
+                                <span class="text-xs text-gray-500 bg-gray-100 py-1 px-2 rounded-full">
+                                    <i class="far fa-clock mr-1"></i> {{ $student->created_at->diffForHumans() }}
+                                </span>
                             </div>
                         </div>
                     </div>
+                    @endforeach
                     
+                    <!-- Recent Contacts -->
+                    @foreach($metrics['recent_contacts'] as $contact)
+                    <div class="flex items-start mb-6">
+                        <div class="bg-blue-500 rounded-full p-2 -ml-3 mt-1 relative">
+                            <i class="fas fa-envelope text-white text-sm"></i>
+                        </div>
+                        <div class="ml-6">
+                            <h4 class="font-semibold text-gray-800">नयाँ सम्पर्क सन्देश</h4>
+                            <p class="text-sm text-gray-600 mt-1">{{ $contact->name }} - {{ Str::limit($contact->message, 50) }}</p>
+                            <div class="flex items-center mt-2">
+                                <span class="text-xs text-gray-500 bg-gray-100 py-1 px-2 rounded-full">
+                                    <i class="far fa-clock mr-1"></i> {{ $contact->created_at->diffForHumans() }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+                    
+                    <!-- Recent Hostels -->
+                    @foreach($metrics['recent_hostels'] as $hostel)
                     <div class="flex items-start mb-6">
                         <div class="bg-amber-500 rounded-full p-2 -ml-3 mt-1 relative">
                             <i class="fas fa-building text-white text-sm"></i>
                         </div>
                         <div class="ml-6">
-                            <h4 class="font-semibold text-gray-800">नयाँ होस्टल दर्ता भयो</h4>
-                            <p class="text-sm text-gray-600 mt-1">मालिक "सूर्योदय होस्टल" ले नयाँ सम्पत्ति थपे</p>
+                            <h4 class="font-semibold text-gray-800">नयाँ होस्टल दर्ता</h4>
+                            <p class="text-sm text-gray-600 mt-1">{{ $hostel->name }} ({{ $hostel->rooms_count }} कोठाहरू)</p>
                             <div class="flex items-center mt-2">
-                                <span class="text-xs text-gray-500 bg-gray-100 py-1 px-2 rounded-full"><i class="far fa-clock mr-1"></i> ५ घण्टा अघि</span>
+                                <span class="text-xs text-gray-500 bg-gray-100 py-1 px-2 rounded-full">
+                                    <i class="far fa-clock mr-1"></i> {{ $hostel->created_at->diffForHumans() }}
+                                </span>
                             </div>
                         </div>
                     </div>
+                    @endforeach
                     
-                    <div class="flex items-start">
-                        <div class="bg-red-500 rounded-full p-2 -ml-3 mt-1 relative">
-                            <i class="fas fa-user-plus text-white text-sm"></i>
+                    @if($metrics['recent_students']->isEmpty() && $metrics['recent_contacts']->isEmpty() && $metrics['recent_hostels']->isEmpty())
+                    <div class="flex items-start mb-6">
+                        <div class="bg-gray-300 rounded-full p-2 -ml-3 mt-1 relative">
+                            <i class="fas fa-info text-white text-sm"></i>
                         </div>
                         <div class="ml-6">
-                            <h4 class="font-semibold text-gray-800">विद्यार्थी दर्ता</h4>
-                            <p class="text-sm text-gray-600 mt-1">नयाँ विद्यार्थी आईडी STU-00482 सँग दर्ता भए</p>
-                            <div class="flex items-center mt-2">
-                                <span class="text-xs text-gray-500 bg-gray-100 py-1 px-2 rounded-full"><i class="far fa-clock mr-1"></i> हिजो</span>
-                            </div>
+                            <h4 class="font-semibold text-gray-800">कुनै गतिविधि छैन</h4>
+                            <p class="text-sm text-gray-600 mt-1">हाल कुनै गतिविधि दर्ता भएको छैन</p>
                         </div>
                     </div>
+                    @endif
                 </div>
             </div>
         </div>
     </div>
     
+    <!-- Additional Info Section -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- System Status -->
         <div class="bg-white rounded-lg shadow-md p-6">
-            <h3 class="text-xl font-bold mb-4">प्रमाणीकरण स्थिति</h3>
+            <h3 class="text-xl font-bold mb-4">प्रणाली स्थिति</h3>
             <div class="space-y-4">
                 <div class="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
                     <div class="flex items-center">
@@ -148,8 +207,8 @@
                             <i class="fas fa-database text-green-600"></i>
                         </div>
                         <div>
-                            <h4 class="font-semibold">डाटाबेस माइग्रेसनहरू</h4>
-                            <p class="text-sm text-gray-600">मोडेलहरू, सम्बन्धहरू र सिडिङ</p>
+                            <h4 class="font-semibold">डाटाबेस कनेक्सन</h4>
+                            <p class="text-sm text-gray-600">सफलतापूर्वक जडान भएको छ</p>
                         </div>
                     </div>
                     <div class="text-green-600">
@@ -160,26 +219,11 @@
                 <div class="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
                     <div class="flex items-center">
                         <div class="bg-green-100 p-2 rounded-lg mr-4">
-                            <i class="fas fa-user-lock text-green-600"></i>
+                            <i class="fas fa-server text-green-600"></i>
                         </div>
                         <div>
-                            <h4 class="font-semibold">भूमिका-आधारित प्रमाणीकरण</h4>
-                            <p class="text-sm text-gray-600">Spatie Permission कार्यान्वयन</p>
-                        </div>
-                    </div>
-                    <div class="text-green-600">
-                        <i class="fas fa-check-circle text-2xl"></i>
-                    </div>
-                </div>
-                
-                <div class="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                    <div class="flex items-center">
-                        <div class="bg-green-100 p-2 rounded-lg mr-4">
-                            <i class="fas fa-cogs text-green-600"></i>
-                        </div>
-                        <div>
-                            <h4 class="font-semibold">नियन्त्रक संरचना</h4>
-                            <p class="text-sm text-gray-600">प्रशासक, मालिक, विद्यार्थी नियन्त्रकहरू</p>
+                            <h4 class="font-semibold">सर्भर स्थिति</h4>
+                            <p class="text-sm text-gray-600">सबै सेवाहरू सामान्य रूपमा चलिरहेका छन्</p>
                         </div>
                     </div>
                     <div class="text-green-600">
@@ -193,88 +237,48 @@
                             <i class="fas fa-shield-alt text-green-600"></i>
                         </div>
                         <div>
-                            <h4 class="font-semibold">नीति कार्यान्वयन</h4>
-                            <p class="text-sm text-gray-600">HostelPolicy, RoomPolicy, StudentPolicy</p>
+                            <h4 class="font-semibold">सुरक्षा स्थिति</h4>
+                            <p class="text-sm text-gray-600">प्रणाली सुरक्षित रूपमा चलिरहेको छ</p>
                         </div>
                     </div>
                     <div class="text-green-600">
                         <i class="fas fa-check-circle text-2xl"></i>
                     </div>
                 </div>
-                
-                <div class="flex items-center justify-between p-4 border rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors">
-                    <div class="flex items-center">
-                        <div class="bg-blue-100 p-2 rounded-lg mr-4">
-                            <i class="fas fa-tasks text-blue-600"></i>
-                        </div>
-                        <div>
-                            <h4 class="font-semibold">प्रमाणीकरण पूरा गर्दै</h4>
-                            <p class="text-sm text-gray-600">सबै नियन्त्रकहरूमा authorize() method थप्दै</p>
-                        </div>
-                    </div>
-                    <div class="text-blue-600">
-                        <i class="fas fa-hourglass-half text-2xl"></i>
-                    </div>
-                </div>
             </div>
         </div>
         
+        <!-- Quick Actions -->
         <div class="bg-white rounded-lg shadow-md p-6">
-            <h3 class="text-xl font-bold mb-4">अर्को विकास कार्यहरू</h3>
-            <div class="space-y-4">
-                <div class="border-l-4 border-blue-500 pl-4 py-3 hover:bg-gray-50 rounded-r transition-colors">
-                    <h4 class="font-semibold text-gray-800">प्रमाणीकरण पूरा गर्ने</h4>
-                    <p class="text-sm text-gray-600 mt-1">सबै नियन्त्रकहरूमा authorize() method थप्ने</p>
-                    <div class="flex mt-2">
-                        <span class="bg-blue-500 text-white text-xs px-2 py-1 rounded">उच्च प्राथमिकता</span>
-                        <span class="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded ml-2"><i class="far fa-clock mr-1"></i> २ दिन</span>
+            <h3 class="text-xl font-bold mb-4">द्रुत कार्यहरू</h3>
+            <div class="grid grid-cols-2 gap-4">
+                <a href="{{ route('admin.students.create') }}" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg text-center transition-colors">
+                    <div class="text-blue-600 text-2xl mb-2">
+                        <i class="fas fa-user-plus"></i>
                     </div>
-                </div>
+                    <div class="font-medium text-blue-800">विद्यार्थी थप्नुहोस्</div>
+                </a>
                 
-                <div class="border-l-4 border-amber-500 pl-4 py-3 hover:bg-gray-50 rounded-r transition-colors">
-                    <h4 class="font-semibold text-gray-800">दृश्यहरू विकास गर्ने</h4>
-                    <p class="text-sm text-gray-600 mt-1">प्रशासक, मालिक, विद्यार्थी भूमिकाका लागि दृश्यहरू बनाउने</p>
-                    <div class="flex mt-2">
-                        <span class="bg-amber-500 text-white text-xs px-2 py-1 rounded">मध्यम प्राथमिकता</span>
-                        <span class="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded ml-2"><i class="far fa-clock mr-1"></i> ५ दिन</span>
+                <a href="{{ route('admin.rooms.create') }}" class="p-4 bg-green-50 hover:bg-green-100 rounded-lg text-center transition-colors">
+                    <div class="text-green-600 text-2xl mb-2">
+                        <i class="fas fa-door-open"></i>
                     </div>
-                </div>
+                    <div class="font-medium text-green-800">कोठा थप्नुहोस्</div>
+                </a>
                 
-                <div class="border-l-4 border-red-500 pl-4 py-3 hover:bg-gray-50 rounded-r transition-colors">
-                    <h4 class="font-semibold text-gray-800">मध्यपर्दा कार्यान्वयन</h4>
-                    <p class="text-sm text-gray-600 mt-1">मार्गहरूमा भूमिका-आधारित मध्यपर्दा</p>
-                    <div class="flex mt-2">
-                        <span class="bg-red-500 text-white text-xs px-2 py-1 rounded">उच्च प्राथमिकता</span>
-                        <span class="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded ml-2"><i class="far fa-clock mr-1"></i> ३ दिन</span>
+                <a href="{{ route('admin.hostels.create') }}" class="p-4 bg-amber-50 hover:bg-amber-100 rounded-lg text-center transition-colors">
+                    <div class="text-amber-600 text-2xl mb-2">
+                        <i class="fas fa-building"></i>
                     </div>
-                </div>
+                    <div class="font-medium text-amber-800">होस्टल थप्नुहोस्</div>
+                </a>
                 
-                <div class="border-l-4 border-green-500 pl-4 py-3 hover:bg-gray-50 rounded-r transition-colors">
-                    <h4 class="font-semibold text-gray-800">परीक्षण</h4>
-                    <p class="text-sm text-gray-600 mt-1">सबै कार्यक्षमता र भूमिका-आधारित पहुँचको परीक्षण</p>
-                    <div class="flex mt-2">
-                        <span class="bg-green-500 text-white text-xs px-2 py-1 rounded">मध्यम प्राथमिकता</span>
-                        <span class="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded ml-2"><i class="far fa-clock mr-1"></i> ७ दिन</span>
+                <a href="{{ route('admin.reports') }}" class="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg text-center transition-colors">
+                    <div class="text-purple-600 text-2xl mb-2">
+                        <i class="fas fa-chart-bar"></i>
                     </div>
-                </div>
-            </div>
-            
-            <div class="mt-8 pt-6 border-t">
-                <h3 class="text-xl font-bold mb-4">भूमिका प्रदर्शन</h3>
-                <div class="flex flex-wrap gap-3">
-                    <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center transition-colors">
-                        <i class="fas fa-user-shield mr-2"></i>
-                        प्रशासक दृश्य
-                    </button>
-                    <button class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg flex items-center transition-colors">
-                        <i class="fas fa-home mr-2"></i>
-                        मालिक दृश्य
-                    </button>
-                    <button class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg flex items-center transition-colors">
-                        <i class="fas fa-user-graduate mr-2"></i>
-                        विद्यार्थी दृश्य
-                    </button>
-                </div>
+                    <div class="font-medium text-purple-800">प्रतिवेदन हेर्नुहोस्</div>
+                </a>
             </div>
         </div>
     </div>
@@ -282,33 +286,6 @@
 
 @section('scripts')
     <script>
-        // Role tabs functionality
-        const roleTabs = document.querySelectorAll('[id$="-tab"]');
-        roleTabs.forEach(tab => {
-            tab.addEventListener('click', function() {
-                // Remove active class from all tabs
-                roleTabs.forEach(t => {
-                    t.classList.remove('active-role-tab');
-                    t.classList.remove('border-admin', 'border-owner', 'border-student');
-                });
-                
-                // Add active class to clicked tab
-                this.classList.add('active-role-tab');
-                
-                // Add appropriate border color based on role
-                if (this.id === 'admin-tab') {
-                    this.classList.add('border-admin');
-                    alert('प्रशासक दृश्यमा स्विच गर्दै। वास्तविक अनुप्रयोगमा, यसले इन्टरफेस र अनुमतिहरू परिवर्तन गर्थ्यो।');
-                } else if (this.id === 'owner-tab') {
-                    this.classList.add('border-owner');
-                    alert('मालिक दृश्यमा स्विच गर्दै। वास्तविक अनुप्रयोगमा, यसले इन्टरफेस र अनुमतिहरू परिवर्तन गर्थ्यो।');
-                } else if (this.id === 'student-tab') {
-                    this.classList.add('border-student');
-                    alert('विद्यार्थी दृश्यमा स्विच गर्दै। वास्तविक अनुप्रयोगमा, यसले इन्टरफेस र अनुमतिहरू परिवर्तन गर्थ्यो।');
-                }
-            });
-        });
-        
         // Add hover effects to cards
         document.querySelectorAll('.card-hover').forEach(card => {
             card.addEventListener('mouseenter', function() {
@@ -327,14 +304,6 @@
 <style>
     .card-hover {
         transition: all 0.3s ease;
-    }
-    
-    .guide-note {
-        background-color: #FFFBEB;
-        border-left: 4px solid #F59E0B;
-        padding: 1rem;
-        margin: 1rem 0;
-        border-radius: 0.375rem;
     }
     
     .stat-card {

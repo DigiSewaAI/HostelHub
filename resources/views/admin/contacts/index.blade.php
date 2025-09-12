@@ -8,13 +8,26 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
                 <h2 class="fw-bold text-primary">
-                    <i class="fas fa-envelope me-2"></i> सम्पर्क सन्देशहरू
+                    <i class="fas fa-envelope me-2"></i> 
+                    @role('admin')
+                    सम्पर्क सन्देशहरू
+                    @else
+                    मेरा सम्पर्क सन्देशहरू
+                    @endrole
                 </h2>
+                @role('admin')
                 <a href="{{ route('admin.contacts.create') }}" class="btn btn-success btn-lg shadow-sm">
                     <i class="fas fa-plus-circle me-1"></i> नयाँ सम्पर्क थप्नुहोस्
                 </a>
+                @endrole
             </div>
-            <p class="text-muted">यहाँ तपाईंले आएका सम्पर्क सन्देशहरू व्यवस्थापन गर्न सक्नुहुन्छ।</p>
+            <p class="text-muted">
+                @role('admin')
+                यहाँ तपाईंले आएका सम्पर्क सन्देशहरू व्यवस्थापन गर्न सक्नुहुन्छ।
+                @else
+                यहाँ तपाईंले आफ्नो होस्टलका लागि आएका सम्पर्क सन्देशहरू हेर्न सक्नुहुन्छ।
+                @endrole
+            </p>
         </div>
     </div>
 
@@ -59,32 +72,36 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @forelse($submissions as $submission)
+                                @forelse($contacts as $contact)
                                 <tr>
                                     <td class="text-center fw-bold">{{ $loop->iteration }}</td>
-                                    <td>{{ $submission->name }}</td>
-                                    <td><a href="mailto:{{ $submission->email }}" class="text-decoration-none">{{ $submission->email }}</a></td>
-                                    <td>{{ $submission->phone ?? '—' }}</td>
-                                    <td>{{ Str::limit($submission->subject, 30) }}</td>
+                                    <td>{{ $contact->name }}</td>
+                                    <td><a href="mailto:{{ $contact->email }}" class="text-decoration-none">{{ $contact->email }}</a></td>
+                                    <td>{{ $contact->phone ?? '—' }}</td>
+                                    <td>{{ Str::limit($contact->subject, 30) }}</td>
                                     <td>
-                                        @if($submission->status == 'नयाँ')
-                                            <span class="badge bg-warning text-dark">नयाँ</span>
-                                        @elseif($submission->status == 'पढियो')
-                                            <span class="badge bg-info">पढियो</span>
-                                        @elseif($submission->status == 'जवाफ दिइयो')
+                                        @if($contact->status == 'नयाँ' || $contact->status == 'pending')
+                                            <span class="badge bg-warning text-dark">
+                                                {{ $contact->status == 'नयाँ' ? 'नयाँ' : 'प्रतीक्षामा' }}
+                                            </span>
+                                        @elseif($contact->status == 'पढियो' || $contact->status == 'read')
+                                            <span class="badge bg-info">
+                                                {{ $contact->status == 'पढियो' ? 'पढियो' : 'पढिएको' }}
+                                            </span>
+                                        @elseif($contact->status == 'जवाफ दिइयो' || $contact->status == 'replied')
                                             <span class="badge bg-success">जवाफ दिइयो</span>
                                         @else
-                                            <span class="badge bg-secondary">{{ $submission->status }}</span>
+                                            <span class="badge bg-secondary">{{ $contact->status }}</span>
                                         @endif
                                     </td>
                                     <td class="text-center">
-                                        <a href="{{ route('admin.contacts.show', $submission->id) }}" class="btn btn-info btn-sm me-1" title="सन्देश हेर्नुहोस्">
+                                        <a href="{{ route('admin.contacts.show', $contact->id) }}" class="btn btn-info btn-sm me-1" title="सन्देश हेर्नुहोस्">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                        <a href="{{ route('admin.contacts.edit', $submission->id) }}" class="btn btn-primary btn-sm me-1" title="सम्पादन गर्नुहोस्">
+                                        <a href="{{ route('admin.contacts.edit', $contact->id) }}" class="btn btn-primary btn-sm me-1" title="सम्पादन गर्नुहोस्">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <form action="{{ route('admin.contacts.destroy', $submission->id) }}" method="POST" class="d-inline">
+                                        <form action="{{ route('admin.contacts.destroy', $contact->id) }}" method="POST" class="d-inline">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-danger btn-sm" title="मेटाउनुहोस्"
@@ -108,9 +125,9 @@
                     </div>
 
                     <!-- Pagination -->
-                    @if($submissions->hasPages())
+                    @if($contacts->hasPages())
                         <div class="card-footer bg-white d-flex justify-content-center">
-                            {{ $submissions->links() }}
+                            {{ $contacts->links() }}
                         </div>
                     @endif
                 </div>

@@ -33,8 +33,11 @@
                         <tr>
                             <th>ID</th>
                             <th>Name</th>
-                            <th>Location</th>
+                            <th>Address</th>
+                            <th>City</th>
+                            <th>Contact</th>
                             <th>Rooms</th>
+                            <th>Manager</th>
                             <th>Status</th>
                             <th>Actions</th>
                         </tr>
@@ -52,16 +55,27 @@
                                              height="40"
                                              style="object-fit: cover;">
                                     @else
-                                        <div class="bg-light rounded me-2" style="width: 40px; height: 40px;"></div>
+                                        <div class="bg-light rounded me-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                            <i class="fas fa-building text-muted"></i>
+                                        </div>
                                     @endif
                                     <span>{{ $hostel->name }}</span>
                                 </div>
                             </td>
-                            <td>{{ $hostel->location }}</td>
-                            <td>{{ $hostel->rooms_count }}</td>
+                            <td>{{ Str::limit($hostel->address, 20) }}</td>
+                            <td>{{ $hostel->city }}</td>
+                            <td>{{ $hostel->contact_phone }}</td>
+                            <td>{{ $hostel->total_rooms }} / {{ $hostel->available_rooms }} available</td>
                             <td>
-                                <span class="badge {{ $hostel->status === 'active' ? 'bg-success' : 'bg-secondary' }}">
-                                    {{ ucfirst($hostel->status) }}
+                                @if($hostel->manager)
+                                    {{ $hostel->manager->name }}
+                                @else
+                                    <span class="text-muted">Not assigned</span>
+                                @endif
+                            </td>
+                            <td>
+                                <span class="badge {{ $hostel->status === 'active' ? 'bg-success' : ($hostel->status === 'inactive' ? 'bg-secondary' : 'bg-warning') }}">
+                                    {{ ucfirst(str_replace('_', ' ', $hostel->status)) }}
                                 </span>
                             </td>
                             <td>
@@ -95,6 +109,9 @@
                         @endforeach
                     </tbody>
                 </table>
+            </div>
+            <div class="d-flex justify-content-end mt-3">
+                {{ $hostels->links() }}
             </div>
         </div>
     </div>
