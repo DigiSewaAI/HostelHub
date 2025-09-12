@@ -29,39 +29,45 @@
                             <thead class="table-light">
                                 <tr>
                                     <th class="text-center" style="width: 5%;">क्रम संख्या</th>
-                                    <th>सेटिङ्गको नाम</th>
+                                    <th>कि (Key)</th>
                                     <th>मान</th>
+                                    <th>समूह</th>
+                                    <th>प्रकार</th>
                                     <th>विवरण</th>
                                     <th class="text-center" style="width: 20%;">क्रियाहरू</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @forelse($settings as $setting)
-                                <tr>
-                                    <td class="text-center">{{ $loop->iteration }}</td>
-                                    <td><strong>{{ $setting->name }}</strong></td>
-                                    <td>{{ Str::limit($setting->value, 50) }}</td>
-                                    <td>{{ Str::limit($setting->description, 80) }}</td>
-                                    <td class="text-center">
-                                        <a href="{{ route('admin.settings.show', $setting->id) }}" class="btn btn-info btn-sm me-1" title="हेर्नुहोस्">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                        <a href="{{ route('admin.settings.edit', $setting->id) }}" class="btn btn-primary btn-sm me-1" title="सम्पादन गर्नुहोस्">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <form action="{{ route('admin.settings.destroy', $setting->id) }}" method="POST" class="d-inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-danger btn-sm" title="मेटाउनुहोस्"
-                                                onclick="return confirm('के तपाइँ यो सेटिङ्ग मेटाउन निश्चित हुनुहुन्छ?')">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
-                                    </td>
-                                </tr>
+                                @forelse($settings as $group => $groupSettings)
+                                    @foreach($groupSettings as $setting)
+                                    <tr>
+                                        <td class="text-center">{{ $loop->iteration }}</td>
+                                        <td><strong>{{ $setting->key }}</strong></td>
+                                        <td>{{ Str::limit($setting->value, 30) }}</td>
+                                        <td>{{ $setting->group }}</td>
+                                        <td>{{ $setting->type }}</td>
+                                        <td>{{ Str::limit($setting->description, 50) }}</td>
+                                        <td class="text-center">
+                                            <a href="{{ route('admin.settings.show', $setting->id) }}" class="btn btn-info btn-sm me-1" title="हेर्नुहोस्">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{{ route('admin.settings.edit', $setting->id) }}" class="btn btn-primary btn-sm me-1" title="सम्पादन गर्नुहोस्">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <form action="{{ route('admin.settings.destroy', $setting->id) }}" method="POST" class="d-inline">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-danger btn-sm" title="मेटाउनुहोस्"
+                                                    onclick="return confirm('के तपाइँ यो सेटिङ्ग मेटाउन निश्चित हुनुहुन्छ?')">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    @endforeach
                                 @empty
                                 <tr>
-                                    <td colspan="5" class="text-center py-4">
+                                    <td colspan="7" class="text-center py-4">
                                         <i class="fas fa-exclamation-circle text-muted me-2"></i>
                                         कुनै सेटिङ्हरू फेला परेनन्
                                     </td>

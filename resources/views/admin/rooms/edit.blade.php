@@ -1,8 +1,8 @@
-@extends('layouts.admin')
+@extends('layouts.app')
 
-@section('शीर्षक', 'कोठा सम्पादन गर्नुहोस्')
+@section('title', 'कोठा सम्पादन गर्नुहोस्')
 
-@section('विस्तार')
+@section('content')
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
@@ -11,11 +11,12 @@
                     <h3 class="card-title">कोठा सम्पादन गर्नुहोस्</h3>
                 </div>
 
-                <form action="{{ route('admin.rooms.update', $room->id) }}" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('admin.rooms.update', $room) }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
                     <div class="card-body">
                         <div class="row">
+                            @role('admin')
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="hostel_id">होस्टल</label>
@@ -29,6 +30,10 @@
                                     </select>
                                 </div>
                             </div>
+                            @else
+                            <input type="hidden" name="hostel_id" value="{{ $room->hostel_id }}">
+                            @endrole
+                            
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="room_number">कोठा नम्बर</label>
@@ -42,9 +47,9 @@
                                 <div class="form-group">
                                     <label for="type">कोठाको प्रकार</label>
                                     <select class="form-control" id="type" name="type" required>
-                                        <option value="स्ट्यान्डर्ड" {{ $room->type == 'स्ट्यान्डर्ड' ? 'selected' : '' }}>स्ट्यान्डर्ड</option>
-                                        <option value="डीलक्स" {{ $room->type == 'डीलक्स' ? 'selected' : '' }}>डीलक्स</option>
-                                        <option value="विआईपी" {{ $room->type == 'विआईपी' ? 'selected' : '' }}>विआईपी</option>
+                                        <option value="single" {{ $room->type == 'single' ? 'selected' : '' }}>एकल</option>
+                                        <option value="double" {{ $room->type == 'double' ? 'selected' : '' }}>डबल</option>
+                                        <option value="shared" {{ $room->type == 'shared' ? 'selected' : '' }}>साझा</option>
                                     </select>
                                 </div>
                             </div>
@@ -70,14 +75,15 @@
                                 <div class="form-group">
                                     <label for="status">हालको स्थिति</label>
                                     <select class="form-control" id="status" name="status" required>
-                                        <option value="उपलब्ध" {{ $room->status == 'उपलब्ध' ? 'selected' : '' }}>उपलब्ध</option>
-                                        <option value="बुक भएको" {{ $room->status == 'बुक भएको' ? 'selected' : '' }}>बुक भएको</option>
-                                        <option value="रिङ्गोट" {{ $room->status == 'रिङ्गोट' ? 'selected' : '' }}>रिङ्गोट</option>
+                                        <option value="available" {{ $room->status == 'available' ? 'selected' : '' }}>उपलब्ध</option>
+                                        <option value="occupied" {{ $room->status == 'occupied' ? 'selected' : '' }}>व्यस्त</option>
+                                        <option value="maintenance" {{ $room->status == 'maintenance' ? 'selected' : '' }}>मर्मत सम्भार</option>
                                     </select>
                                 </div>
                             </div>
                         </div>
 
+                        @role('admin')
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
@@ -98,6 +104,7 @@
                                 </div>
                             </div>
                         </div>
+                        @endrole
 
                         <div class="form-group">
                             <label for="description">कोठाको विवरण</label>

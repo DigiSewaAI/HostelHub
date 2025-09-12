@@ -5,17 +5,72 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="mb-0"><i class="fas fa-chart-bar me-2"></i>प्रतिवेदन ड्यासबोर्ड</h1>
         <div class="d-flex">
-            <button class="btn btn-outline-primary me-2">
-                <i class="fas fa-download me-1"></i> PDF डाउनलोड
-            </button>
-            <button class="btn btn-primary">
+            <form action="{{ route('admin.reports.download.pdf') }}" method="POST" class="me-2">
+                @csrf
+                <input type="hidden" name="type" value="summary">
+                <button type="submit" class="btn btn-outline-primary">
+                    <i class="fas fa-download me-1"></i> PDF डाउनलोड
+                </button>
+            </form>
+            <button class="btn btn-primary" onclick="window.print()">
                 <i class="fas fa-print me-1"></i> प्रिन्ट गर्नुहोस्
             </button>
         </div>
     </div>
 
-    <!-- मुख्य तथ्याङ्क -->
+    <!-- Date Range Selector -->
     <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <form id="reportFilterForm" class="row g-3">
+                        @csrf
+                        <div class="col-md-3">
+                            <label for="report_type" class="form-label">प्रतिवेदन प्रकार</label>
+                            <select class="form-select" id="report_type" name="report_type">
+                                <option value="summary">सामान्य सारांश</option>
+                                <option value="monthly">मासिक प्रतिवेदन</option>
+                                <option value="yearly">वार्षिक प्रतिवेदन</option>
+                                <option value="custom">अनुकूलित मिति</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 monthly-selector" style="display: none;">
+                            <label for="month" class="form-label">महिना</label>
+                            <select class="form-select" id="month" name="month">
+                                @foreach(['जनवरी', 'फेब्रुअरी', 'मार्च', 'अप्रिल', 'मे', 'जुन', 'जुलाई', 'अगस्ट', 'सेप्टेम्बर', 'अक्टोबर', 'नोभेम्बर', 'डिसेम्बर'] as $index => $month)
+                                    <option value="{{ $index + 1 }}" {{ (now()->month == $index + 1) ? 'selected' : '' }}>{{ $month }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-3 yearly-selector" style="display: none;">
+                            <label for="year" class="form-label">वर्ष</label>
+                            <select class="form-select" id="year" name="year">
+                                @for($y = now()->year; $y >= 2020; $y--)
+                                    <option value="{{ $y }}" {{ (now()->year == $y) ? 'selected' : '' }}>{{ $y }}</option>
+                                @endfor
+                            </select>
+                        </div>
+                        <div class="col-md-3 custom-selector" style="display: none;">
+                            <label for="start_date" class="form-label">सुरु मिति</label>
+                            <input type="date" class="form-control" id="start_date" name="start_date" value="{{ now()->subMonth()->format('Y-m-d') }}">
+                        </div>
+                        <div class="col-md-3 custom-selector" style="display: none;">
+                            <label for="end_date" class="form-label">अन्तिम मिति</label>
+                            <input type="date" class="form-control" id="end_date" name="end_date" value="{{ now()->format('Y-m-d') }}">
+                        </div>
+                        <div class="col-md-3 align-self-end">
+                            <button type="button" id="filterReport" class="btn btn-primary">
+                                <i class="fas fa-filter me-1"></i> प्रतिवेदन देखाउनुहोस्
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- मुख्य तथ्याङ्क -->
+    <div class="row mb-4" id="mainStats">
         <div class="col-md-3 mb-3">
             <div class="card border-0 shadow-sm bg-primary text-white">
                 <div class="card-body">
@@ -23,7 +78,7 @@
                         <div class="flex-grow-1">
                             <h5 class="card-title">कुल विद्यार्थी</h5>
                             <h2 class="card-text mb-0">{{ $reportData['student_registrations'] }}</h2>
-                            <small>हजार बढ्दो</small>
+                            <small id="studentTrend">हजार बढ्दो</small>
                         </div>
                         <div class="flex-shrink-0">
                             <i class="fas fa-users fa-2x opacity-50"></i>
@@ -151,6 +206,115 @@
 @section('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+    // Report type selector logic
+    document.getElementById('report_type').addEventListener('change', function() {
+        const type = this.value;
+        document.querySelectorAll('.monthly-selector, .yearly-selector, .custom-selector').forEach(el => {
+            el.style.display = 'none';
+        });
+        
+        if (type === 'monthly') {
+            document.querySelectorAll('.monthly-selector, .yearly-selector').forEach(el => {
+                el.style.display = 'block';
+            });
+        } else if (type === 'yearly') {
+            document.querySelector('.yearly-selector').style.display = 'block';
+        } else if (type === 'custom') {
+            document.querySelectorAll('.custom-selector').forEach(el => {
+                el.style.display = 'block';
+            });
+        }
+    });
+
+    // Trigger change event on page load to show/hide appropriate fields
+    document.getElementById('report_type').dispatchEvent(new Event('change'));
+
+    // Filter report button handler
+    document.getElementById('filterReport').addEventListener('click', function() {
+        const formData = new FormData(document.getElementById('reportFilterForm'));
+        const reportType = formData.get('report_type');
+        
+        // Show loading state
+        this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> लोड हुँदै...';
+        this.disabled = true;
+        
+        let url = '{{ route("admin.reports.filter") }}';
+        let data = {
+            _token: '{{ csrf_token() }}',
+            type: reportType
+        };
+        
+        if (reportType === 'monthly') {
+            data.year = formData.get('year');
+            data.month = formData.get('month');
+        } else if (reportType === 'yearly') {
+            data.year = formData.get('year');
+        } else if (reportType === 'custom') {
+            data.start_date = formData.get('start_date');
+            data.end_date = formData.get('end_date');
+        }
+        
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update the dashboard with new data
+                updateDashboard(data.data, reportType);
+            } else {
+                alert('प्रतिवेदन लोड गर्न असफल: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('प्रतिवेदन लोड गर्न असफल।');
+        })
+        .finally(() => {
+            // Reset button state
+            this.innerHTML = '<i class="fas fa-filter me-1"></i> प्रतिवेदन देखाउनुहोस्';
+            this.disabled = false;
+        });
+    });
+
+    // Function to update dashboard with filtered data
+    function updateDashboard(data, type) {
+        // Update main stats based on report type
+        if (type === 'summary') {
+            // This would be the default dashboard data
+            location.reload(); // Reload page for summary data
+        } else {
+            // For other report types, update the UI accordingly
+            document.getElementById('mainStats').innerHTML = `
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        ${type} प्रतिवेदनको लागि विस्तृत तथ्याङ्क तलको तालिकामा देखाइएको छ।
+                    </div>
+                </div>
+            `;
+            
+            // Update charts with filtered data if available
+            if (data.daily_revenue) {
+                // Update revenue chart with daily data
+                updateRevenueChart(data.daily_revenue);
+            }
+            
+            // You can add more UI updates based on the returned data
+        }
+    }
+
+    // Function to update revenue chart with daily data
+    function updateRevenueChart(dailyRevenue) {
+        // This is a placeholder - you would need to implement based on your data structure
+        console.log('Updating chart with:', dailyRevenue);
+    }
+
     // आय चार्ट
     const revenueCtx = document.getElementById('revenueChart').getContext('2d');
     const revenueChart = new Chart(revenueCtx, {
@@ -187,7 +351,7 @@
         data: {
             labels: ['अधिभृत', 'उपलब्ध', 'आरक्षित', 'मर्मतमा'],
             datasets: [{
-                data: [65, 15, 10, 10],
+                data: [{{ $reportData['room_occupancy'] }}, {{ $reportData['available_rooms'] }}, 10, 5],
                 backgroundColor: [
                     '#0d6efd',
                     '#198754',

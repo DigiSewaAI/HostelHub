@@ -61,7 +61,7 @@ class Kernel extends HttpKernel
         'role_or_permission' => \Spatie\Permission\Middlewares\RoleOrPermissionMiddleware::class,
 
         // Custom Application Middlewares
-        // 'checkrole' => \App\Http\Middleware\CheckRole::class, // Removed as we're using Spatie's role middleware
+        'checkrole' => \App\Http\Middleware\CheckRole::class, // Added custom CheckRole middleware
         'role.multiple' => \App\Http\Middleware\RoleMiddleware::class,
         'admin' => \App\Http\Middleware\AdminMiddleware::class,
         'subscription.active' => \App\Http\Middleware\EnsureSubscriptionActive::class,

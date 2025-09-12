@@ -1,18 +1,26 @@
 @extends('layouts.admin')
 
+@section('title', 'ग्यालेरी व्यवस्थापन')
+
 @section('content')
 <div class="container mx-auto px-4 py-6">
     <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold">Gallery Management</h1>
+        <h1 class="text-2xl font-bold">
+            @role('admin')
+            ग्यालेरी व्यवस्थापन
+            @else
+            मेरो ग्यालेरी
+            @endrole
+        </h1>
         <a href="{{ route('admin.galleries.create') }}" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
-            + Add New
+            + नयाँ थप्नुहोस्
         </a>
     </div>
 
     <!-- Category Filter -->
     <div class="mb-6 bg-white p-4 rounded shadow">
         <form method="GET" action="{{ route('admin.galleries.index') }}">
-            <label for="category" class="block text-sm font-medium text-gray-700 mb-2">Filter by Category:</label>
+            <label for="category" class="block text-sm font-medium text-gray-700 mb-2">श्रेणी अनुसार फिल्टर गर्नुहोस्:</label>
             <div class="flex items-center space-x-4">
                 <select name="category" id="category" class="rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
                     @foreach($categories as $key => $value)
@@ -20,10 +28,10 @@
                     @endforeach
                 </select>
                 <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
-                    Filter
+                    फिल्टर गर्नुहोस्
                 </button>
                 <a href="{{ route('admin.galleries.index') }}" class="text-gray-500 hover:text-gray-700">
-                    Clear
+                    खाली गर्नुहोस्
                 </a>
             </div>
         </form>
@@ -33,13 +41,13 @@
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr>
-                    <th class="px-6 py-3 text-left">Thumbnail</th>
-                    <th class="px-6 py-3 text-left">Title</th>
-                    <th class="px-6 py-3 text-left">Category</th>
-                    <th class="px-6 py-3 text-left">Type</th>
-                    <th class="px-6 py-3 text-left">Status</th>
-                    <th class="px-6 py-3 text-left">Featured</th>
-                    <th class="px-6 py-3 text-left">Actions</th>
+                    <th class="px-6 py-3 text-left">थम्बनेल</th>
+                    <th class="px-6 py-3 text-left">शीर्षक</th>
+                    <th class="px-6 py-3 text-left">श्रेणी</th>
+                    <th class="px-6 py-3 text-left">प्रकार</th>
+                    <th class="px-6 py-3 text-left">स्थिति</th>
+                    <th class="px-6 py-3 text-left">फिचर्ड</th>
+                    <th class="px-6 py-3 text-left">कार्यहरू</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-200">
@@ -52,7 +60,7 @@
                                     <source src="{{ asset('storage/'.$item->file_path) }}" type="{{ $item->mime_type }}">
                                 </video>
                             @else
-                                <img src="{{ asset('storage/'.$item->file_path) }}" alt="Gallery Image" class="w-16 h-16 object-cover rounded">
+                                <img src="{{ asset('storage/'.$item->file_path) }}" alt="ग्यालेरी तस्वीर" class="w-16 h-16 object-cover rounded">
                             @endif
                         @else
                             <div class="bg-gray-200 border-2 border-dashed rounded-xl w-16 h-16 flex items-center justify-center">
@@ -71,7 +79,7 @@
                             <button type="submit" 
                                     class="px-3 py-1 rounded-full text-xs font-medium 
                                             {{ $item->is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
-                                {{ $item->is_active ? 'Active' : 'Inactive' }}
+                                {{ $item->is_active ? 'सक्रिय' : 'निष्क्रिय' }}
                             </button>
                         </form>
                     </td>
@@ -81,19 +89,19 @@
                             <button type="submit" 
                                     class="px-3 py-1 rounded-full text-xs font-medium 
                                             {{ $item->is_featured ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800' }}">
-                                {{ $item->is_featured ? 'Yes' : 'No' }}
+                                {{ $item->is_featured ? 'हो' : 'होइन' }}
                             </button>
                         </form>
                     </td>
                     <td class="px-6 py-4 flex space-x-2">
                         <a href="{{ route('admin.galleries.edit', $item) }}" class="text-blue-500 hover:text-blue-700">
-                            Edit
+                            सम्पादन
                         </a>
                         <form action="{{ route('admin.galleries.destroy', $item) }}" method="POST">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="text-red-500 hover:text-red-700" 
-                                onclick="return confirm('Are you sure?')">Delete</button>
+                                onclick="return confirm('के तपाईं निश्चित हुनुहुन्छ?')">मेटाउनुहोस्</button>
                         </form>
                     </td>
                 </tr>
@@ -137,7 +145,7 @@ function viewMedia(item) {
         modalContent.innerHTML = `
             <video controls class="max-h-96">
                 <source src="/storage/${item.file_path}" type="${item.mime_type}">
-                Your browser does not support the video tag.
+                तपाईंको ब्राउजरले भिडियो ट्यागलाई समर्थन गर्दैन।
             </video>
         `;
     } else if (item.media_type === 'external_video' && item.external_link) {

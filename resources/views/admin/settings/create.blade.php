@@ -14,19 +14,55 @@
                         @csrf
 
                         <div class="mb-3">
-                            <label for="name" class="form-label">सेटिङ्गको नाम</label>
-                            <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" required>
-                            @error('name')
+                            <label for="key" class="form-label">सेटिङ्ग कि (Key) <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control @error('key') is-invalid @enderror" id="key" name="key" value="{{ old('key') }}" required>
+                            @error('key')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                            <small class="form-text text-muted">उदाहरण: site_name, admin_email</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="value" class="form-label">मान <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control @error('value') is-invalid @enderror" id="value" name="value" value="{{ old('value') }}" required>
+                            @error('value')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
 
                         <div class="mb-3">
-                            <label for="value" class="form-label">मान</label>
-                            <input type="text" class="form-control @error('value') is-invalid @enderror" id="value" name="value" value="{{ old('value') }}" required>
-                            @error('value')
+                            <label for="group" class="form-label">समूह <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control @error('group') is-invalid @enderror" id="group" name="group" value="{{ old('group') }}" required>
+                            @error('group')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
+                            <small class="form-text text-muted">उदाहरण: general, payment, email</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="type" class="form-label">प्रकार <span class="text-danger">*</span></label>
+                            <select class="form-select @error('type') is-invalid @enderror" id="type" name="type" required>
+                                <option value="">प्रकार छान्नुहोस्</option>
+                                <option value="text" {{ old('type') == 'text' ? 'selected' : '' }}>Text</option>
+                                <option value="number" {{ old('type') == 'number' ? 'selected' : '' }}>Number</option>
+                                <option value="textarea" {{ old('type') == 'textarea' ? 'selected' : '' }}>Textarea</option>
+                                <option value="select" {{ old('type') == 'select' ? 'selected' : '' }}>Select</option>
+                                <option value="boolean" {{ old('type') == 'boolean' ? 'selected' : '' }}>Boolean</option>
+                                <option value="email" {{ old('type') == 'email' ? 'selected' : '' }}>Email</option>
+                                <option value="url" {{ old('type') == 'url' ? 'selected' : '' }}>URL</option>
+                            </select>
+                            @error('type')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="mb-3 d-none" id="options-field">
+                            <label for="options" class="form-label">विकल्पहरू (JSON Format) <span class="text-danger">*</span></label>
+                            <textarea class="form-control @error('options') is-invalid @enderror" id="options" name="options" rows="3" placeholder='{"option1": "Value 1", "option2": "Value 2"}'>{{ old('options') }}</textarea>
+                            @error('options')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                            <small class="form-text text-muted">Select प्रकारको लागि JSON format मा विकल्पहरू</small>
                         </div>
 
                         <div class="mb-3">
@@ -47,4 +83,22 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const typeSelect = document.getElementById('type');
+        const optionsField = document.getElementById('options-field');
+        
+        function toggleOptionsField() {
+            if (typeSelect.value === 'select') {
+                optionsField.classList.remove('d-none');
+            } else {
+                optionsField.classList.add('d-none');
+            }
+        }
+        
+        typeSelect.addEventListener('change', toggleOptionsField);
+        toggleOptionsField(); // Initial check
+    });
+</script>
 @endsection

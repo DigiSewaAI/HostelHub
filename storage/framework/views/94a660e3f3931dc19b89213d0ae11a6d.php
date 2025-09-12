@@ -6,16 +6,13 @@
         <div class="mb-3">
             <div class="text-md text-gray-500 dark:text-gray-400">
                 <div class="mb-2">
-
                     <?php if(config('app.editor')): ?>
                         <a href="<?php echo e($frame->editorHref()); ?>" class="text-blue-500 hover:underline">
-                            <span class="wrap text-gray-900 dark:text-gray-300"><?php echo e($frame->file()); ?></span>
+                            <span class="wrap"><?php echo e($frame->file()); ?></span><span class="font-mono text-xs">:<?php echo e($frame->line()); ?></span>
                         </a>
                     <?php else: ?>
-                        <span class="wrap text-gray-900 dark:text-gray-300"><?php echo e($frame->file()); ?></span>
+                        <span class="wrap text-gray-900 dark:text-gray-300"><?php echo e($frame->file()); ?></span><span class="font-mono text-xs">:<?php echo e($frame->line()); ?></span>
                     <?php endif; ?>
-
-                    <span class="font-mono text-xs">:<?php echo e($frame->line()); ?></span>
                 </div>
             </div>
         </div>

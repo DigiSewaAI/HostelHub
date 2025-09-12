@@ -1,17 +1,12 @@
 @extends('layouts.owner')
 
-@section('title', 'Hostel Management')
+@section('title', 'My Hostel')
 
 @section('content')
 <div class="container-fluid py-4">
     <div class="row mb-4">
         <div class="col-12">
-            <div class="d-flex align-items-center justify-content-between">
-                <h2 class="mb-0">Hostel Management</h2>
-                <a href="{{ route('admin.hostels.create') }}" class="btn btn-primary">
-                    <i class="fas fa-plus me-2"></i>New Hostel
-                </a>
-            </div>
+            <h2 class="mb-0">My Hostel</h2>
         </div>
     </div>
 
@@ -22,97 +17,97 @@
         </div>
     @endif
 
-    <div class="card shadow">
-        <div class="card-header bg-white py-3">
-            <h6 class="m-0 font-weight-bold text-primary">All Hostels</h6>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover" id="dataTable" width="100%" cellspacing="0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Location</th>
-                            <th>Rooms</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($hostels as $hostel)
-                        <tr>
-                            <td>{{ $hostel->id }}</td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    @if($hostel->image)
-                                        <img src="{{ asset('storage/'.$hostel->image) }}"
-                                             class="rounded me-2"
-                                             width="40"
-                                             height="40"
-                                             style="object-fit: cover;">
-                                    @else
-                                        <div class="bg-light rounded me-2" style="width: 40px; height: 40px;"></div>
-                                    @endif
-                                    <span>{{ $hostel->name }}</span>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Hostel Details</h6>
+                </div>
+                <div class="card-body">
+                    @if($hostel)
+                        <div class="row">
+                            <div class="col-md-4">
+                                @if($hostel->image)
+                                    <img src="{{ asset('storage/'.$hostel->image) }}"
+                                         class="img-fluid rounded mb-3"
+                                         style="max-height: 250px; object-fit: cover; width: 100%;">
+                                @else
+                                    <div class="bg-light rounded mb-3 d-flex align-items-center justify-content-center"
+                                         style="height: 250px; width: 100%;">
+                                        <span class="text-muted"><i class="fas fa-building fa-3x"></i></span>
+                                    </div>
+                                @endif
+                            </div>
+                            <div class="col-md-8">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold">Hostel Name</label>
+                                            <p>{{ $hostel->name }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold">Status</label>
+                                            <p>
+                                                <span class="badge {{ $hostel->status === 'active' ? 'bg-success' : ($hostel->status === 'inactive' ? 'bg-secondary' : 'bg-warning') }}">
+                                                    {{ ucfirst(str_replace('_', ' ', $hostel->status)) }}
+                                                </span>
+                                            </p>
+                                        </div>
+                                    </div>
                                 </div>
-                            </td>
-                            <td>{{ $hostel->location }}</td>
-                            <td>{{ $hostel->rooms_count }}</td>
-                            <td>
-                                <span class="badge {{ $hostel->status === 'active' ? 'bg-success' : 'bg-secondary' }}">
-                                    {{ ucfirst($hostel->status) }}
-                                </span>
-                            </td>
-                            <td>
-                                <div class="d-flex gap-2">
-                                    <a href="{{ route('admin.hostels.show', $hostel) }}"
-                                       class="btn btn-sm btn-info"
-                                       title="View Details">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                    <a href="{{ route('admin.hostels.edit', $hostel) }}"
-                                       class="btn btn-sm btn-warning"
-                                       title="Edit">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <form action="{{ route('admin.hostels.destroy', $hostel) }}"
-                                          method="POST"
-                                          class="delete-form"
-                                          style="display: inline;">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit"
-                                                class="btn btn-sm btn-danger"
-                                                title="Delete"
-                                                onclick="return confirm('Are you sure you want to delete this hostel?')">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold">Total Rooms</label>
+                                            <p>{{ $hostel->total_rooms }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold">Available Rooms</label>
+                                            <p class="text-success">{{ $hostel->available_rooms }}</p>
+                                        </div>
+                                    </div>
                                 </div>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Address</label>
+                                    <p>{{ $hostel->address }}, {{ $hostel->city }}</p>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold">Contact Person</label>
+                                            <p>{{ $hostel->contact_person }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold">Contact Phone</label>
+                                            <p>{{ $hostel->contact_phone }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                    <a href="{{ route('owner.hostels.edit', $hostel) }}" class="btn btn-primary">
+                                        <i class="fas fa-edit me-1"></i> Edit Hostel
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    @else
+                        <div class="alert alert-info">
+                            No hostel assigned to you.
+                        </div>
+                    @endif
+                </div>
             </div>
         </div>
     </div>
 </div>
 @endsection
-
-@push('scripts')
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Delete confirmation
-        const deleteForms = document.querySelectorAll('.delete-form');
-        deleteForms.forEach(form => {
-            form.addEventListener('submit', function(e) {
-                if (!confirm('Are you sure you want to delete this hostel? All rooms and associated data will be removed.')) {
-                    e.preventDefault();
-                }
-            });
-        });
-    });
-</script>
-@endpush

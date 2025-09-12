@@ -22,6 +22,26 @@
             </div>
 
             <div class="flex items-center gap-3 sm:gap-6">
+                <?php if (isset($component)) { $__componentOriginala65c25d014fe95dcda324a85a3ac253a = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginala65c25d014fe95dcda324a85a3ac253a = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'laravel-exceptions-renderer::components.copy-button','data' => ['markdown' => $exceptionAsMarkdown]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('laravel-exceptions-renderer::copy-button'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['markdown' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($exceptionAsMarkdown)]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginala65c25d014fe95dcda324a85a3ac253a)): ?>
+<?php $attributes = $__attributesOriginala65c25d014fe95dcda324a85a3ac253a; ?>
+<?php unset($__attributesOriginala65c25d014fe95dcda324a85a3ac253a); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginala65c25d014fe95dcda324a85a3ac253a)): ?>
+<?php $component = $__componentOriginala65c25d014fe95dcda324a85a3ac253a; ?>
+<?php unset($__componentOriginala65c25d014fe95dcda324a85a3ac253a); ?>
+<?php endif; ?>
                 <?php if (isset($component)) { $__componentOriginal9b6ddd2809dd60ece07dfaf1f3ef876f = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal9b6ddd2809dd60ece07dfaf1f3ef876f = $attributes; } ?>
 <?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'laravel-exceptions-renderer::components.theme-switcher','data' => []] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>

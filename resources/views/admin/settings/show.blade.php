@@ -11,9 +11,9 @@
 
                 <div class="card-body">
                     <div class="mb-3 row">
-                        <label class="col-sm-4 col-form-label fw-bold">सेटिङ्गको नाम:</label>
+                        <label class="col-sm-4 col-form-label fw-bold">सेटिङ्ग कि (Key):</label>
                         <div class="col-sm-8">
-                            <p class="form-control-plaintext">{{ $setting->name }}</p>
+                            <p class="form-control-plaintext">{{ $setting->key }}</p>
                         </div>
                     </div>
 
@@ -25,9 +25,39 @@
                     </div>
 
                     <div class="mb-3 row">
+                        <label class="col-sm-4 col-form-label fw-bold">समूह:</label>
+                        <div class="col-sm-8">
+                            <p class="form-control-plaintext">{{ $setting->group }}</p>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label class="col-sm-4 col-form-label fw-bold">प्रकार:</label>
+                        <div class="col-sm-8">
+                            <p class="form-control-plaintext">{{ $setting->type }}</p>
+                        </div>
+                    </div>
+
+                    @if($setting->options)
+                    <div class="mb-3 row">
+                        <label class="col-sm-4 col-form-label fw-bold">विकल्पहरू:</label>
+                        <div class="col-sm-8">
+                            <pre class="form-control-plaintext bg-light p-2">{{ $setting->options }}</pre>
+                        </div>
+                    </div>
+                    @endif
+
+                    <div class="mb-3 row">
                         <label class="col-sm-4 col-form-label fw-bold">विवरण:</label>
                         <div class="col-sm-8">
                             <p class="form-control-plaintext">{{ $setting->description ?? 'कुनै विवरण उपलब्ध छैन' }}</p>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label class="col-sm-4 col-form-label fw-bold">सिस्टम सेटिङ्ग:</label>
+                        <div class="col-sm-8">
+                            <p class="form-control-plaintext">{{ $setting->is_system ? 'हो' : 'होइन' }}</p>
                         </div>
                     </div>
 

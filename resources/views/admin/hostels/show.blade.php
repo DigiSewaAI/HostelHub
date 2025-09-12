@@ -24,17 +24,17 @@
                              class="img-fluid rounded mb-3"
                              style="max-height: 250px; object-fit: cover; width: 100%;">
                     @else
-                        <div class="bg-light rounded mb-3"
-                             style="height: 250px; width: 100%; display: flex; align-items: center; justify-content: center;">
-                            <span class="text-muted">No image available</span>
+                        <div class="bg-light rounded mb-3 d-flex align-items-center justify-content-center"
+                             style="height: 250px; width: 100%;">
+                            <span class="text-muted"><i class="fas fa-building fa-3x"></i></span>
                         </div>
                     @endif
 
                     <ul class="list-group list-group-flush">
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             <strong>Status</strong>
-                            <span class="badge {{ $hostel->status === 'active' ? 'bg-success' : ($hostel->status === 'maintenance' ? 'bg-warning' : 'bg-secondary') }}">
-                                {{ ucfirst($hostel->status) }}
+                            <span class="badge {{ $hostel->status === 'active' ? 'bg-success' : ($hostel->status === 'inactive' ? 'bg-secondary' : 'bg-warning') }}">
+                                {{ ucfirst(str_replace('_', ' ', $hostel->status)) }}
                             </span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center">
@@ -43,19 +43,37 @@
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             <strong>Available Rooms</strong>
-                            <span class="text-success">{{ $hostel->rooms()->available()->count() }}</span>
+                            <span class="text-success">{{ $hostel->available_rooms }}</span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <strong>Occupied Rooms</strong>
-                            <span class="text-danger">{{ $hostel->rooms()->occupied()->count() }}</span>
+                            <strong>Manager</strong>
+                            <span>
+                                @if($hostel->manager)
+                                    {{ $hostel->manager->name }}
+                                @else
+                                    <span class="text-muted">Not assigned</span>
+                                @endif
+                            </span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <strong>Maintenance Rooms</strong>
-                            <span class="text-warning">{{ $hostel->rooms()->maintenance()->count() }}</span>
+                            <strong>Contact Person</strong>
+                            <span>{{ $hostel->contact_person }}</span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <strong>Occupancy Rate</strong>
-                            <span class="fw-bold">{{ $hostel->getOccupancyRate() }}%</span>
+                            <strong>Contact Phone</strong>
+                            <span>{{ $hostel->contact_phone }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <strong>Contact Email</strong>
+                            <span>{{ $hostel->contact_email ?? 'N/A' }}</span>
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Address:</strong>
+                            <p class="mb-0">{{ $hostel->address }}, {{ $hostel->city }}</p>
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Facilities:</strong>
+                            <p class="mb-0">{{ $hostel->facilities ?: 'N/A' }}</p>
                         </li>
                     </ul>
                 </div>
@@ -145,6 +163,15 @@
                             </table>
                         </div>
                     @endif
+                </div>
+            </div>
+
+            <div class="card shadow mt-4">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Hostel Description</h6>
+                </div>
+                <div class="card-body">
+                    <p>{{ $hostel->description ?: 'No description provided.' }}</p>
                 </div>
             </div>
         </div>
