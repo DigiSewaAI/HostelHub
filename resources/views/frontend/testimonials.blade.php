@@ -40,8 +40,7 @@
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 1.5rem;
   ">
-
-    <!-- Testimonial 1 -->
+    @forelse($testimonials as $testimonial)
     <div style="
       background: white;
       border: 1px solid #e5e7eb;
@@ -49,166 +48,75 @@
       padding: 1.5rem;
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
       transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
     " onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 20px 25px -5px rgba(0, 0, 0, 0.1)';"
        onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(0, 0, 0, 0.1)';">
+      
+      <!-- Display image or initials if available -->
+      <div style="margin-bottom: 1rem; text-align: center;">
+        @if($testimonial->image)
+        <img src="{{ asset('storage/' . $testimonial->image) }}" alt="{{ $testimonial->name }}" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover;">
+        @elseif($testimonial->initials)
+        <div style="width: 60px; height: 60px; border-radius: 50%; background: #001F5B; color: white; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem;">
+          {{ $testimonial->initials }}
+        </div>
+        @else
+        <div style="width: 60px; height: 60px; border-radius: 50%; background: #e5e7eb; color: #6b7280; display: inline-flex; align-items: center; justify-content: center; font-weight: bold;">
+          <i class="fas fa-user" style="font-size: 1.2rem;"></i>
+        </div>
+        @endif
+      </div>
+      
       <p style="
         font-style: italic;
         color: #374151;
         line-height: 1.6;
-        margin: 0;
+        margin: 0 0 1rem 0;
+        flex-grow: 1;
       ">
-        “HostelHub ले हाम्रो होस्टल पूर्ण रूपमा streamline गर्यो। सबै कामहरू अब एउटै प्लेटफर्ममा छन्।”
+        "{{ $testimonial->content }}"
       </p>
+      
+      <!-- Display rating if available -->
+      @if($testimonial->rating)
+      <div style="margin-bottom: 1rem; text-align: center;">
+        @for($i = 1; $i <= 5; $i++)
+          <span style="color: {{ $i <= $testimonial->rating ? '#fbbf24' : '#d1d5db' }}; font-size: 1.2rem;">★</span>
+        @endfor
+        <span style="margin-left: 0.5rem; color: #6b7280; font-size: 0.9rem;">({{ $testimonial->rating }}/5)</span>
+      </div>
+      @endif
+      
       <div style="
-        margin-top: 1rem;
+        margin-top: auto;
         font-weight: 600;
         color: #001F5B;
         font-size: 0.875rem;
+        text-align: center;
+        border-top: 1px solid #f3f4f6;
+        padding-top: 1rem;
       ">
-        — राम श्रेष्ठ, काठमाडौं होस्टल
+        — {{ $testimonial->name }}{{ $testimonial->position ? ', ' . $testimonial->position : '' }}
       </div>
     </div>
-
-    <!-- Testimonial 2 -->
+    @empty
     <div style="
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 3rem;
       background: white;
-      border: 1px solid #e5e7eb;
       border-radius: 0.75rem;
-      padding: 1.5rem;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-      transition: all 0.3s ease;
-    " onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 20px 25px -5px rgba(0, 0, 0, 0.1)';"
-       onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(0, 0, 0, 0.1)';">
-      <p style="
-        font-style: italic;
-        color: #374151;
-        line-height: 1.6;
-        margin: 0;
-      ">
-        “भुक्तानी ट्र्याकिंग सजिलो र विश्वसनीय छ। अब बक्यौता बारे चिन्ता छैन।”
-      </p>
-      <div style="
-        margin-top: 1rem;
-        font-weight: 600;
-        color: #001F5B;
-        font-size: 0.875rem;
-      ">
-        — सुनिता पौडेल, पोखरा स्टुडेन्ट होम
-      </div>
-    </div>
-
-    <!-- Testimonial 3 -->
-    <div style="
-      background: white;
       border: 1px solid #e5e7eb;
-      border-radius: 0.75rem;
-      padding: 1.5rem;
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-      transition: all 0.3s ease;
-    " onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 20px 25px -5px rgba(0, 0, 0, 0.1)';"
-       onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(0, 0, 0, 0.1)';">
-      <p style="
-        font-style: italic;
-        color: #374151;
-        line-height: 1.6;
-        margin: 0;
-      ">
-        “विश्लेषण र रिपोर्टले मलाई आगामी निर्णयहरू लिन ठूलो मद्दत गर्यो।”
-      </p>
-      <div style="
-        margin-top: 1rem;
-        font-weight: 600;
-        color: #001F5B;
-        font-size: 0.875rem;
-      ">
-        — अमित कुमार, बिराटनगर कलेज होस्टल
+    ">
+      <div style="font-size: 4rem; color: #e5e7eb; margin-bottom: 1rem;">
+        <i class="fas fa-comments"></i>
       </div>
+      <h3 style="font-size: 1.5rem; color: #374151; margin-bottom: 0.5rem;">कुनै प्रशंसापत्र उपलब्ध छैन</h3>
+      <p style="color: #6b7280;">हामी छिट्टै नयाँ प्रशंसापत्रहरू थप्नेछौं।</p>
     </div>
-
-    <!-- Testimonial 4 -->
-    <div style="
-      background: white;
-      border: 1px solid #e5e7eb;
-      border-radius: 0.75rem;
-      padding: 1.5rem;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-      transition: all 0.3s ease;
-    " onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 20px 25px -5px rgba(0, 0, 0, 0.1)';"
-       onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(0, 0, 0, 0.1)';">
-      <p style="
-        font-style: italic;
-        color: #374151;
-        line-height: 1.6;
-        margin: 0;
-      ">
-        “मोबाइल एप्पले विद्यार्थीहरूलाई पनि भुक्तानी र कोठा स्थिति हेर्न सजिलो बनायो।”
-      </p>
-      <div style="
-        margin-top: 1rem;
-        font-weight: 600;
-        color: #001F5B;
-        font-size: 0.875rem;
-      ">
-        — निरु श्रेष्ठ, भक्तपुर बोर्डिङ
-      </div>
-    </div>
-
-    <!-- Testimonial 5 -->
-    <div style="
-      background: white;
-      border: 1px solid #e5e7eb;
-      border-radius: 0.75rem;
-      padding: 1.5rem;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-      transition: all 0.3s ease;
-    " onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 20px 25px -5px rgba(0, 0, 0, 0.1)';"
-       onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(0, 0, 0, 0.1)';">
-      <p style="
-        font-style: italic;
-        color: #374151;
-        line-height: 1.6;
-        margin: 0;
-      ">
-        “७ दिनको निःशुल्क परीक्षणले नै हामीले सही योजना छान्न सजिलो भयो।”
-      </p>
-      <div style="
-        margin-top: 1rem;
-        font-weight: 600;
-        color: #001F5B;
-        font-size: 0.875rem;
-      ">
-        — रबिन थापा, चितवन होस्टल
-      </div>
-    </div>
-
-    <!-- Testimonial 6 -->
-    <div style="
-      background: white;
-      border: 1px solid #e5e7eb;
-      border-radius: 0.75rem;
-      padding: 1.5rem;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-      transition: all 0.3s ease;
-    " onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 20px 25px -5px rgba(0, 0, 0, 0.1)';"
-       onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px -1px rgba(0, 0, 0, 0.1)';">
-      <p style="
-        font-style: italic;
-        color: #374151;
-        line-height: 1.6;
-        margin: 0;
-      ">
-        “नेपालीमा सपोर्ट र सुविधाहरूले धेरै मद्दत गर्यो। स्थानीय समाधानको लागि उत्तम।”
-      </p>
-      <div style="
-        margin-top: 1rem;
-        font-weight: 600;
-        color: #001F5B;
-        font-size: 0.875rem;
-      ">
-        — अनुराधा जोशी, धुलिखेल स्टुडेन्ट होम
-      </div>
-    </div>
-
+    @endforelse
   </div>
 
   <!-- CTA Section -->
@@ -263,4 +171,8 @@
   </div>
 
 </div>
+
+<!-- Add Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
 @endsection

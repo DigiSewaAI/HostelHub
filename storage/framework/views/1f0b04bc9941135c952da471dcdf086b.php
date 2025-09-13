@@ -1589,7 +1589,7 @@
                         </li>
                         <li>
                             <i class="fas fa-phone-alt" aria-hidden="true"></i>
-                            <div>+९७७ ९८०१२३४५६७</div>
+                            <div>+९७७ ९७६१७६२०३६</div>
                         </li>
                         <li>
                             <i class="fas fa-envelope" aria-hidden="true"></i>

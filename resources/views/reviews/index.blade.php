@@ -6,7 +6,7 @@
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3">समीक्षाहरू</h1>
-        <a href="{{ route('reviews.create') }}" class="btn btn-primary">
+        <a href="{{ route('admin.reviews.create') }}" class="btn btn-primary">
             <i class="fas fa-plus me-1"></i> नयाँ समीक्षा
         </a>
     </div>
@@ -28,6 +28,7 @@
                             <th>नाम</th>
                             <th>पद</th>
                             <th>प्रकार</th>
+                            <th>मूल्याङ्कन</th>
                             <th>स्थिति</th>
                             <th>कार्यहरू</th>
                         </tr>
@@ -48,6 +49,16 @@
                                 @endif
                             </td>
                             <td>
+                                @if($review->rating)
+                                    @for($i = 1; $i <= 5; $i++)
+                                        <span style="color: {{ $i <= $review->rating ? '#fbbf24' : '#d1d5db' }};">★</span>
+                                    @endfor
+                                    ({{ $review->rating }}/5)
+                                @else
+                                    <span class="text-muted">नभएको</span>
+                                @endif
+                            </td>
+                            <td>
                                 @if($review->status == 'active')
                                     <span class="badge bg-success">सक्रिय</span>
                                 @else
@@ -55,16 +66,16 @@
                                 @endif
                             </td>
                             <td>
-                                <a href="{{ route('reviews.show', $review) }}" class="btn btn-sm btn-info me-1">
+                                <a href="{{ route('admin.reviews.show', $review) }}" class="btn btn-sm btn-info me-1" title="हेर्नुहोस्">
                                     <i class="fas fa-eye"></i>
                                 </a>
-                                <a href="{{ route('reviews.edit', $review) }}" class="btn btn-sm btn-primary me-1">
+                                <a href="{{ route('admin.reviews.edit', $review) }}" class="btn btn-sm btn-primary me-1" title="सम्पादन गर्नुहोस्">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                                <form action="{{ route('reviews.destroy', $review) }}" method="POST" class="d-inline">
+                                <form action="{{ route('admin.reviews.destroy', $review) }}" method="POST" class="d-inline">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('के तपाईं यो समीक्षा हटाउन चाहनुहुन्छ?')">
+                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('के तपाईं यो समीक्षा हटाउन चाहनुहुन्छ?')" title="हटाउनुहोस्">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </form>
@@ -72,7 +83,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="6" class="text-center">कुनै समीक्षा फेला परेन</td>
+                            <td colspan="7" class="text-center">कुनै समीक्षा फेला परेन</td>
                         </tr>
                         @endforelse
                     </tbody>
