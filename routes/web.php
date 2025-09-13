@@ -8,16 +8,16 @@ use App\Http\Controllers\{
     Admin\MealController,
     Admin\MealMenuController as AdminMealMenuController,
     Admin\ReportController,
-    Admin\ReviewController,
+    Admin\ReviewController as AdminReviewController,
     Admin\RoomController,
     Admin\StudentController,
     Admin\SettingsController,
     Owner\HostelController as OwnerHostelController,
-    Owner\MealMenuController as OwnerMealMenuController,
     Frontend\GalleryController as FrontendGalleryController,
     Frontend\PublicContactController,
     Frontend\PublicController,
     Frontend\PricingController,
+    Frontend\ReviewController as FrontendReviewController,
     Auth\AuthenticatedSessionController,
     Auth\ConfirmablePasswordController,
     Auth\EmailVerificationNotificationController,
@@ -59,8 +59,9 @@ Route::group(['middleware' => 'web'], function () {
     Route::get('/api/gallery/categories', [FrontendGalleryController::class, 'getGalleryCategories']);
     Route::get('/api/gallery/stats', [FrontendGalleryController::class, 'getGalleryStats']);
 
-    // 👇 ONLY PUBLIC TESTIMONIALS PAGE — NOT REVIEWS!
-    Route::get('/testimonials', [PublicController::class, 'testimonials'])->name('testimonials');
+    // Use Frontend ReviewController for public testimonials
+    Route::get('/reviews', [FrontendReviewController::class, 'index'])->name('reviews');
+    Route::get('/testimonials', [FrontendReviewController::class, 'index'])->name('testimonials');
 
     // Legal pages routes
     Route::get('/privacy-policy', [PublicController::class, 'privacy'])->name('privacy');
@@ -70,7 +71,7 @@ Route::group(['middleware' => 'web'], function () {
     Route::get('/contact', [PublicContactController::class, 'index'])->name('contact');
     Route::post('/contact', [PublicContactController::class, 'store'])->name('contact.store');
 
-    // Room search functionality (NOT room management)
+    // Room search functionality
     Route::get('/rooms', [PublicController::class, 'roomSearch'])->name('rooms.search');
     Route::post('/rooms/search', [PublicController::class, 'searchRooms'])->name('rooms.search.post');
 
@@ -177,48 +178,59 @@ Route::middleware(['auth'])->group(function () {
         // Meals - Accessible by both admin and owner
         Route::resource('meals', MealController::class);
 
-        // 👇 ADMIN/OWNER ONLY: Full Reviews List (Not public testimonials!)
-        Route::resource('reviews', ReviewController::class);
+        // ADMIN/OWNER ONLY: Full Reviews List
+        Route::resource('reviews', AdminReviewController::class)->names([
+            'index' => 'admin.reviews.index',
+            'create' => 'admin.reviews.create',
+            'store' => 'admin.reviews.store',
+            'show' => 'admin.reviews.show',
+            'edit' => 'admin.reviews.edit',
+            'update' => 'admin.reviews.update',
+            'destroy' => 'admin.reviews.destroy'
+        ]);
 
         // Rooms
-        Route::resource('rooms', RoomController::class);
-        Route::get('/rooms/search', [RoomController::class, 'search'])->name('rooms.search');
+        Route::resource('rooms', RoomController::class)->names('admin.rooms');
+        Route::get('/rooms/search', [RoomController::class, 'search'])->name('admin.rooms.search');
     });
 
     // Students routes - separated for clarity
     Route::middleware('role:admin')->group(function () {
-        Route::resource('students', StudentController::class)->names('admin.students');
-    });
-
-    Route::middleware('role:hostel_manager')->group(function () {
-        Route::resource('students', StudentController::class)->names('owner.students');
+        Route::resource('students', StudentController::class)->names([
+            'index' => 'admin.students.index',
+            'create' => 'admin.students.create',
+            'store' => 'admin.students.store',
+            'show' => 'admin.students.show',
+            'edit' => 'admin.students.edit',
+            'update' => 'admin.students.update',
+            'destroy' => 'admin.students.destroy'
+        ]);
     });
 
     // Hostels - Admin only routes
     Route::middleware('role:admin')->group(function () {
-        Route::resource('hostels', AdminHostelController::class);
+        Route::resource('hostels', AdminHostelController::class)->names('admin.hostels');
         Route::get('hostels/{hostel}/availability', [AdminHostelController::class, 'showAvailability'])->name('admin.hostels.availability');
         Route::put('hostels/{hostel}/availability', [AdminHostelController::class, 'updateAvailability'])->name('admin.hostels.availability.update');
     });
 
     // Owner specific routes
     Route::middleware('role:hostel_manager')->prefix('owner')->name('owner.')->group(function () {
-        Route::resource('meal-menus', OwnerMealMenuController::class);
         Route::resource('hostels', OwnerHostelController::class)->only(['index', 'edit', 'update']);
 
-        // Add owner student routes with proper naming
+        // Owner student routes
         Route::resource('students', StudentController::class)->names([
-            'index' => 'students.index',
-            'create' => 'students.create',
-            'store' => 'students.store',
-            'show' => 'students.show',
-            'edit' => 'students.edit',
-            'update' => 'students.update',
-            'destroy' => 'students.destroy'
+            'index' => 'owner.students.index',
+            'create' => 'owner.students.create',
+            'store' => 'owner.students.store',
+            'show' => 'owner.students.show',
+            'edit' => 'owner.students.edit',
+            'update' => 'owner.students.update',
+            'destroy' => 'owner.students.destroy'
         ]);
     });
 
-    // Meal Menus - Admin can also view (optional)
+    // Meal Menus - Admin can also view
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
         Route::resource('meal-menus', AdminMealMenuController::class)->only(['index', 'show']);
     });
@@ -257,18 +269,21 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/my-bookings', [RoomController::class, 'myBookings'])->name('bookings.my');
     });
 
-    // Payments - accessible by all authenticated users with appropriate permissions
+    // Payments - accessible by admin and hostel_manager
     Route::middleware('role:admin,hostel_manager')->group(function () {
-        Route::resource('payments', PaymentController::class)->except(['edit', 'update']);
-        Route::get('/payments/{payment}/edit', [PaymentController::class, 'edit'])->name('payments.edit');
-        Route::put('/payments/{payment}', [PaymentController::class, 'update'])->name('payments.update');
-        Route::delete('/payments/{payment}', [PaymentController::class, 'destroy'])->name('payments.destroy');
+        Route::get('/payments', [PaymentController::class, 'index'])->name('admin.payments.index');
+        Route::get('/payments/create', [PaymentController::class, 'create'])->name('admin.payments.create');
+        Route::post('/payments', [PaymentController::class, 'store'])->name('admin.payments.store');
+        Route::get('/payments/{payment}', [PaymentController::class, 'show'])->name('admin.payments.show');
+        Route::get('/payments/{payment}/edit', [PaymentController::class, 'edit'])->name('admin.payments.edit');
+        Route::put('/payments/{payment}', [PaymentController::class, 'update'])->name('admin.payments.update');
+        Route::delete('/payments/{payment}', [PaymentController::class, 'destroy'])->name('admin.payments.destroy');
     });
 
     // Student payment viewing (read-only)
     Route::middleware('role:student')->group(function () {
-        Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
-        Route::get('/payments/{payment}', [PaymentController::class, 'show'])->name('payments.show');
+        Route::get('/payments', [PaymentController::class, 'index'])->name('student.payments.index');
+        Route::get('/payments/{payment}', [PaymentController::class, 'show'])->name('student.payments.show');
     });
 
     // Khalti callback route (publicly accessible)

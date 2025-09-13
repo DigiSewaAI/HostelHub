@@ -8,14 +8,14 @@
         <div class="col-md-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h1 class="h3">नयाँ समीक्षा सिर्जना गर्नुहोस्</h1>
-                <a href="{{ route('reviews.index') }}" class="btn btn-secondary">
+                <a href="{{ route('admin.reviews.index') }}" class="btn btn-secondary">
                     <i class="fas fa-arrow-left me-1"></i> पछाडि फर्कनुहोस्
                 </a>
             </div>
 
             <div class="card">
                 <div class="card-body">
-                    <form action="{{ route('reviews.store') }}" method="POST" enctype="multipart/form-data">
+                    <form action="{{ route('admin.reviews.store') }}" method="POST" enctype="multipart/form-data">
                         @csrf
 
                         <div class="mb-3">
@@ -44,7 +44,7 @@
 
                         <div class="mb-3">
                             <label for="initials" class="form-label">प्रारम्भिक अक्षर (वैकल्पिक)</label>
-                            <input type="text" name="initials" id="initials" class="form-control @error('initials') is-invalid @enderror" value="{{ old('initials') }}" maxlength="10">
+                            <input type="text" name="initials" id="initials" class="form-control @error('initials') is-invalid @enderror" value="{{ old('initials') }}" maxlength="10" placeholder="जस्तै: RS, JP, आदि">
                             @error('initials')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -53,6 +53,7 @@
                         <div class="mb-3">
                             <label for="image" class="form-label">छवि (वैकल्पिक)</label>
                             <input type="file" name="image" id="image" class="form-control @error('image') is-invalid @enderror" accept="image/*">
+                            <div class="form-text">अनुमतिहरू: JPG, PNG, JPEG, GIF। अधिकतम साइज: 2MB</div>
                             @error('image')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
