@@ -108,6 +108,7 @@
         transition: all 0.3s ease;
         border: 2px solid #0d6efd;
         margin-top: 10px;
+        cursor: pointer;
     }
     
     .pricing-button:hover {
@@ -210,6 +211,7 @@
         font-size: 18px;
         margin-top: 15px;
         box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        cursor: pointer;
     }
     
     .trial-button:hover {
@@ -265,7 +267,15 @@
             <li><i class="fas fa-utensils"></i> भोजन व्यवस्थापन</li>
             <li><i class="fas fa-mobile-alt"></i> मोबाइल एप्प</li>
         </ul>
-        <a href="#" class="pricing-button">योजना छान्नुहोस्</a>
+        @auth
+            <form action="{{ route('subscription.upgrade') }}" method="POST" style="display: inline;">
+                @csrf
+                <input type="hidden" name="plan" value="starter">
+                <button type="submit" class="pricing-button">योजना छान्नुहोस्</button>
+            </form>
+        @else
+            <a href="{{ route('register.organization', ['plan' => 'starter']) }}" class="pricing-button">योजना छान्नुहोस्</a>
+        @endauth
     </div>
 
     <!-- Pro Plan -->
@@ -284,7 +294,15 @@
             <li><i class="fas fa-utensils"></i> भोजन व्यवस्थापन</li>
             <li><i class="fas fa-mobile-alt"></i> मोबाइल एप्प</li>
         </ul>
-        <a href="#" class="pricing-button">योजना छान्नुहोस्</a>
+        @auth
+            <form action="{{ route('subscription.upgrade') }}" method="POST" style="display: inline;">
+                @csrf
+                <input type="hidden" name="plan" value="pro">
+                <button type="submit" class="pricing-button">योजना छान्नुहोस्</button>
+            </form>
+        @else
+            <a href="{{ route('register.organization', ['plan' => 'pro']) }}" class="pricing-button">योजना छान्नुहोस्</a>
+        @endauth
     </div>
 
     <!-- Enterprise Plan -->
@@ -297,12 +315,20 @@
         <ul class="pricing-features">
             <li><i class="fas fa-users"></i> असीमित विद्यार्थी</li>
             <li><i class="fas fa-user-graduate"></i> पूर्ण विद्यार्थी व्यवस्थापन</li>
-            <li><i class="fas fa-building"></i> बहु-हостел व्यवस्थापन</li>
+            <li><i class="fas fa-building"></i> बहु-होस्टल व्यवस्थापन</li>
             <li><i class="fas fa-credit-card"></i> कस्टम भुक्तानी प्रणाली</li>
             <li><i class="fas fa-chart-line"></i> विस्तृत विवरण र विश्लेषण</li>
             <li><i class="fas fa-headset"></i> २४/७ समर्थन</li>
         </ul>
-        <a href="#" class="pricing-button">योजना छान्नुहोस्</a>
+        @auth
+            <form action="{{ route('subscription.upgrade') }}" method="POST" style="display: inline;">
+                @csrf
+                <input type="hidden" name="plan" value="enterprise">
+                <button type="submit" class="pricing-button">योजना छान्नुहोस्</button>
+            </form>
+        @else
+            <a href="{{ route('register.organization', ['plan' => 'enterprise']) }}" class="pricing-button">योजना छान्नुहोस्</a>
+        @endauth
     </div>
 </div>
 
@@ -326,7 +352,14 @@
             <p>हामी तपाईंलाई सहयोग गर्न तत्पर छौं</p>
             <a href="mailto:support@hostelhub.com" class="contact-email">support@hostelhub.com</a>
             <div>
-                <a href="#" class="trial-button">७ दिन निःशुल्क परीक्षण सुरु गर्नुहोस्</a>
+                @auth
+                    <form action="{{ route('subscription.start-trial') }}" method="POST" style="display: inline;">
+                        @csrf
+                        <button type="submit" class="trial-button">७ दिन निःशुल्क परीक्षण सुरु गर्नुहोस्</button>
+                    </form>
+                @else
+                    <a href="{{ route('register.organization', ['plan' => 'starter']) }}" class="trial-button">७ दिन निःशुल्क परीक्षण सुरु गर्नुहोस्</a>
+                @endauth
             </div>
         </div>
     </div>

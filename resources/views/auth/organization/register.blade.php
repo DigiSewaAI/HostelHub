@@ -47,7 +47,7 @@
             <div class="bg-white rounded-xl shadow-lg p-8">
                 <div class="text-center mb-8">
                     <h1 class="text-3xl font-bold text-gray-900 mb-2">होस्टल संचालकको लागि साइन अप गर्नुहोस्</h1>
-                    <p class="text-gray-600">हाम्रो {{ $plan->name }} योजना सुरु गर्नुहोस्</p>
+                    <p class="text-gray-600">हाम्रो {{ $plan->name ?? 'योजना' }} सुरु गर्नुहोस्</p>
                     <div class="mt-4 bg-indigo-50 text-indigo-700 px-4 py-2 rounded-full inline-block">
                         ७ दिन निःशुल्क परीक्षण | कुनै पनि क्रेडिट कार्ड आवश्यक छैन
                     </div>
@@ -73,7 +73,7 @@
                     <input type="password" name="fakepasswordremembered" autocomplete="new-password" style="display:none">
                     
                     <!-- Use plan slug instead of ID -->
-                    <input type="hidden" name="plan_slug" value="{{ $plan->slug }}">
+                    <input type="hidden" name="plan_slug" value="{{ $plan->slug ?? '' }}">
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                         <div>
@@ -123,31 +123,37 @@
                     </div>
                     
                     <div class="mb-8 p-4 bg-indigo-50 rounded-lg">
-                        <h3 class="font-bold text-indigo-800 mb-2">{{ $plan->name }} योजना</h3>
-                        <p class="text-indigo-700 mb-3">मूल्य: रु. {{ number_format($plan->price) }}/महिना</p>
+                        <h3 class="font-bold text-indigo-800 mb-2">{{ $plan->name ?? 'योजना' }}</h3>
+                        <p class="text-indigo-700 mb-3">मूल्य: रु. {{ number_format($plan->price_month ?? 0) }}/महिना</p>
                         
                         <!-- योजनाका विशेषताहरू सही रूपमा देखाउने -->
                         <h4 class="font-semibold text-indigo-800 mb-2">विशेषताहरू:</h4>
                         <ul class="list-disc pl-5 space-y-1 text-indigo-700">
-                            @if(is_string($plan->features))
+                            @if($plan)
                                 @php
-                                    $features = json_decode($plan->features, true) ?? [];
+                                    $features = [];
+                                    if(is_string($plan->features)) {
+                                        $features = json_decode($plan->features, true) ?? [];
+                                    } elseif(is_array($plan->features)) {
+                                        $features = $plan->features;
+                                    }
                                 @endphp
-                                @foreach($features as $feature)
-                                    <li>{{ $feature }}</li>
-                                @endforeach
-                            @elseif(is_array($plan->features))
-                                @foreach($plan->features as $feature)
-                                    <li>{{ $feature }}</li>
-                                @endforeach
+                                
+                                @if(count($features) > 0)
+                                    @foreach($features as $feature)
+                                        <li>{{ $feature }}</li>
+                                    @endforeach
+                                @else
+                                    <li>विशेषताहरू उपलब्ध छैनन्</li>
+                                @endif
                             @else
-                                <li>विशेषताहरू उपलब्ध छैनन्</li>
+                                <li>योजना विवरण उपलब्ध छैन</li>
                             @endif
                         </ul>
                     </div>
                     
                     <button type="submit" class="w-full bg-indigo-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-indigo-700 transition-colors shadow-md">
-                        {{ $plan->name }} योजना सुरु गर्नुहोस्
+                        {{ $plan->name ?? 'योजना' }} सुरु गर्नुहोस्
                     </button>
                 </form>
                 
