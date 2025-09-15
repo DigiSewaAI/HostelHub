@@ -20,14 +20,14 @@ class StudentPolicy
     public function view(User $user, Student $student): bool
     {
         return OrganizationUser::where('user_id', $user->id)
-            ->where('org_id', $student->org_id)
+            ->where('organization_id', $student->organization_id)
             ->exists();
     }
 
     public function create(User $user, Organization $organization): bool
     {
         return OrganizationUser::where('user_id', $user->id)
-            ->where('org_id', $organization->id)
+            ->where('organization_id', $organization->id)
             ->whereIn('role', ['owner', 'admin', 'manager'])
             ->exists();
     }
@@ -35,7 +35,7 @@ class StudentPolicy
     public function update(User $user, Student $student): bool
     {
         return OrganizationUser::where('user_id', $user->id)
-            ->where('org_id', $student->org_id)
+            ->where('organization_id', $student->organization_id)
             ->whereIn('role', ['owner', 'admin', 'manager'])
             ->exists();
     }
@@ -43,7 +43,7 @@ class StudentPolicy
     public function delete(User $user, Student $student): bool
     {
         return OrganizationUser::where('user_id', $user->id)
-            ->where('org_id', $student->org_id)
+            ->where('organization_id', $student->organization_id)
             ->whereIn('role', ['owner', 'admin'])
             ->exists();
     }

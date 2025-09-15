@@ -11,11 +11,12 @@ class Subscription extends Model
     use HasFactory;
 
     protected $fillable = [
-        'org_id',
+        'organization_id',
+        'user_id',
         'plan_id',
         'status',
         'trial_ends_at',
-        'renews_at',
+        'ends_at',
         'notes'
     ];
 
@@ -26,12 +27,17 @@ class Subscription extends Model
 
     public function organization(): BelongsTo
     {
-        return $this->belongsTo(Organization::class, 'org_id');
+        return $this->belongsTo(Organization::class, 'organization_id');
     }
 
     public function plan(): BelongsTo
     {
         return $this->belongsTo(Plan::class);
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 
     public function isActive(): bool

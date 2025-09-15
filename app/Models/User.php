@@ -9,6 +9,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
@@ -22,7 +23,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role_id',
+        // Remove organization_id as it's now handled through pivot table
         'phone',
         'address',
         'payment_verified',
@@ -45,12 +46,12 @@ class User extends Authenticatable
         'payment_verified' => 'boolean',
     ];
 
-    /**
-     * Get the role that this user belongs to.
-     */
-    public function role(): BelongsTo
+    // Many-to-Many relationship with organizations through pivot table
+    public function organizations(): BelongsToMany
     {
-        return $this->belongsTo(Role::class);
+        return $this->belongsToMany(Organization::class, 'organization_user')
+            ->withPivot('role')
+            ->withTimestamps();
     }
 
     /**
@@ -74,7 +75,7 @@ class User extends Authenticatable
      */
     public function getRoleName(): string
     {
-        return $this->role?->name ?? 'N/A';
+        return $this->roles->first()?->name ?? 'N/A';
     }
 
     /**
@@ -93,6 +94,12 @@ class User extends Authenticatable
         return $this->hasRole('hostel_manager');
     }
 
+    // User.php मा यो method थप्नुहोस्
+    public function subscriptions(): HasMany
+    {
+        return $this->hasMany(Subscription::class);
+    }
+
     /**
      * Check if the user is a student.
      */
@@ -100,4 +107,10 @@ class User extends Authenticatable
     {
         return $this->hasRole('student');
     }
+
+    // Remove the organization method as it's now handled through many-to-many
+    // public function organization(): BelongsTo
+    // {
+    //     return $this->belongsTo(Organization::class, 'organization_id');
+    // }
 }

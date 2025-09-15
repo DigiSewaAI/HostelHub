@@ -16,7 +16,7 @@ class Kernel extends HttpKernel
         \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
         \App\Http\Middleware\TrimStrings::class,
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
-        \App\Http\Middleware\Localize::class, // Added localization middleware globally
+        \App\Http\Middleware\Localize::class,
     ];
 
     /**
@@ -30,7 +30,7 @@ class Kernel extends HttpKernel
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
-            \App\Http\Middleware\EnsureOrgContext::class, // Added organization context
+            \App\Http\Middleware\EnsureOrgContext::class,
         ],
 
         'api' => [
@@ -61,7 +61,7 @@ class Kernel extends HttpKernel
         'role_or_permission' => \Spatie\Permission\Middlewares\RoleOrPermissionMiddleware::class,
 
         // Custom Application Middlewares
-        'checkrole' => \App\Http\Middleware\CheckRole::class, // Added custom CheckRole middleware
+        'checkrole' => \App\Http\Middleware\CheckRole::class,
         'role.multiple' => \App\Http\Middleware\RoleMiddleware::class,
         'admin' => \App\Http\Middleware\AdminMiddleware::class,
         'subscription.active' => \App\Http\Middleware\EnsureSubscriptionActive::class,
@@ -69,5 +69,40 @@ class Kernel extends HttpKernel
         'plan.limits' => \App\Http\Middleware\EnforcePlanLimits::class,
         'org.context' => \App\Http\Middleware\EnsureOrgContext::class,
         'localize' => \App\Http\Middleware\Localize::class,
+        'hasOrganization' => \App\Http\Middleware\HasOrganization::class, // Fixed the case
+    ];
+
+    /**
+     * The application's route middleware.
+     * This is for backward compatibility with some Laravel versions.
+     */
+    protected $routeMiddleware = [
+        'auth' => \App\Http\Middleware\Authenticate::class,
+        'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
+        'auth.session' => \Illuminate\Session\Middleware\AuthenticateSession::class,
+        'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class,
+        'can' => \Illuminate\Auth\Middleware\Authorize::class,
+        'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
+        'password.confirm' => \Illuminate\Auth\Middleware\RequirePassword::class,
+        'precognitive' => \Illuminate\Foundation\Http\Middleware\HandlePrecognitiveRequests::class,
+        'signed' => \App\Http\Middleware\ValidateSignature::class,
+        'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
+        'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
+
+        // Spatie Permission Middlewares
+        'role' => \Spatie\Permission\Middlewares\RoleMiddleware::class,
+        'permission' => \Spatie\Permission\Middlewares\PermissionMiddleware::class,
+        'role_or_permission' => \Spatie\Permission\Middlewares\RoleOrPermissionMiddleware::class,
+
+        // Custom Application Middlewares
+        'checkrole' => \App\Http\Middleware\CheckRole::class,
+        'role.multiple' => \App\Http\Middleware\RoleMiddleware::class,
+        'admin' => \App\Http\Middleware\AdminMiddleware::class,
+        'subscription.active' => \App\Http\Middleware\EnsureSubscriptionActive::class,
+        'payment.verified' => \App\Http\Middleware\PaymentVerified::class,
+        'plan.limits' => \App\Http\Middleware\EnforcePlanLimits::class,
+        'org.context' => \App\Http\Middleware\EnsureOrgContext::class,
+        'localize' => \App\Http\Middleware\Localize::class,
+        'hasOrganization' => \App\Http\Middleware\HasOrganization::class, // Fixed the case
     ];
 }

@@ -10,7 +10,7 @@ class PlanLimitService
     public function canAddStudent(Organization $organization): bool
     {
         $currentStudents = DB::table('students')
-            ->where('org_id', $organization->id)
+            ->where('organization_id', $organization->id)
             ->count();
 
         $maxStudents = $organization->subscription->plan->max_students;
@@ -21,7 +21,7 @@ class PlanLimitService
     public function canAddHostel(Organization $organization): bool
     {
         $currentHostels = DB::table('hostels')
-            ->where('org_id', $organization->id)
+            ->where('organization_id', $organization->id)
             ->count();
 
         $maxHostels = $organization->subscription->plan->max_hostels;
@@ -32,7 +32,7 @@ class PlanLimitService
     public function getStudentUsage(Organization $organization): array
     {
         $currentStudents = DB::table('students')
-            ->where('org_id', $organization->id)
+            ->where('organization_id', $organization->id)
             ->count();
 
         $maxStudents = $organization->subscription->plan->max_students;
@@ -47,7 +47,7 @@ class PlanLimitService
     public function getHostelUsage(Organization $organization): array
     {
         $currentHostels = DB::table('hostels')
-            ->where('org_id', $organization->id)
+            ->where('organization_id', $organization->id)
             ->count();
 
         $maxHostels = $organization->subscription->plan->max_hostels;

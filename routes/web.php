@@ -35,6 +35,7 @@ use App\Http\Controllers\{
 };
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 // Force HTTPS in production
@@ -86,14 +87,18 @@ Route::group(['middleware' => 'web'], function () {
 });
 
 /*|--------------------------------------------------------------------------
+| Organization Registration Routes (Accessible by all)
+|--------------------------------------------------------------------------
+*/
+// Updated to accept optional plan parameter
+Route::get('/register/organization/{plan?}', [RegistrationController::class, 'show'])->name('register.organization');
+Route::post('/register/organization', [RegistrationController::class, 'store'])->name('register.organization.store');
+
+/*|--------------------------------------------------------------------------
 | Authentication Routes
 |--------------------------------------------------------------------------
 */
 Route::middleware('guest')->group(function () {
-    // Organization Registration
-    Route::get('/register/organization', [RegistrationController::class, 'show'])->name('register.organization');
-    Route::post('/register/organization', [RegistrationController::class, 'store'])->name('register.organization.store');
-
     // User Registration
     Route::get('/register', [RegisteredUserController::class, 'create'])->name('register');
     Route::post('/register', [RegisteredUserController::class, 'store'])->name('register.submit');
@@ -125,6 +130,16 @@ Route::middleware('guest')->group(function () {
 Route::get('/dashboard', function () {
     $user = auth()->user();
 
+    // FIX: Check if user has organization before redirecting
+    if (!session('current_organization_id')) {
+        $orgUser = DB::table('organization_user')->where('user_id', $user->id)->first();
+        if ($orgUser) {
+            session(['current_organization_id' => $orgUser->organization_id]);
+        } else {
+            return redirect()->route('register.organization');
+        }
+    }
+
     if ($user->hasRole('admin')) {
         return redirect()->route('admin.dashboard');
     } elseif ($user->hasRole('hostel_manager')) {
@@ -134,15 +149,15 @@ Route::get('/dashboard', function () {
     }
 
     return redirect('/');
-})->middleware('auth')->name('dashboard');
+})->middleware(['auth'])->name('dashboard'); // REMOVE 'hasOrganization' middleware
 
 /*|--------------------------------------------------------------------------
 | Unified Role-Based Routes (Protected Routes)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'hasOrganization'])->group(function () {
     // Dashboard routes
-    Route::get('/admin/dashboard', [DashboardController::class, 'index'])
+    Route::get('/admin/dashboard', [DashboardController::class, 'adminDashboard'])
         ->middleware('role:admin')
         ->name('admin.dashboard');
 
@@ -195,7 +210,7 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Students routes - separated for clarity
-    Route::middleware('role:admin')->group(function () {
+    Route::middleware('role:admin,hostel_manager')->group(function () {
         Route::resource('students', StudentController::class)->names([
             'index' => 'admin.students.index',
             'create' => 'admin.students.create',
@@ -214,19 +229,36 @@ Route::middleware(['auth'])->group(function () {
         Route::put('hostels/{hostel}/availability', [AdminHostelController::class, 'updateAvailability'])->name('admin.hostels.availability.update');
     });
 
+
     // Owner specific routes
     Route::middleware('role:hostel_manager')->prefix('owner')->name('owner.')->group(function () {
         Route::resource('hostels', OwnerHostelController::class)->only(['index', 'edit', 'update']);
 
+        // Add gallery routes for owner
+        Route::resource('galleries', GalleryController::class);
+        Route::post('/galleries/{gallery}/toggle-status', [GalleryController::class, 'toggleStatus'])
+            ->name('galleries.toggle-status');
+        Route::post('/galleries/{gallery}/toggle-featured', [GalleryController::class, 'toggleFeatured'])
+            ->name('galleries.toggle-featured');
+
+        // Add reviews routes for owner
+        Route::resource('reviews', AdminReviewController::class);
+
+        // Add these routes for owner dashboard quick actions
+        Route::get('rooms', [RoomController::class, 'index'])->name('rooms.index');
+        Route::get('meals', [MealController::class, 'index'])->name('meals.index');
+        Route::get('meal-menus', [AdminMealMenuController::class, 'index'])->name('meal-menus.index');
+        Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
+
         // Owner student routes
         Route::resource('students', StudentController::class)->names([
-            'index' => 'owner.students.index',
-            'create' => 'owner.students.create',
-            'store' => 'owner.students.store',
-            'show' => 'owner.students.show',
-            'edit' => 'owner.students.edit',
-            'update' => 'owner.students.update',
-            'destroy' => 'owner.students.destroy'
+            'index' => 'students.index',
+            'create' => 'students.create',
+            'store' => 'students.store',
+            'show' => 'students.show',
+            'edit' => 'students.edit',
+            'update' => 'students.update',
+            'destroy' => 'students.destroy'
         ]);
     });
 
@@ -292,7 +324,7 @@ Route::middleware(['auth'])->group(function () {
     // Common authenticated routes
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
-    // Subscription Management
+    // Subscription Management - Moved outside the role-specific groups
     Route::get('/subscription', [SubscriptionController::class, 'show'])->name('subscription.show');
     Route::post('/subscription/upgrade', [SubscriptionController::class, 'upgrade'])->name('subscription.upgrade');
     Route::post('/subscription/start-trial', [SubscriptionController::class, 'startTrial'])->name('subscription.start-trial');

@@ -220,6 +220,30 @@
         border-color: #ffffff;
     }
     
+    /* Loading state */
+    .pricing-button.loading {
+        position: relative;
+        color: transparent;
+    }
+    
+    .pricing-button.loading::after {
+        content: '';
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        top: 50%;
+        left: 50%;
+        margin: -10px 0 0 -10px;
+        border: 3px solid rgba(255,255,255,0.3);
+        border-radius: 50%;
+        border-top-color: #fff;
+        animation: spin 1s ease-in-out infinite;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    
     /* Responsive Design */
     @media (max-width: 768px) {
         .pricing-container {
@@ -266,15 +290,15 @@
             <li><i class="fas fa-mobile-alt"></i> मोबाइल एप्प</li>
         </ul>
         <?php if(auth()->guard()->check()): ?>
-            <form action="<?php echo e(route('subscription.upgrade')); ?>" method="POST" style="display: inline;">
-                <?php echo csrf_field(); ?>
-                <input type="hidden" name="plan" value="starter">
-                <button type="submit" class="pricing-button">योजना छान्नुहोस्</button>
-            </form>
-        <?php else: ?>
-            <a href="<?php echo e(route('register.organization')); ?>?plan=starter" class="pricing-button">योजना छान्नुहोस्</a>
-        <?php endif; ?>
-    </div>
+        <form action="<?php echo e(route('subscription.upgrade')); ?>" method="POST" class="plan-form" style="display: inline;">
+            <?php echo csrf_field(); ?>
+            <input type="hidden" name="plan" value="starter">
+            <button type="submit" class="pricing-button">योजना छान्नुहोस्</button>
+        </form>
+    <?php else: ?>
+        <a href="<?php echo e(route('register.organization', ['plan' => 'starter'])); ?>" class="pricing-button">योजना छान्नुहोस्</a>
+    <?php endif; ?>
+</div>
 
     <!-- Pro Plan -->
     <div class="pricing-card popular">
@@ -293,15 +317,15 @@
             <li><i class="fas fa-mobile-alt"></i> मोबाइल एप्प</li>
         </ul>
         <?php if(auth()->guard()->check()): ?>
-            <form action="<?php echo e(route('subscription.upgrade')); ?>" method="POST" style="display: inline;">
-                <?php echo csrf_field(); ?>
-                <input type="hidden" name="plan" value="pro">
-                <button type="submit" class="pricing-button">योजना छान्नुहोस्</button>
-            </form>
-        <?php else: ?>
-            <a href="<?php echo e(route('register.organization')); ?>?plan=pro" class="pricing-button">योजना छान्नुहोस्</a>
-        <?php endif; ?>
-    </div>
+        <form action="<?php echo e(route('subscription.upgrade')); ?>" method="POST" class="plan-form" style="display: inline;">
+            <?php echo csrf_field(); ?>
+            <input type="hidden" name="plan" value="pro">
+            <button type="submit" class="pricing-button">योजना छान्नुहोस्</button>
+        </form>
+    <?php else: ?>
+        <a href="<?php echo e(route('register.organization', ['plan' => 'pro'])); ?>" class="pricing-button">योजना छान्नुहोस्</a>
+    <?php endif; ?>
+</div>
 
     <!-- Enterprise Plan -->
     <div class="pricing-card">
@@ -319,15 +343,15 @@
             <li><i class="fas fa-headset"></i> २४/७ समर्थन</li>
         </ul>
         <?php if(auth()->guard()->check()): ?>
-            <form action="<?php echo e(route('subscription.upgrade')); ?>" method="POST" style="display: inline;">
-                <?php echo csrf_field(); ?>
-                <input type="hidden" name="plan" value="enterprise">
-                <button type="submit" class="pricing-button">योजना छान्नुहोस्</button>
-            </form>
-        <?php else: ?>
-            <a href="<?php echo e(route('register.organization')); ?>?plan=enterprise" class="pricing-button">योजना छान्नुहोस्</a>
-        <?php endif; ?>
-    </div>
+        <form action="<?php echo e(route('subscription.upgrade')); ?>" method="POST" class="plan-form" style="display: inline;">
+            <?php echo csrf_field(); ?>
+            <input type="hidden" name="plan" value="enterprise">
+            <button type="submit" class="pricing-button">योजना छान्नुहोस्</button>
+        </form>
+    <?php else: ?>
+        <a href="<?php echo e(route('register.organization', ['plan' => 'enterprise'])); ?>" class="pricing-button">योजना छान्नुहोस्</a>
+    <?php endif; ?>
+</div>
 </div>
 
 <!-- FAQ Section -->
@@ -351,12 +375,12 @@
             <a href="mailto:support@hostelhub.com" class="contact-email">support@hostelhub.com</a>
             <div>
                 <?php if(auth()->guard()->check()): ?>
-                    <form action="<?php echo e(route('subscription.start-trial')); ?>" method="POST" style="display: inline;">
+                    <form action="<?php echo e(route('subscription.start-trial')); ?>" method="POST" class="trial-form" style="display: inline;">
                         <?php echo csrf_field(); ?>
                         <button type="submit" class="trial-button">७ दिन निःशुल्क परीक्षण सुरु गर्नुहोस्</button>
                     </form>
                 <?php else: ?>
-                    <a href="<?php echo e(route('register.organization')); ?>?trial=true" class="trial-button">७ दिन निःशुल्क परीक्षण सुरु गर्नुहोस्</a>
+                    <a href="<?php echo e(route('register.organization', ['plan' => 'starter'])); ?>" class="trial-button">७ दिन निःशुल्क परीक्षण सुरु गर्नुहोस्</a>
                 <?php endif; ?>
             </div>
         </div>
@@ -379,6 +403,97 @@
                 }
             });
         });
+
+        // Handle plan form submissions
+        const planForms = document.querySelectorAll('.plan-form');
+        
+        planForms.forEach(form => {
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const button = this.querySelector('button[type="submit"]');
+                const originalText = button.textContent;
+                
+                // Show loading state
+                button.classList.add('loading');
+                button.disabled = true;
+                
+                try {
+                    const formData = new FormData(this);
+                    
+                    const response = await fetch(this.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.redirect) {
+                        window.location.href = data.redirect;
+                    } else if (data.success) {
+                        // Show success message
+                        alert(data.message || 'योजना सफलतापूर्वक अपग्रेड गरियो');
+                        window.location.reload();
+                    } else {
+                        throw new Error(data.message || 'अज्ञात त्रुटि');
+                    }
+                } catch (error) {
+                    alert('त्रुटि: ' + error.message);
+                    button.classList.remove('loading');
+                    button.textContent = originalText;
+                    button.disabled = false;
+                }
+            });
+        });
+
+        // Handle trial form submission
+        const trialForm = document.querySelector('.trial-form');
+        if (trialForm) {
+            trialForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const button = this.querySelector('button[type="submit"]');
+                const originalText = button.textContent;
+                
+                // Show loading state
+                button.classList.add('loading');
+                button.disabled = true;
+                
+                try {
+                    const formData = new FormData(this);
+                    
+                    const response = await fetch(this.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.redirect) {
+                        window.location.href = data.redirect;
+                    } else if (data.success) {
+                        // Show success message
+                        alert(data.message || 'निःशुल्क परीक्षण सफलतापूर्वक सुरु गरियो');
+                        window.location.reload();
+                    } else {
+                        throw new Error(data.message || 'अज्ञात त्रुटि');
+                    }
+                } catch (error) {
+                    alert('त्रुटि: ' + error.message);
+                    button.classList.remove('loading');
+                    button.textContent = originalText;
+                    button.disabled = false;
+                }
+            });
+        }
     });
 </script>
 <?php $__env->stopSection(); ?>

@@ -32,7 +32,7 @@ class DashboardController extends Controller
 
         if ($user->hasRole('admin')) {
             return $this->adminDashboard();
-        } elseif ($user->hasRole('owner')) {
+        } elseif ($user->hasRole('hostel_manager')) {
             return $this->ownerDashboard();
         } elseif ($user->hasRole('student')) {
             return $this->studentDashboard();
@@ -134,26 +134,37 @@ class DashboardController extends Controller
     /**
      * Owner dashboard with hostel-specific metrics
      */
-    private function ownerDashboard()
+    public function ownerDashboard()
     {
         try {
-            // होस्टेल मालिकको आफ्नै होस्टेलको डाटा मात्र
-            $hostel = Hostel::where('id', auth()->user()->hostel_id)->first();
+            // Get the authenticated user
+            $user = auth()->user();
+
+            // Get the hostel using the user's hostel_id
+            $hostel = Hostel::where('id', $user->hostel_id)->first();
 
             if (!$hostel) {
-                return view('owner.dashboard.index')->with('error', 'तपाईंको होस्टेल फेला परेन');
+                // Pass default values if hostel not found
+                return view('owner.dashboard', [
+                    'error' => 'तपाईंको होस्टेल फेला परेन',
+                    'hostel' => null,
+                    'totalRooms' => 0,
+                    'occupiedRooms' => 0,
+                    'totalStudents' => 0,
+                    'todayMeal' => null
+                ]);
             }
 
-            $totalRooms = Room::where('hostel_id', auth()->user()->hostel_id)->count();
-            $occupiedRooms = Room::where('hostel_id', auth()->user()->hostel_id)
+            $totalRooms = Room::where('hostel_id', $user->hostel_id)->count();
+            $occupiedRooms = Room::where('hostel_id', $user->hostel_id)
                 ->where('status', 'occupied')
                 ->count();
-            $totalStudents = Student::where('hostel_id', auth()->user()->hostel_id)->count();
-            $todayMeal = MealMenu::where('hostel_id', auth()->user()->hostel_id)
+            $totalStudents = Student::where('hostel_id', $user->hostel_id)->count();
+            $todayMeal = MealMenu::where('hostel_id', $user->hostel_id)
                 ->where('day', now()->format('l'))
                 ->first();
 
-            return view('owner.dashboard.index', compact(
+            return view('owner.dashboard', compact(
                 'hostel',
                 'totalRooms',
                 'occupiedRooms',
@@ -162,7 +173,14 @@ class DashboardController extends Controller
             ));
         } catch (\Exception $e) {
             Log::error('होस्टेल मालिक ड्यासबोर्ड त्रुटि: ' . $e->getMessage());
-            return view('owner.dashboard.index')->with('error', 'डाटा लोड गर्न असफल भयो');
+            return view('owner.dashboard', [
+                'error' => 'डाटा लोड गर्न असफल भयो',
+                'hostel' => null,
+                'totalRooms' => 0,
+                'occupiedRooms' => 0,
+                'totalStudents' => 0,
+                'todayMeal' => null
+            ]);
         }
     }
 
