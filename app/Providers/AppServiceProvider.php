@@ -29,5 +29,7 @@ class AppServiceProvider extends ServiceProvider
         Blade::component('admin-nav-link', AdminNavLink::class);
 
         // Additional bootstrapping code can go here
+        // Register the hasOrganization middleware
+        $this->app['router']->aliasMiddleware('hasOrganization', \App\Http\Middleware\HasOrganization::class);
     }
 }

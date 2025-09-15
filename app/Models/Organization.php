@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Organization extends Model
 {
@@ -43,18 +44,27 @@ class Organization extends Model
         return $this->hasMany(Gallery::class);
     }
 
-    public function users(): HasMany
+    // Many-to-Many relationship with users through pivot table
+    public function users(): BelongsToMany
     {
-        return $this->hasMany(OrganizationUser::class);
+        return $this->belongsToMany(User::class, 'organization_user')
+            ->withPivot('role')
+            ->withTimestamps();
     }
 
     public function subscription(): HasOne
     {
-        return $this->hasOne(Subscription::class)->latest();
+        return $this->hasOne(Subscription::class, 'organization_id')->latest();
     }
 
     public function onboardingProgress(): HasOne
     {
         return $this->hasOne(OnboardingProgress::class);
     }
+
+    // Remove the directUsers method as it's redundant with the new many-to-many relationship
+    // public function directUsers(): HasMany
+    // {
+    //     return $this->hasMany(User::class);
+    // }
 }

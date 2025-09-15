@@ -6,6 +6,7 @@ use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 use App\Models\User;
+use App\Models\Organization;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -22,18 +23,22 @@ class DatabaseSeeder extends Seeder
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');
         Schema::disableForeignKeyConstraints();
 
-        // Truncate tables safely
+        // Truncate tables safely with proper order to respect foreign key constraints
         $tables = [
             'model_has_roles',
-            'role_has_permissions',
             'model_has_permissions',
-            'roles',
+            'role_has_permissions',
             'permissions',
-            'hostels', // Add hostels table to truncate
-            'students', // Add students table to truncate
-            'colleges', // Add colleges table to truncate
-            'courses', // Add courses table to truncate
-            'rooms' // Add rooms table to truncate
+            'roles',
+            'bookings',
+            'payments',
+            'students',
+            'rooms',
+            'room_types',
+            'hostels',
+            'organizations',
+            'organization_user',
+            'users',
         ];
 
         foreach ($tables as $table) {
@@ -82,7 +87,59 @@ class DatabaseSeeder extends Seeder
         }
         $studentRole->syncPermissions($studentPermissions);
 
-        // Create users
+        // Create organizations
+        $organizations = [
+            Organization::firstOrCreate(
+                ['name' => 'Default Organization'],
+                [
+                    'slug' => 'default-organization',
+                    'is_ready' => true,
+                    'settings' => [
+                        'city' => 'Kathmandu',
+                        'address' => 'Kathmandu, Nepal',
+                        'contact_phone' => '+977-1-1234567',
+                        'monthly_fee' => 5000,
+                        'deposit' => 10000,
+                        'meal_plan' => true,
+                        'meal_price' => 2000,
+                    ]
+                ]
+            ),
+            Organization::firstOrCreate(
+                ['name' => 'Hostel A'],
+                [
+                    'slug' => 'hostel-a',
+                    'is_ready' => true,
+                    'settings' => [
+                        'city' => 'Kathmandu',
+                        'address' => 'Kathmandu, Nepal',
+                        'contact_phone' => '+977-1-1111111',
+                        'monthly_fee' => 6000,
+                        'deposit' => 12000,
+                        'meal_plan' => true,
+                        'meal_price' => 2500,
+                    ]
+                ]
+            ),
+            Organization::firstOrCreate(
+                ['name' => 'Hostel B'],
+                [
+                    'slug' => 'hostel-b',
+                    'is_ready' => true,
+                    'settings' => [
+                        'city' => 'Pokhara',
+                        'address' => 'Pokhara, Nepal',
+                        'contact_phone' => '+977-1-2222222',
+                        'monthly_fee' => 5500,
+                        'deposit' => 11000,
+                        'meal_plan' => true,
+                        'meal_price' => 2300,
+                    ]
+                ]
+            )
+        ];
+
+        // Create users WITHOUT organization_id
         $admin = User::firstOrCreate(
             ['email' => 'parasharregmi@gmail.com'],
             [
@@ -92,7 +149,6 @@ class DatabaseSeeder extends Seeder
                 'phone' => '9761762036',
                 'address' => 'काठमाडौं, नेपाल',
                 'payment_verified' => true,
-                'role_id' => 1 // Add role_id
             ]
         );
         $admin->assignRole('admin');
@@ -106,7 +162,6 @@ class DatabaseSeeder extends Seeder
                 'phone' => '9761762036',
                 'address' => 'पोखरा, नेपाल',
                 'payment_verified' => true,
-                'role_id' => 2 // Add role_id
             ]
         );
         $manager->assignRole('hostel_manager');
@@ -120,12 +175,27 @@ class DatabaseSeeder extends Seeder
                 'phone' => '9851134338',
                 'address' => 'पोखरा, नेपाल',
                 'payment_verified' => false,
-                'role_id' => 3 // Add role_id
             ]
         );
         $student->assignRole('student');
 
-        // Run seeders
+        // Create organization-user relationships using sync to avoid duplicates
+        $admin->organizations()->sync([
+            $organizations[0]->id => ['role' => 'admin'],
+            $organizations[1]->id => ['role' => 'admin'],
+            $organizations[2]->id => ['role' => 'admin']
+        ]);
+
+        $manager->organizations()->sync([
+            $organizations[0]->id => ['role' => 'manager'],
+            $organizations[1]->id => ['role' => 'manager']
+        ]);
+
+        $student->organizations()->sync([
+            $organizations[0]->id => ['role' => 'student']
+        ]);
+
+        // Run other seeders
         $this->call([
             CollegeSeeder::class,
             CourseSeeder::class,

@@ -6,21 +6,47 @@ use App\Http\Requests\OnboardingStepRequest;
 use App\Models\Hostel;
 use App\Models\Organization;
 use App\Models\OnboardingProgress;
+use App\Models\RoomType;
+use App\Models\Room;
+use App\Models\Student;
+use App\Models\Booking;
+use App\Models\User;
+use App\Models\OrganizationUser;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class OnboardingController extends Controller
 {
     /**
      * Show the onboarding wizard progress.
      *
-     * @return \Illuminate\View\View
+     * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
      */
     public function index()
     {
-        $organization = request()->attributes->get('organization');
+        $user = Auth::user();
+
+        // Get organization through user relationship
+        $organization = $user->organization;
+
+        // Redirect if no organization exists
+        if (!$organization) {
+            return redirect()->route('register.organization')
+                ->with('error', 'कृपया पहिले आफ्नो संस्था सिर्जना गर्नुहोस्।');
+        }
+
         $onboarding = $organization->onboardingProgress;
+
+        // If onboarding progress doesn't exist, create it
+        if (!$onboarding) {
+            $onboarding = OnboardingProgress::create([
+                'organization_id' => $organization->id,
+                'current_step'    => 1,
+                'completed'       => [],
+            ]);
+        }
 
         // If organization is already ready, redirect to dashboard
         if ($organization->is_ready) {
@@ -39,8 +65,24 @@ class OnboardingController extends Controller
      */
     public function store(OnboardingStepRequest $request, $step)
     {
-        $organization = request()->attributes->get('organization');
+        $user = Auth::user();
+        $organization = $user->organization;
+
+        if (!$organization) {
+            return redirect()->route('register.organization')
+                ->with('error', 'कृपया पहिले आफ्नो संस्था सिर्जना गर्नुहोस्।');
+        }
+
         $onboarding = $organization->onboardingProgress;
+
+        // If onboarding progress doesn't exist, create it
+        if (!$onboarding) {
+            $onboarding = OnboardingProgress::create([
+                'organization_id' => $organization->id,
+                'current_step'    => 1,
+                'completed'       => [],
+            ]);
+        }
 
         // Validate step
         if ($step < 1 || $step > 5 || $onboarding->current_step != $step) {
@@ -90,7 +132,7 @@ class OnboardingController extends Controller
                 ->with('success', 'चरण सफलतापूर्वक पूरा गरियो।');
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Onboarding step failed: ' . $e->getMessage());
+            Log::error('Onboarding step failed: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'चरण प्रक्रिया गर्दा त्रुटि आयो। कृपया पुन: प्रयास गर्नुहोस्।');
@@ -105,8 +147,24 @@ class OnboardingController extends Controller
      */
     public function skip($step)
     {
-        $organization = request()->attributes->get('organization');
+        $user = Auth::user();
+        $organization = $user->organization;
+
+        if (!$organization) {
+            return redirect()->route('register.organization')
+                ->with('error', 'कृपया पहिले आफ्नो संस्था सिर्जना गर्नुहोस्।');
+        }
+
         $onboarding = $organization->onboardingProgress;
+
+        // If onboarding progress doesn't exist, create it
+        if (!$onboarding) {
+            $onboarding = OnboardingProgress::create([
+                'organization_id' => $organization->id,
+                'current_step'    => 1,
+                'completed'       => [],
+            ]);
+        }
 
         // Validate step
         if ($step < 1 || $step > 5 || $onboarding->current_step != $step) {
@@ -133,7 +191,7 @@ class OnboardingController extends Controller
                 ->with('info', 'चरण छोडियो। तपाईं यसलाई पछि पनि पूरा गर्न सक्नुहुन्छ।');
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Onboarding step skip failed: ' . $e->getMessage());
+            Log::error('Onboarding step skip failed: ' . $e->getMessage());
             return redirect()->route('onboarding.index')
                 ->with('error', 'चरण छोड्दा त्रुटि आयो। कृपया पुन: प्रयास गर्नुहोस्।');
         }
@@ -144,13 +202,15 @@ class OnboardingController extends Controller
      */
     private function processStep1(Organization $organization, Request $request)
     {
+        $settings = (array) $organization->settings;
+
         $organization->update([
             'name' => $request->name,
-            'settings' => array_merge((array)$organization->settings, [
+            'settings' => array_merge($settings, [
                 'city' => $request->city,
                 'address' => $request->address,
                 'contact_phone' => $request->contact_phone,
-                'logo' => $request->hasFile('logo') ? $request->file('logo')->store('logos', 'public') : ($organization->settings['logo'] ?? null)
+                'logo' => $request->hasFile('logo') ? $request->file('logo')->store('logos', 'public') : ($settings['logo'] ?? null)
             ])
         ]);
     }
@@ -161,7 +221,7 @@ class OnboardingController extends Controller
     private function processStep2(Organization $organization, Request $request)
     {
         $hostelData = [
-            'org_id' => $organization->id,
+            'organization_id' => $organization->id,
             'name' => $request->hostel_name,
             'city' => $request->hostel_city,
             'address' => $request->hostel_address,
@@ -169,9 +229,7 @@ class OnboardingController extends Controller
         ];
 
         // Check if hostel already exists
-        $existingHostel = Hostel::where('org_id', $organization->id)
-            ->where('name', $request->hostel_name)
-            ->first();
+        $existingHostel = Hostel::where('organization_id', $organization->id)->first();
 
         if ($existingHostel) {
             $existingHostel->update($hostelData);
@@ -185,9 +243,9 @@ class OnboardingController extends Controller
      */
     private function processStep3(Organization $organization, Request $request)
     {
-        // Assuming you have a RoomType model
+        // Room Type
         $roomTypeData = [
-            'org_id' => $organization->id,
+            'organization_id' => $organization->id,
             'name' => $request->room_type,
             'capacity' => $request->capacity,
             'price' => $request->price,
@@ -196,22 +254,27 @@ class OnboardingController extends Controller
         ];
 
         // Check if room type already exists
-        $existingRoomType = \App\Models\RoomType::where('org_id', $organization->id)
-            ->where('name', $request->room_type)
-            ->first();
+        $existingRoomType = RoomType::where('organization_id', $organization->id)->first();
 
         if ($existingRoomType) {
             $existingRoomType->update($roomTypeData);
         } else {
-            \App\Models\RoomType::create($roomTypeData);
+            $existingRoomType = RoomType::create($roomTypeData);
         }
 
-        // Create actual rooms based on capacity and room type
+        // Get the first hostel for this organization
+        $hostel = Hostel::where('organization_id', $organization->id)->first();
+
+        if (!$hostel) {
+            throw new \Exception('कृपया पहिले होस्टल सिर्जना गर्नुहोस्।');
+        }
+
+        // Create actual rooms
         for ($i = 1; $i <= $request->room_count; $i++) {
-            \App\Models\Room::create([
-                'org_id' => $organization->id,
-                'hostel_id' => Hostel::where('org_id', $organization->id)->first()->id,
-                'room_type_id' => $existingRoomType ? $existingRoomType->id : \App\Models\RoomType::latest()->first()->id,
+            Room::create([
+                'organization_id' => $organization->id,
+                'hostel_id' => $hostel->id,
+                'room_type_id' => $existingRoomType->id,
                 'room_number' => $request->room_prefix . $i,
                 'status' => 'available',
                 'description' => $request->room_description ?? '',
@@ -224,7 +287,9 @@ class OnboardingController extends Controller
      */
     private function processStep4(Organization $organization, Request $request)
     {
-        $organization->settings = array_merge((array)$organization->settings, [
+        $settings = (array) $organization->settings;
+
+        $organization->settings = array_merge($settings, [
             'monthly_fee' => $request->monthly_fee,
             'deposit' => $request->deposit,
             'meal_plan' => $request->has('meal_plan'),
@@ -234,6 +299,7 @@ class OnboardingController extends Controller
             'late_fee' => $request->late_fee ?? 0,
             'late_fee_grace_days' => $request->late_fee_grace_days ?? 3,
         ]);
+
         $organization->save();
     }
 
@@ -244,7 +310,7 @@ class OnboardingController extends Controller
     {
         // Create student
         $studentData = [
-            'org_id' => $organization->id,
+            'organization_id' => $organization->id,
             'name' => $request->student_name,
             'email' => $request->student_email,
             'phone' => $request->student_phone,
@@ -257,28 +323,37 @@ class OnboardingController extends Controller
         ];
 
         // Check if student already exists
-        $existingStudent = \App\Models\Student::where('org_id', $organization->id)
+        $existingStudent = Student::where('organization_id', $organization->id)
             ->where('email', $request->student_email)
             ->first();
 
         if ($existingStudent) {
             $existingStudent->update($studentData);
+            $student = $existingStudent;
         } else {
-            $student = \App\Models\Student::create($studentData);
-
-            // Create booking
-            \App\Models\Booking::create([
-                'org_id' => $organization->id,
-                'student_id' => $student->id,
-                'hostel_id' => Hostel::where('org_id', $organization->id)->first()->id,
-                'room_id' => \App\Models\Room::where('org_id', $organization->id)->first()->id,
-                'check_in' => $request->check_in,
-                'check_out' => $request->check_out,
-                'status' => 'confirmed',
-                'amount' => $request->monthly_fee,
-                'payment_status' => 'pending',
-            ]);
+            $student = Student::create($studentData);
         }
+
+        // Get the first hostel and room for this organization
+        $hostel = Hostel::where('organization_id', $organization->id)->first();
+        $room = Room::where('organization_id', $organization->id)->first();
+
+        if (!$hostel || !$room) {
+            throw new \Exception('कृपया पहिले होस्टल र कोठा सिर्जना गर्नुहोस्।');
+        }
+
+        // Create booking
+        Booking::create([
+            'organization_id' => $organization->id,
+            'student_id' => $student->id,
+            'hostel_id' => $hostel->id,
+            'room_id' => $room->id,
+            'check_in' => $request->check_in,
+            'check_out' => $request->check_out,
+            'status' => 'confirmed',
+            'amount' => $request->monthly_fee,
+            'payment_status' => 'pending',
+        ]);
 
         // Create staff user if provided
         if ($request->has('staff_name')) {
@@ -287,16 +362,18 @@ class OnboardingController extends Controller
                 'email' => $request->staff_email,
                 'phone' => $request->staff_phone,
                 'password' => bcrypt($request->staff_password),
+                'organization_id' => $organization->id,
             ];
 
-            $existingStaff = \App\Models\User::where('email', $request->staff_email)->first();
+            $existingStaff = User::where('email', $request->staff_email)->first();
 
             if (!$existingStaff) {
-                $staff = \App\Models\User::create($staffData);
+                $staff = User::create($staffData);
+                $staff->assignRole('hostel_manager');
 
                 // Attach to organization with manager role
-                \App\Models\OrganizationUser::create([
-                    'org_id' => $organization->id,
+                OrganizationUser::create([
+                    'organization_id' => $organization->id,
                     'user_id' => $staff->id,
                     'role' => 'manager',
                 ]);

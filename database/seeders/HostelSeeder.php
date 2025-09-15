@@ -45,7 +45,7 @@ class HostelSeeder extends Seeder
             'available_rooms' => 5,
             'facilities' => 'WiFi, Parking, Food',
             'manager_id' => $owner->id,
-            'org_id' => 1, // If using organizations
+            'organization_id' => 1, // If using organizations
             'owner_id' => $owner->id,
             'status' => 'active'
         ]);
@@ -63,7 +63,7 @@ class HostelSeeder extends Seeder
             'available_rooms' => 3,
             'facilities' => 'WiFi, Parking, Laundry',
             'manager_id' => $owner->id,
-            'org_id' => 1, // If using organizations
+            'organization_id' => 1, // If using organizations
             'owner_id' => $owner->id,
             'status' => 'active'
         ]);

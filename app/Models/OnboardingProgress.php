@@ -11,7 +11,7 @@ class OnboardingProgress extends Model
     use HasFactory;
 
     protected $fillable = [
-        'org_id',
+        'organization_id',
         'current_step',
         'completed'
     ];
@@ -23,7 +23,7 @@ class OnboardingProgress extends Model
 
     public function organization(): BelongsTo
     {
-        return $this->belongsTo(Organization::class, 'org_id');
+        return $this->belongsTo(Organization::class, 'organization_id');
     }
 
     public function isCompleted(): bool

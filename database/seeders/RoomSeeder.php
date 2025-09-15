@@ -20,7 +20,7 @@ class RoomSeeder extends Seeder
                 'price' => 5000,
                 'capacity' => 1,
                 'status' => 'available',
-                'org_id' => 1, // यो कलम तपाइँको टेबलमा छ
+                'organization_id' => 1, // यो कलम तपाइँको टेबलमा छ
                 'description' => 'एकल कोठा' // यो कलम पनि तपाइँको टेबलमा छ
             ]);
 
@@ -31,7 +31,7 @@ class RoomSeeder extends Seeder
                 'price' => 8000,
                 'capacity' => 2,
                 'status' => 'available',
-                'org_id' => 1, // यो कलम तपाइँको टेबलमा छ
+                'organization_id' => 1, // यो कलम तपाइँको टेबलमा छ
                 'description' => 'दोहोरो कोठा' // यो कलम पनि तपाइँको टेबलमा छ
             ]);
         }
