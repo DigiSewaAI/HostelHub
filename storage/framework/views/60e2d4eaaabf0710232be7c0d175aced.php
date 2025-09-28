@@ -35,22 +35,21 @@
                 </div>
             <?php endif; ?>
             
-            <form method="POST" action="<?php echo e(route('register.organization.store')); ?>" autocomplete="off">
+            <form method="POST" action="<?php echo e(route('register.organization.store')); ?>" autocomplete="off" id="registration-form">
                 <?php echo csrf_field(); ?>
                 
-                <!-- Hidden fields to prevent autofill -->
-                <input type="text" name="fakeusernameremembered" autocomplete="username" style="display:none">
-                <input type="password" name="fakepasswordremembered" autocomplete="new-password" style="display:none">
+                <!-- Explicit CSRF token field as a backup -->
+                <input type="hidden" name="_token" value="<?php echo e(csrf_token()); ?>">
                 
-                <!-- Use plan slug instead of ID -->
-                <input type="hidden" name="plan_slug" value="<?php echo e($plan->slug ?? ''); ?>">
+                <!-- FIXED: Changed plan_slug to plan as expected by controller -->
+                <input type="hidden" name="plan" value="<?php echo e($plan->slug ?? ''); ?>">
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div>
                         <label for="organization_name" class="block text-sm font-medium text-gray-700 mb-1">होस्टल/संगठनको नाम</label>
                         <input type="text" id="organization_name" name="organization_name" required
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                            value="<?php echo e(old('organization_name')); ?>">
+                            value="<?php echo e(old('organization_name')); ?>" autocomplete="organization">
                         <?php $__errorArgs = ['organization_name'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
@@ -66,7 +65,7 @@ unset($__errorArgs, $__bag); ?>
                         <label for="owner_name" class="block text-sm font-medium text-gray-700 mb-1">प्रबन्धकको नाम</label>
                         <input type="text" id="owner_name" name="owner_name" required
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                            value="<?php echo e(old('owner_name')); ?>">
+                            value="<?php echo e(old('owner_name')); ?>" autocomplete="name">
                         <?php $__errorArgs = ['owner_name'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
@@ -84,7 +83,7 @@ unset($__errorArgs, $__bag); ?>
                     <label for="email" class="block text-sm font-medium text-gray-700 mb-1">इमेल ठेगाना</label>
                     <input type="email" id="email" name="email" required
                         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                        value="<?php echo e(old('email')); ?>">
+                        value="<?php echo e(old('email')); ?>" autocomplete="email">
                     <?php $__errorArgs = ['email'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
@@ -116,7 +115,6 @@ unset($__errorArgs, $__bag); ?>
                     <div>
                         <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-1">पासवर्ड पुष्टि गर्नुहोस्</label>
                         <input type="password" id="password_confirmation" name="password_confirmation" required autocomplete="new-password"
-                            <input type="password" id="password_confirmation" name="password_confirmation" required autocomplete="new-password"
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                     </div>
                 </div>
@@ -162,5 +160,15 @@ unset($__errorArgs, $__bag); ?>
         </div>
     </div>
 </section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add a timestamp to the form action to prevent caching
+    const form = document.getElementById('registration-form');
+    const url = new URL(form.action);
+    url.searchParams.set('_', Date.now());
+    form.action = url.toString();
+});
+</script>
 <?php $__env->stopSection(); ?>
 <?php echo $__env->make('layouts.frontend', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\My Projects\HostelHub\resources\views/auth/organization/register.blade.php ENDPATH**/ ?>

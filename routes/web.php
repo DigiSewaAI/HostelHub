@@ -124,6 +124,13 @@ Route::middleware('guest')->group(function () {
 });
 
 /*|--------------------------------------------------------------------------
+| Owner Dashboard Route (Accessible without hasOrganization middleware)
+|--------------------------------------------------------------------------*/
+Route::get('/owner/dashboard', [DashboardController::class, 'ownerDashboard'])
+    ->middleware(['auth', 'role:hostel_manager'])
+    ->name('owner.dashboard');
+
+/*|--------------------------------------------------------------------------
 | Global Dashboard Redirect (Role-based)
 |--------------------------------------------------------------------------
 */
@@ -149,7 +156,7 @@ Route::get('/dashboard', function () {
     }
 
     return redirect('/');
-})->middleware(['auth'])->name('dashboard'); // REMOVE 'hasOrganization' middleware
+})->middleware(['auth'])->name('dashboard');
 
 /*|--------------------------------------------------------------------------
 | Unified Role-Based Routes (Protected Routes)
@@ -160,10 +167,6 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
     Route::get('/admin/dashboard', [DashboardController::class, 'adminDashboard'])
         ->middleware('role:admin')
         ->name('admin.dashboard');
-
-    Route::get('/owner/dashboard', [DashboardController::class, 'ownerDashboard'])
-        ->middleware('role:hostel_manager')
-        ->name('owner.dashboard');
 
     // Student dashboard using StudentController
     Route::get('/student/dashboard', [StudentController::class, 'studentDashboard'])
@@ -228,7 +231,6 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
         Route::get('hostels/{hostel}/availability', [AdminHostelController::class, 'showAvailability'])->name('admin.hostels.availability');
         Route::put('hostels/{hostel}/availability', [AdminHostelController::class, 'updateAvailability'])->name('admin.hostels.availability.update');
     });
-
 
     // Owner specific routes
     Route::middleware('role:hostel_manager')->prefix('owner')->name('owner.')->group(function () {

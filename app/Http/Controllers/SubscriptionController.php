@@ -96,6 +96,31 @@ class SubscriptionController extends Controller
             return back()->with('error', 'अमान्य योजना');
         }
 
+        // ✅ NEW VALIDATION: Check if user already has this plan
+        $currentSubscription = $organization->subscription;
+        if ($currentSubscription && $currentSubscription->plan_id == $newPlan->id) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'तपाईं पहिले नै ' . $newPlan->name . ' योजनामा हुनुहुन्छ।'
+                ], 422);
+            }
+
+            return back()->with('error', 'तपाईं पहिले नै ' . $newPlan->name . ' योजनामा हुनुहुन्छ।');
+        }
+
+        // ✅ NEW VALIDATION: Check if user is on trial and trying to upgrade
+        if ($currentSubscription && $currentSubscription->status == 'trial') {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'तपाईं निःशुल्क परीक्षण अवधिमा हुनुहुन्छ। परीक्षण समाप्त भएपछि मात्र योजना परिवर्तन गर्न सक्नुहुन्छ।'
+                ], 422);
+            }
+
+            return back()->with('error', 'तपाईं निःशुल्क परीक्षण अवधिमा हुनुहुन्छ। परीक्षण समाप्त भएपछि मात्र योजना परिवर्तन गर्न सक्नुहुन्छ।');
+        }
+
         DB::beginTransaction();
 
         try {

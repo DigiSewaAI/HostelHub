@@ -35,22 +35,21 @@
                 </div>
             @endif
             
-            <form method="POST" action="{{ route('register.organization.store') }}" autocomplete="off">
+            <form method="POST" action="{{ route('register.organization.store') }}" autocomplete="off" id="registration-form">
                 @csrf
                 
-                <!-- Hidden fields to prevent autofill -->
-                <input type="text" name="fakeusernameremembered" autocomplete="username" style="display:none">
-                <input type="password" name="fakepasswordremembered" autocomplete="new-password" style="display:none">
+                <!-- Explicit CSRF token field as a backup -->
+                <input type="hidden" name="_token" value="{{ csrf_token() }}">
                 
-                <!-- Use plan slug instead of ID -->
-                <input type="hidden" name="plan_slug" value="{{ $plan->slug ?? '' }}">
+                <!-- FIXED: Changed plan_slug to plan as expected by controller -->
+                <input type="hidden" name="plan" value="{{ $plan->slug ?? '' }}">
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div>
                         <label for="organization_name" class="block text-sm font-medium text-gray-700 mb-1">होस्टल/संगठनको नाम</label>
                         <input type="text" id="organization_name" name="organization_name" required
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                            value="{{ old('organization_name') }}">
+                            value="{{ old('organization_name') }}" autocomplete="organization">
                         @error('organization_name')
                             <p class="error-message">{{ $message }}</p>
                         @enderror
@@ -59,7 +58,7 @@
                         <label for="owner_name" class="block text-sm font-medium text-gray-700 mb-1">प्रबन्धकको नाम</label>
                         <input type="text" id="owner_name" name="owner_name" required
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                            value="{{ old('owner_name') }}">
+                            value="{{ old('owner_name') }}" autocomplete="name">
                         @error('owner_name')
                             <p class="error-message">{{ $message }}</p>
                         @enderror
@@ -70,7 +69,7 @@
                     <label for="email" class="block text-sm font-medium text-gray-700 mb-1">इमेल ठेगाना</label>
                     <input type="email" id="email" name="email" required
                         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                        value="{{ old('email') }}">
+                        value="{{ old('email') }}" autocomplete="email">
                     @error('email')
                         <p class="error-message">{{ $message }}</p>
                     @enderror
@@ -88,7 +87,6 @@
                     <div>
                         <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-1">पासवर्ड पुष्टि गर्नुहोस्</label>
                         <input type="password" id="password_confirmation" name="password_confirmation" required autocomplete="new-password"
-                            <input type="password" id="password_confirmation" name="password_confirmation" required autocomplete="new-password"
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
                     </div>
                 </div>
@@ -134,4 +132,14 @@
         </div>
     </div>
 </section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add a timestamp to the form action to prevent caching
+    const form = document.getElementById('registration-form');
+    const url = new URL(form.action);
+    url.searchParams.set('_', Date.now());
+    form.action = url.toString();
+});
+</script>
 @endsection
