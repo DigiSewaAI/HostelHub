@@ -107,12 +107,26 @@
         border: 2px solid #0d6efd;
         margin-top: 10px;
         cursor: pointer;
+        width: 100%;
     }
     
     .pricing-button:hover {
         background: transparent;
         color: #0d6efd;
         transform: scale(1.05);
+    }
+
+    .pricing-button:disabled {
+        background: #6c757d;
+        border-color: #6c757d;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .pricing-button:disabled:hover {
+        background: #6c757d;
+        color: white;
+        transform: none;
     }
     
     .popular {
@@ -219,6 +233,20 @@
         box-shadow: 0 6px 15px rgba(255,255,255,0.2);
         border-color: #ffffff;
     }
+
+    .trial-button:disabled {
+        background: #6c757d;
+        border-color: #6c757d;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .trial-button:disabled:hover {
+        background: #6c757d;
+        color: white;
+        transform: none;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
     
     /* Loading state */
     .pricing-button.loading {
@@ -238,6 +266,27 @@
         border-radius: 50%;
         border-top-color: #fff;
         animation: spin 1s ease-in-out infinite;
+    }
+    
+    .current-plan-badge {
+        background: #28a745;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 600;
+        margin-top: 10px;
+        display: inline-block;
+    }
+
+    .trial-warning {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        color: #856404;
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        font-size: 14px;
     }
     
     @keyframes spin {
@@ -272,6 +321,36 @@
     <p>७ दिन निःशुल्क परीक्षण | कुनै पनि क्रेडिट कार्ड आवश्यक छैन</p>
 </section>
 
+<?php if(auth()->guard()->check()): ?>
+    <?php
+        // ✅ FIXED: Define variables once at the top for all plans
+        $organizationId = session('current_organization_id');
+        $currentSubscription = null;
+        $currentPlan = null;
+        $isTrial = false;
+        
+        if ($organizationId) {
+            try {
+                $organization = \App\Models\Organization::with('subscription.plan')->find($organizationId);
+                $currentSubscription = $organization->subscription ?? null;
+                $currentPlan = $currentSubscription->plan ?? null;
+                $isTrial = $currentSubscription && $currentSubscription->status == 'trial';
+            } catch (Exception $e) {
+                // If error, treat as no subscription
+                $currentSubscription = null;
+                $currentPlan = null;
+                $isTrial = false;
+            }
+        }
+        
+        // ✅ FIXED: Define all plan checks once
+        $isStarterCurrent = $currentPlan && $currentPlan->slug == 'starter';
+        $isProCurrent = $currentPlan && $currentPlan->slug == 'pro';
+        $isEnterpriseCurrent = $currentPlan && $currentPlan->slug == 'enterprise';
+        $hasSubscription = $currentSubscription != null;
+    ?>
+<?php endif; ?>
+
 <!-- Pricing Cards -->
 <div class="pricing-container">
     <!-- Starter Plan -->
@@ -289,16 +368,33 @@
             <li><i class="fas fa-utensils"></i> भोजन व्यवस्थापन</li>
             <li><i class="fas fa-mobile-alt"></i> मोबाइल एप्प</li>
         </ul>
+        
         <?php if(auth()->guard()->check()): ?>
-        <form action="<?php echo e(route('subscription.upgrade')); ?>" method="POST" class="plan-form" style="display: inline;">
-            <?php echo csrf_field(); ?>
-            <input type="hidden" name="plan" value="starter">
-            <button type="submit" class="pricing-button">योजना छान्नुहोस्</button>
-        </form>
-    <?php else: ?>
-        <a href="<?php echo e(route('register.organization', ['plan' => 'starter'])); ?>" class="pricing-button">योजना छान्नुहोस्</a>
-    <?php endif; ?>
-</div>
+            <?php if($isTrial): ?>
+                <div class="trial-warning">
+                    तपाईं निःशुल्क परीक्षण अवधिमा हुनुहुन्छ
+                </div>
+                <button class="pricing-button" disabled>
+                    परीक्षण अवधिमा
+                </button>
+            <?php elseif($isStarterCurrent): ?>
+                <div class="current-plan-badge">
+                    वर्तमान योजना
+                </div>
+                <button class="pricing-button" disabled>
+                    सक्रिय
+                </button>
+            <?php else: ?>
+                <form action="<?php echo e(route('subscription.upgrade')); ?>" method="POST" class="plan-form" style="display: inline; width: 100%;">
+                    <?php echo csrf_field(); ?>
+                    <input type="hidden" name="plan" value="starter">
+                    <button type="submit" class="pricing-button">योजना छान्नुहोस्</button>
+                </form>
+            <?php endif; ?>
+        <?php else: ?>
+            <a href="<?php echo e(route('register.organization', ['plan' => 'starter'])); ?>" class="pricing-button">योजना छान्नुहोस्</a>
+        <?php endif; ?>
+    </div>
 
     <!-- Pro Plan -->
     <div class="pricing-card popular">
@@ -316,16 +412,33 @@
             <li><i class="fas fa-utensils"></i> भोजन व्यवस्थापन</li>
             <li><i class="fas fa-mobile-alt"></i> मोबाइल एप्प</li>
         </ul>
+        
         <?php if(auth()->guard()->check()): ?>
-        <form action="<?php echo e(route('subscription.upgrade')); ?>" method="POST" class="plan-form" style="display: inline;">
-            <?php echo csrf_field(); ?>
-            <input type="hidden" name="plan" value="pro">
-            <button type="submit" class="pricing-button">योजना छान्नुहोस्</button>
-        </form>
-    <?php else: ?>
-        <a href="<?php echo e(route('register.organization', ['plan' => 'pro'])); ?>" class="pricing-button">योजना छान्नुहोस्</a>
-    <?php endif; ?>
-</div>
+            <?php if($isTrial): ?>
+                <div class="trial-warning">
+                    तपाईं निःशुल्क परीक्षण अवधिमा हुनुहुन्छ
+                </div>
+                <button class="pricing-button" disabled>
+                    परीक्षण अवधिमा
+                </button>
+            <?php elseif($isProCurrent): ?>
+                <div class="current-plan-badge">
+                    वर्तमान योजना
+                </div>
+                <button class="pricing-button" disabled>
+                    सक्रिय
+                </button>
+            <?php else: ?>
+                <form action="<?php echo e(route('subscription.upgrade')); ?>" method="POST" class="plan-form" style="display: inline; width: 100%;">
+                    <?php echo csrf_field(); ?>
+                    <input type="hidden" name="plan" value="pro">
+                    <button type="submit" class="pricing-button">योजना छान्नुहोस्</button>
+                </form>
+            <?php endif; ?>
+        <?php else: ?>
+            <a href="<?php echo e(route('register.organization', ['plan' => 'pro'])); ?>" class="pricing-button">योजना छान्नुहोस्</a>
+        <?php endif; ?>
+    </div>
 
     <!-- Enterprise Plan -->
     <div class="pricing-card">
@@ -342,16 +455,33 @@
             <li><i class="fas fa-chart-line"></i> विस्तृत विवरण र विश्लेषण</li>
             <li><i class="fas fa-headset"></i> २४/७ समर्थन</li>
         </ul>
+        
         <?php if(auth()->guard()->check()): ?>
-        <form action="<?php echo e(route('subscription.upgrade')); ?>" method="POST" class="plan-form" style="display: inline;">
-            <?php echo csrf_field(); ?>
-            <input type="hidden" name="plan" value="enterprise">
-            <button type="submit" class="pricing-button">योजना छान्नुहोस्</button>
-        </form>
-    <?php else: ?>
-        <a href="<?php echo e(route('register.organization', ['plan' => 'enterprise'])); ?>" class="pricing-button">योजना छान्नुहोस्</a>
-    <?php endif; ?>
-</div>
+            <?php if($isTrial): ?>
+                <div class="trial-warning">
+                    तपाईं निःशुल्क परीक्षण अवधिमा हुनुहुन्छ
+                </div>
+                <button class="pricing-button" disabled>
+                    परीक्षण अवधिमा
+                </button>
+            <?php elseif($isEnterpriseCurrent): ?>
+                <div class="current-plan-badge">
+                    वर्तमान योजना
+                </div>
+                <button class="pricing-button" disabled>
+                    सक्रिय
+                </button>
+            <?php else: ?>
+                <form action="<?php echo e(route('subscription.upgrade')); ?>" method="POST" class="plan-form" style="display: inline; width: 100%;">
+                    <?php echo csrf_field(); ?>
+                    <input type="hidden" name="plan" value="enterprise">
+                    <button type="submit" class="pricing-button">योजना छान्नुहोस्</button>
+                </form>
+            <?php endif; ?>
+        <?php else: ?>
+            <a href="<?php echo e(route('register.organization', ['plan' => 'enterprise'])); ?>" class="pricing-button">योजना छान्नुहोस्</a>
+        <?php endif; ?>
+    </div>
 </div>
 
 <!-- FAQ Section -->
@@ -375,10 +505,16 @@
             <a href="mailto:support@hostelhub.com" class="contact-email">support@hostelhub.com</a>
             <div>
                 <?php if(auth()->guard()->check()): ?>
-                    <form action="<?php echo e(route('subscription.start-trial')); ?>" method="POST" class="trial-form" style="display: inline;">
-                        <?php echo csrf_field(); ?>
-                        <button type="submit" class="trial-button">७ दिन निःशुल्क परीक्षण सुरु गर्नुहोस्</button>
-                    </form>
+                    <?php if($hasSubscription): ?>
+                        <button class="trial-button" disabled>
+                            तपाईंसँग पहिले नै सदस्यता छ
+                        </button>
+                    <?php else: ?>
+                        <form action="<?php echo e(route('subscription.start-trial')); ?>" method="POST" class="trial-form" style="display: inline;">
+                            <?php echo csrf_field(); ?>
+                            <button type="submit" class="trial-button">७ दिन निःशुल्क परीक्षण सुरु गर्नुहोस्</button>
+                        </form>
+                    <?php endif; ?>
                 <?php else: ?>
                     <a href="<?php echo e(route('register.organization', ['plan' => 'starter'])); ?>" class="trial-button">७ दिन निःशुल्क परीक्षण सुरु गर्नुहोस्</a>
                 <?php endif; ?>
@@ -432,16 +568,20 @@
                     
                     const data = await response.json();
                     
-                    if (data.redirect) {
-                        window.location.href = data.redirect;
-                    } else if (data.success) {
-                        // Show success message
-                        alert(data.message || 'योजना सफलतापूर्वक अपग्रेड गरियो');
-                        window.location.reload();
+                    if (data.success) {
+                        if (data.redirect) {
+                            window.location.href = data.redirect;
+                        } else {
+                            // Show success message
+                            alert(data.message || 'योजना सफलतापूर्वक अपग्रेड गरियो');
+                            window.location.reload();
+                        }
                     } else {
+                        // Show error message from server
                         throw new Error(data.message || 'अज्ञात त्रुटि');
                     }
                 } catch (error) {
+                    // Show proper error message
                     alert('त्रुटि: ' + error.message);
                     button.classList.remove('loading');
                     button.textContent = originalText;
@@ -477,12 +617,14 @@
                     
                     const data = await response.json();
                     
-                    if (data.redirect) {
-                        window.location.href = data.redirect;
-                    } else if (data.success) {
-                        // Show success message
-                        alert(data.message || 'निःशुल्क परीक्षण सफलतापूर्वक सुरु गरियो');
-                        window.location.reload();
+                    if (data.success) {
+                        if (data.redirect) {
+                            window.location.href = data.redirect;
+                        } else {
+                            // Show success message
+                            alert(data.message || 'निःशुल्क परीक्षण सफलतापूर्वक सुरु गरियो');
+                            window.location.reload();
+                        }
                     } else {
                         throw new Error(data.message || 'अज्ञात त्रुटि');
                     }
@@ -494,6 +636,15 @@
                 }
             });
         }
+
+        // Show success/error messages from session
+        <?php if(session('success')): ?>
+            alert('<?php echo e(session('success')); ?>');
+        <?php endif; ?>
+
+        <?php if(session('error')): ?>
+            alert('<?php echo e(session('error')); ?>');
+        <?php endif; ?>
     });
 </script>
 <?php $__env->stopSection(); ?>

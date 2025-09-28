@@ -116,8 +116,9 @@ class RegistrationController extends Controller
 
             DB::commit();
 
-            // 8️⃣ Redirect to onboarding page
-            return redirect()->route('onboarding.index');
+            // 8️⃣ Redirect to dashboard with success message
+            return redirect()->route('owner.dashboard')
+                ->with('success', 'तपाईंको दर्ता सफल भयो!');
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->withInput()
