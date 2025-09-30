@@ -124,13 +124,6 @@ Route::middleware('guest')->group(function () {
 });
 
 /*|--------------------------------------------------------------------------
-| Owner Dashboard Route (Accessible without hasOrganization middleware)
-|--------------------------------------------------------------------------*/
-Route::get('/owner/dashboard', [DashboardController::class, 'ownerDashboard'])
-    ->middleware(['auth', 'role:hostel_manager'])
-    ->name('owner.dashboard');
-
-/*|--------------------------------------------------------------------------
 | Global Dashboard Redirect (Role-based)
 |--------------------------------------------------------------------------
 */
@@ -167,6 +160,11 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
     Route::get('/admin/dashboard', [DashboardController::class, 'adminDashboard'])
         ->middleware('role:admin')
         ->name('admin.dashboard');
+
+    // Owner Dashboard Route (Moved inside hasOrganization middleware)
+    Route::get('/owner/dashboard', [DashboardController::class, 'ownerDashboard'])
+        ->middleware('role:hostel_manager')
+        ->name('owner.dashboard');
 
     // Student dashboard using StudentController
     Route::get('/student/dashboard', [StudentController::class, 'studentDashboard'])
@@ -207,9 +205,23 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
             'destroy' => 'admin.reviews.destroy'
         ]);
 
-        // Rooms
-        Route::resource('rooms', RoomController::class)->names('admin.rooms');
+        // Rooms - FIXED: Use separate routes for admin and owner to avoid conflicts
+        Route::get('/rooms', [RoomController::class, 'index'])->name('admin.rooms.index');
+        Route::get('/rooms/create', [RoomController::class, 'create'])->name('admin.rooms.create');
+        Route::post('/rooms', [RoomController::class, 'store'])->name('admin.rooms.store');
+        Route::get('/rooms/{room}', [RoomController::class, 'show'])->name('admin.rooms.show');
+        Route::get('/rooms/{room}/edit', [RoomController::class, 'edit'])->name('admin.rooms.edit');
+        Route::put('/rooms/{room}', [RoomController::class, 'update'])->name('admin.rooms.update');
+        Route::delete('/rooms/{room}', [RoomController::class, 'destroy'])->name('admin.rooms.destroy');
+
+        // Room search
         Route::get('/rooms/search', [RoomController::class, 'search'])->name('admin.rooms.search');
+
+        // Room status change
+        Route::post('/rooms/{room}/change-status', [RoomController::class, 'changeStatus'])->name('admin.rooms.change-status');
+
+        // Room export
+        Route::get('/rooms/export/csv', [RoomController::class, 'exportCSV'])->name('admin.rooms.export-csv');
     });
 
     // Students routes - separated for clarity
@@ -223,6 +235,9 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
             'update' => 'admin.students.update',
             'destroy' => 'admin.students.destroy'
         ]);
+
+        // Student search
+        Route::get('/students/search', [StudentController::class, 'search'])->name('admin.students.search');
     });
 
     // Hostels - Admin only routes
@@ -230,11 +245,15 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
         Route::resource('hostels', AdminHostelController::class)->names('admin.hostels');
         Route::get('hostels/{hostel}/availability', [AdminHostelController::class, 'showAvailability'])->name('admin.hostels.availability');
         Route::put('hostels/{hostel}/availability', [AdminHostelController::class, 'updateAvailability'])->name('admin.hostels.availability.update');
+
+        // Hostel search
+        Route::get('/hostels/search', [AdminHostelController::class, 'search'])->name('admin.hostels.search');
     });
 
-    // Owner specific routes
+    // Owner specific routes - FIXED: Add proper room routes for owner
     Route::middleware('role:hostel_manager')->prefix('owner')->name('owner.')->group(function () {
-        Route::resource('hostels', OwnerHostelController::class)->only(['index', 'edit', 'update']);
+        // ✅ FIXED: Update owner hostel routes to include ALL methods
+        Route::resource('hostels', OwnerHostelController::class);
 
         // Add gallery routes for owner
         Route::resource('galleries', GalleryController::class);
@@ -246,8 +265,25 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
         // Add reviews routes for owner
         Route::resource('reviews', AdminReviewController::class);
 
-        // Add these routes for owner dashboard quick actions
+        // FIXED: Add proper room routes for owner
         Route::get('rooms', [RoomController::class, 'index'])->name('rooms.index');
+        Route::get('rooms/create', [RoomController::class, 'create'])->name('rooms.create');
+        Route::post('rooms', [RoomController::class, 'store'])->name('rooms.store');
+        Route::get('rooms/{room}', [RoomController::class, 'show'])->name('rooms.show');
+        Route::get('rooms/{room}/edit', [RoomController::class, 'edit'])->name('rooms.edit');
+        Route::put('rooms/{room}', [RoomController::class, 'update'])->name('rooms.update');
+        Route::delete('rooms/{room}', [RoomController::class, 'destroy'])->name('rooms.destroy');
+
+        // Add room search for owner
+        Route::get('rooms/search', [RoomController::class, 'search'])->name('rooms.search');
+
+        // Room status change for owner
+        Route::post('rooms/{room}/change-status', [RoomController::class, 'changeStatus'])->name('rooms.change-status');
+
+        // Room export for owner
+        Route::get('rooms/export/csv', [RoomController::class, 'exportCSV'])->name('rooms.export-csv');
+
+        // Add these routes for owner dashboard quick actions
         Route::get('meals', [MealController::class, 'index'])->name('meals.index');
         Route::get('meal-menus', [AdminMealMenuController::class, 'index'])->name('meal-menus.index');
         Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
@@ -262,11 +298,58 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
             'update' => 'students.update',
             'destroy' => 'students.destroy'
         ]);
+
+        // Owner student search
+        Route::get('students/search', [StudentController::class, 'search'])->name('students.search');
+
+        // Owner student export
+        Route::get('students/export/csv', [StudentController::class, 'exportCSV'])->name('students.export-csv');
+
+        // Owner contact routes
+        Route::resource('contacts', ContactController::class)->names([
+            'index' => 'contacts.index',
+            'create' => 'contacts.create',
+            'store' => 'contacts.store',
+            'show' => 'contacts.show',
+            'edit' => 'contacts.edit',
+            'update' => 'contacts.update',
+            'destroy' => 'contacts.destroy'
+        ]);
+
+        // Owner contact search
+        Route::get('contacts/search', [ContactController::class, 'search'])->name('contacts.search');
+
+        // Owner contact bulk delete
+        Route::post('contacts/bulk-delete', [ContactController::class, 'bulkDestroy'])->name('contacts.bulk-delete');
+
+        // Owner contact status update
+        Route::post('contacts/{id}/update-status', [ContactController::class, 'updateStatus'])->name('contacts.update-status');
+
+        // Owner contact export
+        Route::get('contacts/export/csv', [ContactController::class, 'exportCSV'])->name('contacts.export-csv');
+
+        // Owner payment routes
+        Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
+        Route::get('payments/create', [PaymentController::class, 'create'])->name('payments.create');
+        Route::post('payments', [PaymentController::class, 'store'])->name('payments.store');
+        Route::get('payments/{payment}', [PaymentController::class, 'show'])->name('payments.show');
+        Route::get('payments/{payment}/edit', [PaymentController::class, 'edit'])->name('payments.edit');
+        Route::put('payments/{payment}', [PaymentController::class, 'update'])->name('payments.update');
+        Route::delete('payments/{payment}', [PaymentController::class, 'destroy'])->name('payments.destroy');
+
+        // Owner payment search
+        Route::get('payments/search', [PaymentController::class, 'search'])->name('payments.search');
+
+        // Owner payment status update
+        Route::post('payments/{payment}/update-status', [PaymentController::class, 'updateStatus'])->name('payments.update-status');
     });
 
     // Meal Menus - Admin can also view
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
         Route::resource('meal-menus', AdminMealMenuController::class)->only(['index', 'show']);
+
+        // Meal menu search
+        Route::get('/meal-menus/search', [AdminMealMenuController::class, 'search'])->name('meal-menus.search');
     });
 
     // Settings - admin only
@@ -295,12 +378,18 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
         Route::get('/student/meal-menus', [StudentController::class, 'mealMenus'])->name('student.meal-menus.index');
         Route::get('/student/meal-menus/{mealMenu}', [StudentController::class, 'showMealMenu'])->name('student.meal-menus.show');
 
-        // Room viewing for students (read-only)
+        // Room viewing for students (read-only) - Updated to use RoomController methods
         Route::get('/student/rooms', [RoomController::class, 'studentIndex'])->name('student.rooms.index');
         Route::get('/student/rooms/{room}', [RoomController::class, 'studentShow'])->name('student.rooms.show');
 
+        // Student room search
+        Route::get('/student/rooms/search', [RoomController::class, 'search'])->name('student.rooms.search');
+
         // Bookings
         Route::get('/my-bookings', [RoomController::class, 'myBookings'])->name('bookings.my');
+
+        // Student profile update
+        Route::patch('/student/profile/update', [StudentController::class, 'updateProfile'])->name('student.profile.update');
     });
 
     // Payments - accessible by admin and hostel_manager
@@ -312,12 +401,21 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
         Route::get('/payments/{payment}/edit', [PaymentController::class, 'edit'])->name('admin.payments.edit');
         Route::put('/payments/{payment}', [PaymentController::class, 'update'])->name('admin.payments.update');
         Route::delete('/payments/{payment}', [PaymentController::class, 'destroy'])->name('admin.payments.destroy');
+
+        // Payment search
+        Route::get('/payments/search', [PaymentController::class, 'search'])->name('admin.payments.search');
+
+        // Payment status update
+        Route::post('/payments/{payment}/update-status', [PaymentController::class, 'updateStatus'])->name('admin.payments.update-status');
     });
 
     // Student payment viewing (read-only)
     Route::middleware('role:student')->group(function () {
         Route::get('/payments', [PaymentController::class, 'index'])->name('student.payments.index');
         Route::get('/payments/{payment}', [PaymentController::class, 'show'])->name('student.payments.show');
+
+        // Student payment search
+        Route::get('/payments/search', [PaymentController::class, 'search'])->name('student.payments.search');
     });
 
     // Khalti callback route (publicly accessible)
@@ -331,10 +429,16 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
     Route::post('/subscription/upgrade', [SubscriptionController::class, 'upgrade'])->name('subscription.upgrade');
     Route::post('/subscription/start-trial', [SubscriptionController::class, 'startTrial'])->name('subscription.start-trial');
 
+    // Subscription cancellation
+    Route::post('/subscription/cancel', [SubscriptionController::class, 'cancel'])->name('subscription.cancel');
+
     // Onboarding
     Route::get('/onboarding', [OnboardingController::class, 'index'])->name('onboarding.index');
     Route::post('/onboarding/step/{step}', [OnboardingController::class, 'store'])->name('onboarding.store');
     Route::post('/onboarding/skip/{step}', [OnboardingController::class, 'skip'])->name('onboarding.skip');
+
+    // Onboarding completion
+    Route::post('/onboarding/complete', [OnboardingController::class, 'complete'])->name('onboarding.complete');
 
     // Profile Management
     Route::get('/profile', [PublicProfileController::class, 'edit'])->name('profile.edit');
@@ -373,4 +477,27 @@ if (app()->environment('local')) {
         $pdf = Pdf::loadHTML('<h1>Test PDF</h1><p>This is working!</p>');
         return $pdf->download('test.pdf');
     });
+
+    // Test database connection
+    Route::get('/test-db', function () {
+        try {
+            DB::connection()->getPdo();
+            return 'Database connection is working.';
+        } catch (\Exception $e) {
+            return 'Database connection failed: ' . $e->getMessage();
+        }
+    });
+
+    // Test roles and permissions
+    Route::get('/test-roles', function () {
+        $user = auth()->user();
+        if ($user) {
+            return [
+                'user_id' => $user->id,
+                'roles' => $user->getRoleNames(),
+                'permissions' => $user->getAllPermissions()->pluck('name')
+            ];
+        }
+        return 'No user logged in';
+    })->middleware('auth');
 }

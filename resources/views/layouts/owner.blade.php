@@ -34,12 +34,21 @@
         body {
             font-family: 'Noto Sans Devanagari', sans-serif;
             background-color: #f8fafc;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
         }
         
         .sidebar {
             width: var(--sidebar-width);
             transition: width var(--transition-speed);
             background: linear-gradient(45deg, #4e73df, #224abe) !important;
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            z-index: 1000;
+            transform: translateX(0);
         }
         
         .sidebar.collapsed {
@@ -69,6 +78,7 @@
             color: #ffffff;
             transition: all 0.3s;
             margin-bottom: 0.25rem;
+            text-decoration: none;
         }
         
         .sidebar-link:hover {
@@ -186,6 +196,64 @@
             height: 32px;
             width: auto;
         }
+
+        /* Main content area - FIXED */
+        .main-content-area {
+    margin-left: var(--sidebar-width);
+    width: calc(100% - var(--sidebar-width));
+    transition: all var(--transition-speed);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto; /* Add scrolling if content overflows */
+}
+
+        .sidebar.collapsed ~ .main-content-area {
+            margin-left: var(--sidebar-collapsed-width);
+            width: calc(100% - var(--sidebar-collapsed-width));
+        }
+
+        /* Mobile sidebar styles */
+        @media (max-width: 1023px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+            
+            .main-content-area {
+                margin-left: 0 !important;
+                width: 100% !important;
+            }
+            
+            .sidebar-overlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 999;
+            }
+        }
+
+        /* Ensure content takes full width */
+        .main-content-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Fix for page content */
+        .page-content {
+            flex: 1;
+            padding: 1rem;
+        }
+
+        @media (min-width: 768px) {
+            .page-content {
+                padding: 1.5rem;
+            }
+        }
     </style>
     
     <!-- Page-specific CSS -->
@@ -194,7 +262,7 @@
 <body class="bg-gray-50 font-sans">
     <a href="#main-content" class="skip-link">मुख्य सामग्रीमा जानुहोस्</a>
     
-    <div class="flex h-screen overflow-hidden">
+    <div class="flex min-h-screen">
         <!-- Sidebar -->
         <aside id="sidebar" class="sidebar text-white z-20 flex-shrink-0 transition-all duration-300 ease-in-out flex flex-col h-full">
             <div class="p-4 border-b border-blue-700 flex items-center justify-between">
@@ -285,8 +353,8 @@
             </nav>
         </aside>
 
-        <!-- Main Content -->
-        <div class="flex-1 flex flex-col overflow-hidden">
+        <!-- Main Content Area - FIXED -->
+        <div class="main-content-area">
             <!-- Top Navigation -->
             <header class="bg-gradient-primary shadow-sm z-10">
                 <div class="flex items-center justify-between px-6 header-content">
@@ -303,26 +371,22 @@
                     
                     <div class="flex items-center space-x-3">
                         <!-- Notifications -->
-                        <div class="relative" x-data="{ open: false }">
-                            <button @click="open = !open" class="notification-button text-white hover:text-gray-200 p-2 rounded-full hover:bg-blue-700" aria-label="सूचनाहरू हेर्नुहोस्">
+                        <div class="dropdown">
+                            <button class="notification-button text-white hover:text-gray-200 p-2 rounded-full hover:bg-blue-700 dropdown-toggle" 
+                                    type="button" 
+                                    id="notificationsDropdown" 
+                                    data-bs-toggle="dropdown" 
+                                    aria-expanded="false"
+                                    aria-label="सूचनाहरू हेर्नुहोस्">
                                 <i class="fas fa-bell text-lg"></i>
                                 <span class="notification-dot" aria-hidden="true"></span>
                             </button>
-                            <div x-show="open" @click.away="open = false"
-                                 x-transition:enter="transition ease-out duration-200"
-                                 x-transition:enter-start="opacity-0 transform scale-95"
-                                 x-transition:enter-end="opacity-100 transform scale-100"
-                                 x-transition:leave="transition ease-in duration-75"
-                                 x-transition:leave-start="opacity-100 transform scale-100"
-                                 x-transition:leave-end="opacity-0 transform scale-95"
-                                 class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg py-1 z-20 max-h-96 overflow-y-auto border border-gray-200"
-                                 role="menu"
-                                 aria-orientation="vertical"
-                                 aria-labelledby="notifications-button">
+                            <div class="dropdown-menu dropdown-menu-end w-80 bg-white rounded-xl shadow-lg py-1 z-20 max-h-96 overflow-y-auto border border-gray-200" 
+                                 aria-labelledby="notificationsDropdown">
                                 <div class="px-4 py-2 border-b border-gray-200">
                                     <h3 class="font-semibold text-gray-800">सूचनाहरू</h3>
                                 </div>
-                                <a href="#" class="flex items-start px-4 py-3 hover:bg-gray-50 border-b border-gray-100" role="menuitem">
+                                <a href="#" class="flex items-start px-4 py-3 hover:bg-gray-50 border-b border-gray-100">
                                     <div class="bg-indigo-100 p-2 rounded-lg mr-3">
                                         <i class="fas fa-utensils text-indigo-600"></i>
                                     </div>
@@ -331,7 +395,7 @@
                                         <p class="text-xs text-gray-500">३० मिनेट अघि</p>
                                     </div>
                                 </a>
-                                <a href="#" class="flex items-start px-4 py-3 hover:bg-gray-50 border-b border-gray-100" role="menuitem">
+                                <a href="#" class="flex items-start px-4 py-3 hover:bg-gray-50 border-b border-gray-100">
                                     <div class="bg-amber-100 p-2 rounded-lg mr-3">
                                         <i class="fas fa-money-bill-wave text-amber-600"></i>
                                     </div>
@@ -340,7 +404,7 @@
                                         <p class="text-xs text-gray-500">१ घण्टा अघि</p>
                                     </div>
                                 </a>
-                                <a href="#" class="flex items-start px-4 py-3 hover:bg-gray-50" role="menuitem">
+                                <a href="#" class="flex items-start px-4 py-3 hover:bg-gray-50">
                                     <div class="bg-red-100 p-2 rounded-lg mr-3">
                                         <i class="fas fa-star text-red-600"></i>
                                     </div>
@@ -357,7 +421,7 @@
                         
                         <!-- User Dropdown -->
                         <div class="d-flex align-items-center user-dropdown">
-                            <span class="text-white me-3">{{ auth()->user()->name }}</span>
+                            <span class="text-white me-3 d-none d-sm-inline">{{ auth()->user()->name }}</span>
                             <div class="dropdown">
                                 <button class="btn btn-outline-light dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
                                     <i class="fas fa-user-circle me-1"></i>
@@ -382,78 +446,81 @@
                 </div>
             </header>
 
-            <!-- Page Content -->
-            <main id="main-content" class="flex-1 overflow-y-auto p-4 md:p-6 bg-gray-50">
-                <div class="max-w-7xl mx-auto">
-                    <!-- Page Header -->
-                    <div class="mb-6">
-                        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                            <div>
-                                <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-1 md:block">@yield('title')</h1>
-                                @if(View::hasSection('page-description'))
-                                    <p class="text-gray-600 text-sm">@yield('page-description')</p>
-                                @endif
+            <!-- Main Content Container -->
+            <div class="main-content-container flex-1">
+                <!-- Page Content -->
+                <main id="main-content" class="page-content bg-gray-50 flex-1">
+    <div class="max-w-7xl mx-auto h-full">
+                        <!-- Page Header -->
+                        <div class="mb-6">
+                            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                                <div>
+                                    <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-1">@yield('title')</h1>
+                                    @if(View::hasSection('page-description'))
+                                        <p class="text-gray-600 text-sm">@yield('page-description')</p>
+                                    @endif
+                                </div>
+                                <div>
+                                    @yield('header-buttons')
+                                </div>
                             </div>
-                            <div>
-                                @yield('header-buttons')
+                        </div>
+                        
+                        <!-- Session Messages -->
+                        @if (session('success'))
+                            <div class="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg flex items-center">
+                                <i class="fas fa-check-circle mr-2"></i>
+                                <span>{{ session('success') }}</span>
+                            </div>
+                        @endif
+                        
+                        @if (session('error'))
+                            <div class="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg flex items-center">
+                                <i class="fas fa-exclamation-circle mr-2"></i>
+                                <span>{{ session('error') }}</span>
+                            </div>
+                        @endif
+                        
+                        @if ($errors->any())
+                            <div class="mb-6 p-4 bg-yellow-50 border border-yellow-200 text-yellow-700 rounded-lg">
+                                <div class="flex items-center mb-2">
+                                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                                    <strong class="font-medium">त्रुटिहरू पत्ता लाग्यो:</strong>
+                                </div>
+                                <ul class="list-disc pl-5 space-y-1">
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+                        
+                        <!-- Page Content -->
+                        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                            @yield('content')
+                        </div>
+                    </div>
+                </main>
+                
+                <!-- Footer -->
+                <footer class="bg-white border-t border-gray-200 py-4 mt-auto">
+                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div class="flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
+                            <p class="mb-2 md:mb-0">&copy; {{ date('Y') }} HostelHub. सबै अधिकार सुरक्षित।</p>
+                            <div class="flex space-x-4">
+                                <a href="#" class="hover:text-gray-700">गोपनीयता नीति</a>
+                                <a href="#" class="hover:text-gray-700">सेवा सर्तहरू</a>
+                                <span>संस्करण: 1.0.0</span>
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- Session Messages -->
-                    @if (session('success'))
-                        <div class="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg flex items-center">
-                            <i class="fas fa-check-circle mr-2"></i>
-                            <span>{{ session('success') }}</span>
-                        </div>
-                    @endif
-                    
-                    @if (session('error'))
-                        <div class="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg flex items-center">
-                            <i class="fas fa-exclamation-circle mr-2"></i>
-                            <span>{{ session('error') }}</span>
-                        </div>
-                    @endif
-                    
-                    @if ($errors->any())
-                        <div class="mb-6 p-4 bg-yellow-50 border border-yellow-200 text-yellow-700 rounded-lg">
-                            <div class="flex items-center mb-2">
-                                <i class="fas fa-exclamation-triangle mr-2"></i>
-                                <strong class="font-medium">त्रुटिहरू पत्ता लाग्यो:</strong>
-                            </div>
-                            <ul class="list-disc pl-5 space-y-1">
-                                @foreach ($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
-                    
-                    <!-- Page Content -->
-                    <div class="main-content bg-white rounded-xl shadow-sm overflow-hidden">
-                        @yield('content')
-                    </div>
-                </div>
-            </main>
-            
-            <!-- Footer -->
-            <footer class="bg-white border-t border-gray-200 py-4">
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div class="flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
-                        <p class="mb-2 md:mb-0">&copy; {{ date('Y') }} HostelHub. सबै अधिकार सुरक्षित।</p>
-                        <div class="flex space-x-4">
-                            <a href="#" class="hover:text-gray-700">गोपनीयता नीति</a>
-                            <a href="#" class="hover:text-gray-700">सेवा सर्तहरू</a>
-                            <span>संस्करण: 1.0.0</span>
-                        </div>
-                    </div>
-                </div>
-            </footer>
+                </footer>
+            </div>
         </div>
     </div>
     
     <!-- Mobile Sidebar Overlay -->
-    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-10 hidden lg:hidden" aria-hidden="true"></div>
+    <div id="sidebar-overlay" class="sidebar-overlay hidden lg:hidden" aria-hidden="true"></div>
     
     <!-- Scripts -->
     @stack('scripts')
@@ -479,18 +546,32 @@
             // Mobile sidebar toggle
             if (mobileSidebarToggle) {
                 mobileSidebarToggle.addEventListener('click', function() {
-                    sidebar.classList.remove('-translate-x-full');
+                    sidebar.classList.add('mobile-open');
                     sidebarOverlay.classList.remove('hidden');
+                    document.body.style.overflow = 'hidden';
                 });
             }
             
             // Close mobile sidebar
             if (sidebarOverlay) {
                 sidebarOverlay.addEventListener('click', function() {
-                    sidebar.classList.add('-translate-x-full');
+                    sidebar.classList.remove('mobile-open');
                     sidebarOverlay.classList.add('hidden');
+                    document.body.style.overflow = 'auto';
                 });
             }
+            
+            // Close mobile sidebar when clicking on a link
+            const sidebarLinks = document.querySelectorAll('.sidebar-link');
+            sidebarLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    if (window.innerWidth < 1024) {
+                        sidebar.classList.remove('mobile-open');
+                        sidebarOverlay.classList.add('hidden');
+                        document.body.style.overflow = 'auto';
+                    }
+                });
+            });
             
             // Check saved state
             if (localStorage.getItem('sidebarCollapsed') === 'true') {
@@ -506,6 +587,34 @@
                     }
                 });
             });
+
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', function(event) {
+                const dropdowns = document.querySelectorAll('.dropdown');
+                dropdowns.forEach(dropdown => {
+                    if (!dropdown.contains(event.target)) {
+                        const dropdownMenu = dropdown.querySelector('.dropdown-menu');
+                        if (dropdownMenu && dropdownMenu.classList.contains('show')) {
+                            const dropdownToggle = dropdown.querySelector('.dropdown-toggle');
+                            if (dropdownToggle) {
+                                bootstrap.Dropdown.getInstance(dropdownToggle)?.hide();
+                            }
+                        }
+                    }
+                });
+            });
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+            
+            if (window.innerWidth >= 1024) {
+                sidebar.classList.remove('mobile-open');
+                sidebarOverlay.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            }
         });
     </script>
 </body>

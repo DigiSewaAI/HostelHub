@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.owner')
 
 @section('title', 'कोठा सम्पादन गर्नुहोस्')
 
@@ -11,13 +11,11 @@
                     <h3 class="card-title">कोठा सम्पादन गर्नुहोस्</h3>
                 </div>
 
-                <form action="{{ auth()->user()->hasRole('admin') ? route('admin.rooms.update', $room) : route('owner.rooms.update', $room) }}" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('owner.rooms.update', $room) }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
                     <div class="card-body">
                         <div class="row">
-                            {{-- Hostel Selection for both Admin and Owner --}}
-                            @if(auth()->user()->hasRole('admin') || auth()->user()->hasRole('hostel_manager'))
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="hostel_id">होस्टल</label>
@@ -34,7 +32,6 @@
                                     @enderror
                                 </div>
                             </div>
-                            @endif
                             
                             <div class="col-md-6">
                                 <div class="form-group">
@@ -100,36 +97,6 @@
                             </div>
                         </div>
 
-                        {{-- Admin only fields --}}
-                        @role('admin')
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="floor">तल्ला</label>
-                                    <input type="text" class="form-control @error('floor') is-invalid @enderror" id="floor" name="floor" value="{{ old('floor', $room->floor) }}">
-                                    @error('floor')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="image">कोठाको तस्वीर</label>
-                                    <input type="file" class="form-control-file @error('image') is-invalid @enderror" id="image" name="image">
-                                    @if($room->image)
-                                        <div class="mt-2">
-                                            <img src="{{ asset('storage/' . $room->image) }}" alt="कोठाको तस्वीर" style="max-width: 200px;">
-                                            <p class="text-muted">हालको तस्वीर</p>
-                                        </div>
-                                    @endif
-                                    @error('image')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-                        </div>
-                        @endrole
-
                         <div class="form-group">
                             <label for="description">कोठाको विवरण</label>
                             <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description" rows="3">{{ old('description', $room->description) }}</textarea>
@@ -143,7 +110,7 @@
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-save"></i> परिवर्तनहरू सुरक्षित गर्नुहोस्
                         </button>
-                        <a href="{{ auth()->user()->hasRole('admin') ? route('admin.rooms.index') : route('owner.rooms.index') }}" class="btn btn-default">
+                        <a href="{{ route('owner.rooms.index') }}" class="btn btn-default">
                             <i class="fas fa-times"></i> रद्द गर्नुहोस्
                         </a>
                     </div>

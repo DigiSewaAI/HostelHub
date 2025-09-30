@@ -4,196 +4,181 @@ namespace App\Http\Controllers;
 
 use App\Models\Room;
 use App\Models\Booking;
+use App\Models\Hostel;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Builder;
 
 class RoomController extends Controller
 {
     /**
-     * Display a listing of the resource for public website.
+     * Public room listing for website visitors
      */
-    // app/Http/Controllers/Public/RoomController.php
-
     public function index()
     {
-        $query = Room::withCount(['students' => function ($q) {
-            $q->where('status', 'active');
-        }]);
+        $query = Room::with(['hostel', 'amenities'])
+            ->where('status', 'available')
+            ->whereHas('hostel', function ($query) {
+                $query->where('is_active', true);
+            });
 
-        // Filter by type (single, double, dorm)
-        if (in_array(request('type'), ['single', 'double', 'dorm'])) {
+        // Filter by room type
+        if (request()->has('type') && in_array(request('type'), ['single', 'double', 'shared'])) {
             $query->where('type', request('type'));
         }
 
-        $rooms = $query->where('status', 'available')
-            ->having('students_count', '<', 'capacity')
-            ->orderBy('price')
-            ->paginate(12);
-
-        return view('public.rooms', compact('rooms'));
-    }
-
-    /**
-     * Display a listing of the resource for admin panel.
-     */
-    public function adminIndex()
-    {
-        $rooms = Room::withCount('students')
-            ->latest()
-            ->paginate(10);
-
-        return view('admin.rooms.index', compact('rooms'));
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        return view('admin.rooms.create');
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'room_number' => 'required|string|max:20|unique:rooms',
-            'floor' => 'required|string|max:20',
-            'capacity' => 'required|integer|min:1',
-            'status' => 'required|in:available,occupied,maintenance',
-            'description' => 'nullable|string',
-            'price' => 'required|numeric|min:0',
-        ]);
-
-        if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
+        // Filter by price range
+        if (request()->has('min_price')) {
+            $query->where('price', '>=', request('min_price'));
+        }
+        if (request()->has('max_price')) {
+            $query->where('price', '<=', request('max_price'));
         }
 
-        Room::create($request->all());
-
-        return redirect()->route('admin.rooms.index')
-            ->with('success', 'कोठा सफलतापूर्वक थपियो!');
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Room $room)
-    {
-        $room->loadCount(['students' => function (Builder $query) {
-            $query->where('status', 'active');
-        }]);
-
-        $availableCapacity = $room->capacity - $room->students_count;
-
-        return view('public.rooms.show', compact('room', 'availableCapacity'));
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Room $room)
-    {
-        return view('admin.rooms.edit', compact('room'));
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Room $room)
-    {
-        $validator = Validator::make($request->all(), [
-            'room_number' => 'required|string|max:20|unique:rooms,room_number,' . $room->id,
-            'floor' => 'required|string|max:20',
-            'capacity' => 'required|integer|min:1',
-            'status' => 'required|in:available,occupied,maintenance',
-            'description' => 'nullable|string',
-            'price' => 'required|numeric|min:0',
-        ]);
-
-        if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
+        // Filter by hostel location
+        if (request()->has('location')) {
+            $query->whereHas('hostel', function ($q) {
+                $q->where('location', 'like', '%' . request('location') . '%');
+            });
         }
 
-        $room->update($request->all());
+        $rooms = $query->orderBy('price')->paginate(12);
 
-        // कोठाको स्थिति अपडेट गर्ने
-        $this->updateRoomStatus($room);
-
-        return redirect()->route('admin.rooms.index')
-            ->with('success', 'कोठा सफलतापूर्वक अपडेट गरियो!');
+        return view('frontend.rooms.index', compact('rooms'));
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Public room details page
      */
-    public function destroy(Room $room)
+    public function show($id)
     {
-        // कोठामा सक्रिय विद्यार्थीहरू छन् भने हटाउन नदिने
-        $activeStudentsCount = $room->students()->where('status', 'active')->count();
+        $room = Room::with(['hostel', 'amenities', 'reviews.user'])
+            ->where('status', 'available')
+            ->whereHas('hostel', function ($query) {
+                $query->where('is_active', true);
+            })
+            ->findOrFail($id);
 
-        if ($activeStudentsCount > 0) {
-            return redirect()->route('admin.rooms.index')
-                ->with('error', 'यो कोठामा सक्रिय विद्यार्थीहरू छन्, हटाउन सकिँदैन!');
-        }
-
-        $room->delete();
-
-        return redirect()->route('admin.rooms.index')
-            ->with('success', 'कोठा सफलतापूर्वक हटाइयो!');
-    }
-
-    /**
-     * Update room status based on current occupancy
-     */
-    private function updateRoomStatus(Room $room)
-    {
+        // Calculate available capacity
         $currentOccupancy = $room->students()->where('status', 'active')->count();
+        $availableCapacity = $room->capacity - $currentOccupancy;
 
-        if ($currentOccupancy >= $room->capacity) {
-            $room->update(['status' => 'occupied']);
-        } elseif ($currentOccupancy == 0) {
-            $room->update(['status' => 'available']);
-        }
-        // Maintenance status is managed separately
+        // Get related rooms
+        $relatedRooms = Room::where('hostel_id', $room->hostel_id)
+            ->where('id', '!=', $room->id)
+            ->where('status', 'available')
+            ->with('hostel')
+            ->take(4)
+            ->get();
+
+        return view('frontend.rooms.show', compact('room', 'availableCapacity', 'relatedRooms'));
     }
 
     /**
-     * Public method to get rooms with available capacity
+     * Room search functionality for public
      */
-    public function publicIndex()
+    public function search(Request $request)
     {
-        return $this->index();
+        $request->validate([
+            'query' => 'required|string|min:2',
+            'type' => 'nullable|in:single,double,shared',
+            'min_price' => 'nullable|numeric|min:0',
+            'max_price' => 'nullable|numeric|min:0'
+        ]);
+
+        $query = Room::with('hostel')
+            ->where('status', 'available')
+            ->whereHas('hostel', function ($q) {
+                $q->where('is_active', true);
+            });
+
+        // Search in room number and description
+        $query->where(function ($q) use ($request) {
+            $q->where('room_number', 'like', '%' . $request->query . '%')
+                ->orWhere('description', 'like', '%' . $request->query . '%')
+                ->orWhereHas('hostel', function ($q2) use ($request) {
+                    $q2->where('name', 'like', '%' . $request->query . '%')
+                        ->orWhere('location', 'like', '%' . $request->query . '%');
+                });
+        });
+
+        // Apply filters
+        if ($request->type) {
+            $query->where('type', $request->type);
+        }
+
+        if ($request->min_price) {
+            $query->where('price', '>=', $request->min_price);
+        }
+
+        if ($request->max_price) {
+            $query->where('price', '<=', $request->max_price);
+        }
+
+        $rooms = $query->orderBy('price')->paginate(12);
+        $searchQuery = $request->query;
+
+        return view('frontend.rooms.search', compact('rooms', 'searchQuery'));
     }
 
     /**
-     * Display user's booking history
-     *
-     * @return \Illuminate\View\View
+     * Check room availability
+     */
+    public function checkAvailability(Request $request, Room $room)
+    {
+        $request->validate([
+            'check_in' => 'required|date|after:today',
+            'check_out' => 'required|date|after:check_in'
+        ]);
+
+        $isAvailable = !$room->bookings()
+            ->where(function ($query) use ($request) {
+                $query->whereBetween('check_in', [$request->check_in, $request->check_out])
+                    ->orWhereBetween('check_out', [$request->check_in, $request->check_out])
+                    ->orWhere(function ($q) use ($request) {
+                        $q->where('check_in', '<=', $request->check_in)
+                            ->where('check_out', '>=', $request->check_out);
+                    });
+            })
+            ->whereIn('status', ['confirmed', 'pending'])
+            ->exists();
+
+        return response()->json([
+            'available' => $isAvailable,
+            'message' => $isAvailable ? 'कोठा उपलब्ध छ' : 'कोठा उपलब्ध छैन'
+        ]);
+    }
+
+    /**
+     * Display user's booking history (for authenticated users)
      */
     public function myBookings()
     {
-        // प्रमाणित प्रयोगकर्ताको बुकिङहरू पुनःप्राप्त गर्ने
         $user = Auth::user();
 
-        // Error handling for cases where user might not exist
         if (!$user) {
             return redirect()->route('login')->with('error', 'कृपया लगइन गर्नुहोस्।');
         }
 
         $bookings = Booking::where('user_id', $user->id)
-            ->with(['room', 'hostel']) // सम्बन्धित डेटा
+            ->with(['room.hostel'])
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate(10);
 
-        return view('bookings.my-bookings', compact('bookings'));
+        return view('frontend.bookings.index', compact('bookings'));
+    }
+
+    /**
+     * Get rooms by hostel
+     */
+    public function byHostel(Hostel $hostel)
+    {
+        $rooms = Room::where('hostel_id', $hostel->id)
+            ->where('status', 'available')
+            ->with('amenities')
+            ->orderBy('price')
+            ->paginate(12);
+
+        return view('frontend.rooms.by-hostel', compact('rooms', 'hostel'));
     }
 }

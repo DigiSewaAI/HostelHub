@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.owner')
 
 @section('title', 'कोठा विवरण')
 
@@ -19,12 +19,10 @@
                                     <th style="width: 30%;">कोठा नम्बर:</th>
                                     <td>{{ $room->room_number }}</td>
                                 </tr>
-                                @if(auth()->user()->hasRole('admin') || auth()->user()->hasRole('hostel_manager'))
                                 <tr>
                                     <th>होस्टल:</th>
                                     <td>{{ $room->hostel->name ?? 'N/A' }}</td>
                                 </tr>
-                                @endif
                                 <tr>
                                     <th>प्रकार:</th>
                                     <td>
@@ -45,12 +43,6 @@
                                     <th>मूल्य:</th>
                                     <td>रु. {{ number_format($room->price, 2) }}</td>
                                 </tr>
-                                @role('admin')
-                                <tr>
-                                    <th>तल्ला:</th>
-                                    <td>{{ $room->floor ?? 'N/A' }}</td>
-                                </tr>
-                                @endrole
                                 <tr>
                                     <th>स्थिति:</th>
                                     <td>
@@ -67,15 +59,6 @@
                         </div>
 
                         <div class="col-md-6">
-                            @role('admin')
-                            @if($room->image)
-                                <div class="text-center mb-3">
-                                    <img src="{{ asset('storage/' . $room->image) }}" alt="कोठाको तस्वीर" class="img-fluid rounded" style="max-height: 200px;">
-                                    <p class="text-muted mt-2">कोठाको तस्वीर</p>
-                                </div>
-                            @endif
-                            @endrole
-                            
                             <h5>विवरण:</h5>
                             <div class="border rounded p-3 bg-light">
                                 <p class="mb-0">{{ $room->description ?? 'कुनै विवरण उपलब्ध छैन' }}</p>
@@ -85,12 +68,10 @@
                 </div>
 
                 <div class="card-footer">
-                    @role('admin|hostel_manager')
-                    <a href="{{ auth()->user()->hasRole('admin') ? route('admin.rooms.edit', $room) : route('owner.rooms.edit', $room) }}" class="btn btn-primary">
+                    <a href="{{ route('owner.rooms.edit', $room) }}" class="btn btn-primary">
                         <i class="fas fa-edit"></i> सम्पादन गर्नुहोस्
                     </a>
-                    @endrole
-                    <a href="{{ auth()->user()->hasRole('admin') ? route('admin.rooms.index') : route('owner.rooms.index') }}" class="btn btn-default">
+                    <a href="{{ route('owner.rooms.index') }}" class="btn btn-default">
                         <i class="fas fa-arrow-left"></i> कोठा सूचीमा फर्कनुहोस्
                     </a>
                 </div>
