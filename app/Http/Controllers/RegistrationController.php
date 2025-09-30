@@ -7,6 +7,7 @@ use App\Models\Plan;
 use App\Models\Subscription;
 use App\Models\OnboardingProgress;
 use App\Models\User;
+use App\Models\Hostel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -69,7 +70,7 @@ class RegistrationController extends Controller
             $organization = Organization::create([
                 'name' => $request->organization_name,
                 'slug' => $slug,
-                'is_ready' => false,
+                'is_ready' => true,
             ]);
 
             // 2️⃣ Create user
@@ -83,10 +84,8 @@ class RegistrationController extends Controller
             $hostelManagerRole = Role::findByName('hostel_manager');
             $user->assignRole($hostelManagerRole);
 
-            // 4️⃣ Link user with organization
-            DB::table('organization_user')->insert([
-                'organization_id' => $organization->id,
-                'user_id' => $user->id,
+            // 4️⃣ Link user with organization (using relationship method)
+            $organization->users()->attach($user->id, [
                 'role' => 'owner',
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -103,22 +102,49 @@ class RegistrationController extends Controller
                 'ends_at' => now()->addMonth(),
             ]);
 
-            // 6️⃣ Create onboarding progress
-            OnboardingProgress::create([
+            // 6️⃣ Create default hostel for the organization ✅
+            // Generate unique slug for hostel
+            $hostelSlug = Str::slug($request->organization_name . ' होस्टेल');
+            $originalHostelSlug = $hostelSlug;
+            $j = 1;
+            while (Hostel::where('slug', $hostelSlug)->exists()) {
+                $hostelSlug = $originalHostelSlug . '-' . $j;
+                $j++;
+            }
+
+            $hostel = Hostel::create([
+                'name' => $request->organization_name . ' होस्टेल',
+                'slug' => $hostelSlug, // ✅ slug field थपिएको
+                'address' => 'थप गर्नुपर्ने',
+                'city' => 'काठमाडौं',
+                'contact_person' => $request->owner_name,
+                'contact_phone' => '9800000000',
+                'contact_email' => $request->email,
+                'description' => $request->organization_name . ' को मुख्य होस्टेल',
+                'total_rooms' => 0,
+                'available_rooms' => 0,
+                'status' => 'active',
+                'facilities' => json_encode(['WiFi', 'पानी', 'बिजुली']),
+                'owner_id' => $user->id,
                 'organization_id' => $organization->id,
-                'current_step' => 1,
-                'completed' => [],
             ]);
 
-            // 7️⃣ Auto login and session setup
+            // 7️⃣ Create onboarding progress
+            OnboardingProgress::create([
+                'organization_id' => $organization->id,
+                'current_step' => 2,
+                'completed' => json_encode(['step1' => true]),
+            ]);
+
+            // 8️⃣ Auto login and session setup
             Auth::login($user);
             session(['current_organization_id' => $organization->id]);
 
             DB::commit();
 
-            // 8️⃣ Redirect to dashboard with success message
+            // 9️⃣ Redirect to dashboard with success message
             return redirect()->route('owner.dashboard')
-                ->with('success', 'तपाईंको दर्ता सफल भयो!');
+                ->with('success', 'तपाईंको दर्ता सफल भयो! पहिलो होस्टेल सिर्जना गरियो।');
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->withInput()

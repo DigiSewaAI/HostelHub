@@ -9,6 +9,7 @@ use App\Models\Hostel;
 use App\Models\MealMenu;
 use App\Models\Payment;
 use App\Models\User;
+use App\Models\Organization;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Log;
@@ -140,36 +141,55 @@ class DashboardController extends Controller
             // Get the authenticated user
             $user = auth()->user();
 
-            // Get the hostel using the user's hostel_id
-            $hostel = Hostel::where('id', $user->hostel_id)->first();
+            // Get user's organization where they are owner
+            $organization = $user->organizations()
+                ->wherePivot('role', 'owner')
+                ->first();
 
-            if (!$hostel) {
-                // Pass default values if hostel not found
+            if (!$organization) {
                 return view('owner.dashboard', [
-                    'error' => 'तपाईंको होस्टेल फेला परेन',
+                    'error' => 'तपाईंको संस्था फेला परेन',
                     'hostel' => null,
                     'totalRooms' => 0,
                     'occupiedRooms' => 0,
                     'totalStudents' => 0,
-                    'todayMeal' => null
+                    'todayMeal' => null,
+                    'organization' => null
                 ]);
             }
 
-            $totalRooms = Room::where('hostel_id', $user->hostel_id)->count();
-            $occupiedRooms = Room::where('hostel_id', $user->hostel_id)
+            // Get all hostels of the organization
+            $hostels = $organization->hostels;
+            $hostelIds = $hostels->pluck('id');
+
+            // If there are hostels, get the first one for the meal and to pass to the view
+            $hostel = $hostels->first();
+
+            // Set current organization ID in session
+            session(['current_organization_id' => $organization->id]);
+
+            // Get aggregated statistics for all hostels
+            $totalRooms = Room::whereIn('hostel_id', $hostelIds)->count();
+            $occupiedRooms = Room::whereIn('hostel_id', $hostelIds)
                 ->where('status', 'occupied')
                 ->count();
-            $totalStudents = Student::where('hostel_id', $user->hostel_id)->count();
-            $todayMeal = MealMenu::where('hostel_id', $user->hostel_id)
-                ->where('day', now()->format('l'))
-                ->first();
+            $totalStudents = Student::whereIn('hostel_id', $hostelIds)->count();
+
+            // For today's meal, we use the first hostel
+            $todayMeal = null;
+            if ($hostel) {
+                $todayMeal = MealMenu::where('hostel_id', $hostel->id)
+                    ->where('day_of_week', now()->format('l'))
+                    ->first();
+            }
 
             return view('owner.dashboard', compact(
                 'hostel',
                 'totalRooms',
                 'occupiedRooms',
                 'totalStudents',
-                'todayMeal'
+                'todayMeal',
+                'organization'
             ));
         } catch (\Exception $e) {
             Log::error('होस्टेल मालिक ड्यासबोर्ड त्रुटि: ' . $e->getMessage());
@@ -179,7 +199,8 @@ class DashboardController extends Controller
                 'totalRooms' => 0,
                 'occupiedRooms' => 0,
                 'totalStudents' => 0,
-                'todayMeal' => null
+                'todayMeal' => null,
+                'organization' => null
             ]);
         }
     }
@@ -191,10 +212,25 @@ class DashboardController extends Controller
     {
         try {
             $student = auth()->user()->student;
+
+            if (!$student) {
+                return view('student.dashboard')->with('error', 'विद्यार्थी प्रोफाइल फेला परेन');
+            }
+
             $room = $student->room;
+
+            if (!$room) {
+                return view('student.dashboard')->with('error', 'कोठा फेला परेन');
+            }
+
             $hostel = $room->hostel;
+
+            if (!$hostel) {
+                return view('student.dashboard')->with('error', 'होस्टेल फेला परेन');
+            }
+
             $mealMenu = MealMenu::where('hostel_id', $hostel->id)
-                ->where('day', now()->format('l'))
+                ->where('day_of_week', now()->format('l'))
                 ->first();
 
             return view('student.dashboard', compact('student', 'room', 'hostel', 'mealMenu'));
@@ -223,7 +259,7 @@ class DashboardController extends Controller
                     ->get()
                     ->map(function ($payment) {
                         return [
-                            'student_name' => $payment->student->user->name,
+                            'student_name' => $payment->student->user->name ?? 'N/A',
                             'date' => $payment->created_at->format('Y-m-d'),
                             'amount' => $payment->amount,
                             'method' => $payment->payment_method,

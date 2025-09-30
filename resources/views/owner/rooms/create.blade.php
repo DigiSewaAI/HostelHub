@@ -1,10 +1,12 @@
-@extends('layouts.app')
+@extends('layouts.owner')
+
+@section('title', 'नयाँ कोठा थप्नुहोस्')
 
 @section('content')
     <div class="container-fluid">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="h3">नयाँ कोठा थप्नुहोस्</h1>
-            <a href="{{ auth()->user()->hasRole('admin') ? route('admin.rooms.index') : route('owner.rooms.index') }}" class="btn btn-secondary">
+            <a href="{{ route('owner.rooms.index') }}" class="btn btn-secondary">
                 <i class="fas fa-arrow-left me-2"></i>पछाडि फर्कनुहोस्
             </a>
         </div>
@@ -14,12 +16,10 @@
                 <h6 class="m-0 font-weight-bold text-primary">कोठा विवरण</h6>
             </div>
             <div class="card-body">
-                <form action="{{ auth()->user()->hasRole('admin') ? route('admin.rooms.store') : route('owner.rooms.store') }}" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('owner.rooms.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     
                     <div class="row">
-                        {{-- Hostel Selection for both Admin and Owner --}}
-                        @if(auth()->user()->hasRole('admin') || auth()->user()->hasRole('hostel_manager'))
                         <div class="col-md-6 mb-3">
                             <label for="hostel_id" class="form-label">होस्टल <span class="text-danger">*</span></label>
                             <select name="hostel_id" id="hostel_id" class="form-select @error('hostel_id') is-invalid @enderror" required>
@@ -34,7 +34,6 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-                        @endif
                         
                         <div class="col-md-6 mb-3">
                             <label for="room_number" class="form-label">कोठा नम्बर <span class="text-danger">*</span></label>
@@ -93,29 +92,6 @@
                             @enderror
                         </div>
                     </div>
-
-                    {{-- Admin only fields --}}
-                    @role('admin')
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="floor" class="form-label">तल्ला</label>
-                            <input type="text" name="floor" id="floor" class="form-control @error('floor') is-invalid @enderror"
-                                   value="{{ old('floor') }}" placeholder="जस्तै: 1, 2, Ground">
-                            @error('floor')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="image" class="form-label">कोठाको तस्वीर</label>
-                            <input type="file" name="image" id="image" class="form-control @error('image') is-invalid @enderror" 
-                                   accept="image/*">
-                            <div class="form-text">JPG, PNG, JPEG format मा मात्र, अधिकतम size: 2MB</div>
-                            @error('image')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-                    @endrole
 
                     <div class="mb-3">
                         <label for="description" class="form-label">विवरण</label>

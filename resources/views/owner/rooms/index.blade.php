@@ -1,15 +1,15 @@
-@extends('layouts.app')
+@extends('layouts.owner')
+
+@section('title', 'कोठा व्यवस्थापन')
 
 @section('content')
     <div class="container-fluid">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="h3">कोठा व्यवस्थापन</h1>
             
-            @role('admin|hostel_manager')
-            <a href="{{ auth()->user()->hasRole('admin') ? route('admin.rooms.create') : route('owner.rooms.create') }}" class="btn btn-primary">
+            <a href="{{ route('owner.rooms.create') }}" class="btn btn-primary">
                 <i class="fas fa-plus-circle me-2"></i>नयाँ कोठा थप्नुहोस्
             </a>
-            @endrole
         </div>
 
         @if(session('success'))
@@ -29,7 +29,7 @@
         <div class="card shadow mb-4">
             <div class="card-header py-3 d-flex justify-content-between align-items-center">
                 <h6 class="m-0 font-weight-bold text-primary">कोठाहरूको सूची</h6>
-                <form action="{{ auth()->user()->hasRole('admin') ? route('admin.rooms.search') : route('owner.rooms.search') }}" method="GET" class="d-flex">
+                <form action="{{ route('owner.rooms.search') }}" method="GET" class="d-flex">
                     <input type="text" name="search" class="form-control form-control-sm me-2"
                            placeholder="खोज्नुहोस्..." value="{{ request('search') }}">
                     <button class="btn btn-sm btn-primary" type="submit">
@@ -43,26 +43,20 @@
                         <thead class="table-light">
                             <tr>
                                 <th>क्रम संख्या</th>
-                                @role('admin')
                                 <th>होस्टल</th>
-                                @endrole
                                 <th>कोठा नम्बर</th>
                                 <th>प्रकार</th>
                                 <th>क्षमता</th>
                                 <th>मूल्य</th>
                                 <th>स्थिति</th>
-                                @role('admin|hostel_manager')
                                 <th class="text-center">कार्यहरू</th>
-                                @endrole
                             </tr>
                         </thead>
                         <tbody>
                             @forelse($rooms as $room)
                                 <tr>
                                     <td>{{ $loop->iteration }}</td>
-                                    @role('admin')
                                     <td>{{ $room->hostel ? $room->hostel->name : 'N/A' }}</td>
-                                    @endrole
                                     <td>{{ $room->room_number }}</td>
                                     <td>
                                         @if($room->type == 'single')
@@ -86,29 +80,25 @@
                                             <span class="badge bg-warning">मर्मत सम्भार</span>
                                         @endif
                                     </td>
-                                    @role('admin|hostel_manager')
                                     <td class="text-center">
-                                        <a href="{{ auth()->user()->hasRole('admin') ? route('admin.rooms.show', $room) : route('owner.rooms.show', $room) }}" class="btn btn-sm btn-info me-1" title="हेर्नुहोस्">
+                                        <a href="{{ route('owner.rooms.show', $room) }}" class="btn btn-sm btn-info me-1" title="हेर्नुहोस्">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                        <a href="{{ auth()->user()->hasRole('admin') ? route('admin.rooms.edit', $room) : route('owner.rooms.edit', $room) }}" class="btn btn-sm btn-primary me-1" title="सम्पादन गर्नुहोस्">
+                                        <a href="{{ route('owner.rooms.edit', $room) }}" class="btn btn-sm btn-primary me-1" title="सम्पादन गर्नुहोस्">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        @role('admin')
-                                        <form action="{{ route('admin.rooms.destroy', $room) }}" method="POST" class="d-inline" onsubmit="return confirm('के तपाईं यो कोठा हटाउन चाहनुहुन्छ?')">
+                                        <form action="{{ route('owner.rooms.destroy', $room) }}" method="POST" class="d-inline" onsubmit="return confirm('के तपाईं यो कोठा हटाउन चाहनुहुन्छ?')">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-sm btn-danger" title="हटाउनुहोस्">
                                                 <i class="fas fa-trash-alt"></i>
                                             </button>
                                         </form>
-                                        @endrole
                                     </td>
-                                    @endrole
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="{{ auth()->user()->hasRole('admin') ? '8' : '7' }}" class="text-center">कुनै कोठा फेला परेन</td>
+                                    <td colspan="8" class="text-center">कुनै कोठा फेला परेन</td>
                                 </tr>
                             @endforelse
                         </tbody>
