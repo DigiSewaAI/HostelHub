@@ -27,9 +27,12 @@ class PaymentController extends Controller
         if ($user->hasRole('admin')) {
             return Payment::with(['student', 'hostel'])->latest();
         } elseif ($user->hasRole('hostel_manager')) {
-            return Payment::where('hostel_id', $user->hostel_id)
-                ->with('student')
-                ->latest();
+            // FIX: Get the user's organization ID from session
+            $organizationId = session('current_organization_id');
+
+            return Payment::whereHas('hostel', function ($query) use ($organizationId) {
+                $query->where('organization_id', $organizationId);
+            })->with(['student', 'hostel'])->latest();
         } elseif ($user->hasRole('student')) {
             return Payment::where('student_id', $user->id)
                 ->with('hostel')
@@ -48,8 +51,10 @@ class PaymentController extends Controller
 
         if ($user->hasRole('admin')) {
             return true;
-        } elseif ($user->hasRole('hostel_manager') && $payment->hostel_id == $user->hostel_id) {
-            return true;
+        } elseif ($user->hasRole('hostel_manager')) {
+            // FIX: Check if payment belongs to user's organization
+            $organizationId = session('current_organization_id');
+            return $payment->hostel && $payment->hostel->organization_id == $organizationId;
         } elseif ($user->hasRole('student') && $payment->student_id == $user->id) {
             return true;
         }
@@ -91,7 +96,12 @@ class PaymentController extends Controller
             $hostels = Hostel::all();
             return view('admin.payments.create', compact('students', 'hostels'));
         } elseif ($user->hasRole('hostel_manager')) {
-            $students = Student::where('hostel_id', $user->hostel_id)->get();
+            // FIX: Get students from user's organization
+            $organizationId = session('current_organization_id');
+            $students = Student::whereHas('room.hostel', function ($query) use ($organizationId) {
+                $query->where('organization_id', $organizationId);
+            })->where('status', 'active')->get();
+
             return view('owner.payments.create', compact('students'));
         }
     }
@@ -123,10 +133,15 @@ class PaymentController extends Controller
 
         $request->validate($validationRules);
 
-        // For owners, ensure student belongs to their hostel
+        // For owners, ensure student belongs to their organization
         if ($user->hasRole('hostel_manager')) {
-            $student = Student::find($request->student_id);
-            if ($student->hostel_id != $user->hostel_id) {
+            $organizationId = session('current_organization_id');
+            $student = Student::where('id', $request->student_id)
+                ->whereHas('room.hostel', function ($query) use ($organizationId) {
+                    $query->where('organization_id', $organizationId);
+                })->first();
+
+            if (!$student) {
                 return back()
                     ->withInput()
                     ->with('error', 'तपाईंसँग यो विद्यार्थीको लागि भुक्तानी थप्ने अनुमति छैन');
@@ -150,7 +165,13 @@ class PaymentController extends Controller
             if ($user->hasRole('admin')) {
                 $paymentData['hostel_id'] = $request->hostel_id;
             } elseif ($user->hasRole('hostel_manager')) {
-                $paymentData['hostel_id'] = $user->hostel_id;
+                // FIX: Get hostel_id from student's room
+                $student = Student::find($request->student_id);
+                if ($student && $student->room) {
+                    $paymentData['hostel_id'] = $student->room->hostel_id;
+                } else {
+                    throw new \Exception('Student does not have an assigned room');
+                }
             }
 
             Payment::create($paymentData);
@@ -168,7 +189,7 @@ class PaymentController extends Controller
 
             return back()
                 ->withInput()
-                ->with('error', 'Failed to record payment. Please try again.');
+                ->with('error', 'भुक्तानी दर्ता गर्न असफल। कृपया पुनः प्रयास गर्नुहोस्।');
         }
     }
 
@@ -191,6 +212,35 @@ class PaymentController extends Controller
     }
 
     /**
+     * Search payments
+     */
+    public function search(Request $request)
+    {
+        $user = Auth::user();
+        $search = $request->input('search');
+
+        $payments = $this->getDataByRole()
+            ->where(function ($query) use ($search) {
+                $query->where('amount', 'like', "%{$search}%")
+                    ->orWhere('payment_method', 'like', "%{$search}%")
+                    ->orWhere('status', 'like', "%{$search}%")
+                    ->orWhereHas('student', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%");
+                    });
+            })
+            ->paginate(10);
+
+        // Return appropriate view based on role
+        if (Auth::user()->hasRole('admin')) {
+            return view('admin.payments.index', compact('payments'));
+        } elseif (Auth::user()->hasRole('hostel_manager')) {
+            return view('owner.payments.index', compact('payments'));
+        } elseif (Auth::user()->hasRole('student')) {
+            return view('student.payments.index', compact('payments'));
+        }
+    }
+
+    /**
      * Show the form for editing the specified payment.
      */
     public function edit(Payment $payment)
@@ -209,7 +259,12 @@ class PaymentController extends Controller
             $hostels = Hostel::all();
             return view('admin.payments.edit', compact('payment', 'students', 'hostels'));
         } elseif ($user->hasRole('hostel_manager')) {
-            $students = Student::where('hostel_id', $user->hostel_id)->get();
+            // FIX: Get students from user's organization
+            $organizationId = session('current_organization_id');
+            $students = Student::whereHas('room.hostel', function ($query) use ($organizationId) {
+                $query->where('organization_id', $organizationId);
+            })->where('status', 'active')->get();
+
             return view('owner.payments.edit', compact('payment', 'students'));
         }
     }
@@ -243,10 +298,15 @@ class PaymentController extends Controller
 
         $request->validate($validationRules);
 
-        // For owners, ensure student belongs to their hostel
+        // For owners, ensure student belongs to their organization
         if ($user->hasRole('hostel_manager')) {
-            $student = Student::find($request->student_id);
-            if ($student->hostel_id != $user->hostel_id) {
+            $organizationId = session('current_organization_id');
+            $student = Student::where('id', $request->student_id)
+                ->whereHas('room.hostel', function ($query) use ($organizationId) {
+                    $query->where('organization_id', $organizationId);
+                })->first();
+
+            if (!$student) {
                 return back()
                     ->withInput()
                     ->with('error', 'तपाईंसँग यो विद्यार्थीको लागि भुक्तानी सम्पादन गर्ने अनुमति छैन');
@@ -286,7 +346,31 @@ class PaymentController extends Controller
 
             return back()
                 ->withInput()
-                ->with('error', 'Failed to update payment. Please try again.');
+                ->with('error', 'भुक्तानी अद्यावधिक गर्न असफल। कृपया पुनः प्रयास गर्नुहोस्।');
+        }
+    }
+
+    /**
+     * Update payment status
+     */
+    public function updateStatus(Request $request, Payment $payment)
+    {
+        $this->checkPaymentPermission($payment);
+
+        $request->validate([
+            'status' => 'required|in:pending,completed,failed'
+        ]);
+
+        try {
+            $payment->update([
+                'status' => $request->status,
+                'updated_by' => Auth::id()
+            ]);
+
+            return redirect()->back()->with('success', 'भुक्तानी स्थिति सफलतापूर्वक अद्यावधिक गरियो!');
+        } catch (\Exception $e) {
+            Log::error('Payment status update failed: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'भुक्तानी स्थिति अद्यावधिक गर्न असफल।');
         }
     }
 
@@ -350,7 +434,7 @@ class PaymentController extends Controller
             $route = Auth::user()->hasRole('admin') ? 'admin.payments.index' : 'owner.payments.index';
             return redirect()
                 ->route($route)
-                ->with('error', 'Failed to delete payment.');
+                ->with('error', 'भुक्तानी हटाउन असफल।');
         }
     }
 
@@ -371,7 +455,53 @@ class PaymentController extends Controller
 
             return redirect()
                 ->route('admin.payments.index')
-                ->with('error', 'Failed to export payments. Please try again.');
+                ->with('error', 'भुक्तानी निर्यात गर्न असफल। कृपया पुनः प्रयास गर्नुहोस्।');
         }
+    }
+
+    /**
+     * Khalti callback route
+     */
+    public function khaltiCallback(Request $request)
+    {
+        // Khalti payment verification logic
+        $token = $request->token;
+        $amount = $request->amount;
+
+        $args = http_build_query([
+            'token' => $token,
+            'amount'  => $amount
+        ]);
+
+        $url = "https://khalti.com/api/v2/payment/verify/";
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $args);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+
+        $headers = ['Authorization: Key test_secret_key_XXXXXX'];
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+
+        $response = curl_exec($ch);
+        curl_close($ch);
+
+        $result = json_decode($response);
+
+        if (isset($result->idx)) {
+            // Payment successful
+            $payment = Payment::find($request->payment_id);
+            if ($payment) {
+                $payment->update([
+                    'status' => 'completed',
+                    'transaction_id' => $result->idx
+                ]);
+
+                return response()->json(['success' => true]);
+            }
+        }
+
+        return response()->json(['error' => 'भुक्तानी प्रमाणीकरण असफल']);
     }
 }
