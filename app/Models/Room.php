@@ -53,6 +53,34 @@ class Room extends Model
     }
 
     /**
+     * Get the bookings for the room.
+     */
+    public function bookings(): HasMany
+    {
+        return $this->hasMany(Booking::class);
+    }
+
+    /**
+     * Check if room is available for given dates
+     */
+    public function isAvailableForDates($checkIn, $checkOut): bool
+    {
+        $conflictingBookings = $this->bookings()
+            ->where(function ($query) use ($checkIn, $checkOut) {
+                $query->whereBetween('check_in_date', [$checkIn, $checkOut])
+                    ->orWhereBetween('check_out_date', [$checkIn, $checkOut])
+                    ->orWhere(function ($q) use ($checkIn, $checkOut) {
+                        $q->where('check_in_date', '<=', $checkIn)
+                            ->where('check_out_date', '>=', $checkOut);
+                    });
+            })
+            ->whereIn('status', [Booking::STATUS_PENDING, Booking::STATUS_APPROVED])
+            ->count();
+
+        return $conflictingBookings === 0;
+    }
+
+    /**
      * Scope a query to only include available rooms.
      */
     public function scopeAvailable(Builder $query): Builder

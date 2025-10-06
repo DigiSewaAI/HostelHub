@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Organization;
 use App\Models\Plan;
 use App\Models\Subscription;
+use App\Models\Hostel;
+use App\Models\Student;
+use App\Models\Room;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -45,7 +48,17 @@ class SubscriptionController extends Controller
             ->orderBy('sort_order')
             ->get();
 
-        return view('subscription.show', compact('organization', 'currentPlan', 'availablePlans'));
+        // Calculate hostel limits for the view
+        $hostelsCount = Hostel::where('organization_id', $organizationId)->count();
+        $remainingSlots = $organization->subscription ? $organization->subscription->getRemainingHostelSlots() : 0;
+
+        return view('subscription.show', compact(
+            'organization',
+            'currentPlan',
+            'availablePlans',
+            'hostelsCount',
+            'remainingSlots'
+        ));
     }
 
     public function upgrade(Request $request)
@@ -268,5 +281,290 @@ class SubscriptionController extends Controller
 
             return back()->with('error', 'परीक्षण सुरु गर्दा त्रुटि: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Cancel subscription
+     */
+    public function cancel(Request $request)
+    {
+        $organizationId = session('current_organization_id');
+
+        if (!$organizationId) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'संस्था भेटिएन।'
+                ], 422);
+            }
+            return redirect()->route('register.organization')
+                ->with('error', 'संस्था भेटिएन।');
+        }
+
+        $organization = Organization::find($organizationId);
+        $subscription = $organization->subscription;
+
+        if (!$subscription) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'कुनै सक्रिय सदस्यता भेटिएन।'
+                ], 422);
+            }
+            return back()->with('error', 'कुनै सक्रिय सदस्यता भेटिएन।');
+        }
+
+        DB::beginTransaction();
+
+        try {
+            // Update subscription status to cancelled
+            $subscription->update([
+                'status' => 'cancelled',
+                'ends_at' => now()
+            ]);
+
+            DB::commit();
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'सदस्यता सफलतापूर्वक रद्द गरियो।',
+                    'redirect' => route('subscription.show')
+                ]);
+            }
+
+            return redirect()->route('subscription.show')
+                ->with('success', 'सदस्यता सफलतापूर्वक रद्द गरियो।');
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'सदस्यता रद्द गर्दा त्रुटि: ' . $e->getMessage()
+                ], 500);
+            }
+
+            return back()->with('error', 'सदस्यता रद्द गर्दा त्रुटि: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Purchase extra hostel add-on
+     */
+    public function purchaseExtraHostel(Request $request)
+    {
+        $request->validate([
+            'subscription_id' => 'required|exists:subscriptions,id',
+            'quantity' => 'required|integer|min:1|max:10'
+        ]);
+
+        $subscription = Subscription::findOrFail($request->subscription_id);
+
+        // Check if subscription belongs to user's organization
+        if ($subscription->organization_id !== session('current_organization_id')) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'अमान्य सदस्यता।'
+                ], 422);
+            }
+            return back()->with('error', 'अमान्य सदस्यता।');
+        }
+
+        // Check if plan supports extra hostels (only Enterprise)
+        if (!$subscription->plan || $subscription->plan->slug !== 'enterprise') {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'योजनाले अतिरिक्त होस्टल सपोर्ट गर्दैन। केवल एन्टरप्राइज योजनाले मात्र अतिरिक्त होस्टल सपोर्ट गर्छ।'
+                ], 422);
+            }
+            return back()->with('error', 'योजनाले अतिरिक्त होस्टल सपोर्ट गर्दैन। केवल एन्टरप्राइज योजनाले मात्र अतिरिक्त होस्टल सपोर्ट गर्छ।');
+        }
+
+        // Calculate additional cost
+        $additionalCost = $subscription->plan->getExtraHostelPrice() * $request->quantity;
+
+        DB::beginTransaction();
+
+        try {
+            // Add extra hostels to subscription
+            $subscription->addExtraHostels($request->quantity);
+
+            DB::commit();
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => "{$request->quantity} अतिरिक्त होस्टल स्लट सफलतापूर्वक थपियो।",
+                    'additional_cost' => $additionalCost
+                ]);
+            }
+
+            return back()->with('success', "{$request->quantity} अतिरिक्त होस्टल स्लट सफलतापूर्वक थपियो। अतिरिक्त शुल्क: रु. " . number_format($additionalCost));
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'अतिरिक्त होस्टल थप्दा त्रुटि: ' . $e->getMessage()
+                ], 500);
+            }
+
+            return back()->with('error', 'अतिरिक्त होस्टल थप्दा त्रुटि: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Show subscription limits and usage
+     */
+    public function showLimits()
+    {
+        $organizationId = session('current_organization_id');
+
+        if (!$organizationId) {
+            return redirect()->route('register.organization')
+                ->with('error', 'कृपया पहिले संस्था दर्ता गर्नुहोस्');
+        }
+
+        $subscription = Subscription::where('organization_id', $organizationId)
+            ->with('plan')
+            ->first();
+
+        if (!$subscription) {
+            return redirect()->route('subscription.show')->with('error', 'कुनै सक्रिय सदस्यता फेला परेन।');
+        }
+
+        $hostelsCount = Hostel::where('organization_id', $organizationId)->count();
+        $remainingSlots = $subscription->getRemainingHostelSlots();
+
+        // Get other usage statistics
+        $studentsCount = Student::where('organization_id', $organizationId)->count();
+        $roomsCount = Room::whereHas('hostel', function ($query) use ($organizationId) {
+            $query->where('organization_id', $organizationId);
+        })->count();
+
+        return view('subscription.limits', compact(
+            'subscription',
+            'hostelsCount',
+            'remainingSlots',
+            'studentsCount',
+            'roomsCount'
+        ));
+    }
+
+    /**
+     * Check if organization can create more hostels
+     */
+    public function canCreateMoreHostels()
+    {
+        $organizationId = session('current_organization_id');
+
+        if (!$organizationId) {
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'संस्था भेटिएन'
+                ], 422);
+            }
+            return false;
+        }
+
+        $subscription = Subscription::where('organization_id', $organizationId)
+            ->with('plan')
+            ->first();
+
+        if (!$subscription) {
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'कुनै सक्रिय सदस्यता फेला परेन'
+                ], 422);
+            }
+            return false;
+        }
+
+        $hostelsCount = Hostel::where('organization_id', $organizationId)->count();
+        $canCreateMore = $subscription->canAddMoreHostels();
+
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'can_create_more' => $canCreateMore,
+                'current_count' => $hostelsCount,
+                'remaining_slots' => $subscription->getRemainingHostelSlots(),
+                'max_allowed' => $subscription->plan->getMaxHostelsWithAddons($subscription->extra_hostels ?? 0)
+            ]);
+        }
+
+        return $canCreateMore;
+    }
+
+    /**
+     * Get subscription usage statistics
+     */
+    public function getUsageStats()
+    {
+        $organizationId = session('current_organization_id');
+
+        if (!$organizationId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'संस्था भेटिएन'
+            ], 422);
+        }
+
+        $subscription = Subscription::where('organization_id', $organizationId)
+            ->with('plan')
+            ->first();
+
+        if (!$subscription) {
+            return response()->json([
+                'success' => false,
+                'message' => 'कुनै सक्रिय सदस्यता फेला परेन'
+            ], 422);
+        }
+
+        $hostelsCount = Hostel::where('organization_id', $organizationId)->count();
+        $studentsCount = Student::where('organization_id', $organizationId)->count();
+        $roomsCount = Room::whereHas('hostel', function ($query) use ($organizationId) {
+            $query->where('organization_id', $organizationId);
+        })->count();
+
+        $remainingHostelSlots = $subscription->getRemainingHostelSlots();
+        $remainingStudentSlots = $subscription->plan->max_students - $studentsCount;
+        $remainingRoomSlots = $subscription->plan->max_rooms - $roomsCount;
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'hostels' => [
+                    'current' => $hostelsCount,
+                    'max_allowed' => $subscription->plan->getMaxHostelsWithAddons($subscription->extra_hostels ?? 0),
+                    'remaining' => $remainingHostelSlots,
+                    'usage_percentage' => $subscription->plan->getMaxHostelsWithAddons($subscription->extra_hostels ?? 0) > 0
+                        ? round(($hostelsCount / $subscription->plan->getMaxHostelsWithAddons($subscription->extra_hostels ?? 0)) * 100)
+                        : 0
+                ],
+                'students' => [
+                    'current' => $studentsCount,
+                    'max_allowed' => $subscription->plan->max_students,
+                    'remaining' => max(0, $remainingStudentSlots),
+                    'usage_percentage' => $subscription->plan->max_students > 0
+                        ? round(($studentsCount / $subscription->plan->max_students) * 100)
+                        : 0
+                ],
+                'rooms' => [
+                    'current' => $roomsCount,
+                    'max_allowed' => $subscription->plan->max_rooms,
+                    'remaining' => max(0, $remainingRoomSlots),
+                    'usage_percentage' => $subscription->plan->max_rooms > 0
+                        ? round(($roomsCount / $subscription->plan->max_rooms) * 100)
+                        : 0
+                ]
+            ]
+        ]);
     }
 }

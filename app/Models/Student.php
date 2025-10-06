@@ -27,7 +27,8 @@ class Student extends Model
         'status',
         'admission_date',
         'image',
-        'user_id', // ✅ user_id थपियो (यदि user सँग link गर्न चाहिन्छ भने)
+        'user_id',
+        'organization_id' // ✅ थपियो
     ];
 
     /**
@@ -37,15 +38,30 @@ class Student extends Model
         'admission_date' => 'date',
     ];
 
-    public function college()
+    /**
+     * Get the college that this student belongs to.
+     */
+    public function college(): BelongsTo
     {
         return $this->belongsTo(College::class);
     }
 
-    public function course()
+    /**
+     * Get the course that this student belongs to.
+     */
+    public function course(): BelongsTo
     {
         return $this->belongsTo(Course::class);
     }
+
+    /**
+     * Get the organization that this student belongs to.
+     */
+    public function organization(): BelongsTo
+    {
+        return $this->belongsTo(Organization::class);
+    }
+
     /**
      * Get the room that this student belongs to.
      */
@@ -67,7 +83,15 @@ class Student extends Model
      */
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class); // ✅ User सँगको relation
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the bookings made by this student.
+     */
+    public function bookings(): HasMany
+    {
+        return $this->hasMany(Booking::class, 'user_id', 'user_id');
     }
 
     /**

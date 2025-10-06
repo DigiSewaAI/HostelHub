@@ -290,6 +290,15 @@
         margin-bottom: 15px;
         font-size: 14px;
     }
+
+    .feature-note {
+        margin-top: 15px;
+        padding: 10px;
+        background: #f8f9fa;
+        border-radius: 5px;
+        font-size: 14px;
+        border-left: 4px solid #0d6efd;
+    }
     
     @keyframes spin {
         to { transform: rotate(360deg); }
@@ -364,11 +373,11 @@
         </div>
         <ul class="pricing-features">
             <li><i class="fas fa-users"></i> ५० विद्यार्थी सम्म</li>
+            <li><i class="fas fa-building"></i> १ होस्टल सम्म</li>
             <li><i class="fas fa-user-graduate"></i> मूल विद्यार्थी व्यवस्थापन</li>
             <li><i class="fas fa-bed"></i> कोठा आवंटन</li>
+            <li><i class="fas fa-calendar-check"></i> <strong>बेसिक अग्रिम कोठा बुकिंग (manual approval)</strong></li>
             <li><i class="fas fa-money-bill-wave"></i> भुक्तानी ट्र्याकिंग</li>
-            <li><i class="fas fa-utensils"></i> भोजन व्यवस्थापन</li>
-            <li><i class="fas fa-mobile-alt"></i> मोबाइल एप्प</li>
         </ul>
         
         @auth
@@ -408,10 +417,10 @@
         </div>
         <ul class="pricing-features">
             <li><i class="fas fa-users"></i> २०० विद्यार्थी सम्म</li>
+            <li><i class="fas fa-building"></i> १ होस्टल सम्म</li>
             <li><i class="fas fa-user-graduate"></i> पूर्ण विद्यार्थी व्यवस्थापन</li>
-            <li><i class="fas fa-calendar-check"></i> अग्रिम कोठा बुकिंग</li>
+            <li><i class="fas fa-calendar-check"></i> <strong>अग्रिम कोठा बुकिंग (auto-confirm, notifications)</strong></li>
             <li><i class="fas fa-money-bill-wave"></i> भुक्तानी ट्र्याकिंग</li>
-            <li><i class="fas fa-utensils"></i> भोजन व्यवस्थापन</li>
             <li><i class="fas fa-mobile-alt"></i> मोबाइल एप्प</li>
         </ul>
         
@@ -451,12 +460,20 @@
         </div>
         <ul class="pricing-features">
             <li><i class="fas fa-users"></i> असीमित विद्यार्थी</li>
+            <li><i class="fas fa-building"></i> <strong>बहु-होस्टल व्यवस्थापन (५ होस्टल सम्म)</strong></li>
             <li><i class="fas fa-user-graduate"></i> पूर्ण विद्यार्थी व्यवस्थापन</li>
-            <li><i class="fas fa-building"></i> बहु-होस्टल व्यवस्थापन</li>
+            <li><i class="fas fa-calendar-check"></i> अग्रिम कोठा बुकिंग (auto-confirm)</li>
             <li><i class="fas fa-credit-card"></i> कस्टम भुक्तानी प्रणाली</li>
-            <li><i class="fas fa-chart-line"></i> विस्तृत विवरण र विश्लेषण</li>
             <li><i class="fas fa-headset"></i> २४/७ समर्थन</li>
         </ul>
+
+        <!-- Enterprise Plan को तल यो note थप्नुहोस्: -->
+        @if(!isset($isEnterpriseCurrent) || !$isEnterpriseCurrent)
+            <div class="feature-note">
+                <i class="fas fa-info-circle"></i> 
+                <strong>अतिरिक्त होस्टल थप्न सकिन्छ:</strong> रु. १,०००/महिना प्रति अतिरिक्त होस्टल
+            </div>
+        @endif
         
         @auth
             @if($isTrial)

@@ -67,9 +67,11 @@ class Kernel extends HttpKernel
         'subscription.active' => \App\Http\Middleware\EnsureSubscriptionActive::class,
         'payment.verified' => \App\Http\Middleware\PaymentVerified::class,
         'plan.limits' => \App\Http\Middleware\EnforcePlanLimits::class,
+        'enforce.plan.limits' => \App\Http\Middleware\EnforcePlanLimits::class, // ✅ नयाँ alias थपियो
+        'check.hostel.limit' => \App\Http\Middleware\CheckHostelLimit::class, // ✅ नयाँ middleware थपियो
         'org.context' => \App\Http\Middleware\EnsureOrgContext::class,
         'localize' => \App\Http\Middleware\Localize::class,
-        'hasOrganization' => \App\Http\Middleware\CheckTenantAccess::class, // ✅ Fixed: Points to correct middleware
+        'hasOrganization' => \App\Http\Middleware\CheckTenantAccess::class,
     ];
 
     /**
@@ -101,8 +103,10 @@ class Kernel extends HttpKernel
         'subscription.active' => \App\Http\Middleware\EnsureSubscriptionActive::class,
         'payment.verified' => \App\Http\Middleware\PaymentVerified::class,
         'plan.limits' => \App\Http\Middleware\EnforcePlanLimits::class,
+        'enforce.plan.limits' => \App\Http\Middleware\EnforcePlanLimits::class,
+        'check.hostel.limit' => \App\Http\Middleware\CheckHostelLimit::class,
         'org.context' => \App\Http\Middleware\EnsureOrgContext::class,
         'localize' => \App\Http\Middleware\Localize::class,
-        'hasOrganization' => \App\Http\Middleware\CheckTenantAccess::class, // ✅ Fixed: Points to correct middleware
+        'hasOrganization' => \App\Http\Middleware\CheckTenantAccess::class,
     ];
 }

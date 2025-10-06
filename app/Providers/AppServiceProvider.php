@@ -18,6 +18,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(PlanLimitService::class, function ($app) {
             return new PlanLimitService();
         });
+
+        // Register other services if needed
+        // $this->app->singleton(OtherService::class, function ($app) {
+        //     return new OtherService();
+        // });
     }
 
     /**
@@ -28,8 +33,29 @@ class AppServiceProvider extends ServiceProvider
         // Register Blade component
         Blade::component('admin-nav-link', AdminNavLink::class);
 
-        // Additional bootstrapping code can go here
-        // Register the hasOrganization middleware
+        // Register custom middleware
         $this->app['router']->aliasMiddleware('hasOrganization', \App\Http\Middleware\HasOrganization::class);
+        $this->app['router']->aliasMiddleware('enforce.plan.limits', \App\Http\Middleware\EnforcePlanLimits::class);
+        $this->app['router']->aliasMiddleware('role', \App\Http\Middleware\RoleMiddleware::class);
+
+        // Additional bootstrapping code can go here
+        // For example, view composers, database macros, etc.
+
+        // Share common data with all views (optional)
+        // $this->shareCommonViewData();
+    }
+
+    /**
+     * Share common data with all views (optional method)
+     */
+    protected function shareCommonViewData(): void
+    {
+        // Example: Share app name with all views
+        // view()->share('appName', config('app.name'));
+
+        // Example: Share current user with all views (if authenticated)
+        // view()->composer('*', function ($view) {
+        //     $view->with('currentUser', auth()->user());
+        // });
     }
 }

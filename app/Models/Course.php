@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Course extends Model
 {
-    use SoftDeletes; // यदि तपाईंले migration मा softDeletes() गर्नुभयो भने
+    use SoftDeletes;
 
     protected $fillable = [
         'name',
@@ -15,6 +16,13 @@ class Course extends Model
         'description'
     ];
 
-    // यदि तपाईंको courses टेबलको नाम फरक छ भने (convention: 'courses')
     protected $table = 'courses';
+
+    /**
+     * Get all students enrolled in this course
+     */
+    public function students(): HasMany
+    {
+        return $this->hasMany(Student::class);
+    }
 }
