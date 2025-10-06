@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Owner\UpdateHostelRequest;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class HostelController extends Controller
 {
@@ -77,6 +78,7 @@ class HostelController extends Controller
         $hostelData['organization_id'] = $organization->id;
         $hostelData['owner_id'] = $user->id;
         $hostelData['status'] = 'active'; // Default status for owner-created hostels
+        $hostelData['slug'] = Str::slug($request->name); // Add slug generation
 
         // Handle facilities field
         if ($request->has('facilities') && !empty($request->facilities)) {

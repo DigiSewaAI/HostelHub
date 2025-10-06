@@ -69,7 +69,7 @@ class Kernel extends HttpKernel
         'plan.limits' => \App\Http\Middleware\EnforcePlanLimits::class,
         'org.context' => \App\Http\Middleware\EnsureOrgContext::class,
         'localize' => \App\Http\Middleware\Localize::class,
-        'hasOrganization' => \App\Http\Middleware\HasOrganization::class, // Fixed the case
+        'hasOrganization' => \App\Http\Middleware\CheckTenantAccess::class, // ✅ Fixed: Points to correct middleware
     ];
 
     /**
@@ -103,6 +103,6 @@ class Kernel extends HttpKernel
         'plan.limits' => \App\Http\Middleware\EnforcePlanLimits::class,
         'org.context' => \App\Http\Middleware\EnsureOrgContext::class,
         'localize' => \App\Http\Middleware\Localize::class,
-        'hasOrganization' => \App\Http\Middleware\HasOrganization::class, // Fixed the case
+        'hasOrganization' => \App\Http\Middleware\CheckTenantAccess::class, // ✅ Fixed: Points to correct middleware
     ];
 }

@@ -124,19 +124,22 @@ Route::middleware('guest')->group(function () {
 });
 
 /*|--------------------------------------------------------------------------
-| Global Dashboard Redirect (Role-based)
+| Global Dashboard Redirect (Role-based) - FIXED LOGIN REDIRECT
 |--------------------------------------------------------------------------
 */
 Route::get('/dashboard', function () {
     $user = auth()->user();
 
-    // FIX: Check if user has organization before redirecting
+    // FIXED: Set organization session if not set
     if (!session('current_organization_id')) {
         $orgUser = DB::table('organization_user')->where('user_id', $user->id)->first();
         if ($orgUser) {
             session(['current_organization_id' => $orgUser->organization_id]);
         } else {
-            return redirect()->route('register.organization');
+            // Only redirect to organization registration for non-admin users
+            if (!$user->hasRole('admin')) {
+                return redirect()->route('register.organization');
+            }
         }
     }
 
