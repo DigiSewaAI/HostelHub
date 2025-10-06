@@ -23,10 +23,13 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        // Remove organization_id as it's now handled through pivot table
+        'organization_id', // ✅ थप्नुहोस्
+        'role_id', // ✅ थप्नुहोस्
         'phone',
         'address',
         'payment_verified',
+        'student_id', // ✅ थप्नुहोस्
+        'hostel_id', // ✅ थप्नुहोस्
     ];
 
     /**
@@ -71,6 +74,22 @@ class User extends Authenticatable
     }
 
     /**
+     * Get all bookings made by the user.
+     */
+    public function bookings(): HasMany
+    {
+        return $this->hasMany(Booking::class);
+    }
+
+    /**
+     * Get all bookings approved by the user.
+     */
+    public function approvedBookings(): HasMany
+    {
+        return $this->hasMany(Booking::class, 'approved_by');
+    }
+
+    /**
      * Get the role name of the user.
      */
     public function getRoleName(): string
@@ -108,9 +127,9 @@ class User extends Authenticatable
         return $this->hasRole('student');
     }
 
-    // Remove the organization method as it's now handled through many-to-many
-    // public function organization(): BelongsTo
-    // {
-    //     return $this->belongsTo(Organization::class, 'organization_id');
-    // }
+    // Direct organization relationship (यदि organization_id column छ भने)
+    public function organization(): BelongsTo
+    {
+        return $this->belongsTo(Organization::class, 'organization_id');
+    }
 }

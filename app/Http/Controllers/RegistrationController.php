@@ -73,14 +73,33 @@ class RegistrationController extends Controller
                 'is_ready' => true,
             ]);
 
-            // 2️⃣ Create user
-            $user = User::create([
+            // 2️⃣ Create user WITH ALL REQUIRED FIELDS
+            $userData = [
                 'name' => $request->owner_name,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
-            ]);
+                'organization_id' => $organization->id,
+                'role_id' => 3,
+                'payment_verified' => false,
+            ];
 
-            // 3️⃣ Assign role to user
+            // Check if other fields exist in database and add them
+            if (\Schema::hasColumn('users', 'phone')) {
+                $userData['phone'] = null;
+            }
+            if (\Schema::hasColumn('users', 'address')) {
+                $userData['address'] = null;
+            }
+            if (\Schema::hasColumn('users', 'student_id')) {
+                $userData['student_id'] = null;
+            }
+            if (\Schema::hasColumn('users', 'hostel_id')) {
+                $userData['hostel_id'] = null;
+            }
+
+            $user = User::create($userData);
+
+            // 3️⃣ Assign role to user using Spatie Permission
             $hostelManagerRole = Role::findByName('hostel_manager');
             $user->assignRole($hostelManagerRole);
 
@@ -102,8 +121,7 @@ class RegistrationController extends Controller
                 'ends_at' => now()->addMonth(),
             ]);
 
-            // 6️⃣ Create default hostel for the organization ✅
-            // Generate unique slug for hostel
+            // 6️⃣ Create default hostel for the organization
             $hostelSlug = Str::slug($request->organization_name . ' होस्टेल');
             $originalHostelSlug = $hostelSlug;
             $j = 1;
@@ -114,7 +132,7 @@ class RegistrationController extends Controller
 
             $hostel = Hostel::create([
                 'name' => $request->organization_name . ' होस्टेल',
-                'slug' => $hostelSlug, // ✅ slug field थपिएको
+                'slug' => $hostelSlug,
                 'address' => 'थप गर्नुपर्ने',
                 'city' => 'काठमाडौं',
                 'contact_person' => $request->owner_name,
@@ -142,13 +160,32 @@ class RegistrationController extends Controller
 
             DB::commit();
 
-            // 9️⃣ Redirect to dashboard with success message
+            // 9️⃣ Redirect to dashboard with PLAN-SPECIFIC success message ✅
+            $successMessage = $this->getPlanSpecificMessage($request->plan);
+
             return redirect()->route('owner.dashboard')
-                ->with('success', 'तपाईंको दर्ता सफल भयो! पहिलो होस्टेल सिर्जना गरियो।');
+                ->with('success', $successMessage);
         } catch (\Exception $e) {
             DB::rollBack();
+            \Log::error('Registration error: ' . $e->getMessage());
+            \Log::error('Registration error trace: ' . $e->getTraceAsString());
+
             return back()->withInput()
                 ->withErrors(['error' => 'संस्था दर्ता गर्दा त्रुटि आयो: ' . $e->getMessage()]);
         }
+    }
+
+    /**
+     * Get plan-specific success message
+     */
+    private function getPlanSpecificMessage($planSlug)
+    {
+        $messages = [
+            'starter' => 'तपाईंको दर्ता सफल भयो! तपाईंको होस्टेल सिर्जना गरियो। (सुरुवाती योजना: १ होस्टेल मात्र)',
+            'pro' => 'तपाईंको दर्ता सफल भयो! तपाईंको होस्टेल सिर्जना गरियो। (प्रो योजना: १ होस्टेल मात्र)',
+            'enterprise' => 'तपाईंको दर्ता सफल भयो! पहिलो होस्टेल सिर्जना गरियो। (एन्टरप्राइज योजना: बहु-होस्टेल सुविधा)'
+        ];
+
+        return $messages[$planSlug] ?? 'तपाईंको दर्ता सफल भयो!';
     }
 }

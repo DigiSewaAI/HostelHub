@@ -30,7 +30,8 @@ use App\Http\Controllers\{
     RegistrationController,
     SubscriptionController,
     OnboardingController,
-    ProfileController as PublicProfileController
+    ProfileController as PublicProfileController,
+    BookingController // ✅ नयाँ Controller थपियो
 };
 use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
 use Illuminate\Support\Facades\Route;
@@ -174,6 +175,17 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
         ->middleware('role:student')
         ->name('student.dashboard');
 
+    // ✅ नयाँ: Booking routes
+    Route::get('/my-bookings', [BookingController::class, 'myBookings'])->name('bookings.my');
+    Route::get('/bookings/pending', [BookingController::class, 'pendingApprovals'])->name('bookings.pending');
+    Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
+    Route::post('/bookings/{id}/approve', [BookingController::class, 'approve'])->name('bookings.approve');
+    Route::post('/bookings/{id}/reject', [BookingController::class, 'reject'])->name('bookings.reject');
+
+    // ✅ नयाँ: Subscription add-on routes
+    Route::get('/subscription/limits', [SubscriptionController::class, 'showLimits'])->name('subscription.limits');
+    Route::post('/subscription/purchase-extra-hostel', [SubscriptionController::class, 'purchaseExtraHostel'])->name('subscription.purchase-extra-hostel');
+
     // Unified Contact Routes for both admin and owner
     Route::middleware('role:admin,hostel_manager')->group(function () {
         Route::resource('contacts', ContactController::class)->names('admin.contacts');
@@ -250,7 +262,7 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
         // Student search
         Route::get('/students/search', [StudentController::class, 'search'])->name('admin.students.search');
 
-        // FIX: Added missing admin students export route
+        // ✅ FIXED: Added missing admin students export route with correct name
         Route::get('/students/export/csv', [StudentController::class, 'exportCSV'])->name('admin.students.export');
     });
 
@@ -290,10 +302,10 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
             'destroy' => 'meals.destroy'
         ]);
 
-        // FIXED: Add proper room routes for owner
+        // FIXED: Add proper room routes for owner with plan limits middleware
         Route::get('rooms', [RoomController::class, 'index'])->name('rooms.index');
-        Route::get('rooms/create', [RoomController::class, 'create'])->name('rooms.create');
-        Route::post('rooms', [RoomController::class, 'store'])->name('rooms.store');
+        Route::get('rooms/create', [RoomController::class, 'create'])->name('rooms.create')->middleware('enforce.plan.limits');
+        Route::post('rooms', [RoomController::class, 'store'])->name('rooms.store')->middleware('enforce.plan.limits');
         Route::get('rooms/{room}', [RoomController::class, 'show'])->name('rooms.show');
         Route::get('rooms/{room}/edit', [RoomController::class, 'edit'])->name('rooms.edit');
         Route::put('rooms/{room}', [RoomController::class, 'update'])->name('rooms.update');
@@ -308,7 +320,7 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
         // Room export for owner
         Route::get('rooms/export/csv', [RoomController::class, 'exportCSV'])->name('rooms.export-csv');
 
-        // FIX: Added missing owner meal menu routes including create
+        // ✅ FIXED: Added missing owner meal menu routes including create
         Route::get('meal-menus', [AdminMealMenuController::class, 'index'])->name('meal-menus.index');
         Route::get('meal-menus/create', [AdminMealMenuController::class, 'create'])->name('meal-menus.create');
         Route::post('meal-menus', [AdminMealMenuController::class, 'store'])->name('meal-menus.store');
@@ -317,7 +329,7 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
         Route::put('meal-menus/{mealMenu}', [AdminMealMenuController::class, 'update'])->name('meal-menus.update');
         Route::delete('meal-menus/{mealMenu}', [AdminMealMenuController::class, 'destroy'])->name('meal-menus.destroy');
 
-        // FIXED: Owner payment routes - using AdminPaymentController with proper namespace
+        // ✅ FIXED: Owner payment routes - using AdminPaymentController with proper namespace
         Route::get('payments', [AdminPaymentController::class, 'index'])->name('payments.index');
         Route::get('payments/create', [AdminPaymentController::class, 'create'])->name('payments.create');
         Route::post('payments', [AdminPaymentController::class, 'store'])->name('payments.store');
@@ -328,16 +340,14 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
         Route::get('payments/search', [AdminPaymentController::class, 'search'])->name('payments.search');
         Route::post('payments/{payment}/update-status', [AdminPaymentController::class, 'updateStatus'])->name('payments.update-status');
 
-        // Owner student routes
-        Route::resource('students', StudentController::class)->names([
-            'index' => 'students.index',
-            'create' => 'students.create',
-            'store' => 'students.store',
-            'show' => 'students.show',
-            'edit' => 'students.edit',
-            'update' => 'students.update',
-            'destroy' => 'students.destroy'
-        ]);
+        // Owner student routes with plan limits middleware on create/store
+        Route::get('students', [StudentController::class, 'index'])->name('students.index');
+        Route::get('students/create', [StudentController::class, 'create'])->name('students.create')->middleware('enforce.plan.limits');
+        Route::post('students', [StudentController::class, 'store'])->name('students.store')->middleware('enforce.plan.limits');
+        Route::get('students/{student}', [StudentController::class, 'show'])->name('students.show');
+        Route::get('students/{student}/edit', [StudentController::class, 'edit'])->name('students.edit');
+        Route::put('students/{student}', [StudentController::class, 'update'])->name('students.update');
+        Route::delete('students/{student}', [StudentController::class, 'destroy'])->name('students.destroy');
 
         // Owner student search
         Route::get('students/search', [StudentController::class, 'search'])->name('students.search');
@@ -369,12 +379,19 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
         Route::get('contacts/export/csv', [ContactController::class, 'exportCSV'])->name('contacts.export-csv');
     });
 
+    // Apply plan limits middleware to owner hostel create/store routes
+    Route::middleware(['auth', 'enforce.plan.limits'])->group(function () {
+        // Hostel routes
+        Route::get('/owner/hostels/create', [OwnerHostelController::class, 'create'])->name('owner.hostels.create');
+        Route::post('/owner/hostels', [OwnerHostelController::class, 'store'])->name('owner.hostels.store');
+    });
+
     // Meal Menus - Admin can also view
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
         Route::resource('meal-menus', AdminMealMenuController::class)->only(['index', 'show']);
 
         // Meal menu search
-        Route::get('/meal-menus/search', [AdminMealMenuController::class, 'search'])->name('meal-menus.search');
+        Route::get('/meal-menus/search', [AdminMealMenuController::class, 'search'])->name('admin.meal-menus.search');
     });
 
     // ✅ COMPLETELY FIXED: Settings routes with both singular and plural names

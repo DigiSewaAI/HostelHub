@@ -17,12 +17,41 @@ class Organization extends Model
         'slug',
         'is_ready',
         'settings'
+        // ❌ plan_type र status थप्नु पर्दैन!
     ];
 
     protected $casts = [
         'is_ready' => 'boolean',
         'settings' => 'array'
     ];
+
+    // ✅ Accessors थपिएका:
+
+    /**
+     * Get plan type from subscription
+     */
+    public function getPlanTypeAttribute()
+    {
+        return $this->subscription?->plan?->name ?? 'free';
+    }
+
+    /**
+     * Get status from subscription  
+     */
+    public function getStatusAttribute()
+    {
+        return $this->subscription?->status ?? 'inactive';
+    }
+
+    /**
+     * Check if organization is active
+     */
+    public function getIsActiveAttribute()
+    {
+        return $this->subscription?->isActive() ?? false;
+    }
+
+    // बाँकी सबै relationships यस्तै रहन्छ:
 
     public function hostels(): HasMany
     {
@@ -44,7 +73,6 @@ class Organization extends Model
         return $this->hasMany(Gallery::class);
     }
 
-    // Many-to-Many relationship with users through pivot table
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'organization_user')
@@ -61,10 +89,4 @@ class Organization extends Model
     {
         return $this->hasOne(OnboardingProgress::class);
     }
-
-    // Remove the directUsers method as it's redundant with the new many-to-many relationship
-    // public function directUsers(): HasMany
-    // {
-    //     return $this->hasMany(User::class);
-    // }
 }

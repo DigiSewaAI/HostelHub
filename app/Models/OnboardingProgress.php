@@ -10,6 +10,8 @@ class OnboardingProgress extends Model
 {
     use HasFactory;
 
+    const TOTAL_STEPS = 5;
+
     protected $fillable = [
         'organization_id',
         'current_step',
@@ -28,7 +30,7 @@ class OnboardingProgress extends Model
 
     public function isCompleted(): bool
     {
-        return $this->current_step > 5;
+        return $this->current_step > self::TOTAL_STEPS;
     }
 
     public function markStepComplete(int $step): void
@@ -38,7 +40,7 @@ class OnboardingProgress extends Model
 
         $this->update([
             'completed' => $completed,
-            'current_step' => $step < 5 ? $step + 1 : 6
+            'current_step' => $step < self::TOTAL_STEPS ? $step + 1 : self::TOTAL_STEPS + 1
         ]);
     }
 
@@ -49,7 +51,7 @@ class OnboardingProgress extends Model
 
         $this->update([
             'completed' => $completed,
-            'current_step' => $step < 5 ? $step + 1 : 6
+            'current_step' => $step < self::TOTAL_STEPS ? $step + 1 : self::TOTAL_STEPS + 1
         ]);
     }
 }
