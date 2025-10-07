@@ -30,8 +30,8 @@
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center nepali">
                             <strong>विधि</strong>
-                            <span class="badge bg-{{ $payment->method === 'khalti' ? 'primary' : ($payment->method === 'cash' ? 'success' : 'info') }}">
-                                {{ $payment->method === 'khalti' ? 'खल्ती' : ($payment->method === 'cash' ? 'नगद' : 'बैंक हस्तान्तरण') }}
+                            <span class="badge bg-{{ $payment->payment_method === 'khalti' ? 'primary' : ($payment->payment_method === 'cash' ? 'success' : 'info') }}">
+                                {{ $payment->payment_method === 'khalti' ? 'खल्ती' : ($payment->payment_method === 'cash' ? 'नगद' : 'बैंक हस्तान्तरण') }}
                             </span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center nepali">
@@ -167,8 +167,8 @@
                             <tr>
                                 <th>भुक्तानी विधि</th>
                                 <td>
-                                    <span class="badge bg-{{ $payment->method === 'khalti' ? 'primary' : ($payment->method === 'cash' ? 'success' : 'info') }}">
-                                        {{ $payment->method === 'khalti' ? 'खल्ती' : ($payment->method === 'cash' ? 'नगद' : 'बैंक हस्तान्तरण') }}
+                                    <span class="badge bg-{{ $payment->payment_method === 'khalti' ? 'primary' : ($payment->payment_method === 'cash' ? 'success' : 'info') }}">
+                                        {{ $payment->payment_method === 'khalti' ? 'खल्ती' : ($payment->payment_method === 'cash' ? 'नगद' : 'बैंक हस्तान्तरण') }}
                                     </span>
                                 </td>
                             </tr>

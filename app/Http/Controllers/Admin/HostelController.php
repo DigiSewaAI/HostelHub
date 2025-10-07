@@ -7,80 +7,214 @@ use App\Http\Requests\StoreHostelRequest;
 use App\Http\Requests\UpdateHostelRequest;
 use App\Models\Hostel;
 use App\Models\User;
+use App\Models\Organization;
+use App\Models\Subscription;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 class HostelController extends Controller
 {
     public function index()
     {
-        $hostels = Hostel::with('manager')->latest()->paginate(10);
-        return view('admin.hostels.index', compact('hostels'));
+        $hostels = Hostel::with(['owner', 'organization', 'organization.currentSubscription.plan'])
+            ->withCount(['rooms', 'students'])
+            ->latest()
+            ->paginate(10);
+
+        // Statistics for admin dashboard
+        $totalHostels = Hostel::count();
+        $activeHostels = Hostel::where('status', 'active')->count();
+        $organizationsWithHostels = Organization::has('hostels')->count();
+
+        return view('admin.hostels.index', compact(
+            'hostels',
+            'totalHostels',
+            'activeHostels',
+            'organizationsWithHostels'
+        ));
     }
 
     public function create()
     {
-        $managers = User::where('role', 'manager')->get();
-        return view('admin.hostels.create', compact('managers'));
+        $organizations = Organization::with('currentSubscription')->get();
+        $managers = User::where('role', 'hostel_manager')->get();
+
+        return view('admin.hostels.create', compact('managers', 'organizations'));
     }
 
     public function store(StoreHostelRequest $request)
     {
-        $validated = $request->validated();
-        $validated['slug'] = Str::slug($request->name);
-        $validated['facilities'] = json_encode(explode(',', $request->facilities));
+        DB::beginTransaction();
 
-        if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('hostels', 'public');
+        try {
+            $validated = $request->validated();
+
+            // Check organization subscription limits
+            $organization = Organization::find($request->organization_id);
+            if ($organization) {
+                $subscription = $organization->currentSubscription();
+                if ($subscription) {
+                    $currentHostelsCount = $organization->hostels()->count();
+                    $maxAllowedHostels = $subscription->plan->max_hostels + ($subscription->extra_hostels ?? 0);
+
+                    if ($currentHostelsCount >= $maxAllowedHostels) {
+                        return back()->with(
+                            'error',
+                            "यो संस्थाको सदस्यता योजनाले {$maxAllowedHostels} होस्टेल मात्र सपोर्ट गर्छ। (हाल {$currentHostelsCount} होस्टेल छन्)"
+                        );
+                    }
+                } else {
+                    return back()->with('error', 'यो संस्थाको कुनै सक्रिय सदस्यता छैन।');
+                }
+            }
+
+            $validated['slug'] = $this->generateUniqueSlug($request->name);
+
+            // Handle facilities
+            if ($request->has('facilities') && !empty($request->facilities)) {
+                $validated['facilities'] = json_encode(explode(',', $request->facilities));
+            } else {
+                $validated['facilities'] = null;
+            }
+
+            // Handle image upload
+            if ($request->hasFile('image')) {
+                $validated['image'] = $request->file('image')->store('hostels', 'public');
+            }
+
+            // Set default status if not provided
+            if (!isset($validated['status'])) {
+                $validated['status'] = 'active';
+            }
+
+            $hostel = Hostel::create($validated);
+
+            DB::commit();
+
+            return redirect()->route('admin.hostels.index')
+                ->with('success', 'होस्टल सफलतापूर्वक थपियो');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'होस्टल सिर्जना गर्दा त्रुटि: ' . $e->getMessage());
         }
-
-        Hostel::create($validated);
-
-        return redirect()->route('admin.hostels.index')
-            ->with('success', 'होस्टल सफलतापूर्वक थपियो');
     }
 
     public function show(Hostel $hostel)
     {
-        return view('admin.hostels.show', compact('hostel'));
+        $hostel->load([
+            'owner',
+            'organization',
+            'rooms',
+            'students.user',
+            'organization.currentSubscription.plan'
+        ]);
+
+        // Statistics for this hostel
+        $occupiedRooms = $hostel->rooms()->where('is_available', false)->count();
+        $availableRooms = $hostel->rooms()->where('is_available', true)->count();
+        $totalStudents = $hostel->students()->count();
+
+        return view('admin.hostels.show', compact(
+            'hostel',
+            'occupiedRooms',
+            'availableRooms',
+            'totalStudents'
+        ));
     }
 
     public function edit(Hostel $hostel)
     {
-        $managers = User::where('role', 'manager')->get();
-        return view('admin.hostels.edit', compact('hostel', 'managers'));
+        $organizations = Organization::with('currentSubscription')->get();
+        $managers = User::where('role', 'hostel_manager')->get();
+
+        $hostel->load('organization');
+
+        return view('admin.hostels.edit', compact('hostel', 'managers', 'organizations'));
     }
 
     public function update(UpdateHostelRequest $request, Hostel $hostel)
     {
-        $validated = $request->validated();
-        $validated['facilities'] = json_encode(explode(',', $request->facilities));
+        DB::beginTransaction();
 
-        if ($request->hasFile('image')) {
-            // Delete old image
-            if ($hostel->image) {
-                Storage::disk('public')->delete($hostel->image);
+        try {
+            $validated = $request->validated();
+
+            // Handle facilities
+            if ($request->has('facilities') && !empty($request->facilities)) {
+                $validated['facilities'] = json_encode(explode(',', $request->facilities));
+            } else {
+                $validated['facilities'] = null;
             }
-            $validated['image'] = $request->file('image')->store('hostels', 'public');
+
+            // Handle remove_image checkbox
+            if ($request->has('remove_image') && $request->remove_image == '1') {
+                // Delete old image if exists
+                if ($hostel->image) {
+                    Storage::disk('public')->delete($hostel->image);
+                }
+                $validated['image'] = null;
+            }
+
+            // Handle image upload
+            if ($request->hasFile('image')) {
+                // Delete old image if exists
+                if ($hostel->image) {
+                    Storage::disk('public')->delete($hostel->image);
+                }
+                $validated['image'] = $request->file('image')->store('hostels', 'public');
+            }
+
+            // Update slug if name changed
+            if ($request->has('name') && $request->name != $hostel->name) {
+                $validated['slug'] = $this->generateUniqueSlug($request->name, $hostel->id);
+            }
+
+            $hostel->update($validated);
+
+            DB::commit();
+
+            return redirect()->route('admin.hostels.index')
+                ->with('success', 'होस्टल सफलतापूर्वक अद्यावधिक गरियो');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'होस्टल अद्यावधिक गर्दा त्रुटि: ' . $e->getMessage());
         }
-
-        $hostel->update($validated);
-
-        return redirect()->route('admin.hostels.index')
-            ->with('success', 'होस्टल सफलतापूर्वक अद्यावधिक गरियो');
     }
 
     public function destroy(Hostel $hostel)
     {
-        if ($hostel->image) {
-            Storage::disk('public')->delete($hostel->image);
+        DB::beginTransaction();
+
+        try {
+            // Prevent deletion if hostel has rooms
+            if ($hostel->rooms()->count() > 0) {
+                return redirect()->back()
+                    ->with('error', 'यो होस्टलमा कोठाहरू छन्। पहिले सबै कोठाहरू हटाउनुहोस्।');
+            }
+
+            // Prevent deletion if hostel has students
+            if ($hostel->students()->count() > 0) {
+                return redirect()->back()
+                    ->with('error', 'यो होस्टलमा विद्यार्थीहरू छन्। पहिले सबै विद्यार्थीहरू हटाउनुहोस्।');
+            }
+
+            // Delete image if exists
+            if ($hostel->image) {
+                Storage::disk('public')->delete($hostel->image);
+            }
+
+            $hostel->delete();
+
+            DB::commit();
+
+            return redirect()->route('admin.hostels.index')
+                ->with('success', 'होस्टल सफलतापूर्वक मेटाइयो');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'होस्टल मेटाउँदा त्रुटि: ' . $e->getMessage());
         }
-
-        $hostel->delete();
-
-        return redirect()->route('admin.hostels.index')
-            ->with('success', 'होस्टल सफलतापूर्वक मेटाइयो');
     }
 
     public function updateAvailability(Request $request, Hostel $hostel)
@@ -92,5 +226,151 @@ class HostelController extends Controller
         $hostel->update(['available_rooms' => $request->available_rooms]);
 
         return back()->with('success', 'उपलब्ध कोठाहरू अद्यावधिक गरियो');
+    }
+
+    /**
+     * Toggle hostel status (active/inactive)
+     */
+    public function toggleStatus(Hostel $hostel)
+    {
+        $newStatus = $hostel->status == 'active' ? 'inactive' : 'active';
+        $hostel->update(['status' => $newStatus]);
+
+        $statusText = $newStatus == 'active' ? 'सक्रिय' : 'निष्क्रिय';
+
+        return back()->with('success', "होस्टल {$statusText} गरियो।");
+    }
+
+    /**
+     * Generate unique slug for hostel
+     */
+    private function generateUniqueSlug($name, $excludeId = null)
+    {
+        $slug = Str::slug($name);
+        $originalSlug = $slug;
+        $count = 1;
+
+        $query = Hostel::where('slug', $slug);
+
+        if ($excludeId) {
+            $query->where('id', '!=', $excludeId);
+        }
+
+        while ($query->exists()) {
+            $slug = $originalSlug . '-' . $count;
+            $count++;
+
+            $query = Hostel::where('slug', $slug);
+
+            if ($excludeId) {
+                $query->where('id', '!=', $excludeId);
+            }
+        }
+
+        return $slug;
+    }
+
+    /**
+     * Get hostels by organization
+     */
+    public function byOrganization(Organization $organization)
+    {
+        $hostels = Hostel::where('organization_id', $organization->id)
+            ->with(['owner', 'organization.currentSubscription.plan'])
+            ->withCount(['rooms', 'students'])
+            ->latest()
+            ->paginate(10);
+
+        return view('admin.hostels.organization', compact('hostels', 'organization'));
+    }
+
+    /**
+     * Admin hostel statistics
+     */
+    public function statistics()
+    {
+        $totalHostels = Hostel::count();
+        $activeHostels = Hostel::where('status', 'active')->count();
+        $inactiveHostels = Hostel::where('status', 'inactive')->count();
+
+        $hostelsByOrganization = Organization::withCount('hostels')
+            ->has('hostels')
+            ->orderBy('hostels_count', 'desc')
+            ->limit(10)
+            ->get();
+
+        $recentHostels = Hostel::with('organization')
+            ->latest()
+            ->limit(5)
+            ->get();
+
+        return view('admin.hostels.statistics', compact(
+            'totalHostels',
+            'activeHostels',
+            'inactiveHostels',
+            'hostelsByOrganization',
+            'recentHostels'
+        ));
+    }
+
+    /**
+     * Bulk action for hostels
+     */
+    public function bulkAction(Request $request)
+    {
+        $request->validate([
+            'action' => 'required|in:activate,deactivate,delete',
+            'hostel_ids' => 'required|array',
+            'hostel_ids.*' => 'exists:hostels,id'
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            $hostels = Hostel::whereIn('id', $request->hostel_ids)->get();
+
+            switch ($request->action) {
+                case 'activate':
+                    foreach ($hostels as $hostel) {
+                        $hostel->update(['status' => 'active']);
+                    }
+                    $message = 'चयन गरिएका होस्टलहरू सक्रिय गरियो।';
+                    break;
+
+                case 'deactivate':
+                    foreach ($hostels as $hostel) {
+                        $hostel->update(['status' => 'inactive']);
+                    }
+                    $message = 'चयन गरिएका होस्टलहरू निष्क्रिय गरियो।';
+                    break;
+
+                case 'delete':
+                    foreach ($hostels as $hostel) {
+                        // Check if hostel can be deleted
+                        if ($hostel->rooms()->count() > 0 || $hostel->students()->count() > 0) {
+                            return back()->with(
+                                'error',
+                                "होस्टल '{$hostel->name}' मेटाउन सकिँदैन किनभने यसको कोठा वा विद्यार्थीहरू छन्।"
+                            );
+                        }
+
+                        // Delete image if exists
+                        if ($hostel->image) {
+                            Storage::disk('public')->delete($hostel->image);
+                        }
+
+                        $hostel->delete();
+                    }
+                    $message = 'चयन गरिएका होस्टलहरू मेटाइयो।';
+                    break;
+            }
+
+            DB::commit();
+
+            return back()->with('success', $message);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'बल्क एक्सन गर्दा त्रुटि: ' . $e->getMessage());
+        }
     }
 }

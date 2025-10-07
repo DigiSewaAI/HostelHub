@@ -10,23 +10,38 @@ class Subscription extends Model
 {
     use HasFactory;
 
+    const STATUS_ACTIVE = 'active';
+    const STATUS_TRIALING = 'trialing';
+    const STATUS_EXPIRED = 'expired';
+    const STATUS_CANCELED = 'canceled';
+
     protected $fillable = [
         'organization_id',
         'user_id',
         'plan_id',
         'status',
+        'expires_at',
         'trial_ends_at',
-        'ends_at',
         'notes',
-        'hostel_count', // ✅ नयाँ field थपियो
-        'extra_hostels' // ✅ नयाँ field थपियो
+        'hostel_count',
+        'extra_hostels',
+        'hostel_limit',
+        'room_per_hostel_limit',
+        'total_room_limit',
+        'student_limit',
+        'booking_limit'
     ];
 
     protected $casts = [
         'trial_ends_at' => 'datetime',
-        'renews_at' => 'datetime',
+        'expires_at' => 'datetime',
         'hostel_count' => 'integer',
-        'extra_hostels' => 'integer'
+        'extra_hostels' => 'integer',
+        'hostel_limit' => 'integer',
+        'room_per_hostel_limit' => 'integer',
+        'total_room_limit' => 'integer',
+        'student_limit' => 'integer',
+        'booking_limit' => 'integer'
     ];
 
     public function organization(): BelongsTo
@@ -44,9 +59,62 @@ class Subscription extends Model
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * Check if subscription is currently active
+     */
     public function isActive(): bool
     {
-        return $this->status === 'active' || ($this->status === 'trial' && now()->lessThan($this->trial_ends_at));
+        if ($this->status === self::STATUS_TRIALING && $this->trial_ends_at) {
+            return now()->lessThanOrEqualTo($this->trial_ends_at);
+        }
+
+        if ($this->status === self::STATUS_ACTIVE && $this->expires_at) {
+            return now()->lessThanOrEqualTo($this->expires_at);
+        }
+
+        return $this->status === self::STATUS_ACTIVE;
+    }
+
+    /**
+     * Check if subscription is in trial period
+     */
+    public function isOnTrial(): bool
+    {
+        return $this->status === self::STATUS_TRIALING &&
+            $this->trial_ends_at &&
+            now()->lessThanOrEqualTo($this->trial_ends_at);
+    }
+
+    /**
+     * Check if subscription has expired
+     */
+    public function isExpired(): bool
+    {
+        if ($this->status === self::STATUS_EXPIRED) {
+            return true;
+        }
+
+        if ($this->expires_at && now()->greaterThan($this->expires_at)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Get days remaining until expiration
+     */
+    public function getDaysRemaining(): int
+    {
+        if ($this->isOnTrial() && $this->trial_ends_at) {
+            return now()->diffInDays($this->trial_ends_at, false);
+        }
+
+        if ($this->expires_at) {
+            return now()->diffInDays($this->expires_at, false);
+        }
+
+        return 0;
     }
 
     /**
@@ -112,5 +180,13 @@ class Subscription extends Model
     public function requiresManualBookingApproval(): bool
     {
         return $this->plan && !$this->plan->allowsBookingAutoApproval();
+    }
+
+    /**
+     * Relationship with owner (alias for user)
+     */
+    public function owner()
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 }

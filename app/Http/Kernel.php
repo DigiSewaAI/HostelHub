@@ -17,6 +17,7 @@ class Kernel extends HttpKernel
         \App\Http\Middleware\TrimStrings::class,
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
         \App\Http\Middleware\Localize::class,
+        \App\Http\Middleware\SecurityHeaders::class, // 🆕 नयाँ security headers middleware
     ];
 
     /**
@@ -37,12 +38,32 @@ class Kernel extends HttpKernel
             \Illuminate\Routing\Middleware\ThrottleRequests::class . ':api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ],
+
+        // 🆕 नयाँ middleware group for owner routes
+        'owner' => [
+            'auth',
+            'role:owner',
+            'subscription.active',
+        ],
+
+        // 🆕 नयाँ middleware group for admin routes  
+        'admin' => [
+            'auth',
+            'role:admin',
+        ],
+
+        // 🆕 नयाँ middleware group for student routes
+        'student' => [
+            'auth',
+            'role:student',
+        ],
     ];
 
     /**
      * The application's route middleware aliases.
      */
     protected $middlewareAliases = [
+        // Laravel Default Middlewares
         'auth' => \App\Http\Middleware\Authenticate::class,
         'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
         'auth.session' => \Illuminate\Session\Middleware\AuthenticateSession::class,
@@ -64,14 +85,28 @@ class Kernel extends HttpKernel
         'checkrole' => \App\Http\Middleware\CheckRole::class,
         'role.multiple' => \App\Http\Middleware\RoleMiddleware::class,
         'admin' => \App\Http\Middleware\AdminMiddleware::class,
+
+        // 🆕 नयाँ Custom Middlewares
+        'check.permission' => \App\Http\Middleware\CheckPermission::class,
+        'check.role.or.permission' => \App\Http\Middleware\CheckRoleOrPermission::class,
+
+        // Subscription & Plan Middlewares
         'subscription.active' => \App\Http\Middleware\EnsureSubscriptionActive::class,
-        'payment.verified' => \App\Http\Middleware\PaymentVerified::class,
+        'subscription.limit' => \App\Http\Middleware\EnforcePlanLimits::class,
         'plan.limits' => \App\Http\Middleware\EnforcePlanLimits::class,
-        'enforce.plan.limits' => \App\Http\Middleware\EnforcePlanLimits::class, // ✅ नयाँ alias थपियो
-        'check.hostel.limit' => \App\Http\Middleware\CheckHostelLimit::class, // ✅ नयाँ middleware थपियो
+        'enforce.plan.limits' => \App\Http\Middleware\EnforcePlanLimits::class,
+
+        // Payment Middlewares
+        'payment.verified' => \App\Http\Middleware\PaymentVerified::class,
+
+        // Hostel & Organization Middlewares
+        'check.hostel.limit' => \App\Http\Middleware\CheckHostelLimit::class,
         'org.context' => \App\Http\Middleware\EnsureOrgContext::class,
-        'localize' => \App\Http\Middleware\Localize::class,
         'hasOrganization' => \App\Http\Middleware\CheckTenantAccess::class,
+
+        // Localization & Security
+        'localize' => \App\Http\Middleware\Localize::class,
+        'security.headers' => \App\Http\Middleware\SecurityHeaders::class, // 🆕 नयाँ
     ];
 
     /**
@@ -79,6 +114,7 @@ class Kernel extends HttpKernel
      * This is for backward compatibility with some Laravel versions.
      */
     protected $routeMiddleware = [
+        // Laravel Default Middlewares
         'auth' => \App\Http\Middleware\Authenticate::class,
         'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
         'auth.session' => \Illuminate\Session\Middleware\AuthenticateSession::class,
@@ -100,13 +136,27 @@ class Kernel extends HttpKernel
         'checkrole' => \App\Http\Middleware\CheckRole::class,
         'role.multiple' => \App\Http\Middleware\RoleMiddleware::class,
         'admin' => \App\Http\Middleware\AdminMiddleware::class,
+
+        // 🆕 नयाँ Custom Middlewares
+        'check.permission' => \App\Http\Middleware\CheckPermission::class,
+        'check.role.or.permission' => \App\Http\Middleware\CheckRoleOrPermission::class,
+
+        // Subscription & Plan Middlewares
         'subscription.active' => \App\Http\Middleware\EnsureSubscriptionActive::class,
-        'payment.verified' => \App\Http\Middleware\PaymentVerified::class,
+        'subscription.limit' => \App\Http\Middleware\EnforcePlanLimits::class,
         'plan.limits' => \App\Http\Middleware\EnforcePlanLimits::class,
         'enforce.plan.limits' => \App\Http\Middleware\EnforcePlanLimits::class,
+
+        // Payment Middlewares
+        'payment.verified' => \App\Http\Middleware\PaymentVerified::class,
+
+        // Hostel & Organization Middlewares
         'check.hostel.limit' => \App\Http\Middleware\CheckHostelLimit::class,
         'org.context' => \App\Http\Middleware\EnsureOrgContext::class,
-        'localize' => \App\Http\Middleware\Localize::class,
         'hasOrganization' => \App\Http\Middleware\CheckTenantAccess::class,
+
+        // Localization & Security
+        'localize' => \App\Http\Middleware\Localize::class,
+        'security.headers' => \App\Http\Middleware\SecurityHeaders::class, // 🆕 नयाँ
     ];
 }

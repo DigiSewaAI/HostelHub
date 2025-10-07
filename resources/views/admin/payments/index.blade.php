@@ -54,11 +54,12 @@
                     </div>
                     <div class="col-md-2">
                         <label class="form-label nepali">भुक्तानी विधि</label>
-                        <select class="form-select nepali" name="method">
+                        <select class="form-select nepali" name="payment_method">
                             <option value="">सबै विधिहरू</option>
-                            <option value="khalti" {{ request('method') == 'khalti' ? 'selected' : '' }}>खल्ती</option>
-                            <option value="cash" {{ request('method') == 'cash' ? 'selected' : '' }}>नगद</option>
-                            <option value="bank" {{ request('method') == 'bank' ? 'selected' : '' }}>बैंक हस्तान्तरण</option>
+                            <option value="khalti" {{ request('payment_method') == 'khalti' ? 'selected' : '' }}>खल्ती</option>
+                            <option value="esewa" {{ request('payment_method') == 'esewa' ? 'selected' : '' }}>eSewa</option>
+                            <option value="cash" {{ request('payment_method') == 'cash' ? 'selected' : '' }}>नगद</option>
+                            <option value="bank_transfer" {{ request('payment_method') == 'bank_transfer' ? 'selected' : '' }}>बैंक हस्तान्तरण</option>
                         </select>
                     </div>
                     <div class="col-md-2">
@@ -119,32 +120,34 @@
                             <td>{{ str_pad($payment->id, 6, '0', STR_PAD_LEFT) }}</td>
                             <td>
                                 <div class="d-flex align-items-center">
-                                    @if($payment->student->room && $payment->student->room->image)
+                                    @if($payment->student && $payment->student->room && $payment->student->room->image)
                                         <img src="{{ asset('storage/'.$payment->student->room->image) }}"
                                              class="rounded me-2"
                                              width="30"
                                              height="30"
                                              style="object-fit: cover;">
                                     @else
-                                        <div class="bg-light rounded me-2" style="width: 30px; height: 30px;"></div>
+                                        <div class="bg-light rounded me-2 d-flex align-items-center justify-content-center" style="width: 30px; height: 30px;">
+                                            <i class="fas fa-user text-muted"></i>
+                                        </div>
                                     @endif
                                     <div>
-                                        <div class="nepali">{{ $payment->student->name }}</div>
-                                        <small class="text-muted">{{ $payment->student->mobile }}</small>
+                                        <div class="nepali">{{ $payment->student->name ?? 'N/A' }}</div>
+                                        <small class="text-muted">{{ $payment->student->mobile ?? 'N/A' }}</small>
                                     </div>
                                 </div>
                             </td>
                             <td class="fw-bold text-success">रु {{ number_format($payment->amount, 2) }}</td>
                             <td>
-                                <span class="badge bg-{{ $payment->method === 'khalti' ? 'primary' : ($payment->method === 'cash' ? 'success' : 'info') }} nepali">
-                                    {{ $payment->method === 'khalti' ? 'खल्ती' : ($payment->method === 'cash' ? 'नगद' : 'बैंक') }}
+                                <span class="badge bg-{{ $payment->payment_method === 'khalti' ? 'primary' : ($payment->payment_method === 'cash' ? 'success' : ($payment->payment_method === 'esewa' ? 'warning' : 'info')) }} nepali">
+                                    {{ $payment->getPaymentMethodText() }}
                                 </span>
                             </td>
                             @role(['admin', 'owner'])
                             <td>
                                 <span class="text-truncate d-inline-block" style="max-width: 150px;"
                                       title="{{ $payment->transaction_id }}">
-                                    {{ $payment->transaction_id }}
+                                    {{ $payment->transaction_id ?? 'N/A' }}
                                 </span>
                             </td>
                             @endrole
@@ -163,35 +166,93 @@
                                     </a>
                                     
                                     @role(['admin', 'owner'])
-                                    @if($payment->status === 'pending')
-                                    <form action="{{ route('payments.updateStatus', $payment) }}"
-                                          method="POST"
-                                          style="display: inline;">
-                                        @csrf
-                                        @method('PUT')
-                                        <input type="hidden" name="status" value="completed">
-                                        <button type="submit"
-                                                class="btn btn-sm btn-success"
-                                                title="पूर्ण गर्नुहोस्"
-                                                onclick="return confirm('के तपाईं यो भुक्तानीलाई पूर्ण गर्न निश्चित हुनुहुन्छ?')">
-                                            <i class="fas fa-check"></i>
+                                    <!-- Bank Transfer Approval Actions -->
+                                    @if($payment->payment_method === 'bank_transfer' && $payment->status === 'pending')
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                            कार्यहरू
                                         </button>
-                                    </form>
+                                        <ul class="dropdown-menu">
+                                            <li>
+                                                <a class="dropdown-item nepali" href="{{ route('admin.payments.proof', $payment) }}" target="_blank">
+                                                    <i class="fas fa-eye me-1"></i> रसिद हेर्नुहोस्
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <form action="{{ route('admin.payments.approve', $payment) }}" method="POST">
+                                                    @csrf
+                                                    <button type="submit" class="dropdown-item nepali text-success" 
+                                                            onclick="return confirm('के तपाईं यो बैंक हस्तान्तरण स्वीकृत गर्न चाहनुहुन्छ?')">
+                                                        <i class="fas fa-check me-1"></i> स्वीकृत गर्नुहोस्
+                                                    </button>
+                                                </form>
+                                            </li>
+                                            <li>
+                                                <button type="button" class="dropdown-item nepali text-danger" 
+                                                        data-bs-toggle="modal" data-bs-target="#rejectModal{{ $payment->id }}">
+                                                    <i class="fas fa-times me-1"></i> अस्वीकृत गर्नुहोस्
+                                                </button>
+                                            </li>
+                                        </ul>
+                                    </div>
+
+                                    <!-- Reject Modal -->
+                                    <div class="modal fade" id="rejectModal{{ $payment->id }}" tabindex="-1">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title nepali">भुक्तानी अस्वीकृत गर्नुहोस्</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <form action="{{ route('admin.payments.reject', $payment) }}" method="POST">
+                                                    @csrf
+                                                    <div class="modal-body">
+                                                        <div class="mb-3">
+                                                            <label class="form-label nepali">कारण</label>
+                                                            <textarea class="form-control" name="reason" rows="3" 
+                                                                      placeholder="अस्वीकृत गर्नुको कारण लेख्नुहोस्..." required></textarea>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary nepali" data-bs-dismiss="modal">रद्द गर्नुहोस्</button>
+                                                        <button type="submit" class="btn btn-danger nepali">अस्वीकृत गर्नुहोस्</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @else
+                                        <!-- Existing actions for non-bank transfer payments -->
+                                        @if($payment->status === 'pending')
+                                        <form action="{{ route('payments.updateStatus', $payment) }}"
+                                              method="POST"
+                                              style="display: inline;">
+                                            @csrf
+                                            @method('PUT')
+                                            <input type="hidden" name="status" value="completed">
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-success"
+                                                    title="पूर्ण गर्नुहोस्"
+                                                    onclick="return confirm('के तपाईं यो भुक्तानीलाई पूर्ण गर्न निश्चित हुनुहुन्छ?')">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        </form>
+                                        @endif
+                                        
+                                        <form action="{{ route('payments.destroy', $payment) }}"
+                                              method="POST"
+                                              class="delete-form"
+                                              style="display: inline;">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-danger"
+                                                    title="मेट्नुहोस्"
+                                                    onclick="return confirm('के तपाईं यो भुक्तानी रेकर्ड मेटाउन निश्चित हुनुहुन्छ?')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
                                     @endif
-                                    
-                                    <form action="{{ route('payments.destroy', $payment) }}"
-                                          method="POST"
-                                          class="delete-form"
-                                          style="display: inline;">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit"
-                                                class="btn btn-sm btn-danger"
-                                                title="मेट्नुहोस्"
-                                                onclick="return confirm('के तपाईं यो भुक्तानी रेकर्ड मेटाउन निश्चित हुनुहुन्छ?')">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
                                     @endrole
                                 </div>
                             </td>

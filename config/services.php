@@ -37,6 +37,30 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Payment Gateway Configuration
+    |--------------------------------------------------------------------------
+    */
+    'esewa' => [
+        'merchant_id' => env('ESEWA_MERCHANT_ID'),
+        'secret_key' => env('ESEWA_SECRET_KEY'),
+        'verify_url' => env('ESEWA_VERIFY_URL', 'https://rc-epay.esewa.com.np/api/epay/transaction/status/'),
+    ],
+
+    'khalti' => [
+        'live_secret_key' => env('KHALTI_LIVE_SECRET_KEY'),
+        'test_secret_key' => env('KHALTI_TEST_SECRET_KEY'),
+        'verify_url' => 'https://khalti.com/api/v2/payment/verify/',
+    ],
+
+    'bank' => [
+        'account_number' => env('BANK_ACCOUNT_NUMBER'),
+        'account_name' => env('BANK_ACCOUNT_NAME'),
+        'name' => env('BANK_NAME'),
+        'branch' => env('BANK_BRANCH', ''),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Image Configuration
     |--------------------------------------------------------------------------
     |

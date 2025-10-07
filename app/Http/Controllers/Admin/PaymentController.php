@@ -7,13 +7,15 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 use App\Models\Payment;
 use App\Models\Student;
 use App\Models\Hostel;
+use App\Models\Booking;
+use App\Models\User;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\PaymentsExport;
-use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\Auth;
 
 class PaymentController extends Controller
 {
@@ -60,6 +62,101 @@ class PaymentController extends Controller
         }
 
         abort(403, 'तपाईंसँग यो भुक्तानी हेर्ने अनुमति छैन');
+    }
+
+    /**
+     * Show payment report for owner's hostels
+     */
+    public function ownerReport(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user->hasRole('hostel_manager')) {
+            abort(403, 'तपाईंसँग यो रिपोर्ट हेर्ने अनुमति छैन');
+        }
+
+        // Get the user's organization ID from session
+        $organizationId = session('current_organization_id');
+
+        // Get payments for owner's organization hostels
+        $payments = Payment::whereHas('hostel', function ($query) use ($organizationId) {
+            $query->where('organization_id', $organizationId);
+        })->with(['student', 'hostel'])
+            ->latest()
+            ->paginate(10);
+
+        // Statistics
+        $totalRevenue = Payment::whereHas('hostel', function ($query) use ($organizationId) {
+            $query->where('organization_id', $organizationId);
+        })->where('status', 'completed')->sum('amount');
+
+        $pendingTransfers = Payment::whereHas('hostel', function ($query) use ($organizationId) {
+            $query->where('organization_id', $organizationId);
+        })->where('payment_method', 'bank_transfer')
+            ->where('status', 'pending')
+            ->count();
+
+        return view('owner.payments.report', compact('payments', 'totalRevenue', 'pendingTransfers'));
+    }
+
+    /**
+     * Create manual cash payment for owner
+     */
+    public function createManualPayment(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user->hasRole('hostel_manager')) {
+            abort(403, 'तपाईंसँग म्यानुअल भुक्तानी थप्ने अनुमति छैन');
+        }
+
+        $request->validate([
+            'student_id' => 'required|exists:students,id',
+            'amount' => 'required|numeric|min:1',
+            'paid_at' => 'required|date'
+        ]);
+
+        $organizationId = session('current_organization_id');
+
+        // Verify the student belongs to owner's organization
+        $student = Student::where('id', $request->student_id)
+            ->whereHas('room.hostel', function ($query) use ($organizationId) {
+                $query->where('organization_id', $organizationId);
+            })->first();
+
+        if (!$student) {
+            return back()->with('error', 'तपाईंसँग यो विद्यार्थीको लागि भुक्तानी थप्ने अनुमति छैन');
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // Get hostel_id from student's room
+            $hostel_id = $student->room->hostel_id;
+
+            Payment::create([
+                'student_id' => $request->student_id,
+                'hostel_id' => $hostel_id,
+                'amount' => $request->amount,
+                'payment_method' => 'cash',
+                'payment_date' => $request->paid_at,
+                'status' => 'completed',
+                'verified_by' => $user->id,
+                'verified_at' => now(),
+                'created_by' => $user->id,
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('owner.payments.report')->with('success', 'म्यानुअल भुक्तानी सफलतापूर्वक दर्ता गरियो!');
+        } catch (\Exception $e) {
+            DB::rollback();
+            Log::error('Manual payment creation failed: ' . $e->getMessage());
+
+            return back()
+                ->withInput()
+                ->with('error', 'म्यानुअल भुक्तानी दर्ता गर्न असफल। कृपया पुनः प्रयास गर्नुहोस्।');
+        }
     }
 
     /**
@@ -503,5 +600,95 @@ class PaymentController extends Controller
         }
 
         return response()->json(['error' => 'भुक्तानी प्रमाणीकरण असफल']);
+    }
+
+    /**
+     * Approve bank transfer payment
+     */
+    public function approveBankTransfer(Request $request, Payment $payment)
+    {
+        $this->checkPaymentPermission($payment);
+
+        if ($payment->payment_method !== 'bank_transfer' || $payment->status !== 'pending') {
+            return redirect()->back()->with('error', 'अमान्य भुक्तानी वा भुक्तानी अवस्था।');
+        }
+
+        try {
+            DB::beginTransaction();
+
+            $payment->update([
+                'status' => 'completed',
+                'verified_by' => Auth::id(),
+                'verified_at' => now(),
+                'metadata' => array_merge($payment->metadata ?? [], [
+                    'approved_by' => Auth::id(),
+                    'approved_at' => now()->toISOString(),
+                    'approval_remarks' => $request->input('remarks', '')
+                ])
+            ]);
+
+            // Handle successful payment
+            // app(\App\Http\Controllers\PaymentController::class)->handleSuccessfulPayment($payment);
+
+            DB::commit();
+
+            // TODO: Send notification to user
+            // $payment->user->notify(new PaymentApproved($payment));
+
+            return redirect()->back()->with('success', 'बैंक हस्तान्तरण भुक्तानी सफलतापूर्वक स्वीकृत गरियो।');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Bank Transfer Approval Failed: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'भुक्तानी स्वीकृत गर्न असफल: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Reject bank transfer payment
+     */
+    public function rejectBankTransfer(Request $request, Payment $payment)
+    {
+        $this->checkPaymentPermission($payment);
+
+        if ($payment->payment_method !== 'bank_transfer' || $payment->status !== 'pending') {
+            return redirect()->back()->with('error', 'अमान्य भुक्तानी वा भुक्तानी अवस्था।');
+        }
+
+        try {
+            $payment->update([
+                'status' => 'failed',
+                'metadata' => array_merge($payment->metadata ?? [], [
+                    'rejected_by' => Auth::id(),
+                    'rejected_at' => now()->toISOString(),
+                    'rejection_reason' => $request->input('reason', '')
+                ])
+            ]);
+
+            // TODO: Send notification to user
+            // $payment->user->notify(new PaymentRejected($payment));
+
+            return redirect()->back()->with('success', 'बैंक हस्तान्तरण भुक्तानी सफलतापूर्वक अस्वीकृत गरियो।');
+        } catch (\Exception $e) {
+            Log::error('Bank Transfer Rejection Failed: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'भुक्तानी अस्वीकृत गर्न असफल: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * View bank transfer proof
+     */
+    public function viewProof(Payment $payment)
+    {
+        if ($payment->payment_method !== 'bank_transfer') {
+            abort(404);
+        }
+
+        $screenshotPath = $payment->metadata['screenshot_path'] ?? null;
+
+        if (!$screenshotPath || !Storage::disk('public')->exists($screenshotPath)) {
+            abort(404);
+        }
+
+        return response()->file(Storage::disk('public')->path($screenshotPath));
     }
 }
