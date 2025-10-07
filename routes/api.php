@@ -5,10 +5,13 @@ use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| API Routes
+| API Routes  
 |--------------------------------------------------------------------------
 |
-| This file is empty because we're not using API routes in this project.
-| If you need API routes in the future, you can add them here.
+| This project currently doesn't use API routes as it's a web-based
+| application. All routes are defined in web.php.
+|
+| If API functionality is needed in the future (for mobile app, 
+| external integrations, etc.), routes can be added here.
 |
 */
