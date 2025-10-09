@@ -1,26 +1,25 @@
-@extends('layouts.admin')
+<?php $__env->startSection('title', 'होस्टल व्यवस्थापन'); ?>
 
-@section('title', 'होस्टल व्यवस्थापन')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid py-4">
     <div class="row mb-4">
         <div class="col-12">
             <div class="d-flex align-items-center justify-content-between">
                 <h2 class="mb-0">होस्टल व्यवस्थापन</h2>
-                <a href="{{ route('admin.hostels.create') }}" class="btn btn-primary">
+                <a href="<?php echo e(route('admin.hostels.create')); ?>" class="btn btn-primary">
                     <i class="fas fa-plus me-2"></i>नयाँ होस्टल
                 </a>
             </div>
         </div>
     </div>
 
-    @if(session('success'))
+    <?php if(session('success')): ?>
         <div class="alert alert-success alert-dismissible fade show" role="alert">
-            {{ session('success') }}
+            <?php echo e(session('success')); ?>
+
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-    @endif
+    <?php endif; ?>
 
     <div class="card shadow">
         <div class="card-header bg-white py-3">
@@ -43,65 +42,67 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($hostels as $hostel)
+                        <?php $__currentLoopData = $hostels; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $hostel): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <tr>
-                            <td>{{ $hostel->id }}</td>
+                            <td><?php echo e($hostel->id); ?></td>
                             <td>
                                 <div class="d-flex align-items-center">
-                                    @if($hostel->image)
-                                        <img src="{{ asset('storage/'.$hostel->image) }}"
+                                    <?php if($hostel->image): ?>
+                                        <img src="<?php echo e(asset('storage/'.$hostel->image)); ?>"
                                              class="rounded me-2"
                                              width="40"
                                              height="40"
                                              style="object-fit: cover;">
-                                    @else
+                                    <?php else: ?>
                                         <div class="bg-light rounded me-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
                                             <i class="fas fa-building text-muted"></i>
                                         </div>
-                                    @endif
-                                    <span>{{ $hostel->name }}</span>
+                                    <?php endif; ?>
+                                    <span><?php echo e($hostel->name); ?></span>
                                 </div>
                             </td>
-                            <td>{{ Str::limit($hostel->address, 20) }}</td>
-                            <td>{{ $hostel->city }}</td>
-                            <td>{{ $hostel->contact_phone }}</td>
-                            <td>{{ $hostel->total_rooms }} / {{ $hostel->available_rooms }} उपलब्ध</td>
+                            <td><?php echo e(Str::limit($hostel->address, 20)); ?></td>
+                            <td><?php echo e($hostel->city); ?></td>
+                            <td><?php echo e($hostel->contact_phone); ?></td>
+                            <td><?php echo e($hostel->total_rooms); ?> / <?php echo e($hostel->available_rooms); ?> उपलब्ध</td>
                             <td>
-                                @if($hostel->manager)
-                                    {{ $hostel->manager->name }}
-                                @else
+                                <?php if($hostel->manager): ?>
+                                    <?php echo e($hostel->manager->name); ?>
+
+                                <?php else: ?>
                                     <span class="text-muted">तोकिएको छैन</span>
-                                @endif
+                                <?php endif; ?>
                             </td>
                             <td>
-                                <span class="badge {{ $hostel->status === 'active' ? 'bg-success' : ($hostel->status === 'inactive' ? 'bg-secondary' : 'bg-warning') }}">
-                                    @if($hostel->status === 'active')
+                                <span class="badge <?php echo e($hostel->status === 'active' ? 'bg-success' : ($hostel->status === 'inactive' ? 'bg-secondary' : 'bg-warning')); ?>">
+                                    <?php if($hostel->status === 'active'): ?>
                                         सक्रिय
-                                    @elseif($hostel->status === 'inactive')
+                                    <?php elseif($hostel->status === 'inactive'): ?>
                                         निष्क्रिय
-                                    @else
-                                        {{ ucfirst(str_replace('_', ' ', $hostel->status)) }}
-                                    @endif
+                                    <?php else: ?>
+                                        <?php echo e(ucfirst(str_replace('_', ' ', $hostel->status))); ?>
+
+                                    <?php endif; ?>
                                 </span>
                             </td>
                             <td>
                                 <div class="d-flex gap-2">
-                                    <a href="{{ route('admin.hostels.show', $hostel) }}"
+                                    <a href="<?php echo e(route('admin.hostels.show', $hostel)); ?>"
                                        class="btn btn-sm btn-info"
                                        title="विवरण हेर्नुहोस्">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                    <a href="{{ route('admin.hostels.edit', $hostel) }}"
+                                    <a href="<?php echo e(route('admin.hostels.edit', $hostel)); ?>"
                                        class="btn btn-sm btn-warning"
                                        title="सम्पादन गर्नुहोस्">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <form action="{{ route('admin.hostels.destroy', $hostel) }}"
+                                    <form action="<?php echo e(route('admin.hostels.destroy', $hostel)); ?>"
                                           method="POST"
                                           class="delete-form"
                                           style="display: inline;">
-                                        @csrf
-                                        @method('DELETE')
+                                        <?php echo csrf_field(); ?>
+                                        <?php echo method_field('DELETE'); ?>
                                         <button type="submit"
                                                 class="btn btn-sm btn-danger"
                                                 title="हटाउनुहोस्"
@@ -112,19 +113,20 @@
                                 </div>
                             </td>
                         </tr>
-                        @endforeach
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </tbody>
                 </table>
             </div>
             <div class="d-flex justify-content-end mt-3">
-                {{ $hostels->links() }}
+                <?php echo e($hostels->links()); ?>
+
             </div>
         </div>
     </div>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Delete confirmation
@@ -138,4 +140,5 @@
         });
     });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+<?php echo $__env->make('layouts.admin', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\My Projects\HostelHub\resources\views/admin/hostels/index.blade.php ENDPATH**/ ?>

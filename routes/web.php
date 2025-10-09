@@ -12,6 +12,7 @@ use App\Http\Controllers\{
     Admin\RoomController,
     Admin\StudentController,
     Admin\SettingsController,
+    Admin\PaymentController as AdminPaymentController,
     Owner\HostelController as OwnerHostelController,
     Frontend\GalleryController as FrontendGalleryController,
     Frontend\PublicContactController,
@@ -34,7 +35,6 @@ use App\Http\Controllers\{
     BookingController,
     PaymentController
 };
-use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\DB;
@@ -150,22 +150,114 @@ Route::get('/dashboard', function () {
 })->middleware(['auth'])->name('dashboard');
 
 /*|--------------------------------------------------------------------------
-| Unified Role-Based Routes (Protected Routes)
+| Admin Routes Group (Consistent Prefix and Names)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'hasOrganization', 'role:admin'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+
+        // Admin Dashboard
+        Route::get('/dashboard', [DashboardController::class, 'adminDashboard'])->name('dashboard');
+
+        // Admin Resources
+        Route::resource('contacts', ContactController::class);
+        Route::get('/contacts/search', [ContactController::class, 'search'])->name('contacts.search');
+        Route::post('/contacts/bulk-delete', [ContactController::class, 'bulkDestroy'])->name('contacts.bulk-delete');
+        Route::post('/contacts/{id}/update-status', [ContactController::class, 'updateStatus'])->name('contacts.update-status');
+        Route::get('/contacts/export/csv', [ContactController::class, 'exportCSV'])->name('contacts.export-csv');
+
+        Route::resource('galleries', GalleryController::class);
+        Route::post('/galleries/{gallery}/toggle-status', [GalleryController::class, 'toggleStatus'])
+            ->name('galleries.toggle-status');
+        Route::post('/galleries/{gallery}/toggle-featured', [GalleryController::class, 'toggleFeatured'])
+            ->name('galleries.toggle-featured');
+
+        // ✅ FIX: Add Meal Routes to Admin Group
+        Route::resource('meals', MealController::class);
+        Route::get('/meals/search', [MealController::class, 'search'])->name('meals.search');
+
+        Route::resource('reviews', AdminReviewController::class);
+
+        Route::resource('rooms', RoomController::class)->except(['create', 'store']);
+        Route::get('/rooms/create', [RoomController::class, 'create'])->name('rooms.create');
+        Route::post('/rooms', [RoomController::class, 'store'])->name('rooms.store');
+        Route::get('/rooms/search', [RoomController::class, 'search'])->name('rooms.search');
+        Route::post('/rooms/{room}/change-status', [RoomController::class, 'changeStatus'])->name('rooms.change-status');
+        Route::get('/rooms/export/csv', [RoomController::class, 'exportCSV'])->name('rooms.export-csv');
+
+        Route::resource('students', StudentController::class);
+        Route::get('/students/search', [StudentController::class, 'search'])->name('students.search');
+        Route::get('/students/export/csv', [StudentController::class, 'exportCSV'])->name('students.export');
+
+        Route::resource('hostels', AdminHostelController::class);
+        Route::get('hostels/{hostel}/availability', [AdminHostelController::class, 'showAvailability'])->name('hostels.availability');
+        Route::put('hostels/{hostel}/availability', [AdminHostelController::class, 'updateAvailability'])->name('hostels.availability.update');
+        Route::get('/hostels/search', [AdminHostelController::class, 'search'])->name('hostels.search');
+
+        // ✅ FIX: Correct Payment Routes Structure
+        Route::prefix('payments')->name('payments.')->group(function () {
+            Route::get('/', [AdminPaymentController::class, 'index'])->name('index');
+            Route::get('/create', [AdminPaymentController::class, 'create'])->name('create');
+            Route::post('/', [AdminPaymentController::class, 'store'])->name('store');
+            Route::get('/{payment}', [AdminPaymentController::class, 'show'])->name('show');
+            Route::get('/{payment}/edit', [AdminPaymentController::class, 'edit'])->name('edit');
+            Route::put('/{payment}', [AdminPaymentController::class, 'update'])->name('update');
+            Route::delete('/{payment}', [AdminPaymentController::class, 'destroy'])->name('destroy');
+            Route::get('/search', [AdminPaymentController::class, 'search'])->name('search');
+            Route::post('/{payment}/update-status', [AdminPaymentController::class, 'updateStatus'])->name('update-status');
+            Route::get('/export', [AdminPaymentController::class, 'export'])->name('export');
+            Route::get('/report', [AdminPaymentController::class, 'report'])->name('report');
+            Route::post('/{payment}/approve-bank', [AdminPaymentController::class, 'approveBankTransfer'])->name('approve-bank');
+            Route::post('/{payment}/reject-bank', [AdminPaymentController::class, 'rejectBankTransfer'])->name('reject-bank');
+            Route::get('/{payment}/proof', [AdminPaymentController::class, 'viewProof'])->name('proof');
+
+            // Payment verification
+            Route::middleware(['check.permission:payment.verify'])->group(function () {
+                Route::get('/verification', [AdminPaymentController::class, 'verification'])->name('verification');
+                Route::put('/{payment}/verify', [AdminPaymentController::class, 'verify'])->name('verify');
+            });
+        });
+
+        // Reports routes
+        Route::prefix('reports')->name('reports.')->group(function () {
+            Route::get('/', [ReportController::class, 'index'])->name('index');
+            Route::post('/monthly', [ReportController::class, 'monthlyReport'])->name('monthly');
+            Route::post('/yearly', [ReportController::class, 'yearlyReport'])->name('yearly');
+            Route::post('/custom', [ReportController::class, 'customDateReport'])->name('custom');
+            Route::post('/filter', [ReportController::class, 'filterReport'])->name('filter');
+            Route::post('/download-pdf', [ReportController::class, 'downloadPdf'])->name('download.pdf');
+            Route::post('/download-excel', [ReportController::class, 'downloadExcel'])->name('download.excel');
+        });
+
+        // Meal Menus
+        Route::resource('meal-menus', AdminMealMenuController::class)->only(['index', 'show']);
+        Route::get('/meal-menus/search', [AdminMealMenuController::class, 'search'])->name('meal-menus.search');
+
+        // Settings routes
+        Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
+        Route::resource('settings', SettingsController::class)->except(['index']);
+        Route::post('settings/bulk-update', [SettingsController::class, 'bulkUpdate'])->name('settings.bulk-update');
+    });
+
+/*|--------------------------------------------------------------------------
+| Unified Role-Based Routes (Protected Routes for Owner and Student)
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'hasOrganization'])->group(function () {
-    // Dashboard routes with unique names
-    Route::get('/admin/dashboard', [DashboardController::class, 'adminDashboard'])
-        ->middleware('role:admin')
-        ->name('admin.dashboard');
 
+    // Dashboard routes with unique names
     Route::get('/owner/dashboard', [DashboardController::class, 'ownerDashboard'])
         ->middleware('role:hostel_manager')
         ->name('owner.dashboard');
 
-    Route::get('/student/dashboard', [StudentController::class, 'studentDashboard'])
+    Route::get('/student/dashboard', [DashboardController::class, 'studentDashboard'])
         ->middleware('role:student')
         ->name('student.dashboard');
+
+    // Common routes for all authenticated users
+    Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
     // Booking routes
     Route::get('/my-bookings', [BookingController::class, 'myBookings'])->name('bookings.my');
@@ -181,7 +273,7 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
     Route::get('/subscription/limits', [SubscriptionController::class, 'showLimits'])->name('subscription.limits');
     Route::post('/subscription/purchase-extra-hostel', [SubscriptionController::class, 'purchaseExtraHostel'])->name('subscription.purchase-extra-hostel');
 
-    // Payment Routes
+    // Payment Routes (Using Frontend PaymentController)
     Route::get('/checkout', [PaymentController::class, 'checkout'])->name('payment.checkout');
 
     // eSewa Payment Routes
@@ -203,7 +295,6 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
     // Payment Verification
     Route::get('/payment/verify/{paymentId}', [PaymentController::class, 'verifyPayment'])->name('payment.verify');
 
-    // 🔄 NEW PAYMENT ROUTES ADDED HERE
     // Student Payment History and Receipts
     Route::middleware('role:student')->group(function () {
         Route::get('/student/payments', [PaymentController::class, 'studentPayments'])->name('student.payments.index');
@@ -211,66 +302,20 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
         Route::get('/student/payments/{paymentId}/receipt/download', [PaymentController::class, 'downloadReceipt'])->name('student.payments.receipt.download');
     });
 
-    // Owner Payment Management Routes
+    // Owner specific routes
     Route::middleware('role:hostel_manager')->prefix('owner')->name('owner.')->group(function () {
-        // Owner Payment Report
+        // Owner dashboard
+        Route::get('/dashboard', [DashboardController::class, 'ownerDashboard'])->name('dashboard');
+
+        // Owner Payment Management Routes (Using Frontend PaymentController)
         Route::get('/payments/report', [PaymentController::class, 'ownerReport'])->name('payments.report');
-
-        // Manual Payment Creation
         Route::post('/payments/manual', [PaymentController::class, 'createManualPayment'])->name('payments.manual');
-
-        // Bank Transfer Approval
         Route::post('/payments/{payment}/approve', [PaymentController::class, 'approveBankTransfer'])->name('payments.approve');
         Route::post('/payments/{payment}/reject', [PaymentController::class, 'rejectBankTransfer'])->name('payments.reject');
         Route::get('/payments/{payment}/proof', [PaymentController::class, 'viewProof'])->name('payments.proof');
 
         // Hostel-specific bookings
         Route::get('/hostels/{hostelId}/bookings', [BookingController::class, 'hostelBookings'])->name('hostels.bookings');
-    });
-
-    // Admin only routes
-    Route::middleware('role:admin')->group(function () {
-        Route::resource('contacts', ContactController::class)->names('admin.contacts');
-        Route::get('/contacts/search', [ContactController::class, 'search'])->name('admin.contacts.search');
-        Route::post('/contacts/bulk-delete', [ContactController::class, 'bulkDestroy'])->name('admin.contacts.bulk-delete');
-        Route::post('/contacts/{id}/update-status', [ContactController::class, 'updateStatus'])->name('admin.contacts.update-status');
-        Route::get('/contacts/export/csv', [ContactController::class, 'exportCSV'])->name('admin.contacts.export-csv');
-
-        Route::resource('galleries', GalleryController::class)->names('admin.galleries');
-        Route::post('/galleries/{gallery}/toggle-status', [GalleryController::class, 'toggleStatus'])
-            ->name('admin.galleries.toggle-status');
-        Route::post('/galleries/{gallery}/toggle-featured', [GalleryController::class, 'toggleFeatured'])
-            ->name('admin.galleries.toggle-featured');
-
-        Route::resource('meals', MealController::class)->names('admin.meals');
-        Route::resource('reviews', AdminReviewController::class)->names('admin.reviews');
-
-        Route::resource('rooms', RoomController::class)->names('admin.rooms')->except(['create', 'store']);
-        Route::get('/rooms/create', [RoomController::class, 'create'])->name('admin.rooms.create');
-        Route::post('/rooms', [RoomController::class, 'store'])->name('admin.rooms.store');
-        Route::get('/rooms/search', [RoomController::class, 'search'])->name('admin.rooms.search');
-        Route::post('/rooms/{room}/change-status', [RoomController::class, 'changeStatus'])->name('admin.rooms.change-status');
-        Route::get('/rooms/export/csv', [RoomController::class, 'exportCSV'])->name('admin.rooms.export-csv');
-
-        Route::resource('students', StudentController::class)->names('admin.students');
-        Route::get('/students/search', [StudentController::class, 'search'])->name('admin.students.search');
-        Route::get('/students/export/csv', [StudentController::class, 'exportCSV'])->name('admin.students.export');
-
-        Route::resource('hostels', AdminHostelController::class)->names('admin.hostels');
-        Route::get('hostels/{hostel}/availability', [AdminHostelController::class, 'showAvailability'])->name('admin.hostels.availability');
-        Route::put('hostels/{hostel}/availability', [AdminHostelController::class, 'updateAvailability'])->name('admin.hostels.availability.update');
-        Route::get('/hostels/search', [AdminHostelController::class, 'search'])->name('admin.hostels.search');
-
-        // Admin Bank Transfer Approval Routes
-        Route::post('/payments/{payment}/approve', [AdminPaymentController::class, 'approveBankTransfer'])->name('admin.payments.approve');
-        Route::post('/payments/{payment}/reject', [AdminPaymentController::class, 'rejectBankTransfer'])->name('admin.payments.reject');
-        Route::get('/payments/{payment}/proof', [AdminPaymentController::class, 'viewProof'])->name('admin.payments.proof');
-    });
-
-    // Owner specific routes
-    Route::middleware('role:hostel_manager')->prefix('owner')->name('owner.')->group(function () {
-        // Owner dashboard
-        Route::get('/dashboard', [DashboardController::class, 'ownerDashboard'])->name('dashboard');
 
         // Hostel routes with subscription limit check
         Route::get('/hostels', [OwnerHostelController::class, 'index'])->name('hostels.index');
@@ -283,18 +328,18 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
         Route::put('/hostels/{hostel}', [OwnerHostelController::class, 'update'])->name('hostels.update');
         Route::delete('/hostels/{hostel}', [OwnerHostelController::class, 'destroy'])->name('hostels.destroy');
 
-        // Gallery routes
+        // Owner resource routes (similar to admin but for owner context)
         Route::resource('galleries', GalleryController::class);
         Route::post('/galleries/{gallery}/toggle-status', [GalleryController::class, 'toggleStatus'])
             ->name('galleries.toggle-status');
         Route::post('/galleries/{gallery}/toggle-featured', [GalleryController::class, 'toggleFeatured'])
             ->name('galleries.toggle-featured');
 
-        // Review routes
         Route::resource('reviews', AdminReviewController::class);
-
-        // Meal routes
+        
+        // ✅ FIX: Owner Meal Routes
         Route::resource('meals', MealController::class);
+        Route::get('/meals/search', [MealController::class, 'search'])->name('meals.search');
 
         // Room routes with plan limits
         Route::get('rooms', [RoomController::class, 'index'])->name('rooms.index');
@@ -311,11 +356,20 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
         // Meal menu routes
         Route::resource('meal-menus', AdminMealMenuController::class);
 
-        // Payment routes with permission check
+        // Payment routes with permission check (Using AdminPaymentController for owner)
         Route::middleware(['check.permission:payment.view'])->group(function () {
-            Route::resource('payments', AdminPaymentController::class);
-            Route::get('payments/search', [AdminPaymentController::class, 'search'])->name('payments.search');
-            Route::post('payments/{payment}/update-status', [AdminPaymentController::class, 'updateStatus'])->name('payments.update-status');
+            Route::prefix('payments')->name('payments.')->group(function () {
+                Route::get('/', [AdminPaymentController::class, 'index'])->name('index');
+                Route::get('/create', [AdminPaymentController::class, 'create'])->name('create');
+                Route::post('/', [AdminPaymentController::class, 'store'])->name('store');
+                Route::get('/{payment}', [AdminPaymentController::class, 'show'])->name('show');
+                Route::get('/{payment}/edit', [AdminPaymentController::class, 'edit'])->name('edit');
+                Route::put('/{payment}', [AdminPaymentController::class, 'update'])->name('update');
+                Route::delete('/{payment}', [AdminPaymentController::class, 'destroy'])->name('destroy');
+                Route::get('/search', [AdminPaymentController::class, 'search'])->name('search');
+                Route::post('/{payment}/update-status', [AdminPaymentController::class, 'updateStatus'])->name('update-status');
+                Route::get('/export', [AdminPaymentController::class, 'export'])->name('export');
+            });
         });
 
         // Student routes with plan limits
@@ -337,41 +391,9 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
         Route::get('contacts/export/csv', [ContactController::class, 'exportCSV'])->name('contacts.export-csv');
     });
 
-    // Meal Menus - Admin view only
-    Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
-        Route::resource('meal-menus', AdminMealMenuController::class)->only(['index', 'show']);
-        Route::get('/meal-menus/search', [AdminMealMenuController::class, 'search'])->name('meal-menus.search');
-    });
-
-    // Settings routes - Admin only
-    Route::middleware('role:admin')->group(function () {
-        Route::get('/settings', [SettingsController::class, 'index'])->name('admin.settings');
-        Route::resource('settings', SettingsController::class)->names('admin.settings')->except(['index']);
-        Route::post('settings/bulk-update', [SettingsController::class, 'bulkUpdate'])->name('admin.settings.bulk-update');
-
-        // Reports
-        Route::get('/reports', [ReportController::class, 'index'])->name('admin.reports.index');
-        Route::post('/reports/monthly', [ReportController::class, 'monthlyReport'])->name('admin.reports.monthly');
-        Route::post('/reports/yearly', [ReportController::class, 'yearlyReport'])->name('admin.reports.yearly');
-        Route::post('/reports/custom', [ReportController::class, 'customDateReport'])->name('admin.reports.custom');
-        Route::post('/reports/filter', [ReportController::class, 'filterReport'])->name('admin.reports.filter');
-        Route::post('/reports/download-pdf', [ReportController::class, 'downloadPdf'])->name('admin.reports.download.pdf');
-        Route::post('/reports/download-excel', [ReportController::class, 'downloadExcel'])->name('admin.reports.download.excel');
-
-        // Payment reports
-        Route::get('/payments/report', [AdminPaymentController::class, 'report'])->name('payments.report');
-        Route::get('/payments/export', [AdminPaymentController::class, 'export'])->name('payments.export');
-
-        // Payments verification
-        Route::middleware(['check.permission:payment.verify'])->group(function () {
-            Route::get('/payments/verification', [AdminPaymentController::class, 'verification'])->name('admin.payments.verification');
-            Route::put('/payments/{payment}/verify', [AdminPaymentController::class, 'verify'])->name('admin.payments.verify');
-        });
-    });
-
     // Student routes
     Route::middleware('role:student')->prefix('student')->name('student.')->group(function () {
-        Route::get('/dashboard', [StudentController::class, 'dashboard'])->name('dashboard');
+        Route::get('/dashboard', [DashboardController::class, 'studentDashboard'])->name('dashboard');
         Route::get('/profile', [StudentController::class, 'profile'])->name('profile');
         Route::get('/payments', [StudentController::class, 'payments'])->name('payments');
         Route::get('/meal-menus', [StudentController::class, 'mealMenus'])->name('meal-menus.index');
@@ -392,35 +414,6 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
         // Student profile update
         Route::patch('/profile/update', [StudentController::class, 'updateProfile'])->name('profile.update');
     });
-
-    // Payment routes for multiple roles
-    Route::middleware(['check.role.or.permission:admin,owner,payment.view'])->group(function () {
-        Route::get('/payments', [AdminPaymentController::class, 'index'])->name('payments.index');
-        Route::get('/payments/{payment}', [AdminPaymentController::class, 'show'])->name('payments.show');
-    });
-
-    Route::middleware('role:admin,hostel_manager')->group(function () {
-        Route::get('/payments/create', [AdminPaymentController::class, 'create'])->name('admin.payments.create');
-        Route::post('/payments', [AdminPaymentController::class, 'store'])->name('admin.payments.store');
-        Route::get('/payments/{payment}/edit', [AdminPaymentController::class, 'edit'])->name('admin.payments.edit');
-        Route::put('/payments/{payment}', [AdminPaymentController::class, 'update'])->name('admin.payments.update');
-        Route::delete('/payments/{payment}', [AdminPaymentController::class, 'destroy'])->name('admin.payments.destroy');
-        Route::get('/payments/search', [AdminPaymentController::class, 'search'])->name('admin.payments.search');
-        Route::post('/payments/{payment}/update-status', [AdminPaymentController::class, 'updateStatus'])->name('admin.payments.update-status');
-    });
-
-    // Student payment viewing
-    Route::middleware('role:student')->group(function () {
-        Route::get('/student-payments', [AdminPaymentController::class, 'studentIndex'])->name('student.payments.index');
-        Route::get('/student-payments/{payment}', [AdminPaymentController::class, 'studentShow'])->name('student.payments.show');
-        Route::get('/student-payments/search', [AdminPaymentController::class, 'studentSearch'])->name('student.payments.search');
-    });
-
-    // Khalti callback route
-    Route::post('payments/khalti-callback', [AdminPaymentController::class, 'khaltiCallback'])->name('payments.khalti.callback');
-
-    // Common authenticated routes
-    Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
     // Subscription Management
     Route::get('/subscription', [SubscriptionController::class, 'show'])->name('subscription.show');

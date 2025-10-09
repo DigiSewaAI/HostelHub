@@ -74,7 +74,7 @@ class Room extends Model
                             ->where('check_out_date', '>=', $checkOut);
                     });
             })
-            ->whereIn('status', [Booking::STATUS_PENDING, Booking::STATUS_APPROVED])
+            ->whereIn('status', ['pending', 'approved']) // FIX: Use English status values
             ->count();
 
         return $conflictingBookings === 0;
@@ -85,7 +85,24 @@ class Room extends Model
      */
     public function scopeAvailable(Builder $query): Builder
     {
-        return $query->where('status', 'उपलब्ध');
+        // FIX: Use English status values for queries
+        return $query->where('status', 'available');
+    }
+
+    /**
+     * Scope a query to only include occupied rooms.
+     */
+    public function scopeOccupied(Builder $query): Builder
+    {
+        return $query->where('status', 'occupied');
+    }
+
+    /**
+     * Scope a query to only include rooms under maintenance.
+     */
+    public function scopeMaintenance(Builder $query): Builder
+    {
+        return $query->where('status', 'maintenance');
     }
 
     /**
@@ -102,7 +119,7 @@ class Room extends Model
     public static function getOccupancyRate(): float
     {
         $totalRooms = self::count();
-        $occupiedRooms = self::where('status', 'बुक भएको')->count();
+        $occupiedRooms = self::where('status', 'occupied')->count();
 
         if ($totalRooms > 0) {
             return round(($occupiedRooms / $totalRooms) * 100, 2);
@@ -121,6 +138,14 @@ class Room extends Model
     }
 
     /**
+     * Get the current number of students in this room.
+     */
+    public function getCurrentOccupancyAttribute(): int
+    {
+        return $this->students_count ?? $this->students()->count();
+    }
+
+    /**
      * Get the available capacity for this room.
      */
     public function getAvailableCapacityAttribute(): int
@@ -130,14 +155,25 @@ class Room extends Model
     }
 
     /**
+     * Check if room has available space
+     */
+    public function getHasAvailableSpaceAttribute(): bool
+    {
+        return $this->available_capacity > 0;
+    }
+
+    /**
      * Get Nepali room type
      */
     public function getNepaliTypeAttribute(): string
     {
         $types = [
-            'स्ट्यान्डर्ड' => 'स्ट्यान्डर्ड कोठा',
-            'डीलक्स' => 'डीलक्स कोठा',
-            'विआईपी' => 'विआईपी कोठा',
+            'single' => 'एकल कोठा',
+            'double' => 'दोहोरो कोठा',
+            'shared' => 'साझा कोठा',
+            'standard' => 'स्ट्यान्डर्ड कोठा',
+            'deluxe' => 'डीलक्स कोठा',
+            'vip' => 'विआईपी कोठा',
         ];
 
         return $types[$this->type] ?? $this->type;
@@ -149,11 +185,40 @@ class Room extends Model
     public function getNepaliStatusAttribute(): string
     {
         $statuses = [
-            'उपलब्ध' => 'उपलब्ध',
-            'बुक भएको' => 'बुक भएको',
-            'रिङ्गोट' => 'रिङ्गोट',
+            'available' => 'उपलब्ध',
+            'occupied' => 'अधिभृत',
+            'maintenance' => 'मर्मतमा',
         ];
 
         return $statuses[$this->status] ?? $this->status;
+    }
+
+    /**
+     * Get formatted price with currency
+     */
+    public function getFormattedPriceAttribute(): string
+    {
+        return 'रु ' . number_format($this->price, 2);
+    }
+
+    /**
+     * Boot method for model events
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Update hostel room counts when room is created, updated or deleted
+        static::created(function ($room) {
+            $room->hostel->updateRoomCounts();
+        });
+
+        static::updated(function ($room) {
+            $room->hostel->updateRoomCounts();
+        });
+
+        static::deleted(function ($room) {
+            $room->hostel->updateRoomCounts();
+        });
     }
 }

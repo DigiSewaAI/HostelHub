@@ -77,6 +77,12 @@ class Hostel extends Model
         return $query->where('status', 'active');
     }
 
+    // ✅ Scope for inactive hostels
+    public function scopeInactive($query)
+    {
+        return $query->where('status', 'inactive');
+    }
+
     // ✅ Calculate occupancy rate
     public function getOccupancyRateAttribute()
     {
@@ -94,6 +100,50 @@ class Hostel extends Model
         return $this->available_rooms > 0;
     }
 
+    // ✅ FIX: Add method to update room counts from relationships
+    public function updateRoomCounts()
+    {
+        $this->update([
+            'total_rooms' => $this->rooms()->count(),
+            'available_rooms' => $this->rooms()->where('status', 'available')->count()
+        ]);
+    }
+
+    // ✅ Get dynamic room statistics
+    public function getRoomStatisticsAttribute()
+    {
+        return [
+            'total' => $this->rooms()->count(),
+            'available' => $this->rooms()->where('status', 'available')->count(),
+            'occupied' => $this->rooms()->where('status', 'occupied')->count(),
+            'maintenance' => $this->rooms()->where('status', 'maintenance')->count(),
+        ];
+    }
+
+    // ✅ Get dynamic student count
+    public function getStudentsCountAttribute()
+    {
+        return $this->students()->count();
+    }
+
+    // ✅ Get Nepali status
+    public function getNepaliStatusAttribute()
+    {
+        $statuses = [
+            'active' => 'सक्रिय',
+            'inactive' => 'निष्क्रिय',
+            'maintenance' => 'मर्मतमा'
+        ];
+
+        return $statuses[$this->status] ?? $this->status;
+    }
+
+    // ✅ Check if hostel can be deleted (no rooms or students)
+    public function getCanBeDeletedAttribute()
+    {
+        return $this->rooms()->count() === 0 && $this->students()->count() === 0;
+    }
+
     /**
      * Get the subscription that owns the hostel through organization
      */
@@ -105,10 +155,10 @@ class Hostel extends Model
 
         // Load the organization with subscription if not already loaded
         if (!$this->relationLoaded('organization')) {
-            $this->load('organization.subscription');
+            $this->load('organization.currentSubscription');
         }
 
-        return $this->organization->subscription ?? null;
+        return $this->organization->currentSubscription ?? null;
     }
 
     /**
@@ -173,7 +223,7 @@ class Hostel extends Model
         $subscription = $this->subscription();
 
         if (!$subscription || !$subscription->plan) {
-            return 'No Subscription';
+            return 'कुनै सदस्यता छैन';
         }
 
         return $subscription->plan->name;
@@ -205,5 +255,26 @@ class Hostel extends Model
         }
 
         return $subscription->plan->allowsBookingAutoApproval();
+    }
+
+    /**
+     * Boot method for model events
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Update room counts when hostel is loaded (for existing data)
+        static::retrieved(function ($hostel) {
+            // Only update if counts are outdated (optional - can be heavy on performance)
+            // $hostel->updateRoomCounts();
+        });
+
+        // Update slug when name is changed
+        static::saving(function ($hostel) {
+            if ($hostel->isDirty('name') && !$hostel->isDirty('slug')) {
+                $hostel->slug = \Illuminate\Support\Str::slug($hostel->name);
+            }
+        });
     }
 }

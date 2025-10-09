@@ -39,7 +39,8 @@ class HostelController extends Controller
     public function create()
     {
         $organizations = Organization::with('currentSubscription')->get();
-        $managers = User::where('role', 'hostel_manager')->get();
+        // FIX: Use Spatie roles instead of role column
+        $managers = User::role('hostel_manager')->get();
 
         return view('admin.hostels.create', compact('managers', 'organizations'));
     }
@@ -106,20 +107,22 @@ class HostelController extends Controller
         $hostel->load([
             'owner',
             'organization',
-            'rooms',
+            'rooms',  // FIX: Ensure rooms relationship is loaded
             'students.user',
             'organization.currentSubscription.plan'
         ]);
 
-        // Statistics for this hostel
-        $occupiedRooms = $hostel->rooms()->where('is_available', false)->count();
-        $availableRooms = $hostel->rooms()->where('is_available', true)->count();
-        $totalStudents = $hostel->students()->count();
+        // FIX: Use dynamic counts from relationships instead of database columns
+        $occupiedRooms = $hostel->rooms->where('status', 'occupied')->count();
+        $availableRooms = $hostel->rooms->where('status', 'available')->count();
+        $totalRooms = $hostel->rooms->count();
+        $totalStudents = $hostel->students->count();
 
         return view('admin.hostels.show', compact(
             'hostel',
             'occupiedRooms',
             'availableRooms',
+            'totalRooms',
             'totalStudents'
         ));
     }
@@ -127,7 +130,8 @@ class HostelController extends Controller
     public function edit(Hostel $hostel)
     {
         $organizations = Organization::with('currentSubscription')->get();
-        $managers = User::where('role', 'hostel_manager')->get();
+        // FIX: Use Spatie roles instead of role column
+        $managers = User::role('hostel_manager')->get();
 
         $hostel->load('organization');
 
