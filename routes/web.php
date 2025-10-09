@@ -196,6 +196,10 @@ Route::middleware(['auth', 'hasOrganization', 'role:admin'])
         Route::put('hostels/{hostel}/availability', [AdminHostelController::class, 'updateAvailability'])->name('hostels.availability.update');
         Route::get('/hostels/search', [AdminHostelController::class, 'search'])->name('hostels.search');
 
+        // ✅ FIX: Add routes for fixing hostel room counts
+        Route::get('/hostels/fix-room-counts', [AdminHostelController::class, 'fixRoomCounts'])->name('hostels.fix-room-counts');
+        Route::post('/hostels/update-all-counts', [AdminHostelController::class, 'updateAllRoomCounts'])->name('hostels.update-all-counts');
+
         // ✅ FIX: Correct Payment Routes Structure
         Route::prefix('payments')->name('payments.')->group(function () {
             Route::get('/', [AdminPaymentController::class, 'index'])->name('index');
@@ -336,7 +340,7 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
             ->name('galleries.toggle-featured');
 
         Route::resource('reviews', AdminReviewController::class);
-        
+
         // ✅ FIX: Owner Meal Routes
         Route::resource('meals', MealController::class);
         Route::get('/meals/search', [MealController::class, 'search'])->name('meals.search');
@@ -443,6 +447,60 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::post('/search', [PublicController::class, 'search'])->name('search');
+
+/*|--------------------------------------------------------------------------
+| Development Routes - Room Counts Fix
+|--------------------------------------------------------------------------
+*/
+if (app()->environment('local')) {
+    // Temporary routes for fixing room counts
+    Route::get('/fix-hostel-counts', function () {
+        $hostels = \App\Models\Hostel::all();
+
+        foreach ($hostels as $hostel) {
+            $totalRooms = $hostel->rooms()->count();
+            $availableRooms = $hostel->rooms()->where('status', 'available')->count();
+
+            echo "Hostel: {$hostel->name} <br>";
+            echo "Database - Total: {$hostel->total_rooms}, Available: {$hostel->available_rooms} <br>";
+            echo "Actual - Total: {$totalRooms}, Available: {$availableRooms} <br>";
+
+            // Auto-update
+            $hostel->update([
+                'total_rooms' => $totalRooms,
+                'available_rooms' => $availableRooms
+            ]);
+
+            echo "<strong>UPDATED - Total: {$totalRooms}, Available: {$availableRooms}</strong> <br>";
+            echo "---<br>";
+        }
+
+        return "<h3>All hostel room counts updated successfully!</h3>";
+    });
+
+    // Check duplicate hostels
+    Route::get('/check-duplicates', function () {
+        $duplicates = \App\Models\Hostel::select('name', DB::raw('COUNT(*) as count'))
+            ->groupBy('name')
+            ->having('count', '>', 1)
+            ->get();
+
+        echo "<h3>Duplicate Hostels:</h3>";
+        foreach ($duplicates as $dup) {
+            echo "Name: {$dup->name} - Count: {$dup->count} <br>";
+
+            $hostels = \App\Models\Hostel::where('name', $dup->name)->get();
+            foreach ($hostels as $hostel) {
+                $roomCount = $hostel->rooms()->count();
+                $studentCount = $hostel->students()->count();
+                echo "&nbsp;&nbsp;- ID: {$hostel->id}, Rooms: {$roomCount}, Students: {$studentCount} <br>";
+            }
+            echo "---<br>";
+        }
+
+        return "<h3>Duplicate check completed!</h3>";
+    });
+}
 
 /*|--------------------------------------------------------------------------
 | Development Routes
