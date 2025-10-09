@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'भुक्तानी विवरण #'.str_pad($payment->id, 6, '0', STR_PAD_LEFT))
 

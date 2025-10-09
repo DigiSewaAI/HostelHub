@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'भुक्तानी प्रबन्धन')
 
@@ -10,7 +10,7 @@
                 <h2 class="mb-0 nepali">भुक्तानी प्रबन्धन</h2>
                 <div class="d-flex gap-2">
                     @role(['admin', 'owner'])
-                    <a href="{{ route('payments.create') }}" class="btn btn-primary nepali">
+                    <a href="{{ route('admin.payments.create') }}" class="btn btn-primary nepali">
                         <i class="fas fa-plus me-2"></i>नयाँ भुक्तानी
                     </a>
                     @endrole
@@ -21,9 +21,9 @@
                             <i class="fas fa-file-export me-1"></i> प्रतिवेदनहरू
                         </button>
                         <ul class="dropdown-menu" aria-labelledby="reportDropdown">
-                            <li><a class="dropdown-item nepali" href="{{ route('payments.export', ['format' => 'csv']) }}"><i class="fas fa-file-csv me-1"></i> CSV निर्यात गर्नुहोस्</a></li>
-                            <li><a class="dropdown-item nepali" href="{{ route('payments.export', ['format' => 'excel']) }}"><i class="fas fa-file-excel me-1"></i> Excel निर्यात गर्नुहोस्</a></li>
-                            <li><a class="dropdown-item nepali" href="{{ route('payments.report') }}"><i class="fas fa-chart-bar me-1"></i> प्रतिवेदन हेर्नुहोस्</a></li>
+                            <li><a class="dropdown-item nepali" href="{{ route('admin.payments.export', ['format' => 'csv']) }}"><i class="fas fa-file-csv me-1"></i> CSV निर्यात गर्नुहोस्</a></li>
+                            <li><a class="dropdown-item nepali" href="{{ route('admin.payments.export', ['format' => 'excel']) }}"><i class="fas fa-file-excel me-1"></i> Excel निर्यात गर्नुहोस्</a></li>
+                            <li><a class="dropdown-item nepali" href="{{ route('admin.payments.report') }}"><i class="fas fa-chart-bar me-1"></i> प्रतिवेदन हेर्नुहोस्</a></li>
                         </ul>
                     </div>
                     @endrole
@@ -45,7 +45,7 @@
             <h6 class="m-0 font-weight-bold text-primary nepali">भुक्तानीहरू फिल्टर गर्नुहोस्</h6>
         </div>
         <div class="card-body">
-            <form method="GET" action="{{ route('payments.index') }}">
+            <form method="GET" action="{{ route('admin.payments.index') }}">
                 <div class="row g-3">
                     <div class="col-md-3">
                         <label class="form-label nepali">मिति सीमा</label>
@@ -82,7 +82,7 @@
                             <button type="submit" class="btn btn-primary nepali">
                                 <i class="fas fa-filter me-1"></i> फिल्टर
                             </button>
-                            <a href="{{ route('payments.index') }}" class="btn btn-outline-secondary nepali">
+                            <a href="{{ route('admin.payments.index') }}" class="btn btn-outline-secondary nepali">
                                 <i class="fas fa-sync-alt me-1"></i> रीसेट
                             </a>
                         </div>
@@ -159,7 +159,7 @@
                             </td>
                             <td>
                                 <div class="d-flex gap-2 justify-content-center">
-                                    <a href="{{ route('payments.show', $payment) }}"
+                                    <a href="{{ route('admin.payments.show', $payment) }}"
                                        class="btn btn-sm btn-info"
                                        title="विवरण हेर्नुहोस्">
                                         <i class="fas fa-eye"></i>
@@ -179,7 +179,7 @@
                                                 </a>
                                             </li>
                                             <li>
-                                                <form action="{{ route('admin.payments.approve', $payment) }}" method="POST">
+                                                <form action="{{ route('admin.payments.approve-bank', $payment) }}" method="POST">
                                                     @csrf
                                                     <button type="submit" class="dropdown-item nepali text-success" 
                                                             onclick="return confirm('के तपाईं यो बैंक हस्तान्तरण स्वीकृत गर्न चाहनुहुन्छ?')">
@@ -204,7 +204,7 @@
                                                     <h5 class="modal-title nepali">भुक्तानी अस्वीकृत गर्नुहोस्</h5>
                                                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                                 </div>
-                                                <form action="{{ route('admin.payments.reject', $payment) }}" method="POST">
+                                                <form action="{{ route('admin.payments.reject-bank', $payment) }}" method="POST">
                                                     @csrf
                                                     <div class="modal-body">
                                                         <div class="mb-3">
@@ -224,7 +224,7 @@
                                     @else
                                         <!-- Existing actions for non-bank transfer payments -->
                                         @if($payment->status === 'pending')
-                                        <form action="{{ route('payments.updateStatus', $payment) }}"
+                                        <form action="{{ route('admin.payments.updateStatus', $payment) }}"
                                               method="POST"
                                               style="display: inline;">
                                             @csrf
@@ -239,7 +239,7 @@
                                         </form>
                                         @endif
                                         
-                                        <form action="{{ route('payments.destroy', $payment) }}"
+                                        <form action="{{ route('admin.payments.destroy', $payment) }}"
                                               method="POST"
                                               class="delete-form"
                                               style="display: inline;">

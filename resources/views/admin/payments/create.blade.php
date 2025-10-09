@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'नयाँ भुक्तानी थप्नुहोस्')
 

@@ -273,7 +273,7 @@
                     <div class="font-medium text-amber-800">होस्टल थप्नुहोस्</div>
                 </a>
                 
-                <a href="{{ route('admin.reports') }}" class="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg text-center transition-colors">
+                <a href="{{ route('admin.reports.index') }}" class="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg text-center transition-colors">
                     <div class="text-purple-600 text-2xl mb-2">
                         <i class="fas fa-chart-bar"></i>
                     </div>

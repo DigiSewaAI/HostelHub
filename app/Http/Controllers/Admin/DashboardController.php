@@ -45,7 +45,7 @@ class DashboardController extends Controller
     /**
      * Admin dashboard with system-wide metrics
      */
-    private function adminDashboard()
+    public function adminDashboard() // Changed from private to public
     {
         try {
             // Fetch core metrics with optimized queries
@@ -208,7 +208,7 @@ class DashboardController extends Controller
     /**
      * Student dashboard
      */
-    private function studentDashboard()
+    public function studentDashboard() // Changed from private to public
     {
         try {
             $student = auth()->user()->student;

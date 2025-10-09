@@ -85,6 +85,12 @@ class Organization extends Model
         return $this->hasOne(Subscription::class, 'organization_id')->latest();
     }
 
+    // ✅ यो नयाँ relationship थप्नुहोस् जसको कारण error आइरहेको थियो
+    public function currentSubscription(): HasOne
+    {
+        return $this->hasOne(Subscription::class, 'organization_id')->latest();
+    }
+
     public function onboardingProgress(): HasOne
     {
         return $this->hasOne(OnboardingProgress::class);
