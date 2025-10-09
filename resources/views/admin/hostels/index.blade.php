@@ -65,7 +65,14 @@
                             <td>{{ Str::limit($hostel->address, 20) }}</td>
                             <td>{{ $hostel->city }}</td>
                             <td>{{ $hostel->contact_phone }}</td>
-                            <td>{{ $hostel->total_rooms }} / {{ $hostel->available_rooms }} उपलब्ध</td>
+                            <td>
+    @php
+        $totalRooms = $hostel->rooms_count ?? $hostel->rooms->count();
+        $availableRooms = $hostel->rooms->where('status', 'available')->count();
+    @endphp
+    {{ $totalRooms }} / {{ $availableRooms }} उपलब्ध
+</td>
+
                             <td>
                                 @if($hostel->manager)
                                     {{ $hostel->manager->name }}

@@ -23,6 +23,18 @@ class HostelController extends Controller
             ->latest()
             ->paginate(10);
 
+        // FIX: Ensure counts are updated from relationships for display
+        foreach ($hostels as $hostel) {
+            // Use relationship counts if database columns are outdated
+            if ($hostel->total_rooms == 0 && $hostel->rooms_count > 0) {
+                $hostel->total_rooms = $hostel->rooms_count;
+            }
+            if ($hostel->available_rooms == 0) {
+                $availableCount = $hostel->rooms()->where('status', 'available')->count();
+                $hostel->available_rooms = $availableCount;
+            }
+        }
+
         // Statistics for admin dashboard
         $totalHostels = Hostel::count();
         $activeHostels = Hostel::where('status', 'active')->count();
@@ -52,6 +64,10 @@ class HostelController extends Controller
         try {
             $validated = $request->validated();
 
+            // FIX: Clean the name before processing (remove any existing "होस्टेल")
+            $cleanName = $this->cleanHostelName($validated['name']);
+            $validated['name'] = $cleanName;
+
             // Check organization subscription limits
             $organization = Organization::find($request->organization_id);
             if ($organization) {
@@ -71,7 +87,8 @@ class HostelController extends Controller
                 }
             }
 
-            $validated['slug'] = $this->generateUniqueSlug($request->name);
+            // FIX: Use cleaned name for slug generation
+            $validated['slug'] = $this->generateUniqueSlug($cleanName);
 
             // Handle facilities
             if ($request->has('facilities') && !empty($request->facilities)) {
@@ -145,6 +162,12 @@ class HostelController extends Controller
         try {
             $validated = $request->validated();
 
+            // FIX: Clean the name before processing (remove any existing "होस्टेल")
+            if ($request->has('name')) {
+                $cleanName = $this->cleanHostelName($validated['name']);
+                $validated['name'] = $cleanName;
+            }
+
             // Handle facilities
             if ($request->has('facilities') && !empty($request->facilities)) {
                 $validated['facilities'] = json_encode(explode(',', $request->facilities));
@@ -172,7 +195,7 @@ class HostelController extends Controller
 
             // Update slug if name changed
             if ($request->has('name') && $request->name != $hostel->name) {
-                $validated['slug'] = $this->generateUniqueSlug($request->name, $hostel->id);
+                $validated['slug'] = $this->generateUniqueSlug($cleanName, $hostel->id);
             }
 
             $hostel->update($validated);
@@ -250,6 +273,7 @@ class HostelController extends Controller
      */
     private function generateUniqueSlug($name, $excludeId = null)
     {
+        // FIX: Use the original name without any modifications
         $slug = Str::slug($name);
         $originalSlug = $slug;
         $count = 1;
@@ -272,6 +296,61 @@ class HostelController extends Controller
         }
 
         return $slug;
+    }
+
+    /**
+     * Clean hostel name by removing any automatic "होस्टेल" additions
+     */
+    private function cleanHostelName($name)
+    {
+        // FIX: Remove any existing "होस्टेल" word from the name
+        $cleanName = trim($name);
+
+        // Remove "होस्टेल" from the end if it exists
+        $cleanName = preg_replace('/\s+होस्टेल$/u', '', $cleanName);
+
+        // Also remove from beginning (though unlikely)
+        $cleanName = preg_replace('/^होस्टेल\s+/u', '', $cleanName);
+
+        return trim($cleanName);
+    }
+
+    /**
+     * Fix existing hostel names and slugs (One-time use)
+     */
+    public function fixExistingHostelNames()
+    {
+        DB::beginTransaction();
+
+        try {
+            $hostels = Hostel::all();
+            $updatedCount = 0;
+
+            foreach ($hostels as $hostel) {
+                $oldName = $hostel->name;
+                $cleanName = $this->cleanHostelName($oldName);
+
+                // Only update if name was changed
+                if ($oldName !== $cleanName) {
+                    $newSlug = $this->generateUniqueSlug($cleanName, $hostel->id);
+
+                    $hostel->update([
+                        'name' => $cleanName,
+                        'slug' => $newSlug
+                    ]);
+
+                    $updatedCount++;
+                }
+            }
+
+            DB::commit();
+
+            return redirect()->route('admin.hostels.index')
+                ->with('success', "{$updatedCount} होस्टलहरूको नाम सफलतापूर्वक सच्याइयो");
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'होस्टल नाम सच्याउँदा त्रुटि: ' . $e->getMessage());
+        }
     }
 
     /**

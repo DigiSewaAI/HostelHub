@@ -64,7 +64,14 @@
                             <td><?php echo e(Str::limit($hostel->address, 20)); ?></td>
                             <td><?php echo e($hostel->city); ?></td>
                             <td><?php echo e($hostel->contact_phone); ?></td>
-                            <td><?php echo e($hostel->total_rooms); ?> / <?php echo e($hostel->available_rooms); ?> उपलब्ध</td>
+                            <td>
+    <?php
+        $totalRooms = $hostel->rooms_count ?? $hostel->rooms->count();
+        $availableRooms = $hostel->rooms->where('status', 'available')->count();
+    ?>
+    <?php echo e($totalRooms); ?> / <?php echo e($availableRooms); ?> उपलब्ध
+</td>
+
                             <td>
                                 <?php if($hostel->manager): ?>
                                     <?php echo e($hostel->manager->name); ?>
