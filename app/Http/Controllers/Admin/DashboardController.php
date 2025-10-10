@@ -14,6 +14,8 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
@@ -45,61 +47,76 @@ class DashboardController extends Controller
     /**
      * Admin dashboard with system-wide metrics
      */
-    public function adminDashboard() // Changed from private to public
+    public function adminDashboard()
     {
         try {
-            // Fetch core metrics with optimized queries
-            $totalStudents = Student::count();
-            $totalRooms = Room::count();
-            $totalHostels = Hostel::count();
-            $totalContacts = Contact::count();
+            // Authorization check
+            $this->authorize('view-admin-dashboard');
 
-            // Batch room status queries for efficiency
-            $roomStatus = Room::selectRaw('
-                COUNT(CASE WHEN status = "available" THEN 1 END) as available,
-                COUNT(CASE WHEN status = "occupied" THEN 1 END) as occupied,
-                COUNT(CASE WHEN status = "reserved" THEN 1 END) as reserved,
-                COUNT(CASE WHEN status = "maintenance" THEN 1 END) as maintenance
-            ')->first();
+            // Cache metrics for 5 minutes to improve performance
+            $metrics = Cache::remember('admin_dashboard_metrics_' . auth()->id(), 300, function () {
+                // Fetch core metrics with optimized queries
+                $totalStudents = Student::count();
+                $totalRooms = Room::count();
+                $totalHostels = Hostel::count();
+                $totalContacts = Contact::count();
 
-            // Calculate occupancy rate safely
-            $roomOccupancy = $totalRooms > 0
-                ? round(($roomStatus->occupied / $totalRooms) * 100, 1)
-                : 0;
+                // Batch room status queries for efficiency with null safety
+                $roomStatus = Room::selectRaw('
+                    COUNT(CASE WHEN status = "available" THEN 1 END) as available,
+                    COUNT(CASE WHEN status = "occupied" THEN 1 END) as occupied,
+                    COUNT(CASE WHEN status = "reserved" THEN 1 END) as reserved,
+                    COUNT(CASE WHEN status = "maintenance" THEN 1 END) as maintenance
+                ')->first() ?? (object)[
+                    'available' => 0, 
+                    'occupied' => 0, 
+                    'reserved' => 0, 
+                    'maintenance' => 0
+                ];
 
-            // Calculate reservation rate
-            $roomReservation = $totalRooms > 0
-                ? round(($roomStatus->reserved / $totalRooms) * 100, 1)
-                : 0;
+                // Calculate occupancy rate safely
+                $roomOccupancy = $totalRooms > 0
+                    ? round(($roomStatus->occupied / $totalRooms) * 100, 1)
+                    : 0;
 
-            // Get recent records with proper pagination
-            $recentStudents = Student::with('room.hostel')
-                ->latest('created_at')
-                ->paginate(5);
+                // Calculate reservation rate
+                $roomReservation = $totalRooms > 0
+                    ? round(($roomStatus->reserved / $totalRooms) * 100, 1)
+                    : 0;
 
-            $recentContacts = Contact::latest('created_at')
-                ->paginate(5);
+                // Get recent records with optimized queries and selective field loading
+                $recentStudents = Student::with(['room.hostel' => function($query) {
+                    $query->select('id', 'name');
+                }])
+                    ->select('id', 'name', 'room_id', 'created_at')
+                    ->latest('created_at')
+                    ->paginate(5);
 
-            $recentHostels = Hostel::withCount('rooms')
-                ->latest('created_at')
-                ->paginate(5);
+                $recentContacts = Contact::select('id', 'name', 'message', 'created_at')
+                    ->latest('created_at')
+                    ->paginate(5);
 
-            // Prepare metrics array for the view
-            $metrics = [
-                'total_students' => $totalStudents,
-                'total_rooms' => $totalRooms,
-                'total_hostels' => $totalHostels,
-                'total_contacts' => $totalContacts,
-                'room_occupancy' => $roomOccupancy,
-                'room_reservation' => $roomReservation,
-                'available_rooms' => $roomStatus->available,
-                'occupied_rooms' => $roomStatus->occupied,
-                'reserved_rooms' => $roomStatus->reserved,
-                'maintenance_rooms' => $roomStatus->maintenance,
-                'recent_students' => $recentStudents,
-                'recent_contacts' => $recentContacts,
-                'recent_hostels' => $recentHostels,
-            ];
+                $recentHostels = Hostel::withCount('rooms')
+                    ->select('id', 'name', 'created_at')
+                    ->latest('created_at')
+                    ->paginate(5);
+
+                return [
+                    'total_students' => $totalStudents,
+                    'total_rooms' => $totalRooms,
+                    'total_hostels' => $totalHostels,
+                    'total_contacts' => $totalContacts,
+                    'room_occupancy' => $roomOccupancy,
+                    'room_reservation' => $roomReservation,
+                    'available_rooms' => $roomStatus->available,
+                    'occupied_rooms' => $roomStatus->occupied,
+                    'reserved_rooms' => $roomStatus->reserved,
+                    'maintenance_rooms' => $roomStatus->maintenance,
+                    'recent_students' => $recentStudents,
+                    'recent_contacts' => $recentContacts,
+                    'recent_hostels' => $recentHostels,
+                ];
+            });
 
             return view('admin.dashboard', compact('metrics'));
         } catch (\Exception $e) {
@@ -109,6 +126,9 @@ class DashboardController extends Controller
                 'user_id' => auth()->id(),
                 'trace' => $e->getTraceAsString()
             ]);
+
+            // Clear cache on error
+            Cache::forget('admin_dashboard_metrics_' . auth()->id());
 
             // Return simplified view with error message
             return view('admin.dashboard', [
@@ -138,6 +158,9 @@ class DashboardController extends Controller
     public function ownerDashboard()
     {
         try {
+            // Authorization check
+            $this->authorize('view-owner-dashboard');
+
             // Get the authenticated user
             $user = auth()->user();
 
@@ -168,7 +191,7 @@ class DashboardController extends Controller
             // Set current organization ID in session
             session(['current_organization_id' => $organization->id]);
 
-            // Get aggregated statistics for all hostels
+            // Get aggregated statistics for all hostels with optimized queries
             $totalRooms = Room::whereIn('hostel_id', $hostelIds)->count();
             $occupiedRooms = Room::whereIn('hostel_id', $hostelIds)
                 ->where('status', 'occupied')
@@ -180,6 +203,7 @@ class DashboardController extends Controller
             if ($hostel) {
                 $todayMeal = MealMenu::where('hostel_id', $hostel->id)
                     ->where('day_of_week', now()->format('l'))
+                    ->select('id', 'name', 'description', 'day_of_week')
                     ->first();
             }
 
@@ -192,7 +216,10 @@ class DashboardController extends Controller
                 'organization'
             ));
         } catch (\Exception $e) {
-            Log::error('होस्टेल मालिक ड्यासबोर्ड त्रुटि: ' . $e->getMessage());
+            Log::error('होस्टेल मालिक ड्यासबोर्ड त्रुटि: ' . $e->getMessage(), [
+                'user_id' => auth()->id(),
+                'organization_id' => $organization->id ?? null
+            ]);
             return view('owner.dashboard', [
                 'error' => 'डाटा लोड गर्न असफल भयो',
                 'hostel' => null,
@@ -208,9 +235,12 @@ class DashboardController extends Controller
     /**
      * Student dashboard
      */
-    public function studentDashboard() // Changed from private to public
+    public function studentDashboard()
     {
         try {
+            // Authorization check
+            $this->authorize('view-student-dashboard');
+
             $student = auth()->user()->student;
 
             if (!$student) {
@@ -231,11 +261,15 @@ class DashboardController extends Controller
 
             $mealMenu = MealMenu::where('hostel_id', $hostel->id)
                 ->where('day_of_week', now()->format('l'))
+                ->select('id', 'name', 'description', 'day_of_week', 'meal_time')
                 ->first();
 
             return view('student.dashboard', compact('student', 'room', 'hostel', 'mealMenu'));
         } catch (\Exception $e) {
-            Log::error('विद्यार्थी ड्यासबोर्ड त्रुटि: ' . $e->getMessage());
+            Log::error('विद्यार्थी ड्यासबोर्ड त्रुटि: ' . $e->getMessage(), [
+                'user_id' => auth()->id(),
+                'student_id' => $student->id ?? null
+            ]);
             return view('student.dashboard')->with('error', 'डाटा लोड गर्न असफल भयो');
         }
     }
@@ -246,6 +280,9 @@ class DashboardController extends Controller
     public function reports()
     {
         try {
+            // Authorization check
+            $this->authorize('view-reports');
+
             $reportData = [
                 'student_registrations' => Student::count(),
                 'room_occupancy' => Room::where('status', 'occupied')->count(),
@@ -253,13 +290,16 @@ class DashboardController extends Controller
                 'revenue' => Payment::sum('amount'),
                 'monthly_revenue' => Payment::whereMonth('created_at', now()->month)->sum('amount'),
                 'available_rooms' => Room::where('status', 'available')->count(),
-                'recent_payments' => Payment::with('student.user')
+                'recent_payments' => Payment::with(['student.user' => function($query) {
+                    $query->select('id', 'name');
+                }])
+                    ->select('id', 'student_id', 'amount', 'payment_method', 'status', 'created_at')
                     ->latest()
                     ->take(5)
                     ->get()
                     ->map(function ($payment) {
                         return [
-                            'student_name' => $payment->student->user->name ?? 'N/A',
+                            'student_name' => optional(optional($payment->student)->user)->name ?? 'N/A',
                             'date' => $payment->created_at->format('Y-m-d'),
                             'amount' => $payment->amount,
                             'method' => $payment->payment_method,
@@ -270,7 +310,9 @@ class DashboardController extends Controller
 
             return view('admin.reports.index', compact('reportData'));
         } catch (\Exception $e) {
-            Log::error('प्रतिवेदन लोड गर्न असफल: ' . $e->getMessage());
+            Log::error('प्रतिवेदन लोड गर्न असफल: ' . $e->getMessage(), [
+                'user_id' => auth()->id()
+            ]);
             return redirect()->back()->with('error', 'प्रतिवेदन लोड गर्न असफल भयो');
         }
     }
@@ -281,6 +323,9 @@ class DashboardController extends Controller
     public function statistics(Request $request)
     {
         try {
+            // Authorization check
+            $this->authorize('view-statistics');
+
             // Get date range from request or use default
             $startDate = $request->input('start_date', now()->subDays(30)->format('Y-m-d'));
             $endDate = $request->input('end_date', now()->format('Y-m-d'));
@@ -290,7 +335,7 @@ class DashboardController extends Controller
             $newRooms = Room::whereBetween('created_at', [$startDate, $endDate])->count();
             $newHostels = Hostel::whereBetween('created_at', [$startDate, $endDate])->count();
 
-            // Room occupancy trend data
+            // Room occupancy trend data with optimized query
             $occupancyTrend = Room::select(
                 DB::raw('DATE(created_at) as date'),
                 DB::raw('COUNT(CASE WHEN status = "occupied" THEN 1 END) as occupied_count'),
@@ -338,6 +383,26 @@ class DashboardController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'तथ्याङ्क डाटा लोड गर्न असफल भयो'
+            ], 500);
+        }
+    }
+
+    /**
+     * Clear dashboard cache (for development and testing)
+     */
+    public function clearCache()
+    {
+        try {
+            Cache::forget('admin_dashboard_metrics_' . auth()->id());
+            return response()->json([
+                'success' => true,
+                'message' => 'ड्यासबोर्ड क्यास सफलतापूर्वक मेटाइयो'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('क्यास मेटाउन असफल: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'क्यास मेटाउन असफल भयो'
             ], 500);
         }
     }

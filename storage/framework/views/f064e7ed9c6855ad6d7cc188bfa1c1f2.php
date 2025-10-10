@@ -1,8 +1,8 @@
-@extends('layouts.admin')
 
-@section('title', 'ड्यासबोर्ड')
 
-@section('content')
+<?php $__env->startSection('title', 'ड्यासबोर्ड'); ?>
+
+<?php $__env->startSection('content'); ?>
     <!-- Loading Indicator -->
     <div id="loadingIndicator" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 z-50 flex items-center justify-center">
         <div class="bg-white p-6 rounded-lg shadow-lg text-center">
@@ -11,17 +11,17 @@
         </div>
     </div>
 
-    @isset($error)
+    <?php if(isset($error)): ?>
         <!-- Error Alert with Retry Option -->
         <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded flex justify-between items-center">
             <div>
-                <p class="font-medium">{{ $error }}</p>
+                <p class="font-medium"><?php echo e($error); ?></p>
             </div>
             <button onclick="window.location.reload()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm">
                 <i class="fas fa-redo mr-2"></i>पुनः प्रयास गर्नुहोस्
             </button>
         </div>
-    @endisset
+    <?php endif; ?>
 
     <!-- Notification Bell Bar -->
     <div class="bg-white rounded-lg shadow-sm p-4 mb-6 flex items-center justify-between">
@@ -30,11 +30,11 @@
                 <i class="fas fa-bell text-blue-600 text-xl"></i>
             </div>
             <div>
-                <h3 class="font-semibold">तपाईंसँग {{ $metrics['total_contacts'] }} सम्पर्क सूचनाहरू छन्</h3>
-                <p class="text-sm text-gray-600">हालसम्म {{ $metrics['total_contacts'] }} सूचनाहरू प्राप्त भएका छन्</p>
+                <h3 class="font-semibold">तपाईंसँग <?php echo e($metrics['total_contacts']); ?> सम्पर्क सूचनाहरू छन्</h3>
+                <p class="text-sm text-gray-600">हालसम्म <?php echo e($metrics['total_contacts']); ?> सूचनाहरू प्राप्त भएका छन्</p>
             </div>
         </div>
-        <a href="{{ route('admin.contacts.index') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center transition-colors">
+        <a href="<?php echo e(route('admin.contacts.index')); ?>" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center transition-colors">
             <i class="fas fa-eye mr-2"></i>
             सबै हेर्नुहोस्
         </a>
@@ -55,7 +55,7 @@
                 <div class="flex justify-between items-start">
                     <div>
                         <h3 class="text-lg font-bold text-gray-800">होस्टलहरू</h3>
-                        <p class="text-3xl font-bold mt-2 text-gray-900">{{ number_format($metrics['total_hostels']) }}</p>
+                        <p class="text-3xl font-bold mt-2 text-gray-900"><?php echo e(number_format($metrics['total_hostels'])); ?></p>
                     </div>
                     <div class="bg-blue-500 text-white p-3 rounded-lg">
                         <i class="fas fa-building text-xl"></i>
@@ -69,14 +69,14 @@
                 <div class="flex justify-between items-start">
                     <div>
                         <h3 class="text-lg font-bold text-gray-800">कोठाहरू</h3>
-                        <p class="text-3xl font-bold mt-2 text-gray-900">{{ number_format($metrics['total_rooms']) }}</p>
+                        <p class="text-3xl font-bold mt-2 text-gray-900"><?php echo e(number_format($metrics['total_rooms'])); ?></p>
                     </div>
                     <div class="bg-green-500 text-white p-3 rounded-lg">
                         <i class="fas fa-door-open text-xl"></i>
                     </div>
                 </div>
                 <p class="text-sm text-gray-600 mt-3">
-                    <span class="text-green-600 font-medium">{{ $metrics['room_occupancy'] }}%</span> अधिभोग दर
+                    <span class="text-green-600 font-medium"><?php echo e($metrics['room_occupancy']); ?>%</span> अधिभोग दर
                 </p>
             </div>
             
@@ -85,7 +85,7 @@
                 <div class="flex justify-between items-start">
                     <div>
                         <h3 class="text-lg font-bold text-gray-800">विद्यार्थीहरू</h3>
-                        <p class="text-3xl font-bold mt-2 text-gray-900">{{ number_format($metrics['total_students']) }}</p>
+                        <p class="text-3xl font-bold mt-2 text-gray-900"><?php echo e(number_format($metrics['total_students'])); ?></p>
                     </div>
                     <div class="bg-amber-500 text-white p-3 rounded-lg">
                         <i class="fas fa-users text-xl"></i>
@@ -99,7 +99,7 @@
                 <div class="flex justify-between items-start">
                     <div>
                         <h3 class="text-lg font-bold text-gray-800">सम्पर्कहरू</h3>
-                        <p class="text-3xl font-bold mt-2 text-gray-900">{{ number_format($metrics['total_contacts']) }}</p>
+                        <p class="text-3xl font-bold mt-2 text-gray-900"><?php echo e(number_format($metrics['total_contacts'])); ?></p>
                     </div>
                     <div class="bg-red-500 text-white p-3 rounded-lg">
                         <i class="fas fa-envelope text-xl"></i>
@@ -112,19 +112,19 @@
         <!-- Room Status Overview -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             <div class="bg-blue-50 p-4 rounded-lg text-center hover:bg-blue-100 transition-colors">
-                <div class="text-blue-600 text-2xl font-bold">{{ number_format($metrics['available_rooms']) }}</div>
+                <div class="text-blue-600 text-2xl font-bold"><?php echo e(number_format($metrics['available_rooms'])); ?></div>
                 <div class="text-sm text-blue-800 font-medium">उपलब्ध कोठाहरू</div>
             </div>
             <div class="bg-green-50 p-4 rounded-lg text-center hover:bg-green-100 transition-colors">
-                <div class="text-green-600 text-2xl font-bold">{{ number_format($metrics['occupied_rooms']) }}</div>
+                <div class="text-green-600 text-2xl font-bold"><?php echo e(number_format($metrics['occupied_rooms'])); ?></div>
                 <div class="text-sm text-green-800 font-medium">अधिभृत कोठाहरू</div>
             </div>
             <div class="bg-amber-50 p-4 rounded-lg text-center hover:bg-amber-100 transition-colors">
-                <div class="text-amber-600 text-2xl font-bold">{{ number_format($metrics['reserved_rooms']) }}</div>
+                <div class="text-amber-600 text-2xl font-bold"><?php echo e(number_format($metrics['reserved_rooms'])); ?></div>
                 <div class="text-sm text-amber-800 font-medium">आरक्षित कोठाहरू</div>
             </div>
             <div class="bg-red-50 p-4 rounded-lg text-center hover:bg-red-100 transition-colors">
-                <div class="text-red-600 text-2xl font-bold">{{ number_format($metrics['maintenance_rooms']) }}</div>
+                <div class="text-red-600 text-2xl font-bold"><?php echo e(number_format($metrics['maintenance_rooms'])); ?></div>
                 <div class="text-sm text-red-800 font-medium">मर्मतकोठाहरू</div>
             </div>
         </div>
@@ -143,19 +143,19 @@
             <div class="relative">
                 <!-- Timeline style activities -->
                 <div class="border-l-2 border-gray-200 ml-4 pb-6">
-                    @if($metrics['recent_students']->isEmpty() && $metrics['recent_contacts']->isEmpty() && $metrics['recent_hostels']->isEmpty())
+                    <?php if($metrics['recent_students']->isEmpty() && $metrics['recent_contacts']->isEmpty() && $metrics['recent_hostels']->isEmpty()): ?>
                     <!-- Empty State -->
                     <div class="text-center py-8">
                         <i class="fas fa-inbox text-gray-400 text-5xl mb-4"></i>
                         <h4 class="text-lg font-semibold text-gray-600">कुनै गतिविधि छैन</h4>
                         <p class="text-gray-500 mb-4">हाल कुनै गतिविधि दर्ता भएको छैन</p>
-                        <a href="{{ route('admin.students.create') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg inline-flex items-center">
+                        <a href="<?php echo e(route('admin.students.create')); ?>" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg inline-flex items-center">
                             <i class="fas fa-plus mr-2"></i> नयाँ विद्यार्थी थप्नुहोस्
                         </a>
                     </div>
-                    @else
+                    <?php else: ?>
                     <!-- Recent Students -->
-                    @foreach($metrics['recent_students'] as $student)
+                    <?php $__currentLoopData = $metrics['recent_students']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $student): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     <div class="flex items-start mb-6">
                         <div class="bg-red-500 rounded-full p-2 -ml-3 mt-1 relative">
                             <i class="fas fa-user-plus text-white text-sm"></i>
@@ -163,69 +163,73 @@
                         <div class="ml-6 flex-1">
                             <h4 class="font-semibold text-gray-800">नयाँ विद्यार्थी दर्ता</h4>
                             <p class="text-sm text-gray-600 mt-1">
-                                {{ $student->name }} ({{ optional(optional($student->room)->hostel)->name ?? 'अज्ञात होस्टल' }})
+                                <?php echo e($student->name); ?> (<?php echo e(optional(optional($student->room)->hostel)->name ?? 'अज्ञात होस्टल'); ?>)
                             </p>
                             <div class="flex items-center mt-2">
                                 <span class="text-xs text-gray-500 bg-gray-100 py-1 px-2 rounded-full">
-                                    <i class="far fa-clock mr-1"></i> {{ $student->created_at->diffForHumans() }}
+                                    <i class="far fa-clock mr-1"></i> <?php echo e($student->created_at->diffForHumans()); ?>
+
                                 </span>
                             </div>
                         </div>
                     </div>
-                    @endforeach
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     
                     <!-- Recent Contacts -->
-                    @foreach($metrics['recent_contacts'] as $contact)
+                    <?php $__currentLoopData = $metrics['recent_contacts']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $contact): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     <div class="flex items-start mb-6">
                         <div class="bg-blue-500 rounded-full p-2 -ml-3 mt-1 relative">
                             <i class="fas fa-envelope text-white text-sm"></i>
                         </div>
                         <div class="ml-6 flex-1">
                             <h4 class="font-semibold text-gray-800">नयाँ सम्पर्क सन्देश</h4>
-                            <p class="text-sm text-gray-600 mt-1">{{ $contact->name }} - {{ Str::limit($contact->message, 50) }}</p>
+                            <p class="text-sm text-gray-600 mt-1"><?php echo e($contact->name); ?> - <?php echo e(Str::limit($contact->message, 50)); ?></p>
                             <div class="flex items-center mt-2">
                                 <span class="text-xs text-gray-500 bg-gray-100 py-1 px-2 rounded-full">
-                                    <i class="far fa-clock mr-1"></i> {{ $contact->created_at->diffForHumans() }}
+                                    <i class="far fa-clock mr-1"></i> <?php echo e($contact->created_at->diffForHumans()); ?>
+
                                 </span>
                             </div>
                         </div>
                     </div>
-                    @endforeach
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     
                     <!-- Recent Hostels -->
-                    @foreach($metrics['recent_hostels'] as $hostel)
+                    <?php $__currentLoopData = $metrics['recent_hostels']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $hostel): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     <div class="flex items-start mb-6">
                         <div class="bg-amber-500 rounded-full p-2 -ml-3 mt-1 relative">
                             <i class="fas fa-building text-white text-sm"></i>
                         </div>
                         <div class="ml-6 flex-1">
                             <h4 class="font-semibold text-gray-800">नयाँ होस्टल दर्ता</h4>
-                            <p class="text-sm text-gray-600 mt-1">{{ $hostel->name }} ({{ $hostel->rooms_count }} कोठाहरू)</p>
+                            <p class="text-sm text-gray-600 mt-1"><?php echo e($hostel->name); ?> (<?php echo e($hostel->rooms_count); ?> कोठाहरू)</p>
                             <div class="flex items-center mt-2">
                                 <span class="text-xs text-gray-500 bg-gray-100 py-1 px-2 rounded-full">
-                                    <i class="far fa-clock mr-1"></i> {{ $hostel->created_at->diffForHumans() }}
+                                    <i class="far fa-clock mr-1"></i> <?php echo e($hostel->created_at->diffForHumans()); ?>
+
                                 </span>
                             </div>
                         </div>
                     </div>
-                    @endforeach
-                    @endif
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                    <?php endif; ?>
                 </div>
 
                 <!-- Pagination for Recent Activities -->
-                @if(!$metrics['recent_students']->isEmpty() || !$metrics['recent_contacts']->isEmpty() || !$metrics['recent_hostels']->isEmpty())
+                <?php if(!$metrics['recent_students']->isEmpty() || !$metrics['recent_contacts']->isEmpty() || !$metrics['recent_hostels']->isEmpty()): ?>
                 <div class="mt-6 flex justify-between items-center">
                     <p class="text-sm text-gray-600">
                         देखाइएको: 
-                        <span class="font-medium">{{ $metrics['recent_students']->count() + $metrics['recent_contacts']->count() + $metrics['recent_hostels']->count() }}</span> गतिविधिहरू
+                        <span class="font-medium"><?php echo e($metrics['recent_students']->count() + $metrics['recent_contacts']->count() + $metrics['recent_hostels']->count()); ?></span> गतिविधिहरू
                     </p>
                     <div class="flex space-x-2">
-                        @if($metrics['recent_students']->hasPages())
-                            {{ $metrics['recent_students']->links() }}
-                        @endif
+                        <?php if($metrics['recent_students']->hasPages()): ?>
+                            <?php echo e($metrics['recent_students']->links()); ?>
+
+                        <?php endif; ?>
                     </div>
                 </div>
-                @endif
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -302,28 +306,28 @@
         <div class="bg-white rounded-lg shadow-md p-6">
             <h3 class="text-xl font-bold mb-4">द्रुत कार्यहरू</h3>
             <div class="grid grid-cols-2 gap-4">
-                <a href="{{ route('admin.students.create') }}" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg text-center transition-colors group">
+                <a href="<?php echo e(route('admin.students.create')); ?>" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg text-center transition-colors group">
                     <div class="text-blue-600 text-2xl mb-2 group-hover:scale-110 transition-transform">
                         <i class="fas fa-user-plus"></i>
                     </div>
                     <div class="font-medium text-blue-800">विद्यार्थी थप्नुहोस्</div>
                 </a>
                 
-                <a href="{{ route('admin.rooms.create') }}" class="p-4 bg-green-50 hover:bg-green-100 rounded-lg text-center transition-colors group">
+                <a href="<?php echo e(route('admin.rooms.create')); ?>" class="p-4 bg-green-50 hover:bg-green-100 rounded-lg text-center transition-colors group">
                     <div class="text-green-600 text-2xl mb-2 group-hover:scale-110 transition-transform">
                         <i class="fas fa-door-open"></i>
                     </div>
                     <div class="font-medium text-green-800">कोठा थप्नुहोस्</div>
                 </a>
                 
-                <a href="{{ route('admin.hostels.create') }}" class="p-4 bg-amber-50 hover:bg-amber-100 rounded-lg text-center transition-colors group">
+                <a href="<?php echo e(route('admin.hostels.create')); ?>" class="p-4 bg-amber-50 hover:bg-amber-100 rounded-lg text-center transition-colors group">
                     <div class="text-amber-600 text-2xl mb-2 group-hover:scale-110 transition-transform">
                         <i class="fas fa-building"></i>
                     </div>
                     <div class="font-medium text-amber-800">होस्टल थप्नुहोस्</div>
                 </a>
                 
-                <a href="{{ route('admin.reports.index') }}" class="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg text-center transition-colors group">
+                <a href="<?php echo e(route('admin.reports.index')); ?>" class="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg text-center transition-colors group">
                     <div class="text-purple-600 text-2xl mb-2 group-hover:scale-110 transition-transform">
                         <i class="fas fa-chart-bar"></i>
                     </div>
@@ -332,9 +336,9 @@
             </div>
         </div>
     </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section('scripts')
+<?php $__env->startSection('scripts'); ?>
 <script>
 // Show loading indicator when page is loading
 document.addEventListener('DOMContentLoaded', function() {
@@ -367,11 +371,11 @@ async function clearDashboardCache() {
     }
 
     try {
-        const response = await fetch('{{ route("admin.dashboard.clear-cache") }}', {
+        const response = await fetch('<?php echo e(route("admin.dashboard.clear-cache")); ?>', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                'X-CSRF-TOKEN': '<?php echo e(csrf_token()); ?>'
             }
         });
 
@@ -483,4 +487,5 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 }
 </style>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.admin', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\My Projects\HostelHub\resources\views/admin/dashboard.blade.php ENDPATH**/ ?>

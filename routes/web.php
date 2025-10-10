@@ -153,13 +153,14 @@ Route::get('/dashboard', function () {
 | Admin Routes Group (Consistent Prefix and Names)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'hasOrganization', 'role:admin'])
+Route::middleware(['auth', 'hasOrganization', 'role:admin', 'can:view-admin-dashboard'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
 
-        // Admin Dashboard
+        // Admin Dashboard with cache management
         Route::get('/dashboard', [DashboardController::class, 'adminDashboard'])->name('dashboard');
+        Route::post('/dashboard/clear-cache', [DashboardController::class, 'clearCache'])->name('dashboard.clear-cache');
 
         // Admin Resources
         Route::resource('contacts', ContactController::class);
@@ -174,7 +175,7 @@ Route::middleware(['auth', 'hasOrganization', 'role:admin'])
         Route::post('/galleries/{gallery}/toggle-featured', [GalleryController::class, 'toggleFeatured'])
             ->name('galleries.toggle-featured');
 
-        // ✅ FIX: Add Meal Routes to Admin Group
+        // Meal Routes
         Route::resource('meals', MealController::class);
         Route::get('/meals/search', [MealController::class, 'search'])->name('meals.search');
 
@@ -196,11 +197,11 @@ Route::middleware(['auth', 'hasOrganization', 'role:admin'])
         Route::put('hostels/{hostel}/availability', [AdminHostelController::class, 'updateAvailability'])->name('hostels.availability.update');
         Route::get('/hostels/search', [AdminHostelController::class, 'search'])->name('hostels.search');
 
-        // ✅ FIX: Add routes for fixing hostel room counts
+        // Routes for fixing hostel room counts
         Route::get('/hostels/fix-room-counts', [AdminHostelController::class, 'fixRoomCounts'])->name('hostels.fix-room-counts');
         Route::post('/hostels/update-all-counts', [AdminHostelController::class, 'updateAllRoomCounts'])->name('hostels.update-all-counts');
 
-        // ✅ FIX: Correct Payment Routes Structure
+        // Payment Routes Structure
         Route::prefix('payments')->name('payments.')->group(function () {
             Route::get('/', [AdminPaymentController::class, 'index'])->name('index');
             Route::get('/create', [AdminPaymentController::class, 'create'])->name('create');
@@ -235,6 +236,9 @@ Route::middleware(['auth', 'hasOrganization', 'role:admin'])
             Route::post('/download-excel', [ReportController::class, 'downloadExcel'])->name('download.excel');
         });
 
+        // Statistics API route
+        Route::get('/statistics', [DashboardController::class, 'statistics'])->name('statistics');
+
         // Meal Menus
         Route::resource('meal-menus', AdminMealMenuController::class)->only(['index', 'show']);
         Route::get('/meal-menus/search', [AdminMealMenuController::class, 'search'])->name('meal-menus.search');
@@ -251,13 +255,13 @@ Route::middleware(['auth', 'hasOrganization', 'role:admin'])
 */
 Route::middleware(['auth', 'hasOrganization'])->group(function () {
 
-    // Dashboard routes with unique names
+    // Dashboard routes with authorization middleware
     Route::get('/owner/dashboard', [DashboardController::class, 'ownerDashboard'])
-        ->middleware('role:hostel_manager')
+        ->middleware(['role:hostel_manager', 'can:view-owner-dashboard'])
         ->name('owner.dashboard');
 
     Route::get('/student/dashboard', [DashboardController::class, 'studentDashboard'])
-        ->middleware('role:student')
+        ->middleware(['role:student', 'can:view-student-dashboard'])
         ->name('student.dashboard');
 
     // Common routes for all authenticated users
@@ -307,7 +311,7 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
     });
 
     // Owner specific routes
-    Route::middleware('role:hostel_manager')->prefix('owner')->name('owner.')->group(function () {
+    Route::middleware(['role:hostel_manager', 'can:view-owner-dashboard'])->prefix('owner')->name('owner.')->group(function () {
         // Owner dashboard
         Route::get('/dashboard', [DashboardController::class, 'ownerDashboard'])->name('dashboard');
 
@@ -341,7 +345,7 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
 
         Route::resource('reviews', AdminReviewController::class);
 
-        // ✅ FIX: Owner Meal Routes
+        // Owner Meal Routes
         Route::resource('meals', MealController::class);
         Route::get('/meals/search', [MealController::class, 'search'])->name('meals.search');
 
@@ -396,7 +400,7 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
     });
 
     // Student routes
-    Route::middleware('role:student')->prefix('student')->name('student.')->group(function () {
+    Route::middleware(['role:student', 'can:view-student-dashboard'])->prefix('student')->name('student.')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'studentDashboard'])->name('dashboard');
         Route::get('/profile', [StudentController::class, 'profile'])->name('profile');
         Route::get('/payments', [StudentController::class, 'payments'])->name('payments');
@@ -542,5 +546,16 @@ if (app()->environment('local')) {
             ];
         }
         return 'No user logged in';
+    })->middleware('auth');
+
+    // Dashboard cache testing route
+    Route::get('/test-dashboard-cache', function () {
+        $userId = auth()->id();
+        $cached = Cache::get('admin_dashboard_metrics_' . $userId);
+        return [
+            'cached' => $cached ? true : false,
+            'user_id' => $userId,
+            'cache_key' => 'admin_dashboard_metrics_' . $userId
+        ];
     })->middleware('auth');
 }
