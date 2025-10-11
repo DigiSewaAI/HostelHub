@@ -113,6 +113,14 @@ class User extends Authenticatable
         return $this->hasRole('hostel_manager');
     }
 
+    /**
+     * Check if the user is an owner.
+     */
+    public function isOwner(): bool
+    {
+        return $this->hasRole('owner');
+    }
+
     // User.php मा यो method थप्नुहोस्
     public function subscriptions(): HasMany
     {
