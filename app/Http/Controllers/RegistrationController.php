@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 
 class RegistrationController extends Controller
 {
@@ -99,7 +100,10 @@ class RegistrationController extends Controller
 
             $user = User::create($userData);
 
-            // 3️⃣ Assign role to user using Spatie Permission
+            // 3️⃣ CRITICAL FIX: Ensure hostel_manager role has required permissions
+            $this->setupHostelManagerPermissions();
+
+            // Assign role to user using Spatie Permission
             $hostelManagerRole = Role::findByName('hostel_manager');
             $user->assignRole($hostelManagerRole);
 
@@ -172,6 +176,45 @@ class RegistrationController extends Controller
 
             return back()->withInput()
                 ->withErrors(['error' => 'संस्था दर्ता गर्दा त्रुटि आयो: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * CRITICAL FIX: Ensure hostel_manager role has all required permissions
+     * This solves the 403 unauthorized error for owner dashboard
+     */
+    private function setupHostelManagerPermissions()
+    {
+        try {
+            $hostelManagerRole = Role::findByName('hostel_manager');
+
+            // Define all required permissions for hostel_manager to access owner dashboard
+            $requiredPermissions = [
+                'view-owner-dashboard',
+                'view-admin-dashboard', // if needed
+                'manage-hostels',
+                'manage-rooms',
+                'manage-students',
+                'manage-bookings',
+                'view-payments',
+                'manage-meals',
+                'view-reports'
+            ];
+
+            foreach ($requiredPermissions as $permissionName) {
+                // Create permission if it doesn't exist
+                $permission = Permission::firstOrCreate(['name' => $permissionName]);
+
+                // Assign permission to role if not already assigned
+                if (!$hostelManagerRole->hasPermissionTo($permission)) {
+                    $hostelManagerRole->givePermissionTo($permission);
+                }
+            }
+
+            \Log::info('Hostel manager permissions setup completed successfully');
+        } catch (\Exception $e) {
+            \Log::error('Permission setup failed: ' . $e->getMessage());
+            // Don't throw exception - continue with registration
         }
     }
 

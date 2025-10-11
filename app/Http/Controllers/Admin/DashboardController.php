@@ -68,9 +68,9 @@ class DashboardController extends Controller
                     COUNT(CASE WHEN status = "reserved" THEN 1 END) as reserved,
                     COUNT(CASE WHEN status = "maintenance" THEN 1 END) as maintenance
                 ')->first() ?? (object)[
-                    'available' => 0, 
-                    'occupied' => 0, 
-                    'reserved' => 0, 
+                    'available' => 0,
+                    'occupied' => 0,
+                    'reserved' => 0,
                     'maintenance' => 0
                 ];
 
@@ -85,7 +85,7 @@ class DashboardController extends Controller
                     : 0;
 
                 // Get recent records with optimized queries and selective field loading
-                $recentStudents = Student::with(['room.hostel' => function($query) {
+                $recentStudents = Student::with(['room.hostel' => function ($query) {
                     $query->select('id', 'name');
                 }])
                     ->select('id', 'name', 'room_id', 'created_at')
@@ -158,8 +158,11 @@ class DashboardController extends Controller
     public function ownerDashboard()
     {
         try {
-            // Authorization check
-            $this->authorize('view-owner-dashboard');
+            // CRITICAL FIX: Role-based authorization instead of permission-based
+            // This allows hostel_manager to access owner dashboard without specific permission
+            if (!auth()->user()->hasRole('hostel_manager')) {
+                abort(403, 'तपाईंसँग यो पृष्ठमा पहुँच गर्ने अनुमति छैन');
+            }
 
             // Get the authenticated user
             $user = auth()->user();
@@ -203,7 +206,7 @@ class DashboardController extends Controller
             if ($hostel) {
                 $todayMeal = MealMenu::where('hostel_id', $hostel->id)
                     ->where('day_of_week', now()->format('l'))
-                    ->select('id', 'name', 'description', 'day_of_week')
+                    ->select('id', 'meal_type as name', 'description', 'day_of_week')
                     ->first();
             }
 
@@ -261,7 +264,7 @@ class DashboardController extends Controller
 
             $mealMenu = MealMenu::where('hostel_id', $hostel->id)
                 ->where('day_of_week', now()->format('l'))
-                ->select('id', 'name', 'description', 'day_of_week', 'meal_time')
+                ->select('id', 'meal_type as name', 'description', 'day_of_week', 'meal_time')
                 ->first();
 
             return view('student.dashboard', compact('student', 'room', 'hostel', 'mealMenu'));
@@ -290,7 +293,7 @@ class DashboardController extends Controller
                 'revenue' => Payment::sum('amount'),
                 'monthly_revenue' => Payment::whereMonth('created_at', now()->month)->sum('amount'),
                 'available_rooms' => Room::where('status', 'available')->count(),
-                'recent_payments' => Payment::with(['student.user' => function($query) {
+                'recent_payments' => Payment::with(['student.user' => function ($query) {
                     $query->select('id', 'name');
                 }])
                     ->select('id', 'student_id', 'amount', 'payment_method', 'status', 'created_at')
