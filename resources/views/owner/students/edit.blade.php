@@ -4,8 +4,8 @@
 <div class="container mx-auto px-4 py-6">
     {{-- Page Header --}}
     <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold text-gray-800">विद्यार्थी सम्पादन: {{ $student->user->name }}</h1>
-        <a href="{{ route('admin.students.index') }}"
+        <h1 class="text-2xl font-bold text-gray-800">विद्यार्थी सम्पादन: {{ $student->name }}</h1>
+        <a href="{{ route('owner.students.index') }}"
            class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg shadow">
             ⬅ फर्कनुहोस्
         </a>
@@ -23,7 +23,7 @@
     @endif
 
     {{-- Edit Student Form --}}
-    <form action="{{ route('admin.students.update', $student->id) }}" method="POST" class="bg-white shadow-md rounded-lg p-6">
+    <form action="{{ route('owner.students.update', $student->id) }}" method="POST" class="bg-white shadow-md rounded-lg p-6">
         @csrf
         @method('PUT')
 
@@ -33,7 +33,8 @@
                 {{-- User --}}
                 <div class="mb-4">
                     <label for="user_id" class="block text-sm font-medium text-gray-700">User</label>
-                    <select name="user_id" id="user_id" class="mt-1 block w-full border rounded-lg px-3 py-2 focus:ring focus:ring-blue-300" required>
+                    <select name="user_id" id="user_id" class="mt-1 block w-full border rounded-lg px-3 py-2 focus:ring focus:ring-blue-300">
+                        <option value="">-- Select User --</option>
                         @foreach($users as $user)
                             <option value="{{ $user->id }}" {{ old('user_id', $student->user_id) == $user->id ? 'selected' : '' }}>
                                 {{ $user->name }} ({{ $user->email }})

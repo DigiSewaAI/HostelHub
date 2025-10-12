@@ -5,7 +5,7 @@
     {{-- Header --}}
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-gray-800">विद्यार्थी विवरण</h1>
-        <a href="{{ route('admin.students.index') }}"
+        <a href="{{ route('owner.students.index') }}"
            class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg shadow">
             ⬅ फर्कनुहोस्
         </a>
@@ -13,7 +13,7 @@
 
     {{-- Student Card --}}
     <div class="bg-white shadow-md rounded-lg p-6">
-        <h2 class="text-xl font-semibold text-blue-700 mb-4">{{ $student->user->name }}</h2>
+        <h2 class="text-xl font-semibold text-blue-700 mb-4">{{ $student->name }}</h2>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             {{-- Left Side --}}
@@ -59,11 +59,11 @@
 
     {{-- Action Buttons --}}
     <div class="mt-6 flex gap-4">
-        <a href="{{ route('admin.students.edit', $student->id) }}"
+        <a href="{{ route('owner.students.edit', $student->id) }}"
            class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg shadow">
             ✏ सम्पादन गर्नुहोस्
         </a>
-        <form action="{{ route('admin.students.destroy', $student->id) }}" method="POST" onsubmit="return confirm('के तपाईं पक्का delete गर्न चाहनुहुन्छ?')">
+        <form action="{{ route('owner.students.destroy', $student->id) }}" method="POST" onsubmit="return confirm('के तपाईं पक्का delete गर्न चाहनुहुन्छ?')">
             @csrf
             @method('DELETE')
             <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg shadow">
