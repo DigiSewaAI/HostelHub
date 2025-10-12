@@ -15,6 +15,61 @@
         <p class="text-gray-600 mt-2">यो तपाईंको होस्टल व्यवस्थापन ड्यासबोर्ड हो</p>
     </div>
 
+    <!-- Financial Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+        <!-- Total Monthly Revenue -->
+        <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-blue-500">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-600">कुल मासिक आय</h3>
+                    <p class="text-2xl font-bold text-gray-800">रु {{ number_format($totalMonthlyRevenue ?? 0) }}</p>
+                </div>
+                <div class="bg-blue-100 p-3 rounded-lg">
+                    <i class="fas fa-money-bill-wave text-blue-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Security Deposit -->
+        <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-green-500">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-600">जम्मा जमानत</h3>
+                    <p class="text-2xl font-bold text-gray-800">रु {{ number_format($totalSecurityDeposit ?? 0) }}</p>
+                </div>
+                <div class="bg-green-100 p-3 rounded-lg">
+                    <i class="fas fa-shield-alt text-green-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Average Occupancy -->
+        <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-purple-500">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-600">औसत ओक्युपेन्सी</h3>
+                    <p class="text-2xl font-bold text-gray-800">{{ $averageOccupancy ?? 0 }}%</p>
+                </div>
+                <div class="bg-purple-100 p-3 rounded-lg">
+                    <i class="fas fa-chart-line text-purple-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Hostels -->
+        <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-amber-500">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-600">एक्टिभ होस्टेल</h3>
+                    <p class="text-2xl font-bold text-gray-800">{{ $activeHostelsCount ?? 0 }}</p>
+                </div>
+                <div class="bg-amber-100 p-3 rounded-lg">
+                    <i class="fas fa-hotel text-amber-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
     @if(isset($hostel) && $hostel)
         <!-- Hostel Overview -->
         <div class="bg-white rounded-lg shadow-md p-6 mb-6">
@@ -61,6 +116,18 @@
                 </div>
             </div>
 
+            <!-- Financial Information -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="font-semibold text-gray-800 mb-2">मासिक भाडा</h3>
+                    <p class="text-2xl font-bold text-green-600">रु {{ number_format($hostel->monthly_rent ?? 0) }}</p>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="font-semibold text-gray-800 mb-2">सुरक्षा जमानत</h3>
+                    <p class="text-2xl font-bold text-blue-600">रु {{ number_format($hostel->security_deposit ?? 0) }}</p>
+                </div>
+            </div>
+
             <!-- Today's Meal -->
             @if(isset($todayMeal) && $todayMeal)
             <div class="bg-gray-50 p-4 rounded-lg">
@@ -88,6 +155,13 @@
     <div class="bg-white rounded-lg shadow-md p-6">
         <h3 class="text-xl font-bold mb-4">द्रुत कार्यहरू</h3>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <a href="{{ route('owner.hostels.create') }}" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg text-center transition-colors">
+                <div class="text-blue-600 text-2xl mb-2">
+                    <i class="fas fa-plus"></i>
+                </div>
+                <div class="font-medium text-blue-800">नयाँ होस्टेल</div>
+            </a>
+            
             <a href="{{ route('owner.rooms.index') }}" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg text-center transition-colors">
                 <div class="text-blue-600 text-2xl mb-2">
                     <i class="fas fa-door-open"></i>
@@ -100,13 +174,6 @@
                     <i class="fas fa-users"></i>
                 </div>
                 <div class="font-medium text-green-800">विद्यार्थीहरू</div>
-            </a>
-            
-            <a href="{{ route('owner.meals.index') }}" class="p-4 bg-amber-50 hover:bg-amber-100 rounded-lg text-center transition-colors">
-                <div class="text-amber-600 text-2xl mb-2">
-                    <i class="fas fa-utensils"></i>
-                </div>
-                <div class="font-medium text-amber-800">खाना व्यवस्था</div>
             </a>
             
             <a href="{{ route('owner.payments.index') }}" class="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg text-center transition-colors">

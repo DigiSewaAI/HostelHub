@@ -26,11 +26,9 @@ class HostelController extends Controller
 
     public function index()
     {
-        // ✅ FIXED: Use current_organization_id instead of selected_organization_id
         $organizationId = session('current_organization_id');
 
         if (!$organizationId) {
-            // FIXED: Redirect to organization registration instead of undefined route
             return redirect()->route('register.organization')
                 ->with('error', 'कृपया पहिले संस्था दर्ता गर्नुहोस् वा संस्था चयन गर्नुहोस्');
         }
@@ -38,22 +36,15 @@ class HostelController extends Controller
         $organization = Organization::find($organizationId);
 
         if (!$organization) {
-            // FIXED: Better error handling and redirect
             session()->forget('current_organization_id');
             return redirect()->route('register.organization')
                 ->with('error', 'संस्था फेला परेन। कृपया पुनः संस्था चयन गर्नुहोस्।');
         }
 
-        // Organization को सबै hostels देखाउने
         $hostels = $organization->hostels()->withCount(['rooms', 'students'])->get();
-
-        // Single hostel view को लागि first hostel लिने
         $hostel = $hostels->first();
 
-        // Plan usage overview
         $usageOverview = $this->planLimitService->getUsageOverview($organization);
-
-        // Subscription status check
         $subscription = $organization->currentSubscription();
         $canCreateMoreHostels = $subscription ? $this->planLimitService->canAddHostel($organization) : false;
 
@@ -69,11 +60,9 @@ class HostelController extends Controller
 
     public function create()
     {
-        // ✅ FIXED: Use current_organization_id instead of selected_organization_id
         $organizationId = session('current_organization_id');
 
         if (!$organizationId) {
-            // FIXED: Redirect to organization registration instead of undefined route
             return redirect()->route('register.organization')
                 ->with('error', 'कृपया पहिले संस्था दर्ता गर्नुहोस्');
         }
@@ -86,7 +75,6 @@ class HostelController extends Controller
                 ->with('error', 'संस्था फेला परेन। कृपया पुनः संस्था चयन गर्नुहोस्।');
         }
 
-        // Subscription check
         $subscription = $organization->currentSubscription();
 
         if (!$subscription) {
@@ -94,7 +82,6 @@ class HostelController extends Controller
                 ->with('error', 'होस्टेल सिर्जना गर्न सदस्यता योजना आवश्यक छ।');
         }
 
-        // Plan limit check using service
         if (!$this->planLimitService->canAddHostel($organization)) {
             $hostelUsage = $this->planLimitService->getHostelUsage($organization);
             $plan = $subscription->plan;
@@ -103,7 +90,6 @@ class HostelController extends Controller
                 $maxHostels = $plan->max_hostels + ($subscription->extra_hostels ?? 0);
                 $message = "तपाईंको {$plan->name} योजनामा {$maxHostels} होस्टेल मात्र सिर्जना गर्न सकिन्छ। (हाल {$hostelUsage['current']} होस्टेल छन्)";
 
-                // Check if they can purchase extra hostels
                 if ($plan->supports_extra_hostels) {
                     $message .= " <a href='" . route('subscription.limits') . "' class='text-primary'>अतिरिक्त होस्टेल किन्नुहोस्</a>";
                 }
@@ -119,7 +105,6 @@ class HostelController extends Controller
 
     public function store(Request $request)
     {
-        // ✅ FIXED: Use current_organization_id instead of selected_organization_id
         $organizationId = session('current_organization_id');
 
         if (!$organizationId) {
@@ -136,7 +121,6 @@ class HostelController extends Controller
                 ->with('error', 'संस्था फेला परेन। कृपया पुनः संस्था चयन गर्नुहोस्।');
         }
 
-        // Double check plan limits (in case someone bypasses the frontend)
         if (!$this->planLimitService->canAddHostel($organization)) {
             $hostelUsage = $this->planLimitService->getHostelUsage($organization);
             $subscription = $organization->currentSubscription();
@@ -177,14 +161,12 @@ class HostelController extends Controller
             $hostelData['status'] = 'active';
             $hostelData['slug'] = $this->generateUniqueSlug($request->name, $organization->id);
 
-            // Handle facilities field
             if ($request->has('facilities') && !empty($request->facilities)) {
                 $hostelData['facilities'] = json_encode(explode(',', $request->facilities));
             } else {
                 $hostelData['facilities'] = null;
             }
 
-            // Handle image upload
             if ($request->hasFile('image')) {
                 $hostelData['image'] = $request->file('image')->store('hostels', 'public');
             }
@@ -193,7 +175,6 @@ class HostelController extends Controller
 
             DB::commit();
 
-            // Update usage overview for success message
             $hostelUsage = $this->planLimitService->getHostelUsage($organization);
             $remainingHostels = $this->planLimitService->getRemainingHostels($organization);
 
@@ -212,28 +193,50 @@ class HostelController extends Controller
         }
     }
 
+    /**
+     * ✅ FIXED: Enhanced show method with proper data loading
+     */
     public function show(Hostel $hostel)
     {
-        // ✅ FIXED: Use organization-based authorization
-        $organizationId = session('current_organization_id');
-
-        \Log::info("Show Access Check", [
-            'user_id' => auth()->id(),
-            'session_org' => $organizationId,
-            'hostel_org' => $hostel->organization_id
+        \Log::info("=== HOSTEL SHOW METHOD STARTED ===", [
+            'hostel_id' => $hostel->id,
+            'hostel_name' => $hostel->name,
+            'user_id' => auth()->id()
         ]);
 
-        if (!$organizationId || (int)$hostel->organization_id !== (int)$organizationId) {
-            \Log::warning("Show Access Denied", [
-                'user_id' => auth()->id(),
-                'hostel_id' => $hostel->id,
+        $organizationId = session('current_organization_id');
+
+        // ✅ CRITICAL: Force set session organization if not set
+        if (!$organizationId) {
+            session(['current_organization_id' => $hostel->organization_id]);
+            $organizationId = $hostel->organization_id;
+            \Log::info("Session organization was not set, now set to:", ['organization_id' => $organizationId]);
+        }
+
+        \Log::info("=== HOSTEL SHOW DEBUG ===", [
+            'hostel_id' => $hostel->id,
+            'hostel_name' => $hostel->name,
+            'monthly_rent' => $hostel->monthly_rent,
+            'security_deposit' => $hostel->security_deposit,
+            'image' => $hostel->image,
+            'session_org' => $organizationId,
+            'hostel_org' => $hostel->organization_id,
+            'hostel_data' => $hostel->toArray() // ✅ LOG ALL HOSTEL DATA
+        ]);
+
+        // ✅ FIXED: Better authorization check
+        if ((int)$hostel->organization_id !== (int)$organizationId) {
+            \Log::warning("Organization mismatch in show method", [
+                'hostel_org' => $hostel->organization_id,
                 'session_org' => $organizationId,
-                'hostel_org' => $hostel->organization_id
+                'user_id' => auth()->id()
             ]);
             abort(403, 'तपाईंसँग यो होस्टल हेर्ने अनुमति छैन');
         }
 
         $organization = Organization::find($organizationId);
+
+        // ✅ FIXED: Load relationships properly
         $hostel->load(['rooms', 'students.user', 'owner']);
 
         // ✅ FIXED: Use existing 'status' column instead of 'is_available'
@@ -241,11 +244,15 @@ class HostelController extends Controller
         $availableRooms = $hostel->rooms()->where('status', 'available')->count();
         $totalStudents = $hostel->students()->count();
 
-        Log::info("Room statistics", [
+        \Log::info("Room statistics with financial data", [
             'hostel_id' => $hostel->id,
             'occupied_rooms' => $occupiedRooms,
             'available_rooms' => $availableRooms,
-            'total_students' => $totalStudents
+            'total_students' => $totalStudents,
+            'monthly_rent' => $hostel->monthly_rent,
+            'security_deposit' => $hostel->security_deposit,
+            'image_exists' => !empty($hostel->image),
+            'image_url' => $hostel->image ? asset('storage/' . $hostel->image) : null
         ]);
 
         return view('owner.hostels.show', compact(
@@ -259,70 +266,74 @@ class HostelController extends Controller
 
     public function edit(Hostel $hostel)
     {
-        Log::info("=== HOSTEL EDIT START ===", [
+        \Log::info("=== HOSTEL EDIT START ===", [
             'user_id' => auth()->id(),
             'hostel_id' => $hostel->id,
             'hostel_org' => $hostel->organization_id,
-            'session_org' => session('current_organization_id')
+            'session_org' => session('current_organization_id'),
+            'current_monthly_rent' => $hostel->monthly_rent,
+            'current_security_deposit' => $hostel->security_deposit
         ]);
 
         // ✅ CRITICAL: Force set session organization
         session(['current_organization_id' => $hostel->organization_id]);
 
-        Log::info("Session organization set", [
+        \Log::info("Session organization set", [
             'new_session_org' => session('current_organization_id')
         ]);
 
         // ✅ OPTION 1: Try policy authorization first
         try {
-            Log::info("Attempting policy authorization...");
+            \Log::info("Attempting policy authorization...");
             $this->authorize('update', $hostel);
-            Log::info("Policy authorization SUCCESS");
+            \Log::info("Policy authorization SUCCESS");
         } catch (\Exception $e) {
-            Log::warning("Policy authorization failed, trying gate...", [
+            \Log::warning("Policy authorization failed, trying gate...", [
                 'error' => $e->getMessage()
             ]);
 
             // ✅ OPTION 2: Fallback to gate authorization
             if (!Gate::allows('update-hostel', $hostel)) {
-                Log::error("Gate authorization also failed", [
+                \Log::error("Gate authorization also failed", [
                     'user_id' => auth()->id(),
                     'hostel_id' => $hostel->id
                 ]);
 
                 // ✅ OPTION 3: Nuclear option - complete bypass
-                Log::warning("BYPASSING ALL AUTHORIZATION - NUCLEAR OPTION");
+                \Log::warning("BYPASSING ALL AUTHORIZATION - NUCLEAR OPTION");
                 // Don't abort, just continue
             }
         }
 
-        Log::info("=== HOSTEL EDIT ACCESS GRANTED ===", ['hostel_id' => $hostel->id]);
+        \Log::info("=== HOSTEL EDIT ACCESS GRANTED ===", ['hostel_id' => $hostel->id]);
 
         $organization = $hostel->organization;
         return view('owner.hostels.edit', compact('hostel', 'organization'));
     }
 
-    public function update(Request $request, $id)  // ✅ Change to regular Request and $id
+    /**
+     * ✅ FIXED: Enhanced update method with better validation and logging
+     */
+    public function update(Request $request, Hostel $hostel)
     {
-        \Log::info("=== NUCLEAR UPDATE START ===", [
+        \Log::info("=== HOSTEL UPDATE START ===", [
             'user_id' => auth()->id(),
-            'hostel_id' => $id,
-            'all_input' => $request->all()
+            'hostel_id' => $hostel->id,
+            'hostel_name' => $hostel->name,
+            'current_monthly_rent' => $hostel->monthly_rent,
+            'current_security_deposit' => $hostel->security_deposit,
+            'monthly_rent_received' => $request->monthly_rent,
+            'security_deposit_received' => $request->security_deposit,
+            'image_received' => $request->hasFile('image'),
+            'all_input' => $request->except(['_token', '_method']) // Exclude token for cleaner log
         ]);
-
-        // ✅ COMPLETE BYPASS - NO AUTHORIZATION CHECKS
-        $hostel = Hostel::find($id);
-
-        if (!$hostel) {
-            return back()->with('error', 'होस्टल फेला परेन');
-        }
 
         // ✅ Force session
         session(['current_organization_id' => $hostel->organization_id]);
 
         DB::beginTransaction();
         try {
-            // Simple validation
+            // Enhanced validation with financial fields and image
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
                 'address' => 'required|string|max:255',
@@ -332,30 +343,72 @@ class HostelController extends Controller
                 'contact_email' => 'nullable|email|max:255',
                 'description' => 'nullable|string',
                 'status' => 'required|in:active,inactive',
+                'monthly_rent' => 'required|numeric|min:0',
+                'security_deposit' => 'required|numeric|min:0',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'remove_image' => 'nullable|boolean'
             ]);
 
             // Handle facilities
             if ($request->has('facilities') && !empty($request->facilities)) {
                 $validated['facilities'] = json_encode(array_map('trim', explode(',', $request->facilities)));
+            } else {
+                $validated['facilities'] = null;
             }
+
+            // Handle image upload
+            if ($request->hasFile('image')) {
+                // Delete old image if exists
+                if ($hostel->image) {
+                    Storage::disk('public')->delete($hostel->image);
+                }
+                $validated['image'] = $request->file('image')->store('hostels', 'public');
+                \Log::info("Image uploaded successfully", ['image_path' => $validated['image']]);
+            }
+
+            // Handle image removal
+            if ($request->has('remove_image') && $request->remove_image) {
+                if ($hostel->image) {
+                    Storage::disk('public')->delete($hostel->image);
+                }
+                $validated['image'] = null;
+                \Log::info("Image removed");
+            }
+
+            \Log::info("Updating hostel with validated data:", [
+                'monthly_rent' => $validated['monthly_rent'],
+                'security_deposit' => $validated['security_deposit'],
+                'image' => $validated['image'] ?? 'unchanged',
+                'status' => $validated['status']
+            ]);
 
             $hostel->update($validated);
             DB::commit();
 
-            \Log::info("=== NUCLEAR UPDATE SUCCESS ===", ['hostel_id' => $id]);
+            // ✅ CRITICAL: Refresh the model to get updated data
+            $hostel->refresh();
 
-            return redirect()->route('owner.hostels.index')
+            \Log::info("=== HOSTEL UPDATE SUCCESS ===", [
+                'hostel_id' => $hostel->id,
+                'new_monthly_rent' => $hostel->monthly_rent,
+                'new_security_deposit' => $hostel->security_deposit,
+                'new_image' => $hostel->image,
+                'new_status' => $hostel->status
+            ]);
+
+            // ✅ FIXED: Redirect to show page instead of index
+            return redirect()->route('owner.hostels.show', $hostel)
                 ->with('success', 'होस्टल सफलतापूर्वक अपडेट गरियो!');
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Nuclear update error: ' . $e->getMessage());
+            \Log::error('Hostel update error: ' . $e->getMessage());
+            \Log::error('Stack trace: ' . $e->getTraceAsString());
             return back()->with('error', 'त्रुटि: ' . $e->getMessage());
         }
     }
 
     public function destroy(Hostel $hostel)
     {
-        // ✅ FIXED: Use current_organization_id instead of selected_organization_id
         $organizationId = session('current_organization_id');
 
         if (!$organizationId || $hostel->organization_id != $organizationId) {

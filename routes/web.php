@@ -39,7 +39,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Http\Request; // ✅ ADDED for temporary test route
+use Illuminate\Http\Request;
 
 // Force HTTPS in production
 if (app()->environment('production')) {
@@ -151,6 +151,51 @@ Route::get('/dashboard', function () {
 })->middleware(['auth'])->name('dashboard');
 
 /*|--------------------------------------------------------------------------
+| STEP 1: Debug Routes - Permission Check
+|--------------------------------------------------------------------------
+*/
+Route::get('/debug-permissions', function () {
+    $user = auth()->user();
+
+    if (!$user) {
+        return "No user logged in";
+    }
+
+    return [
+        'user_id' => $user->id,
+        'user_name' => $user->name,
+        'email' => $user->email,
+        'roles' => $user->getRoleNames(),
+        'permissions' => $user->getAllPermissions()->pluck('name'),
+        'can_payment_view' => $user->can('payment.view') ? 'YES' : 'NO',
+        'is_admin' => $user->hasRole('admin') ? 'YES' : 'NO',
+        'is_hostel_manager' => $user->hasRole('hostel_manager') ? 'YES' : 'NO'
+    ];
+})->middleware('auth');
+
+Route::get('/assign-role/{role}', function ($role) {
+    $user = auth()->user();
+
+    if (!$user) {
+        return "No user logged in";
+    }
+
+    // Valid roles check
+    $validRoles = ['admin', 'hostel_manager', 'student'];
+    if (!in_array($role, $validRoles)) {
+        return "Invalid role. Use: " . implode(', ', $validRoles);
+    }
+
+    $user->syncRoles([$role]);
+
+    return [
+        'message' => "Role {$role} assigned to user {$user->name}",
+        'current_roles' => $user->getRoleNames(),
+        'permissions' => $user->getAllPermissions()->pluck('name')
+    ];
+})->middleware('auth');
+
+/*|--------------------------------------------------------------------------
 | Admin Routes Group (Consistent Prefix and Names)
 |--------------------------------------------------------------------------
 */
@@ -219,8 +264,8 @@ Route::middleware(['auth', 'hasOrganization', 'role:admin', 'can:view-admin-dash
             Route::post('/{payment}/reject-bank', [AdminPaymentController::class, 'rejectBankTransfer'])->name('reject-bank');
             Route::get('/{payment}/proof', [AdminPaymentController::class, 'viewProof'])->name('proof');
 
-            // Payment verification
-            Route::middleware(['check.permission:payment.verify'])->group(function () {
+            // Payment verification - ✅ FIXED: Using payments_edit instead of payment.verify
+            Route::middleware([\App\Http\Middleware\CheckPermission::class . ':payments_edit'])->group(function () {
                 Route::get('/verification', [AdminPaymentController::class, 'verification'])->name('verification');
                 Route::put('/{payment}/verify', [AdminPaymentController::class, 'verify'])->name('verify');
             });
@@ -255,9 +300,6 @@ Route::middleware(['auth', 'hasOrganization', 'role:admin', 'can:view-admin-dash
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'hasOrganization'])->group(function () {
-
-    // 🔥 CRITICAL FIX: Remove duplicate owner dashboard route and fix middleware
-    // REMOVED: Duplicate owner dashboard route that was causing conflict
 
     Route::get('/student/dashboard', [DashboardController::class, 'studentDashboard'])
         ->middleware(['role:student', 'can:view-student-dashboard'])
@@ -332,8 +374,12 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
         });
         Route::get('/hostels/{hostel}', [OwnerHostelController::class, 'show'])->name('hostels.show');
         Route::get('/hostels/{hostel}/edit', [OwnerHostelController::class, 'edit'])->name('hostels.edit');
-        Route::put('/hostels/{hostel}', [OwnerHostelController::class, 'update'])->name('hostels.update'); // ✅ FIXED PARAMETER
+        Route::put('/hostels/{hostel}', [OwnerHostelController::class, 'update'])->name('hostels.update');
         Route::delete('/hostels/{hostel}', [OwnerHostelController::class, 'destroy'])->name('hostels.destroy');
+
+        // ✅ CRITICAL FIX: Add the missing toggle-status route
+        Route::patch('/hostels/{hostel}/toggle-status', [OwnerHostelController::class, 'toggleStatus'])
+            ->name('hostels.toggle-status');
 
         // Owner resource routes (similar to admin but for owner context)
         Route::resource('galleries', GalleryController::class);
@@ -363,8 +409,8 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
         // Meal menu routes
         Route::resource('meal-menus', AdminMealMenuController::class);
 
-        // Payment routes with permission check (Using AdminPaymentController for owner)
-        Route::middleware(['check.permission:payment.view'])->group(function () {
+        // ✅ CRITICAL FIX: Using payments_access instead of payment.view
+        Route::middleware([\App\Http\Middleware\CheckPermission::class . ':payments_access'])->group(function () {
             Route::prefix('payments')->name('payments.')->group(function () {
                 Route::get('/', [AdminPaymentController::class, 'index'])->name('index');
                 Route::get('/create', [AdminPaymentController::class, 'create'])->name('create');
@@ -413,7 +459,8 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
 
         // Bookings with permission check
         Route::get('/bookings', [BookingController::class, 'index'])->name('bookings.index');
-        Route::middleware(['check.permission:booking.create'])->group(function () {
+        // ✅ FIXED: Using bookings_create instead of booking.create
+        Route::middleware([\App\Http\Middleware\CheckPermission::class . ':bookings_create'])->group(function () {
             Route::get('/bookings/create', [BookingController::class, 'create'])->name('bookings.create');
             Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
         });

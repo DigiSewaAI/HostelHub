@@ -180,7 +180,12 @@ class DashboardController extends Controller
                     'occupiedRooms' => 0,
                     'totalStudents' => 0,
                     'todayMeal' => null,
-                    'organization' => null
+                    'organization' => null,
+                    // Financial summary variables
+                    'totalMonthlyRevenue' => 0,
+                    'totalSecurityDeposit' => 0,
+                    'averageOccupancy' => 0,
+                    'activeHostelsCount' => 0
                 ]);
             }
 
@@ -201,6 +206,16 @@ class DashboardController extends Controller
                 ->count();
             $totalStudents = Student::whereIn('hostel_id', $hostelIds)->count();
 
+            // ✅ NEW: Financial calculations
+            $totalMonthlyRevenue = $hostels->sum('monthly_rent');
+            $totalSecurityDeposit = $hostels->sum('security_deposit');
+
+            // ✅ NEW: Occupancy calculation
+            $averageOccupancy = $totalRooms > 0 ? round(($occupiedRooms / $totalRooms) * 100, 2) : 0;
+
+            // ✅ NEW: Active hostels count
+            $activeHostelsCount = $hostels->where('status', 'active')->count();
+
             // For today's meal, we use the first hostel
             $todayMeal = null;
             if ($hostel) {
@@ -216,7 +231,12 @@ class DashboardController extends Controller
                 'occupiedRooms',
                 'totalStudents',
                 'todayMeal',
-                'organization'
+                'organization',
+                // ✅ NEW: Financial summary variables
+                'totalMonthlyRevenue',
+                'totalSecurityDeposit',
+                'averageOccupancy',
+                'activeHostelsCount'
             ));
         } catch (\Exception $e) {
             Log::error('होस्टेल मालिक ड्यासबोर्ड त्रुटि: ' . $e->getMessage(), [
@@ -230,7 +250,12 @@ class DashboardController extends Controller
                 'occupiedRooms' => 0,
                 'totalStudents' => 0,
                 'todayMeal' => null,
-                'organization' => null
+                'organization' => null,
+                // Financial summary variables
+                'totalMonthlyRevenue' => 0,
+                'totalSecurityDeposit' => 0,
+                'averageOccupancy' => 0,
+                'activeHostelsCount' => 0
             ]);
         }
     }
