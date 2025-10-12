@@ -26,7 +26,10 @@ class Hostel extends Model
         'facilities',
         'owner_id',
         'manager_id',
-        'organization_id'
+        'organization_id',
+        'monthly_rent',       // ✅ ADDED
+        'security_deposit',   // ✅ ADDED
+        'image'              // ✅ ADDED
     ];
 
     protected $casts = [

@@ -17,7 +17,7 @@ class Kernel extends HttpKernel
         \App\Http\Middleware\TrimStrings::class,
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
         \App\Http\Middleware\Localize::class,
-        \App\Http\Middleware\SecurityHeaders::class, // 🆕 नयाँ security headers middleware
+        \App\Http\Middleware\SecurityHeaders::class,
     ];
 
     /**
@@ -39,20 +39,17 @@ class Kernel extends HttpKernel
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ],
 
-        // 🆕 नयाँ middleware group for owner routes
         'owner' => [
             'auth',
             'role:owner',
             'subscription.active',
         ],
 
-        // 🆕 नयाँ middleware group for admin routes  
         'admin' => [
             'auth',
             'role:admin',
         ],
 
-        // 🆕 नयाँ middleware group for student routes
         'student' => [
             'auth',
             'role:student',
@@ -86,8 +83,9 @@ class Kernel extends HttpKernel
         'role.multiple' => \App\Http\Middleware\RoleMiddleware::class,
         'admin' => \App\Http\Middleware\AdminMiddleware::class,
 
-        // 🆕 नयाँ Custom Middlewares
+        // 🆕 FIX: Both aliases for the same middleware
         'check.permission' => \App\Http\Middleware\CheckPermission::class,
+        'check.permission.middleware' => \App\Http\Middleware\CheckPermission::class, // Alternative alias
         'check.role.or.permission' => \App\Http\Middleware\CheckRoleOrPermission::class,
 
         // Subscription & Plan Middlewares
@@ -106,12 +104,11 @@ class Kernel extends HttpKernel
 
         // Localization & Security
         'localize' => \App\Http\Middleware\Localize::class,
-        'security.headers' => \App\Http\Middleware\SecurityHeaders::class, // 🆕 नयाँ
+        'security.headers' => \App\Http\Middleware\SecurityHeaders::class,
     ];
 
     /**
      * The application's route middleware.
-     * This is for backward compatibility with some Laravel versions.
      */
     protected $routeMiddleware = [
         // Laravel Default Middlewares
@@ -137,8 +134,9 @@ class Kernel extends HttpKernel
         'role.multiple' => \App\Http\Middleware\RoleMiddleware::class,
         'admin' => \App\Http\Middleware\AdminMiddleware::class,
 
-        // 🆕 नयाँ Custom Middlewares
+        // 🆕 FIX: Both aliases for the same middleware
         'check.permission' => \App\Http\Middleware\CheckPermission::class,
+        'check.permission.middleware' => \App\Http\Middleware\CheckPermission::class, // Alternative alias
         'check.role.or.permission' => \App\Http\Middleware\CheckRoleOrPermission::class,
 
         // Subscription & Plan Middlewares
@@ -157,6 +155,6 @@ class Kernel extends HttpKernel
 
         // Localization & Security
         'localize' => \App\Http\Middleware\Localize::class,
-        'security.headers' => \App\Http\Middleware\SecurityHeaders::class, // 🆕 नयाँ
+        'security.headers' => \App\Http\Middleware\SecurityHeaders::class,
     ];
 }
