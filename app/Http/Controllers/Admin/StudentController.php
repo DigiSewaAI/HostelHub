@@ -82,10 +82,21 @@ class StudentController extends Controller
             return view('admin.students.create', compact('hostels', 'rooms', 'users', 'colleges'));
         } else {
             $hostels = Hostel::where('id', auth()->user()->hostel_id)->get();
+
+            // FIXED: Get ALL rooms for the owner's hostel (not just available ones)
             $rooms = Room::where('hostel_id', auth()->user()->hostel_id)
-                ->where('status', 'available')
+                ->with('hostel')
+                ->orderBy('room_number')
                 ->get();
-            $users = User::whereDoesntHave('student')->get();
+
+            // FIXED: Only show users from the same hostel with student role
+            $users = User::where('hostel_id', auth()->user()->hostel_id)
+                ->whereHas('roles', function ($q) {
+                    $q->where('name', 'student');
+                })
+                ->whereDoesntHave('student')
+                ->get();
+
             $colleges = College::all();
 
             return view('owner.students.create', compact('hostels', 'rooms', 'users', 'colleges'));
@@ -106,7 +117,8 @@ class StudentController extends Controller
                 'name' => 'required|string|max:255',
                 'email' => 'required|email|unique:students,email',
                 'phone' => 'required|string',
-                'college' => 'required|string',
+                'college_id' => 'required',
+                'other_college' => 'nullable|string|max:255',
                 'dob' => 'nullable|date',
                 'gender' => 'nullable|in:male,female,other',
                 'guardian_name' => 'required|string',
@@ -119,6 +131,18 @@ class StudentController extends Controller
                 'address' => 'required|string',
                 'guardian_address' => 'required|string',
             ]);
+
+            // FIXED: Handle college selection (regular college or "Others" option)
+            if ($request->college_id == 'others' && $request->filled('other_college')) {
+                $validatedData['college'] = $request->other_college;
+            } else {
+                $college = College::find($request->college_id);
+                $validatedData['college'] = $college->name ?? 'Unknown College';
+            }
+
+            // Remove temporary fields
+            unset($validatedData['college_id']);
+            unset($validatedData['other_college']);
 
             // Add hostel_id for owner
             if ($request->filled('room_id')) {
@@ -136,9 +160,12 @@ class StudentController extends Controller
 
         $student = Student::create($validatedData);
 
-        // Update room status
+        // Update room status only if room is assigned and was available
         if (isset($validatedData['room_id'])) {
-            Room::find($validatedData['room_id'])->update(['status' => 'occupied']);
+            $room = Room::find($validatedData['room_id']);
+            if ($room && $room->status == 'available') {
+                $room->update(['status' => 'occupied']);
+            }
         }
 
         // Role-based redirect with appropriate message
@@ -200,14 +227,26 @@ class StudentController extends Controller
         } else {
             $student->load(['user', 'room.hostel']);
             $hostels = Hostel::where('id', auth()->user()->hostel_id)->get();
+
+            // FIXED: Get ALL rooms for the current owner's hostel
             $rooms = Room::where('hostel_id', auth()->user()->hostel_id)
-                ->where(function ($query) use ($student) {
-                    $query->where('status', 'available')
-                        ->orWhere('id', $student->room_id);
-                })
                 ->with('hostel')
+                ->orderBy('room_number')
                 ->get();
-            $users = User::all();
+
+            // FIXED: Only show users from the same hostel with student role for owner
+            $users = User::where('hostel_id', auth()->user()->hostel_id)
+                ->whereHas('roles', function ($q) {
+                    $q->where('name', 'student');
+                })
+                ->where(function ($query) use ($student) {
+                    $query->whereDoesntHave('student')
+                        ->orWhereHas('student', function ($q) use ($student) {
+                            $q->where('id', $student->id);
+                        });
+                })
+                ->get();
+
             $colleges = College::all();
 
             return view('owner.students.edit', compact('student', 'hostels', 'rooms', 'users', 'colleges'));
@@ -236,7 +275,8 @@ class StudentController extends Controller
                 'name' => 'required|string|max:255',
                 'email' => 'required|email|unique:students,email,' . $student->id,
                 'phone' => 'required|string',
-                'college' => 'required|string',
+                'college_id' => 'required',
+                'other_college' => 'nullable|string|max:255',
                 'dob' => 'nullable|date',
                 'gender' => 'nullable|in:male,female,other',
                 'guardian_name' => 'required|string',
@@ -249,6 +289,18 @@ class StudentController extends Controller
                 'address' => 'required|string',
                 'guardian_address' => 'required|string',
             ]);
+
+            // FIXED: Handle college selection (regular college or "Others" option)
+            if ($request->college_id == 'others' && $request->filled('other_college')) {
+                $validatedData['college'] = $request->other_college;
+            } else {
+                $college = College::find($request->college_id);
+                $validatedData['college'] = $college->name ?? 'Unknown College';
+            }
+
+            // Remove temporary fields
+            unset($validatedData['college_id']);
+            unset($validatedData['other_college']);
         }
 
         // Handle image upload (for admin only)
@@ -261,20 +313,30 @@ class StudentController extends Controller
 
         // Handle room change
         if ($student->room_id != $validatedData['room_id']) {
-            // Free the old room
+            // Free the old room if it exists
             if ($student->room_id) {
-                Room::find($student->room_id)->update(['status' => 'available']);
+                $oldRoom = Room::find($student->room_id);
+                // Only mark as available if no other students are in this room
+                $otherStudentsInRoom = Student::where('room_id', $student->room_id)
+                    ->where('id', '!=', $student->id)
+                    ->count();
+                if ($otherStudentsInRoom == 0) {
+                    $oldRoom->update(['status' => 'available']);
+                }
             }
 
-            // Occupy the new room
+            // Occupy the new room if assigned
             if ($validatedData['room_id']) {
-                Room::find($validatedData['room_id'])->update(['status' => 'occupied']);
+                $newRoom = Room::find($validatedData['room_id']);
+                $newRoom->update(['status' => 'occupied']);
 
                 // Update hostel_id for owner
                 if (auth()->user()->hasRole('hostel_manager')) {
-                    $room = Room::find($validatedData['room_id']);
-                    $validatedData['hostel_id'] = $room->hostel_id;
+                    $validatedData['hostel_id'] = $newRoom->hostel_id;
                 }
+            } else {
+                // If no room is assigned, set hostel_id to owner's hostel
+                $validatedData['hostel_id'] = auth()->user()->hostel_id;
             }
         }
 
@@ -308,9 +370,15 @@ class StudentController extends Controller
             Storage::disk('public')->delete($student->image);
         }
 
-        // Update room status
+        // Update room status if this was the only student in the room
         if ($student->room_id) {
-            Room::find($student->room_id)->update(['status' => 'available']);
+            $room = Room::find($student->room_id);
+            $otherStudentsInRoom = Student::where('room_id', $student->room_id)
+                ->where('id', '!=', $student->id)
+                ->count();
+            if ($otherStudentsInRoom == 0) {
+                $room->update(['status' => 'available']);
+            }
         }
 
         $student->delete();
@@ -324,7 +392,6 @@ class StudentController extends Controller
                 ->with('success', 'विद्यार्थी सफलतापूर्वक हटाइयो!');
         }
     }
-
     /**
      * Export students to CSV
      */
