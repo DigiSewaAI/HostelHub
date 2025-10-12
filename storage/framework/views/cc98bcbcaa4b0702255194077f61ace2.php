@@ -3,7 +3,7 @@
     
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-gray-800">विद्यार्थी व्यवस्थापन</h1>
-        <a href="<?php echo e(route('admin.students.create')); ?>"
+        <a href="<?php echo e(route('owner.students.create')); ?>"
            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow">
             ➕ नयाँ विद्यार्थी थप्नुहोस्
         </a>
@@ -26,12 +26,12 @@
             🔍 खोज्नुहोस्
         </button>
 
-        <a href="<?php echo e(route('admin.students.index')); ?>"
+        <a href="<?php echo e(route('owner.students.index')); ?>"
            class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg shadow">
             ♻️ Reset
         </a>
 
-        <a href="<?php echo e(route('admin.students.export')); ?>"
+        <a href="<?php echo e(route('owner.students.export-csv')); ?>"
            class="ml-auto bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg shadow">
             📥 एक्सेलमा निर्यात
         </a>
@@ -70,11 +70,11 @@
                                 <?php endif; ?>
                             </td>
                             <td class="px-4 py-2 border-b text-center">
-                                <a href="<?php echo e(route('admin.students.show', $student)); ?>"
+                                <a href="<?php echo e(route('owner.students.show', $student)); ?>"
                                    class="text-blue-600 hover:underline">👁 हेर्नुहोस्</a>
-                                <a href="<?php echo e(route('admin.students.edit', $student)); ?>"
+                                <a href="<?php echo e(route('owner.students.edit', $student)); ?>"
                                    class="ml-2 text-yellow-600 hover:underline">✏ सम्पादन</a>
-                                <form action="<?php echo e(route('admin.students.destroy', $student)); ?>"
+                                <form action="<?php echo e(route('owner.students.destroy', $student)); ?>"
                                       method="POST" class="inline"
                                       onsubmit="return confirm('पक्का delete गर्ने?')">
                                     <?php echo csrf_field(); ?>
@@ -101,5 +101,4 @@
     <?php endif; ?>
 </div>
 <?php $__env->stopSection(); ?>
-
 <?php echo $__env->make('layouts.owner', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\My Projects\HostelHub\resources\views/owner/students/index.blade.php ENDPATH**/ ?>

@@ -5,7 +5,7 @@
     {{-- Header --}}
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-gray-800">विद्यार्थी व्यवस्थापन</h1>
-        <a href="{{ route('admin.students.create') }}"
+        <a href="{{ route('owner.students.create') }}"
            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow">
             ➕ नयाँ विद्यार्थी थप्नुहोस्
         </a>
@@ -28,12 +28,12 @@
             🔍 खोज्नुहोस्
         </button>
 
-        <a href="{{ route('admin.students.index') }}"
+        <a href="{{ route('owner.students.index') }}"
            class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg shadow">
             ♻️ Reset
         </a>
 
-        <a href="{{ route('admin.students.export') }}"
+        <a href="{{ route('owner.students.export-csv') }}"
            class="ml-auto bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg shadow">
             📥 एक्सेलमा निर्यात
         </a>
@@ -72,11 +72,11 @@
                                 @endif
                             </td>
                             <td class="px-4 py-2 border-b text-center">
-                                <a href="{{ route('admin.students.show', $student) }}"
+                                <a href="{{ route('owner.students.show', $student) }}"
                                    class="text-blue-600 hover:underline">👁 हेर्नुहोस्</a>
-                                <a href="{{ route('admin.students.edit', $student) }}"
+                                <a href="{{ route('owner.students.edit', $student) }}"
                                    class="ml-2 text-yellow-600 hover:underline">✏ सम्पादन</a>
-                                <form action="{{ route('admin.students.destroy', $student) }}"
+                                <form action="{{ route('owner.students.destroy', $student) }}"
                                       method="POST" class="inline"
                                       onsubmit="return confirm('पक्का delete गर्ने?')">
                                     @csrf

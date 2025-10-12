@@ -5,7 +5,7 @@
     {{-- Page Header --}}
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-gray-800">नयाँ विद्यार्थी दर्ता</h1>
-        <a href="{{ route('admin.students.index') }}"
+        <a href="{{ route('owner.students.index') }}"
            class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg shadow transition duration-300 no-underline z-10"
            style="text-decoration: none;">
             ⬅ फर्कनुहोस्
@@ -25,7 +25,7 @@
     @endif
 
     {{-- Create Student Form --}}
-    <form action="{{ route('admin.students.store') }}" method="POST" class="bg-white shadow-md rounded-lg p-6">
+    <form action="{{ route('owner.students.store') }}" method="POST" class="bg-white shadow-md rounded-lg p-6">
         @csrf
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">

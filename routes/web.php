@@ -409,7 +409,19 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
         // Meal menu routes
         Route::resource('meal-menus', AdminMealMenuController::class);
 
-        // ✅ CRITICAL FIX: Using payments_access instead of payment.view
+        // ✅ FIXED: Owner student routes with correct naming (owner.students.*)
+        Route::get('students', [StudentController::class, 'index'])->name('students.index');
+        Route::get('students/create', [StudentController::class, 'create'])->name('students.create')->middleware('enforce.plan.limits');
+        Route::post('students', [StudentController::class, 'store'])->name('students.store')->middleware('enforce.plan.limits');
+        Route::get('students/{student}', [StudentController::class, 'show'])->name('students.show');
+        Route::get('students/{student}/edit', [StudentController::class, 'edit'])->name('students.edit');
+        Route::put('students/{student}', [StudentController::class, 'update'])->name('students.update');
+        Route::delete('students/{student}', [StudentController::class, 'destroy'])->name('students.destroy');
+        Route::get('students/search', [StudentController::class, 'search'])->name('students.search');
+        // ✅ ADDED: Missing export route for owner students
+        Route::get('students/export/csv', [StudentController::class, 'exportCSV'])->name('students.export-csv');
+
+        // ✅ FIXED: Owner payment routes with correct permissions
         Route::middleware([\App\Http\Middleware\CheckPermission::class . ':payments_access'])->group(function () {
             Route::prefix('payments')->name('payments.')->group(function () {
                 Route::get('/', [AdminPaymentController::class, 'index'])->name('index');
@@ -424,17 +436,6 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
                 Route::get('/export', [AdminPaymentController::class, 'export'])->name('export');
             });
         });
-
-        // Student routes with plan limits
-        Route::get('students', [StudentController::class, 'index'])->name('students.index');
-        Route::get('students/create', [StudentController::class, 'create'])->name('students.create')->middleware('enforce.plan.limits');
-        Route::post('students', [StudentController::class, 'store'])->name('students.store')->middleware('enforce.plan.limits');
-        Route::get('students/{student}', [StudentController::class, 'show'])->name('students.show');
-        Route::get('students/{student}/edit', [StudentController::class, 'edit'])->name('students.edit');
-        Route::put('students/{student}', [StudentController::class, 'update'])->name('students.update');
-        Route::delete('students/{student}', [StudentController::class, 'destroy'])->name('students.destroy');
-        Route::get('students/search', [StudentController::class, 'search'])->name('students.search');
-        Route::get('students/export/csv', [StudentController::class, 'exportCSV'])->name('students.export-csv');
 
         // Contact routes
         Route::resource('contacts', ContactController::class);
