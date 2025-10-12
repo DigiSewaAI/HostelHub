@@ -450,22 +450,8 @@
             <div class="main-content-container flex-1">
                 <!-- Page Content -->
                 <main id="main-content" class="page-content bg-gray-50 flex-1">
-    <div class="max-w-7xl mx-auto h-full">
-                        <!-- Page Header -->
-                        <div class="mb-6">
-                            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                                <div>
-                                    <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-1">@yield('title')</h1>
-                                    @if(View::hasSection('page-description'))
-                                        <p class="text-gray-600 text-sm">@yield('page-description')</p>
-                                    @endif
-                                </div>
-                                <div>
-                                    @yield('header-buttons')
-                                </div>
-                            </div>
-                        </div>
-                        
+                    <div class="max-w-7xl mx-auto h-full">
+                        <!-- ✅ FIXED: Removed duplicate page header section -->
                         <!-- Session Messages -->
                         @if (session('success'))
                             <div class="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg flex items-center">
