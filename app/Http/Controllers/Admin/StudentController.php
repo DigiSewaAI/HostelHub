@@ -13,6 +13,7 @@ use App\Models\College;
 use App\Models\MealMenu;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class StudentController extends Controller
 {
@@ -81,16 +82,29 @@ class StudentController extends Controller
 
             return view('admin.students.create', compact('hostels', 'rooms', 'users', 'colleges'));
         } else {
-            $hostels = Hostel::where('id', auth()->user()->hostel_id)->get();
+            // 🔥 CRITICAL SAFETY CHECK: Ensure owner has hostel_id set
+            $userHostelId = auth()->user()->hostel_id;
+
+            if (!$userHostelId) {
+                Log::warning('Owner tried to create student but hostel_id is not set', [
+                    'user_id' => auth()->id(),
+                    'user_name' => auth()->user()->name
+                ]);
+
+                return redirect()->route('owner.hostels.index')
+                    ->with('error', 'कृपया पहिले आफ्नो होस्टेल सेटअप गर्नुहोस्। होस्टेल बिना विद्यार्थी दर्ता गर्न सकिँदैन।');
+            }
+
+            $hostels = Hostel::where('id', $userHostelId)->get();
 
             // FIXED: Get ALL rooms for the owner's hostel (not just available ones)
-            $rooms = Room::where('hostel_id', auth()->user()->hostel_id)
+            $rooms = Room::where('hostel_id', $userHostelId)
                 ->with('hostel')
                 ->orderBy('room_number')
                 ->get();
 
             // FIXED: Only show users from the same hostel with student role
-            $users = User::where('hostel_id', auth()->user()->hostel_id)
+            $users = User::where('hostel_id', $userHostelId)
                 ->whereHas('roles', function ($q) {
                     $q->where('name', 'student');
                 })
@@ -98,6 +112,14 @@ class StudentController extends Controller
                 ->get();
 
             $colleges = College::all();
+
+            // 🔥 LOG FOR DEBUGGING
+            Log::info('Student creation page loaded for owner', [
+                'user_id' => auth()->id(),
+                'hostel_id' => $userHostelId,
+                'rooms_count' => $rooms->count(),
+                'users_count' => $users->count()
+            ]);
 
             return view('owner.students.create', compact('hostels', 'rooms', 'users', 'colleges'));
         }
@@ -112,44 +134,88 @@ class StudentController extends Controller
         if (auth()->user()->hasRole('admin')) {
             $validatedData = $request->validate((new StoreStudentRequest)->rules());
         } else {
+            // 🔥 CRITICAL SAFETY CHECK: Ensure owner has hostel_id set
+            $userHostelId = auth()->user()->hostel_id;
+            if (!$userHostelId) {
+                return redirect()->route('owner.hostels.index')
+                    ->with('error', 'कृपया पहिले आफ्नो होस्टेल सेटअप गर्नुहोस्। होस्टेल बिना विद्यार्थी दर्ता गर्न सकिँदैन।');
+            }
+
             $validatedData = $request->validate([
-                'user_id' => 'nullable|exists:users,id',
+                'user_id' => 'nullable|integer|min:0', // ✅ FIXED: Allow 0 as valid value
                 'name' => 'required|string|max:255',
-                'email' => 'required|email|unique:students,email',
-                'phone' => 'required|string',
+                'email' => 'nullable|email',
+                'phone' => 'required|string|max:15',
                 'college_id' => 'required',
                 'other_college' => 'nullable|string|max:255',
                 'dob' => 'nullable|date',
                 'gender' => 'nullable|in:male,female,other',
-                'guardian_name' => 'required|string',
-                'guardian_phone' => 'required|string',
-                'guardian_relation' => 'required|string',
+                'guardian_name' => 'required|string|max:255',
+                'guardian_contact' => 'required|string|max:15',
+                'guardian_relation' => 'required|string|max:100',
                 'room_id' => 'nullable|exists:rooms,id',
                 'admission_date' => 'required|date',
                 'status' => 'required|in:pending,approved,active,inactive',
-                'payment_status' => 'required|in:pending,paid',
-                'address' => 'required|string',
-                'guardian_address' => 'required|string',
+                'payment_status' => 'required|in:pending,paid,unpaid',
+                'address' => 'required|string|max:500',
+                'guardian_address' => 'required|string|max:500',
             ]);
 
-            // FIXED: Handle college selection (regular college or "Others" option)
-            if ($request->college_id == 'others' && $request->filled('other_college')) {
-                $validatedData['college'] = $request->other_college;
-            } else {
-                $college = College::find($request->college_id);
-                $validatedData['college'] = $college->name ?? 'Unknown College';
-            }
+            try {
+                // ✅ FIXED: Handle user_id - convert 0 to NULL to avoid foreign key constraint
+                $validatedData['user_id'] = ($validatedData['user_id'] == 0) ? null : $validatedData['user_id'];
 
-            // Remove temporary fields
-            unset($validatedData['college_id']);
-            unset($validatedData['other_college']);
+                // ✅ FIXED: Add missing field student_id (avoid SQL error)
+                $validatedData['student_id'] = null;
 
-            // Add hostel_id for owner
-            if ($request->filled('room_id')) {
-                $room = Room::find($request->room_id);
-                $validatedData['hostel_id'] = $room->hostel_id;
-            } else {
-                $validatedData['hostel_id'] = auth()->user()->hostel_id;
+                // ✅ FIXED: CORRECTED - Handle college selection properly
+                if ($request->college_id == 'others' && $request->filled('other_college')) {
+                    $validatedData['college'] = $request->other_college;
+                    $validatedData['college_id'] = null; // "others" भएकोले college_id null गर्नुहोस्
+                } else {
+                    $validatedData['college_id'] = $request->college_id;
+                    $college = College::find($request->college_id);
+                    $validatedData['college'] = $college->name ?? 'Unknown College'; // Regular college को नाम पनि राख्नुहोस्
+                }
+
+                // Remove temporary field only
+                unset($validatedData['other_college']);
+                // ❌ college_id लाई unset नगर्नुहोस् - यो टेबलमा चाहिन्छ
+
+                // ✅ FIXED: Add organization_id for owner
+                $validatedData['organization_id'] = auth()->user()->organization_id;
+
+                // ✅ FIXED: Add hostel_id for owner
+                if ($request->filled('room_id')) {
+                    $room = Room::find($request->room_id);
+                    $validatedData['hostel_id'] = $room->hostel_id;
+
+                    // 🔥 SAFETY CHECK: Ensure room belongs to owner's hostel
+                    if ($room->hostel_id !== $userHostelId) {
+                        return back()->with('error', 'चयन गरिएको कोठा तपाईंको होस्टेलको होइन।');
+                    }
+                } else {
+                    $validatedData['hostel_id'] = $userHostelId;
+                }
+
+                // ✅ Create new student safely
+                $student = Student::create($validatedData);
+
+                // Update room status only if room is assigned and was available
+                if (isset($validatedData['room_id'])) {
+                    $room = Room::find($validatedData['room_id']);
+                    if ($room && $room->status == 'available') {
+                        $room->update(['status' => 'occupied']);
+                    }
+                }
+
+                return redirect()->route('owner.students.index')
+                    ->with('success', 'विद्यार्थी सफलतापूर्वक दर्ता गरियो!');
+            } catch (\Exception $e) {
+                // ✅ FIXED: Error handle गर्नुहोस्
+                Log::error('Student creation error: ' . $e->getMessage());
+                return back()->withInput()
+                    ->with('error', 'विद्यार्थी दर्ता गर्दा त्रुटि भयो: ' . $e->getMessage());
             }
         }
 
@@ -158,23 +224,43 @@ class StudentController extends Controller
             $validatedData['image'] = $request->file('image')->store('students', 'public');
         }
 
-        $student = Student::create($validatedData);
+        // Admin side student creation
+        try {
+            // ✅ FIXED: Handle user_id for admin side too - convert 0 to NULL
+            $validatedData['user_id'] = ($validatedData['user_id'] == 0) ? null : $validatedData['user_id'];
 
-        // Update room status only if room is assigned and was available
-        if (isset($validatedData['room_id'])) {
-            $room = Room::find($validatedData['room_id']);
-            if ($room && $room->status == 'available') {
-                $room->update(['status' => 'occupied']);
+            // ✅ FIXED: CORRECTED - Handle college selection for admin side too
+            if ($request->college_id == 'others' && $request->filled('other_college')) {
+                $validatedData['college'] = $request->other_college;
+                $validatedData['college_id'] = null;
+            } else {
+                $validatedData['college_id'] = $request->college_id;
+                $college = College::find($request->college_id);
+                $validatedData['college'] = $college->name ?? 'Unknown College';
             }
-        }
 
-        // Role-based redirect with appropriate message
-        if (auth()->user()->hasRole('admin')) {
+            // Remove temporary field
+            unset($validatedData['other_college']);
+
+            // ✅ FIXED: Add missing field student_id for admin side too
+            $validatedData['student_id'] = null;
+
+            $student = Student::create($validatedData);
+
+            // Update room status only if room is assigned and was available
+            if (isset($validatedData['room_id'])) {
+                $room = Room::find($validatedData['room_id']);
+                if ($room && $room->status == 'available') {
+                    $room->update(['status' => 'occupied']);
+                }
+            }
+
             return redirect()->route('admin.students.index')
                 ->with('success', 'विद्यार्थी सफलतापूर्वक दर्ता गरियो');
-        } else {
-            return redirect()->route('owner.students.index')
-                ->with('success', 'विद्यार्थी सफलतापूर्वक थपियो!');
+        } catch (\Exception $e) {
+            Log::error('Student creation error (admin): ' . $e->getMessage());
+            return back()->withInput()
+                ->with('error', 'विद्यार्थी दर्ता गर्दा त्रुटि भयो: ' . $e->getMessage());
         }
     }
 
@@ -225,17 +311,24 @@ class StudentController extends Controller
 
             return view('admin.students.edit', compact('student', 'hostels', 'rooms', 'users', 'colleges'));
         } else {
+            // 🔥 CRITICAL SAFETY CHECK: Ensure owner has hostel_id set
+            $userHostelId = auth()->user()->hostel_id;
+            if (!$userHostelId) {
+                return redirect()->route('owner.hostels.index')
+                    ->with('error', 'कृपया पहिले आफ्नो होस्टेल सेटअप गर्नुहोस्।');
+            }
+
             $student->load(['user', 'room.hostel']);
-            $hostels = Hostel::where('id', auth()->user()->hostel_id)->get();
+            $hostels = Hostel::where('id', $userHostelId)->get();
 
             // FIXED: Get ALL rooms for the current owner's hostel
-            $rooms = Room::where('hostel_id', auth()->user()->hostel_id)
+            $rooms = Room::where('hostel_id', $userHostelId)
                 ->with('hostel')
                 ->orderBy('room_number')
                 ->get();
 
             // FIXED: Only show users from the same hostel with student role for owner
-            $users = User::where('hostel_id', auth()->user()->hostel_id)
+            $users = User::where('hostel_id', $userHostelId)
                 ->whereHas('roles', function ($q) {
                     $q->where('name', 'student');
                 })
@@ -270,85 +363,157 @@ class StudentController extends Controller
         if (auth()->user()->hasRole('admin')) {
             $validatedData = $request->validate((new UpdateStudentRequest)->rules());
         } else {
+            // 🔥 CRITICAL SAFETY CHECK: Ensure owner has hostel_id set
+            $userHostelId = auth()->user()->hostel_id;
+            if (!$userHostelId) {
+                return redirect()->route('owner.hostels.index')
+                    ->with('error', 'कृपया पहिले आफ्नो होस्टेल सेटअप गर्नुहोस्।');
+            }
+
             $validatedData = $request->validate([
-                'user_id' => 'nullable|exists:users,id',
+                'user_id' => 'nullable|integer|min:0', // ✅ FIXED: Allow 0 as valid value
                 'name' => 'required|string|max:255',
-                'email' => 'required|email|unique:students,email,' . $student->id,
-                'phone' => 'required|string',
+                'email' => 'nullable|email',
+                'phone' => 'required|string|max:15',
                 'college_id' => 'required',
                 'other_college' => 'nullable|string|max:255',
                 'dob' => 'nullable|date',
                 'gender' => 'nullable|in:male,female,other',
-                'guardian_name' => 'required|string',
-                'guardian_phone' => 'required|string',
-                'guardian_relation' => 'required|string',
+                'guardian_name' => 'required|string|max:255',
+                'guardian_contact' => 'required|string|max:15',
+                'guardian_relation' => 'required|string|max:100',
                 'room_id' => 'nullable|exists:rooms,id',
                 'admission_date' => 'required|date',
                 'status' => 'required|in:pending,approved,active,inactive',
-                'payment_status' => 'required|in:pending,paid',
-                'address' => 'required|string',
-                'guardian_address' => 'required|string',
+                'payment_status' => 'required|in:pending,paid,unpaid',
+                'address' => 'required|string|max:500',
+                'guardian_address' => 'required|string|max:500',
             ]);
 
-            // FIXED: Handle college selection (regular college or "Others" option)
+            try {
+                // ✅ FIXED: Handle user_id - convert 0 to NULL to avoid foreign key constraint
+                $validatedData['user_id'] = ($validatedData['user_id'] == 0) ? null : $validatedData['user_id'];
+
+                // ✅ FIXED: CORRECTED - Handle college selection properly
+                if ($request->college_id == 'others' && $request->filled('other_college')) {
+                    $validatedData['college'] = $request->other_college;
+                    $validatedData['college_id'] = null;
+                } else {
+                    $validatedData['college_id'] = $request->college_id;
+                    $college = College::find($request->college_id);
+                    $validatedData['college'] = $college->name ?? 'Unknown College';
+                }
+
+                // Remove temporary field only
+                unset($validatedData['other_college']);
+
+                // ✅ FIXED: Add organization_id for owner
+                $validatedData['organization_id'] = auth()->user()->organization_id;
+
+                // 🔥 SAFETY CHECK: Ensure room belongs to owner's hostel if room_id is provided
+                if ($request->filled('room_id')) {
+                    $room = Room::find($request->room_id);
+                    if ($room && $room->hostel_id !== $userHostelId) {
+                        return back()->with('error', 'चयन गरिएको कोठा तपाईंको होस्टेलको होइन।');
+                    }
+                }
+
+                // Handle room change
+                if ($student->room_id != $validatedData['room_id']) {
+                    // Free the old room if it exists
+                    if ($student->room_id) {
+                        $oldRoom = Room::find($student->room_id);
+                        // Only mark as available if no other students are in this room
+                        $otherStudentsInRoom = Student::where('room_id', $student->room_id)
+                            ->where('id', '!=', $student->id)
+                            ->count();
+                        if ($otherStudentsInRoom == 0) {
+                            $oldRoom->update(['status' => 'available']);
+                        }
+                    }
+
+                    // Occupy the new room if assigned
+                    if ($validatedData['room_id']) {
+                        $newRoom = Room::find($validatedData['room_id']);
+                        $newRoom->update(['status' => 'occupied']);
+
+                        // Update hostel_id for owner
+                        $validatedData['hostel_id'] = $newRoom->hostel_id;
+                    } else {
+                        // If no room is assigned, set hostel_id to owner's hostel
+                        $validatedData['hostel_id'] = $userHostelId;
+                    }
+                }
+
+                $student->update($validatedData);
+
+                return redirect()->route('owner.students.index')
+                    ->with('success', 'विद्यार्थी विवरण सफलतापूर्वक अद्यावधिक गरियो!');
+            } catch (\Exception $e) {
+                Log::error('Student update error: ' . $e->getMessage());
+                return back()->withInput()
+                    ->with('error', 'विद्यार्थी अद्यावधिक गर्दा त्रुटि भयो: ' . $e->getMessage());
+            }
+        }
+
+        // Admin side update
+        try {
+            // ✅ FIXED: Handle user_id for admin side too - convert 0 to NULL
+            $validatedData['user_id'] = ($validatedData['user_id'] == 0) ? null : $validatedData['user_id'];
+
+            // ✅ FIXED: CORRECTED - Handle college selection for admin side too
             if ($request->college_id == 'others' && $request->filled('other_college')) {
                 $validatedData['college'] = $request->other_college;
+                $validatedData['college_id'] = null;
             } else {
+                $validatedData['college_id'] = $request->college_id;
                 $college = College::find($request->college_id);
                 $validatedData['college'] = $college->name ?? 'Unknown College';
             }
 
-            // Remove temporary fields
-            unset($validatedData['college_id']);
+            // Remove temporary field
             unset($validatedData['other_college']);
-        }
 
-        // Handle image upload (for admin only)
-        if (auth()->user()->hasRole('admin') && $request->hasFile('image')) {
-            if ($student->image) {
-                Storage::disk('public')->delete($student->image);
-            }
-            $validatedData['image'] = $request->file('image')->store('students', 'public');
-        }
-
-        // Handle room change
-        if ($student->room_id != $validatedData['room_id']) {
-            // Free the old room if it exists
-            if ($student->room_id) {
-                $oldRoom = Room::find($student->room_id);
-                // Only mark as available if no other students are in this room
-                $otherStudentsInRoom = Student::where('room_id', $student->room_id)
-                    ->where('id', '!=', $student->id)
-                    ->count();
-                if ($otherStudentsInRoom == 0) {
-                    $oldRoom->update(['status' => 'available']);
+            // Handle image upload (for admin only)
+            if (auth()->user()->hasRole('admin') && $request->hasFile('image')) {
+                if ($student->image) {
+                    Storage::disk('public')->delete($student->image);
                 }
+                $validatedData['image'] = $request->file('image')->store('students', 'public');
             }
 
-            // Occupy the new room if assigned
-            if ($validatedData['room_id']) {
-                $newRoom = Room::find($validatedData['room_id']);
-                $newRoom->update(['status' => 'occupied']);
+            // Handle room change for admin
+            if ($student->room_id != $validatedData['room_id']) {
+                // Free the old room if it exists
+                if ($student->room_id) {
+                    $oldRoom = Room::find($student->room_id);
+                    // Only mark as available if no other students are in this room
+                    $otherStudentsInRoom = Student::where('room_id', $student->room_id)
+                        ->where('id', '!=', $student->id)
+                        ->count();
+                    if ($otherStudentsInRoom == 0) {
+                        $oldRoom->update(['status' => 'available']);
+                    }
+                }
 
-                // Update hostel_id for owner
-                if (auth()->user()->hasRole('hostel_manager')) {
+                // Occupy the new room if assigned
+                if ($validatedData['room_id']) {
+                    $newRoom = Room::find($validatedData['room_id']);
+                    $newRoom->update(['status' => 'occupied']);
+
+                    // Update hostel_id for admin
                     $validatedData['hostel_id'] = $newRoom->hostel_id;
                 }
-            } else {
-                // If no room is assigned, set hostel_id to owner's hostel
-                $validatedData['hostel_id'] = auth()->user()->hostel_id;
             }
-        }
 
-        $student->update($validatedData);
+            $student->update($validatedData);
 
-        // Role-based redirect
-        if (auth()->user()->hasRole('admin')) {
             return redirect()->route('admin.students.index')
                 ->with('success', 'विद्यार्थी विवरण सफलतापूर्वक अद्यावधिक गरियो');
-        } else {
-            return redirect()->route('owner.students.index')
-                ->with('success', 'विद्यार्थी विवरण सफलतापूर्वक अद्यावधिक गरियो!');
+        } catch (\Exception $e) {
+            Log::error('Student update error (admin): ' . $e->getMessage());
+            return back()->withInput()
+                ->with('error', 'विद्यार्थी अद्यावधिक गर्दा त्रुटि भयो: ' . $e->getMessage());
         }
     }
 
@@ -392,6 +557,7 @@ class StudentController extends Controller
                 ->with('success', 'विद्यार्थी सफलतापूर्वक हटाइयो!');
         }
     }
+
     /**
      * Export students to CSV
      */
@@ -533,13 +699,13 @@ class StudentController extends Controller
         }
 
         $validatedData = $request->validate([
-            'phone' => 'required|string',
-            'college' => 'required|string',
-            'address' => 'required|string',
-            'guardian_name' => 'required|string',
-            'guardian_phone' => 'required|string',
-            'guardian_relation' => 'required|string',
-            'guardian_address' => 'required|string',
+            'phone' => 'required|string|max:15',
+            'college' => 'required|string|max:255',
+            'address' => 'required|string|max:500',
+            'guardian_name' => 'required|string|max:255',
+            'guardian_contact' => 'required|string|max:15',
+            'guardian_relation' => 'required|string|max:100',
+            'guardian_address' => 'required|string|max:500',
         ]);
 
         $student->update($validatedData);

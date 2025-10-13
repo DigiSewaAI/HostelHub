@@ -79,6 +79,9 @@ Route::group(['middleware' => 'web'], function () {
     Route::get('/rooms', [PublicController::class, 'roomSearch'])->name('rooms.search');
     Route::post('/rooms/search', [PublicController::class, 'searchRooms'])->name('rooms.search.post');
 
+    // ✅ ADDED: Student hostel search route (missing route)
+    Route::get('/hostels/search', [PublicController::class, 'hostelSearch'])->name('hostels.search');
+
     // Demo route
     Route::get('/demo', function () {
         return view('frontend.pages.demo');
@@ -122,7 +125,15 @@ Route::middleware('guest')->group(function () {
 });
 
 /*|--------------------------------------------------------------------------
-| Global Dashboard Redirect (Role-based)
+| Student Welcome Route (For unconnected students after registration)
+|--------------------------------------------------------------------------
+*/
+Route::get('/student/welcome', function () {
+    return view('student.welcome');
+})->name('student.welcome')->middleware(['auth', 'role:student']);
+
+/*|--------------------------------------------------------------------------
+| Global Dashboard Redirect (Role-based) - FIXED FOR STUDENTS WITHOUT ORGANIZATION
 |--------------------------------------------------------------------------
 */
 Route::get('/dashboard', function () {
@@ -133,7 +144,8 @@ Route::get('/dashboard', function () {
         if ($orgUser) {
             session(['current_organization_id' => $orgUser->organization_id]);
         } else {
-            if (!$user->hasRole('admin')) {
+            // ✅ FIXED: Students without organization should not be redirected to organization registration
+            if (!$user->hasRole('admin') && !$user->hasRole('student')) {
                 return redirect()->route('register.organization');
             }
         }
@@ -144,7 +156,12 @@ Route::get('/dashboard', function () {
     } elseif ($user->hasRole('hostel_manager')) {
         return redirect()->route('owner.dashboard');
     } elseif ($user->hasRole('student')) {
-        return redirect()->route('student.dashboard');
+        // ✅ FIXED: Check if student is connected to hostel
+        if ($user->hostel_id || $user->organization_id) {
+            return redirect()->route('student.dashboard');
+        } else {
+            return redirect()->route('student.welcome');
+        }
     }
 
     return redirect('/');
@@ -457,6 +474,13 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
         Route::get('/rooms', [RoomController::class, 'studentIndex'])->name('rooms.index');
         Route::get('/rooms/{room}', [RoomController::class, 'studentShow'])->name('rooms.show');
         Route::get('/rooms/search', [RoomController::class, 'search'])->name('rooms.search');
+
+        // ✅ ADDED: Student hostel search route (missing route)
+        Route::get('/hostels/search', [PublicController::class, 'hostelSearch'])->name('hostels.search');
+
+        // ✅ CRITICAL FIX: Add the missing student hostel join route
+        Route::get('/hostels/join', [PublicController::class, 'hostelJoin'])->name('hostels.join');
+        Route::post('/hostels/{hostel}/join', [PublicController::class, 'joinHostel'])->name('hostels.join.submit');
 
         // Bookings with permission check
         Route::get('/bookings', [BookingController::class, 'index'])->name('bookings.index');

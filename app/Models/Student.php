@@ -15,20 +15,27 @@ class Student extends Model
      * The attributes that are mass assignable.
      */
     protected $fillable = [
+        'student_id',
+        'user_id',
         'name',
         'email',
         'phone',
         'address',
         'guardian_name',
-        'guardian_phone',
-        'college_id',
-        'room_id',
-        'hostel_id',
+        'guardian_contact',
+        'guardian_relation',
+        'guardian_address',
+        'dob',
+        'gender',
+        'payment_status',
         'status',
         'admission_date',
+        'college_id',     // existing
+        'college',        // ✅ NEW - for "other college" name
+        'room_id',
+        'hostel_id',
+        'organization_id',
         'image',
-        'user_id',
-        'organization_id' // ✅ थपियो
     ];
 
     /**
@@ -36,6 +43,16 @@ class Student extends Model
      */
     protected $casts = [
         'admission_date' => 'date',
+        'dob' => 'date',
+    ];
+
+    /**
+     * The model's default values for attributes.
+     */
+    protected $attributes = [
+        'user_id' => null,
+        'status' => 'pending',
+        'payment_status' => 'pending',
     ];
 
     /**
@@ -126,5 +143,58 @@ class Student extends Model
         return $this->image
             ? asset('storage/' . $this->image)
             : asset('images/default-user.png');
+    }
+
+    /**
+     * Accessor for Nepali status.
+     */
+    public function getNepaliStatusAttribute()
+    {
+        $statusMap = [
+            'pending' => 'पेन्डिङ',
+            'approved' => 'स्वीकृत',
+            'active' => 'सक्रिय',
+            'inactive' => 'निष्क्रिय'
+        ];
+
+        return $statusMap[$this->status] ?? $this->status;
+    }
+
+    /**
+     * Accessor for Nepali payment status.
+     */
+    public function getNepaliPaymentStatusAttribute()
+    {
+        $paymentStatusMap = [
+            'pending' => 'पेन्डिङ',
+            'paid' => 'भुक्तानी भएको',
+            'unpaid' => 'भुक्तानी नभएको'
+        ];
+
+        return $paymentStatusMap[$this->payment_status] ?? $this->payment_status;
+    }
+
+    /**
+     * New method: Check if student is active
+     */
+    public function isActive(): bool
+    {
+        return $this->status === 'active';
+    }
+
+    /**
+     * New method: Check if payment is completed
+     */
+    public function hasPaid(): bool
+    {
+        return $this->payment_status === 'paid';
+    }
+
+    /**
+     * New method: Get student's age
+     */
+    public function getAgeAttribute(): ?int
+    {
+        return $this->dob ? $this->dob->age : null;
     }
 }

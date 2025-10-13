@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Support\Facades\Log;
 
 class User extends Authenticatable
 {
@@ -23,13 +24,13 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'organization_id', // ✅ थप्नुहोस्
-        'role_id', // ✅ थप्नुहोस्
+        'organization_id',
+        'role_id',
         'phone',
         'address',
         'payment_verified',
-        'student_id', // ✅ थप्नुहोस्
-        'hostel_id', // ✅ थप्नुहोस्
+        'student_id',
+        'hostel_id',
     ];
 
     /**
@@ -48,6 +49,49 @@ class User extends Authenticatable
         'password' => 'hashed',
         'payment_verified' => 'boolean',
     ];
+
+    // ✅ FIXED: Organization relationship with null safety
+    public function organization(): BelongsTo
+    {
+        return $this->belongsTo(Organization::class, 'organization_id')->withDefault([
+            'name' => 'No Organization',
+            'slug' => 'no-organization',
+        ]);
+    }
+
+    // ✅ Role helper methods for easier checks
+    public function isAdmin(): bool
+    {
+        return $this->role_id === 1 || $this->hasRole('admin');
+    }
+
+    public function isHostelManager(): bool
+    {
+        return $this->role_id === 2 || $this->hasRole('hostel_manager');
+    }
+
+    public function isStudent(): bool
+    {
+        return $this->role_id === 3 || $this->hasRole('student');
+    }
+
+    // ✅ FIXED: isOwner is same as isHostelManager in your system
+    public function isOwner(): bool
+    {
+        return $this->isHostelManager();
+    }
+
+    // ✅ Safe organization access
+    public function getOrganizationNameAttribute(): string
+    {
+        return optional($this->organization)->name ?? 'No Organization';
+    }
+
+    // ✅ Check if user has organization
+    public function hasOrganization(): bool
+    {
+        return !is_null($this->organization_id);
+    }
 
     // Many-to-Many relationship with organizations through pivot table
     public function organizations(): BelongsToMany
@@ -74,6 +118,14 @@ class User extends Authenticatable
     }
 
     /**
+     * 🔥 CRITICAL: Get the hostel that the user is currently managing (for owners/hostel_managers)
+     */
+    public function hostel(): BelongsTo
+    {
+        return $this->belongsTo(Hostel::class, 'hostel_id');
+    }
+
+    /**
      * Get all bookings made by the user.
      */
     public function bookings(): HasMany
@@ -97,30 +149,6 @@ class User extends Authenticatable
         return $this->roles->first()?->name ?? 'N/A';
     }
 
-    /**
-     * Check if the user is an admin.
-     */
-    public function isAdmin(): bool
-    {
-        return $this->hasRole('admin');
-    }
-
-    /**
-     * Check if the user is a hostel manager.
-     */
-    public function isHostelManager(): bool
-    {
-        return $this->hasRole('hostel_manager');
-    }
-
-    /**
-     * Check if the user is an owner.
-     */
-    public function isOwner(): bool
-    {
-        return $this->hasRole('owner');
-    }
-
     // User.php मा यो method थप्नुहोस्
     public function subscriptions(): HasMany
     {
@@ -128,16 +156,96 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if the user is a student.
+     * 🔥 CRITICAL: Auto-fix hostel_id if it's null but user owns a hostel
+     * This acts as a safety net for existing users
      */
-    public function isStudent(): bool
+    public function getHostelIdAttribute($value)
     {
-        return $this->hasRole('student');
+        // ✅ FIXED: Remove duplicate check - use only isHostelManager()
+        if (is_null($value) && $this->isHostelManager()) {
+            $ownedHostel = $this->hostels()->first();
+
+            if ($ownedHostel) {
+                Log::info('Auto-fixing hostel_id for user', [
+                    'user_id' => $this->id,
+                    'user_name' => $this->name,
+                    'hostel_id' => $ownedHostel->id,
+                    'hostel_name' => $ownedHostel->name
+                ]);
+
+                $this->hostel_id = $ownedHostel->id;
+                $this->save();
+
+                return $ownedHostel->id;
+            }
+        }
+
+        return $value;
     }
 
-    // Direct organization relationship (यदि organization_id column छ भने)
-    public function organization(): BelongsTo
+    /**
+     * 🔥 CRITICAL: Check if user has a valid hostel_id set
+     */
+    public function hasHostel(): bool
     {
-        return $this->belongsTo(Organization::class, 'organization_id');
+        return !is_null($this->hostel_id) && !empty($this->hostel_id);
+    }
+
+    /**
+     * 🔥 CRITICAL: Get the user's current hostel with safety checks
+     */
+    public function getCurrentHostel()
+    {
+        if (!$this->hasHostel()) {
+            // Try to auto-fix if possible
+            $this->getHostelIdAttribute($this->hostel_id);
+        }
+
+        return $this->hostel;
+    }
+
+    /**
+     * 🔥 CRITICAL: Ensure user can manage the given hostel
+     */
+    public function canManageHostel($hostelId): bool
+    {
+        if ($this->isAdmin()) {
+            return true;
+        }
+
+        if (!$this->hasHostel()) {
+            return false;
+        }
+
+        return $this->hostel_id == $hostelId;
+    }
+
+    /**
+     * 🔥 CRITICAL: Get available rooms for the user's hostel
+     */
+    public function getAvailableRooms()
+    {
+        if (!$this->hasHostel()) {
+            return collect();
+        }
+
+        return Room::where('hostel_id', $this->hostel_id)
+            ->orderBy('room_number')
+            ->get();
+    }
+
+    /**
+     * 🔥 CRITICAL: Get all rooms for the user's hostel (including occupied ones)
+     */
+    public function getAllRooms()
+    {
+        if (!$this->hasHostel()) {
+            return collect();
+        }
+
+        return Room::where('hostel_id', $this->hostel_id)
+            ->with('hostel')
+            ->orderBy('room_number')
+            ->get();
     }
 }

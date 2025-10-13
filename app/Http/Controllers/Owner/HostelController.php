@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Owner;
 use App\Models\Hostel;
 use App\Models\Organization;
 use App\Models\Subscription;
+use App\Models\User;
 use App\Services\PlanLimitService;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -172,6 +173,15 @@ class HostelController extends Controller
             }
 
             $hostel = Hostel::create($hostelData);
+
+            // 🔥🔥🔥 CRITICAL FIX: Update user's hostel_id after hostel creation
+            $user->hostel_id = $hostel->id;
+            $user->save();
+            Log::info('User hostel_id updated after hostel creation', [
+                'user_id' => $user->id,
+                'hostel_id' => $hostel->id,
+                'hostel_name' => $hostel->name
+            ]);
 
             DB::commit();
 
@@ -383,6 +393,19 @@ class HostelController extends Controller
             ]);
 
             $hostel->update($validated);
+
+            // 🔥🔥🔥 CRITICAL FIX: Update user's hostel_id after hostel update
+            $user = auth()->user();
+            if ($user->hostel_id !== $hostel->id) {
+                $user->hostel_id = $hostel->id;
+                $user->save();
+                Log::info('User hostel_id updated after hostel update', [
+                    'user_id' => $user->id,
+                    'hostel_id' => $hostel->id,
+                    'hostel_name' => $hostel->name
+                ]);
+            }
+
             DB::commit();
 
             // ✅ CRITICAL: Refresh the model to get updated data

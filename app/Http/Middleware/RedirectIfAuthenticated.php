@@ -30,7 +30,12 @@ class RedirectIfAuthenticated
                 }
 
                 if ($user->hasRole('student')) {
-                    return redirect()->route('student.dashboard');
+                    // ✅ FIXED: Check if student is connected to hostel
+                    if ($user->hostel_id || $user->organization_id) {
+                        return redirect()->route('student.dashboard');
+                    } else {
+                        return redirect()->route('student.welcome');
+                    }
                 }
 
                 // Default fallback
