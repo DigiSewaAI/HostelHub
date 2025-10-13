@@ -70,8 +70,8 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        // ✅ FIXED: Redirect based on student's hostel connection status
-        if ($user->hostel_id || $user->organization_id) {
+        // ✅ FIXED: Simplified redirect logic - check only hostel_id for students
+        if ($user->isStudent() && $user->hostel_id) {
             // Student is connected to a hostel - redirect to dashboard
             return redirect()->route('student.dashboard');
         } else {
