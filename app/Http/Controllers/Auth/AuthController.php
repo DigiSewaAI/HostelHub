@@ -86,17 +86,22 @@ class AuthController extends Controller
             return $this->handleResponse($request, $validator->errors(), 422, 'register');
         }
 
+        // ✅ FIXED: Student registration with null organization_id
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'email_verified_at' => now(), // Mark as verified immediately
+            'organization_id' => null, // Students don't have organization initially
+            'role_id' => 3, // Student role
+            'email_verified_at' => now(),
         ]);
+
+        // Assign student role
+        $user->assignRole('student');
 
         event(new Registered($user));
         Auth::login($user);
 
-        // Redirect to dashboard after registration
         return $this->handleResponse($request, [
             'message' => 'Registration successful'
         ], 201, 'dashboard');

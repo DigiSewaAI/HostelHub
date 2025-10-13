@@ -95,7 +95,7 @@ class RegistrationController extends Controller
                 $userData['student_id'] = null;
             }
             if (\Schema::hasColumn('users', 'hostel_id')) {
-                $userData['hostel_id'] = null;
+                $userData['hostel_id'] = null; // Temporary set to null, will update after hostel creation
             }
 
             $user = User::create($userData);
@@ -150,6 +150,10 @@ class RegistrationController extends Controller
                 'owner_id' => $user->id,
                 'organization_id' => $organization->id,
             ]);
+
+            // 🔥🔥🔥 CRITICAL FIX: Update user's hostel_id after hostel creation
+            $user->hostel_id = $hostel->id;
+            $user->save();
 
             // 7️⃣ Create onboarding progress
             OnboardingProgress::create([

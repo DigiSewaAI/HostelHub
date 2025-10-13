@@ -1,0 +1,33 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::table('users', function (Blueprint $table) {
+            // Make organization_id nullable
+            $table->unsignedBigInteger('organization_id')->nullable()->change();
+
+            // Add index for better performance
+            $table->index('organization_id');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('users', function (Blueprint $table) {
+            $table->unsignedBigInteger('organization_id')->nullable(false)->change();
+            $table->dropIndex(['organization_id']);
+        });
+    }
+};

@@ -19,7 +19,7 @@ class RegisteredUserController extends Controller
      */
     public function create(): View
     {
-        return view('auth.register');
+        return view('auth.register_user');
     }
 
     /**
@@ -31,20 +31,52 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
+        // Check if user already exists (created by owner without password)
+        $existingUser = User::where('email', $request->email)->first();
+
+        if ($existingUser) {
+            // Update existing user with password and ensure student role
+            $existingUser->update([
+                'name' => $request->name,
+                'password' => Hash::make($request->password),
+                'role_id' => 3, // Student role
+            ]);
+
+            $user = $existingUser;
+
+            // Ensure student role is assigned
+            if (!$user->hasRole('student')) {
+                $user->assignRole('student');
+            }
+        } else {
+            // Create new student user
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'organization_id' => null, // Students don't have organization initially
+                'role_id' => 3, // Student role
+            ]);
+
+            // Assign student role using Spatie Permission
+            $user->assignRole('student');
+        }
 
         event(new Registered($user));
 
         Auth::login($user);
 
-        return redirect(route('dashboard', absolute: false));
+        // ✅ FIXED: Redirect based on student's hostel connection status
+        if ($user->hostel_id || $user->organization_id) {
+            // Student is connected to a hostel - redirect to dashboard
+            return redirect()->route('student.dashboard');
+        } else {
+            // New student without hostel - redirect to setup/welcome page
+            return redirect()->route('student.welcome');
+        }
     }
 }
