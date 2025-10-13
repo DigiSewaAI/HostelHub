@@ -156,8 +156,8 @@ Route::get('/dashboard', function () {
     } elseif ($user->hasRole('hostel_manager')) {
         return redirect()->route('owner.dashboard');
     } elseif ($user->hasRole('student')) {
-        // ✅ FIXED: Check if student is connected to hostel
-        if ($user->hostel_id || $user->organization_id) {
+        // ✅ FIXED: Simplified logic - check only hostel_id for students (consistent with other files)
+        if ($user->hostel_id) {
             return redirect()->route('student.dashboard');
         } else {
             return redirect()->route('student.welcome');
