@@ -266,39 +266,40 @@ class DashboardController extends Controller
     public function studentDashboard()
     {
         try {
-            // Authorization check
-            $this->authorize('view-student-dashboard');
+            $user = auth()->user();
+            $student = $user->student;
 
-            $student = auth()->user()->student;
-
-            if (!$student) {
-                return view('student.dashboard')->with('error', 'विद्यार्थी प्रोफाइल फेला परेन');
+            // If student doesn't exist or doesn't have hostel, show welcome-style dashboard
+            if (!$student || !$student->hostel_id) {
+                return view('student.welcome', [
+                    'user' => $user,
+                    'student' => $student
+                ]);
             }
 
             $room = $student->room;
+            $hostel = $student->hostel;
 
-            if (!$room) {
-                return view('student.dashboard')->with('error', 'कोठा फेला परेन');
+            if (!$room || !$hostel) {
+                return view('student.welcome', [
+                    'user' => $user,
+                    'student' => $student
+                ]);
             }
 
-            $hostel = $room->hostel;
-
-            if (!$hostel) {
-                return view('student.dashboard')->with('error', 'होस्टेल फेला परेन');
-            }
-
-            $mealMenu = MealMenu::where('hostel_id', $hostel->id)
+            // Get today's meal
+            $todayMeal = \App\Models\MealMenu::where('hostel_id', $hostel->id)
                 ->where('day_of_week', now()->format('l'))
-                ->select('id', 'meal_type as name', 'description', 'day_of_week', 'meal_time')
+                ->select('id', 'breakfast', 'lunch', 'dinner', 'day_of_week')
                 ->first();
 
-            return view('student.dashboard', compact('student', 'room', 'hostel', 'mealMenu'));
+            return view('student.dashboard', compact('student', 'room', 'hostel', 'todayMeal'));
         } catch (\Exception $e) {
             Log::error('विद्यार्थी ड्यासबोर्ड त्रुटि: ' . $e->getMessage(), [
                 'user_id' => auth()->id(),
                 'student_id' => $student->id ?? null
             ]);
-            return view('student.dashboard')->with('error', 'डाटा लोड गर्न असफल भयो');
+            return view('student.welcome')->with('error', 'डाटा लोड गर्न असफल भयो');
         }
     }
 

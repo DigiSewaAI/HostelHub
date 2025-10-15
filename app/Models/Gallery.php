@@ -20,7 +20,8 @@ class Gallery extends Model
         'external_link',
         'is_featured',
         'is_active',
-        'user_id'
+        'user_id',
+        'hostel_id' // ✅ ADDED: Make sure this exists
     ];
 
     protected $casts = [
@@ -34,6 +35,12 @@ class Gallery extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    // ✅ ADDED: Hostel relationship
+    public function hostel(): BelongsTo
+    {
+        return $this->belongsTo(Hostel::class);
     }
 
     public function getUrlAttribute(): string

@@ -30,12 +30,8 @@ class RedirectIfAuthenticated
                 }
 
                 if ($user->hasRole('student')) {
-                    // ✅ FIXED: Simplified logic - check only hostel_id for students
-                    if ($user->hostel_id) {
-                        return redirect()->route('student.dashboard');
-                    } else {
-                        return redirect()->route('student.welcome');
-                    }
+                    // ✅ FIXED: Always redirect students to dashboard, welcome page handles unconnected students
+                    return redirect()->route('student.dashboard');
                 }
 
                 // Default fallback

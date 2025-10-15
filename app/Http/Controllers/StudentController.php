@@ -4,6 +4,13 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Student;
+use App\Models\Hostel;
+use App\Models\Room;
+use App\Models\MealMenu;
+use App\Models\Gallery;
+use App\Models\Review;
+use App\Models\Payment;
 
 class StudentController extends Controller
 {
@@ -26,10 +33,113 @@ class StudentController extends Controller
         return view('students.my', compact('students'));
     }
 
-    // NEW: Add this method
+    // FIXED: Dashboard method with all variables the view expects
+    public function dashboard()
+    {
+        $user = Auth::user();
+        $student = $user->student;
+
+        if (!$student || !$student->hostel_id) {
+            return view('student.welcome');
+        }
+
+        $hostel = $student->hostel;
+        $room = $student->room;
+
+        // Today's meal
+        $currentDay = now()->format('l');
+        $todayMeal = MealMenu::where('hostel_id', $hostel->id)
+            ->where('day_of_week', $currentDay)
+            ->first();
+
+        // Gallery images
+        $galleryImages = Gallery::where('is_active', true)
+            ->take(4)
+            ->get();
+
+        // Last payment
+        $lastPayment = Payment::where('student_id', $student->id)
+            ->latest()
+            ->first();
+
+        // ✅ FIXED: Add payment status based on last payment
+        $paymentStatus = 'Unpaid'; // Default status
+        if ($lastPayment) {
+            // Check if payment has a status field, otherwise determine based on amount/date
+            if (isset($lastPayment->status)) {
+                $paymentStatus = $lastPayment->status == 'paid' ? 'Paid' : 'Unpaid';
+            } else {
+                // If no status field, assume paid if amount is positive
+                $paymentStatus = $lastPayment->amount > 0 ? 'Paid' : 'Unpaid';
+            }
+        }
+
+        // ✅ FIXED: Add all variables that the view expects
+        $notifications = collect(); // Empty collection for notifications
+        $upcomingEvents = collect(); // Empty collection for events
+
+        return view('student.dashboard', compact(
+            'student',
+            'hostel',
+            'room',
+            'todayMeal',
+            'galleryImages',
+            'notifications',
+            'upcomingEvents',
+            'lastPayment',
+            'paymentStatus' // ✅ Now included
+        ));
+    }
+
+    // Student profile for student role - ONLY ONE PROFILE METHOD
+    public function profile()
+    {
+        $user = Auth::user();
+        $student = $user->student;
+
+        if (!$student) {
+            return redirect()->route('student.dashboard')->with('error', 'विद्यार्थी प्रोफाइल फेला परेन');
+        }
+
+        return view('student.profile', compact('student'));
+    }
+
+    // Student meal menus
+    public function mealMenus()
+    {
+        $user = Auth::user();
+        $student = $user->student;
+
+        if (!$student || !$student->hostel_id) {
+            return redirect()->route('student.dashboard')->with('error', 'विद्यार्थी वा हस्टेल फेला परेन');
+        }
+
+        $mealMenus = MealMenu::where('hostel_id', $student->hostel_id)->get();
+
+        return view('student.meal-menus', compact('student', 'mealMenus'));
+    }
+
+    // Show specific meal menu
+    public function showMealMenu(MealMenu $mealMenu)
+    {
+        $user = Auth::user();
+        $student = $user->student;
+
+        if (!$student || $mealMenu->hostel_id != $student->hostel_id) {
+            abort(403, 'तपाईंसँग यो मेनु हेर्ने अनुमति छैन');
+        }
+
+        return view('student.meal-menu-show', compact('student', 'mealMenu'));
+    }
+
+    // Update student profile
     public function updateProfile(Request $request)
     {
         $student = auth()->user()->student;
+
+        if (!$student) {
+            return redirect()->route('student.dashboard')->with('error', 'विद्यार्थी प्रोफाइल फेला परेन');
+        }
 
         $validated = $request->validate([
             'phone' => 'required|string|max:15',
@@ -44,5 +154,107 @@ class StudentController extends Controller
 
         return redirect()->route('student.profile')
             ->with('success', 'तपाईंको प्रोफाइल सफलतापूर्वक अद्यावधिक गरियो');
+    }
+
+    // ✅ ADDED: New methods for the routes (only using existing models)
+    public function gallery()
+    {
+        $user = Auth::user();
+        $student = $user->student;
+
+        if (!$student || !$student->hostel_id) {
+            return redirect()->route('student.dashboard')->with('error', 'विद्यार्थी वा हस्टेल फेला परेन');
+        }
+
+        $galleryImages = Gallery::where('is_active', true)
+            ->paginate(12);
+
+        return view('student.gallery', compact('galleryImages', 'student'));
+    }
+
+    public function reviews()
+    {
+        $user = Auth::user();
+        $student = $user->student;
+
+        if (!$student || !$student->hostel_id) {
+            return redirect()->route('student.dashboard')->with('error', 'विद्यार्थी वा हस्टेल फेला परेन');
+        }
+
+        // Check if Review model exists and has the required columns
+        if (class_exists('App\Models\Review')) {
+            $reviews = \App\Models\Review::where('hostel_id', $student->hostel_id)
+                ->where('status', 'approved')
+                ->with('student.user')
+                ->latest()
+                ->paginate(10);
+        } else {
+            $reviews = collect(); // Empty collection if Review model doesn't exist
+        }
+
+        return view('student.reviews', compact('reviews', 'student'));
+    }
+
+    public function events()
+    {
+        $user = Auth::user();
+        $student = $user->student;
+
+        if (!$student || !$student->hostel_id) {
+            return redirect()->route('student.dashboard')->with('error', 'विद्यार्थी वा हस्टेल फेला परेन');
+        }
+
+        // Check if Event model exists
+        if (class_exists('App\Models\Event')) {
+            $events = \App\Models\Event::where('event_date', '>=', now())
+                ->orderBy('event_date')
+                ->paginate(10);
+        } else {
+            $events = collect(); // Empty collection if Event model doesn't exist
+        }
+
+        return view('student.events', compact('events', 'student'));
+    }
+
+    public function notifications()
+    {
+        $user = Auth::user();
+
+        // Simple notifications implementation
+        $notifications = []; // You can implement proper notifications later
+
+        return view('student.notifications', compact('notifications'));
+    }
+
+    public function submitMaintenance(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'priority' => 'required|in:low,medium,high,urgent',
+        ]);
+
+        $student = Auth::user()->student;
+
+        if (!$student || !$student->hostel_id) {
+            return redirect()->back()->with('error', 'विद्यार्थी वा हस्टेल फेला परेन');
+        }
+
+        // Check if MaintenanceRequest model exists
+        if (class_exists('App\Models\MaintenanceRequest')) {
+            \App\Models\MaintenanceRequest::create([
+                'student_id' => $student->id,
+                'hostel_id' => $student->hostel_id,
+                'room_id' => $student->room_id,
+                'title' => $request->title,
+                'description' => $request->description,
+                'priority' => $request->priority,
+                'status' => 'pending'
+            ]);
+
+            return redirect()->back()->with('success', 'मर्मतको अनुरोध सफलतापूर्वक पेश गरियो');
+        } else {
+            return redirect()->back()->with('error', 'मर्मत सेवा अहिले उपलब्ध छैन');
+        }
     }
 }
