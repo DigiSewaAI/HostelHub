@@ -33,7 +33,8 @@ use App\Http\Controllers\{
     OnboardingController,
     ProfileController as PublicProfileController,
     BookingController,
-    PaymentController
+    PaymentController,
+    DocumentController  // ✅ ADDED: Document Controller
 };
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
@@ -290,6 +291,13 @@ Route::middleware(['auth', 'hasOrganization', 'role:admin', 'can:view-admin-dash
             });
         });
 
+        // ✅ ADDED: Admin Document Management Routes
+        Route::prefix('documents')->name('documents.')->group(function () {
+            Route::get('/', [DocumentController::class, 'index'])->name('index');
+            Route::get('/{document}', [DocumentController::class, 'show'])->name('show');
+            Route::get('/{document}/download', [DocumentController::class, 'download'])->name('download');
+        });
+
         // Reports routes
         Route::prefix('reports')->name('reports.')->group(function () {
             Route::get('/', [ReportController::class, 'index'])->name('index');
@@ -413,6 +421,17 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
         Route::post('/payments/{payment}/approve', [PaymentController::class, 'approveBankTransfer'])->name('payments.approve');
         Route::post('/payments/{payment}/reject', [PaymentController::class, 'rejectBankTransfer'])->name('payments.reject');
         Route::get('/payments/{payment}/proof', [PaymentController::class, 'viewProof'])->name('payments.proof');
+
+        // ✅ ADDED: Owner Document Management Routes
+        Route::prefix('documents')->name('documents.')->group(function () {
+            Route::get('/', [DocumentController::class, 'index'])->name('index');
+            Route::get('/create', [DocumentController::class, 'create'])->name('create');
+            Route::post('/', [DocumentController::class, 'store'])->name('store');
+            Route::get('/search', [DocumentController::class, 'search'])->name('search');
+            Route::get('/{document}', [DocumentController::class, 'show'])->name('show');
+            Route::get('/{document}/download', [DocumentController::class, 'download'])->name('download');
+            Route::delete('/{document}', [DocumentController::class, 'destroy'])->name('destroy');
+        });
 
         // Hostel-specific bookings
         Route::get('/hostels/{hostelId}/bookings', [BookingController::class, 'hostelBookings'])->name('hostels.bookings');

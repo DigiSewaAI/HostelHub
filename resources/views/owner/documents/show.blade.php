@@ -1,0 +1,163 @@
+@extends('layouts.owner')
+
+@section('title', 'कागजात विवरण')
+
+@section('content')
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-info text-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-file-alt me-2"></i>कागजात विवरण
+                        </h5>
+                        <div>
+                            <a href="{{ route('owner.documents.download', $document) }}" 
+                               class="btn btn-light btn-sm">
+                                <i class="fas fa-download me-1"></i>डाउनलोड
+                            </a>
+                            @if($document->uploaded_by == auth()->id())
+                            <form action="{{ route('owner.documents.destroy', $document) }}" 
+                                  method="POST" class="d-inline">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-danger btn-sm" 
+                                        onclick="return confirm('के तपाइँ यो कागजात मेटाउन निश्चित हुनुहुन्छ?')">
+                                    <i class="fas fa-trash me-1"></i>मेटाउनुहोस्
+                                </button>
+                            </form>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Document Information -->
+                        <div class="col-md-6">
+                            <h6 class="border-bottom pb-2">कागजात जानकारी</h6>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th width="40%">कागजातको नाम:</th>
+                                    <td>{{ $document->original_name }}</td>
+                                </tr>
+                                <tr>
+                                    <th>प्रकार:</th>
+                                    <td>
+                                        <span class="badge bg-info">
+                                            {{ $document->getDocumentTypeNepaliAttribute() }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>फाइल साइज:</th>
+                                    <td>{{ number_format($document->file_size / 1024, 2) }} KB</td>
+                                </tr>
+                                <tr>
+                                    <th>फाइल प्रकार:</th>
+                                    <td>{{ $document->mime_type }}</td>
+                                </tr>
+                                <tr>
+                                    <th>अपलोड मिति:</th>
+                                    <td>{{ $document->created_at->format('Y-m-d H:i:s') }}</td>
+                                </tr>
+                                <tr>
+                                    <th>म्याद मिति:</th>
+                                    <td>
+                                        @if($document->expiry_date)
+                                            @if($document->is_expired)
+                                                <span class="badge bg-danger">{{ $document->expiry_date->format('Y-m-d') }} (म्याद नाघेको)</span>
+                                            @else
+                                                <span class="badge bg-warning">{{ $document->expiry_date->format('Y-m-d') }}</span>
+                                            @endif
+                                        @else
+                                            <span class="badge bg-secondary">म्याद नभएको</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        
+                        <!-- Student Information -->
+                        <div class="col-md-6">
+                            <h6 class="border-bottom pb-2">विद्यार्थी जानकारी</h6>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th width="40%">नाम:</th>
+                                    <td>{{ $document->student->user->name ?? 'N/A' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>होस्टल:</th>
+                                    <td>{{ $document->hostel->name ?? 'N/A' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>ठेगाना:</th>
+                                    <td>{{ $document->student->address ?? 'N/A' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>सम्पर्क:</th>
+                                    <td>{{ $document->student->user->phone ?? 'N/A' }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Description -->
+                    @if($document->description)
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <h6 class="border-bottom pb-2">विवरण</h6>
+                            <p class="mb-0">{{ $document->description }}</p>
+                        </div>
+                    </div>
+                    @endif
+                    
+                    <!-- File Preview -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <h6 class="border-bottom pb-2">फाइल पूर्वावलोकन</h6>
+                            <div class="text-center">
+                                @if(str_starts_with($document->mime_type, 'image/'))
+                                    <img src="{{ Storage::disk('public')->url($document->stored_path) }}" 
+                                         class="img-fluid rounded shadow" style="max-height: 500px;" 
+                                         alt="{{ $document->original_name }}">
+                                @elseif($document->mime_type == 'application/pdf')
+                                    <div class="p-4 border rounded bg-light">
+                                        <i class="fas fa-file-pdf text-danger fa-5x mb-3"></i>
+                                        <br>
+                                        <span class="text-muted">PDF फाइल - डाउनलोड गरेर हेर्नुहोस्</span>
+                                    </div>
+                                @elseif(str_contains($document->mime_type, 'word') || str_contains($document->mime_type, 'document'))
+                                    <div class="p-4 border rounded bg-light">
+                                        <i class="fas fa-file-word text-primary fa-5x mb-3"></i>
+                                        <br>
+                                        <span class="text-muted">Word फाइल - डाउनलोड गरेर हेर्नुहोस्</span>
+                                    </div>
+                                @else
+                                    <div class="p-4 border rounded bg-light">
+                                        <i class="fas fa-file text-secondary fa-5x mb-3"></i>
+                                        <br>
+                                        <span class="text-muted">{{ $document->original_name }} - डाउनलोड गरेर हेर्नुहोस्</span>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between">
+                        <small class="text-muted">
+                            अपलोड गर्ने: {{ $document->uploader->name ?? 'N/A' }}
+                        </small>
+                        <a href="{{ route('owner.documents.index') }}" class="btn btn-secondary btn-sm">
+                            <i class="fas fa-arrow-left me-1"></i>सबै कागजातहरूमा फर्कनुहोस्
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
