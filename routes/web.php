@@ -129,11 +129,17 @@ Route::middleware('guest')->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::get('/student/welcome', function () {
+    // Check if student already has hostel, if yes redirect to dashboard
+    $student = auth()->user()->student;
+    if ($student && $student->hostel_id) {
+        return redirect()->route('student.dashboard');
+    }
     return view('student.welcome');
 })->name('student.welcome')->middleware(['auth', 'role:student']);
 
+
 /*|--------------------------------------------------------------------------
-| Global Dashboard Redirect (Role-based) - FIXED FOR STUDENTS WITHOUT ORGANIZATION
+| Global Dashboard Redirect (Role-based) - SIMPLIFIED FIX FOR STUDENTS
 |--------------------------------------------------------------------------
 */
 Route::get('/dashboard', function () {
@@ -156,12 +162,8 @@ Route::get('/dashboard', function () {
     } elseif ($user->hasRole('hostel_manager')) {
         return redirect()->route('owner.dashboard');
     } elseif ($user->hasRole('student')) {
-        // ✅ FIXED: Simplified logic - check only hostel_id for students (consistent with other files)
-        if ($user->hostel_id) {
-            return redirect()->route('student.dashboard');
-        } else {
-            return redirect()->route('student.welcome');
-        }
+        // ✅ FIXED: Always redirect students to dashboard, let dashboard handle unconnected students
+        return redirect()->route('student.dashboard');
     }
 
     return redirect('/');
@@ -313,7 +315,54 @@ Route::middleware(['auth', 'hasOrganization', 'role:admin', 'can:view-admin-dash
     });
 
 /*|--------------------------------------------------------------------------
-| Unified Role-Based Routes (Protected Routes for Owner and Student)
+| Student Routes (Moved outside hasOrganization middleware)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'role:student'])->prefix('student')->name('student.')->group(function () {
+    // 🔥 CRITICAL FIX: Changed from DashboardController to StudentController for dashboard
+    Route::get('/dashboard', [\App\Http\Controllers\StudentController::class, 'dashboard'])->name('dashboard');
+
+    Route::get('/profile', [StudentController::class, 'profile'])->name('profile');
+
+    // ✅ FIXED: Payments route with correct naming
+    Route::get('/payments', [PaymentController::class, 'studentPayments'])->name('payments.index');
+    Route::get('/payments/{paymentId}/receipt', [PaymentController::class, 'showReceipt'])->name('payments.receipt');
+    Route::get('/payments/{paymentId}/receipt/download', [PaymentController::class, 'downloadReceipt'])->name('payments.receipt.download');
+
+    // ✅ FIXED: Meal menus routes - COMPATIBILITY FIX
+    Route::get('/meal-menus', [StudentController::class, 'mealMenus'])->name('meal-menus'); // For view compatibility
+    Route::get('/meal-menus/{mealMenu}', [StudentController::class, 'showMealMenu'])->name('meal-menus.show');
+
+    // Room viewing
+    Route::get('/rooms', [RoomController::class, 'studentIndex'])->name('rooms.index');
+    Route::get('/rooms/{room}', [RoomController::class, 'studentShow'])->name('rooms.show');
+    Route::get('/rooms/search', [RoomController::class, 'search'])->name('rooms.search');
+
+    // ✅ FIXED: Hostel routes with correct naming
+    Route::get('/hostel/search', [PublicController::class, 'hostelSearch'])->name('hostel.search');
+    Route::get('/hostel/join', [PublicController::class, 'hostelJoin'])->name('hostel.join');
+    Route::post('/hostel/{hostel}/join', [PublicController::class, 'joinHostel'])->name('hostel.join.submit');
+
+    // Bookings with permission check
+    Route::get('/bookings', [BookingController::class, 'index'])->name('bookings.index');
+    Route::get('/bookings/create', [BookingController::class, 'create'])->name('bookings.create');
+    Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
+    Route::get('/bookings/{id}', [BookingController::class, 'show'])->name('bookings.show');
+    Route::post('/bookings/{id}/cancel', [BookingController::class, 'cancel'])->name('bookings.cancel');
+
+    // Student profile update
+    Route::patch('/profile/update', [StudentController::class, 'updateProfile'])->name('profile.update');
+
+    // ✅ ADDED: New student routes as requested - WITH COMPATIBILITY
+    Route::get('/gallery', [StudentController::class, 'gallery'])->name('gallery');
+    Route::get('/reviews', [StudentController::class, 'reviews'])->name('reviews');
+    Route::get('/events', [StudentController::class, 'events'])->name('events');
+    Route::get('/notifications', [StudentController::class, 'notifications'])->name('notifications');
+    Route::post('/maintenance-request', [StudentController::class, 'submitMaintenance'])->name('maintenance.submit');
+});
+
+/*|--------------------------------------------------------------------------
+| Unified Role-Based Routes (Protected Routes for Owner - Students moved out)
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'hasOrganization'])->group(function () {
@@ -324,12 +373,8 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
     // Booking routes
     Route::get('/my-bookings', [BookingController::class, 'myBookings'])->name('bookings.my');
     Route::get('/bookings/pending', [BookingController::class, 'pendingApprovals'])->name('bookings.pending');
-    Route::get('/bookings/create', [BookingController::class, 'create'])->name('bookings.create');
-    Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
-    Route::get('/bookings/{id}', [BookingController::class, 'show'])->name('bookings.show');
     Route::post('/bookings/{id}/approve', [BookingController::class, 'approve'])->name('bookings.approve');
     Route::post('/bookings/{id}/reject', [BookingController::class, 'reject'])->name('bookings.reject');
-    Route::post('/bookings/{id}/cancel', [BookingController::class, 'cancel'])->name('bookings.cancel');
 
     // Subscription routes
     Route::get('/subscription/limits', [SubscriptionController::class, 'showLimits'])->name('subscription.limits');
@@ -356,13 +401,6 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
 
     // Payment Verification
     Route::get('/payment/verify/{paymentId}', [PaymentController::class, 'verifyPayment'])->name('payment.verify');
-
-    // Student Payment History and Receipts
-    Route::middleware('role:student')->group(function () {
-        Route::get('/student/payments', [PaymentController::class, 'studentPayments'])->name('student.payments.index');
-        Route::get('/student/payments/{paymentId}/receipt', [PaymentController::class, 'showReceipt'])->name('student.payments.receipt');
-        Route::get('/student/payments/{paymentId}/receipt/download', [PaymentController::class, 'downloadReceipt'])->name('student.payments.receipt.download');
-    });
 
     // 🔥 CRITICAL FIX: Owner specific routes with SIMPLIFIED middleware
     Route::middleware(['role:hostel_manager'])->prefix('owner')->name('owner.')->group(function () {
@@ -456,41 +494,6 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
         Route::post('contacts/bulk-delete', [ContactController::class, 'bulkDestroy'])->name('contacts.bulk-delete');
         Route::post('contacts/{id}/update-status', [ContactController::class, 'updateStatus'])->name('contacts.update-status');
         Route::get('contacts/export/csv', [ContactController::class, 'exportCSV'])->name('contacts.export-csv');
-    });
-
-    // ✅ CRITICAL FIX: Consolidated Student Routes - REMOVED DUPLICATE GROUP
-    Route::middleware(['role:student', 'can:view-student-dashboard'])->prefix('student')->name('student.')->group(function () {
-        Route::get('/dashboard', [DashboardController::class, 'studentDashboard'])->name('dashboard');
-        Route::get('/profile', [StudentController::class, 'profile'])->name('profile');
-
-        // ✅ FIXED: Payments route with correct naming
-        Route::get('/payments', [PaymentController::class, 'studentPayments'])->name('payments.index');
-
-        // ✅ FIXED: Meal menus routes
-        Route::get('/meal-menus', [StudentController::class, 'mealMenus'])->name('meal-menus.index');
-        Route::get('/meal-menus/{mealMenu}', [StudentController::class, 'showMealMenu'])->name('meal-menus.show');
-
-        // Room viewing
-        Route::get('/rooms', [RoomController::class, 'studentIndex'])->name('rooms.index');
-        Route::get('/rooms/{room}', [RoomController::class, 'studentShow'])->name('rooms.show');
-        Route::get('/rooms/search', [RoomController::class, 'search'])->name('rooms.search');
-
-        // ✅ FIXED: Hostel routes with correct naming
-        Route::get('/hostel/search', [PublicController::class, 'hostelSearch'])->name('hostel.search');
-        Route::get('/hostel/join', [PublicController::class, 'hostelJoin'])->name('hostel.join');
-        Route::post('/hostel/{hostel}/join', [PublicController::class, 'joinHostel'])->name('hostel.join.submit');
-
-        // Bookings with permission check
-        Route::get('/bookings', [BookingController::class, 'index'])->name('bookings.index');
-
-        // ✅ FIXED: Using bookings_create instead of booking.create
-        Route::middleware([\App\Http\Middleware\CheckPermission::class . ':bookings_create'])->group(function () {
-            Route::get('/bookings/create', [BookingController::class, 'create'])->name('bookings.create');
-            Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
-        });
-
-        // Student profile update
-        Route::patch('/profile/update', [StudentController::class, 'updateProfile'])->name('profile.update');
     });
 });
 

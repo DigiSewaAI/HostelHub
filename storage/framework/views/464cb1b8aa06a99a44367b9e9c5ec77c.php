@@ -251,7 +251,7 @@
                class="nav-link <?php echo e(request()->routeIs('student.payments.*') ? 'active' : ''); ?>">
                 <i class="fas fa-credit-card"></i>भुक्तानी
             </a>
-            <a href="<?php echo e(route('student.meal-menus.index')); ?>" 
+            <a href="<?php echo e(route('student.meal-menus')); ?>" 
                class="nav-link <?php echo e(request()->routeIs('student.meal-menus.*') ? 'active' : ''); ?>">
                 <i class="fas fa-utensils"></i>खानाको योजना
             </a>
@@ -267,6 +267,7 @@
                     <ul class="dropdown-menu dropdown-menu-end shadow">
                         <li><a class="dropdown-item nepali" href="<?php echo e(route('student.profile')); ?>"><i class="fas fa-user me-2"></i>मेरो प्रोफाइल</a></li>
                         <li><a class="dropdown-item nepali" href="<?php echo e(route('student.payments.index')); ?>"><i class="fas fa-credit-card me-2"></i>भुक्तानीहरू</a></li>
+                        <li><a class="dropdown-item nepali" href="<?php echo e(route('student.meal-menus')); ?>"><i class="fas fa-utensils me-2"></i>खानाको योजना</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li>
                             <form method="POST" action="<?php echo e(route('logout')); ?>" id="logout-form">

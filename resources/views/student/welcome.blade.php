@@ -42,36 +42,51 @@
                     @endif
                 </p>
 
-                <!-- FIXED BUTTONS WITH PROPER SPACING AND CORRECT ROUTES -->
+                <!-- COMPLETELY FIXED BUTTONS -->
                 <div class="space-y-4 mt-6">
                     @if(!auth()->user()->student || !auth()->user()->student->hostel_id)
                         <!-- Option 1: Search hostel -->
-                        <a href="{{ route('student.hostel.search') }}" 
-                           class="w-full flex items-center justify-center px-4 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150">
+                        <a href="{{ route('hostels.search') }}" 
+                           class="w-full flex items-center justify-center px-4 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-green-600 hover:bg-green-700 transition duration-150">
                             <i class="fas fa-search mr-3"></i>
                             होस्टल खोज्नुहोस्
                         </a>
 
                         <!-- Option 2: Use hostel code -->
                         <a href="{{ route('student.hostel.join') }}" 
-                           class="w-full flex items-center justify-center px-4 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150">
+                           class="w-full flex items-center justify-center px-4 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition duration-150">
                             <i class="fas fa-key mr-3"></i>
                             होस्टल कोड प्रयोग गर्नुहोस्
                         </a>
                     @endif
 
-                    <!-- Option 3: Go to dashboard -->
+                    <!-- Option 3: Go to dashboard - FIXED: Now uses StudentController dashboard method -->
                     <a href="{{ route('student.dashboard') }}" 
-                       class="w-full flex items-center justify-center px-4 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150">
+                       class="w-full flex items-center justify-center px-4 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-blue-600 hover:bg-blue-700 transition duration-150">
                         <i class="fas fa-tachometer-alt mr-3"></i>
                         ड्यासबोर्डमा जानुहोस्
                     </a>
 
-                    <!-- Option 4: Contact -->
-                    <a href="{{ route('contact') }}" 
-                       class="w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-md shadow-sm text-base font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition duration-150">
-                        <i class="fas fa-phone-alt mr-3"></i>
-                        सम्पर्क गर्नुहोस्
+                    <!-- Option 4: Profile -->
+                    <a href="{{ route('student.profile') }}" 
+                       class="w-full flex items-center justify-center px-4 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-purple-600 hover:bg-purple-700 transition duration-150">
+                        <i class="fas fa-user mr-3"></i>
+                        प्रोफाइल
+                    </a>
+
+                    <!-- Option 5: Payments -->
+                    <a href="{{ route('student.payments.index') }}" 
+                       class="w-full flex items-center justify-center px-4 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-red-600 hover:bg-red-700 transition duration-150">
+                        <i class="fas fa-credit-card mr-3"></i>
+                        भुक्तानी
+                    </a>
+
+                    <!-- Option 6: Meal Plan - FIXED: Using inline CSS for guaranteed visibility -->
+                    <a href="{{ route('student.meal-menus.index') }}" 
+                       class="w-full flex items-center justify-center px-4 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white transition duration-150"
+                       style="background-color: #4a5568; color: white; border-color: transparent;">
+                        <i class="fas fa-utensils mr-3"></i>
+                        खानाको योजना
                     </a>
                 </div>
 
