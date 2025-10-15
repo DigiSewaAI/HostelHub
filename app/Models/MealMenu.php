@@ -51,4 +51,28 @@ class MealMenu extends Model
     {
         return $query->where('meal_type', $mealType);
     }
+
+    /**
+     * Get breakfast items
+     */
+    public function getBreakfastAttribute(): string
+    {
+        return $this->items['breakfast'] ?? 'उपलब्ध छैन';
+    }
+
+    /**
+     * Get lunch items
+     */
+    public function getLunchAttribute(): string
+    {
+        return $this->items['lunch'] ?? 'उपलब्ध छैन';
+    }
+
+    /**
+     * Get dinner items
+     */
+    public function getDinnerAttribute(): string
+    {
+        return $this->items['dinner'] ?? 'उपलब्ध छैन';
+    }
 }

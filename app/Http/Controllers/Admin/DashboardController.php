@@ -287,13 +287,47 @@ class DashboardController extends Controller
                 ]);
             }
 
-            // Get today's meal
+            // Get today's meal with proper meal items
             $todayMeal = \App\Models\MealMenu::where('hostel_id', $hostel->id)
                 ->where('day_of_week', now()->format('l'))
-                ->select('id', 'breakfast', 'lunch', 'dinner', 'day_of_week')
+                ->select('id', 'meal_type', 'items', 'description', 'day_of_week')
                 ->first();
 
-            return view('student.dashboard', compact('student', 'room', 'hostel', 'todayMeal'));
+            // Get last payment information
+            $lastPayment = \App\Models\Payment::where('student_id', $student->id)
+                ->latest()
+                ->first();
+
+            // Get upcoming events (assuming you have an Event model)
+            $upcomingEvents = \App\Models\Event::where('date', '>=', now())
+                ->where('hostel_id', $hostel->id)
+                ->orderBy('date')
+                ->take(3)
+                ->get();
+
+            // Get gallery images
+            $galleryImages = \App\Models\Gallery::where('hostel_id', $hostel->id)
+                ->where('is_active', true)
+                ->take(4)
+                ->get();
+
+            // Get notifications
+            $notifications = $user->notifications()->latest()->take(5)->get();
+
+            // Determine payment status
+            $paymentStatus = $lastPayment && $lastPayment->status === 'completed' ? 'Paid' : 'Pending';
+
+            return view('student.dashboard', compact(
+                'student',
+                'room',
+                'hostel',
+                'todayMeal',
+                'lastPayment',
+                'upcomingEvents',
+                'galleryImages',
+                'notifications',
+                'paymentStatus'
+            ));
         } catch (\Exception $e) {
             Log::error('विद्यार्थी ड्यासबोर्ड त्रुटि: ' . $e->getMessage(), [
                 'user_id' => auth()->id(),
