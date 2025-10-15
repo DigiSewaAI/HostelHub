@@ -318,10 +318,6 @@ Route::middleware(['auth', 'hasOrganization', 'role:admin', 'can:view-admin-dash
 */
 Route::middleware(['auth', 'hasOrganization'])->group(function () {
 
-    Route::get('/student/dashboard', [DashboardController::class, 'studentDashboard'])
-        ->middleware(['role:student', 'can:view-student-dashboard'])
-        ->name('student.dashboard');
-
     // Common routes for all authenticated users
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
@@ -462,11 +458,15 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
         Route::get('contacts/export/csv', [ContactController::class, 'exportCSV'])->name('contacts.export-csv');
     });
 
-    // Student routes
+    // ✅ CRITICAL FIX: Consolidated Student Routes - REMOVED DUPLICATE GROUP
     Route::middleware(['role:student', 'can:view-student-dashboard'])->prefix('student')->name('student.')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'studentDashboard'])->name('dashboard');
         Route::get('/profile', [StudentController::class, 'profile'])->name('profile');
-        Route::get('/payments', [StudentController::class, 'payments'])->name('payments');
+
+        // ✅ FIXED: Payments route with correct naming
+        Route::get('/payments', [PaymentController::class, 'studentPayments'])->name('payments.index');
+
+        // ✅ FIXED: Meal menus routes
         Route::get('/meal-menus', [StudentController::class, 'mealMenus'])->name('meal-menus.index');
         Route::get('/meal-menus/{mealMenu}', [StudentController::class, 'showMealMenu'])->name('meal-menus.show');
 
@@ -475,15 +475,14 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
         Route::get('/rooms/{room}', [RoomController::class, 'studentShow'])->name('rooms.show');
         Route::get('/rooms/search', [RoomController::class, 'search'])->name('rooms.search');
 
-        // ✅ ADDED: Student hostel search route (missing route)
-        Route::get('/hostels/search', [PublicController::class, 'hostelSearch'])->name('hostels.search');
-
-        // ✅ CRITICAL FIX: Add the missing student hostel join route
-        Route::get('/hostels/join', [PublicController::class, 'hostelJoin'])->name('hostels.join');
-        Route::post('/hostels/{hostel}/join', [PublicController::class, 'joinHostel'])->name('hostels.join.submit');
+        // ✅ FIXED: Hostel routes with correct naming
+        Route::get('/hostel/search', [PublicController::class, 'hostelSearch'])->name('hostel.search');
+        Route::get('/hostel/join', [PublicController::class, 'hostelJoin'])->name('hostel.join');
+        Route::post('/hostel/{hostel}/join', [PublicController::class, 'joinHostel'])->name('hostel.join.submit');
 
         // Bookings with permission check
         Route::get('/bookings', [BookingController::class, 'index'])->name('bookings.index');
+
         // ✅ FIXED: Using bookings_create instead of booking.create
         Route::middleware([\App\Http\Middleware\CheckPermission::class . ':bookings_create'])->group(function () {
             Route::get('/bookings/create', [BookingController::class, 'create'])->name('bookings.create');
@@ -493,29 +492,29 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
         // Student profile update
         Route::patch('/profile/update', [StudentController::class, 'updateProfile'])->name('profile.update');
     });
-
-    // Subscription Management
-    Route::get('/subscription', [SubscriptionController::class, 'show'])->name('subscription.show');
-    Route::post('/subscription/upgrade', [SubscriptionController::class, 'upgrade'])->name('subscription.upgrade');
-    Route::post('/subscription/start-trial', [SubscriptionController::class, 'startTrial'])->name('subscription.start-trial');
-    Route::post('/subscription/cancel', [SubscriptionController::class, 'cancel'])->name('subscription.cancel');
-
-    // Onboarding
-    Route::get('/onboarding', [OnboardingController::class, 'index'])->name('onboarding.index');
-    Route::post('/onboarding/step/{step}', [OnboardingController::class, 'store'])->name('onboarding.store');
-    Route::post('/onboarding/skip/{step}', [OnboardingController::class, 'skip'])->name('onboarding.skip');
-    Route::post('/onboarding/complete', [OnboardingController::class, 'complete'])->name('onboarding.complete');
-
-    // Profile Management
-    Route::get('/profile', [PublicProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [PublicProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [PublicProfileController::class, 'destroy'])->name('profile.destroy');
-
-    // Password Management
-    Route::put('/password', [PasswordController::class, 'update'])->name('password.update');
-    Route::get('/confirm-password', [ConfirmablePasswordController::class, 'show'])->name('password.confirm');
-    Route::post('/confirm-password', [ConfirmablePasswordController::class, 'store'])->name('password.confirm.store');
 });
+
+// ✅ MOVED: Subscription Management outside the hasOrganization middleware for flexibility
+Route::get('/subscription', [SubscriptionController::class, 'show'])->name('subscription.show');
+Route::post('/subscription/upgrade', [SubscriptionController::class, 'upgrade'])->name('subscription.upgrade');
+Route::post('/subscription/start-trial', [SubscriptionController::class, 'startTrial'])->name('subscription.start-trial');
+Route::post('/subscription/cancel', [SubscriptionController::class, 'cancel'])->name('subscription.cancel');
+
+// ✅ MOVED: Onboarding outside the hasOrganization middleware
+Route::get('/onboarding', [OnboardingController::class, 'index'])->name('onboarding.index');
+Route::post('/onboarding/step/{step}', [OnboardingController::class, 'store'])->name('onboarding.store');
+Route::post('/onboarding/skip/{step}', [OnboardingController::class, 'skip'])->name('onboarding.skip');
+Route::post('/onboarding/complete', [OnboardingController::class, 'complete'])->name('onboarding.complete');
+
+// ✅ MOVED: Profile Management outside the hasOrganization middleware
+Route::get('/profile', [PublicProfileController::class, 'edit'])->name('profile.edit');
+Route::patch('/profile', [PublicProfileController::class, 'update'])->name('profile.update');
+Route::delete('/profile', [PublicProfileController::class, 'destroy'])->name('profile.destroy');
+
+// ✅ MOVED: Password Management outside the hasOrganization middleware
+Route::put('/password', [PasswordController::class, 'update'])->name('password.update');
+Route::get('/confirm-password', [ConfirmablePasswordController::class, 'show'])->name('password.confirm');
+Route::post('/confirm-password', [ConfirmablePasswordController::class, 'store'])->name('password.confirm.store');
 
 /*|--------------------------------------------------------------------------
 | Search route
