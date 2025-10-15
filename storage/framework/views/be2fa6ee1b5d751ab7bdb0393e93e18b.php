@@ -5,15 +5,15 @@
     <!-- Welcome Section -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card bg-primary text-white">
-                <div class="card-body">
+            <div class="card bg-gradient-primary text-white shadow-lg">
+                <div class="card-body py-4">
                     <div class="row align-items-center">
                         <div class="col-md-8">
-                            <h2 class="mb-1">नमस्ते, <?php echo e($student->user->name); ?>! 👋</h2>
-                        <p class="mb-0"><?php echo e($hostel->name); ?>मा तपाईंलाई स्वागत छ</p>
+                            <h2 class="mb-1 fw-bold">नमस्ते, <?php echo e($student->user->name); ?>! 👋</h2>
+                            <p class="mb-0 fs-5"><?php echo e($hostel->name); ?> मा तपाईंलाई स्वागत छ</p>
                         </div>
                         <div class="col-md-4 text-end">
-                            <div class="badge bg-light text-dark p-2">
+                            <div class="badge bg-light text-dark p-3 fs-6">
                                 <i class="fas fa-calendar me-2"></i>
                                 <?php echo e(now()->format('F j, Y')); ?>
 
@@ -25,73 +25,79 @@
         </div>
     </div>
 
+    <!-- Quick Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card card-hover border-primary shadow-sm">
+                <div class="card-body text-center py-4">
+                    <i class="fas fa-door-open fa-2x text-primary mb-3"></i>
+                    <h5 class="text-dark">कोठा नं.</h5>
+                    <h3 class="text-primary fw-bold"><?php echo e($student->room->room_number ?? 'उपलब्ध छैन'); ?></h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card card-hover border-success shadow-sm">
+                <div class="card-body text-center py-4">
+                    <i class="fas fa-utensils fa-2x text-success mb-3"></i>
+                    <h5 class="text-dark">आजको खाना</h5>
+                    <h3 class="text-success fw-bold"><?php echo e($todayMeal ? 'उपलब्ध' : 'हाल अपडेट छैन'); ?></h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card card-hover border-warning shadow-sm">
+                <div class="card-body text-center py-4">
+                    <i class="fas fa-receipt fa-2x text-warning mb-3"></i>
+                    <h5 class="text-dark">भुक्तानी</h5>
+                    <h3 class="text-warning fw-bold">
+                        <?php if($paymentStatus == 'Paid'): ?>
+                            भुक्तानी भएको
+                        <?php else: ?>
+                            बाकी
+                        <?php endif; ?>
+                    </h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card card-hover border-info shadow-sm">
+                <div class="card-body text-center py-4">
+                    <i class="fas fa-bell fa-2x text-info mb-3"></i>
+                    <h5 class="text-dark">सूचनाहरू</h5>
+                    <h3 class="text-info fw-bold"><?php echo e($notifications->count()); ?></h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row">
         <!-- Left Column - Main Content -->
         <div class="col-lg-8">
-            <!-- Quick Stats -->
-            <div class="row mb-4">
-                <div class="col-md-3">
-                    <div class="card card-hover">
-                        <div class="card-body text-center">
-                            <i class="fas fa-door-open fa-2x text-primary mb-2"></i>
-                            <h5>कोठा नं.</h5>
-                            <h3 class="text-primary"><?php echo e($student->room->room_number ?? 'N/A'); ?></h3>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card card-hover">
-                        <div class="card-body text-center">
-                            <i class="fas fa-utensils fa-2x text-success mb-2"></i>
-                            <h5>आजको खाना</h5>
-                            <h3 class="text-success"><?php echo e($todayMeal ? 'Available' : 'N/A'); ?></h3>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card card-hover">
-                        <div class="card-body text-center">
-                            <i class="fas fa-receipt fa-2x text-warning mb-2"></i>
-                            <h5>भुक्तानी</h5>
-                            <h3 class="text-warning"><?php echo e($paymentStatus ?? 'Pending'); ?></h3>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="card card-hover">
-                        <div class="card-body text-center">
-                            <i class="fas fa-bell fa-2x text-info mb-2"></i>
-                            <h5>सूचनाहरू</h5>
-                            <h3 class="text-info"><?php echo e($notifications->count()); ?></h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Room & Payment Information -->
             <div class="row mb-4">
                 <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-header bg-primary text-white">
-                            <h5 class="mb-0"><i class="fas fa-home me-2"></i>कोठा जानकारी</h5>
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-primary text-white py-3">
+                            <h5 class="mb-0 fw-bold"><i class="fas fa-home me-2"></i>कोठा जानकारी</h5>
                         </div>
                         <div class="card-body">
                             <table class="table table-borderless">
                                 <tr>
-                                    <td><strong>होस्टेल:</strong></td>
-                                    <td><?php echo e($hostel->name ?? 'N/A'); ?></td>
+                                    <td class="text-dark"><strong>होस्टेल:</strong></td>
+                                    <td class="text-dark"><?php echo e($hostel->name ?? 'उपलब्ध छैन'); ?></td>
                                 </tr>
                                 <tr>
-                                    <td><strong>कोठा नं.:</strong></td>
-                                    <td><?php echo e($student->room->room_number ?? 'N/A'); ?></td>
+                                    <td class="text-dark"><strong>कोठा नं.:</strong></td>
+                                    <td class="text-dark"><?php echo e($student->room->room_number ?? 'उपलब्ध छैन'); ?></td>
                                 </tr>
                                 <tr>
-                                    <td><strong>कोठा प्रकार:</strong></td>
-                                    <td><?php echo e($student->room->type ?? 'N/A'); ?></td>
+                                    <td class="text-dark"><strong>कोठा प्रकार:</strong></td>
+                                    <td class="text-dark"><?php echo e($student->room->type ?? 'उपलब्ध छैन'); ?></td>
                                 </tr>
                                 <tr>
-                                    <td><strong>मासिक भुक्तानी:</strong></td>
-                                    <td class="text-success"><strong>रु. <?php echo e($student->room->rent ?? 'N/A'); ?></strong></td>
+                                    <td class="text-dark"><strong>मासिक भुक्तानी:</strong></td>
+                                    <td class="text-success fw-bold">रु. <?php echo e($student->room->rent ?? 'उपलब्ध छैन'); ?></td>
                                 </tr>
                             </table>
                             <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#roomDetailsModal">
@@ -102,26 +108,29 @@
                 </div>
 
                 <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-header bg-warning text-dark">
-                            <h5 class="mb-0"><i class="fas fa-credit-card me-2"></i>भुक्तानी स्थिति</h5>
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-warning text-dark py-3">
+                            <h5 class="mb-0 fw-bold"><i class="fas fa-credit-card me-2"></i>भुक्तानी स्थिति</h5>
                         </div>
                         <div class="card-body">
                             <table class="table table-borderless">
                                 <tr>
-                                    <td><strong>अन्तिम भुक्तानी:</strong></td>
-                                    <td><?php echo e($lastPayment ? $lastPayment->amount : 'कुनै भुक्तानी छैन'); ?></td>
+                                    <td class="text-dark"><strong>अन्तिम भुक्तानी:</strong></td>
+                                    <td class="text-dark"><?php echo e($lastPayment ? 'रु. ' . $lastPayment->amount : 'कुनै भुक्तानी छैन'); ?></td>
                                 </tr>
                                 <tr>
-                                    <td><strong>अन्तिम मिति:</strong></td>
-                                    <td><?php echo e($lastPayment ? $lastPayment->date : '-'); ?></td>
+                                    <td class="text-dark"><strong>अन्तिम मिति:</strong></td>
+                                    <td class="text-dark"><?php echo e($lastPayment ? $lastPayment->created_at->format('Y-m-d') : 'हाल अपडेट छैन'); ?></td>
                                 </tr>
                                 <tr>
-                                    <td><strong>स्थिति:</strong></td>
+                                    <td class="text-dark"><strong>स्थिति:</strong></td>
                                     <td>
-                                        <span class="badge bg-<?php echo e($paymentStatus == 'Paid' ? 'success' : 'danger'); ?>">
-                                            <?php echo e($paymentStatus == 'Paid' ? 'भुक्तानी भएको' : 'बाकी'); ?>
-
+                                        <span class="badge bg-<?php echo e($paymentStatus == 'Paid' ? 'success' : 'danger'); ?> p-2">
+                                            <?php if($paymentStatus == 'Paid'): ?>
+                                                भुक्तानी भएको
+                                            <?php else: ?>
+                                                बाकी
+                                            <?php endif; ?>
                                         </span>
                                     </td>
                                 </tr>
@@ -137,18 +146,33 @@
             <!-- Today's Meal & Notifications -->
             <div class="row mb-4">
                 <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-header bg-success text-white">
-                            <h5 class="mb-0"><i class="fas fa-utensils me-2"></i>आजको खानाको योजना</h5>
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-success text-white py-3">
+                            <h5 class="mb-0 fw-bold"><i class="fas fa-utensils me-2"></i>आजको खानाको योजना</h5>
                         </div>
                         <div class="card-body">
                             <?php if($todayMeal): ?>
-                                <h6 class="text-success"><?php echo e($todayMeal->meal_type); ?></h6>
-                                <p class="mb-1"><strong>मुख्य खाना:</strong> <?php echo e($todayMeal->main_dish); ?></p>
-                                <p class="mb-1"><strong>साइड डिश:</strong> <?php echo e($todayMeal->side_dish); ?></p>
-                                <p class="mb-0"><strong>समय:</strong> <?php echo e($todayMeal->serving_time); ?></p>
+                                <h6 class="text-success fw-bold"><?php echo e($todayMeal->meal_type); ?></h6>
+                                <?php if(is_array($todayMeal->items)): ?>
+                                    <?php if(isset($todayMeal->items['breakfast'])): ?>
+                                        <p class="mb-2 text-dark"><strong>बिहानको खाना:</strong><br><?php echo e($todayMeal->items['breakfast']); ?></p>
+                                    <?php endif; ?>
+                                    <?php if(isset($todayMeal->items['lunch'])): ?>
+                                        <p class="mb-2 text-dark"><strong>दिउँसोको खाना:</strong><br><?php echo e($todayMeal->items['lunch']); ?></p>
+                                    <?php endif; ?>
+                                    <?php if(isset($todayMeal->items['dinner'])): ?>
+                                        <p class="mb-2 text-dark"><strong>रातिको खाना:</strong><br><?php echo e($todayMeal->items['dinner']); ?></p>
+                                    <?php endif; ?>
+                                <?php else: ?>
+                                    <p class="mb-2 text-dark"><strong>मुख्य खाना:</strong> <?php echo e($todayMeal->main_dish ?? 'उपलब्ध छैन'); ?></p>
+                                    <p class="mb-2 text-dark"><strong>साइड डिश:</strong> <?php echo e($todayMeal->side_dish ?? 'उपलब्ध छैन'); ?></p>
+                                <?php endif; ?>
+                                <p class="mb-0 text-dark"><strong>समय:</strong> <?php echo e($todayMeal->serving_time ?? 'उपलब्ध छैन'); ?></p>
                             <?php else: ?>
-                                <p class="text-muted">आजको खानाको योजना उपलब्ध छैन</p>
+                                <div class="text-center py-3">
+                                    <i class="fas fa-utensils fa-2x text-muted mb-2"></i>
+                                    <p class="text-muted mb-0">आजको खानाको योजना हाल अपडेट छैन</p>
+                                </div>
                             <?php endif; ?>
                             <div class="mt-3">
                                 <a href="<?php echo e(route('student.meal-menus')); ?>" class="btn btn-outline-success btn-sm">
@@ -160,17 +184,17 @@
                 </div>
 
                 <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-header bg-info text-white">
-                            <h5 class="mb-0"><i class="fas fa-bell me-2"></i>हालैका सूचनाहरू</h5>
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-info text-white py-3">
+                            <h5 class="mb-0 fw-bold"><i class="fas fa-bell me-2"></i>हालैका सूचनाहरू</h5>
                         </div>
                         <div class="card-body">
                             <?php if($notifications->count() > 0): ?>
                                 <div class="list-group list-group-flush">
                                     <?php $__currentLoopData = $notifications->take(3); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $notification): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                        <div class="list-group-item px-0 py-2">
+                                        <div class="list-group-item px-0 py-2 border-0">
                                             <small class="text-muted"><?php echo e($notification->created_at->diffForHumans()); ?></small>
-                                            <p class="mb-0 small"><?php echo e(Str::limit($notification->message, 50)); ?></p>
+                                            <p class="mb-0 small text-dark"><?php echo e(Str::limit($notification->message, 50)); ?></p>
                                         </div>
                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </div>
@@ -178,7 +202,10 @@
                                     सबै सूचनाहरू हेर्नुहोस्
                                 </a>
                             <?php else: ?>
-                                <p class="text-muted">कुनै नयाँ सूचना छैन</p>
+                                <div class="text-center py-3">
+                                    <i class="fas fa-bell-slash fa-2x text-muted mb-2"></i>
+                                    <p class="text-muted mb-0">कुनै नयाँ सूचना छैन</p>
+                                </div>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -189,76 +216,48 @@
         <!-- Right Column - Sidebar -->
         <div class="col-lg-4">
             <!-- Quick Actions -->
-            <div class="card mb-4">
-                <div class="card-header bg-secondary text-white">
-                    <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>द्रुत कार्यहरू</h5>
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-secondary text-white py-3">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-bolt me-2"></i>द्रुत कार्यहरू</h5>
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-2">
-                        <a href="<?php echo e(route('student.profile')); ?>" class="btn btn-outline-primary text-start">
+                        <a href="<?php echo e(route('student.profile')); ?>" class="btn btn-outline-primary text-start py-2">
                             <i class="fas fa-user me-2"></i>मेरो प्रोफाइल
                         </a>
-                        <a href="<?php echo e(route('student.meal-menus')); ?>" class="btn btn-outline-success text-start">
+                        <a href="<?php echo e(route('student.meal-menus')); ?>" class="btn btn-outline-success text-start py-2">
                             <i class="fas fa-utensils me-2"></i>खानाको योजना
                         </a>
-                        <button class="btn btn-outline-warning text-start" data-bs-toggle="modal" data-bs-target="#paymentModal">
+                        <button class="btn btn-outline-warning text-start py-2" data-bs-toggle="modal" data-bs-target="#paymentModal">
                             <i class="fas fa-credit-card me-2"></i>भुक्तानी गर्नुहोस्
                         </button>
-                        <a href="<?php echo e(route('student.gallery')); ?>" class="btn btn-outline-info text-start">
-                            <i class="fas fa-images me-2"></i>होस्टेल ग्यालेरी
-                        </a>
-                        <a href="<?php echo e(route('student.reviews')); ?>" class="btn btn-outline-dark text-start">
+                        <a href="<?php echo e(route('student.reviews')); ?>" class="btn btn-outline-dark text-start py-2">
                             <i class="fas fa-star me-2"></i>समीक्षा लेख्नुहोस्
                         </a>
-                        <button class="btn btn-outline-danger text-start" data-bs-toggle="modal" data-bs-target="#maintenanceModal">
+                        <button class="btn btn-outline-danger text-start py-2" data-bs-toggle="modal" data-bs-target="#maintenanceModal">
                             <i class="fas fa-tools me-2"></i>मर्मत समस्या
                         </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Hostel Gallery Preview -->
-            <div class="card mb-4">
-                <div class="card-header bg-dark text-white">
-                    <h5 class="mb-0"><i class="fas fa-images me-2"></i>होस्टेल ग्यालेरी</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row g-2">
-                        <?php $__currentLoopData = $galleryImages->take(4); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $image): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                            <div class="col-6">
-                                <img src="<?php echo e(asset('storage/'.$image->path)); ?>" 
-                                     class="img-fluid rounded gallery-thumb" 
-                                     alt="Hostel Image"
-                                     style="height: 80px; object-fit: cover; width: 100%; cursor: pointer;"
-                                     onclick="openImageModal('<?php echo e(asset('storage/'.$image->path)); ?>')">
-                            </div>
-                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-                    </div>
-                    <div class="mt-3">
-                        <a href="<?php echo e(route('student.gallery')); ?>" class="btn btn-outline-dark btn-sm w-100">
-                            <i class="fas fa-expand me-1"></i>पूर्ण ग्यालेरी हेर्नुहोस्
-                        </a>
-                    </div>
-                </div>
-            </div>
-
             <!-- Upcoming Events -->
-            <div class="card">
-                <div class="card-header bg-purple text-white">
-                    <h5 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>आगामी घटनाहरू</h5>
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-purple text-white py-3">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-calendar-alt me-2"></i>आगामी घटनाहरू</h5>
                 </div>
                 <div class="card-body">
                     <?php if($upcomingEvents->count() > 0): ?>
                         <div class="list-group list-group-flush">
                             <?php $__currentLoopData = $upcomingEvents->take(3); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $event): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                                <div class="list-group-item px-0 py-2">
-                                    <h6 class="mb-1 text-primary"><?php echo e($event->title); ?></h6>
+                                <div class="list-group-item px-0 py-2 border-0">
+                                    <h6 class="mb-1 text-primary fw-bold"><?php echo e($event->title); ?></h6>
                                     <small class="text-muted">
                                         <i class="fas fa-clock me-1"></i>
                                         <?php echo e($event->date->format('M j')); ?> at <?php echo e($event->time); ?>
 
                                     </small>
-                                    <p class="mb-0 small text-muted"><?php echo e(Str::limit($event->description, 40)); ?></p>
+                                    <p class="mb-0 small text-dark"><?php echo e(Str::limit($event->description, 40)); ?></p>
                                 </div>
                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </div>
@@ -266,7 +265,42 @@
                             सबै घटनाहरू हेर्नुहोस्
                         </a>
                     <?php else: ?>
-                        <p class="text-muted">कुनै आगामी घटना छैन</p>
+                        <div class="text-center py-3">
+                            <i class="fas fa-calendar-times fa-2x text-muted mb-2"></i>
+                            <p class="text-muted mb-0">कुनै आगामी घटना छैन</p>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <!-- Hostel Gallery Preview -->
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-dark text-white py-3">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-images me-2"></i>होस्टेल ग्यालेरी</h5>
+                </div>
+                <div class="card-body">
+                    <?php if($galleryImages->count() > 0): ?>
+                        <div class="row g-2">
+                            <?php $__currentLoopData = $galleryImages->take(4); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $image): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <div class="col-6">
+                                    <img src="<?php echo e(asset('storage/'.$image->path)); ?>" 
+                                         class="img-fluid rounded gallery-thumb" 
+                                         alt="Hostel Image"
+                                         style="height: 80px; object-fit: cover; width: 100%; cursor: pointer;"
+                                         onclick="openImageModal('<?php echo e(asset('storage/'.$image->path)); ?>')">
+                                </div>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                        </div>
+                        <div class="mt-3">
+                            <a href="<?php echo e(route('student.gallery')); ?>" class="btn btn-outline-dark btn-sm w-100">
+                                <i class="fas fa-expand me-1"></i>पूर्ण ग्यालेरी हेर्नुहोस्
+                            </a>
+                        </div>
+                    <?php else: ?>
+                        <div class="text-center py-3">
+                            <i class="fas fa-images fa-2x text-muted mb-2"></i>
+                            <p class="text-muted mb-0">ग्यालेरी उपलब्ध छैन</p>
+                        </div>
                     <?php endif; ?>
                 </div>
             </div>
@@ -284,10 +318,13 @@
 .card-hover:hover {
     transform: translateY(-5px);
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
 }
 .bg-purple {
     background-color: #6f42c1 !important;
+}
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
 }
 .btn-outline-purple {
     color: #6f42c1;
@@ -301,6 +338,13 @@
     opacity: 0.8;
     transform: scale(1.05);
     transition: all 0.3s ease;
+}
+.card {
+    border-radius: 12px;
+    overflow: hidden;
+}
+.card-header {
+    border-radius: 12px 12px 0 0 !important;
 }
 </style>
 
