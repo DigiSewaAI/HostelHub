@@ -5,7 +5,10 @@ namespace App\Providers;
 use App\Services\PlanLimitService;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Gate; // ✅ ADDED: For policy registration
 use App\View\Components\AdminNavLink;
+use App\Models\StudentDocument; // ✅ ADDED: For policy registration
+use App\Policies\DocumentPolicy; // ✅ ADDED: For policy registration
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -30,6 +33,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // ✅ ADDED: Register Document Policy
+        Gate::policy(StudentDocument::class, DocumentPolicy::class);
+
         // Register Blade component
         Blade::component('admin-nav-link', AdminNavLink::class);
 

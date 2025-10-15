@@ -258,7 +258,6 @@
             
             <!-- User Dropdown matching admin style -->
             <div class="d-flex align-items-center user-dropdown">
-                <span class="text-white me-3 nepali">विद्यार्थी प्रोफाइल</span>
                 <div class="dropdown">
                     <button class="btn btn-outline-light dropdown-toggle d-flex align-items-center" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="fas fa-user-circle me-1"></i>

@@ -306,6 +306,13 @@
                     <i class="fas fa-chart-bar sidebar-icon"></i>
                     <span class="sidebar-text">प्रतिवेदनहरू</span>
                 </a>
+                <!-- Documents -->
+                <a href="{{ route('admin.documents.index') }}"
+                   class="sidebar-link {{ request()->routeIs('admin.documents.*') ? 'active' : '' }}"
+                   aria-current="{{ request()->routeIs('admin.documents.*') ? 'page' : 'false' }}">
+                    <i class="fas fa-file-alt sidebar-icon"></i>
+                    <span class="sidebar-text">कागजातहरू</span>
+                </a>
                 <!-- Settings -->
                 <a href="{{ route('admin.settings') }}"
                    class="sidebar-link {{ request()->routeIs('admin.settings') ? 'active' : '' }}"

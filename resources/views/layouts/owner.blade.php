@@ -339,6 +339,14 @@
                     <i class="fas fa-building sidebar-icon"></i>
                     <span class="sidebar-text">होस्टल</span>
                 </a>
+
+                <!-- Documents Management -->
+                <a href="{{ route('owner.documents.index') }}"
+                   class="sidebar-link {{ request()->routeIs('owner.documents.*') ? 'active' : '' }}"
+                   aria-current="{{ request()->routeIs('owner.documents.*') ? 'page' : 'false' }}">
+                    <i class="fas fa-file-alt sidebar-icon"></i>
+                    <span class="sidebar-text">कागजात व्यवस्थापन</span>
+                </a>
                 
                 <!-- Logout Section -->
                 <div class="mt-auto pt-4 border-t border-blue-700">
