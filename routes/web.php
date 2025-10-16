@@ -34,7 +34,8 @@ use App\Http\Controllers\{
     ProfileController as PublicProfileController,
     BookingController,
     PaymentController,
-    DocumentController  // ✅ ADDED: Document Controller
+    DocumentController,
+    Admin\CircularController
 };
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
@@ -267,6 +268,21 @@ Route::middleware(['auth', 'hasOrganization', 'role:admin', 'can:view-admin-dash
         Route::get('/hostels/fix-room-counts', [AdminHostelController::class, 'fixRoomCounts'])->name('hostels.fix-room-counts');
         Route::post('/hostels/update-all-counts', [AdminHostelController::class, 'updateAllRoomCounts'])->name('hostels.update-all-counts');
 
+        // ✅ UPDATED: Admin Circular Routes - More organized structure
+        Route::prefix('circulars')->name('circulars.')->group(function () {
+            Route::get('/', [CircularController::class, 'index'])->name('index');
+            Route::get('/create', [CircularController::class, 'create'])->name('create');
+            Route::post('/', [CircularController::class, 'store'])->name('store');
+            Route::get('/{circular}', [CircularController::class, 'show'])->name('show');
+            Route::get('/{circular}/edit', [CircularController::class, 'edit'])->name('edit');
+            Route::put('/{circular}', [CircularController::class, 'update'])->name('update');
+            Route::delete('/{circular}', [CircularController::class, 'destroy'])->name('destroy');
+            Route::post('/{circular}/publish', [CircularController::class, 'publish'])->name('publish');
+            Route::get('/analytics', [CircularController::class, 'analytics'])->name('analytics');
+            Route::get('/{circular}/analytics', [CircularController::class, 'analytics'])->name('analytics.single');
+            Route::post('/{circular}/mark-read', [CircularController::class, 'markAsRead'])->name('mark-read'); // ✅ ADDED for consistency
+        });
+
         // Payment Routes Structure
         Route::prefix('payments')->name('payments.')->group(function () {
             Route::get('/', [AdminPaymentController::class, 'index'])->name('index');
@@ -361,6 +377,13 @@ Route::middleware(['auth', 'role:student'])->prefix('student')->name('student.')
     // Student profile update
     Route::patch('/profile/update', [StudentController::class, 'updateProfile'])->name('profile.update');
 
+    // ✅ UPDATED: Student Circular Routes - More consistent naming
+    Route::prefix('circulars')->name('circulars.')->group(function () {
+        Route::get('/', [CircularController::class, 'studentIndex'])->name('index');
+        Route::get('/{circular}', [CircularController::class, 'studentShow'])->name('show');
+        Route::post('/{circular}/mark-read', [CircularController::class, 'markAsRead'])->name('mark-read');
+    });
+
     // ✅ ADDED: New student routes as requested - WITH COMPATIBILITY
     Route::get('/gallery', [StudentController::class, 'gallery'])->name('gallery');
     Route::get('/reviews', [StudentController::class, 'reviews'])->name('reviews');
@@ -421,6 +444,21 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
         Route::post('/payments/{payment}/approve', [PaymentController::class, 'approveBankTransfer'])->name('payments.approve');
         Route::post('/payments/{payment}/reject', [PaymentController::class, 'rejectBankTransfer'])->name('payments.reject');
         Route::get('/payments/{payment}/proof', [PaymentController::class, 'viewProof'])->name('payments.proof');
+
+        // ✅ UPDATED: Owner Circular Routes - More organized structure
+        Route::prefix('circulars')->name('circulars.')->group(function () {
+            Route::get('/', [CircularController::class, 'index'])->name('index');
+            Route::get('/create', [CircularController::class, 'create'])->name('create');
+            Route::post('/', [CircularController::class, 'store'])->name('store');
+            Route::get('/{circular}', [CircularController::class, 'show'])->name('show');
+            Route::get('/{circular}/edit', [CircularController::class, 'edit'])->name('edit');
+            Route::put('/{circular}', [CircularController::class, 'update'])->name('update');
+            Route::delete('/{circular}', [CircularController::class, 'destroy'])->name('destroy');
+            Route::post('/{circular}/publish', [CircularController::class, 'publish'])->name('publish');
+            Route::get('/analytics', [CircularController::class, 'analytics'])->name('analytics');
+            Route::get('/{circular}/analytics', [CircularController::class, 'analytics'])->name('analytics.single');
+            Route::post('/{circular}/mark-read', [CircularController::class, 'markAsRead'])->name('mark-read'); // ✅ ADDED for consistency
+        });
 
         // ✅ ADDED: Owner Document Management Routes
         Route::prefix('documents')->name('documents.')->group(function () {

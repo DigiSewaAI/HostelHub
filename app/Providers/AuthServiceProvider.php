@@ -11,18 +11,20 @@ use App\Models\{
     Payment,
     Review,
     Room,
-    Student
+    Student,
+    Circular  // ✅ ADDED: Circular Model
 };
 use App\Policies\{
     ContactPolicy,
     GalleryPolicy,
-    HostelPolicy, // ✅ ADDED
+    HostelPolicy,
     MealPolicy,
     OrganizationPolicy,
     PaymentPolicy,
     ReviewPolicy,
     RoomPolicy,
-    StudentPolicy
+    StudentPolicy,
+    CircularPolicy  // ✅ ADDED: Circular Policy
 };
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Gate;
@@ -43,7 +45,8 @@ class AuthServiceProvider extends ServiceProvider
         Review::class => ReviewPolicy::class,
         Meal::class => MealPolicy::class,
         Organization::class => OrganizationPolicy::class,
-        Hostel::class => HostelPolicy::class, // ✅ ADDED
+        Hostel::class => HostelPolicy::class,
+        Circular::class => CircularPolicy::class, // ✅ ADDED: Circular Policy
     ];
 
     /**
@@ -88,6 +91,36 @@ class AuthServiceProvider extends ServiceProvider
         // ✅ Student लाई आफ्नो विवरण हेर्न दिने
         Gate::define('view-own-student', function ($user, $student) {
             return $user->hasRole('student') && $user->id === $student->user_id;
+        });
+
+        // ✅ Circulars लाई access गर्ने क्षमता
+        Gate::define('access_circulars', function ($user) {
+            return $user->can('circulars_access');
+        });
+
+        // ✅ Circulars सिर्जना गर्ने क्षमता
+        Gate::define('create_circulars', function ($user) {
+            return $user->can('circulars_create');
+        });
+
+        // ✅ Circulars सम्पादन गर्ने क्षमता
+        Gate::define('edit_circulars', function ($user) {
+            return $user->can('circulars_edit');
+        });
+
+        // ✅ Circulars मेट्ने क्षमता
+        Gate::define('delete_circulars', function ($user) {
+            return $user->can('circulars_delete');
+        });
+
+        // ✅ Circulars विश्लेषण हेर्ने क्षमता
+        Gate::define('view_circulars_analytics', function ($user) {
+            return $user->can('circulars_analytics');
+        });
+
+        // ✅ Global circulars पठाउने क्षमता (Admin मात्र)
+        Gate::define('send_global_circulars', function ($user) {
+            return $user->hasRole('admin');
         });
 
         // ✅ Payments लाई access गर्ने क्षमता

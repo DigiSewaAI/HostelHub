@@ -30,14 +30,20 @@
                 <i class="fas fa-bell text-blue-600 text-xl"></i>
             </div>
             <div>
-                <h3 class="font-semibold">तपाईंसँग {{ $metrics['total_contacts'] }} सम्पर्क सूचनाहरू छन्</h3>
+                <h3 class="font-semibold">तपाईंसँग {{ $metrics['total_contacts'] }} सम्पर्क सूचनाहरू र {{ $totalCirculars ?? 0 }} सूचनाहरू छन्</h3>
                 <p class="text-sm text-gray-600">हालसम्म {{ $metrics['total_contacts'] }} सूचनाहरू प्राप्त भएका छन्</p>
             </div>
         </div>
-        <a href="{{ route('admin.contacts.index') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center transition-colors">
-            <i class="fas fa-eye mr-2"></i>
-            सबै हेर्नुहोस्
-        </a>
+        <div class="flex space-x-2">
+            <a href="{{ route('admin.circulars.index') }}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center transition-colors">
+                <i class="fas fa-bullhorn mr-2"></i>
+                सूचनाहरू हेर्नुहोस्
+            </a>
+            <a href="{{ route('admin.contacts.index') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center transition-colors">
+                <i class="fas fa-eye mr-2"></i>
+                सम्पर्क हेर्नुहोस्
+            </a>
+        </div>
     </div>
 
     <!-- System Overview Section -->
@@ -49,7 +55,7 @@
             </button>
         </div>
         
-        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-6 mb-8">
             <!-- Hostels Card -->
             <div class="stat-card bg-gradient-to-r from-blue-50 to-blue-100 border-l-4 border-blue-500 p-5 rounded-lg shadow-sm card-hover">
                 <div class="flex justify-between items-start">
@@ -94,18 +100,35 @@
                 <p class="text-sm text-gray-600 mt-3">कुल दर्ता भएका विद्यार्थीहरू</p>
             </div>
             
-            <!-- Contacts Card -->
-            <div class="stat-card bg-gradient-to-r from-red-50 to-red-100 border-l-4 border-red-500 p-5 rounded-lg shadow-sm card-hover">
+            <!-- Documents Card -->
+            <div class="stat-card bg-gradient-to-r from-purple-50 to-purple-100 border-l-4 border-purple-500 p-5 rounded-lg shadow-sm card-hover">
                 <div class="flex justify-between items-start">
                     <div>
-                        <h3 class="text-lg font-bold text-gray-800">सम्पर्कहरू</h3>
-                        <p class="text-3xl font-bold mt-2 text-gray-900">{{ number_format($metrics['total_contacts']) }}</p>
+                        <h3 class="text-lg font-bold text-gray-800">कागजातहरू</h3>
+                        <p class="text-3xl font-bold mt-2 text-gray-900">{{ number_format($metrics['total_documents']) }}</p>
                     </div>
-                    <div class="bg-red-500 text-white p-3 rounded-lg">
-                        <i class="fas fa-envelope text-xl"></i>
+                    <div class="bg-purple-500 text-white p-3 rounded-lg">
+                        <i class="fas fa-file-alt text-xl"></i>
                     </div>
                 </div>
-                <p class="text-sm text-gray-600 mt-3">कुल प्राप्त सम्पर्क सूचनाहरू</p>
+                <p class="text-sm text-gray-600 mt-3">कुल अपलोड भएका कागजातहरू</p>
+            </div>
+
+            <!-- ✅ ADDED: Circulars Card -->
+            <div class="stat-card bg-gradient-to-r from-indigo-50 to-indigo-100 border-l-4 border-indigo-500 p-5 rounded-lg shadow-sm card-hover">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-800">सूचनाहरू</h3>
+                        <p class="text-3xl font-bold mt-2 text-gray-900">{{ number_format($totalCirculars ?? 0) }}</p>
+                    </div>
+                    <div class="bg-indigo-500 text-white p-3 rounded-lg">
+                        <i class="fas fa-bullhorn text-xl"></i>
+                    </div>
+                </div>
+                <p class="text-sm text-gray-600 mt-3">कुल प्रकाशित सूचनाहरू</p>
+                <a href="{{ route('admin.circulars.index') }}" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium mt-2 inline-block">
+                    सबै हेर्नुहोस् <i class="fas fa-arrow-circle-right ml-1"></i>
+                </a>
             </div>
         </div>
         
@@ -143,7 +166,7 @@
             <div class="relative">
                 <!-- Timeline style activities -->
                 <div class="border-l-2 border-gray-200 ml-4 pb-6">
-                    @if($metrics['recent_students']->isEmpty() && $metrics['recent_contacts']->isEmpty() && $metrics['recent_hostels']->isEmpty())
+                    @if($metrics['recent_students']->isEmpty() && $metrics['recent_contacts']->isEmpty() && $metrics['recent_hostels']->isEmpty() && $metrics['recent_documents']->isEmpty() && empty($recentCirculars))
                     <!-- Empty State -->
                     <div class="text-center py-8">
                         <i class="fas fa-inbox text-gray-400 text-5xl mb-4"></i>
@@ -154,6 +177,29 @@
                         </a>
                     </div>
                     @else
+                    <!-- Recent Circulars -->
+                    @foreach($recentCirculars ?? [] as $circular)
+                    <div class="flex items-start mb-6">
+                        <div class="bg-indigo-500 rounded-full p-2 -ml-3 mt-1 relative">
+                            <i class="fas fa-bullhorn text-white text-sm"></i>
+                        </div>
+                        <div class="ml-6 flex-1">
+                            <h4 class="font-semibold text-gray-800">नयाँ सूचना प्रकाशित</h4>
+                            <p class="text-sm text-gray-600 mt-1">
+                                {{ $circular->title }} - {{ Str::limit($circular->content, 50) }}
+                            </p>
+                            <div class="flex items-center mt-2">
+                                <span class="text-xs text-gray-500 bg-gray-100 py-1 px-2 rounded-full">
+                                    <i class="far fa-clock mr-1"></i> {{ $circular->created_at->diffForHumans() }}
+                                </span>
+                                <span class="text-xs text-indigo-600 bg-indigo-100 py-1 px-2 rounded-full ml-2">
+                                    {{ $circular->priority_nepali ?? 'सामान्य' }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+                    
                     <!-- Recent Students -->
                     @foreach($metrics['recent_students'] as $student)
                     <div class="flex items-start mb-6">
@@ -209,15 +255,38 @@
                         </div>
                     </div>
                     @endforeach
+
+                    <!-- Recent Documents -->
+                    @foreach($metrics['recent_documents'] as $document)
+                    <div class="flex items-start mb-6">
+                        <div class="bg-purple-500 rounded-full p-2 -ml-3 mt-1 relative">
+                            <i class="fas fa-file-upload text-white text-sm"></i>
+                        </div>
+                        <div class="ml-6 flex-1">
+                            <h4 class="font-semibold text-gray-800">नयाँ कागजात अपलोड</h4>
+                            <p class="text-sm text-gray-600 mt-1">
+                                {{ $document->original_name }} 
+                                ({{ optional($document->student)->user->name ?? 'अज्ञात विद्यार्थी' }})
+                            </p>
+                            <div class="flex items-center mt-2">
+                                <span class="text-xs text-gray-500 bg-gray-100 py-1 px-2 rounded-full">
+                                    <i class="far fa-clock mr-1"></i> {{ $document->created_at->diffForHumans() }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
                     @endif
                 </div>
 
                 <!-- Pagination for Recent Activities -->
-                @if(!$metrics['recent_students']->isEmpty() || !$metrics['recent_contacts']->isEmpty() || !$metrics['recent_hostels']->isEmpty())
+                @if(!$metrics['recent_students']->isEmpty() || !$metrics['recent_contacts']->isEmpty() || !$metrics['recent_hostels']->isEmpty() || !$metrics['recent_documents']->isEmpty() || !empty($recentCirculars))
                 <div class="mt-6 flex justify-between items-center">
                     <p class="text-sm text-gray-600">
                         देखाइएको: 
-                        <span class="font-medium">{{ $metrics['recent_students']->count() + $metrics['recent_contacts']->count() + $metrics['recent_hostels']->count() }}</span> गतिविधिहरू
+                        <span class="font-medium">
+                            {{ $metrics['recent_students']->count() + $metrics['recent_contacts']->count() + $metrics['recent_hostels']->count() + $metrics['recent_documents']->count() + count($recentCirculars ?? []) }}
+                        </span> गतिविधिहरू
                     </p>
                     <div class="flex space-x-2">
                         @if($metrics['recent_students']->hasPages())
@@ -284,11 +353,11 @@
                 <div class="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
                     <div class="flex items-center">
                         <div class="bg-blue-100 p-2 rounded-lg mr-4">
-                            <i class="fas fa-bolt text-blue-600"></i>
+                            <i class="fas fa-bullhorn text-blue-600"></i>
                         </div>
                         <div>
-                            <h4 class="font-semibold">प्रदर्शन स्थिति</h4>
-                            <p class="text-sm text-gray-600">क्यासिङ्ग सक्रिय (५ मिनेट)</p>
+                            <h4 class="font-semibold">सूचना प्रणाली</h4>
+                            <p class="text-sm text-gray-600">{{ $totalCirculars ?? 0 }} सक्रिय सूचनाहरू</p>
                         </div>
                     </div>
                     <div class="text-blue-600">
@@ -323,11 +392,28 @@
                     <div class="font-medium text-amber-800">होस्टल थप्नुहोस्</div>
                 </a>
                 
-                <a href="{{ route('admin.reports.index') }}" class="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg text-center transition-colors group">
+                <!-- ✅ ADDED: Circulars Quick Action -->
+                <a href="{{ route('admin.circulars.create') }}" class="p-4 bg-indigo-50 hover:bg-indigo-100 rounded-lg text-center transition-colors group">
+                    <div class="text-indigo-600 text-2xl mb-2 group-hover:scale-110 transition-transform">
+                        <i class="fas fa-bullhorn"></i>
+                    </div>
+                    <div class="font-medium text-indigo-800">सूचना थप्नुहोस्</div>
+                </a>
+
+                <!-- Documents Quick Action -->
+                <a href="{{ route('admin.documents.index') }}" class="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg text-center transition-colors group">
                     <div class="text-purple-600 text-2xl mb-2 group-hover:scale-110 transition-transform">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <div class="font-medium text-purple-800">कागजातहरू हेर्नुहोस्</div>
+                </a>
+
+                <!-- ✅ ADDED: Circulars Analytics Quick Action -->
+                <a href="{{ route('admin.circulars.analytics') }}" class="p-4 bg-teal-50 hover:bg-teal-100 rounded-lg text-center transition-colors group">
+                    <div class="text-teal-600 text-2xl mb-2 group-hover:scale-110 transition-transform">
                         <i class="fas fa-chart-bar"></i>
                     </div>
-                    <div class="font-medium text-purple-800">प्रतिवेदन हेर्नुहोस्</div>
+                    <div class="font-medium text-teal-800">विश्लेषण हेर्नुहोस्</div>
                 </a>
             </div>
         </div>
