@@ -11,6 +11,10 @@ use App\Models\MealMenu;
 use App\Models\Gallery;
 use App\Models\Review;
 use App\Models\Payment;
+use App\Models\Circular;
+use App\Models\CircularRecipient;
+use App\Models\Event;
+use Illuminate\Support\Facades\Log;
 
 class StudentController extends Controller
 {
@@ -33,62 +37,103 @@ class StudentController extends Controller
         return view('students.my', compact('students'));
     }
 
-    // FIXED: Dashboard method with all variables the view expects
+    // FIXED: Dashboard method with circular data
     public function dashboard()
     {
-        $user = Auth::user();
-        $student = $user->student;
+        try {
+            $user = Auth::user();
+            $student = $user->student;
 
-        if (!$student || !$student->hostel_id) {
-            return view('student.welcome');
-        }
-
-        $hostel = $student->hostel;
-        $room = $student->room;
-
-        // Today's meal
-        $currentDay = now()->format('l');
-        $todayMeal = MealMenu::where('hostel_id', $hostel->id)
-            ->where('day_of_week', $currentDay)
-            ->first();
-
-        // Gallery images
-        $galleryImages = Gallery::where('is_active', true)
-            ->take(4)
-            ->get();
-
-        // Last payment
-        $lastPayment = Payment::where('student_id', $student->id)
-            ->latest()
-            ->first();
-
-        // ✅ FIXED: Add payment status based on last payment
-        $paymentStatus = 'Unpaid'; // Default status
-        if ($lastPayment) {
-            // Check if payment has a status field, otherwise determine based on amount/date
-            if (isset($lastPayment->status)) {
-                $paymentStatus = $lastPayment->status == 'paid' ? 'Paid' : 'Unpaid';
-            } else {
-                // If no status field, assume paid if amount is positive
-                $paymentStatus = $lastPayment->amount > 0 ? 'Paid' : 'Unpaid';
+            if (!$student || !$student->hostel_id) {
+                return view('student.welcome');
             }
+
+            $hostel = $student->hostel;
+            $room = $student->room;
+
+            // Today's meal
+            $currentDay = now()->format('l');
+            $todayMeal = MealMenu::where('hostel_id', $hostel->id)
+                ->where('day_of_week', $currentDay)
+                ->first();
+
+            // Gallery images
+            $galleryImages = Gallery::where('is_active', true)
+                ->take(4)
+                ->get();
+
+            // Last payment
+            $lastPayment = Payment::where('student_id', $student->id)
+                ->latest()
+                ->first();
+
+            // ✅ FIXED: Add payment status based on last payment
+            $paymentStatus = 'Unpaid'; // Default status
+            if ($lastPayment) {
+                // Check if payment has a status field, otherwise determine based on amount/date
+                if (isset($lastPayment->status)) {
+                    $paymentStatus = $lastPayment->status == 'paid' ? 'Paid' : 'Unpaid';
+                } else {
+                    // If no status field, assume paid if amount is positive
+                    $paymentStatus = $lastPayment->amount > 0 ? 'Paid' : 'Unpaid';
+                }
+            }
+
+            // ✅ FIXED: Add all variables that the view expects
+            $notifications = collect(); // Empty collection for notifications
+            $upcomingEvents = collect(); // Empty collection for events
+
+            // ✅ ADDED: Circular data for student
+            $unreadCirculars = 0;
+            $recentStudentCirculars = collect();
+            $importantCirculars = collect();
+
+            // Check if Circular models exist
+            if (class_exists('App\Models\Circular') && class_exists('App\Models\CircularRecipient')) {
+                $unreadCirculars = CircularRecipient::where('user_id', $user->id)
+                    ->where('is_read', false)
+                    ->count();
+
+                $recentStudentCirculars = Circular::whereHas('recipients', function ($q) use ($user) {
+                    $q->where('user_id', $user->id);
+                })
+                    ->with(['creator', 'organization', 'recipients'])
+                    ->latest()
+                    ->take(5)
+                    ->get();
+
+                $importantCirculars = Circular::whereHas('recipients', function ($q) use ($user) {
+                    $q->where('user_id', $user->id);
+                })
+                    ->where('priority', 'urgent')
+                    ->with(['creator', 'organization'])
+                    ->latest()
+                    ->take(3)
+                    ->get();
+            }
+
+            return view('student.dashboard', compact(
+                'student',
+                'hostel',
+                'room',
+                'todayMeal',
+                'galleryImages',
+                'notifications',
+                'upcomingEvents',
+                'lastPayment',
+                'paymentStatus',
+                // ✅ ADDED: Circular variables
+                'unreadCirculars',
+                'recentStudentCirculars',
+                'importantCirculars'
+            ));
+        } catch (\Exception $e) {
+            Log::error('विद्यार्थी ड्यासबोर्ड त्रुटि: ' . $e->getMessage(), [
+                'user_id' => auth()->id(),
+                'student_id' => $student->id ?? null
+            ]);
+            return view('student.welcome')->with('error', 'डाटा लोड गर्न असफल भयो');
         }
-
-        // ✅ FIXED: Add all variables that the view expects
-        $notifications = collect(); // Empty collection for notifications
-        $upcomingEvents = collect(); // Empty collection for events
-
-        return view('student.dashboard', compact(
-            'student',
-            'hostel',
-            'room',
-            'todayMeal',
-            'galleryImages',
-            'notifications',
-            'upcomingEvents',
-            'lastPayment',
-            'paymentStatus' // ✅ Now included
-        ));
     }
 
     // Student profile for student role - ONLY ONE PROFILE METHOD

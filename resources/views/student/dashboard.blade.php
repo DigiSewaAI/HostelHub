@@ -11,6 +11,15 @@
                         <div class="col-md-8">
                             <h2 class="mb-1 fw-bold">नमस्ते, {{ $student->user->name }}! 👋</h2>
                             <p class="mb-0 fs-5">{{ $hostel->name }} मा तपाईंलाई स्वागत छ</p>
+                            
+                            <!-- ✅ ADDED: Circular Alert -->
+                            @if(($unreadCirculars ?? 0) > 0)
+                            <div class="mt-3 alert alert-warning alert-dismissible fade show d-inline-block" role="alert">
+                                <strong><i class="fas fa-bell me-2"></i>तपाईंसँग {{ $unreadCirculars }} वटा नयाँ सूचनाहरू छन्!</strong>
+                                <a href="{{ route('student.circulars.index') }}" class="alert-link ms-2">यहाँ क्लिक गर्नुहोस्</a> तिनीहरूलाई हेर्नको लागि।
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                            @endif
                         </div>
                         <div class="col-md-4 text-end">
                             <div class="badge bg-light text-dark p-3 fs-6">
@@ -60,11 +69,17 @@
             </div>
         </div>
         <div class="col-md-3">
+            <!-- ✅ UPDATED: Circulars Card -->
             <div class="card card-hover border-info shadow-sm">
                 <div class="card-body text-center py-4">
-                    <i class="fas fa-bell fa-2x text-info mb-3"></i>
+                    <i class="fas fa-bullhorn fa-2x text-info mb-3"></i>
                     <h5 class="text-dark">सूचनाहरू</h5>
-                    <h3 class="text-info fw-bold">{{ $notifications->count() }}</h3>
+                    <h3 class="text-info fw-bold">{{ $unreadCirculars ?? 0 }}</h3>
+                    @if(($unreadCirculars ?? 0) > 0)
+                        <span class="badge bg-danger position-absolute top-0 start-100 translate-middle">
+                            नयाँ
+                        </span>
+                    @endif
                 </div>
             </div>
         </div>
@@ -76,7 +91,7 @@
             <!-- Room & Payment Information -->
             <div class="row mb-4">
                 <div class="col-md-6">
-                    <div class="card shadow-sm border-0">
+                    <div class="card shadow-sm border-0 h-100">
                         <div class="card-header bg-primary text-white py-3">
                             <h5 class="mb-0 fw-bold"><i class="fas fa-home me-2"></i>कोठा जानकारी</h5>
                         </div>
@@ -107,7 +122,7 @@
                 </div>
 
                 <div class="col-md-6">
-                    <div class="card shadow-sm border-0">
+                    <div class="card shadow-sm border-0 h-100">
                         <div class="card-header bg-warning text-dark py-3">
                             <h5 class="mb-0 fw-bold"><i class="fas fa-credit-card me-2"></i>भुक्तानी स्थिति</h5>
                         </div>
@@ -142,10 +157,10 @@
                 </div>
             </div>
 
-            <!-- Today's Meal & Notifications -->
+            <!-- Today's Meal & Recent Circulars -->
             <div class="row mb-4">
                 <div class="col-md-6">
-                    <div class="card shadow-sm border-0">
+                    <div class="card shadow-sm border-0 h-100">
                         <div class="card-header bg-success text-white py-3">
                             <h5 class="mb-0 fw-bold"><i class="fas fa-utensils me-2"></i>आजको खानाको योजना</h5>
                         </div>
@@ -183,33 +198,80 @@
                 </div>
 
                 <div class="col-md-6">
-                    <div class="card shadow-sm border-0">
+                    <!-- ✅ UPDATED: Recent Circulars Section -->
+                    <div class="card shadow-sm border-0 h-100">
                         <div class="card-header bg-info text-white py-3">
-                            <h5 class="mb-0 fw-bold"><i class="fas fa-bell me-2"></i>हालैका सूचनाहरू</h5>
+                            <h5 class="mb-0 fw-bold"><i class="fas fa-bullhorn me-2"></i>हालैका सूचनाहरू</h5>
                         </div>
                         <div class="card-body">
-                            @if($notifications->count() > 0)
+                            @if($recentStudentCirculars && $recentStudentCirculars->count() > 0)
                                 <div class="list-group list-group-flush">
-                                    @foreach($notifications->take(3) as $notification)
+                                    @foreach($recentStudentCirculars->take(3) as $circular)
                                         <div class="list-group-item px-0 py-2 border-0">
-                                            <small class="text-muted">{{ $notification->created_at->diffForHumans() }}</small>
-                                            <p class="mb-0 small text-dark">{{ Str::limit($notification->message, 50) }}</p>
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div class="flex-grow-1">
+                                                    <small class="text-muted">{{ $circular->created_at->diffForHumans() }}</small>
+                                                    <p class="mb-1 small text-dark fw-bold">{{ Str::limit($circular->title, 40) }}</p>
+                                                    <p class="mb-0 small text-muted">{{ Str::limit($circular->content, 50) }}</p>
+                                                </div>
+                                                <div class="ms-2">
+                                                    @if(!$circular->recipients->where('user_id', auth()->id())->first()?->is_read)
+                                                        <span class="badge bg-danger">नयाँ</span>
+                                                    @endif
+                                                    @if($circular->priority == 'urgent')
+                                                        <span class="badge bg-warning text-dark">जरुरी</span>
+                                                    @endif
+                                                </div>
+                                            </div>
                                         </div>
                                     @endforeach
                                 </div>
-                                <a href="{{ route('student.notifications') }}" class="btn btn-outline-info btn-sm mt-2">
-                                    सबै सूचनाहरू हेर्नुहोस्
+                                <a href="{{ route('student.circulars.index') }}" class="btn btn-outline-info btn-sm mt-2 w-100">
+                                    <i class="fas fa-list me-1"></i>सबै सूचनाहरू हेर्नुहोस्
                                 </a>
                             @else
                                 <div class="text-center py-3">
-                                    <i class="fas fa-bell-slash fa-2x text-muted mb-2"></i>
+                                    <i class="fas fa-bullhorn fa-2x text-muted mb-2"></i>
                                     <p class="text-muted mb-0">कुनै नयाँ सूचना छैन</p>
+                                    <a href="{{ route('student.circulars.index') }}" class="btn btn-outline-info btn-sm mt-2">
+                                        सबै सूचनाहरू हेर्नुहोस्
+                                    </a>
                                 </div>
                             @endif
                         </div>
                     </div>
                 </div>
             </div>
+
+            <!-- ✅ ADDED: Important Circulars Section -->
+            @if($importantCirculars && $importantCirculars->count() > 0)
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card shadow-sm border-danger">
+                        <div class="card-header bg-danger text-white py-3">
+                            <h5 class="mb-0 fw-bold"><i class="fas fa-exclamation-triangle me-2"></i>जरुरी सूचनाहरू</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="list-group">
+                                @foreach($importantCirculars->take(2) as $circular)
+                                    <a href="{{ route('student.circulars.show', $circular) }}" 
+                                       class="list-group-item list-group-item-action border-0 mb-2 rounded">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1 fw-bold text-danger">{{ $circular->title }}</h6>
+                                            <small class="text-muted">{{ $circular->created_at->diffForHumans() }}</small>
+                                        </div>
+                                        <p class="mb-1">{{ Str::limit($circular->content, 80) }}</p>
+                                        @if(!$circular->recipients->where('user_id', auth()->id())->first()?->is_read)
+                                            <span class="badge bg-danger">नयाँ</span>
+                                        @endif
+                                    </a>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endif
         </div>
 
         <!-- Right Column - Sidebar -->
@@ -227,6 +289,17 @@
                         <a href="{{ route('student.meal-menus') }}" class="btn btn-outline-success text-start py-2">
                             <i class="fas fa-utensils me-2"></i>खानाको योजना
                         </a>
+                        
+                        <!-- ✅ ADDED: Circulars Quick Actions -->
+                        <a href="{{ route('student.circulars.index') }}" class="btn btn-outline-info text-start py-2 position-relative">
+                            <i class="fas fa-bullhorn me-2"></i>सबै सूचनाहरू
+                            @if(($unreadCirculars ?? 0) > 0)
+                                <span class="badge bg-danger position-absolute top-0 start-100 translate-middle">
+                                    {{ $unreadCirculars }}
+                                </span>
+                            @endif
+                        </a>
+
                         <button class="btn btn-outline-warning text-start py-2" data-bs-toggle="modal" data-bs-target="#paymentModal">
                             <i class="fas fa-credit-card me-2"></i>भुक्तानी गर्नुहोस्
                         </button>
@@ -344,6 +417,44 @@
 .card-header {
     border-radius: 12px 12px 0 0 !important;
 }
+.list-group-item {
+    border-radius: 8px !important;
+}
+
+/* ✅ FIXED: Proper spacing for sidebar cards */
+.col-lg-4 {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem; /* This ensures consistent spacing between cards */
+}
+
+.col-lg-4 .card {
+    margin-bottom: 0 !important; /* Remove any existing margins */
+}
+
+/* ✅ FIXED: Ensure proper height distribution */
+.col-lg-4 .card {
+    flex: 0 0 auto; /* Don't grow or shrink, use auto height */
+}
+
+/* ✅ FIXED: Mobile responsive spacing */
+@media (max-width: 991.98px) {
+    .col-lg-4 {
+        margin-top: 2rem;
+        gap: 1rem;
+    }
+}
+
+/* ✅ FIXED: Consistent card heights in left columns */
+.col-lg-8 .card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.col-lg-8 .card-body {
+    flex: 1;
+}
 </style>
 
 <script>
@@ -351,5 +462,13 @@ function openImageModal(imageUrl) {
     document.getElementById('galleryImage').src = imageUrl;
     new bootstrap.Modal(document.getElementById('galleryViewModal')).show();
 }
+
+// ✅ ADDED: Ensure proper layout after page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Force reflow to fix any layout issues
+    setTimeout(function() {
+        document.body.classList.add('loaded');
+    }, 100);
+});
 </script>
 @endsection

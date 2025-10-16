@@ -11,6 +11,15 @@
                         <div class="col-md-8">
                             <h2 class="mb-1 fw-bold">नमस्ते, <?php echo e($student->user->name); ?>! 👋</h2>
                             <p class="mb-0 fs-5"><?php echo e($hostel->name); ?> मा तपाईंलाई स्वागत छ</p>
+                            
+                            <!-- ✅ ADDED: Circular Alert -->
+                            <?php if(($unreadCirculars ?? 0) > 0): ?>
+                            <div class="mt-3 alert alert-warning alert-dismissible fade show d-inline-block" role="alert">
+                                <strong><i class="fas fa-bell me-2"></i>तपाईंसँग <?php echo e($unreadCirculars); ?> वटा नयाँ सूचनाहरू छन्!</strong>
+                                <a href="<?php echo e(route('student.circulars.index')); ?>" class="alert-link ms-2">यहाँ क्लिक गर्नुहोस्</a> तिनीहरूलाई हेर्नको लागि।
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                            <?php endif; ?>
                         </div>
                         <div class="col-md-4 text-end">
                             <div class="badge bg-light text-dark p-3 fs-6">
@@ -61,11 +70,17 @@
             </div>
         </div>
         <div class="col-md-3">
+            <!-- ✅ UPDATED: Circulars Card -->
             <div class="card card-hover border-info shadow-sm">
                 <div class="card-body text-center py-4">
-                    <i class="fas fa-bell fa-2x text-info mb-3"></i>
+                    <i class="fas fa-bullhorn fa-2x text-info mb-3"></i>
                     <h5 class="text-dark">सूचनाहरू</h5>
-                    <h3 class="text-info fw-bold"><?php echo e($notifications->count()); ?></h3>
+                    <h3 class="text-info fw-bold"><?php echo e($unreadCirculars ?? 0); ?></h3>
+                    <?php if(($unreadCirculars ?? 0) > 0): ?>
+                        <span class="badge bg-danger position-absolute top-0 start-100 translate-middle">
+                            नयाँ
+                        </span>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -77,7 +92,7 @@
             <!-- Room & Payment Information -->
             <div class="row mb-4">
                 <div class="col-md-6">
-                    <div class="card shadow-sm border-0">
+                    <div class="card shadow-sm border-0 h-100">
                         <div class="card-header bg-primary text-white py-3">
                             <h5 class="mb-0 fw-bold"><i class="fas fa-home me-2"></i>कोठा जानकारी</h5>
                         </div>
@@ -108,7 +123,7 @@
                 </div>
 
                 <div class="col-md-6">
-                    <div class="card shadow-sm border-0">
+                    <div class="card shadow-sm border-0 h-100">
                         <div class="card-header bg-warning text-dark py-3">
                             <h5 class="mb-0 fw-bold"><i class="fas fa-credit-card me-2"></i>भुक्तानी स्थिति</h5>
                         </div>
@@ -143,10 +158,10 @@
                 </div>
             </div>
 
-            <!-- Today's Meal & Notifications -->
+            <!-- Today's Meal & Recent Circulars -->
             <div class="row mb-4">
                 <div class="col-md-6">
-                    <div class="card shadow-sm border-0">
+                    <div class="card shadow-sm border-0 h-100">
                         <div class="card-header bg-success text-white py-3">
                             <h5 class="mb-0 fw-bold"><i class="fas fa-utensils me-2"></i>आजको खानाको योजना</h5>
                         </div>
@@ -184,33 +199,80 @@
                 </div>
 
                 <div class="col-md-6">
-                    <div class="card shadow-sm border-0">
+                    <!-- ✅ UPDATED: Recent Circulars Section -->
+                    <div class="card shadow-sm border-0 h-100">
                         <div class="card-header bg-info text-white py-3">
-                            <h5 class="mb-0 fw-bold"><i class="fas fa-bell me-2"></i>हालैका सूचनाहरू</h5>
+                            <h5 class="mb-0 fw-bold"><i class="fas fa-bullhorn me-2"></i>हालैका सूचनाहरू</h5>
                         </div>
                         <div class="card-body">
-                            <?php if($notifications->count() > 0): ?>
+                            <?php if($recentStudentCirculars && $recentStudentCirculars->count() > 0): ?>
                                 <div class="list-group list-group-flush">
-                                    <?php $__currentLoopData = $notifications->take(3); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $notification): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <?php $__currentLoopData = $recentStudentCirculars->take(3); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $circular): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                         <div class="list-group-item px-0 py-2 border-0">
-                                            <small class="text-muted"><?php echo e($notification->created_at->diffForHumans()); ?></small>
-                                            <p class="mb-0 small text-dark"><?php echo e(Str::limit($notification->message, 50)); ?></p>
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div class="flex-grow-1">
+                                                    <small class="text-muted"><?php echo e($circular->created_at->diffForHumans()); ?></small>
+                                                    <p class="mb-1 small text-dark fw-bold"><?php echo e(Str::limit($circular->title, 40)); ?></p>
+                                                    <p class="mb-0 small text-muted"><?php echo e(Str::limit($circular->content, 50)); ?></p>
+                                                </div>
+                                                <div class="ms-2">
+                                                    <?php if(!$circular->recipients->where('user_id', auth()->id())->first()?->is_read): ?>
+                                                        <span class="badge bg-danger">नयाँ</span>
+                                                    <?php endif; ?>
+                                                    <?php if($circular->priority == 'urgent'): ?>
+                                                        <span class="badge bg-warning text-dark">जरुरी</span>
+                                                    <?php endif; ?>
+                                                </div>
+                                            </div>
                                         </div>
                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </div>
-                                <a href="<?php echo e(route('student.notifications')); ?>" class="btn btn-outline-info btn-sm mt-2">
-                                    सबै सूचनाहरू हेर्नुहोस्
+                                <a href="<?php echo e(route('student.circulars.index')); ?>" class="btn btn-outline-info btn-sm mt-2 w-100">
+                                    <i class="fas fa-list me-1"></i>सबै सूचनाहरू हेर्नुहोस्
                                 </a>
                             <?php else: ?>
                                 <div class="text-center py-3">
-                                    <i class="fas fa-bell-slash fa-2x text-muted mb-2"></i>
+                                    <i class="fas fa-bullhorn fa-2x text-muted mb-2"></i>
                                     <p class="text-muted mb-0">कुनै नयाँ सूचना छैन</p>
+                                    <a href="<?php echo e(route('student.circulars.index')); ?>" class="btn btn-outline-info btn-sm mt-2">
+                                        सबै सूचनाहरू हेर्नुहोस्
+                                    </a>
                                 </div>
                             <?php endif; ?>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <!-- ✅ ADDED: Important Circulars Section -->
+            <?php if($importantCirculars && $importantCirculars->count() > 0): ?>
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card shadow-sm border-danger">
+                        <div class="card-header bg-danger text-white py-3">
+                            <h5 class="mb-0 fw-bold"><i class="fas fa-exclamation-triangle me-2"></i>जरुरी सूचनाहरू</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="list-group">
+                                <?php $__currentLoopData = $importantCirculars->take(2); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $circular): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <a href="<?php echo e(route('student.circulars.show', $circular)); ?>" 
+                                       class="list-group-item list-group-item-action border-0 mb-2 rounded">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1 fw-bold text-danger"><?php echo e($circular->title); ?></h6>
+                                            <small class="text-muted"><?php echo e($circular->created_at->diffForHumans()); ?></small>
+                                        </div>
+                                        <p class="mb-1"><?php echo e(Str::limit($circular->content, 80)); ?></p>
+                                        <?php if(!$circular->recipients->where('user_id', auth()->id())->first()?->is_read): ?>
+                                            <span class="badge bg-danger">नयाँ</span>
+                                        <?php endif; ?>
+                                    </a>
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
         </div>
 
         <!-- Right Column - Sidebar -->
@@ -228,6 +290,18 @@
                         <a href="<?php echo e(route('student.meal-menus')); ?>" class="btn btn-outline-success text-start py-2">
                             <i class="fas fa-utensils me-2"></i>खानाको योजना
                         </a>
+                        
+                        <!-- ✅ ADDED: Circulars Quick Actions -->
+                        <a href="<?php echo e(route('student.circulars.index')); ?>" class="btn btn-outline-info text-start py-2 position-relative">
+                            <i class="fas fa-bullhorn me-2"></i>सबै सूचनाहरू
+                            <?php if(($unreadCirculars ?? 0) > 0): ?>
+                                <span class="badge bg-danger position-absolute top-0 start-100 translate-middle">
+                                    <?php echo e($unreadCirculars); ?>
+
+                                </span>
+                            <?php endif; ?>
+                        </a>
+
                         <button class="btn btn-outline-warning text-start py-2" data-bs-toggle="modal" data-bs-target="#paymentModal">
                             <i class="fas fa-credit-card me-2"></i>भुक्तानी गर्नुहोस्
                         </button>
@@ -346,6 +420,44 @@
 .card-header {
     border-radius: 12px 12px 0 0 !important;
 }
+.list-group-item {
+    border-radius: 8px !important;
+}
+
+/* ✅ FIXED: Proper spacing for sidebar cards */
+.col-lg-4 {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem; /* This ensures consistent spacing between cards */
+}
+
+.col-lg-4 .card {
+    margin-bottom: 0 !important; /* Remove any existing margins */
+}
+
+/* ✅ FIXED: Ensure proper height distribution */
+.col-lg-4 .card {
+    flex: 0 0 auto; /* Don't grow or shrink, use auto height */
+}
+
+/* ✅ FIXED: Mobile responsive spacing */
+@media (max-width: 991.98px) {
+    .col-lg-4 {
+        margin-top: 2rem;
+        gap: 1rem;
+    }
+}
+
+/* ✅ FIXED: Consistent card heights in left columns */
+.col-lg-8 .card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.col-lg-8 .card-body {
+    flex: 1;
+}
 </style>
 
 <script>
@@ -353,6 +465,14 @@ function openImageModal(imageUrl) {
     document.getElementById('galleryImage').src = imageUrl;
     new bootstrap.Modal(document.getElementById('galleryViewModal')).show();
 }
+
+// ✅ ADDED: Ensure proper layout after page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Force reflow to fix any layout issues
+    setTimeout(function() {
+        document.body.classList.add('loaded');
+    }, 100);
+});
 </script>
 <?php $__env->stopSection(); ?>
 <?php echo $__env->make('layouts.student', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\My Projects\HostelHub\resources\views/student/dashboard.blade.php ENDPATH**/ ?>
