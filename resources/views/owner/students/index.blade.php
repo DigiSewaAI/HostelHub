@@ -20,6 +20,7 @@
         <select name="status" class="border px-3 py-2 rounded-lg focus:outline-none focus:ring">
             <option value="">-- Status Filter --</option>
             <option value="active" {{ request('status')=='active' ? 'selected' : '' }}>Active</option>
+            <option value="approved" {{ request('status')=='approved' ? 'selected' : '' }}>Approved</option>
             <option value="inactive" {{ request('status')=='inactive' ? 'selected' : '' }}>Inactive</option>
         </select>
 
@@ -45,7 +46,7 @@
             <table class="w-full border-collapse">
                 <thead class="bg-gray-100">
                     <tr>
-                        <th class="px-4 py-3 border-b text-left">#</th>
+                        <th class="px-4 py-3 border-b text-left">ID</th>
                         <th class="px-4 py-3 border-b text-left">नाम</th>
                         <th class="px-4 py-3 border-b text-left">ईमेल</th>
                         <th class="px-4 py-3 border-b text-left">फोन</th>
@@ -63,11 +64,19 @@
                             <td class="px-4 py-2 border-b">
                                 @if($student->status == 'active')
                                     <span class="px-2 py-1 text-sm rounded-full bg-green-100 text-green-700">
-                                        Active
+                                        सक्रिय
+                                    </span>
+                                @elseif($student->status == 'approved')
+                                    <span class="px-2 py-1 text-sm rounded-full bg-blue-100 text-blue-700">
+                                        स्वीकृत
+                                    </span>
+                                @elseif($student->status == 'pending')
+                                    <span class="px-2 py-1 text-sm rounded-full bg-yellow-100 text-yellow-700">
+                                        पेन्डिङ
                                     </span>
                                 @else
                                     <span class="px-2 py-1 text-sm rounded-full bg-red-100 text-red-700">
-                                        Inactive
+                                        निष्क्रिय
                                     </span>
                                 @endif
                             </td>

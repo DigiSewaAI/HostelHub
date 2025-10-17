@@ -17,7 +17,7 @@ class ReviewController extends Controller
         $reviews = Review::where('hostel_id', auth()->user()->hostel_id)
             ->with('student')
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate(10); // ✅ CHANGED: get() to paginate(10)
 
         return view('owner.reviews.index', compact('reviews'));
     }

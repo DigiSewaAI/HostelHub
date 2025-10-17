@@ -14,6 +14,7 @@ use App\Http\Controllers\{
     Admin\SettingsController,
     Admin\PaymentController as AdminPaymentController,
     Owner\HostelController as OwnerHostelController,
+    Owner\ReviewController as OwnerReviewController, // ✅ ADDED: Owner ReviewController import
     Frontend\GalleryController as FrontendGalleryController,
     Frontend\PublicContactController,
     Frontend\PublicController,
@@ -503,7 +504,8 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
         Route::post('/galleries/{gallery}/toggle-featured', [GalleryController::class, 'toggleFeatured'])
             ->name('galleries.toggle-featured');
 
-        Route::resource('reviews', AdminReviewController::class);
+        // ✅ FIXED: Owner reviews route - Using OwnerReviewController instead of AdminReviewController
+        Route::resource('reviews', OwnerReviewController::class);
 
         // Owner Meal Routes
         Route::resource('meals', MealController::class);
