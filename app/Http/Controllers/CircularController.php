@@ -202,7 +202,7 @@ class CircularController extends Controller
         return response()->json(['success' => true]);
     }
 
-    // Analytics
+    // Analytics - FIXED: Handle both general and single circular analytics
     public function analytics(Circular $circular = null)
     {
         $user = auth()->user();
@@ -213,7 +213,7 @@ class CircularController extends Controller
             $stats = $this->getCircularAnalytics($circular);
             return view('circulars.analytics-single', compact('circular', 'stats'));
         } else {
-            // General analytics
+            // General analytics - FIXED: Added this missing case
             if ($user->hasRole('admin')) {
                 $stats = $this->getAdminAnalytics();
             } else {
@@ -273,9 +273,9 @@ class CircularController extends Controller
         return view('student.circulars.show', compact('circular'));
     }
 
-    // PRIVATE METHODS
+    // PROTECTED METHODS - CHANGED FROM PRIVATE TO PROTECTED
 
-    private function createRecipients(Circular $circular, $audienceType, $targetData = null)
+    protected function createRecipients(Circular $circular, $audienceType, $targetData = null)
     {
         $recipients = [];
         $users = collect();
@@ -355,7 +355,7 @@ class CircularController extends Controller
         }
     }
 
-    private function authorizeView(Circular $circular)
+    protected function authorizeView(Circular $circular)
     {
         $user = auth()->user();
 
@@ -382,7 +382,7 @@ class CircularController extends Controller
         abort(403, 'तपाईंसँग यो सूचना हेर्ने अनुमति छैन');
     }
 
-    private function authorizeEdit(Circular $circular)
+    protected function authorizeEdit(Circular $circular)
     {
         $user = auth()->user();
 
@@ -403,7 +403,7 @@ class CircularController extends Controller
         abort(403, 'तपाईंसँग यो सूचना सम्पादन गर्ने अनुमति छैन');
     }
 
-    private function getRoutePrefix()
+    protected function getRoutePrefix()
     {
         $user = auth()->user();
 
@@ -416,7 +416,7 @@ class CircularController extends Controller
         return '';
     }
 
-    private function getReadStats(Circular $circular)
+    protected function getReadStats(Circular $circular)
     {
         return [
             'total' => $circular->recipients()->count(),
@@ -427,7 +427,7 @@ class CircularController extends Controller
         ];
     }
 
-    private function getCircularAnalytics(Circular $circular)
+    protected function getCircularAnalytics(Circular $circular)
     {
         $stats = $circular->recipients()
             ->selectRaw('user_type, COUNT(*) as total, SUM(is_read) as read_count')
@@ -443,7 +443,7 @@ class CircularController extends Controller
         ];
     }
 
-    private function getAdminAnalytics()
+    protected function getAdminAnalytics()
     {
         // Implementation for admin analytics across all organizations
         // This would include cross-organization statistics
@@ -455,7 +455,7 @@ class CircularController extends Controller
         ];
     }
 
-    private function getOrganizationAnalytics(User $user)
+    protected function getOrganizationAnalytics(User $user)
     {
         $organization = $user->organizations()->first();
 

@@ -88,6 +88,9 @@ class Kernel extends HttpKernel
         'check.permission.middleware' => \App\Http\Middleware\CheckPermission::class, // Alternative alias
         'check.role.or.permission' => \App\Http\Middleware\CheckRoleOrPermission::class,
 
+        // 🆕 NEW: Dashboard Access Middleware
+        'check.dashboard' => \App\Http\Middleware\CheckDashboardAccess::class,
+
         // Subscription & Plan Middlewares
         'subscription.active' => \App\Http\Middleware\EnsureSubscriptionActive::class,
         'subscription.limit' => \App\Http\Middleware\EnforcePlanLimits::class,
@@ -138,6 +141,9 @@ class Kernel extends HttpKernel
         'check.permission' => \App\Http\Middleware\CheckPermission::class,
         'check.permission.middleware' => \App\Http\Middleware\CheckPermission::class, // Alternative alias
         'check.role.or.permission' => \App\Http\Middleware\CheckRoleOrPermission::class,
+
+        // 🆕 NEW: Dashboard Access Middleware
+        'check.dashboard' => \App\Http\Middleware\CheckDashboardAccess::class,
 
         // Subscription & Plan Middlewares
         'subscription.active' => \App\Http\Middleware\EnsureSubscriptionActive::class,

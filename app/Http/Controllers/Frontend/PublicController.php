@@ -9,6 +9,7 @@ use App\Models\Meal;
 use App\Models\Room;
 use App\Models\Student;
 use App\Models\Review;
+use App\Models\Newsletter; // ✅ ADDED: Missing import
 use App\Services\ImageService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -96,14 +97,24 @@ class PublicController extends Controller
                     });
             });
 
-            // 9. Upcoming Meals (Today + next 2 days)
+            // 9. Upcoming Meals (Today + next 2 days) - ✅ FIXED: Status condition
             $meals = collect();
             if (class_exists(Meal::class)) {
-                $meals = Meal::whereDate('date', '>=', now())
-                    ->where('status', 'published')
-                    ->orderBy('date')
-                    ->limit(3)
-                    ->get();
+                try {
+                    // Try with status condition first
+                    $meals = Meal::whereDate('date', '>=', now())
+                        ->where('status', 'published') // Use the column you added
+                        ->orderBy('date')
+                        ->limit(3)
+                        ->get();
+                } catch (\Exception $e) {
+                    // If status column doesn't exist yet, use without status condition
+                    Log::warning('Meals status column not available, fetching all meals: ' . $e->getMessage());
+                    $meals = Meal::whereDate('date', '>=', now())
+                        ->orderBy('date')
+                        ->limit(3)
+                        ->get();
+                }
             }
 
             return view('frontend.home', compact(
@@ -300,6 +311,75 @@ class PublicController extends Controller
         return view('frontend.search-results', compact('rooms'));
     }
 
+    // Room search functionality
+    public function roomSearch(): View
+    {
+        return view('frontend.room-search');
+    }
+
+    public function searchRooms(Request $request)
+    {
+        $request->validate([
+            'city' => 'required|string',
+            'check_in' => 'required|date',
+            'check_out' => 'required|date|after:check_in',
+        ]);
+
+        $rooms = Room::where('status', 'available')
+            ->whereHas('hostel', function ($query) use ($request) {
+                $query->where('city', $request->city);
+            })
+            ->with('hostel')
+            ->get();
+
+        return view('frontend.search-results', compact('rooms'));
+    }
+
+    // Hostel search functionality
+    public function hostelSearch(Request $request): View
+    {
+        $query = Hostel::query();
+
+        if ($request->has('city') && $request->city) {
+            $query->where('city', 'like', '%' . $request->city . '%');
+        }
+
+        if ($request->has('name') && $request->name) {
+            $query->where('name', 'like', '%' . $request->name . '%');
+        }
+
+        $hostels = $query->where('status', 'active')->paginate(12);
+
+        return view('frontend.hostel-search', compact('hostels'));
+    }
+
+    // Student hostel join functionality
+    public function hostelJoin(): View
+    {
+        $hostels = Hostel::where('status', 'active')->get();
+        return view('frontend.hostel-join', compact('hostels'));
+    }
+
+    public function joinHostel(Request $request, Hostel $hostel)
+    {
+        $user = auth()->user();
+
+        if (!$user || !$user->student) {
+            return redirect()->route('login')->with('error', 'Please login as a student to join a hostel.');
+        }
+
+        // Check if student already has a hostel
+        if ($user->student->hostel_id) {
+            return back()->with('error', 'You are already assigned to a hostel.');
+        }
+
+        // Assign student to hostel
+        $user->student->update(['hostel_id' => $hostel->id]);
+
+        return redirect()->route('student.dashboard')
+            ->with('success', 'Successfully joined ' . $hostel->name);
+    }
+
     // Basic page routes
     public function about(): View
     {
@@ -396,6 +476,7 @@ class PublicController extends Controller
 
         return back()->with('success', 'धन्यवाद! तपाईंको सदस्यता सफलतापूर्वक दर्ता गरियो।');
     }
+
     public function robots()
     {
         try {
