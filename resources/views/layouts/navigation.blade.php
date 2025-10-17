@@ -154,80 +154,134 @@
 
     @else
     <!-- Guest Navigation (Original Design Improved) -->
-    <!-- Primary Navigation Menu -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16">
-            <div class="flex">
-                <!-- Logo -->
-                <div class="shrink-0 flex items-center">
-                    <a href="{{ route('home') }}" class="flex items-center">
-                        <img src="{{ asset('storage/images/logo.png') }}" alt="HostelHub Logo" class="block h-9 w-auto object-contain">
-                        <span class="ml-2 text-xl font-bold text-gray-900 hidden sm:block">होस्टलहब</span>
-                    </a>
-                </div>
-
-                <!-- Navigation Links -->
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('features')" :active="request()->routeIs('features')" class="text-gray-700 hover:text-gray-900 transition-colors">
-                        {{ __('सुविधाहरू') }}
-                    </x-nav-link>
-                    <x-nav-link :href="route('how-it-works')" :active="request()->routeIs('how-it-works')" class="text-gray-700 hover:text-gray-900 transition-colors">
-                        {{ __('कसरी काम गर्छ') }}
-                    </x-nav-link>
-                    <x-nav-link :href="route('pricing')" :active="request()->routeIs('pricing')" class="text-gray-700 hover:text-gray-900 transition-colors">
-                        {{ __('मूल्य') }}
-                    </x-nav-link>
-                    <x-nav-link :href="route('gallery.public')" :active="request()->routeIs('gallery.public')" class="text-gray-700 hover:text-gray-900 transition-colors">
-                        {{ __('ग्यालरी') }}
-                    </x-nav-link>
-                    <x-nav-link :href="route('reviews')" :active="request()->routeIs('reviews')" class="text-gray-700 hover:text-gray-900 transition-colors">
-                        {{ __('समीक्षाहरू') }}
-                    </x-nav-link>
-                </div>
-            </div>
-
-            <!-- Auth Toggle Links -->
-            <div class="hidden sm:flex sm:items-center sm:ms-6">
-                <a href="{{ route('login') }}" class="text-sm text-gray-700 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 px-4 py-2 transition-colors">
-                    {{ __('लगइन') }}
+<!-- Primary Navigation Menu -->
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between h-16">
+        <div class="flex">
+            <!-- Logo -->
+            <div class="shrink-0 flex items-center">
+                <a href="{{ route('home') }}" class="flex items-center">
+                    <img src="{{ asset('storage/images/logo.png') }}" alt="HostelHub Logo" class="block h-9 w-auto object-contain">
+                    <span class="ml-2 text-xl font-bold text-gray-900 hidden sm:block">होस्टलहब</span>
                 </a>
-                @if (Route::has('register'))
-                    <a href="{{ route('register') }}" class="ml-4 text-sm bg-blue-600 text-white hover:bg-blue-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 px-4 py-2 transition-colors">
-                        {{ __('साइन अप') }}
-                    </a>
-                @endif
             </div>
 
-            <!-- Hamburger -->
-            <div class="-me-2 flex items-center sm:hidden">
-                <button @click="open = ! open" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition duration-150 ease-in-out">
-                    <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                        <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                        <path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
+            <!-- Navigation Links -->
+            <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                <x-nav-link :href="route('features')" :active="request()->routeIs('features')" class="text-gray-700 hover:text-gray-900 transition-colors">
+                    {{ __('सुविधाहरू') }}
+                </x-nav-link>
+                <x-nav-link :href="route('how-it-works')" :active="request()->routeIs('how-it-works')" class="text-gray-700 hover:text-gray-900 transition-colors">
+                    {{ __('कसरी काम गर्छ') }}
+                </x-nav-link>
+                <x-nav-link :href="route('pricing')" :active="request()->routeIs('pricing')" class="text-gray-700 hover:text-gray-900 transition-colors">
+                    {{ __('मूल्य') }}
+                </x-nav-link>
+                <x-nav-link :href="route('gallery.public')" :active="request()->routeIs('gallery.public')" class="text-gray-700 hover:text-gray-900 transition-colors">
+                    {{ __('ग्यालरी') }}
+                </x-nav-link>
+                <x-nav-link :href="route('reviews')" :active="request()->routeIs('reviews')" class="text-gray-700 hover:text-gray-900 transition-colors">
+                    {{ __('समीक्षाहरू') }}
+                </x-nav-link>
             </div>
         </div>
-    </div>
 
-    <!-- Responsive Navigation Menu -->
-    <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
-        <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link :href="route('features')" :active="request()->routeIs('features')">
-                {{ __('सुविधाहरू') }}
-            </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('how-it-works')" :active="request()->routeIs('how-it-works')">
-                {{ __('कसरी काम गर्छ') }}
-            </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('pricing')" :active="request()->routeIs('pricing')">
-                {{ __('मूल्य') }}
-            </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('gallery.public')" :active="request()->routeIs('gallery.public')">
-                {{ __('ग्यालरी') }}
-            </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('reviews')" :active="request()->routeIs('reviews')">
-                {{ __('समीक्षाहरू') }}
-            </x-responsive-nav-link>
+        <!-- Auth Toggle Links -->
+<div class="hidden sm:flex sm:items-center sm:ms-6">
+    @auth
+        <!-- Dashboard Link for Authenticated Users -->
+        @if(Auth::user()->hasRole('admin'))
+            <a href="{{ route('admin.dashboard') }}" class="text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 px-4 py-2 transition-colors mr-3">
+                {{ __('ड्यासबोर्ड') }}
+            </a>
+        @elseif(Auth::user()->hasRole('owner') || Auth::user()->hasRole('hostel_manager'))
+            <a href="{{ route('owner.dashboard') }}" class="text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 px-4 py-2 transition-colors mr-3">
+                {{ __('ड्यासबोर्ड') }}
+            </a>
+        @elseif(Auth::user()->hasRole('student'))
+            <a href="{{ route('student.dashboard') }}" class="text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 px-4 py-2 transition-colors mr-3">
+                {{ __('ड्यासबोर्ड') }}
+            </a>
+        @endif
+
+        <!-- Logout Form -->
+        <form method="POST" action="{{ route('logout') }}" class="inline">
+            @csrf
+            <button type="submit" class="text-sm font-semibold text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 px-4 py-2 transition-colors border border-gray-300">
+                {{ __('लगआउट') }}
+            </button>
+        </form>
+    @else
+        <!-- Guest Links -->
+        <a href="{{ route('login') }}" class="text-sm font-semibold text-gray-700 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 px-4 py-2 transition-colors">
+            {{ __('लगइन') }}
+        </a>
+        @if (Route::has('register'))
+            <a href="{{ route('register') }}" class="ml-4 text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 px-4 py-2 transition-colors">
+                {{ __('साइन अप') }}
+            </a>
+        @endif
+    @endauth
+</div>
+
+        <!-- Hamburger -->
+        <div class="-me-2 flex items-center sm:hidden">
+            <button @click="open = ! open" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition duration-150 ease-in-out">
+                <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                    <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    <path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Responsive Navigation Menu -->
+<div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
+    <div class="pt-2 pb-3 space-y-1">
+        <x-responsive-nav-link :href="route('features')" :active="request()->routeIs('features')">
+            {{ __('सुविधाहरू') }}
+        </x-responsive-nav-link>
+        <x-responsive-nav-link :href="route('how-it-works')" :active="request()->routeIs('how-it-works')">
+            {{ __('कसरी काम गर्छ') }}
+        </x-responsive-nav-link>
+        <x-responsive-nav-link :href="route('pricing')" :active="request()->routeIs('pricing')">
+            {{ __('मूल्य') }}
+        </x-responsive-nav-link>
+        <x-responsive-nav-link :href="route('gallery.public')" :active="request()->routeIs('gallery.public')">
+            {{ __('ग्यालरी') }}
+        </x-responsive-nav-link>
+        <x-responsive-nav-link :href="route('reviews')" :active="request()->routeIs('reviews')">
+            {{ __('समीक्षाहरू') }}
+        </x-responsive-nav-link>
+        
+        @auth
+            <!-- Authenticated User Mobile Menu -->
+            @if(Auth::user()->hasRole('admin'))
+                <x-responsive-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
+                    {{ __('ड्यासबोर्ड') }}
+                </x-responsive-nav-link>
+            @elseif(Auth::user()->hasRole('owner') || Auth::user()->hasRole('hostel_manager'))
+                <x-responsive-nav-link :href="route('owner.dashboard')" :active="request()->routeIs('owner.dashboard')">
+                    {{ __('ड्यासबोर्ड') }}
+                </x-responsive-nav-link>
+            @elseif(Auth::user()->hasRole('student'))
+                <x-responsive-nav-link :href="route('student.dashboard')" :active="request()->routeIs('student.dashboard')">
+                    {{ __('ड्यासबोर्ड') }}
+                </x-responsive-nav-link>
+            @endif
+
+            <!-- Logout Form for Mobile -->
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <x-responsive-nav-link :href="route('logout')"
+                        onclick="event.preventDefault();
+                                    this.closest('form').submit();">
+                    {{ __('लगआउट') }}
+                </x-responsive-nav-link>
+            </form>
+        @else
+            <!-- Guest Mobile Menu -->
             <x-responsive-nav-link :href="route('login')" :active="request()->routeIs('login')">
                 {{ __('लगइन') }}
             </x-responsive-nav-link>
@@ -236,9 +290,9 @@
                     {{ __('साइन अप') }}
                 </x-responsive-nav-link>
             @endif
-        </div>
+        @endauth
     </div>
-    @endauth
+</div>
 </nav>
 
 <style>
