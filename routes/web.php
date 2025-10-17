@@ -28,6 +28,7 @@ use App\Http\Controllers\{
     Auth\PasswordResetLinkController,
     Auth\RegisteredUserController,
     Auth\VerifyEmailController,
+    Auth\LoginController, // ✅ ADDED: LoginController import
     RegistrationController,
     SubscriptionController,
     OnboardingController,
@@ -102,15 +103,16 @@ Route::get('/register/organization/{plan?}', [RegistrationController::class, 'sh
 Route::post('/register/organization', [RegistrationController::class, 'store'])->name('register.organization.store');
 
 /*|--------------------------------------------------------------------------
-| Authentication Routes
+| ✅ FIXED: Authentication Routes - Using LoginController instead of AuthenticatedSessionController
 |--------------------------------------------------------------------------
 */
 Route::middleware('guest')->group(function () {
     Route::get('/register', [RegisteredUserController::class, 'create'])->name('register');
     Route::post('/register', [RegisteredUserController::class, 'store'])->name('register.submit');
 
-    Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
-    Route::post('/login', [AuthenticatedSessionController::class, 'store'])->name('login.submit');
+    // ✅ FIXED: Changed to use LoginController for both GET and POST
+    Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
 
     Route::get('/forgot-password', [PasswordResetLinkController::class, 'create'])->name('password.request');
     Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])->name('password.email');
@@ -125,6 +127,12 @@ Route::middleware('guest')->group(function () {
         ->middleware('throttle:6,1')
         ->name('verification.send');
 });
+
+/*|--------------------------------------------------------------------------
+| ✅ FIXED: Global Logout Route (Simplified - Moved outside middleware)
+|--------------------------------------------------------------------------
+*/
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 /*|--------------------------------------------------------------------------
 | Student Welcome Route (For unconnected students after registration)
@@ -398,8 +406,7 @@ Route::middleware(['auth', 'role:student'])->prefix('student')->name('student.')
 */
 Route::middleware(['auth', 'hasOrganization'])->group(function () {
 
-    // Common routes for all authenticated users
-    Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
+    // ✅ REMOVED: Duplicate logout route from here since we have global one above
 
     // Booking routes
     Route::get('/my-bookings', [BookingController::class, 'myBookings'])->name('bookings.my');
@@ -645,13 +652,7 @@ if (app()->environment('local')) {
         return 'Test route';
     })->name('test.route');
 
-    Route::get('/logout', function () {
-        auth()->logout();
-        request()->session()->invalidate();
-        request()->session()->regenerateToken();
-        return redirect('/');
-    })->middleware('auth');
-
+    // ✅ REMOVED: Duplicate logout route from development section
     Route::get('/test-pdf', function () {
         $pdf = Pdf::loadHTML('<h1>Test PDF</h1><p>This is working!</p>');
         return $pdf->download('test.pdf');
