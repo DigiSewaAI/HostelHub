@@ -20,17 +20,12 @@ class RedirectIfAuthenticated
             if (Auth::guard($guard)->check()) {
                 $user = Auth::guard($guard)->user();
 
-                // Redirect according to user role
+                // ✅ FIXED: Simplified role-based redirect
                 if ($user->hasRole('admin')) {
                     return redirect()->route('admin.dashboard');
-                }
-
-                if ($user->hasRole('hostel_manager') || $user->hasRole('owner')) {
+                } elseif ($user->hasRole('hostel_manager') || $user->hasRole('owner')) {
                     return redirect()->route('owner.dashboard');
-                }
-
-                if ($user->hasRole('student')) {
-                    // ✅ FIXED: Always redirect students to dashboard, welcome page handles unconnected students
+                } elseif ($user->hasRole('student')) {
                     return redirect()->route('student.dashboard');
                 }
 

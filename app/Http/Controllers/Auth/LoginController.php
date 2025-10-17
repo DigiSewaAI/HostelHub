@@ -9,12 +9,52 @@ use Illuminate\Support\Facades\DB;
 
 class LoginController extends Controller
 {
+    /**
+     * Show the application's login form.
+     */
+    public function showLoginForm()
+    {
+        return view('auth.login');
+    }
+
+    /**
+     * Handle a login request to the application.
+     */
+    public function login(Request $request)
+    {
+        $credentials = $request->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required'],
+        ]);
+
+        if (Auth::attempt($credentials, $request->boolean('remember'))) {
+            $request->session()->regenerate();
+
+            // ✅ FIXED: Use the authenticated method for proper redirect
+            return $this->authenticated($request, Auth::user());
+        }
+
+        return back()->withErrors([
+            'email' => 'The provided credentials do not match our records.',
+        ])->onlyInput('email');
+    }
+
+    // ✅ FIXED: Add authenticated method for post-login redirect with intended
     protected function authenticated(Request $request, $user)
     {
-        // Set organization session before redirecting
+        // Set organization session first
         $this->setOrganizationSession($user);
 
-        return redirect()->intended($this->redirectPath());
+        // ✅ FIXED: Use redirect()->intended() for proper redirect handling
+        if ($user->hasRole('admin')) {
+            return redirect()->intended(route('admin.dashboard'));
+        } elseif ($user->hasRole('hostel_manager') || $user->hasRole('owner')) {
+            return redirect()->intended(route('owner.dashboard'));
+        } elseif ($user->hasRole('student')) {
+            return redirect()->intended(route('student.dashboard'));
+        }
+
+        return redirect()->intended('/');
     }
 
     protected function redirectPath()
@@ -33,7 +73,7 @@ class LoginController extends Controller
         // Use role relationship properly
         if ($user->hasRole('admin')) {
             return '/admin/dashboard';
-        } elseif ($user->hasRole('hostel_manager')) {
+        } elseif ($user->hasRole('hostel_manager') || $user->hasRole('owner')) {
             return '/owner/dashboard';
         } elseif ($user->hasRole('student')) {
             return '/student/dashboard';
@@ -62,6 +102,7 @@ class LoginController extends Controller
         }
     }
 
+    // ✅ FIXED: Simplified logout method
     public function logout(Request $request)
     {
         Auth::logout();
