@@ -5,29 +5,42 @@
 <?php $__env->startSection('content'); ?>
     <!-- Welcome Section -->
     <div class="bg-white rounded-2xl shadow-sm p-6 mb-6">
-        <h1 class="text-2xl font-bold text-gray-800">नमस्ते, <?php echo e(auth()->user()->name); ?>!</h1>
-        <p class="text-gray-600 mt-2">यो तपाईंको होस्टल व्यवस्थापन ड्यासबोर्ड हो</p>
-        
-        <!-- Circular Notifications -->
-        <?php if(($organizationCirculars ?? 0) > 0): ?>
-        <div class="mt-4 bg-indigo-50 border-l-4 border-indigo-500 p-4 rounded-xl">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center">
-                    <div class="bg-indigo-100 p-2 rounded-lg mr-3">
-                        <i class="fas fa-bullhorn text-indigo-600"></i>
-                    </div>
-                    <div>
-                        <h3 class="font-semibold text-indigo-800">तपाईंसँग <?php echo e($organizationCirculars); ?> सक्रिय सूचनाहरू छन्</h3>
-                        <p class="text-sm text-indigo-600">हालसम्म <?php echo e($organizationCirculars); ?> सूचनाहरू प्रकाशित गरिएको छ</p>
+        <div class="flex justify-between items-start">
+            <div class="flex-1">
+                <h1 class="text-2xl font-bold text-gray-800">नमस्ते, <?php echo e(auth()->user()->name); ?>!</h1>
+                <p class="text-gray-600 mt-2">यो तपाईंको होस्टल व्यवस्थापन ड्यासबोर्ड हो</p>
+                
+                <!-- Circular Notifications -->
+                <?php if(($organizationCirculars ?? 0) > 0): ?>
+                <div class="mt-4 bg-indigo-50 border-l-4 border-indigo-500 p-4 rounded-xl">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="bg-indigo-100 p-2 rounded-lg mr-3">
+                                <i class="fas fa-bullhorn text-indigo-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-indigo-800">तपाईंसँग <?php echo e($organizationCirculars); ?> सक्रिय सूचनाहरू छन्</h3>
+                                <p class="text-sm text-indigo-600">हालसम्म <?php echo e($organizationCirculars); ?> सूचनाहरू प्रकाशित गरिएको छ</p>
+                            </div>
+                        </div>
+                        <a href="<?php echo e(route('owner.circulars.index')); ?>" 
+                           class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-medium no-underline transition-colors">
+                            सबै हेर्नुहोस्
+                        </a>
                     </div>
                 </div>
-                <a href="<?php echo e(route('owner.circulars.index')); ?>" 
-                   class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-medium no-underline transition-colors">
-                    सबै हेर्नुहोस्
+                <?php endif; ?>
+            </div>
+            
+            <!-- 🏠 Homepage Button in Welcome Section -->
+            <div class="ml-6">
+                <a href="<?php echo e(url('/')); ?>" 
+                   class="inline-flex items-center bg-green-600 hover:bg-green-700 text-white font-medium rounded-xl px-5 py-3 shadow-sm hover:shadow-md transition-all duration-200 no-underline">
+                    <i class="fas fa-home mr-2"></i>
+                    मुख्य पृष्ठमा जानुहोस्
                 </a>
             </div>
         </div>
-        <?php endif; ?>
     </div>
 
     <!-- Financial Summary Cards -->
@@ -194,6 +207,14 @@
     <div class="bg-white rounded-2xl shadow-sm p-6 mb-6">
         <h2 class="text-xl font-bold text-gray-800 mb-6">द्रुत कार्यहरू</h2>
         <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            <!-- 🏠 Homepage Button in Quick Actions -->
+            <a href="<?php echo e(url('/')); ?>" class="p-4 bg-green-50 hover:bg-green-100 rounded-2xl text-center transition-colors no-underline group border border-green-100">
+                <div class="text-green-600 text-2xl mb-2 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-home"></i>
+                </div>
+                <div class="font-medium text-green-800 text-sm">मुख्य पृष्ठ</div>
+            </a>
+            
             <a href="<?php echo e(route('owner.hostels.create')); ?>" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-2xl text-center transition-colors no-underline group border border-blue-100">
                 <div class="text-blue-600 text-2xl mb-2 group-hover:scale-110 transition-transform">
                     <i class="fas fa-plus"></i>
