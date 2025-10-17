@@ -29,6 +29,7 @@ class RoleMiddleware
             }
         }
 
-        abort(403, 'Unauthorized access.');
+        // ✅ Better error message for debugging
+        abort(403, 'Unauthorized access. Your roles: ' . $user->getRoleNames()->implode(', ') . ' | Required: ' . implode(', ', $roles));
     }
 }

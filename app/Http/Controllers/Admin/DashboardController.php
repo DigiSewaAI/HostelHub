@@ -10,21 +10,24 @@ use App\Models\MealMenu;
 use App\Models\Payment;
 use App\Models\User;
 use App\Models\Organization;
-use App\Models\StudentDocument; // ✅ ADDED: Document model
-use App\Models\Circular; // ✅ ADDED: Circular model
-use App\Models\CircularRecipient; // ✅ ADDED: Circular Recipient model
+use App\Models\StudentDocument;
+use App\Models\Circular;
+use App\Models\CircularRecipient;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('role:admin')->only(['reports', 'statistics']);
+        $this->middleware(['auth']);
+        // ✅ CRITICAL FIX: Remove global 'role:admin' middleware
+        $this->middleware('can:view-admin-dashboard')->only(['adminDashboard', 'reports', 'statistics']);
     }
 
     /**
@@ -52,19 +55,22 @@ class DashboardController extends Controller
      */
     public function adminDashboard()
     {
-        try {
-            // Authorization check
-            $this->authorize('view-admin-dashboard');
+        $this->authorize('view-admin-dashboard');
 
-            // Cache metrics for 5 minutes to improve performance
-            $metrics = Cache::remember('admin_dashboard_metrics_' . auth()->id(), 300, function () {
+        $userId = auth()->id();
+        $cacheKey = "admin_dashboard_metrics_{$userId}";
+
+        try {
+            $metrics = Cache::remember($cacheKey, 300, function () {
+                $organizationId = session('current_organization_id');
+
                 // Fetch core metrics with optimized queries
                 $totalStudents = Student::count();
                 $totalRooms = Room::count();
                 $totalHostels = Hostel::count();
                 $totalContacts = Contact::count();
-                $totalDocuments = StudentDocument::count(); // ✅ ADDED: Document count
-                $totalCirculars = Circular::count(); // ✅ ADDED: Circular count
+                $totalDocuments = StudentDocument::count();
+                $totalCirculars = Circular::count();
 
                 // Batch room status queries for efficiency with null safety
                 $roomStatus = Room::selectRaw('
@@ -80,9 +86,7 @@ class DashboardController extends Controller
                 ];
 
                 // Calculate occupancy rate safely
-                $roomOccupancy = $totalRooms > 0
-                    ? round(($roomStatus->occupied / $totalRooms) * 100, 1)
-                    : 0;
+                $roomOccupancy = $this->calculateOccupancyRate();
 
                 // Calculate reservation rate
                 $roomReservation = $totalRooms > 0
@@ -109,14 +113,14 @@ class DashboardController extends Controller
                     ->take(5)
                     ->get();
 
-                // ✅ ADDED: Recent documents
+                // Recent documents
                 $recentDocuments = StudentDocument::with(['student.user', 'organization'])
                     ->select('id', 'student_id', 'organization_id', 'document_type', 'original_name', 'created_at')
                     ->latest('created_at')
                     ->take(5)
                     ->get();
 
-                // ✅ ADDED: Recent circulars
+                // Recent circulars
                 $recentCirculars = Circular::with(['organization', 'creator'])
                     ->select('id', 'title', 'content', 'priority', 'organization_id', 'created_by', 'created_at')
                     ->latest('created_at')
@@ -128,8 +132,8 @@ class DashboardController extends Controller
                     'total_rooms' => $totalRooms,
                     'total_hostels' => $totalHostels,
                     'total_contacts' => $totalContacts,
-                    'total_documents' => $totalDocuments, // ✅ ADDED
-                    'total_circulars' => $totalCirculars, // ✅ ADDED
+                    'total_documents' => $totalDocuments,
+                    'total_circulars' => $totalCirculars,
                     'room_occupancy' => $roomOccupancy,
                     'room_reservation' => $roomReservation,
                     'available_rooms' => $roomStatus->available,
@@ -139,16 +143,17 @@ class DashboardController extends Controller
                     'recent_students' => $recentStudents,
                     'recent_contacts' => $recentContacts,
                     'recent_hostels' => $recentHostels,
-                    'recent_documents' => $recentDocuments, // ✅ ADDED
-                    'recent_circulars' => $recentCirculars, // ✅ ADDED
+                    'recent_documents' => $recentDocuments,
+                    'recent_circulars' => $recentCirculars,
                 ];
             });
 
-            // ✅ ADDED: Pass circular data to view
+            // Pass circular data to view
             $totalCirculars = $metrics['total_circulars'] ?? 0;
             $recentCirculars = $metrics['recent_circulars'] ?? collect();
+            $recentActivities = $this->getRecentActivities($metrics);
 
-            return view('admin.dashboard', compact('metrics', 'totalCirculars', 'recentCirculars'));
+            return view('admin.dashboard', compact('metrics', 'totalCirculars', 'recentCirculars', 'recentActivities'));
         } catch (\Exception $e) {
             // Log error details for debugging
             Log::error('ड्यासबोर्ड लोड गर्न असफल: ' . $e->getMessage(), [
@@ -158,7 +163,7 @@ class DashboardController extends Controller
             ]);
 
             // Clear cache on error
-            Cache::forget('admin_dashboard_metrics_' . auth()->id());
+            Cache::forget($cacheKey);
 
             // Return simplified view with error message
             return view('admin.dashboard', [
@@ -167,8 +172,8 @@ class DashboardController extends Controller
                     'total_rooms' => 0,
                     'total_hostels' => 0,
                     'total_contacts' => 0,
-                    'total_documents' => 0, // ✅ ADDED
-                    'total_circulars' => 0, // ✅ ADDED
+                    'total_documents' => 0,
+                    'total_circulars' => 0,
                     'room_occupancy' => 0,
                     'room_reservation' => 0,
                     'available_rooms' => 0,
@@ -178,14 +183,97 @@ class DashboardController extends Controller
                     'recent_students' => collect(),
                     'recent_contacts' => collect(),
                     'recent_hostels' => collect(),
-                    'recent_documents' => collect(), // ✅ ADDED
-                    'recent_circulars' => collect(), // ✅ ADDED
+                    'recent_documents' => collect(),
+                    'recent_circulars' => collect(),
                 ],
                 'totalCirculars' => 0,
                 'recentCirculars' => collect(),
+                'recentActivities' => collect(),
                 'error' => 'ड्यासबोर्ड डाटा लोड गर्न सकिएन। कृपया पछि प्रयास गर्नुहोस् वा समर्थन सम्पर्क गर्नुहोस्।'
             ]);
         }
+    }
+
+    /**
+     * Calculate room occupancy rate
+     */
+    private function calculateOccupancyRate()
+    {
+        $totalRooms = Room::count();
+        $occupiedRooms = Room::where('status', 'occupied')->count();
+
+        return $totalRooms > 0 ? round(($occupiedRooms / $totalRooms) * 100) : 0;
+    }
+
+    /**
+     * Get recent activities for dashboard
+     */
+    private function getRecentActivities($metrics)
+    {
+        $activities = collect();
+
+        // Recent circulars
+        foreach ($metrics['recent_circulars'] ?? [] as $circular) {
+            $activities->push([
+                'type' => 'circular',
+                'title' => 'नयाँ सूचना प्रकाशित',
+                'description' => $circular->title . ' - ' . Str::limit($circular->content, 50),
+                'time' => $circular->created_at->diffForHumans(),
+                'icon' => 'bullhorn',
+                'color' => 'indigo',
+                'priority' => $circular->priority_nepali ?? 'सामान्य'
+            ]);
+        }
+
+        // Recent students
+        foreach ($metrics['recent_students'] as $student) {
+            $activities->push([
+                'type' => 'student',
+                'title' => 'नयाँ विद्यार्थी दर्ता',
+                'description' => $student->name . ' (' . (optional(optional($student->room)->hostel)->name ?? 'अज्ञात होस्टल') . ')',
+                'time' => $student->created_at->diffForHumans(),
+                'icon' => 'user-plus',
+                'color' => 'red'
+            ]);
+        }
+
+        // Recent contacts
+        foreach ($metrics['recent_contacts'] as $contact) {
+            $activities->push([
+                'type' => 'contact',
+                'title' => 'नयाँ सम्पर्क सन्देश',
+                'description' => $contact->name . ' - ' . Str::limit($contact->message, 50),
+                'time' => $contact->created_at->diffForHumans(),
+                'icon' => 'envelope',
+                'color' => 'blue'
+            ]);
+        }
+
+        // Recent hostels
+        foreach ($metrics['recent_hostels'] as $hostel) {
+            $activities->push([
+                'type' => 'hostel',
+                'title' => 'नयाँ होस्टल दर्ता',
+                'description' => $hostel->name . ' (' . $hostel->rooms_count . ' कोठाहरू)',
+                'time' => $hostel->created_at->diffForHumans(),
+                'icon' => 'building',
+                'color' => 'amber'
+            ]);
+        }
+
+        // Recent documents
+        foreach ($metrics['recent_documents'] as $document) {
+            $activities->push([
+                'type' => 'document',
+                'title' => 'नयाँ कागजात अपलोड',
+                'description' => $document->original_name . ' (' . (optional($document->student)->user->name ?? 'अज्ञात विद्यार्थी') . ')',
+                'time' => $document->created_at->diffForHumans(),
+                'icon' => 'file-upload',
+                'color' => 'purple'
+            ]);
+        }
+
+        return $activities->sortByDesc('time')->take(10);
     }
 
     /**
@@ -194,16 +282,15 @@ class DashboardController extends Controller
     public function ownerDashboard()
     {
         try {
-            // CRITICAL FIX: Role-based authorization instead of permission-based
-            // This allows hostel_manager to access owner dashboard without specific permission
-            if (!auth()->user()->hasRole('hostel_manager')) {
-                abort(403, 'तपाईंसँग यो पृष्ठमा पहुँच गर्ने अनुमति छैन');
-            }
+            // ✅ CRITICAL FIX: Remove duplicate role check - route middleware handles this
+            // if (!auth()->user()->hasRole('hostel_manager')) {
+            //     abort(403, 'तपाईंसँग यो पृष्ठमा पहुँच गर्ने अनुमति छैन');
+            // }
 
             // Get the authenticated user
             $user = auth()->user();
 
-            // Get user's organization where they are owner
+            // ✅ CRITICAL FIX: Force session organization set
             $organization = $user->organizations()
                 ->wherePivot('role', 'owner')
                 ->first();
@@ -222,9 +309,9 @@ class DashboardController extends Controller
                     'totalSecurityDeposit' => 0,
                     'averageOccupancy' => 0,
                     'activeHostelsCount' => 0,
-                    'totalDocuments' => 0, // ✅ ADDED
-                    'recentDocuments' => collect(), // ✅ ADDED
-                    // ✅ ADDED: Circular variables
+                    'totalDocuments' => 0,
+                    'recentDocuments' => collect(),
+                    // Circular variables
                     'organizationCirculars' => 0,
                     'urgentCirculars' => 0,
                     'normalCirculars' => 0,
@@ -233,6 +320,9 @@ class DashboardController extends Controller
                 ]);
             }
 
+            // ✅ CRITICAL FIX: Force set session organization ID
+            session(['current_organization_id' => $organization->id]);
+
             // Get all hostels of the organization
             $hostels = $organization->hostels;
             $hostelIds = $hostels->pluck('id');
@@ -240,18 +330,15 @@ class DashboardController extends Controller
             // If there are hostels, get the first one for the meal and to pass to the view
             $hostel = $hostels->first();
 
-            // Set current organization ID in session
-            session(['current_organization_id' => $organization->id]);
-
             // Get aggregated statistics for all hostels with optimized queries
             $totalRooms = Room::whereIn('hostel_id', $hostelIds)->count();
             $occupiedRooms = Room::whereIn('hostel_id', $hostelIds)
                 ->where('status', 'occupied')
                 ->count();
             $totalStudents = Student::whereIn('hostel_id', $hostelIds)->count();
-            $totalDocuments = StudentDocument::where('organization_id', $organization->id)->count(); // ✅ ADDED
+            $totalDocuments = StudentDocument::where('organization_id', $organization->id)->count();
 
-            // ✅ ADDED: Circulars data for the organization
+            // Circulars data for the organization
             $organizationCirculars = Circular::where('organization_id', $organization->id)->count();
             $urgentCirculars = Circular::where('organization_id', $organization->id)
                 ->where('priority', 'urgent')
@@ -268,17 +355,17 @@ class DashboardController extends Controller
                 ->take(5)
                 ->get();
 
-            // ✅ NEW: Financial calculations
+            // Financial calculations
             $totalMonthlyRevenue = $hostels->sum('monthly_rent');
             $totalSecurityDeposit = $hostels->sum('security_deposit');
 
-            // ✅ NEW: Occupancy calculation
+            // Occupancy calculation
             $averageOccupancy = $totalRooms > 0 ? round(($occupiedRooms / $totalRooms) * 100, 2) : 0;
 
-            // ✅ NEW: Active hostels count
+            // Active hostels count
             $activeHostelsCount = $hostels->where('status', 'active')->count();
 
-            // ✅ ADDED: Recent documents for the organization
+            // Recent documents for the organization
             $recentDocuments = StudentDocument::where('organization_id', $organization->id)
                 ->with(['student.user'])
                 ->latest('created_at')
@@ -301,15 +388,15 @@ class DashboardController extends Controller
                 'totalStudents',
                 'todayMeal',
                 'organization',
-                // ✅ NEW: Financial summary variables
+                // Financial summary variables
                 'totalMonthlyRevenue',
                 'totalSecurityDeposit',
                 'averageOccupancy',
                 'activeHostelsCount',
-                // ✅ ADDED: Document variables
+                // Document variables
                 'totalDocuments',
                 'recentDocuments',
-                // ✅ ADDED: Circular variables
+                // Circular variables
                 'organizationCirculars',
                 'urgentCirculars',
                 'normalCirculars',
@@ -334,10 +421,10 @@ class DashboardController extends Controller
                 'totalSecurityDeposit' => 0,
                 'averageOccupancy' => 0,
                 'activeHostelsCount' => 0,
-                // ✅ ADDED: Document variables
+                // Document variables
                 'totalDocuments' => 0,
                 'recentDocuments' => collect(),
-                // ✅ ADDED: Circular variables
+                // Circular variables
                 'organizationCirculars' => 0,
                 'urgentCirculars' => 0,
                 'normalCirculars' => 0,
@@ -401,7 +488,7 @@ class DashboardController extends Controller
             // Get notifications
             $notifications = $user->notifications()->latest()->take(5)->get();
 
-            // ✅ ADDED: Circulars data for student
+            // Circulars data for student
             $unreadCirculars = CircularRecipient::where('user_id', $user->id)
                 ->where('is_read', false)
                 ->count();
@@ -436,7 +523,7 @@ class DashboardController extends Controller
                 'galleryImages',
                 'notifications',
                 'paymentStatus',
-                // ✅ ADDED: Circular variables
+                // Circular variables
                 'unreadCirculars',
                 'recentStudentCirculars',
                 'importantCirculars'
@@ -569,7 +656,9 @@ class DashboardController extends Controller
     public function clearCache()
     {
         try {
-            Cache::forget('admin_dashboard_metrics_' . auth()->id());
+            $userId = auth()->id();
+            Cache::forget("admin_dashboard_metrics_{$userId}");
+
             return response()->json([
                 'success' => true,
                 'message' => 'ड्यासबोर्ड क्यास सफलतापूर्वक मेटाइयो'

@@ -24,8 +24,19 @@ class HasOrganization
                 return $next($request);
             }
 
+            // Students without organization should be allowed
+            if ($user->hasRole('student')) {
+                return $next($request);
+            }
+
             return redirect()->route('register.organization')
                 ->with('error', 'कृपया पहिले आफ्नो संस्था सिर्जना गर्नुहोस्।');
+        }
+
+        // ✅ PERMANENT FIX: Always set current_organization_id in session
+        $firstOrganization = $user->organizations->first();
+        if ($firstOrganization) {
+            session(['current_organization_id' => $firstOrganization->id]);
         }
 
         return $next($request);

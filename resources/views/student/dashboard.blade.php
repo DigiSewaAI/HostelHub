@@ -1,31 +1,83 @@
 @extends('layouts.student')
 
+@section('title', 'विद्यार्थी ड्यासबोर्ड')
+
 @section('content')
-<div class="container-fluid">
-    <!-- Welcome Section -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card bg-gradient-primary text-white shadow-lg">
-                <div class="card-body py-4">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <h2 class="mb-1 fw-bold">नमस्ते, {{ $student->user->name }}! 👋</h2>
-                            <p class="mb-0 fs-5">{{ $hostel->name }} मा तपाईंलाई स्वागत छ</p>
-                            
-                            <!-- ✅ ADDED: Circular Alert -->
-                            @if(($unreadCirculars ?? 0) > 0)
-                            <div class="mt-3 alert alert-warning alert-dismissible fade show d-inline-block" role="alert">
-                                <strong><i class="fas fa-bell me-2"></i>तपाईंसँग {{ $unreadCirculars }} वटा नयाँ सूचनाहरू छन्!</strong>
-                                <a href="{{ route('student.circulars.index') }}" class="alert-link ms-2">यहाँ क्लिक गर्नुहोस्</a> तिनीहरूलाई हेर्नको लागि।
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>
-                            @endif
+<style>
+/* Custom Wave Animation */
+.wave-hand {
+    display: inline-block;
+    animation: wave 2.5s ease-in-out infinite;
+    transform-origin: 70% 70%;
+}
+
+@keyframes wave {
+    0% { transform: rotate(0deg); }
+    10% { transform: rotate(14deg); }
+    20% { transform: rotate(-8deg); }
+    30% { transform: rotate(14deg); }
+    40% { transform: rotate(-4deg); }
+    50% { transform: rotate(10deg); }
+    60% { transform: rotate(0deg); }
+    100% { transform: rotate(0deg); }
+}
+
+/* Alternative: Bounce Animation */
+.bounce-hand {
+    display: inline-block;
+    animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+    40% {transform: translateY(-10px);}
+    60% {transform: translateY(-5px);}
+}
+
+/* Simple Pulse Animation */
+.pulse-hand {
+    display: inline-block;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+</style>
+
+    <!-- Welcome Section with WORKING Animated Hand -->
+    <div class="bg-blue-800 rounded-2xl shadow-lg mb-6 border border-blue-700">
+        <div class="p-6">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                <div class="flex-1">
+                    <!-- Main Heading with Waving Hand -->
+                    <h2 class="text-2xl font-bold mb-2 text-white">
+                        नमस्ते, {{ $student->user->name }}! 
+                        <span class="wave-hand">👋</span>
+                    </h2>
+                    
+                    <p class="text-white text-lg font-medium mb-4">{{ $hostel->name }} मा तपाईंलाई स्वागत छ</p>
+                    
+                    @if(($unreadCirculars ?? 0) > 0)
+                    <div class="bg-yellow-400 text-gray-900 rounded-xl p-3 inline-block border border-yellow-500">
+                        <div class="flex items-center">
+                            <i class="fas fa-bell mr-2"></i>
+                            <span class="font-bold">तपाईंसँग {{ $unreadCirculars }} वटा नयाँ सूचनाहरू छन्!</span>
+                            <a href="{{ route('student.circulars.index') }}" class="ml-2 text-blue-800 underline font-bold">
+                                यहाँ क्लिक गर्नुहोस्
+                            </a>
                         </div>
-                        <div class="col-md-4 text-end">
-                            <div class="badge bg-light text-dark p-3 fs-6">
-                                <i class="fas fa-calendar me-2"></i>
-                                {{ now()->format('F j, Y') }}
-                            </div>
+                    </div>
+                    @endif
+                </div>
+                
+                <div class="mt-4 md:mt-0">
+                    <div class="bg-white text-blue-800 p-3 rounded-xl border border-blue-300 font-bold">
+                        <div class="flex items-center justify-center">
+                            <i class="fas fa-calendar mr-2"></i>
+                            <span>{{ now()->format('F j, Y') }}</span>
                         </div>
                     </div>
                 </div>
@@ -34,441 +86,322 @@
     </div>
 
     <!-- Quick Stats -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card card-hover border-primary shadow-sm">
-                <div class="card-body text-center py-4">
-                    <i class="fas fa-door-open fa-2x text-primary mb-3"></i>
-                    <h5 class="text-dark">कोठा नं.</h5>
-                    <h3 class="text-primary fw-bold">{{ $student->room->room_number ?? 'उपलब्ध छैन' }}</h3>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-200">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm font-medium">कोठा नं.</p>
+                    <p class="text-2xl font-bold text-blue-600 mt-1">{{ $student->room->room_number ?? 'N/A' }}</p>
+                </div>
+                <div class="bg-blue-100 p-3 rounded-xl">
+                    <i class="fas fa-door-open text-blue-600 text-xl"></i>
                 </div>
             </div>
+            <p class="text-gray-500 text-xs mt-2">तपाईंको कोठा नम्बर</p>
         </div>
-        <div class="col-md-3">
-            <div class="card card-hover border-success shadow-sm">
-                <div class="card-body text-center py-4">
-                    <i class="fas fa-utensils fa-2x text-success mb-3"></i>
-                    <h5 class="text-dark">आजको खाना</h5>
-                    <h3 class="text-success fw-bold">{{ $todayMeal ? 'उपलब्ध' : 'हाल अपडेट छैन' }}</h3>
+
+        <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-200">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm font-medium">आजको खाना</p>
+                    <p class="text-2xl font-bold text-green-600 mt-1">{{ $todayMeal ? 'उपलब्ध' : 'अपडेट छैन' }}</p>
+                </div>
+                <div class="bg-green-100 p-3 rounded-xl">
+                    <i class="fas fa-utensils text-green-600 text-xl"></i>
                 </div>
             </div>
+            <p class="text-gray-500 text-xs mt-2">खानाको अवस्था</p>
         </div>
-        <div class="col-md-3">
-            <div class="card card-hover border-warning shadow-sm">
-                <div class="card-body text-center py-4">
-                    <i class="fas fa-receipt fa-2x text-warning mb-3"></i>
-                    <h5 class="text-dark">भुक्तानी</h5>
-                    <h3 class="text-warning fw-bold">
-                        @if($paymentStatus == 'Paid')
-                            भुक्तानी भएको
-                        @else
-                            बाकी
-                        @endif
-                    </h3>
+
+        <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-200">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm font-medium">भुक्तानी</p>
+                    <p class="text-2xl font-bold text-amber-600 mt-1">{{ $paymentStatus == 'Paid' ? 'भुक्तानी भएको' : 'बाकी' }}</p>
+                </div>
+                <div class="bg-amber-100 p-3 rounded-xl">
+                    <i class="fas fa-receipt text-amber-600 text-xl"></i>
                 </div>
             </div>
+            <p class="text-gray-500 text-xs mt-2">भुक्तानी स्थिति</p>
         </div>
-        <div class="col-md-3">
-            <!-- ✅ UPDATED: Circulars Card -->
-            <div class="card card-hover border-info shadow-sm">
-                <div class="card-body text-center py-4">
-                    <i class="fas fa-bullhorn fa-2x text-info mb-3"></i>
-                    <h5 class="text-dark">सूचनाहरू</h5>
-                    <h3 class="text-info fw-bold">{{ $unreadCirculars ?? 0 }}</h3>
-                    @if(($unreadCirculars ?? 0) > 0)
-                        <span class="badge bg-danger position-absolute top-0 start-100 translate-middle">
-                            नयाँ
-                        </span>
-                    @endif
+
+        <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-200">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm font-medium">सूचनाहरू</p>
+                    <p class="text-2xl font-bold text-indigo-600 mt-1">{{ $unreadCirculars ?? 0 }}</p>
+                </div>
+                <div class="bg-indigo-100 p-3 rounded-xl">
+                    <i class="fas fa-bullhorn text-indigo-600 text-xl"></i>
                 </div>
             </div>
+            <p class="text-gray-500 text-xs mt-2">नयाँ सूचनाहरू</p>
         </div>
     </div>
 
-    <div class="row">
-        <!-- Left Column - Main Content -->
-        <div class="col-lg-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left Column - Main Info -->
+        <div class="lg:col-span-2 space-y-6">
             <!-- Room & Payment Information -->
-            <div class="row mb-4">
-                <div class="col-md-6">
-                    <div class="card shadow-sm border-0 h-100">
-                        <div class="card-header bg-primary text-white py-3">
-                            <h5 class="mb-0 fw-bold"><i class="fas fa-home me-2"></i>कोठा जानकारी</h5>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Room Information -->
+                <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
+                    <div class="flex items-center mb-4">
+                        <div class="bg-blue-100 p-2 rounded-lg mr-3">
+                            <i class="fas fa-home text-blue-600"></i>
                         </div>
-                        <div class="card-body">
-                            <table class="table table-borderless">
-                                <tr>
-                                    <td class="text-dark"><strong>होस्टेल:</strong></td>
-                                    <td class="text-dark">{{ $hostel->name ?? 'उपलब्ध छैन' }}</td>
-                                </tr>
-                                <tr>
-                                    <td class="text-dark"><strong>कोठा नं.:</strong></td>
-                                    <td class="text-dark">{{ $student->room->room_number ?? 'उपलब्ध छैन' }}</td>
-                                </tr>
-                                <tr>
-                                    <td class="text-dark"><strong>कोठा प्रकार:</strong></td>
-                                    <td class="text-dark">{{ $student->room->type ?? 'उपलब्ध छैन' }}</td>
-                                </tr>
-                                <tr>
-                                    <td class="text-dark"><strong>मासिक भुक्तानी:</strong></td>
-                                    <td class="text-success fw-bold">रु. {{ $student->room->rent ?? 'उपलब्ध छैन' }}</td>
-                                </tr>
-                            </table>
-                            <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#roomDetailsModal">
-                                <i class="fas fa-info-circle me-1"></i>पूर्ण विवरण हेर्नुहोस्
-                            </button>
+                        <h3 class="text-lg font-bold text-gray-800">कोठा जानकारी</h3>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">होस्टेल:</span>
+                            <span class="font-medium text-gray-800">{{ $hostel->name ?? 'उपलब्ध छैन' }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">कोठा नं.:</span>
+                            <span class="font-medium text-gray-800">{{ $student->room->room_number ?? 'उपलब्ध छैन' }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">कोठा प्रकार:</span>
+                            <span class="font-medium text-gray-800">{{ $student->room->type ?? 'उपलब्ध छैन' }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">मासिक भुक्तानी:</span>
+                            <span class="font-bold text-green-600">रु. {{ $student->room->rent ?? 'उपलब्ध छैन' }}</span>
                         </div>
                     </div>
+                    
+                    <button class="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl font-medium transition-colors">
+                        <i class="fas fa-info-circle mr-2"></i>पूर्ण विवरण हेर्नुहोस्
+                    </button>
                 </div>
 
-                <div class="col-md-6">
-                    <div class="card shadow-sm border-0 h-100">
-                        <div class="card-header bg-warning text-dark py-3">
-                            <h5 class="mb-0 fw-bold"><i class="fas fa-credit-card me-2"></i>भुक्तानी स्थिति</h5>
+                <!-- Payment Status -->
+                <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
+                    <div class="flex items-center mb-4">
+                        <div class="bg-amber-100 p-2 rounded-lg mr-3">
+                            <i class="fas fa-credit-card text-amber-600"></i>
                         </div>
-                        <div class="card-body">
-                            <table class="table table-borderless">
-                                <tr>
-                                    <td class="text-dark"><strong>अन्तिम भुक्तानी:</strong></td>
-                                    <td class="text-dark">{{ $lastPayment ? 'रु. ' . $lastPayment->amount : 'कुनै भुक्तानी छैन' }}</td>
-                                </tr>
-                                <tr>
-                                    <td class="text-dark"><strong>अन्तिम मिति:</strong></td>
-                                    <td class="text-dark">{{ $lastPayment ? $lastPayment->created_at->format('Y-m-d') : 'हाल अपडेट छैन' }}</td>
-                                </tr>
-                                <tr>
-                                    <td class="text-dark"><strong>स्थिति:</strong></td>
-                                    <td>
-                                        <span class="badge bg-{{ $paymentStatus == 'Paid' ? 'success' : 'danger' }} p-2">
-                                            @if($paymentStatus == 'Paid')
-                                                भुक्तानी भएको
-                                            @else
-                                                बाकी
-                                            @endif
-                                        </span>
-                                    </td>
-                                </tr>
-                            </table>
-                            <button class="btn btn-warning btn-sm">
-                                <i class="fas fa-money-bill me-1"></i>भुक्तानी गर्नुहोस्
-                            </button>
+                        <h3 class="text-lg font-bold text-gray-800">भुक्तानी स्थिति</h3>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">अन्तिम भुक्तानी:</span>
+                            <span class="font-medium text-gray-800">{{ $lastPayment ? 'रु. ' . $lastPayment->amount : 'कुनै भुक्तानी छैन' }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">अन्तिम मिति:</span>
+                            <span class="font-medium text-gray-800">{{ $lastPayment ? $lastPayment->created_at->format('Y-m-d') : 'हाल अपडेट छैन' }}</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">स्थिति:</span>
+                            <span class="bg-{{ $paymentStatus == 'Paid' ? 'green' : 'red' }}-100 text-{{ $paymentStatus == 'Paid' ? 'green' : 'red' }}-800 px-3 py-1 rounded-full text-sm font-medium">
+                                {{ $paymentStatus == 'Paid' ? 'भुक्तानी भएको' : 'बाकी' }}
+                            </span>
                         </div>
                     </div>
+                    
+                    <button class="w-full mt-4 bg-amber-600 hover:bg-amber-700 text-white py-2 rounded-xl font-medium transition-colors">
+                        <i class="fas fa-money-bill mr-2"></i>भुक्तानी गर्नुहोस्
+                    </button>
                 </div>
             </div>
 
             <!-- Today's Meal & Recent Circulars -->
-            <div class="row mb-4">
-                <div class="col-md-6">
-                    <div class="card shadow-sm border-0 h-100">
-                        <div class="card-header bg-success text-white py-3">
-                            <h5 class="mb-0 fw-bold"><i class="fas fa-utensils me-2"></i>आजको खानाको योजना</h5>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Today's Meal -->
+                <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
+                    <div class="flex items-center mb-4">
+                        <div class="bg-green-100 p-2 rounded-lg mr-3">
+                            <i class="fas fa-utensils text-green-600"></i>
                         </div>
-                        <div class="card-body">
-                            @if($todayMeal)
-                                <h6 class="text-success fw-bold">{{ $todayMeal->meal_type }}</h6>
-                                @if(is_array($todayMeal->items))
-                                    @if(isset($todayMeal->items['breakfast']))
-                                        <p class="mb-2 text-dark"><strong>बिहानको खाना:</strong><br>{{ $todayMeal->items['breakfast'] }}</p>
-                                    @endif
-                                    @if(isset($todayMeal->items['lunch']))
-                                        <p class="mb-2 text-dark"><strong>दिउँसोको खाना:</strong><br>{{ $todayMeal->items['lunch'] }}</p>
-                                    @endif
-                                    @if(isset($todayMeal->items['dinner']))
-                                        <p class="mb-2 text-dark"><strong>रातिको खाना:</strong><br>{{ $todayMeal->items['dinner'] }}</p>
-                                    @endif
-                                @else
-                                    <p class="mb-2 text-dark"><strong>मुख्य खाना:</strong> {{ $todayMeal->main_dish ?? 'उपलब्ध छैन' }}</p>
-                                    <p class="mb-2 text-dark"><strong>साइड डिश:</strong> {{ $todayMeal->side_dish ?? 'उपलब्ध छैन' }}</p>
+                        <h3 class="text-lg font-bold text-gray-800">आजको खानाको योजना</h3>
+                    </div>
+                    
+                    @if($todayMeal)
+                        <div class="space-y-3">
+                            @if(is_array($todayMeal->items))
+                                @if(isset($todayMeal->items['breakfast']))
+                                    <div>
+                                        <p class="font-medium text-gray-700">बिहानको खाना:</p>
+                                        <p class="text-gray-600">{{ $todayMeal->items['breakfast'] }}</p>
+                                    </div>
                                 @endif
-                                <p class="mb-0 text-dark"><strong>समय:</strong> {{ $todayMeal->serving_time ?? 'उपलब्ध छैन' }}</p>
+                                @if(isset($todayMeal->items['lunch']))
+                                    <div>
+                                        <p class="font-medium text-gray-700">दिउँसोको खाना:</p>
+                                        <p class="text-gray-600">{{ $todayMeal->items['lunch'] }}</p>
+                                    </div>
+                                @endif
+                                @if(isset($todayMeal->items['dinner']))
+                                    <div>
+                                        <p class="font-medium text-gray-700">रातिको खाना:</p>
+                                        <p class="text-gray-600">{{ $todayMeal->items['dinner'] }}</p>
+                                    </div>
+                                @endif
                             @else
-                                <div class="text-center py-3">
-                                    <i class="fas fa-utensils fa-2x text-muted mb-2"></i>
-                                    <p class="text-muted mb-0">आजको खानाको योजना हाल अपडेट छैन</p>
-                                </div>
+                                <p class="text-gray-600">मुख्य खाना: {{ $todayMeal->main_dish ?? 'उपलब्ध छैन' }}</p>
+                                <p class="text-gray-600">साइड डिश: {{ $todayMeal->side_dish ?? 'उपलब्ध छैन' }}</p>
                             @endif
-                            <div class="mt-3">
-                                <a href="{{ route('student.meal-menus') }}" class="btn btn-outline-success btn-sm">
-                                    <i class="fas fa-calendar me-1"></i>सप्ताहिक मेनु हेर्नुहोस्
-                                </a>
-                            </div>
+                            <p class="text-sm text-gray-500"><i class="fas fa-clock mr-1"></i>समय: {{ $todayMeal->serving_time ?? 'उपलब्ध छैन' }}</p>
                         </div>
-                    </div>
+                    @else
+                        <div class="text-center py-4">
+                            <i class="fas fa-utensils text-gray-400 text-3xl mb-2"></i>
+                            <p class="text-gray-500">आजको खानाको योजना हाल अपडेट छैन</p>
+                        </div>
+                    @endif
+                    
+                    <a href="{{ route('student.meal-menus') }}" class="block w-full mt-4 bg-green-600 hover:bg-green-700 text-white py-2 rounded-xl font-medium text-center transition-colors">
+                        <i class="fas fa-calendar mr-2"></i>सप्ताहिक मेनु हेर्नुहोस्
+                    </a>
                 </div>
 
-                <div class="col-md-6">
-                    <!-- ✅ UPDATED: Recent Circulars Section -->
-                    <div class="card shadow-sm border-0 h-100">
-                        <div class="card-header bg-info text-white py-3">
-                            <h5 class="mb-0 fw-bold"><i class="fas fa-bullhorn me-2"></i>हालैका सूचनाहरू</h5>
+                <!-- Recent Circulars -->
+                <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
+                    <div class="flex items-center mb-4">
+                        <div class="bg-indigo-100 p-2 rounded-lg mr-3">
+                            <i class="fas fa-bullhorn text-indigo-600"></i>
                         </div>
-                        <div class="card-body">
-                            @if($recentStudentCirculars && $recentStudentCirculars->count() > 0)
-                                <div class="list-group list-group-flush">
-                                    @foreach($recentStudentCirculars->take(3) as $circular)
-                                        <div class="list-group-item px-0 py-2 border-0">
-                                            <div class="d-flex justify-content-between align-items-start">
-                                                <div class="flex-grow-1">
-                                                    <small class="text-muted">{{ $circular->created_at->diffForHumans() }}</small>
-                                                    <p class="mb-1 small text-dark fw-bold">{{ Str::limit($circular->title, 40) }}</p>
-                                                    <p class="mb-0 small text-muted">{{ Str::limit($circular->content, 50) }}</p>
-                                                </div>
-                                                <div class="ms-2">
-                                                    @if(!$circular->recipients->where('user_id', auth()->id())->first()?->is_read)
-                                                        <span class="badge bg-danger">नयाँ</span>
-                                                    @endif
-                                                    @if($circular->priority == 'urgent')
-                                                        <span class="badge bg-warning text-dark">जरुरी</span>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                </div>
-                                <a href="{{ route('student.circulars.index') }}" class="btn btn-outline-info btn-sm mt-2 w-100">
-                                    <i class="fas fa-list me-1"></i>सबै सूचनाहरू हेर्नुहोस्
-                                </a>
-                            @else
-                                <div class="text-center py-3">
-                                    <i class="fas fa-bullhorn fa-2x text-muted mb-2"></i>
-                                    <p class="text-muted mb-0">कुनै नयाँ सूचना छैन</p>
-                                    <a href="{{ route('student.circulars.index') }}" class="btn btn-outline-info btn-sm mt-2">
-                                        सबै सूचनाहरू हेर्नुहोस्
-                                    </a>
-                                </div>
-                            @endif
-                        </div>
+                        <h3 class="text-lg font-bold text-gray-800">हालैका सूचनाहरू</h3>
                     </div>
+                    
+                    @if($recentStudentCirculars && $recentStudentCirculars->count() > 0)
+                        <div class="space-y-3">
+                            @foreach($recentStudentCirculars->take(3) as $circular)
+                                <div class="border-l-4 border-indigo-500 pl-3 py-2 bg-indigo-50 rounded-r-lg">
+                                    <p class="font-medium text-gray-800 text-sm">{{ Str::limit($circular->title, 40) }}</p>
+                                    <p class="text-xs text-gray-600 mt-1">{{ $circular->created_at->diffForHumans() }}</p>
+                                    @if(!$circular->recipients->where('user_id', auth()->id())->first()?->is_read)
+                                        <span class="inline-block mt-1 bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">नयाँ</span>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                        
+                        <a href="{{ route('student.circulars.index') }}" class="block w-full mt-4 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-xl font-medium text-center transition-colors">
+                            <i class="fas fa-list mr-2"></i>सबै सूचनाहरू हेर्नुहोस्
+                        </a>
+                    @else
+                        <div class="text-center py-4">
+                            <i class="fas fa-bullhorn text-gray-400 text-3xl mb-2"></i>
+                            <p class="text-gray-500">कुनै नयाँ सूचना छैन</p>
+                            <a href="{{ route('student.circulars.index') }}" class="inline-block mt-2 text-indigo-600 hover:text-indigo-800 text-sm font-medium">
+                                सबै सूचनाहरू हेर्नुहोस्
+                            </a>
+                        </div>
+                    @endif
                 </div>
             </div>
-
-            <!-- ✅ ADDED: Important Circulars Section -->
-            @if($importantCirculars && $importantCirculars->count() > 0)
-            <div class="row mb-4">
-                <div class="col-12">
-                    <div class="card shadow-sm border-danger">
-                        <div class="card-header bg-danger text-white py-3">
-                            <h5 class="mb-0 fw-bold"><i class="fas fa-exclamation-triangle me-2"></i>जरुरी सूचनाहरू</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="list-group">
-                                @foreach($importantCirculars->take(2) as $circular)
-                                    <a href="{{ route('student.circulars.show', $circular) }}" 
-                                       class="list-group-item list-group-item-action border-0 mb-2 rounded">
-                                        <div class="d-flex w-100 justify-content-between">
-                                            <h6 class="mb-1 fw-bold text-danger">{{ $circular->title }}</h6>
-                                            <small class="text-muted">{{ $circular->created_at->diffForHumans() }}</small>
-                                        </div>
-                                        <p class="mb-1">{{ Str::limit($circular->content, 80) }}</p>
-                                        @if(!$circular->recipients->where('user_id', auth()->id())->first()?->is_read)
-                                            <span class="badge bg-danger">नयाँ</span>
-                                        @endif
-                                    </a>
-                                @endforeach
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            @endif
         </div>
 
         <!-- Right Column - Sidebar -->
-        <div class="col-lg-4">
+        <div class="space-y-6">
             <!-- Quick Actions -->
-            <div class="card shadow-sm border-0 mb-4">
-                <div class="card-header bg-secondary text-white py-3">
-                    <h5 class="mb-0 fw-bold"><i class="fas fa-bolt me-2"></i>द्रुत कार्यहरू</h5>
-                </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        <a href="{{ route('student.profile') }}" class="btn btn-outline-primary text-start py-2">
-                            <i class="fas fa-user me-2"></i>मेरो प्रोफाइल
-                        </a>
-                        <a href="{{ route('student.meal-menus') }}" class="btn btn-outline-success text-start py-2">
-                            <i class="fas fa-utensils me-2"></i>खानाको योजना
-                        </a>
-                        
-                        <!-- ✅ ADDED: Circulars Quick Actions -->
-                        <a href="{{ route('student.circulars.index') }}" class="btn btn-outline-info text-start py-2 position-relative">
-                            <i class="fas fa-bullhorn me-2"></i>सबै सूचनाहरू
-                            @if(($unreadCirculars ?? 0) > 0)
-                                <span class="badge bg-danger position-absolute top-0 start-100 translate-middle">
-                                    {{ $unreadCirculars }}
-                                </span>
-                            @endif
-                        </a>
+            <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
+                <h3 class="text-lg font-bold text-gray-800 mb-4">द्रुत कार्यहरू</h3>
+                <div class="grid grid-cols-2 gap-3">
+                    <a href="{{ route('student.profile') }}" class="bg-blue-50 hover:bg-blue-100 p-3 rounded-xl text-center transition-colors group border border-blue-100">
+                        <div class="text-blue-600 text-xl mb-1">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="text-blue-800 text-xs font-medium">मेरो प्रोफाइल</div>
+                    </a>
+                    
+                    <a href="{{ route('student.meal-menus') }}" class="bg-green-50 hover:bg-green-100 p-3 rounded-xl text-center transition-colors group border border-green-100">
+                        <div class="text-green-600 text-xl mb-1">
+                            <i class="fas fa-utensils"></i>
+                        </div>
+                        <div class="text-green-800 text-xs font-medium">खानाको योजना</div>
+                    </a>
+                    
+                    <a href="{{ route('student.circulars.index') }}" class="bg-indigo-50 hover:bg-indigo-100 p-3 rounded-xl text-center transition-colors group border border-indigo-100 relative">
+                        <div class="text-indigo-600 text-xl mb-1">
+                            <i class="fas fa-bullhorn"></i>
+                        </div>
+                        <div class="text-indigo-800 text-xs font-medium">सबै सूचनाहरू</div>
+                        @if(($unreadCirculars ?? 0) > 0)
+                            <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                                {{ $unreadCirculars }}
+                            </span>
+                        @endif
+                    </a>
 
-                        <button class="btn btn-outline-warning text-start py-2" data-bs-toggle="modal" data-bs-target="#paymentModal">
-                            <i class="fas fa-credit-card me-2"></i>भुक्तानी गर्नुहोस्
-                        </button>
-                        <a href="{{ route('student.reviews') }}" class="btn btn-outline-dark text-start py-2">
-                            <i class="fas fa-star me-2"></i>समीक्षा लेख्नुहोस्
-                        </a>
-                        <button class="btn btn-outline-danger text-start py-2" data-bs-toggle="modal" data-bs-target="#maintenanceModal">
-                            <i class="fas fa-tools me-2"></i>मर्मत समस्या
-                        </button>
-                    </div>
+                    <button class="bg-amber-50 hover:bg-amber-100 p-3 rounded-xl text-center transition-colors group border border-amber-100">
+                        <div class="text-amber-600 text-xl mb-1">
+                            <i class="fas fa-credit-card"></i>
+                        </div>
+                        <div class="text-amber-800 text-xs font-medium">भुक्तानी गर्नुहोस्</div>
+                    </button>
                 </div>
             </div>
+
+            <!-- Important Circulars -->
+            @if($importantCirculars && $importantCirculars->count() > 0)
+            <div class="bg-red-50 border border-red-200 rounded-2xl p-6">
+                <div class="flex items-center mb-4">
+                    <div class="bg-red-100 p-2 rounded-lg mr-3">
+                        <i class="fas fa-exclamation-triangle text-red-600"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-red-800">जरुरी सूचनाहरू</h3>
+                </div>
+                
+                <div class="space-y-3">
+                    @foreach($importantCirculars->take(2) as $circular)
+                        <div class="bg-white rounded-xl p-3 border border-red-200">
+                            <p class="font-bold text-red-800 text-sm">{{ $circular->title }}</p>
+                            <p class="text-xs text-gray-600 mt-1">{{ Str::limit($circular->content, 60) }}</p>
+                            <p class="text-xs text-gray-500 mt-2">{{ $circular->created_at->diffForHumans() }}</p>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
 
             <!-- Upcoming Events -->
-            <div class="card shadow-sm border-0 mb-4">
-                <div class="card-header bg-purple text-white py-3">
-                    <h5 class="mb-0 fw-bold"><i class="fas fa-calendar-alt me-2"></i>आगामी घटनाहरू</h5>
+            <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
+                <div class="flex items-center mb-4">
+                    <div class="bg-purple-100 p-2 rounded-lg mr-3">
+                        <i class="fas fa-calendar-alt text-purple-600"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800">आगामी घटनाहरू</h3>
                 </div>
-                <div class="card-body">
-                    @if($upcomingEvents->count() > 0)
-                        <div class="list-group list-group-flush">
-                            @foreach($upcomingEvents->take(3) as $event)
-                                <div class="list-group-item px-0 py-2 border-0">
-                                    <h6 class="mb-1 text-primary fw-bold">{{ $event->title }}</h6>
-                                    <small class="text-muted">
-                                        <i class="fas fa-clock me-1"></i>
-                                        {{ $event->date->format('M j') }} at {{ $event->time }}
-                                    </small>
-                                    <p class="mb-0 small text-dark">{{ Str::limit($event->description, 40) }}</p>
-                                </div>
-                            @endforeach
-                        </div>
-                        <a href="{{ route('student.events') }}" class="btn btn-outline-purple btn-sm mt-2 w-100">
-                            सबै घटनाहरू हेर्नुहोस्
-                        </a>
-                    @else
-                        <div class="text-center py-3">
-                            <i class="fas fa-calendar-times fa-2x text-muted mb-2"></i>
-                            <p class="text-muted mb-0">कुनै आगामी घटना छैन</p>
-                        </div>
-                    @endif
-                </div>
-            </div>
-
-            <!-- Hostel Gallery Preview -->
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-dark text-white py-3">
-                    <h5 class="mb-0 fw-bold"><i class="fas fa-images me-2"></i>होस्टेल ग्यालेरी</h5>
-                </div>
-                <div class="card-body">
-                    @if($galleryImages->count() > 0)
-                        <div class="row g-2">
-                            @foreach($galleryImages->take(4) as $image)
-                                <div class="col-6">
-                                    <img src="{{ asset('storage/'.$image->path) }}" 
-                                         class="img-fluid rounded gallery-thumb" 
-                                         alt="Hostel Image"
-                                         style="height: 80px; object-fit: cover; width: 100%; cursor: pointer;"
-                                         onclick="openImageModal('{{ asset('storage/'.$image->path) }}')">
-                                </div>
-                            @endforeach
-                        </div>
-                        <div class="mt-3">
-                            <a href="{{ route('student.gallery') }}" class="btn btn-outline-dark btn-sm w-100">
-                                <i class="fas fa-expand me-1"></i>पूर्ण ग्यालेरी हेर्नुहोस्
-                            </a>
-                        </div>
-                    @else
-                        <div class="text-center py-3">
-                            <i class="fas fa-images fa-2x text-muted mb-2"></i>
-                            <p class="text-muted mb-0">ग्यालेरी उपलब्ध छैन</p>
-                        </div>
-                    @endif
-                </div>
+                
+                @if($upcomingEvents->count() > 0)
+                    <div class="space-y-3">
+                        @foreach($upcomingEvents->take(2) as $event)
+                            <div class="border-l-4 border-purple-500 pl-3 py-2">
+                                <p class="font-medium text-gray-800 text-sm">{{ $event->title }}</p>
+                                <p class="text-xs text-gray-600 mt-1">
+                                    <i class="fas fa-clock mr-1"></i>
+                                    {{ $event->date->format('M j') }} at {{ $event->time }}
+                                </p>
+                            </div>
+                        @endforeach
+                    </div>
+                    
+                    <a href="{{ route('student.events') }}" class="block w-full mt-4 bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-xl font-medium text-center transition-colors">
+                        सबै घटनाहरू हेर्नुहोस्
+                    </a>
+                @else
+                    <div class="text-center py-4">
+                        <i class="fas fa-calendar-times text-gray-400 text-2xl mb-2"></i>
+                        <p class="text-gray-500 text-sm">कुनै आगामी घटना छैन</p>
+                    </div>
+                @endif
             </div>
         </div>
     </div>
-</div>
+@endsection
 
-<!-- Modals -->
-@include('student.modals.room-details')
-@include('student.modals.payment')
-@include('student.modals.maintenance')
-@include('student.modals.gallery-view')
-
-<style>
-.card-hover:hover {
-    transform: translateY(-5px);
-    transition: all 0.3s ease;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
-}
-.bg-purple {
-    background-color: #6f42c1 !important;
-}
-.bg-gradient-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-}
-.btn-outline-purple {
-    color: #6f42c1;
-    border-color: #6f42c1;
-}
-.btn-outline-purple:hover {
-    background-color: #6f42c1;
-    color: white;
-}
-.gallery-thumb:hover {
-    opacity: 0.8;
-    transform: scale(1.05);
-    transition: all 0.3s ease;
-}
-.card {
-    border-radius: 12px;
-    overflow: hidden;
-}
-.card-header {
-    border-radius: 12px 12px 0 0 !important;
-}
-.list-group-item {
-    border-radius: 8px !important;
-}
-
-/* ✅ FIXED: Proper spacing for sidebar cards */
-.col-lg-4 {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem; /* This ensures consistent spacing between cards */
-}
-
-.col-lg-4 .card {
-    margin-bottom: 0 !important; /* Remove any existing margins */
-}
-
-/* ✅ FIXED: Ensure proper height distribution */
-.col-lg-4 .card {
-    flex: 0 0 auto; /* Don't grow or shrink, use auto height */
-}
-
-/* ✅ FIXED: Mobile responsive spacing */
-@media (max-width: 991.98px) {
-    .col-lg-4 {
-        margin-top: 2rem;
-        gap: 1rem;
-    }
-}
-
-/* ✅ FIXED: Consistent card heights in left columns */
-.col-lg-8 .card {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-}
-
-.col-lg-8 .card-body {
-    flex: 1;
-}
-</style>
-
+@section('scripts')
 <script>
-function openImageModal(imageUrl) {
-    document.getElementById('galleryImage').src = imageUrl;
-    new bootstrap.Modal(document.getElementById('galleryViewModal')).show();
-}
-
-// ✅ ADDED: Ensure proper layout after page load
 document.addEventListener('DOMContentLoaded', function() {
-    // Force reflow to fix any layout issues
-    setTimeout(function() {
-        document.body.classList.add('loaded');
-    }, 100);
+    // Add any interactive functionality here
+    console.log('Student dashboard loaded');
 });
 </script>
 @endsection
