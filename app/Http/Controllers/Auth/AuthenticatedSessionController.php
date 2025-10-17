@@ -58,7 +58,7 @@ class AuthenticatedSessionController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        // सुरक्षित logout पछि login page मा पठाउने
-        return redirect()->route('login');
+        // ✅ सुरक्षित logout पछि मुख्य पृष्ठमा पठाउने
+        return redirect('/')->with('status', 'तपाईं सफलतापूर्वक लगआउट भएको छ!');
     }
 }
