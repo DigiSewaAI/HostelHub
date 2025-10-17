@@ -277,7 +277,8 @@ class StudentController extends Controller
             }
         }
 
-        $student->load(['user', 'room.hostel', 'payments', 'meals']);
+        // ✅ FIXED: Remove 'meals' relationship to avoid SQL error
+        $student->load(['user', 'room.hostel', 'payments']);
 
         if (auth()->user()->hasRole('admin')) {
             return view('admin.students.show', compact('student'));
@@ -327,18 +328,21 @@ class StudentController extends Controller
                 ->orderBy('room_number')
                 ->get();
 
-            // FIXED: Only show users from the same hostel with student role for owner
+            // ✅ FIXED: Simplify user query for better results
             $users = User::where('hostel_id', $userHostelId)
                 ->whereHas('roles', function ($q) {
                     $q->where('name', 'student');
                 })
-                ->where(function ($query) use ($student) {
-                    $query->whereDoesntHave('student')
-                        ->orWhereHas('student', function ($q) use ($student) {
-                            $q->where('id', $student->id);
-                        });
-                })
                 ->get();
+
+            // 🔥 LOG FOR DEBUGGING
+            Log::info('Student edit page loaded for owner', [
+                'user_id' => auth()->id(),
+                'hostel_id' => $userHostelId,
+                'rooms_count' => $rooms->count(),
+                'users_count' => $users->count(),
+                'student_id' => $student->id
+            ]);
 
             $colleges = College::all();
 

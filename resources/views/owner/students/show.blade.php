@@ -6,7 +6,7 @@
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-gray-800">विद्यार्थी विवरण</h1>
         <a href="{{ route('owner.students.index') }}"
-           class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg shadow">
+           class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow">
             ⬅ फर्कनुहोस्
         </a>
     </div>
@@ -28,7 +28,7 @@
             {{-- Right Side --}}
             <div>
                 <p><strong>Guardian Name:</strong> {{ $student->guardian_name }}</p>
-                <p><strong>Guardian Phone:</strong> {{ $student->guardian_phone }}</p>
+                <p><strong>Guardian Contact:</strong> {{ $student->guardian_contact }}</p>
                 <p><strong>Relation:</strong> {{ $student->guardian_relation }}</p>
                 <p><strong>Guardian Address:</strong> {{ $student->guardian_address }}</p>
                 <p><strong>Room:</strong> 
