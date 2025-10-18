@@ -16,12 +16,26 @@ class StudentReviewController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $reviews = Review::where('user_id', $user->id)
+        $student = $user->student;
+
+        if (!$student) {
+            return redirect()->route('student.dashboard')
+                ->with('error', 'विद्यार्थी प्रोफाइल फेला परेन');
+        }
+
+        $reviews = Review::where('student_id', $student->id)
             ->with('hostel')
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        return view('student.reviews.index', compact('reviews'));
+        // Get review stats for dashboard
+        $reviewStats = [
+            'total' => Review::where('student_id', $student->id)->count(),
+            'approved' => Review::where('student_id', $student->id)->where('status', 'approved')->count(),
+            'pending' => Review::where('student_id', $student->id)->where('status', 'pending')->count(),
+        ];
+
+        return view('student.reviews.index', compact('reviews', 'reviewStats'));
     }
 
     /**
@@ -29,6 +43,14 @@ class StudentReviewController extends Controller
      */
     public function create()
     {
+        $user = Auth::user();
+        $student = $user->student;
+
+        if (!$student) {
+            return redirect()->route('student.dashboard')
+                ->with('error', 'विद्यार्थी प्रोफाइल फेला परेन');
+        }
+
         $hostels = Hostel::where('status', 'active')->get();
         return view('student.reviews.create', compact('hostels'));
     }
@@ -36,8 +58,19 @@ class StudentReviewController extends Controller
     /**
      * नयाँ समीक्षा भण्डारण गर्नुहोस्
      */
+    /**
+     * नयाँ समीक्षा भण्डारण गर्नुहोस्
+     */
     public function store(Request $request)
     {
+        $user = Auth::user();
+        $student = $user->student;
+
+        if (!$student) {
+            return redirect()->route('student.dashboard')
+                ->with('error', 'विद्यार्थी प्रोफाइल फेला परेन');
+        }
+
         $request->validate([
             'hostel_id' => 'required|exists:hostels,id',
             'rating' => 'required|integer|min:1|max:5',
@@ -45,7 +78,7 @@ class StudentReviewController extends Controller
         ]);
 
         // यूजरले पहिले नै यो होस्टेलमा समीक्षा दिएको छ कि छैन जाँच गर्नुहोस्
-        $existingReview = Review::where('user_id', Auth::id())
+        $existingReview = Review::where('student_id', $student->id)
             ->where('hostel_id', $request->hostel_id)
             ->first();
 
@@ -55,12 +88,17 @@ class StudentReviewController extends Controller
                 ->withInput();
         }
 
+        // ✅ FIXED: Complete data with proper defaults
         Review::create([
-            'user_id' => Auth::id(),
+            'name' => $student->user->name, // Student's name
+            'position' => 'Student', // Default position
+            'student_id' => $student->id,
             'hostel_id' => $request->hostel_id,
             'rating' => $request->rating,
             'comment' => $request->comment,
-            'status' => 'pending',
+            'content' => $request->comment, // Also set content field
+            'status' => Review::STATUS_PENDING,
+            'type' => Review::TYPE_REVIEW,
         ]);
 
         return redirect()->route('student.reviews.index')
@@ -72,7 +110,15 @@ class StudentReviewController extends Controller
      */
     public function show($id)
     {
-        $review = Review::where('user_id', Auth::id())
+        $user = Auth::user();
+        $student = $user->student;
+
+        if (!$student) {
+            return redirect()->route('student.dashboard')
+                ->with('error', 'विद्यार्थी प्रोफाइल फेला परेन');
+        }
+
+        $review = Review::where('student_id', $student->id)
             ->with('hostel')
             ->findOrFail($id);
 
@@ -84,7 +130,15 @@ class StudentReviewController extends Controller
      */
     public function edit($id)
     {
-        $review = Review::where('user_id', Auth::id())->findOrFail($id);
+        $user = Auth::user();
+        $student = $user->student;
+
+        if (!$student) {
+            return redirect()->route('student.dashboard')
+                ->with('error', 'विद्यार्थी प्रोफाइल फेला परेन');
+        }
+
+        $review = Review::where('student_id', $student->id)->findOrFail($id);
         $hostels = Hostel::where('status', 'active')->get();
 
         return view('student.reviews.edit', compact('review', 'hostels'));
@@ -95,7 +149,15 @@ class StudentReviewController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $review = Review::where('user_id', Auth::id())->findOrFail($id);
+        $user = Auth::user();
+        $student = $user->student;
+
+        if (!$student) {
+            return redirect()->route('student.dashboard')
+                ->with('error', 'विद्यार्थी प्रोफाइल फेला परेन');
+        }
+
+        $review = Review::where('student_id', $student->id)->findOrFail($id);
 
         $request->validate([
             'rating' => 'required|integer|min:1|max:5',
@@ -117,7 +179,15 @@ class StudentReviewController extends Controller
      */
     public function destroy($id)
     {
-        $review = Review::where('user_id', Auth::id())->findOrFail($id);
+        $user = Auth::user();
+        $student = $user->student;
+
+        if (!$student) {
+            return redirect()->route('student.dashboard')
+                ->with('error', 'विद्यार्थी प्रोफाइल फेला परेन');
+        }
+
+        $review = Review::where('student_id', $student->id)->findOrFail($id);
         $review->delete();
 
         return redirect()->route('student.reviews.index')
@@ -132,7 +202,7 @@ class StudentReviewController extends Controller
         $hostel = Hostel::findOrFail($hostelId);
         $reviews = Review::where('hostel_id', $hostelId)
             ->where('status', 'approved')
-            ->with('user')
+            ->with('student.user')
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 

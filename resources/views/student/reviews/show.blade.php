@@ -1,4 +1,4 @@
-@extends('student.layouts.app')
+@extends('layouts.student')
 
 @section('title', 'समीक्षा विवरण')
 

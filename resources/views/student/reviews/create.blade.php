@@ -1,4 +1,4 @@
-@extends('student.layouts.app')
+@extends('layouts.student')
 
 @section('title', 'नयाँ समीक्षा सिर्जना गर्नुहोस्')
 

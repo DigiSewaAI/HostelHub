@@ -52,12 +52,29 @@
                         <span :class="{ 'hidden': sidebarCollapsed }">खानाको योजना</span>
                     </a>
 
-                    <!-- ✅ ADDED: Reviews link for owner -->
+                    <!-- Reviews link for owner -->
                     <a href="{{ route('owner.reviews.index') }}" class="sidebar-link flex items-center px-3 py-3 text-sm font-medium rounded-lg mb-1 transition-colors {{ request()->routeIs('owner.reviews.*') ? 'bg-blue-700 text-white' : 'text-blue-100 hover:bg-blue-700' }}">
                         <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
                         </svg>
                         <span :class="{ 'hidden': sidebarCollapsed }">समीक्षाहरू</span>
+                    </a>
+
+                @elseif(Auth::user()->role === 'student')
+                    <!-- Student Navigation -->
+                    <a href="{{ route('student.dashboard') }}" class="sidebar-link flex items-center px-3 py-3 text-sm font-medium rounded-lg mb-1 transition-colors {{ request()->routeIs('student.dashboard') ? 'bg-blue-700 text-white' : 'text-blue-100 hover:bg-blue-700' }}">
+                        <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                        </svg>
+                        <span :class="{ 'hidden': sidebarCollapsed }">ड्यासबोर्ड</span>
+                    </a>
+
+                    <!-- Student Reviews Link -->
+                    <a href="{{ route('student.reviews.index') }}" class="sidebar-link flex items-center px-3 py-3 text-sm font-medium rounded-lg mb-1 transition-colors {{ request()->routeIs('student.reviews.*') ? 'bg-blue-700 text-white' : 'text-blue-100 hover:bg-blue-700' }}">
+                        <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                        </svg>
+                        <span :class="{ 'hidden': sidebarCollapsed }">मेरा समीक्षाहरू</span>
                     </a>
                 @endif
                 

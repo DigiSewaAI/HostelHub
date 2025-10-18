@@ -14,7 +14,7 @@ use App\Http\Controllers\{
     Admin\SettingsController,
     Admin\PaymentController as AdminPaymentController,
     Owner\HostelController as OwnerHostelController,
-    Owner\ReviewController as OwnerReviewController, // ✅ ADDED: Owner ReviewController import
+    Owner\ReviewController as OwnerReviewController,
     Frontend\GalleryController as FrontendGalleryController,
     Frontend\PublicContactController,
     Frontend\PublicController,
@@ -29,7 +29,7 @@ use App\Http\Controllers\{
     Auth\PasswordResetLinkController,
     Auth\RegisteredUserController,
     Auth\VerifyEmailController,
-    Auth\LoginController, // ✅ ADDED: LoginController import
+    Auth\LoginController,
     RegistrationController,
     SubscriptionController,
     OnboardingController,
@@ -37,7 +37,8 @@ use App\Http\Controllers\{
     BookingController,
     PaymentController,
     DocumentController,
-    Admin\CircularController
+    Admin\CircularController,
+    Student\StudentReviewController  // ✅ ADDED: Student Review Controller
 };
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
@@ -148,9 +149,8 @@ Route::get('/student/welcome', function () {
     return view('student.welcome');
 })->name('student.welcome')->middleware(['auth', 'role:student']);
 
-
 /*|--------------------------------------------------------------------------
-| Global Dashboard Redirect (Role-based) - SIMPLIFIED FIX FOR STUDENTS
+| Global Dashboard Redirect (Role-based) - UPDATED WITH ROLE FIXES
 |--------------------------------------------------------------------------
 */
 Route::get('/dashboard', function () {
@@ -168,9 +168,10 @@ Route::get('/dashboard', function () {
         }
     }
 
+    // ✅ UPDATED: Role-based dashboard routing with proper role checks
     if ($user->hasRole('admin')) {
         return redirect()->route('admin.dashboard');
-    } elseif ($user->hasRole('hostel_manager')) {
+    } elseif ($user->hasRole('hostel_manager') || $user->hasRole('owner')) {
         return redirect()->route('owner.dashboard');
     } elseif ($user->hasRole('student')) {
         // ✅ FIXED: Always redirect students to dashboard, let dashboard handle unconnected students
@@ -199,7 +200,8 @@ Route::get('/debug-permissions', function () {
         'permissions' => $user->getAllPermissions()->pluck('name'),
         'can_payment_view' => $user->can('payment.view') ? 'YES' : 'NO',
         'is_admin' => $user->hasRole('admin') ? 'YES' : 'NO',
-        'is_hostel_manager' => $user->hasRole('hostel_manager') ? 'YES' : 'NO'
+        'is_hostel_manager' => $user->hasRole('hostel_manager') ? 'YES' : 'NO',
+        'is_owner' => $user->hasRole('owner') ? 'YES' : 'NO'
     ];
 })->middleware('auth');
 
@@ -211,7 +213,7 @@ Route::get('/assign-role/{role}', function ($role) {
     }
 
     // Valid roles check
-    $validRoles = ['admin', 'hostel_manager', 'student'];
+    $validRoles = ['admin', 'hostel_manager', 'student', 'owner'];
     if (!in_array($role, $validRoles)) {
         return "Invalid role. Use: " . implode(', ', $validRoles);
     }
@@ -226,10 +228,10 @@ Route::get('/assign-role/{role}', function ($role) {
 })->middleware('auth');
 
 /*|--------------------------------------------------------------------------
-| Admin Routes Group (Consistent Prefix and Names)
+| ✅ FIXED: Admin Routes Group - ONLY for admin role
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'hasOrganization', 'role:admin', 'can:view-admin-dashboard'])
+Route::middleware(['auth', 'hasOrganization', 'role:admin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
@@ -289,7 +291,7 @@ Route::middleware(['auth', 'hasOrganization', 'role:admin', 'can:view-admin-dash
             Route::post('/{circular}/publish', [CircularController::class, 'publish'])->name('publish');
             Route::get('/analytics', [CircularController::class, 'analytics'])->name('analytics');
             Route::get('/{circular}/analytics', [CircularController::class, 'analytics'])->name('analytics.single');
-            Route::post('/{circular}/mark-read', [CircularController::class, 'markAsRead'])->name('mark-read'); // ✅ ADDED for consistency
+            Route::post('/{circular}/mark-read', [CircularController::class, 'markAsRead'])->name('mark-read');
         });
 
         // Payment Routes Structure
@@ -309,7 +311,7 @@ Route::middleware(['auth', 'hasOrganization', 'role:admin', 'can:view-admin-dash
             Route::post('/{payment}/reject-bank', [AdminPaymentController::class, 'rejectBankTransfer'])->name('reject-bank');
             Route::get('/{payment}/proof', [AdminPaymentController::class, 'viewProof'])->name('proof');
 
-            // Payment verification - ✅ FIXED: Using payments_edit instead of payment.verify
+            // Payment verification
             Route::middleware([\App\Http\Middleware\CheckPermission::class . ':payments_edit'])->group(function () {
                 Route::get('/verification', [AdminPaymentController::class, 'verification'])->name('verification');
                 Route::put('/{payment}/verify', [AdminPaymentController::class, 'verify'])->name('verify');
@@ -348,7 +350,7 @@ Route::middleware(['auth', 'hasOrganization', 'role:admin', 'can:view-admin-dash
     });
 
 /*|--------------------------------------------------------------------------
-| Student Routes (Moved outside hasOrganization middleware)
+| ✅ FIXED: Student Routes - ONLY for student role
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'role:student'])->prefix('student')->name('student.')->group(function () {
@@ -363,7 +365,7 @@ Route::middleware(['auth', 'role:student'])->prefix('student')->name('student.')
     Route::get('/payments/{paymentId}/receipt/download', [PaymentController::class, 'downloadReceipt'])->name('payments.receipt.download');
 
     // ✅ FIXED: Meal menus routes - COMPATIBILITY FIX
-    Route::get('/meal-menus', [StudentController::class, 'mealMenus'])->name('meal-menus'); // For view compatibility
+    Route::get('/meal-menus', [StudentController::class, 'mealMenus'])->name('meal-menus');
     Route::get('/meal-menus/{mealMenu}', [StudentController::class, 'showMealMenu'])->name('meal-menus.show');
 
     // Room viewing
@@ -375,6 +377,18 @@ Route::middleware(['auth', 'role:student'])->prefix('student')->name('student.')
     Route::get('/hostel/search', [PublicController::class, 'hostelSearch'])->name('hostel.search');
     Route::get('/hostel/join', [PublicController::class, 'hostelJoin'])->name('hostel.join');
     Route::post('/hostel/{hostel}/join', [PublicController::class, 'joinHostel'])->name('hostel.join.submit');
+
+    // ✅ ADDED: Student Review Routes - Complete CRUD system
+    Route::prefix('reviews')->name('reviews.')->group(function () {
+        Route::get('/', [StudentReviewController::class, 'index'])->name('index');
+        Route::get('/create', [StudentReviewController::class, 'create'])->name('create');
+        Route::post('/', [StudentReviewController::class, 'store'])->name('store');
+        Route::get('/{review}', [StudentReviewController::class, 'show'])->name('show');
+        Route::get('/{review}/edit', [StudentReviewController::class, 'edit'])->name('edit');
+        Route::put('/{review}', [StudentReviewController::class, 'update'])->name('update');
+        Route::delete('/{review}', [StudentReviewController::class, 'destroy'])->name('destroy');
+        Route::get('/hostel/{hostelId}', [StudentReviewController::class, 'hostelReviews'])->name('hostel');
+    });
 
     // Bookings with permission check
     Route::get('/bookings', [BookingController::class, 'index'])->name('bookings.index');
@@ -395,54 +409,20 @@ Route::middleware(['auth', 'role:student'])->prefix('student')->name('student.')
 
     // ✅ ADDED: New student routes as requested - WITH COMPATIBILITY
     Route::get('/gallery', [StudentController::class, 'gallery'])->name('gallery');
-    Route::get('/reviews', [StudentController::class, 'reviews'])->name('reviews');
     Route::get('/events', [StudentController::class, 'events'])->name('events');
     Route::get('/notifications', [StudentController::class, 'notifications'])->name('notifications');
     Route::post('/maintenance-request', [StudentController::class, 'submitMaintenance'])->name('maintenance.submit');
 });
 
 /*|--------------------------------------------------------------------------
-| Unified Role-Based Routes (Protected Routes for Owner - Students moved out)
+| ✅ FIXED: Owner/Hostel Manager Routes - BOTH roles can access
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'hasOrganization'])->group(function () {
+Route::middleware(['auth', 'hasOrganization', 'role:owner,hostel_manager'])
+    ->prefix('owner')
+    ->name('owner.')
+    ->group(function () {
 
-    // ✅ REMOVED: Duplicate logout route from here since we have global one above
-
-    // Booking routes
-    Route::get('/my-bookings', [BookingController::class, 'myBookings'])->name('bookings.my');
-    Route::get('/bookings/pending', [BookingController::class, 'pendingApprovals'])->name('bookings.pending');
-    Route::post('/bookings/{id}/approve', [BookingController::class, 'approve'])->name('bookings.approve');
-    Route::post('/bookings/{id}/reject', [BookingController::class, 'reject'])->name('bookings.reject');
-
-    // Subscription routes
-    Route::get('/subscription/limits', [SubscriptionController::class, 'showLimits'])->name('subscription.limits');
-    Route::post('/subscription/purchase-extra-hostel', [SubscriptionController::class, 'purchaseExtraHostel'])->name('subscription.purchase-extra-hostel');
-
-    // Payment Routes (Using Frontend PaymentController)
-    Route::get('/checkout', [PaymentController::class, 'checkout'])->name('payment.checkout');
-
-    // eSewa Payment Routes
-    Route::post('/payment/esewa/pay', [PaymentController::class, 'payWithEsewa'])->name('payment.esewa.pay');
-    Route::post('/payment/esewa/callback', [PaymentController::class, 'verifyEsewaPayment'])->name('payment.esewa.callback');
-
-    // Khalti Payment Routes
-    Route::post('/payment/khalti/pay', [PaymentController::class, 'payWithKhalti'])->name('payment.khalti.pay');
-    Route::post('/payment/khalti/callback', [PaymentController::class, 'verifyKhaltiPayment'])->name('payment.khalti.callback');
-
-    // Bank Transfer Routes
-    Route::get('/payment/bank/request', [PaymentController::class, 'bankTransferRequest'])->name('payment.bank.form');
-    Route::post('/payment/bank/request', [PaymentController::class, 'storeBankTransfer'])->name('payment.bank.request');
-
-    // Payment Success/Failure
-    Route::get('/payment/success/{payment}', [PaymentController::class, 'paymentSuccess'])->name('payment.success');
-    Route::get('/payment/failure/{payment?}', [PaymentController::class, 'paymentFailure'])->name('payment.failure');
-
-    // Payment Verification
-    Route::get('/payment/verify/{paymentId}', [PaymentController::class, 'verifyPayment'])->name('payment.verify');
-
-    // 🔥 CRITICAL FIX: Owner specific routes with SIMPLIFIED middleware
-    Route::middleware(['role:hostel_manager'])->prefix('owner')->name('owner.')->group(function () {
         // Owner dashboard - NOW WITH PROPER ACCESS
         Route::get('/dashboard', [DashboardController::class, 'ownerDashboard'])->name('dashboard');
 
@@ -465,7 +445,7 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
             Route::post('/{circular}/publish', [CircularController::class, 'publish'])->name('publish');
             Route::get('/analytics', [CircularController::class, 'analytics'])->name('analytics');
             Route::get('/{circular}/analytics', [CircularController::class, 'analytics'])->name('analytics.single');
-            Route::post('/{circular}/mark-read', [CircularController::class, 'markAsRead'])->name('mark-read'); // ✅ ADDED for consistency
+            Route::post('/{circular}/mark-read', [CircularController::class, 'markAsRead'])->name('mark-read');
         });
 
         // ✅ ADDED: Owner Document Management Routes
@@ -506,6 +486,9 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
 
         // ✅ FIXED: Owner reviews route - Using OwnerReviewController instead of AdminReviewController
         Route::resource('reviews', OwnerReviewController::class);
+
+        // ✅ CRITICAL FIX: Add the missing reply route for owner reviews - FIXED ROUTE NAME
+        Route::post('/reviews/{review}/reply', [OwnerReviewController::class, 'reply'])->name('reviews.reply');
 
         // Owner Meal Routes
         Route::resource('meals', MealController::class);
@@ -561,6 +544,44 @@ Route::middleware(['auth', 'hasOrganization'])->group(function () {
         Route::post('contacts/{id}/update-status', [ContactController::class, 'updateStatus'])->name('contacts.update-status');
         Route::get('contacts/export/csv', [ContactController::class, 'exportCSV'])->name('contacts.export-csv');
     });
+
+/*|--------------------------------------------------------------------------
+| Unified Role-Based Routes (Protected Routes for Shared Features)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'hasOrganization'])->group(function () {
+
+    // Booking routes
+    Route::get('/my-bookings', [BookingController::class, 'myBookings'])->name('bookings.my');
+    Route::get('/bookings/pending', [BookingController::class, 'pendingApprovals'])->name('bookings.pending');
+    Route::post('/bookings/{id}/approve', [BookingController::class, 'approve'])->name('bookings.approve');
+    Route::post('/bookings/{id}/reject', [BookingController::class, 'reject'])->name('bookings.reject');
+
+    // Subscription routes
+    Route::get('/subscription/limits', [SubscriptionController::class, 'showLimits'])->name('subscription.limits');
+    Route::post('/subscription/purchase-extra-hostel', [SubscriptionController::class, 'purchaseExtraHostel'])->name('subscription.purchase-extra-hostel');
+
+    // Payment Routes (Using Frontend PaymentController)
+    Route::get('/checkout', [PaymentController::class, 'checkout'])->name('payment.checkout');
+
+    // eSewa Payment Routes
+    Route::post('/payment/esewa/pay', [PaymentController::class, 'payWithEsewa'])->name('payment.esewa.pay');
+    Route::post('/payment/esewa/callback', [PaymentController::class, 'verifyEsewaPayment'])->name('payment.esewa.callback');
+
+    // Khalti Payment Routes
+    Route::post('/payment/khalti/pay', [PaymentController::class, 'payWithKhalti'])->name('payment.khalti.pay');
+    Route::post('/payment/khalti/callback', [PaymentController::class, 'verifyKhaltiPayment'])->name('payment.khalti.callback');
+
+    // Bank Transfer Routes
+    Route::get('/payment/bank/request', [PaymentController::class, 'bankTransferRequest'])->name('payment.bank.form');
+    Route::post('/payment/bank/request', [PaymentController::class, 'storeBankTransfer'])->name('payment.bank.request');
+
+    // Payment Success/Failure
+    Route::get('/payment/success/{payment}', [PaymentController::class, 'paymentSuccess'])->name('payment.success');
+    Route::get('/payment/failure/{payment?}', [PaymentController::class, 'paymentFailure'])->name('payment.failure');
+
+    // Payment Verification
+    Route::get('/payment/verify/{paymentId}', [PaymentController::class, 'verifyPayment'])->name('payment.verify');
 });
 
 // ✅ MOVED: Subscription Management outside the hasOrganization middleware for flexibility
@@ -654,7 +675,6 @@ if (app()->environment('local')) {
         return 'Test route';
     })->name('test.route');
 
-    // ✅ REMOVED: Duplicate logout route from development section
     Route::get('/test-pdf', function () {
         $pdf = Pdf::loadHTML('<h1>Test PDF</h1><p>This is working!</p>');
         return $pdf->download('test.pdf');
