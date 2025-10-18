@@ -60,6 +60,14 @@
                         <span :class="{ 'hidden': sidebarCollapsed }">समीक्षाहरू</span>
                     </a>
 
+                    <!-- Public Page Management Link for Owner -->
+                    <a href="{{ route('owner.public-page.edit') }}" class="sidebar-link flex items-center px-3 py-3 text-sm font-medium rounded-lg mb-1 transition-colors {{ request()->routeIs('owner.public-page.*') ? 'bg-blue-700 text-white' : 'text-blue-100 hover:bg-blue-700' }}">
+                        <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9" />
+                        </svg>
+                        <span :class="{ 'hidden': sidebarCollapsed }">सार्वजनिक पृष्ठ</span>
+                    </a>
+
                 @elseif(Auth::user()->role === 'student')
                     <!-- Student Navigation -->
                     <a href="{{ route('student.dashboard') }}" class="sidebar-link flex items-center px-3 py-3 text-sm font-medium rounded-lg mb-1 transition-colors {{ request()->routeIs('student.dashboard') ? 'bg-blue-700 text-white' : 'text-blue-100 hover:bg-blue-700' }}">

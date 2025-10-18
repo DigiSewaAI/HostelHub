@@ -27,13 +27,19 @@ class Hostel extends Model
         'owner_id',
         'manager_id',
         'organization_id',
-        'monthly_rent',       // ✅ ADDED
-        'security_deposit',   // ✅ ADDED
-        'image'              // ✅ ADDED
+        'monthly_rent',
+        'security_deposit',
+        'image',
+        'is_published',
+        'published_at',
+        'logo_path',
+        'theme_color'
     ];
 
     protected $casts = [
-        'facilities' => 'array'
+        'facilities' => 'array',
+        'is_published' => 'boolean',
+        'published_at' => 'datetime'
     ];
 
     public function rooms(): HasMany
@@ -86,6 +92,18 @@ class Hostel extends Model
         return $this->hasMany(Review::class);
     }
 
+    // ✅ ADDED: Approved reviews for the hostel
+    public function approvedReviews()
+    {
+        return $this->reviews()->where('status', 'approved');
+    }
+
+    // ✅ ADDED: Featured reviews for the hostel
+    public function featuredReviews()
+    {
+        return $this->approvedReviews()->where('featured', true);
+    }
+
     // ✅ ADDED: Payments relationship
     public function payments(): HasMany
     {
@@ -104,6 +122,13 @@ class Hostel extends Model
         return $query->where('status', 'inactive');
     }
 
+    // ✅ ADDED: Scope published hostels
+    public function scopePublished($query)
+    {
+        return $query->where('is_published', true)
+            ->whereNotNull('published_at');
+    }
+
     // ✅ Calculate occupancy rate
     public function getOccupancyRateAttribute()
     {
@@ -119,6 +144,30 @@ class Hostel extends Model
     public function getHasAvailableRoomsAttribute()
     {
         return $this->available_rooms > 0;
+    }
+
+    // ✅ FIXED: Check if hostel is fully published (both flag set and published date exists)
+    public function getIsFullyPublishedAttribute()
+    {
+        return $this->is_published && $this->published_at;
+    }
+
+    // ✅ ADDED: Get public URL for the hostel
+    public function getPublicUrlAttribute()
+    {
+        if (!$this->is_published) {
+            return null;
+        }
+        return route('hostels.show', $this->slug);
+    }
+
+    // ✅ ADDED: Get logo URL
+    public function getLogoUrlAttribute()
+    {
+        if ($this->logo_path) {
+            return asset('storage/' . $this->logo_path);
+        }
+        return asset('images/default-hostel.png');
     }
 
     // ✅ FIX: Add method to update room counts from relationships
@@ -164,8 +213,6 @@ class Hostel extends Model
     {
         return $this->rooms()->count() === 0 && $this->students()->count() === 0;
     }
-
-    // ... rest of your existing methods remain exactly the same ...
 
     // ✅ ADDED: Get active gallery images count
     public function getActiveGalleryImagesCountAttribute()

@@ -44,7 +44,7 @@
     </div>
 
     <!-- Financial Summary Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-6">
         <!-- Total Monthly Revenue -->
         <div class="bg-white rounded-2xl shadow-sm p-6 border-l-4 border-blue-500">
             <div class="flex justify-between items-center">
@@ -112,7 +112,28 @@
                 सबै हेर्नुहोस् <i class="fas fa-arrow-circle-right ml-1"></i>
             </a>
         </div>
+
+        <!-- 🆕 PUBLIC PAGE STATUS CARD -->
+<div class="bg-white rounded-2xl shadow-sm p-6 border-l-4 border-teal-500">
+    <div class="flex justify-between items-center">
+        <div>
+            <h3 class="text-sm font-semibold text-gray-600">सार्वजनिक पृष्ठ</h3>
+            <p class="text-2xl font-bold text-gray-800">
+                @if(isset($hostel) && $hostel->getRawOriginal('is_published'))
+                    <span class="text-green-600">प्रकाशित</span>
+                @else
+                    <span class="text-amber-600">मस्यौदा</span>
+                @endif
+            </p>
+        </div>
+        <div class="bg-teal-100 p-3 rounded-xl">
+            <i class="fas fa-globe text-teal-600 text-xl"></i>
+        </div>
     </div>
+    <a href="{{ route('owner.public-page.edit') }}" class="text-xs text-teal-600 hover:text-teal-800 font-medium mt-2 inline-block">
+        व्यवस्थापन गर्नुहोस् <i class="fas fa-arrow-circle-right ml-1"></i>
+    </a>
+</div>
 
     @if(isset($hostel) && $hostel)
         <!-- Hostel Overview -->
@@ -120,11 +141,20 @@
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-xl font-bold text-gray-800">{{ $hostel->name }} को विवरण</h2>
                 
-                <a href="{{ route('owner.hostels.show', $hostel) }}" 
-                   class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl px-5 py-3 shadow-sm hover:shadow-md transition-all duration-200 no-underline">
-                    <i class="fas fa-eye mr-2"></i>
-                    हेर्नुहोस् — Hostel विवरण
-                </a>
+                <div class="flex space-x-3">
+                    <!-- Public Page Quick Action -->
+                    <a href="{{ route('owner.public-page.edit') }}" 
+                       class="inline-flex items-center bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-xl px-5 py-3 shadow-sm hover:shadow-md transition-all duration-200 no-underline">
+                        <i class="fas fa-globe mr-2"></i>
+                        सार्वजनिक पृष्ठ
+                    </a>
+                    
+                    <a href="{{ route('owner.hostels.show', $hostel) }}" 
+                       class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl px-5 py-3 shadow-sm hover:shadow-md transition-all duration-200 no-underline">
+                        <i class="fas fa-eye mr-2"></i>
+                        हेर्नुहोस् — Hostel विवरण
+                    </a>
+                </div>
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
@@ -206,13 +236,21 @@
     <!-- Quick Actions Section -->
     <div class="bg-white rounded-2xl shadow-sm p-6 mb-6">
         <h2 class="text-xl font-bold text-gray-800 mb-6">द्रुत कार्यहरू</h2>
-        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
             <!-- 🏠 Homepage Button in Quick Actions -->
             <a href="{{ url('/') }}" class="p-4 bg-green-50 hover:bg-green-100 rounded-2xl text-center transition-colors no-underline group border border-green-100">
                 <div class="text-green-600 text-2xl mb-2 group-hover:scale-110 transition-transform">
                     <i class="fas fa-home"></i>
                 </div>
                 <div class="font-medium text-green-800 text-sm">मुख्य पृष्ठ</div>
+            </a>
+            
+            <!-- 🆕 PUBLIC PAGE QUICK ACTION -->
+            <a href="{{ route('owner.public-page.edit') }}" class="p-4 bg-teal-50 hover:bg-teal-100 rounded-2xl text-center transition-colors no-underline group border border-teal-100">
+                <div class="text-teal-600 text-2xl mb-2 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-globe"></i>
+                </div>
+                <div class="font-medium text-teal-800 text-sm">सार्वजनिक पृष्ठ</div>
             </a>
             
             <a href="{{ route('owner.hostels.create') }}" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-2xl text-center transition-colors no-underline group border border-blue-100">
@@ -248,13 +286,6 @@
                     <i class="fas fa-bullhorn"></i>
                 </div>
                 <div class="font-medium text-indigo-800 text-sm">सूचना थप्नुहोस्</div>
-            </a>
-
-            <a href="{{ route('owner.circulars.index') }}" class="p-4 bg-teal-50 hover:bg-teal-100 rounded-2xl text-center transition-colors no-underline group border border-teal-100">
-                <div class="text-teal-600 text-2xl mb-2 group-hover:scale-110 transition-transform">
-                    <i class="fas fa-list"></i>
-                </div>
-                <div class="font-medium text-teal-800 text-sm">सूचनाहरू हेर्नुहोस्</div>
             </a>
         </div>
     </div>

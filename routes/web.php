@@ -15,6 +15,7 @@ use App\Http\Controllers\{
     Admin\PaymentController as AdminPaymentController,
     Owner\HostelController as OwnerHostelController,
     Owner\ReviewController as OwnerReviewController,
+    Owner\OwnerPublicPageController, // ✅ ADDED: Owner Public Page Controller
     Frontend\GalleryController as FrontendGalleryController,
     Frontend\PublicContactController,
     Frontend\PublicController,
@@ -62,6 +63,12 @@ Route::group(['middleware' => 'web'], function () {
     Route::get('/how-it-works', [PublicController::class, 'howItWorks'])->name('how-it-works');
     Route::get('/gallery', [FrontendGalleryController::class, 'index'])->name('gallery');
     Route::get('/pricing', [PricingController::class, 'index'])->name('pricing');
+
+    // ✅ ADDED: Public hostel listing routes
+    Route::get('/hostels', [PublicController::class, 'hostelsIndex'])->name('hostels.index');
+    Route::get('/hostels/{slug}', [PublicController::class, 'hostelShow'])->name('hostels.show');
+    // ✅ FIXED: Changed preview route to use OwnerPublicPageController
+    Route::get('/preview/{slug}', [OwnerPublicPageController::class, 'preview'])->name('hostels.preview');
 
     // Gallery API Routes
     Route::get('/api/gallery/data', [FrontendGalleryController::class, 'getGalleryData']);
@@ -426,6 +433,14 @@ Route::middleware(['auth', 'hasOrganization', 'role:owner,hostel_manager'])
         // Owner dashboard - NOW WITH PROPER ACCESS
         Route::get('/dashboard', [DashboardController::class, 'ownerDashboard'])->name('dashboard');
 
+        // ✅ FIXED: Owner Public Page Management Routes - SINGLE ROUTE GROUP (duplicate removed)
+        Route::prefix('public-page')->name('public-page.')->group(function () {
+            Route::get('/edit', [OwnerPublicPageController::class, 'edit'])->name('edit');
+            Route::post('/preview', [OwnerPublicPageController::class, 'updateAndPreview'])->name('preview');
+            Route::post('/publish', [OwnerPublicPageController::class, 'publish'])->name('publish');
+            Route::post('/unpublish', [OwnerPublicPageController::class, 'unpublish'])->name('unpublish');
+        });
+
         // Owner Payment Management Routes (Using Frontend PaymentController)
         Route::get('/payments/report', [PaymentController::class, 'ownerReport'])->name('payments.report');
         Route::post('/payments/manual', [PaymentController::class, 'createManualPayment'])->name('payments.manual');
@@ -663,6 +678,77 @@ if (app()->environment('local')) {
         }
 
         return "<h3>Duplicate check completed!</h3>";
+    });
+
+    // ✅ ADDED: Temporary debug route for hostel preview
+    Route::get('/debug-hostel/{slug}', function ($slug) {
+        $hostel = \App\Models\Hostel::with(['images', 'rooms', 'mealMenus'])->where('slug', $slug)->first();
+
+        if (!$hostel) {
+            return "Hostel not found with slug: {$slug}";
+        }
+
+        return [
+            'hostel_data' => [
+                'id' => $hostel->id,
+                'name' => $hostel->name,
+                'slug' => $hostel->slug,
+                'description' => $hostel->description,
+                'theme_color' => $hostel->theme_color,
+                'logo_path' => $hostel->logo_path,
+                'is_published' => $hostel->is_published,
+                'organization_id' => $hostel->organization_id,
+            ],
+            'relationships' => [
+                'images_count' => $hostel->images->count(),
+                'rooms_count' => $hostel->rooms->count(),
+                'mealMenus_count' => $hostel->mealMenus->count(),
+            ],
+            'session_data' => [
+                'current_organization_id' => session('current_organization_id'),
+            ]
+        ];
+    });
+
+    // ✅ ADDED: Database check and update routes for hostel data
+    // Check hostel data in database
+    Route::get('/check-hostel-data/{slug}', function ($slug) {
+        $hostel = \App\Models\Hostel::where('slug', $slug)->first();
+
+        if (!$hostel) {
+            return "Hostel not found!";
+        }
+
+        // Check database directly
+        $dbData = \DB::table('hostels')->where('slug', $slug)->first();
+
+        return [
+            'database_data' => $dbData,
+            'model_data' => [
+                'name' => $hostel->name,
+                'description' => $hostel->description,
+                'theme_color' => $hostel->theme_color,
+                'logo_path' => $hostel->logo_path,
+            ]
+        ];
+    });
+
+    // Update hostel data temporarily
+    Route::get('/update-hostel-data/{slug}', function ($slug) {
+        $hostel = \App\Models\Hostel::where('slug', $slug)->first();
+
+        if (!$hostel) {
+            return "Hostel not found!";
+        }
+
+        // Update with sample data
+        $hostel->update([
+            'description' => 'यो Sanctuary Girls Hostel को विवरण हो। हामी विद्यार्थीहरूको लागि उत्कृष्ट र सुरक्षित बसाइ सुनिश्चित गर्दछौं।',
+            'theme_color' => '#10b981', // green color
+            'logo_path' => 'hostels/logos/sanctuary1.jpg'
+        ]);
+
+        return "Hostel data updated! Check: " . route('debug-hostel', $slug);
     });
 }
 

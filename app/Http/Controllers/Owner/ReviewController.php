@@ -49,7 +49,39 @@ class ReviewController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Approve a review
+     */
+    public function approve(Review $review)
+    {
+        // Ensure the review belongs to owner's hostel
+        if ($review->hostel_id != auth()->user()->hostel_id) {
+            abort(403, 'तपाईंसँग यो समीक्षा स्वीकृत गर्ने अनुमति छैन');
+        }
+
+        $review->update(['status' => 'approved']);
+
+        return redirect()->route('owner.reviews.index')
+            ->with('success', 'समीक्षा सफलतापूर्वक स्वीकृत गरियो!');
+    }
+
+    /**
+     * Reject a review
+     */
+    public function reject(Review $review)
+    {
+        // Ensure the review belongs to owner's hostel
+        if ($review->hostel_id != auth()->user()->hostel_id) {
+            abort(403, 'तपाईंसँग यो समीक्षा अस्वीकृत गर्ने अनुमति छैन');
+        }
+
+        $review->update(['status' => 'rejected']);
+
+        return redirect()->route('owner.reviews.index')
+            ->with('success', 'समीक्षा सफलतापूर्वक अस्वीकृत गरियो!');
+    }
+
+    /**
+     * Store reply to a review
      */
     public function storeReply(Request $request, Review $review)
     {
@@ -59,7 +91,7 @@ class ReviewController extends Controller
         }
 
         $request->validate([
-            'reply' => 'required|string',
+            'reply' => 'required|string|max:1000',
         ]);
 
         $review->update([
