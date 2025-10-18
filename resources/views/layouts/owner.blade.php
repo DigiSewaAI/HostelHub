@@ -347,6 +347,14 @@
                     <i class="fas fa-file-alt sidebar-icon"></i>
                     <span class="sidebar-text">कागजात व्यवस्थापन</span>
                 </a>
+
+                <!-- Public Page Management -->
+                <a href="{{ route('owner.public-page.edit') }}"
+                   class="sidebar-link {{ request()->routeIs('owner.public-page.*') ? 'active' : '' }}"
+                   aria-current="{{ request()->routeIs('owner.public-page.*') ? 'page' : 'false' }}">
+                    <i class="fas fa-globe sidebar-icon"></i>
+                    <span class="sidebar-text">सार्वजनिक पृष्ठ</span>
+                </a>
                 
                 <!-- Logout Section -->
                 <div class="mt-auto pt-4 border-t border-blue-700">

@@ -9,7 +9,7 @@ use App\Models\Meal;
 use App\Models\Room;
 use App\Models\Student;
 use App\Models\Review;
-use App\Models\Newsletter; // ✅ ADDED: Missing import
+use App\Models\Newsletter;
 use App\Services\ImageService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -488,5 +488,88 @@ class PublicController extends Controller
             Log::error('Robots.txt generation failed: ' . $e->getMessage());
             abort(500);
         }
+    }
+
+    /**
+     * NEW METHODS ADDED BELOW
+     */
+
+    /**
+     * Display hostels index page with search and filtering
+     */
+    public function hostelsIndex(Request $request)
+    {
+        // ✅ FIXED: Use proper published scope instead of temporary fix
+        $query = Hostel::where('is_published', true)->withCount('approvedReviews');
+
+        // Search functionality
+        if ($request->has('search')) {
+            $search = $request->get('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('city', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        // Filter by city
+        if ($request->has('city')) {
+            $query->where('city', $request->get('city'));
+        }
+
+        $hostels = $query->paginate(12);
+        $cities = Hostel::where('is_published', true)->distinct()->pluck('city');
+
+        return view('frontend.hostels.index', compact('hostels', 'cities'));
+    }
+
+    /**
+     * Display single hostel page
+     */
+    public function hostelShow($slug)
+    {
+        // ✅ FIXED: Use proper published scope instead of temporary fix
+        $hostel = Hostel::where('is_published', true)->where('slug', $slug)->firstOrFail();
+        $reviews = $hostel->approvedReviews()->with('student.user')->paginate(10);
+
+        return view('frontend.hostels.show', compact('hostel', 'reviews'));
+    }
+
+    /**
+     * ✅ FIXED: Preview hostel for owners/admins - Fixed 403 error
+     */
+    public function hostelPreview($slug)
+    {
+        // For owner preview - allow viewing even if not published
+        $hostel = Hostel::with([
+            'images',
+            'rooms',
+            'approvedReviews.student.user',
+            'mealMenus' // ✅ Ensure this is included
+        ])->where('slug', $slug)->firstOrFail();
+
+        $user = auth()->user();
+
+        // ✅ FIXED: Allow preview for authenticated users with proper roles
+        if ($user) {
+            // Admin can preview any hostel
+            if ($user->hasRole('admin')) {
+                $reviews = $hostel->approvedReviews()->with('student.user')->paginate(10);
+                return view('frontend.hostels.show', compact('hostel', 'reviews'))->with('preview', true);
+            }
+
+            // For owner and hostel_manager, check if the hostel belongs to their current organization
+            if ($user->hasRole('owner') || $user->hasRole('hostel_manager')) {
+                $userOrganizationId = session('current_organization_id');
+
+                if ($hostel->organization_id == $userOrganizationId) {
+                    $reviews = $hostel->approvedReviews()->with('student.user')->paginate(10);
+                    return view('frontend.hostels.show', compact('hostel', 'reviews'))->with('preview', true);
+                }
+            }
+        }
+
+        // ✅ FIXED: Instead of 403, show a more user-friendly error
+        abort(404, 'होस्टल फेला परेन वा तपाईंसँग यसलाई हेर्ने अनुमति छैन।');
     }
 }
