@@ -148,6 +148,64 @@
         </div>
     </div>
 
+    <!-- Reviews Summary Section -->
+    <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-200 mb-6">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center">
+                <div class="bg-purple-100 p-2 rounded-lg mr-3">
+                    <i class="fas fa-star text-purple-600"></i>
+                </div>
+                <h3 class="text-lg font-bold text-gray-800">मेरो होस्टेल समीक्षा</h3>
+            </div>
+            <a href="{{ route('student.reviews.index') }}" class="text-purple-600 hover:text-purple-800 text-sm font-medium">
+                सबै हेर्नुहोस्
+            </a>
+        </div>
+        
+        @php
+            $student = auth()->user()->student;
+            $userReviews = $student 
+                ? \App\Models\Review::where('student_id', $student->id)
+                    ->with('hostel')
+                    ->orderBy('created_at', 'desc')
+                    ->take(2)
+                    ->get()
+                : collect();
+        @endphp
+        
+        @if($userReviews->count() > 0)
+            <div class="space-y-3">
+                @foreach($userReviews as $review)
+                    <div class="border-l-4 border-purple-500 pl-3 py-2 bg-purple-50 rounded-r-lg">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="font-medium text-gray-800 text-sm">{{ $review->hostel->name ?? 'होस्टेल' }}</p>
+                                <div class="flex items-center mt-1">
+                                    @for($i = 1; $i <= 5; $i++)
+                                        <i class="fas fa-star text-{{ $i <= $review->rating ? 'yellow-400' : 'gray-300' }} text-xs"></i>
+                                    @endfor
+                                    <span class="text-xs text-gray-600 ml-1">({{ $review->rating }}/5)</span>
+                                </div>
+                                <p class="text-xs text-gray-600 mt-1">{{ Str::limit($review->comment, 60) }}</p>
+                            </div>
+                            <span class="bg-{{ $review->status == 'approved' ? 'green' : ($review->status == 'pending' ? 'yellow' : 'red') }}-100 text-{{ $review->status == 'approved' ? 'green' : ($review->status == 'pending' ? 'yellow' : 'red') }}-800 px-2 py-1 rounded-full text-xs">
+                                {{ $review->status == 'approved' ? 'स्वीकृत' : ($review->status == 'pending' ? 'पेन्डिङ' : 'अस्वीकृत') }}
+                            </span>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        @else
+            <div class="text-center py-4">
+                <i class="fas fa-star text-gray-400 text-3xl mb-2"></i>
+                <p class="text-gray-500 mb-3">तपाईंले अहिलेसम्म कुनै होस्टेलको समीक्षा दिनुभएको छैन।</p>
+                <a href="{{ route('student.reviews.create') }}" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                    <i class="fas fa-plus mr-1"></i> पहिलो समीक्षा दिनुहोस्
+                </a>
+            </div>
+        @endif
+    </div>
+
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Left Column - Main Info -->
         <div class="lg:col-span-2 space-y-6">
@@ -344,6 +402,13 @@
                                 {{ $unreadCirculars }}
                             </span>
                         @endif
+                    </a>
+
+                    <a href="{{ route('student.reviews.index') }}" class="bg-purple-50 hover:bg-purple-100 p-3 rounded-xl text-center transition-colors group border border-purple-100">
+                        <div class="text-purple-600 text-xl mb-1">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div class="text-purple-800 text-xs font-medium">मेरो समीक्षा</div>
                     </a>
 
                     <button class="bg-amber-50 hover:bg-amber-100 p-3 rounded-xl text-center transition-colors group border border-amber-100">

@@ -17,19 +17,29 @@ class RoleMiddleware
 
         $user = Auth::user();
 
-        // Admin लाई सबैमा access दिने
+        // Admin has access to everything
         if ($user->hasRole('admin')) {
             return $next($request);
         }
 
-        // Multiple roles check गर्ने
+        // Check for multiple roles
         foreach ($roles as $role) {
             if ($user->hasRole($role)) {
                 return $next($request);
             }
         }
 
-        // ✅ Better error message for debugging
+        // Special case: hostel_manager should access owner routes
+        if ($user->hasRole('hostel_manager') && in_array('owner', $roles)) {
+            return $next($request);
+        }
+
+        // Special case: owner should access hostel_manager routes  
+        if ($user->hasRole('owner') && in_array('hostel_manager', $roles)) {
+            return $next($request);
+        }
+
+        // Better error message for debugging
         abort(403, 'Unauthorized access. Your roles: ' . $user->getRoleNames()->implode(', ') . ' | Required: ' . implode(', ', $roles));
     }
 }

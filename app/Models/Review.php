@@ -18,6 +18,9 @@ class Review extends Model
     const TYPE_FEEDBACK = 'feedback';
 
     // Constants for status
+    const STATUS_PENDING = 'pending';
+    const STATUS_APPROVED = 'approved';
+    const STATUS_REJECTED = 'rejected';
     const STATUS_ACTIVE = 'active';
     const STATUS_INACTIVE = 'inactive';
 
@@ -29,7 +32,13 @@ class Review extends Model
         'image',
         'type',
         'status',
-        'rating'
+        'rating',
+        'user_id',
+        'hostel_id',
+        'student_id',
+        'comment',
+        'reply',
+        'reply_date'
     ];
 
     /**
@@ -42,7 +51,51 @@ class Review extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
+        'reply_date' => 'datetime',
     ];
+
+    /**
+     * Set default attribute values
+     */
+    protected $attributes = [
+        'status' => self::STATUS_PENDING,
+        'type' => self::TYPE_REVIEW,
+        'rating' => 0,
+        'name' => '',
+        'position' => '',
+    ];
+
+    /**
+     * Boot method for model events
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Set default name and position before creating
+        static::creating(function ($review) {
+            if (empty($review->name)) {
+                if ($review->student && $review->student->user) {
+                    $review->name = $review->student->user->name;
+                } elseif ($review->user) {
+                    $review->name = $review->user->name;
+                } else {
+                    $review->name = 'Anonymous';
+                }
+            }
+
+            if (empty($review->position)) {
+                $review->position = 'Student';
+            }
+        });
+
+        // Delete associated image when review is deleted
+        static::deleting(function ($review) {
+            if ($review->image && Storage::disk('public')->exists($review->image)) {
+                Storage::disk('public')->delete($review->image);
+            }
+        });
+    }
 
     /**
      * Get the route key for the model.
@@ -74,6 +127,9 @@ class Review extends Model
     public static function getStatuses(): array
     {
         return [
+            self::STATUS_PENDING => 'पेन्डिंग',
+            self::STATUS_APPROVED => 'स्वीकृत',
+            self::STATUS_REJECTED => 'अस्वीकृत',
             self::STATUS_ACTIVE => 'सक्रिय',
             self::STATUS_INACTIVE => 'निष्क्रिय',
         ];
@@ -124,6 +180,30 @@ class Review extends Model
     }
 
     /**
+     * Get the student that owns the review.
+     */
+    public function student()
+    {
+        return $this->belongsTo(Student::class);
+    }
+
+    /**
+     * Get the hostel that owns the review.
+     */
+    public function hostel()
+    {
+        return $this->belongsTo(Hostel::class);
+    }
+
+    /**
+     * Get the user that owns the review.
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
      * Scope a query to only include active reviews.
      *
      * @param  \Illuminate\Database\Eloquent\Builder  $query
@@ -132,6 +212,28 @@ class Review extends Model
     public function scopeActive($query)
     {
         return $query->where('status', self::STATUS_ACTIVE);
+    }
+
+    /**
+     * Scope a query to only include approved reviews.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeApproved($query)
+    {
+        return $query->where('status', self::STATUS_APPROVED);
+    }
+
+    /**
+     * Scope a query to only include pending reviews.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopePending($query)
+    {
+        return $query->where('status', self::STATUS_PENDING);
     }
 
     /**
@@ -158,19 +260,20 @@ class Review extends Model
     }
 
     /**
-     * Boot function for using with model events.
-     *
-     * @return void
+     * Scope a query to only include student reviews.
      */
-    protected static function boot()
+    public function scopeStudentReviews($query)
     {
-        parent::boot();
+        return $query->where('type', self::TYPE_REVIEW);
+    }
 
-        // Delete associated image when review is deleted
-        static::deleting(function ($review) {
-            if ($review->image && Storage::disk('public')->exists($review->image)) {
-                Storage::disk('public')->delete($review->image);
-            }
-        });
+    /**
+     * Check if the review has a reply.
+     *
+     * @return bool
+     */
+    public function hasReply(): bool
+    {
+        return !empty($this->reply);
     }
 }

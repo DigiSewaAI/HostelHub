@@ -1479,26 +1479,56 @@
             </div>
         </section>
         <!-- Testimonials -->
-        <section class="section testimonials" id="testimonials">
-            <div class="container">
-                <h2 class="section-title nepali" style="color: var(--text-light);">ग्राहकहरूको प्रशंसापत्रहरू हेर्नुहोस्</h2>
-                <p class="section-subtitle" style="color: rgba(249, 250, 251, 0.9);">HostelHub प्रयोग गर्ने हाम्रा ग्राहकहरूले के भन्छन्</p>
-                <div class="testimonials-grid">
-                    @foreach($testimonials as $testimonial)
-                    <div class="testimonial-card">
-                        <p class="testimonial-text nepali">{{ $review->content }}</p>
-                        <div class="testimonial-author">
-                            <div class="author-avatar">{{ substr($review->author, 0, 2) }}</div>
-                            <div class="author-info">
-                                <h4>{{ $review->author }}</h4>
-                                <p>{{ $review->position }}</p>
-                            </div>
-                        </div>
+<section class="section testimonials" id="testimonials">
+    <div class="container">
+        <h2 class="section-title nepali" style="color: var(--text-light);">ग्राहकहरूको प्रशंसापत्रहरू हेर्नुहोस्</h2>
+        <p class="section-subtitle" style="color: rgba(249, 250, 251, 0.9);">HostelHub प्रयोग गर्ने हाम्रा ग्राहकहरूले के भन्छन्</p>
+        <div class="testimonials-grid">
+            @foreach($testimonials as $testimonial)
+            <div class="testimonial-card">
+                <p class="testimonial-text nepali">{{ $testimonial->content }}</p>
+                <div class="testimonial-author">
+                    <div class="author-avatar">
+                        @if($testimonial->initials)
+                            {{ $testimonial->initials }}
+                        @else
+                            {{ substr($testimonial->name, 0, 2) }}
+                        @endif
                     </div>
-                    @endforeach
+                    <div class="author-info">
+                        <h4>{{ $testimonial->name }}</h4>
+                        <p>{{ $testimonial->position ?? 'Student' }}</p>
+                    </div>
                 </div>
             </div>
-        </section>
+            @endforeach
+            
+            <!-- Fallback if no testimonials -->
+            @if(count($testimonials) === 0)
+            <div class="testimonial-card">
+                <p class="testimonial-text nepali">HostelHub ले हाम्रो होस्टल व्यवस्थापन धेरै सजिलो बनायो। विद्यार्थीहरूको डाटा, भुक्तानी र कोठा व्यवस्थापन एकै ठाउँमा।</p>
+                <div class="testimonial-author">
+                    <div class="author-avatar">RM</div>
+                    <div class="author-info">
+                        <h4>रमेश महर्जन</h4>
+                        <p>होस्टल प्रबन्धक</p>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <p class="testimonial-text nepali">विद्यार्थीको रूपमा, म आफ्नो कोठा, भुक्तानी र खानाको मेनु एपबाटै हेर्न सक्छु। धन्यवाद HostelHub!</p>
+                <div class="testimonial-author">
+                    <div class="author-avatar">SA</div>
+                    <div class="author-info">
+                        <h4>सिता अर्याल</h4>
+                        <p>विद्यार्थी</p>
+                    </div>
+                </div>
+            </div>
+            @endif
+        </div>
+    </div>
+</section>
         <!-- Pricing -->
         <section class="section pricing" id="pricing">
             <div class="container">
