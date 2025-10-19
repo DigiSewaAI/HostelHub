@@ -61,6 +61,24 @@
             margin: 0 auto;
             padding: 0 1.5rem;
         }
+        
+        /* Skip link for accessibility */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 6px;
+            background: var(--primary);
+            color: white;
+            padding: 8px;
+            text-decoration: none;
+            z-index: 10000;
+            border-radius: 0 0 4px 4px;
+            transition: top 0.3s;
+        }
+        .skip-link:focus {
+            top: 0;
+        }
+        
         .btn {
             display: inline-block;
             padding: 0.85rem 1.85rem;
@@ -101,17 +119,15 @@
             left: 100%;
         }
         .btn-outline {
-            background-color: var(--primary);
+            background-color: transparent;
             color: var(--text-light);
-            border: 2px solid var(--primary);
+            border: 2px solid var(--text-light);
             transition: all 0.3s ease;
         }
         .btn-outline:hover {
-            background-color: var(--primary-dark);
-            color: var(--text-light);
+            background-color: var(--text-light);
+            color: var(--primary);
             transform: translateY(-3px);
-            border-color: var(--primary-dark);
-            box-shadow: 0 0 15px rgba(30, 58, 138, 0.4);
         }
         
         /* Header Styles */
@@ -161,6 +177,7 @@
         header .logo img {
             width: 75px;
             height: 75px;
+            object-fit: contain;
         }
         .logo-image {
             width: 60px;
@@ -344,6 +361,7 @@
             font-weight: 700;
             margin-bottom: 1rem;
             color: var(--text-light);
+            text-decoration: none;
         }
         .footer-logo-icon {
             width: 35px;
@@ -383,6 +401,7 @@
             color: var(--text-light);
             font-size: 1rem;
             transition: var(--transition);
+            text-decoration: none;
         }
         .social-links a:hover {
             background: var(--secondary);
@@ -424,6 +443,11 @@
         .newsletter-form button:hover {
             background: var(--secondary-dark);
             transform: translateY(-3px);
+        }
+        
+        /* Smooth transition utility */
+        .smooth-transition {
+            transition: all 0.3s ease-in-out;
         }
         
         /* Responsive Design */
@@ -659,6 +683,14 @@
                 navLinks.classList.toggle('show');
             });
         }
+
+        // Close mobile menu when clicking on a link
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                navLinks.classList.remove('show');
+                menuBtn.setAttribute('aria-expanded', 'false');
+            });
+        });
     </script>
     
     @yield('scripts')

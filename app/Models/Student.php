@@ -128,6 +128,14 @@ class Student extends Model
     }
 
     /**
+     * ✅ ADDED: Get the reviews written by this student.
+     */
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class);
+    }
+
+    /**
      * Scope to get only active students.
      */
     public function scopeActive($query)
