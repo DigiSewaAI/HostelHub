@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
 
 class Review extends Model
 {
-    use SoftDeletes;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'reviews';
 
@@ -38,7 +39,8 @@ class Review extends Model
         'student_id',
         'comment',
         'reply',
-        'reply_date'
+        'reply_date',
+        'is_approved'
     ];
 
     /**
@@ -48,6 +50,7 @@ class Review extends Model
      */
     protected $casts = [
         'rating' => 'integer',
+        'is_approved' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
@@ -63,6 +66,7 @@ class Review extends Model
         'rating' => 0,
         'name' => '',
         'position' => '',
+        'is_approved' => false,
     ];
 
     /**
@@ -275,5 +279,15 @@ class Review extends Model
     public function hasReply(): bool
     {
         return !empty($this->reply);
+    }
+
+    /**
+     * Check if the review is approved.
+     *
+     * @return bool
+     */
+    public function isApproved(): bool
+    {
+        return $this->is_approved || $this->status === self::STATUS_APPROVED;
     }
 }

@@ -33,7 +33,16 @@ class Hostel extends Model
         'is_published',
         'published_at',
         'logo_path',
-        'theme_color'
+        'theme_color',
+        'draft_data',
+        // ✅ NEW: Social Media Fields
+        'facebook_url',
+        'instagram_url',
+        'twitter_url',
+        'tiktok_url',
+        'whatsapp_number',
+        'youtube_url',
+        'linkedin_url'
     ];
 
     protected $casts = [
@@ -68,43 +77,43 @@ class Hostel extends Model
         return $this->hasMany(Gallery::class);
     }
 
-    // ✅ Organization सँगको relationship थप्नुहोस्
+    // ✅ Organization सँगको relationship
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class, 'organization_id');
     }
 
-    // ✅ Students सँगको relationship थप्नुहोस्
+    // ✅ Students सँगको relationship
     public function students(): HasMany
     {
         return $this->hasMany(Student::class);
     }
 
-    // ✅ Meal menus सँगको relationship थप्नुहोस्
+    // ✅ Meal menus सँगको relationship
     public function mealMenus(): HasMany
     {
         return $this->hasMany(MealMenu::class);
     }
 
-    // ✅ ADDED: Reviews relationship (only if Review model exists)
+    // ✅ Reviews relationship
     public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);
     }
 
-    // ✅ ADDED: Approved reviews for the hostel
+    // ✅ Approved reviews for the hostel
     public function approvedReviews()
     {
         return $this->reviews()->where('status', 'approved');
     }
 
-    // ✅ ADDED: Featured reviews for the hostel
+    // ✅ Featured reviews for the hostel
     public function featuredReviews()
     {
         return $this->approvedReviews()->where('featured', true);
     }
 
-    // ✅ ADDED: Payments relationship
+    // ✅ Payments relationship
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
@@ -122,7 +131,7 @@ class Hostel extends Model
         return $query->where('status', 'inactive');
     }
 
-    // ✅ ADDED: Scope published hostels
+    // ✅ Scope published hostels
     public function scopePublished($query)
     {
         return $query->where('is_published', true)
@@ -146,13 +155,13 @@ class Hostel extends Model
         return $this->available_rooms > 0;
     }
 
-    // ✅ FIXED: Check if hostel is fully published (both flag set and published date exists)
+    // ✅ Check if hostel is fully published
     public function getIsFullyPublishedAttribute()
     {
         return $this->is_published && $this->published_at;
     }
 
-    // ✅ ADDED: Get public URL for the hostel
+    // ✅ Get public URL for the hostel
     public function getPublicUrlAttribute()
     {
         if (!$this->is_published) {
@@ -161,7 +170,7 @@ class Hostel extends Model
         return route('hostels.show', $this->slug);
     }
 
-    // ✅ ADDED: Get logo URL
+    // ✅ Get logo URL
     public function getLogoUrlAttribute()
     {
         if ($this->logo_path) {
@@ -170,7 +179,7 @@ class Hostel extends Model
         return asset('images/default-hostel.png');
     }
 
-    // ✅ FIX: Add method to update room counts from relationships
+    // ✅ Update room counts from relationships
     public function updateRoomCounts()
     {
         $this->update([
@@ -208,22 +217,63 @@ class Hostel extends Model
         return $statuses[$this->status] ?? $this->status;
     }
 
-    // ✅ Check if hostel can be deleted (no rooms or students)
+    // ✅ Check if hostel can be deleted
     public function getCanBeDeletedAttribute()
     {
         return $this->rooms()->count() === 0 && $this->students()->count() === 0;
     }
 
-    // ✅ ADDED: Get active gallery images count
+    // ✅ Get active gallery images count
     public function getActiveGalleryImagesCountAttribute()
     {
         return $this->galleryImages()->where('is_active', true)->count();
     }
 
-    // ✅ ADDED: Get featured gallery images
+    // ✅ Get featured gallery images
     public function getFeaturedGalleryImagesAttribute()
     {
         return $this->galleryImages()->where('is_active', true)->where('is_featured', true)->get();
+    }
+
+    // ✅ NEW: Check if hostel has any social media links
+    public function getHasSocialMediaAttribute()
+    {
+        return !empty($this->facebook_url) ||
+            !empty($this->instagram_url) ||
+            !empty($this->twitter_url) ||
+            !empty($this->tiktok_url) ||
+            !empty($this->whatsapp_number) ||
+            !empty($this->youtube_url) ||
+            !empty($this->linkedin_url);
+    }
+
+    // ✅ NEW: Get social media links as array
+    public function getSocialMediaLinksAttribute()
+    {
+        return [
+            'facebook' => $this->facebook_url,
+            'instagram' => $this->instagram_url,
+            'twitter' => $this->twitter_url,
+            'tiktok' => $this->tiktok_url,
+            'whatsapp' => $this->whatsapp_number ? 'https://wa.me/' . $this->whatsapp_number : null,
+            'youtube' => $this->youtube_url,
+            'linkedin' => $this->linkedin_url
+        ];
+    }
+
+    // ✅ NEW: Get active social media platforms count
+    public function getActiveSocialMediaCountAttribute()
+    {
+        $count = 0;
+        if (!empty($this->facebook_url)) $count++;
+        if (!empty($this->instagram_url)) $count++;
+        if (!empty($this->twitter_url)) $count++;
+        if (!empty($this->tiktok_url)) $count++;
+        if (!empty($this->whatsapp_number)) $count++;
+        if (!empty($this->youtube_url)) $count++;
+        if (!empty($this->linkedin_url)) $count++;
+
+        return $count;
     }
 
     /**
@@ -243,6 +293,34 @@ class Hostel extends Model
         static::saving(function ($hostel) {
             if ($hostel->isDirty('name') && !$hostel->isDirty('slug')) {
                 $hostel->slug = \Illuminate\Support\Str::slug($hostel->name);
+            }
+        });
+
+        // ✅ NEW: Clean social media URLs before saving
+        static::saving(function ($hostel) {
+            $socialFields = [
+                'facebook_url',
+                'instagram_url',
+                'twitter_url',
+                'tiktok_url',
+                'youtube_url',
+                'linkedin_url'
+            ];
+
+            foreach ($socialFields as $field) {
+                if (!empty($hostel->$field)) {
+                    // Remove any whitespace
+                    $hostel->$field = trim($hostel->$field);
+                    // Ensure it starts with http:// or https://
+                    if (!preg_match('/^https?:\/\//', $hostel->$field)) {
+                        $hostel->$field = 'https://' . $hostel->$field;
+                    }
+                }
+            }
+
+            // Clean WhatsApp number (remove any non-digit characters except +)
+            if (!empty($hostel->whatsapp_number)) {
+                $hostel->whatsapp_number = preg_replace('/[^\d+]/', '', $hostel->whatsapp_number);
             }
         });
     }

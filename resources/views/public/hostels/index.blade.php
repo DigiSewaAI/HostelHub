@@ -52,11 +52,22 @@
         @if($hostels->count() > 0)
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 @foreach($hostels as $hostel)
+                    @php
+                        $hostelTheme = $hostel->theme_color ?? '#3b82f6';
+                        $hostelAvgRating = $hostel->approvedReviews()->avg('rating') ?? 0;
+                        $hostelReviewCount = $hostel->approvedReviews()->count();
+                    @endphp
                     <div class="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
                         <!-- Hostel Image/Logo -->
-                        <div class="h-48 bg-gray-200 relative" style="background: {{ $hostel->theme_color ?? '#3b82f6' }};">
-                            <img src="{{ $hostel->logo_url }}" alt="{{ $hostel->name }}" 
-                                 class="h-full w-full object-cover">
+                        <div class="h-48 bg-gray-200 relative" style="background: {{ $hostelTheme }};">
+                            @if($hostel->logo_path)
+                                <img src="{{ asset('storage/' . $hostel->logo_path) }}" alt="{{ $hostel->name }}" 
+                                     class="h-full w-full object-cover">
+                            @else
+                                <div class="h-full w-full flex items-center justify-center">
+                                    <i class="fas fa-building text-white text-4xl"></i>
+                                </div>
+                            @endif
                             @if($hostel->available_rooms > 0)
                                 <span class="absolute top-3 right-3 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium">
                                     {{ $hostel->available_rooms }} कोठा उपलब्ध
@@ -67,11 +78,11 @@
                         <div class="p-4">
                             <div class="flex justify-between items-start mb-2">
                                 <h3 class="text-lg font-semibold text-gray-800 nepali">{{ $hostel->name }}</h3>
-                                @if($hostel->approved_reviews_count > 0)
+                                @if($hostelReviewCount > 0)
                                     <div class="flex items-center space-x-1">
                                         <i class="fas fa-star text-yellow-400"></i>
                                         <span class="text-sm font-medium">
-                                            {{ number_format($hostel->approvedReviews()->avg('rating') ?? 0, 1) }}
+                                            {{ number_format($hostelAvgRating, 1) }}
                                         </span>
                                     </div>
                                 @endif
@@ -94,9 +105,9 @@
                                     विवरण हेर्नुहोस्
                                 </a>
                                 
-                                @if($hostel->approved_reviews_count > 0)
+                                @if($hostelReviewCount > 0)
                                     <span class="text-xs text-gray-500 nepali">
-                                        {{ $hostel->approved_reviews_count }} समीक्षा
+                                        {{ $hostelReviewCount }} समीक्षा
                                     </span>
                                 @endif
                             </div>
