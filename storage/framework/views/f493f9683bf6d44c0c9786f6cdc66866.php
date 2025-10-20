@@ -3,23 +3,23 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>@yield('page-title', $hostel->name ?? 'HostelHub')</title>
-  <meta name="description" content="@yield('page-description', Str::limit($hostel->description ?? 'HostelHub', 160))">
+  <title><?php echo $__env->yieldContent('page-title', $hostel->name ?? 'HostelHub'); ?></title>
+  <meta name="description" content="<?php echo $__env->yieldContent('page-description', Str::limit($hostel->description ?? 'HostelHub', 160)); ?>">
   
   <!-- Theme variable FIRST before any CSS -->
-  @stack('head')
+  <?php echo $__env->yieldPushContent('head'); ?>
   
   <!-- Then load CSS files -->
-  @vite(['resources/css/app.css','resources/js/app.js'])
+  <?php echo app('Illuminate\Foundation\Vite')(['resources/css/app.css','resources/js/app.js']); ?>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   
   <!-- Centralized Theme CSS -->
-  <link rel="stylesheet" href="{{ asset('css/themes.css') }}">
+  <link rel="stylesheet" href="<?php echo e(asset('css/themes.css')); ?>">
   
   <style>
     :root {
-      --theme-color: {{ $hostel->theme_color ?? '#16a34a' }};
+      --theme-color: <?php echo e($hostel->theme_color ?? '#16a34a'); ?>;
     }
     
     body {
@@ -108,13 +108,13 @@
 </head>
 <body class="bg-gray-50 text-gray-800">
   <!-- ✅ UPDATED: Conditional Header Inclusion -->
-  @if(isset($hostel) && $hostel->show_hostelhub_branding)
+  <?php if(isset($hostel) && $hostel->show_hostelhub_branding): ?>
     <!-- Clean Header -->
     <header class="bg-white shadow-sm border-b sticky top-0 z-50 no-print">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
           <!-- Logo - FIXED SIZE -->
-          <a href="{{ url('/') }}" class="flex items-center space-x-3 focus-visible">
+          <a href="<?php echo e(url('/')); ?>" class="flex items-center space-x-3 focus-visible">
             <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center smooth-transition hover:bg-blue-700">
               <i class="fas fa-building text-white text-lg"></i>
             </div>
@@ -123,23 +123,23 @@
           
           <!-- Navigation -->
           <nav class="hidden md:flex items-center space-x-8">
-            <a href="{{ route('hostels.index') }}" 
+            <a href="<?php echo e(route('hostels.index')); ?>" 
                class="text-gray-600 hover:text-gray-900 smooth-transition text-sm font-medium nepali focus-visible px-3 py-2 rounded-lg hover:bg-gray-100">
               होस्टलहरू खोज्नुहोस्
             </a>
-            <a href="{{ url('/contact') }}" 
+            <a href="<?php echo e(url('/contact')); ?>" 
                class="text-gray-600 hover:text-gray-900 smooth-transition text-sm font-medium nepali focus-visible px-3 py-2 rounded-lg hover:bg-gray-100">
               सम्पर्क गर्नुहोस्
             </a>
           </nav>
 
-          @if(isset($preview) && $preview)
+          <?php if(isset($preview) && $preview): ?>
             <div class="flex items-center space-x-4">
               <div class="bg-yellow-100 border border-yellow-300 px-3 py-1 rounded-full">
                 <span class="text-yellow-800 text-sm font-medium nepali">पूर्वावलोकन</span>
               </div>
             </div>
-          @endif
+          <?php endif; ?>
 
           <!-- Mobile menu button -->
           <button class="md:hidden p-2 rounded-lg hover:bg-gray-100 smooth-transition focus-visible" 
@@ -151,11 +151,11 @@
         <!-- Mobile Navigation -->
         <div id="mobileMenu" class="md:hidden hidden py-4 border-t">
           <div class="flex flex-col space-y-3">
-            <a href="{{ route('hostels.index') }}" 
+            <a href="<?php echo e(route('hostels.index')); ?>" 
                class="text-gray-600 hover:text-gray-900 smooth-transition text-sm font-medium nepali focus-visible px-3 py-2 rounded-lg hover:bg-gray-100">
               होस्टलहरू खोज्नुहोस्
             </a>
-            <a href="{{ url('/contact') }}" 
+            <a href="<?php echo e(url('/contact')); ?>" 
                class="text-gray-600 hover:text-gray-900 smooth-transition text-sm font-medium nepali focus-visible px-3 py-2 rounded-lg hover:bg-gray-100">
               सम्पर्क गर्नुहोस्
             </a>
@@ -163,14 +163,14 @@
         </div>
       </div>
     </header>
-  @endif
+  <?php endif; ?>
 
   <main class="min-h-screen">
-    @yield('content')
+    <?php echo $__env->yieldContent('content'); ?>
   </main>
 
   <!-- ✅ UPDATED: Conditional Footer Inclusion -->
-  @if(isset($hostel) && $hostel->show_hostelhub_branding)
+  <?php if(isset($hostel) && $hostel->show_hostelhub_branding): ?>
     <!-- Clean Footer -->
     <footer class="bg-gray-800 text-white mt-20 no-print">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -192,15 +192,15 @@
           <div class="space-y-4">
             <h3 class="font-semibold text-lg nepali">द्रुत लिंकहरू</h3>
             <div class="space-y-2">
-              <a href="{{ route('hostels.index') }}" 
+              <a href="<?php echo e(route('hostels.index')); ?>" 
                  class="block text-gray-300 hover:text-white smooth-transition text-sm nepali focus-visible rounded px-2 py-1">
                 सबै होस्टलहरू
               </a>
-              <a href="{{ url('/contact') }}" 
+              <a href="<?php echo e(url('/contact')); ?>" 
                  class="block text-gray-300 hover:text-white smooth-transition text-sm nepali focus-visible rounded px-2 py-1">
                 सम्पर्क गर्नुहोस्
               </a>
-              <a href="{{ url('/about') }}" 
+              <a href="<?php echo e(url('/about')); ?>" 
                  class="block text-gray-300 hover:text-white smooth-transition text-sm nepali focus-visible rounded px-2 py-1">
                 हाम्रो बारेमा
               </a>
@@ -245,23 +245,23 @@
         
         <div class="border-t border-gray-700 mt-8 pt-8 text-center">
           <p class="text-gray-400 text-sm nepali">
-            © {{ date('Y') }} HostelHub. सबै अधिकार सुरक्षित।
+            © <?php echo e(date('Y')); ?> HostelHub. सबै अधिकार सुरक्षित।
           </p>
         </div>
       </div>
     </footer>
-  @endif
+  <?php endif; ?>
 
   <!-- Simple Floating Button -->
-  @if(isset($hostel) && $hostel->contact_phone)
+  <?php if(isset($hostel) && $hostel->contact_phone): ?>
     <div class="fixed bottom-6 right-6 z-50 no-print">
-      <a href="tel:{{ $hostel->contact_phone }}" 
+      <a href="tel:<?php echo e($hostel->contact_phone); ?>" 
          class="w-14 h-14 bg-green-600 text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl smooth-transition hover:bg-green-700 focus-visible"
          aria-label="फोन गर्नुहोस्">
         <i class="fas fa-phone"></i>
       </a>
     </div>
-  @endif
+  <?php endif; ?>
 
   <!-- Simple JavaScript for Mobile Menu -->
   <script>
@@ -296,7 +296,7 @@
 
     // Handle theme color changes
     document.addEventListener('DOMContentLoaded', function() {
-      const themeColor = '{{ $hostel->theme_color ?? '#16a34a' }}';
+      const themeColor = '<?php echo e($hostel->theme_color ?? '#16a34a'); ?>';
       if (themeColor) {
         // Update meta theme color for mobile browsers
         const metaThemeColor = document.querySelector('meta[name="theme-color"]');
@@ -312,4 +312,4 @@
     });
   </script>
 </body>
-</html>
+</html><?php /**PATH D:\My Projects\HostelHub\resources\views/layouts/public.blade.php ENDPATH**/ ?>

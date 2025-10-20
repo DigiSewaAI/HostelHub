@@ -1,31 +1,29 @@
-@extends('layouts.public')
-
-@section('content')
-<!-- Dark Theme - Elegant & Modern -->
-<div class="min-h-screen bg-gray-900 text-gray-100">
+<!-- Modern Theme - Clean & Minimal -->
+<div class="min-h-screen bg-white">
     <!-- Hero Section -->
-    <section class="bg-gradient-to-r from-gray-800 to-gray-900 py-16 border-b border-gray-700">
+    <section class="bg-gradient-to-r from-gray-50 to-white py-12">
         <div class="container">
             <div class="flex flex-col lg:flex-row items-center justify-between gap-8">
+                <!-- Logo & Basic Info -->
                 <div class="flex items-center gap-6">
                     @if($logo)
-                        <img src="{{ $logo }}" alt="{{ $hostel->name }}" class="w-20 h-20 rounded-xl object-cover border-2 border-gray-600">
+                        <img src="{{ $logo }}" alt="{{ $hostel->name }}" class="w-20 h-20 rounded-xl object-cover shadow-lg">
                     @else
-                        <div class="w-20 h-20 bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-600">
+                        <div class="w-20 h-20 bg-gray-200 rounded-xl flex items-center justify-center">
                             <i class="fas fa-building text-gray-400 text-2xl"></i>
                         </div>
                     @endif
                     <div>
-                        <h1 class="text-4xl font-bold text-white nepali mb-2">{{ $hostel->name }}</h1>
-                        <div class="flex items-center gap-6 text-gray-300">
-                            <div class="flex items-center gap-2">
+                        <h1 class="text-3xl font-bold text-gray-900 nepali">{{ $hostel->name }}</h1>
+                        <div class="flex items-center gap-4 mt-2">
+                            <div class="flex items-center gap-2 text-gray-600">
                                 <i class="fas fa-map-marker-alt"></i>
                                 <span class="nepali">{{ $hostel->city ?? 'काठमाडौं' }}</span>
                             </div>
                             @if($reviewCount > 0)
-                                <div class="flex items-center gap-2">
+                                <div class="flex items-center gap-2 text-gray-600">
                                     <i class="fas fa-star text-yellow-400"></i>
-                                    <span class="font-bold">{{ number_format($avgRating, 1) }}</span>
+                                    <span>{{ number_format($avgRating, 1) }}</span>
                                     <span class="nepali">({{ $reviewCount }})</span>
                                 </div>
                             @endif
@@ -83,7 +81,7 @@
                     <!-- Phone Button -->
                     @if($hostel->contact_phone)
                         <a href="tel:{{ $hostel->contact_phone }}" 
-                           class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium nepali flex items-center gap-2 border border-blue-500">
+                           class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium nepali flex items-center gap-2">
                             <i class="fas fa-phone"></i>
                             फोन गर्नुहोस्
                         </a>
@@ -94,23 +92,9 @@
             <!-- Stats Bar -->
             <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mt-8">
                 @if($hostel->available_rooms > 0)
-                    <div class="text-center bg-gray-800 px-6 py-3 rounded-lg border border-gray-700">
-                        <div class="text-2xl font-bold text-green-400">{{ $hostel->available_rooms }}</div>
-                        <div class="text-sm text-gray-400 nepali">कोठा उपलब्ध</div>
-                    </div>
-                @endif
-
-                @if($hostel->total_rooms)
-                    <div class="text-center bg-gray-800 px-6 py-3 rounded-lg border border-gray-700">
-                        <div class="text-2xl font-bold text-blue-400">{{ $hostel->total_rooms }}</div>
-                        <div class="text-sm text-gray-400 nepali">कुल कोठा</div>
-                    </div>
-                @endif
-
-                @if($hostel->students_count)
-                    <div class="text-center bg-gray-800 px-6 py-3 rounded-lg border border-gray-700">
-                        <div class="text-2xl font-bold text-purple-400">{{ $hostel->students_count }}</div>
-                        <div class="text-sm text-gray-400 nepali">विद्यार्थी</div>
+                    <div class="text-center bg-green-50 px-6 py-3 rounded-lg">
+                        <div class="text-2xl font-bold text-green-600">{{ $hostel->available_rooms }}</div>
+                        <div class="text-sm text-gray-600 nepali">कोठा उपलब्ध</div>
                     </div>
                 @endif
             </div>
@@ -118,16 +102,16 @@
     </section>
 
     <!-- Main Content -->
-    <div class="container py-12">
+    <div class="container py-8">
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            <!-- Main Content -->
+            <!-- Left Content -->
             <div class="lg:col-span-3 space-y-8">
                 <!-- About Section -->
-                <section class="bg-gray-800 rounded-xl border border-gray-700 p-8">
-                    <h2 class="text-2xl font-bold text-white mb-6 nepali">हाम्रो बारेमा</h2>
+                <section class="bg-white rounded-xl shadow-sm border p-6">
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-4 nepali">हाम्रो बारेमा</h2>
                     <div class="prose max-w-none">
                         @if($hostel->description)
-                            <p class="text-gray-300 leading-relaxed nepali whitespace-pre-line">
+                            <p class="text-gray-700 leading-relaxed nepali whitespace-pre-line">
                                 {{ $hostel->description }}
                             </p>
                         @else
@@ -138,14 +122,14 @@
 
                 <!-- Facilities Section -->
                 @if(!empty($facilities) && count($facilities) > 0)
-                    <section class="bg-gray-800 rounded-xl border border-gray-700 p-8">
-                        <h2 class="text-2xl font-bold text-white mb-6 nepali">सुविधाहरू</h2>
+                    <section class="bg-white rounded-xl shadow-sm border p-6">
+                        <h2 class="text-2xl font-semibold text-gray-800 mb-4 nepali">सुविधाहरू</h2>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             @foreach($facilities as $facility)
                                 @if(trim($facility))
-                                    <div class="flex items-center gap-3 p-3 bg-gray-700 rounded-lg border border-gray-600 hover:bg-gray-600 transition-colors">
-                                        <i class="fas fa-check text-green-400"></i>
-                                        <span class="nepali text-gray-200">{{ trim($facility) }}</span>
+                                    <div class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                                        <i class="fas fa-check text-green-500"></i>
+                                        <span class="nepali text-gray-700">{{ trim($facility) }}</span>
                                     </div>
                                 @endif
                             @endforeach
@@ -153,44 +137,43 @@
                     </section>
                 @endif
 
-                <!-- Gallery Section -->
-                @include('public.hostels.partials.gallery')
-
-                <!-- Contact Form Section -->
-                @include('public.hostels.partials.contact-form')
-
                 <!-- Reviews Section -->
-                <section class="bg-gray-800 rounded-xl border border-gray-700 p-8">
-                    <h2 class="text-2xl font-bold text-white mb-6 nepali">विद्यार्थी समीक्षाहरू</h2>
-                    
+                <section class="bg-white rounded-xl shadow-sm border p-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                        <h2 class="text-2xl font-semibold text-gray-800 nepali">विद्यार्थी समीक्षाहरू</h2>
+                        <div class="bg-gray-100 px-4 py-2 rounded-full">
+                            <span class="text-gray-600 nepali">{{ $reviewCount }} समीक्षाहरू</span>
+                        </div>
+                    </div>
+
                     @if($reviewCount > 0)
                         <div class="space-y-6">
                             @foreach($reviews as $review)
-                                <div class="bg-gray-700 rounded-xl border border-gray-600 p-6 hover:bg-gray-600 transition-colors">
+                                <div class="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
                                     <div class="flex flex-col sm:flex-row justify-between items-start mb-4 gap-2">
                                         <div>
-                                            <h4 class="font-bold text-white nepali">
+                                            <h4 class="font-semibold text-gray-800 nepali">
                                                 {{ $review->student->user->name ?? 'अज्ञात विद्यार्थी' }}
                                             </h4>
                                             <div class="flex items-center gap-1 mt-1">
                                                 @for($i = 1; $i <= 5; $i++)
-                                                    <i class="fas fa-star {{ $i <= $review->rating ? 'text-yellow-400' : 'text-gray-500' }}"></i>
+                                                    <i class="fas fa-star {{ $i <= $review->rating ? 'text-yellow-400' : 'text-gray-300' }}"></i>
                                                 @endfor
                                             </div>
                                         </div>
-                                        <span class="text-sm text-gray-400 bg-gray-800 px-3 py-1 rounded-full">
+                                        <span class="text-sm text-gray-500">
                                             {{ $review->created_at->format('Y-m-d') }}
                                         </span>
                                     </div>
-                                    <p class="text-gray-300 mb-4 nepali">{{ $review->comment }}</p>
+                                    <p class="text-gray-700 mb-4 nepali">{{ $review->comment }}</p>
                                     
                                     @if($review->reply)
-                                        <div class="bg-blue-900 border-l-4 border-blue-500 p-4 rounded">
+                                        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
                                             <div class="flex items-start gap-3">
-                                                <i class="fas fa-reply text-blue-400 mt-1"></i>
+                                                <i class="fas fa-reply text-blue-500 mt-1"></i>
                                                 <div>
-                                                    <strong class="text-blue-300 nepali text-sm">होस्टलको जवाफ:</strong>
-                                                    <p class="text-blue-200 mt-1 nepali text-sm">{{ $review->reply }}</p>
+                                                    <strong class="text-blue-800 nepali text-sm">होस्टलको जवाफ:</strong>
+                                                    <p class="text-blue-700 mt-1 nepali text-sm">{{ $review->reply }}</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -206,39 +189,39 @@
                         @endif
                     @else
                         <div class="text-center py-12">
-                            <i class="fas fa-comment-slash text-gray-600 text-5xl mb-4"></i>
-                            <p class="text-gray-500 nepali">अहिलेसम्म कुनै समीक्षा छैन</p>
+                            <i class="fas fa-comment-slash text-gray-400 text-5xl mb-4"></i>
+                            <p class="text-gray-600 nepali">अहिलेसम्म कुनै समीक्षा छैन</p>
                         </div>
                     @endif
                 </section>
             </div>
 
-            <!-- Sidebar -->
-            <div class="space-y-6">
-                <!-- Contact Card -->
-                <div class="bg-gray-800 rounded-xl border border-gray-700 p-6">
-                    <h3 class="text-xl font-bold text-white mb-4 nepali">सम्पर्क जानकारी</h3>
+            <!-- Right Sidebar -->
+            <div class="lg:col-span-1 space-y-6">
+                <!-- Contact Info -->
+                <div class="bg-white rounded-xl shadow-sm border p-6">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4 nepali">सम्पर्क जानकारी</h3>
                     <div class="space-y-4">
                         @if($hostel->contact_person)
                             <div class="flex items-center gap-3">
-                                <i class="fas fa-user text-gray-400"></i>
-                                <span class="nepali text-gray-300">{{ $hostel->contact_person }}</span>
+                                <i class="fas fa-user text-gray-400 w-5"></i>
+                                <span class="text-gray-700 nepali">{{ $hostel->contact_person }}</span>
                             </div>
                         @endif
                         
                         @if($hostel->contact_phone)
                             <div class="flex items-center gap-3">
-                                <i class="fas fa-phone text-gray-400"></i>
-                                <a href="tel:{{ $hostel->contact_phone }}" class="text-gray-300 hover:text-white transition-colors">
+                                <i class="fas fa-phone text-gray-400 w-5"></i>
+                                <a href="tel:{{ $hostel->contact_phone }}" class="text-gray-700 hover:text-blue-600 transition-colors">
                                     {{ $hostel->contact_phone }}
                                 </a>
                             </div>
                         @endif
-
+                        
                         @if($hostel->contact_email)
                             <div class="flex items-center gap-3">
-                                <i class="fas fa-envelope text-gray-400"></i>
-                                <a href="mailto:{{ $hostel->contact_email }}" class="text-gray-300 hover:text-white transition-colors">
+                                <i class="fas fa-envelope text-gray-400 w-5"></i>
+                                <a href="mailto:{{ $hostel->contact_email }}" class="text-gray-700 hover:text-blue-600 transition-colors">
                                     {{ $hostel->contact_email }}
                                 </a>
                             </div>
@@ -246,51 +229,51 @@
                         
                         @if($hostel->address)
                             <div class="flex items-start gap-3">
-                                <i class="fas fa-map-marker-alt text-gray-400 mt-1"></i>
-                                <span class="nepali text-gray-300">{{ $hostel->address }}</span>
+                                <i class="fas fa-map-marker-alt text-gray-400 w-5 mt-1"></i>
+                                <span class="text-gray-700 nepali">{{ $hostel->address }}</span>
                             </div>
                         @endif
                     </div>
                 </div>
 
                 <!-- Quick Stats -->
-                <div class="bg-gray-800 rounded-xl border border-gray-700 p-6">
-                    <h3 class="text-xl font-bold text-white mb-4 nepali">होस्टल तथ्याङ्क</h3>
+                <div class="bg-white rounded-xl shadow-sm border p-6">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4 nepali">होस्टल तथ्याङ्क</h3>
                     <div class="grid grid-cols-2 gap-4">
-                        <div class="text-center p-3 bg-gray-700 rounded-lg border border-gray-600">
-                            <div class="text-lg font-bold text-blue-400">{{ $hostel->total_rooms ?? 0 }}</div>
-                            <div class="text-xs text-gray-400 nepali">कुल कोठा</div>
+                        <div class="text-center p-4 bg-blue-50 rounded-lg">
+                            <div class="text-xl font-bold text-blue-600">{{ $hostel->total_rooms ?? 0 }}</div>
+                            <div class="text-xs text-gray-600 nepali">कुल कोठा</div>
                         </div>
-                        <div class="text-center p-3 bg-gray-700 rounded-lg border border-gray-600">
-                            <div class="text-lg font-bold text-green-400">{{ $hostel->available_rooms ?? 0 }}</div>
-                            <div class="text-xs text-gray-400 nepali">उपलब्ध कोठा</div>
+                        <div class="text-center p-4 bg-green-50 rounded-lg">
+                            <div class="text-xl font-bold text-green-600">{{ $hostel->available_rooms ?? 0 }}</div>
+                            <div class="text-xs text-gray-600 nepali">उपलब्ध कोठा</div>
                         </div>
-                        <div class="text-center p-3 bg-gray-700 rounded-lg border border-gray-600">
-                            <div class="text-lg font-bold text-purple-400">{{ $hostel->students_count ?? 0 }}</div>
-                            <div class="text-xs text-gray-400 nepali">विद्यार्थी</div>
+                        <div class="text-center p-4 bg-purple-50 rounded-lg">
+                            <div class="text-xl font-bold text-purple-600">{{ $hostel->students_count ?? 0 }}</div>
+                            <div class="text-xs text-gray-600 nepali">विद्यार्थी</div>
                         </div>
-                        <div class="text-center p-3 bg-gray-700 rounded-lg border border-gray-600">
-                            <div class="text-lg font-bold text-orange-400">{{ $reviewCount }}</div>
-                            <div class="text-xs text-gray-400 nepali">समीक्षा</div>
+                        <div class="text-center p-4 bg-orange-50 rounded-lg">
+                            <div class="text-xl font-bold text-orange-600">{{ $reviewCount }}</div>
+                            <div class="text-xs text-gray-600 nepali">समीक्षा</div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Trust Badges -->
-                <div class="bg-gray-800 rounded-xl border border-gray-700 p-6 text-center">
-                    <h3 class="text-xl font-bold text-white mb-4 nepali">विश्वसनीय होस्टल</h3>
+                <div class="bg-white rounded-xl shadow-sm border p-6 text-center">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4 nepali">विश्वसनीय होस्टल</h3>
                     <div class="grid grid-cols-2 gap-4">
                         <div class="space-y-2">
-                            <div class="w-12 h-12 bg-green-900 rounded-full flex items-center justify-center mx-auto border border-green-700">
-                                <i class="fas fa-check text-green-400"></i>
+                            <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                                <i class="fas fa-check text-green-600"></i>
                             </div>
-                            <span class="text-xs text-gray-400 nepali">सत्यापित</span>
+                            <span class="text-xs text-gray-600 nepali">सत्यापित</span>
                         </div>
                         <div class="space-y-2">
-                            <div class="w-12 h-12 bg-blue-900 rounded-full flex items-center justify-center mx-auto border border-blue-700">
-                                <i class="fas fa-star text-blue-400"></i>
+                            <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
+                                <i class="fas fa-star text-blue-600"></i>
                             </div>
-                            <span class="text-xs text-gray-400 nepali">रेटेड</span>
+                            <span class="text-xs text-gray-600 nepali">रेटेड</span>
                         </div>
                     </div>
                 </div>
@@ -298,4 +281,66 @@
         </div>
     </div>
 </div>
-@endsection
+
+<style>
+.whitespace-pre-line {
+    white-space: pre-line;
+}
+
+/* Social Media Styles */
+.social-media-buttons {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.social-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    font-size: 14px;
+}
+
+.social-icon:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.6);
+}
+
+.facebook-bg { background: linear-gradient(135deg, #1877f2 0%, #0d5cb6 100%); }
+.instagram-bg { background: linear-gradient(135deg, #e4405f 0%, #c13584 100%); }
+.twitter-bg { background: linear-gradient(135deg, #1da1f2 0%, #0d8bd9 100%); }
+.tiktok-bg { background: linear-gradient(135deg, #000000 0%, #69c9d0 100%); }
+.whatsapp-bg { background: linear-gradient(135deg, #25d366 0%, #128c7e 100%); }
+.youtube-bg { background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%); }
+.linkedin-bg { background: linear-gradient(135deg, #0077b5 0%, #005885 100%); }
+
+.top-right-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .top-right-actions {
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 16px;
+    }
+    
+    .social-media-buttons {
+        justify-content: center;
+    }
+}
+</style>

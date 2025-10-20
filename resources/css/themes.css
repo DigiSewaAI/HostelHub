@@ -1,0 +1,50 @@
+/* Common theme styles */
+.whitespace-pre-line {
+    white-space: pre-line;
+}
+
+.smooth-transition {
+    transition: all 0.3s ease;
+}
+
+/* Social Media Styles */
+.social-media-buttons {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.social-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    font-size: 14px;
+}
+
+.social-icon:hover {
+    transform: translateY(-2px);
+}
+
+/* Social media brand colors */
+.facebook-bg { background: linear-gradient(135deg, #1877f2 0%, #0d5cb6 100%); }
+.instagram-bg { background: linear-gradient(135deg, #e4405f 0%, #c13584 100%); }
+.twitter-bg { background: linear-gradient(135deg, #1da1f2 0%, #0d8bd9 100%); }
+.tiktok-bg { background: linear-gradient(135deg, #000000 0%, #69c9d0 100%); }
+.whatsapp-bg { background: linear-gradient(135deg, #25d366 0%, #128c7e 100%); }
+.youtube-bg { background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%); }
+.linkedin-bg { background: linear-gradient(135deg, #0077b5 0%, #005885 100%); }
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .social-media-buttons {
+        justify-content: center;
+    }
+}

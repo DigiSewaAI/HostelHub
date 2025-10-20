@@ -1,6 +1,3 @@
-@extends('layouts.public')
-
-@section('content')
 <!-- Classic Theme - Professional & Traditional -->
 <div class="min-h-screen bg-gray-50">
     <!-- Hero Section -->
@@ -149,65 +146,6 @@
                         </div>
                     </section>
                 @endif
-
-                <!-- Gallery Section -->
-                @include('public.hostels.partials.gallery')
-
-                <!-- Contact Form Section -->
-                @include('public.hostels.partials.contact-form')
-
-                <!-- Reviews Section -->
-                <section class="bg-white rounded-lg shadow border p-8">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-6 nepali border-b pb-2">विद्यार्थी समीक्षाहरू</h2>
-                    
-                    @if($reviewCount > 0)
-                        <div class="space-y-6">
-                            @foreach($reviews as $review)
-                                <div class="border border-gray-200 rounded-lg p-6">
-                                    <div class="flex flex-col sm:flex-row justify-between items-start mb-4 gap-2">
-                                        <div>
-                                            <h4 class="font-bold text-gray-800 nepali">
-                                                {{ $review->student->user->name ?? 'अज्ञात विद्यार्थी' }}
-                                            </h4>
-                                            <div class="flex items-center gap-1 mt-1">
-                                                @for($i = 1; $i <= 5; $i++)
-                                                    <i class="fas fa-star {{ $i <= $review->rating ? 'text-yellow-400' : 'text-gray-300' }}"></i>
-                                                @endfor
-                                            </div>
-                                        </div>
-                                        <span class="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                                            {{ $review->created_at->format('Y-m-d') }}
-                                        </span>
-                                    </div>
-                                    <p class="text-gray-700 mb-4 nepali">{{ $review->comment }}</p>
-                                    
-                                    @if($review->reply)
-                                        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
-                                            <div class="flex items-start gap-3">
-                                                <i class="fas fa-reply text-blue-500 mt-1"></i>
-                                                <div>
-                                                    <strong class="text-blue-800 nepali text-sm">होस्टलको जवाफ:</strong>
-                                                    <p class="text-blue-700 mt-1 nepali text-sm">{{ $review->reply }}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    @endif
-                                </div>
-                            @endforeach
-                        </div>
-
-                        @if($reviews->hasPages())
-                            <div class="mt-6">
-                                {{ $reviews->links() }}
-                            </div>
-                        @endif
-                    @else
-                        <div class="text-center py-12">
-                            <i class="fas fa-comment-slash text-gray-400 text-5xl mb-4"></i>
-                            <p class="text-gray-500 nepali">अहिलेसम्म कुनै समीक्षा छैन</p>
-                        </div>
-                    @endif
-                </section>
             </div>
 
             <!-- Sidebar -->
@@ -292,4 +230,67 @@
         </div>
     </div>
 </div>
-@endsection
+
+<style>
+.whitespace-pre-line {
+    white-space: pre-line;
+}
+
+/* Social Media Styles */
+.social-media-buttons {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.social-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    font-size: 14px;
+}
+
+.social-icon:hover {
+    transform: translateY(-2px);
+    border-color: rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.facebook-bg { background: linear-gradient(135deg, #1877f2 0%, #0d5cb6 100%); }
+.instagram-bg { background: linear-gradient(135deg, #e4405f 0%, #c13584 100%); }
+.twitter-bg { background: linear-gradient(135deg, #1da1f2 0%, #0d8bd9 100%); }
+.tiktok-bg { background: linear-gradient(135deg, #000000 0%, #69c9d0 100%); }
+.whatsapp-bg { background: linear-gradient(135deg, #25d366 0%, #128c7e 100%); }
+.youtube-bg { background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%); }
+.linkedin-bg { background: linear-gradient(135deg, #0077b5 0%, #005885 100%); }
+
+.top-right-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .top-right-actions {
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 16px;
+    }
+    
+    .social-media-buttons {
+        justify-content: center;
+    }
+}
+</style>

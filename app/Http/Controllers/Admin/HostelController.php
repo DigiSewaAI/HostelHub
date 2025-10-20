@@ -90,6 +90,9 @@ class HostelController extends Controller
             // FIX: Use cleaned name for slug generation
             $validated['slug'] = $this->generateUniqueSlug($cleanName);
 
+            // ✅ NEW: Handle branding toggle for new hostels
+            $validated['show_hostelhub_branding'] = $request->has('show_hostelhub_branding');
+
             // Handle facilities
             if ($request->has('facilities') && !empty($request->facilities)) {
                 $validated['facilities'] = json_encode(explode(',', $request->facilities));
@@ -161,6 +164,9 @@ class HostelController extends Controller
 
         try {
             $validated = $request->validated();
+
+            // ✅ NEW: Handle branding toggle
+            $validated['show_hostelhub_branding'] = $request->has('show_hostelhub_branding');
 
             // FIX: Clean the name before processing (remove any existing "होस्टेल")
             if ($request->has('name')) {
