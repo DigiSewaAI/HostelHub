@@ -67,6 +67,8 @@ Route::group(['middleware' => 'web'], function () {
     // ✅ ADDED: Public hostel listing routes
     Route::get('/hostels', [PublicController::class, 'hostelsIndex'])->name('hostels.index');
     Route::get('/hostels/{slug}', [PublicController::class, 'hostelShow'])->name('hostels.show');
+    // ✅ ADDED: Missing hostel contact route
+    Route::post('/hostels/{hostel}/contact', [PublicController::class, 'hostelContact'])->name('hostel.contact');
     // ✅ FIXED: Changed preview route to use OwnerPublicPageController
     Route::get('/preview/{slug}', [OwnerPublicPageController::class, 'preview'])->name('hostels.preview');
 

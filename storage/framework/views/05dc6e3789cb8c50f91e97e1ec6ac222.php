@@ -1,3 +1,12 @@
+<?php $__env->startPush('head'); ?>
+<style>
+    :root {
+        --theme-color: <?php echo e($hostel->theme_color ?? '#3b82f6'); ?>;
+        --primary-color: <?php echo e($hostel->theme_color ?? '#3b82f6'); ?>;
+    }
+</style>
+<?php $__env->stopPush(); ?>
+
 <?php $__env->startSection('page-title', $hostel->name); ?>
 <?php $__env->startSection('page-description', $hostel->description ? \Illuminate\Support\Str::limit($hostel->description, 160) : 'होस्टलको विवरण'); ?>
 
@@ -20,8 +29,16 @@
   $avgRating = $hostel->approved_reviews_avg_rating ?? 0;
   $reviewCount = $hostel->approved_reviews_count ?? 0;
   $studentCount = $hostel->students_count ?? 0;
+
+  // थीम स्विचिंग लजिक
+  $theme = $hostel->theme ?? 'default';
+  $themeFile = "public.hostels.themes.{$theme}";
+  if (!view()->exists($themeFile)) {
+      $themeFile = 'public.hostels.themes.modern';
+  }
 ?>
 
+<?php if($theme === 'default'): ?>
 <style>
 .whitespace-pre-line {
   white-space: pre-line;
@@ -40,7 +57,7 @@
 }
 
 .pro-card-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--theme-color) 0%, #764ba2 100%);
   color: white;
   padding: 20px;
 }
@@ -50,7 +67,7 @@
 }
 
 .stat-card {
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, var(--theme-color) 0%, #7c3aed 100%);
   color: white;
   border-radius: 12px;
   padding: 20px;
@@ -75,7 +92,7 @@
   background: #f8fafc;
   border-radius: 12px;
   padding: 16px;
-  border-left: 4px solid #3b82f6;
+  border-left: 4px solid var(--theme-color);
   margin-bottom: 12px;
 }
 
@@ -86,6 +103,40 @@
   border: 1px solid #e5e7eb;
   margin-bottom: 16px;
 }
+
+/* Social Media Icons */
+.social-media-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+}
+
+.social-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  font-size: 16px;
+}
+
+.social-icon:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.facebook-bg { background: #3b5998; }
+.instagram-bg { background: #e4405f; }
+.twitter-bg { background: #1da1f2; }
+.tiktok-bg { background: #000000; }
+.whatsapp-bg { background: #25d366; }
+.youtube-bg { background: #ff0000; }
+.linkedin-bg { background: #0077b5; }
 
 /* UPDATED: Phone button size fixed */
 .btn-phone-custom {
@@ -139,48 +190,6 @@
   color: #d1d5db;
 }
 
-/* Social Media Styles */
-.social-media-buttons {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.social-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  font-size: 14px;
-}
-
-.social-icon:hover {
-  transform: translateY(-2px);
-  border-color: rgba(255, 255, 255, 0.6);
-}
-
-.facebook-bg { background: linear-gradient(135deg, #1877f2 0%, #0d5cb6 100%); }
-.instagram-bg { background: linear-gradient(135deg, #e4405f 0%, #c13584 100%); }
-.twitter-bg { background: linear-gradient(135deg, #1da1f2 0%, #0d8bd9 100%); }
-.tiktok-bg { background: linear-gradient(135deg, #000000 0%, #69c9d0 100%); }
-.whatsapp-bg { background: linear-gradient(135deg, #25d366 0%, #128c7e 100%); }
-.youtube-bg { background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%); }
-.linkedin-bg { background: linear-gradient(135deg, #0077b5 0%, #005885 100%); }
-
-.left-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-top: 16px;
-}
-
 /* Action buttons in sidebar */
 .action-buttons {
   display: flex;
@@ -207,19 +216,24 @@
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
+/* Left actions section */
+.left-actions {
+  margin-top: 20px;
+}
+
 /* Mobile responsiveness */
 @media (max-width: 768px) {
   .left-actions {
     align-items: center;
   }
   
-  .social-media-buttons {
-    justify-content: center;
-  }
-  
   .btn-phone-custom {
     padding: 8px 16px;
     font-size: 13px;
+  }
+  
+  .social-media-buttons {
+    justify-content: center;
   }
 }
 </style>
@@ -405,6 +419,9 @@
         </div>
       </section>
 
+      <!-- Gallery Section -->
+      <?php echo $__env->make('public.hostels.partials.gallery', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+
       <!-- Facilities Section -->
       <?php if(!empty($facilities) && count($facilities) > 0): ?>
         <section class="pro-card">
@@ -501,6 +518,9 @@
           <?php endif; ?>
         </div>
       </section>
+
+      <!-- Contact Form Section -->
+      <?php echo $__env->make('public.hostels.partials.contact-form', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
     </div>
 
     <!-- Right Column - Sidebar (1/4 width) -->
@@ -604,8 +624,12 @@
     </div>
   </div>
 </div>
+<?php else: ?>
+  <!-- Non-default theme -->
+  <?php echo $__env->make($themeFile, array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+<?php endif; ?>
 
 <!-- Add Font Awesome for social icons -->
 <script src="https://kit.fontawesome.com/your-fontawesome-kit.js" crossorigin="anonymous"></script>
 <?php $__env->stopSection(); ?>
-<?php echo $__env->make('layouts.frontend', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\My Projects\HostelHub\resources\views/public/hostels/show.blade.php ENDPATH**/ ?>
+<?php echo $__env->make('layouts.public', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\My Projects\HostelHub\resources\views/public/hostels/show.blade.php ENDPATH**/ ?>

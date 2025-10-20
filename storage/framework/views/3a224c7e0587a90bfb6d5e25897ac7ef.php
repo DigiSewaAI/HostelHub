@@ -1,6 +1,4 @@
-@extends('layouts.public')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
 <!-- Dark Theme - Elegant & Modern -->
 <div class="min-h-screen bg-gray-900 text-gray-100">
     <!-- Hero Section -->
@@ -8,27 +6,27 @@
         <div class="container">
             <div class="flex flex-col lg:flex-row items-center justify-between gap-8">
                 <div class="flex items-center gap-6">
-                    @if($logo)
-                        <img src="{{ $logo }}" alt="{{ $hostel->name }}" class="w-20 h-20 rounded-xl object-cover border-2 border-gray-600">
-                    @else
+                    <?php if($logo): ?>
+                        <img src="<?php echo e($logo); ?>" alt="<?php echo e($hostel->name); ?>" class="w-20 h-20 rounded-xl object-cover border-2 border-gray-600">
+                    <?php else: ?>
                         <div class="w-20 h-20 bg-gray-800 rounded-xl flex items-center justify-center border-2 border-gray-600">
                             <i class="fas fa-building text-gray-400 text-2xl"></i>
                         </div>
-                    @endif
+                    <?php endif; ?>
                     <div>
-                        <h1 class="text-4xl font-bold text-white nepali mb-2">{{ $hostel->name }}</h1>
+                        <h1 class="text-4xl font-bold text-white nepali mb-2"><?php echo e($hostel->name); ?></h1>
                         <div class="flex items-center gap-6 text-gray-300">
                             <div class="flex items-center gap-2">
                                 <i class="fas fa-map-marker-alt"></i>
-                                <span class="nepali">{{ $hostel->city ?? 'काठमाडौं' }}</span>
+                                <span class="nepali"><?php echo e($hostel->city ?? 'काठमाडौं'); ?></span>
                             </div>
-                            @if($reviewCount > 0)
+                            <?php if($reviewCount > 0): ?>
                                 <div class="flex items-center gap-2">
                                     <i class="fas fa-star text-yellow-400"></i>
-                                    <span class="font-bold">{{ number_format($avgRating, 1) }}</span>
-                                    <span class="nepali">({{ $reviewCount }})</span>
+                                    <span class="font-bold"><?php echo e(number_format($avgRating, 1)); ?></span>
+                                    <span class="nepali">(<?php echo e($reviewCount); ?>)</span>
                                 </div>
-                            @endif
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -37,82 +35,82 @@
                 <div class="top-right-actions">
                     <!-- Dynamic Social Media Icons from Database -->
                     <div class="social-media-buttons">
-                        @if($hostel->facebook_url)
-                            <a href="{{ $hostel->facebook_url }}" target="_blank" class="social-icon facebook-bg" title="Facebook">
+                        <?php if($hostel->facebook_url): ?>
+                            <a href="<?php echo e($hostel->facebook_url); ?>" target="_blank" class="social-icon facebook-bg" title="Facebook">
                                 <i class="fab fa-facebook-f"></i>
                             </a>
-                        @endif
+                        <?php endif; ?>
                         
-                        @if($hostel->instagram_url)
-                            <a href="{{ $hostel->instagram_url }}" target="_blank" class="social-icon instagram-bg" title="Instagram">
+                        <?php if($hostel->instagram_url): ?>
+                            <a href="<?php echo e($hostel->instagram_url); ?>" target="_blank" class="social-icon instagram-bg" title="Instagram">
                                 <i class="fab fa-instagram"></i>
                             </a>
-                        @endif
+                        <?php endif; ?>
                         
-                        @if($hostel->twitter_url)
-                            <a href="{{ $hostel->twitter_url }}" target="_blank" class="social-icon twitter-bg" title="Twitter">
+                        <?php if($hostel->twitter_url): ?>
+                            <a href="<?php echo e($hostel->twitter_url); ?>" target="_blank" class="social-icon twitter-bg" title="Twitter">
                                 <i class="fab fa-twitter"></i>
                             </a>
-                        @endif
+                        <?php endif; ?>
                         
-                        @if($hostel->tiktok_url)
-                            <a href="{{ $hostel->tiktok_url }}" target="_blank" class="social-icon tiktok-bg" title="TikTok">
+                        <?php if($hostel->tiktok_url): ?>
+                            <a href="<?php echo e($hostel->tiktok_url); ?>" target="_blank" class="social-icon tiktok-bg" title="TikTok">
                                 <i class="fab fa-tiktok"></i>
                             </a>
-                        @endif
+                        <?php endif; ?>
                         
-                        @if($hostel->whatsapp_number)
-                            <a href="https://wa.me/{{ $hostel->whatsapp_number }}" target="_blank" class="social-icon whatsapp-bg" title="WhatsApp">
+                        <?php if($hostel->whatsapp_number): ?>
+                            <a href="https://wa.me/<?php echo e($hostel->whatsapp_number); ?>" target="_blank" class="social-icon whatsapp-bg" title="WhatsApp">
                                 <i class="fab fa-whatsapp"></i>
                             </a>
-                        @endif
+                        <?php endif; ?>
                         
-                        @if($hostel->youtube_url)
-                            <a href="{{ $hostel->youtube_url }}" target="_blank" class="social-icon youtube-bg" title="YouTube">
+                        <?php if($hostel->youtube_url): ?>
+                            <a href="<?php echo e($hostel->youtube_url); ?>" target="_blank" class="social-icon youtube-bg" title="YouTube">
                                 <i class="fab fa-youtube"></i>
                             </a>
-                        @endif
+                        <?php endif; ?>
                         
-                        @if($hostel->linkedin_url)
-                            <a href="{{ $hostel->linkedin_url }}" target="_blank" class="social-icon linkedin-bg" title="LinkedIn">
+                        <?php if($hostel->linkedin_url): ?>
+                            <a href="<?php echo e($hostel->linkedin_url); ?>" target="_blank" class="social-icon linkedin-bg" title="LinkedIn">
                                 <i class="fab fa-linkedin-in"></i>
                             </a>
-                        @endif
+                        <?php endif; ?>
                     </div>
 
                     <!-- Phone Button -->
-                    @if($hostel->contact_phone)
-                        <a href="tel:{{ $hostel->contact_phone }}" 
+                    <?php if($hostel->contact_phone): ?>
+                        <a href="tel:<?php echo e($hostel->contact_phone); ?>" 
                            class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium nepali flex items-center gap-2 border border-blue-500">
                             <i class="fas fa-phone"></i>
                             फोन गर्नुहोस्
                         </a>
-                    @endif
+                    <?php endif; ?>
                 </div>
             </div>
 
             <!-- Stats Bar -->
             <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mt-8">
-                @if($hostel->available_rooms > 0)
+                <?php if($hostel->available_rooms > 0): ?>
                     <div class="text-center bg-gray-800 px-6 py-3 rounded-lg border border-gray-700">
-                        <div class="text-2xl font-bold text-green-400">{{ $hostel->available_rooms }}</div>
+                        <div class="text-2xl font-bold text-green-400"><?php echo e($hostel->available_rooms); ?></div>
                         <div class="text-sm text-gray-400 nepali">कोठा उपलब्ध</div>
                     </div>
-                @endif
+                <?php endif; ?>
 
-                @if($hostel->total_rooms)
+                <?php if($hostel->total_rooms): ?>
                     <div class="text-center bg-gray-800 px-6 py-3 rounded-lg border border-gray-700">
-                        <div class="text-2xl font-bold text-blue-400">{{ $hostel->total_rooms }}</div>
+                        <div class="text-2xl font-bold text-blue-400"><?php echo e($hostel->total_rooms); ?></div>
                         <div class="text-sm text-gray-400 nepali">कुल कोठा</div>
                     </div>
-                @endif
+                <?php endif; ?>
 
-                @if($hostel->students_count)
+                <?php if($hostel->students_count): ?>
                     <div class="text-center bg-gray-800 px-6 py-3 rounded-lg border border-gray-700">
-                        <div class="text-2xl font-bold text-purple-400">{{ $hostel->students_count }}</div>
+                        <div class="text-2xl font-bold text-purple-400"><?php echo e($hostel->students_count); ?></div>
                         <div class="text-sm text-gray-400 nepali">विद्यार्थी</div>
                     </div>
-                @endif
+                <?php endif; ?>
             </div>
         </div>
     </section>
@@ -126,90 +124,94 @@
                 <section class="bg-gray-800 rounded-xl border border-gray-700 p-8">
                     <h2 class="text-2xl font-bold text-white mb-6 nepali">हाम्रो बारेमा</h2>
                     <div class="prose max-w-none">
-                        @if($hostel->description)
+                        <?php if($hostel->description): ?>
                             <p class="text-gray-300 leading-relaxed nepali whitespace-pre-line">
-                                {{ $hostel->description }}
+                                <?php echo e($hostel->description); ?>
+
                             </p>
-                        @else
+                        <?php else: ?>
                             <p class="text-gray-500 italic nepali text-center py-8">विवरण उपलब्ध छैन</p>
-                        @endif
+                        <?php endif; ?>
                     </div>
                 </section>
 
                 <!-- Facilities Section -->
-                @if(!empty($facilities) && count($facilities) > 0)
+                <?php if(!empty($facilities) && count($facilities) > 0): ?>
                     <section class="bg-gray-800 rounded-xl border border-gray-700 p-8">
                         <h2 class="text-2xl font-bold text-white mb-6 nepali">सुविधाहरू</h2>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            @foreach($facilities as $facility)
-                                @if(trim($facility))
+                            <?php $__currentLoopData = $facilities; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $facility): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <?php if(trim($facility)): ?>
                                     <div class="flex items-center gap-3 p-3 bg-gray-700 rounded-lg border border-gray-600 hover:bg-gray-600 transition-colors">
                                         <i class="fas fa-check text-green-400"></i>
-                                        <span class="nepali text-gray-200">{{ trim($facility) }}</span>
+                                        <span class="nepali text-gray-200"><?php echo e(trim($facility)); ?></span>
                                     </div>
-                                @endif
-                            @endforeach
+                                <?php endif; ?>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </div>
                     </section>
-                @endif
+                <?php endif; ?>
 
                 <!-- Gallery Section -->
-                @include('public.hostels.partials.gallery')
+                <?php echo $__env->make('public.hostels.partials.gallery', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
                 <!-- Contact Form Section -->
-                @include('public.hostels.partials.contact-form')
+                <?php echo $__env->make('public.hostels.partials.contact-form', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
                 <!-- Reviews Section -->
                 <section class="bg-gray-800 rounded-xl border border-gray-700 p-8">
                     <h2 class="text-2xl font-bold text-white mb-6 nepali">विद्यार्थी समीक्षाहरू</h2>
                     
-                    @if($reviewCount > 0)
+                    <?php if($reviewCount > 0): ?>
                         <div class="space-y-6">
-                            @foreach($reviews as $review)
+                            <?php $__currentLoopData = $reviews; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $review): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                 <div class="bg-gray-700 rounded-xl border border-gray-600 p-6 hover:bg-gray-600 transition-colors">
                                     <div class="flex flex-col sm:flex-row justify-between items-start mb-4 gap-2">
                                         <div>
                                             <h4 class="font-bold text-white nepali">
-                                                {{ $review->student->user->name ?? 'अज्ञात विद्यार्थी' }}
+                                                <?php echo e($review->student->user->name ?? 'अज्ञात विद्यार्थी'); ?>
+
                                             </h4>
                                             <div class="flex items-center gap-1 mt-1">
-                                                @for($i = 1; $i <= 5; $i++)
-                                                    <i class="fas fa-star {{ $i <= $review->rating ? 'text-yellow-400' : 'text-gray-500' }}"></i>
-                                                @endfor
+                                                <?php for($i = 1; $i <= 5; $i++): ?>
+                                                    <i class="fas fa-star <?php echo e($i <= $review->rating ? 'text-yellow-400' : 'text-gray-500'); ?>"></i>
+                                                <?php endfor; ?>
                                             </div>
                                         </div>
                                         <span class="text-sm text-gray-400 bg-gray-800 px-3 py-1 rounded-full">
-                                            {{ $review->created_at->format('Y-m-d') }}
+                                            <?php echo e($review->created_at->format('Y-m-d')); ?>
+
                                         </span>
                                     </div>
-                                    <p class="text-gray-300 mb-4 nepali">{{ $review->comment }}</p>
+                                    <p class="text-gray-300 mb-4 nepali"><?php echo e($review->comment); ?></p>
                                     
-                                    @if($review->reply)
+                                    <?php if($review->reply): ?>
                                         <div class="bg-blue-900 border-l-4 border-blue-500 p-4 rounded">
                                             <div class="flex items-start gap-3">
                                                 <i class="fas fa-reply text-blue-400 mt-1"></i>
                                                 <div>
                                                     <strong class="text-blue-300 nepali text-sm">होस्टलको जवाफ:</strong>
-                                                    <p class="text-blue-200 mt-1 nepali text-sm">{{ $review->reply }}</p>
+                                                    <p class="text-blue-200 mt-1 nepali text-sm"><?php echo e($review->reply); ?></p>
                                                 </div>
                                             </div>
                                         </div>
-                                    @endif
+                                    <?php endif; ?>
                                 </div>
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </div>
 
-                        @if($reviews->hasPages())
+                        <?php if($reviews->hasPages()): ?>
                             <div class="mt-6">
-                                {{ $reviews->links() }}
+                                <?php echo e($reviews->links()); ?>
+
                             </div>
-                        @endif
-                    @else
+                        <?php endif; ?>
+                    <?php else: ?>
                         <div class="text-center py-12">
                             <i class="fas fa-comment-slash text-gray-600 text-5xl mb-4"></i>
                             <p class="text-gray-500 nepali">अहिलेसम्म कुनै समीक्षा छैन</p>
                         </div>
-                    @endif
+                    <?php endif; ?>
                 </section>
             </div>
 
@@ -219,37 +221,39 @@
                 <div class="bg-gray-800 rounded-xl border border-gray-700 p-6">
                     <h3 class="text-xl font-bold text-white mb-4 nepali">सम्पर्क जानकारी</h3>
                     <div class="space-y-4">
-                        @if($hostel->contact_person)
+                        <?php if($hostel->contact_person): ?>
                             <div class="flex items-center gap-3">
                                 <i class="fas fa-user text-gray-400"></i>
-                                <span class="nepali text-gray-300">{{ $hostel->contact_person }}</span>
+                                <span class="nepali text-gray-300"><?php echo e($hostel->contact_person); ?></span>
                             </div>
-                        @endif
+                        <?php endif; ?>
                         
-                        @if($hostel->contact_phone)
+                        <?php if($hostel->contact_phone): ?>
                             <div class="flex items-center gap-3">
                                 <i class="fas fa-phone text-gray-400"></i>
-                                <a href="tel:{{ $hostel->contact_phone }}" class="text-gray-300 hover:text-white transition-colors">
-                                    {{ $hostel->contact_phone }}
+                                <a href="tel:<?php echo e($hostel->contact_phone); ?>" class="text-gray-300 hover:text-white transition-colors">
+                                    <?php echo e($hostel->contact_phone); ?>
+
                                 </a>
                             </div>
-                        @endif
+                        <?php endif; ?>
 
-                        @if($hostel->contact_email)
+                        <?php if($hostel->contact_email): ?>
                             <div class="flex items-center gap-3">
                                 <i class="fas fa-envelope text-gray-400"></i>
-                                <a href="mailto:{{ $hostel->contact_email }}" class="text-gray-300 hover:text-white transition-colors">
-                                    {{ $hostel->contact_email }}
+                                <a href="mailto:<?php echo e($hostel->contact_email); ?>" class="text-gray-300 hover:text-white transition-colors">
+                                    <?php echo e($hostel->contact_email); ?>
+
                                 </a>
                             </div>
-                        @endif
+                        <?php endif; ?>
                         
-                        @if($hostel->address)
+                        <?php if($hostel->address): ?>
                             <div class="flex items-start gap-3">
                                 <i class="fas fa-map-marker-alt text-gray-400 mt-1"></i>
-                                <span class="nepali text-gray-300">{{ $hostel->address }}</span>
+                                <span class="nepali text-gray-300"><?php echo e($hostel->address); ?></span>
                             </div>
-                        @endif
+                        <?php endif; ?>
                     </div>
                 </div>
 
@@ -258,19 +262,19 @@
                     <h3 class="text-xl font-bold text-white mb-4 nepali">होस्टल तथ्याङ्क</h3>
                     <div class="grid grid-cols-2 gap-4">
                         <div class="text-center p-3 bg-gray-700 rounded-lg border border-gray-600">
-                            <div class="text-lg font-bold text-blue-400">{{ $hostel->total_rooms ?? 0 }}</div>
+                            <div class="text-lg font-bold text-blue-400"><?php echo e($hostel->total_rooms ?? 0); ?></div>
                             <div class="text-xs text-gray-400 nepali">कुल कोठा</div>
                         </div>
                         <div class="text-center p-3 bg-gray-700 rounded-lg border border-gray-600">
-                            <div class="text-lg font-bold text-green-400">{{ $hostel->available_rooms ?? 0 }}</div>
+                            <div class="text-lg font-bold text-green-400"><?php echo e($hostel->available_rooms ?? 0); ?></div>
                             <div class="text-xs text-gray-400 nepali">उपलब्ध कोठा</div>
                         </div>
                         <div class="text-center p-3 bg-gray-700 rounded-lg border border-gray-600">
-                            <div class="text-lg font-bold text-purple-400">{{ $hostel->students_count ?? 0 }}</div>
+                            <div class="text-lg font-bold text-purple-400"><?php echo e($hostel->students_count ?? 0); ?></div>
                             <div class="text-xs text-gray-400 nepali">विद्यार्थी</div>
                         </div>
                         <div class="text-center p-3 bg-gray-700 rounded-lg border border-gray-600">
-                            <div class="text-lg font-bold text-orange-400">{{ $reviewCount }}</div>
+                            <div class="text-lg font-bold text-orange-400"><?php echo e($reviewCount); ?></div>
                             <div class="text-xs text-gray-400 nepali">समीक्षा</div>
                         </div>
                     </div>
@@ -298,4 +302,5 @@
         </div>
     </div>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.public', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\My Projects\HostelHub\resources\views/public/hostels/themes/dark.blade.php ENDPATH**/ ?>

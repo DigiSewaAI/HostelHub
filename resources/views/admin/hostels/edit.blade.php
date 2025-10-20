@@ -188,6 +188,37 @@
                             @endif
                         </div>
 
+                        <!-- ✅ NEW: Branding Control Section -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <div class="card border-0 bg-light">
+                                        <div class="card-body">
+                                            <h6 class="card-title text-primary mb-3">
+                                                <i class="fas fa-branding fa-fw me-2"></i>
+                                                HostelHub Branding Control
+                                            </h6>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" 
+                                                       id="show_hostelhub_branding" name="show_hostelhub_branding" value="1"
+                                                       {{ old('show_hostelhub_branding', $hostel->show_hostelhub_branding ?? true) ? 'checked' : '' }}>
+                                                <label class="form-check-label fw-bold" for="show_hostelhub_branding">
+                                                    HostelHub Branding प्रदर्शन गर्नुहोस्
+                                                </label>
+                                            </div>
+                                            <div class="form-text text-muted nepali mt-2">
+                                                <small>
+                                                    <i class="fas fa-info-circle me-1"></i>
+                                                    यो सक्षम गर्दा, यस होस्टलको सार्वजनिक पृष्ठमा HostelHub को हेडर र फुटर देखाइनेछ। 
+                                                    असक्षम गर्दा, HostelHub ब्रान्डिंग हटाइनेछ र होस्टलको आफ्नै ब्रान्डिंग मात्र देखाइनेछ।
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
                             <a href="{{ route('admin.hostels.index') }}" class="btn btn-secondary me-md-2">
                                 <i class="fas fa-arrow-left me-1"></i> रद्द गर्नुहोस्

@@ -42,13 +42,16 @@ class Hostel extends Model
         'tiktok_url',
         'whatsapp_number',
         'youtube_url',
-        'linkedin_url'
+        'linkedin_url',
+        // ✅ NEW: Branding Control Field
+        'show_hostelhub_branding'
     ];
 
     protected $casts = [
         'facilities' => 'array',
         'is_published' => 'boolean',
-        'published_at' => 'datetime'
+        'published_at' => 'datetime',
+        'show_hostelhub_branding' => 'boolean'
     ];
 
     public function rooms(): HasMany

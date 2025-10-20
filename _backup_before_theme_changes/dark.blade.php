@@ -1,6 +1,3 @@
-@extends('layouts.public')
-
-@section('content')
 <!-- Dark Theme - Elegant & Modern -->
 <div class="min-h-screen bg-gray-900 text-gray-100">
     <!-- Hero Section -->
@@ -153,12 +150,6 @@
                     </section>
                 @endif
 
-                <!-- Gallery Section -->
-                @include('public.hostels.partials.gallery')
-
-                <!-- Contact Form Section -->
-                @include('public.hostels.partials.contact-form')
-
                 <!-- Reviews Section -->
                 <section class="bg-gray-800 rounded-xl border border-gray-700 p-8">
                     <h2 class="text-2xl font-bold text-white mb-6 nepali">विद्यार्थी समीक्षाहरू</h2>
@@ -298,4 +289,67 @@
         </div>
     </div>
 </div>
-@endsection
+
+<style>
+.whitespace-pre-line {
+    white-space: pre-line;
+}
+
+/* Social Media Styles */
+.social-media-buttons {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.social-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    font-size: 14px;
+}
+
+.social-icon:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.4);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.facebook-bg { background: linear-gradient(135deg, #1877f2 0%, #0d5cb6 100%); }
+.instagram-bg { background: linear-gradient(135deg, #e4405f 0%, #c13584 100%); }
+.twitter-bg { background: linear-gradient(135deg, #1da1f2 0%, #0d8bd9 100%); }
+.tiktok-bg { background: linear-gradient(135deg, #000000 0%, #69c9d0 100%); }
+.whatsapp-bg { background: linear-gradient(135deg, #25d366 0%, #128c7e 100%); }
+.youtube-bg { background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%); }
+.linkedin-bg { background: linear-gradient(135deg, #0077b5 0%, #005885 100%); }
+
+.top-right-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .top-right-actions {
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 16px;
+    }
+    
+    .social-media-buttons {
+        justify-content: center;
+    }
+}
+</style>
