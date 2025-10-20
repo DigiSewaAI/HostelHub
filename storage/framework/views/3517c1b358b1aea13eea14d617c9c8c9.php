@@ -1,11 +1,7 @@
-{{-- resources/views/public/hostels/themes/vibrant.blade.php --}}
-
-@extends('layouts.public')
-
-@push('head')
+<?php $__env->startPush('head'); ?>
 <style>
     :root {
-        --theme-color: {{ $hostel->theme_color ?? '#6366F1' }};
+        --theme-color: <?php echo e($hostel->theme_color ?? '#6366F1'); ?>;
         --vibrant-pink: #EC4899;
         --vibrant-purple: #8B5CF6;
         --vibrant-blue: #06B6D4;
@@ -819,9 +815,9 @@
 
 <!-- Add Poppins Font for Vibrant Theme -->
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="vibrant-body">
     <!-- Animated Background -->
     <div class="vibrant-bg-animation">
@@ -834,7 +830,7 @@
     <header class="vibrant-header">
         <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px; position: relative; z-index: 2;">
             <!-- Preview Alert -->
-            @if(isset($preview) && $preview)
+            <?php if(isset($preview) && $preview): ?>
             <div class="glass-container" style="margin-bottom: 2rem;">
                 <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
                     <div style="display: flex; align-items: center; gap: 1rem;">
@@ -843,78 +839,79 @@
                         </div>
                         <span style="color: white; font-weight: 700; font-size: 1.1rem;" class="nepali-font">यो पूर्वावलोकन मोडमा हो</span>
                     </div>
-                    <a href="{{ route('owner.public-page.edit') }}" class="vibrant-btn" style="background: linear-gradient(135deg, var(--vibrant-orange), #EA580C);">
+                    <a href="<?php echo e(route('owner.public-page.edit')); ?>" class="vibrant-btn" style="background: linear-gradient(135deg, var(--vibrant-orange), #EA580C);">
                         <i class="fas fa-edit"></i>
                         <span class="nepali-font">सम्पादन गर्नुहोस्</span>
                     </a>
                 </div>
             </div>
-            @endif
+            <?php endif; ?>
 
             <!-- Logo and Title -->
             <div style="text-align: center; margin-bottom: 2rem;">
                 <div class="vibrant-logo">
-                    @if($logo)
-                        <img src="{{ $logo }}" alt="{{ $hostel->name }}">
-                    @else
+                    <?php if($logo): ?>
+                        <img src="<?php echo e($logo); ?>" alt="<?php echo e($hostel->name); ?>">
+                    <?php else: ?>
                         <div style="width: 100%; height: 100%; background: linear-gradient(135deg, var(--vibrant-pink), var(--vibrant-blue), var(--vibrant-purple)); display: flex; align-items: center; justify-content: center;">
                             <i class="fas fa-building" style="color: white; font-size: 2.5rem;"></i>
                         </div>
-                    @endif
+                    <?php endif; ?>
                 </div>
                 
-                <h1 class="vibrant-title nepali-font">{{ $hostel->name }}</h1>
+                <h1 class="vibrant-title nepali-font"><?php echo e($hostel->name); ?></h1>
                 <p class="vibrant-subtitle nepali-font">
-                    @if($hostel->city)
-                    <i class="fas fa-map-marker-alt" style="color: var(--vibrant-blue); margin-right: 0.5rem;"></i>{{ $hostel->city }}
-                    @endif
+                    <?php if($hostel->city): ?>
+                    <i class="fas fa-map-marker-alt" style="color: var(--vibrant-blue); margin-right: 0.5rem;"></i><?php echo e($hostel->city); ?>
+
+                    <?php endif; ?>
                     
-                    @if($reviewCount > 0 && $avgRating > 0)
+                    <?php if($reviewCount > 0 && $avgRating > 0): ?>
                     <span style="margin-left: 1rem;">
                         <i class="fas fa-star" style="color: var(--vibrant-orange);"></i>
-                        {{ number_format($avgRating, 1) }} ({{ $reviewCount }} समीक्षा)
+                        <?php echo e(number_format($avgRating, 1)); ?> (<?php echo e($reviewCount); ?> समीक्षा)
                     </span>
-                    @endif
+                    <?php endif; ?>
                 </p>
             </div>
 
             <!-- UPDATED: Stats with Shiny Numbers -->
             <div class="vibrant-stats">
                 <div class="vibrant-stat">
-                    <span class="stat-number">{{ $hostel->total_rooms ?? 0 }}</span>
+                    <span class="stat-number"><?php echo e($hostel->total_rooms ?? 0); ?></span>
                     <span class="stat-label nepali-font">कुल कोठा</span>
                 </div>
                 <div class="vibrant-stat">
-                    <span class="stat-number">{{ $hostel->available_rooms ?? 0 }}</span>
+                    <span class="stat-number"><?php echo e($hostel->available_rooms ?? 0); ?></span>
                     <span class="stat-label nepali-font">उपलब्ध कोठा</span>
                 </div>
                 <div class="vibrant-stat">
-                    <span class="stat-number">{{ $studentCount }}</span>
+                    <span class="stat-number"><?php echo e($studentCount); ?></span>
                     <span class="stat-label nepali-font">विद्यार्थी</span>
                 </div>
                 <div class="vibrant-stat">
-                    <span class="stat-number">{{ $reviewCount }}</span>
+                    <span class="stat-number"><?php echo e($reviewCount); ?></span>
                     <span class="stat-label nepali-font">समीक्षा</span>
                 </div>
             </div>
 
             <!-- Social Media -->
             <div class="vibrant-social">
-                @if($hostel->facebook_url)
-                    <a href="{{ $hostel->facebook_url }}" target="_blank" class="social-icon">
+                <?php if($hostel->facebook_url): ?>
+                    <a href="<?php echo e($hostel->facebook_url); ?>" target="_blank" class="social-icon">
                         <i class="fab fa-facebook-f"></i>
                     </a>
-                @endif
-                @if($hostel->instagram_url)
-                    <a href="{{ $hostel->instagram_url }}" target="_blank" class="social-icon">
+                <?php endif; ?>
+                <?php if($hostel->instagram_url): ?>
+                    <a href="<?php echo e($hostel->instagram_url); ?>" target="_blank" class="social-icon">
                         <i class="fab fa-instagram"></i>
                     </a>
-                @endif
-                @if($hostel->whatsapp_number)
-                    <a href="https://wa.me/{{ $hostel->whatsapp_number }}" target="_blank" class="social-icon">
+                <?php endif; ?>
+                <?php if($hostel->whatsapp_number): ?>
+                    <a href="https://wa.me/<?php echo e($hostel->whatsapp_number); ?>" target="_blank" class="social-icon">
                         <i class="fab fa-whatsapp"></i>
                     </a>
-                @endif
+                <?php endif; ?>
             </div>
         </div>
     </header>
@@ -923,13 +920,13 @@
     <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
         <!-- Action Buttons -->
         <div class="action-buttons">
-            @if($hostel->contact_phone)
-            <a href="tel:{{ $hostel->contact_phone }}" class="vibrant-btn btn-phone">
+            <?php if($hostel->contact_phone): ?>
+            <a href="tel:<?php echo e($hostel->contact_phone); ?>" class="vibrant-btn btn-phone">
                 <i class="fas fa-phone"></i>
                 <span class="nepali-font">फोन गर्नुहोस्</span>
             </a>
-            @endif
-            <a href="{{ route('hostels.index') }}" class="vibrant-btn btn-secondary">
+            <?php endif; ?>
+            <a href="<?php echo e(route('hostels.index')); ?>" class="vibrant-btn btn-secondary">
                 <i class="fas fa-building"></i>
                 <span class="nepali-font">हाम्रा अन्य होस्टलहरू</span>
             </a>
@@ -946,16 +943,17 @@
                 <div class="section-divider"></div>
             </div>
             <div class="about-content nepali-font">
-                @if($hostel->description)
-                    {{ $hostel->description }}
-                @else
+                <?php if($hostel->description): ?>
+                    <?php echo e($hostel->description); ?>
+
+                <?php else: ?>
                     <div style="text-align: center; padding: 3rem; color: #94A3B8;">
                         <div style="width: 80px; height: 80px; background: var(--glass-bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; border: 2px solid var(--glass-border);">
                             <i class="fas fa-file-alt" style="font-size: 2rem; color: var(--vibrant-blue);"></i>
                         </div>
                         <p style="font-size: 1.2rem; font-style: italic;">यस होस्टलको बारेमा विवरण उपलब्ध छैन।</p>
                     </div>
-                @endif
+                <?php endif; ?>
             </div>
         </section>
 
@@ -966,14 +964,14 @@
                 <div class="section-divider"></div>
             </div>
             <div class="vibrant-gallery">
-                @if(isset($hostel->images) && count($hostel->images) > 0)
-                    @foreach($hostel->images as $image)
+                <?php if(isset($hostel->images) && count($hostel->images) > 0): ?>
+                    <?php $__currentLoopData = $hostel->images; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $image): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     <div class="gallery-item">
-                        <img src="{{ asset('storage/' . $image) }}" 
-                             alt="{{ $hostel->name }} - Image {{ $loop->iteration }}">
+                        <img src="<?php echo e(asset('storage/' . $image)); ?>" 
+                             alt="<?php echo e($hostel->name); ?> - Image <?php echo e($loop->iteration); ?>">
                     </div>
-                    @endforeach
-                @else
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                <?php else: ?>
                     <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: #94A3B8;">
                         <div style="width: 100px; height: 100px; background: var(--glass-bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; border: 2px solid var(--glass-border);">
                             <i class="fas fa-images" style="font-size: 2.5rem; color: var(--vibrant-purple);"></i>
@@ -981,31 +979,31 @@
                         <h3 style="font-size: 1.5rem; color: white; margin-bottom: 0.8rem;" class="nepali-font">कुनै तस्बिर उपलब्ध छैन</h3>
                         <p style="font-size: 1.1rem;" class="nepali-font">यस होस्टलको ग्यालरी तस्बिरहरू चाँहि उपलब्ध छैनन्।</p>
                     </div>
-                @endif
+                <?php endif; ?>
             </div>
         </section>
 
         <!-- Facilities Section -->
-        @if(!empty($facilities) && count($facilities) > 0)
+        <?php if(!empty($facilities) && count($facilities) > 0): ?>
         <section class="glass-container">
             <div class="section-header">
                 <h2 class="section-title nepali-font">सुविधाहरू</h2>
                 <div class="section-divider"></div>
             </div>
             <div class="facilities-grid">
-                @foreach($facilities as $facility)
-                    @if(trim($facility))
+                <?php $__currentLoopData = $facilities; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $facility): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <?php if(trim($facility)): ?>
                     <div class="facility-card">
                         <div class="facility-icon">
                             <i class="fas fa-check"></i>
                         </div>
-                        <span class="nepali-font" style="color: #E2E8F0; font-weight: 500;">{{ trim($facility) }}</span>
+                        <span class="nepali-font" style="color: #E2E8F0; font-weight: 500;"><?php echo e(trim($facility)); ?></span>
                     </div>
-                    @endif
-                @endforeach
+                    <?php endif; ?>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </div>
         </section>
-        @endif
+        <?php endif; ?>
 
         <!-- UPDATED: Location Section without Google Maps API -->
         <section class="glass-container">
@@ -1017,11 +1015,11 @@
                 <div class="location-info">
                     <div class="location-details">
                         <h3 style="color: white; margin-bottom: 1rem; font-size: 1.5rem;" class="nepali-font">ठेगाना विवरण</h3>
-                        @if($hostel->address)
-                            <p style="color: #E2E8F0; line-height: 1.6; margin-bottom: 1.5rem;" class="nepali-font">{{ $hostel->address }}</p>
-                        @endif
+                        <?php if($hostel->address): ?>
+                            <p style="color: #E2E8F0; line-height: 1.6; margin-bottom: 1.5rem;" class="nepali-font"><?php echo e($hostel->address); ?></p>
+                        <?php endif; ?>
                         
-                        @if($hostel->contact_phone)
+                        <?php if($hostel->contact_phone): ?>
                         <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
                             <div style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--vibrant-green), #059669); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
                                 <i class="fas fa-phone" style="color: white; font-size: 1rem;"></i>
@@ -1029,13 +1027,13 @@
                             <div>
                                 <span style="color: #94A3B8; font-size: 0.9rem;" class="nepali-font">फोन नम्बर</span>
                                 <br>
-                                <a href="tel:{{ $hostel->contact_phone }}" style="color: white; text-decoration: none; font-weight: 600;">{{ $hostel->contact_phone }}</a>
+                                <a href="tel:<?php echo e($hostel->contact_phone); ?>" style="color: white; text-decoration: none; font-weight: 600;"><?php echo e($hostel->contact_phone); ?></a>
                             </div>
                         </div>
-                        @endif
+                        <?php endif; ?>
 
                         <div style="margin-top: 2rem;">
-                            <a href="https://www.google.com/maps/search/?api=1&query={{ urlencode($hostel->address) }}" 
+                            <a href="https://www.google.com/maps/search/?api=1&query=<?php echo e(urlencode($hostel->address)); ?>" 
                                target="_blank" 
                                class="vibrant-btn" 
                                style="background: linear-gradient(135deg, var(--vibrant-pink), var(--vibrant-purple));">
@@ -1049,7 +1047,7 @@
                         <i class="fas fa-map-marked-alt map-icon"></i>
                         <h4 style="color: white; margin-bottom: 0.5rem; z-index: 1;" class="nepali-font">स्थान</h4>
                         <p style="color: rgba(255,255,255,0.9); z-index: 1;" class="nepali-font">Google Map लोड गर्न क्लिक गर्नुहोस्</p>
-                        <a href="https://www.google.com/maps/search/?api=1&query={{ urlencode($hostel->address) }}" 
+                        <a href="https://www.google.com/maps/search/?api=1&query=<?php echo e(urlencode($hostel->address)); ?>" 
                            target="_blank" 
                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2;"></a>
                     </div>
@@ -1064,39 +1062,39 @@
                 <div class="section-divider"></div>
             </div>
             
-            @if($reviewCount > 0)
+            <?php if($reviewCount > 0): ?>
                 <div class="reviews-slider-container">
                     <div class="reviews-slider" id="reviewsSlider">
-                        @foreach($reviews as $review)
+                        <?php $__currentLoopData = $reviews; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $review): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <div class="review-slide">
                             <div class="review-header">
-                                <div class="reviewer-name nepali-font">{{ $review->student->user->name ?? 'अज्ञात विद्यार्थी' }}</div>
-                                <div class="review-date">{{ $review->created_at->format('Y-m-d') }}</div>
+                                <div class="reviewer-name nepali-font"><?php echo e($review->student->user->name ?? 'अज्ञात विद्यार्थी'); ?></div>
+                                <div class="review-date"><?php echo e($review->created_at->format('Y-m-d')); ?></div>
                             </div>
                             <div class="review-rating">
-                                @for($i = 1; $i <= 5; $i++)
-                                    <i class="fas fa-star {{ $i <= $review->rating ? '' : 'far' }}"></i>
-                                @endfor
-                                <span style="margin-left: 0.5rem; color: var(--vibrant-orange); font-weight: 700;">{{ $review->rating }}/5</span>
+                                <?php for($i = 1; $i <= 5; $i++): ?>
+                                    <i class="fas fa-star <?php echo e($i <= $review->rating ? '' : 'far'); ?>"></i>
+                                <?php endfor; ?>
+                                <span style="margin-left: 0.5rem; color: var(--vibrant-orange); font-weight: 700;"><?php echo e($review->rating); ?>/5</span>
                             </div>
-                            <div class="review-content nepali-font">{{ $review->comment }}</div>
+                            <div class="review-content nepali-font"><?php echo e($review->comment); ?></div>
                             
-                            @if($review->reply)
+                            <?php if($review->reply): ?>
                             <div style="background: rgba(236, 72, 153, 0.1); border-left: 4px solid var(--vibrant-pink); padding: 1rem; margin-top: 1rem; border-radius: 8px;">
                                 <div style="display: flex; align-items: start; gap: 0.8rem;">
                                     <i class="fas fa-reply" style="color: var(--vibrant-pink); margin-top: 0.2rem;"></i>
                                     <div>
                                         <strong style="color: var(--vibrant-pink); font-size: 0.9rem;" class="nepali-font">होस्टलको जवाफ:</strong>
-                                        <p style="color: #E2E8F0; margin-top: 0.5rem; font-size: 0.9rem;" class="nepali-font">{{ $review->reply }}</p>
+                                        <p style="color: #E2E8F0; margin-top: 0.5rem; font-size: 0.9rem;" class="nepali-font"><?php echo e($review->reply); ?></p>
                                     </div>
                                 </div>
                             </div>
-                            @endif
+                            <?php endif; ?>
                         </div>
-                        @endforeach
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </div>
 
-                    @if($reviewCount > 1)
+                    <?php if($reviewCount > 1): ?>
                     <div class="slider-controls">
                         <button class="slider-btn prev-btn">
                             <i class="fas fa-chevron-left"></i>
@@ -1107,13 +1105,13 @@
                     </div>
                     
                     <div class="slider-dots" id="sliderDots">
-                        @for($i = 0; $i < $reviewCount; $i++)
-                            <div class="slider-dot {{ $i === 0 ? 'active' : '' }}" data-slide="{{ $i }}"></div>
-                        @endfor
+                        <?php for($i = 0; $i < $reviewCount; $i++): ?>
+                            <div class="slider-dot <?php echo e($i === 0 ? 'active' : ''); ?>" data-slide="<?php echo e($i); ?>"></div>
+                        <?php endfor; ?>
                     </div>
-                    @endif
+                    <?php endif; ?>
                 </div>
-            @else
+            <?php else: ?>
                 <div style="text-align: center; padding: 3rem;">
                     <div style="width: 100px; height: 100px; background: var(--glass-bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; border: 2px solid var(--glass-border);">
                         <i class="fas fa-comment-slash" style="font-size: 2.5rem; color: var(--vibrant-blue);"></i>
@@ -1121,7 +1119,7 @@
                     <h3 style="font-size: 1.5rem; color: white; margin-bottom: 0.8rem;" class="nepali-font">अहिलेसम्म कुनै समीक्षा छैन</h3>
                     <p style="font-size: 1.1rem; color: #94A3B8;" class="nepali-font">यो होस्टलको पहिलो समीक्षा दिनुहोस्!</p>
                 </div>
-            @endif
+            <?php endif; ?>
         </section>
 
         <!-- Contact Information -->
@@ -1131,57 +1129,59 @@
                 <div class="section-divider"></div>
             </div>
             <div class="contact-single-line">
-                @if($hostel->contact_person)
+                <?php if($hostel->contact_person): ?>
                 <div class="contact-item">
                     <div class="contact-icon-small">
                         <i class="fas fa-user"></i>
                     </div>
                     <div class="contact-info">
                         <span class="contact-label nepali-font">सम्पर्क व्यक्ति</span>
-                        <span class="contact-value">{{ $hostel->contact_person }}</span>
+                        <span class="contact-value"><?php echo e($hostel->contact_person); ?></span>
                     </div>
                 </div>
-                @endif
+                <?php endif; ?>
                 
-                @if($hostel->contact_phone)
+                <?php if($hostel->contact_phone): ?>
                 <div class="contact-item">
                     <div class="contact-icon-small">
                         <i class="fas fa-phone"></i>
                     </div>
                     <div class="contact-info">
                         <span class="contact-label nepali-font">फोन नम्बर</span>
-                        <a href="tel:{{ $hostel->contact_phone }}" class="contact-value" style="text-decoration: none; color: inherit;">
-                            {{ $hostel->contact_phone }}
+                        <a href="tel:<?php echo e($hostel->contact_phone); ?>" class="contact-value" style="text-decoration: none; color: inherit;">
+                            <?php echo e($hostel->contact_phone); ?>
+
                         </a>
                     </div>
                 </div>
-                @endif
+                <?php endif; ?>
                 
-                @if($hostel->contact_email)
+                <?php if($hostel->contact_email): ?>
                 <div class="contact-item">
                     <div class="contact-icon-small">
                         <i class="fas fa-envelope"></i>
                     </div>
                     <div class="contact-info">
                         <span class="contact-label nepali-font">इमेल</span>
-                        <a href="mailto:{{ $hostel->contact_email }}" class="contact-value" style="text-decoration: none; color: inherit;">
-                            {{ $hostel->contact_email }}
+                        <a href="mailto:<?php echo e($hostel->contact_email); ?>" class="contact-value" style="text-decoration: none; color: inherit;">
+                            <?php echo e($hostel->contact_email); ?>
+
                         </a>
                     </div>
                 </div>
-                @endif
+                <?php endif; ?>
                 
-                @if($hostel->address)
+                <?php if($hostel->address): ?>
                 <div class="contact-item">
                     <div class="contact-icon-small">
                         <i class="fas fa-map-marker-alt"></i>
                     </div>
                     <div class="contact-info">
                         <span class="contact-label nepali-font">ठेगाना</span>
-                        <span class="contact-value nepali-font">{{ $hostel->address }}</span>
+                        <span class="contact-value nepali-font"><?php echo e($hostel->address); ?></span>
                     </div>
                 </div>
-                @endif
+                <?php endif; ?>
             </div>
         </section>
 
@@ -1192,8 +1192,8 @@
                 <div class="section-divider"></div>
             </div>
             <div class="contact-form">
-                <form action="{{ route('hostel.contact', $hostel->id) }}" method="POST">
-                    @csrf
+                <form action="<?php echo e(route('hostel.contact', $hostel->id)); ?>" method="POST">
+                    <?php echo csrf_field(); ?>
                     <div class="form-grid">
                         <input type="text" name="name" required placeholder="तपाईंको नाम" class="form-input nepali-font">
                         <input type="email" name="email" required placeholder="इमेल ठेगाना" class="form-input">
@@ -1212,11 +1212,11 @@
 </div>
 
 <!-- Fixed Phone Button -->
-@if($hostel->contact_phone)
-    <a href="tel:{{ $hostel->contact_phone }}" class="fixed-phone-btn" aria-label="फोन गर्नुहोस्">
+<?php if($hostel->contact_phone): ?>
+    <a href="tel:<?php echo e($hostel->contact_phone); ?>" class="fixed-phone-btn" aria-label="फोन गर्नुहोस्">
         <i class="fas fa-phone"></i>
     </a>
-@endif
+<?php endif; ?>
 
 <!-- Add Font Awesome -->
 <script src="https://kit.fontawesome.com/your-fontawesome-kit.js" crossorigin="anonymous"></script>
@@ -1274,4 +1274,5 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.public', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\My Projects\HostelHub\resources\views/public/hostels/themes/vibrant.blade.php ENDPATH**/ ?>
