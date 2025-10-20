@@ -89,21 +89,27 @@
   margin-bottom: 16px;
 }
 
-.btn-primary-custom {
+/* UPDATED: Phone button size fixed */
+.btn-phone-custom {
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: white;
   border: none;
-  border-radius: 12px;
-  padding: 14px 24px;
+  border-radius: 10px;
+  padding: 10px 18px;
   font-weight: 600;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
   white-space: nowrap;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
 }
 
-.btn-primary-custom:hover {
+.btn-phone-custom:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
 }
 
 .hostel-logo-container {
@@ -141,7 +147,6 @@
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
-  justify-content: center;
 }
 
 .social-icon {
@@ -171,12 +176,11 @@
 .youtube-bg { background: linear-gradient(135deg, #ff0000 0%, #cc0000 100%); }
 .linkedin-bg { background: linear-gradient(135deg, #0077b5 0%, #005885 100%); }
 
-.top-right-actions {
+.left-actions {
   display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-  justify-content: center;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
 }
 
 /* Action buttons in sidebar */
@@ -207,19 +211,17 @@
 
 /* Mobile responsiveness */
 @media (max-width: 768px) {
-  .top-right-actions {
-    flex-direction: column;
-    gap: 12px;
-    margin-top: 16px;
+  .left-actions {
+    align-items: center;
   }
   
   .social-media-buttons {
     justify-content: center;
   }
   
-  .btn-primary-custom {
-    padding: 12px 20px;
-    font-size: 14px;
+  .btn-phone-custom {
+    padding: 8px 16px;
+    font-size: 13px;
   }
 }
 </style>
@@ -250,101 +252,103 @@
       <div class="pro-card-header">
         <div class="flex flex-col lg:flex-row items-center justify-between gap-6">
           <!-- Logo and Basic Info -->
-          <div class="flex items-center space-x-6">
-            <div class="hostel-logo-container">
-              @if($logo)
-                <img src="{{ $logo }}" alt="{{ $hostel->name }}">
-              @else
-                <div class="w-full h-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center">
-                  <i class="fas fa-building text-white text-2xl"></i>
-                </div>
-              @endif
-            </div>
-            <div class="text-white">
-              <h1 class="text-3xl font-bold nepali mb-2">{{ $hostel->name }}</h1>
-              <div class="flex items-center space-x-6">
-                <div class="flex items-center space-x-2 bg-white/20 px-3 py-1 rounded-full">
-                  <i class="fas fa-map-marker-alt text-sm"></i>
-                  <span class="text-sm nepali font-medium">{{ $hostel->city ?? 'काठमाडौं' }}</span>
-                </div>
-                @if($reviewCount > 0 && $avgRating > 0)
-                  <div class="flex items-center space-x-2 bg-white/20 px-3 py-1 rounded-full">
-                    <div class="rating-stars">
-                      @for($i = 1; $i <= 5; $i++)
-                        <i class="fas fa-star {{ $i <= round($avgRating) ? 'star-filled' : 'star-empty' }} text-sm"></i>
-                      @endfor
-                    </div>
-                    <span class="text-sm font-bold">{{ number_format($avgRating, 1) }}</span>
-                    <span class="text-sm nepali">({{ $reviewCount }})</span>
+          <div class="flex flex-col items-start">
+            <div class="flex items-center space-x-6">
+              <div class="hostel-logo-container">
+                @if($logo)
+                  <img src="{{ $logo }}" alt="{{ $hostel->name }}">
+                @else
+                  <div class="w-full h-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center">
+                    <i class="fas fa-building text-white text-2xl"></i>
                   </div>
                 @endif
               </div>
+              <div class="text-white">
+                <h1 class="text-3xl font-bold nepali mb-2">{{ $hostel->name }}</h1>
+                <div class="flex items-center space-x-6">
+                  <div class="flex items-center space-x-2 bg-white/20 px-3 py-1 rounded-full">
+                    <i class="fas fa-map-marker-alt text-sm"></i>
+                    <span class="text-sm nepali font-medium">{{ $hostel->city ?? 'काठमाडौं' }}</span>
+                  </div>
+                  @if($reviewCount > 0 && $avgRating > 0)
+                    <div class="flex items-center space-x-2 bg-white/20 px-3 py-1 rounded-full">
+                      <div class="rating-stars">
+                        @for($i = 1; $i <= 5; $i++)
+                          <i class="fas fa-star {{ $i <= round($avgRating) ? 'star-filled' : 'star-empty' }} text-sm"></i>
+                        @endfor
+                      </div>
+                      <span class="text-sm font-bold">{{ number_format($avgRating, 1) }}</span>
+                      <span class="text-sm nepali">({{ $reviewCount }})</span>
+                    </div>
+                  @endif
+                </div>
+              </div>
+            </div>
+
+            <!-- UPDATED: MOVED TO LEFT SIDE - Social Media and Phone Button -->
+            <div class="left-actions">
+              <!-- Follow Us Text -->
+              <div class="w-full">
+                <p class="text-white text-sm font-medium nepali opacity-90 mb-3">
+                  Social Media मा हामीलाई follow गर्न सक्नुहुन्छ
+                </p>
+              </div>
+
+              <!-- Dynamic Social Media Icons from Database -->
+              <div class="social-media-buttons">
+                @if($hostel->facebook_url)
+                  <a href="{{ $hostel->facebook_url }}" target="_blank" class="social-icon facebook-bg" title="Facebook">
+                    <i class="fab fa-facebook-f"></i>
+                  </a>
+                @endif
+                
+                @if($hostel->instagram_url)
+                  <a href="{{ $hostel->instagram_url }}" target="_blank" class="social-icon instagram-bg" title="Instagram">
+                    <i class="fab fa-instagram"></i>
+                  </a>
+                @endif
+                
+                @if($hostel->twitter_url)
+                  <a href="{{ $hostel->twitter_url }}" target="_blank" class="social-icon twitter-bg" title="Twitter">
+                    <i class="fab fa-twitter"></i>
+                  </a>
+                @endif
+                
+                @if($hostel->tiktok_url)
+                  <a href="{{ $hostel->tiktok_url }}" target="_blank" class="social-icon tiktok-bg" title="TikTok">
+                    <i class="fab fa-tiktok"></i>
+                  </a>
+                @endif
+                
+                @if($hostel->whatsapp_number)
+                  <a href="https://wa.me/{{ $hostel->whatsapp_number }}" target="_blank" class="social-icon whatsapp-bg" title="WhatsApp">
+                    <i class="fab fa-whatsapp"></i>
+                  </a>
+                @endif
+                
+                @if($hostel->youtube_url)
+                  <a href="{{ $hostel->youtube_url }}" target="_blank" class="social-icon youtube-bg" title="YouTube">
+                    <i class="fab fa-youtube"></i>
+                  </a>
+                @endif
+                
+                @if($hostel->linkedin_url)
+                  <a href="{{ $hostel->linkedin_url }}" target="_blank" class="social-icon linkedin-bg" title="LinkedIn">
+                    <i class="fab fa-linkedin-in"></i>
+                  </a>
+                @endif
+              </div>
+
+              <!-- UPDATED: Phone Button with proper size -->
+              @if($hostel->contact_phone)
+                <a href="tel:{{ $hostel->contact_phone }}" 
+                   class="btn-phone-custom nepali">
+                  <i class="fas fa-phone text-xs"></i>
+                  <span>फोन गर्नुहोस्</span>
+                </a>
+              @endif
             </div>
           </div>
-
-          <!-- UPDATED: Top Right Corner with Dynamic Social Media and Phone Button -->
-<div class="top-right-actions">
-  <!-- Follow Us Text -->
-  <div class="w-full text-center mb-2">
-    <p class="text-white text-sm font-medium nepali opacity-90">
-      Social Media मा हामीलाई follow गर्न सक्नुहुन्छ
-    </p>
-  </div>
-
-  <!-- Dynamic Social Media Icons from Database -->
-  <div class="social-media-buttons">
-    @if($hostel->facebook_url)
-      <a href="{{ $hostel->facebook_url }}" target="_blank" class="social-icon facebook-bg" title="Facebook">
-        <i class="fab fa-facebook-f"></i>
-      </a>
-    @endif
-    
-    @if($hostel->instagram_url)
-      <a href="{{ $hostel->instagram_url }}" target="_blank" class="social-icon instagram-bg" title="Instagram">
-        <i class="fab fa-instagram"></i>
-      </a>
-    @endif
-    
-    @if($hostel->twitter_url)
-      <a href="{{ $hostel->twitter_url }}" target="_blank" class="social-icon twitter-bg" title="Twitter">
-        <i class="fab fa-twitter"></i>
-      </a>
-    @endif
-    
-    @if($hostel->tiktok_url)
-      <a href="{{ $hostel->tiktok_url }}" target="_blank" class="social-icon tiktok-bg" title="TikTok">
-        <i class="fab fa-tiktok"></i>
-      </a>
-    @endif
-    
-    @if($hostel->whatsapp_number)
-      <a href="https://wa.me/{{ $hostel->whatsapp_number }}" target="_blank" class="social-icon whatsapp-bg" title="WhatsApp">
-        <i class="fab fa-whatsapp"></i>
-      </a>
-    @endif
-    
-    @if($hostel->youtube_url)
-      <a href="{{ $hostel->youtube_url }}" target="_blank" class="social-icon youtube-bg" title="YouTube">
-        <i class="fab fa-youtube"></i>
-      </a>
-    @endif
-    
-    @if($hostel->linkedin_url)
-      <a href="{{ $hostel->linkedin_url }}" target="_blank" class="social-icon linkedin-bg" title="LinkedIn">
-        <i class="fab fa-linkedin-in"></i>
-      </a>
-    @endif
-  </div>
-
-  <!-- Phone Button -->
-  @if($hostel->contact_phone)
-    <a href="tel:{{ $hostel->contact_phone }}" 
-       class="btn-primary-custom nepali flex items-center space-x-2 whitespace-nowrap">
-      <i class="fas fa-phone"></i>
-      <span>फोन गर्नुहोस्</span>
-    </a>
-  @endif
-</div>
         </div>
       </div>
       
