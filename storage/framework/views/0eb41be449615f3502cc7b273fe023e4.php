@@ -236,7 +236,7 @@
     <!-- Quick Actions Section -->
     <div class="bg-white rounded-2xl shadow-sm p-6 mb-6">
         <h2 class="text-xl font-bold text-gray-800 mb-6">द्रुत कार्यहरू</h2>
-        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
             <!-- 🏠 Homepage Button in Quick Actions -->
             <a href="<?php echo e(url('/')); ?>" class="p-4 bg-green-50 hover:bg-green-100 rounded-2xl text-center transition-colors no-underline group border border-green-100">
                 <div class="text-green-600 text-2xl mb-2 group-hover:scale-110 transition-transform">
@@ -251,6 +251,14 @@
                     <i class="fas fa-globe"></i>
                 </div>
                 <div class="font-medium text-teal-800 text-sm">सार्वजनिक पृष्ठ</div>
+            </a>
+
+            <!-- 🆕 GALLERY QUICK ACTION -->
+            <a href="<?php echo e(route('owner.galleries.index')); ?>" class="p-4 bg-teal-50 hover:bg-teal-100 rounded-2xl text-center transition-colors no-underline group border border-teal-100">
+                <div class="text-teal-600 text-2xl mb-2 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-images"></i>
+                </div>
+                <div class="font-medium text-teal-800 text-sm nepali">ग्यालरी</div>
             </a>
             
             <a href="<?php echo e(route('owner.hostels.create')); ?>" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-2xl text-center transition-colors no-underline group border border-blue-100">

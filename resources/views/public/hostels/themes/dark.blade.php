@@ -945,23 +945,58 @@
         <!-- Gallery Section -->
         <section class="cyber-container">
             <div class="cyber-section-header">
-                <h2 class="cyber-section-title nepali-font">ग्यालरी</h2>
+                <h2 class="cyber-section-title nepali-font">हाम्रो ग्यालरी</h2>
+                <p class="cyber-subtitle nepali-font" style="color: var(--text-secondary);">हाम्रो होस्टलको सुन्दर तस्बिरहरू र भिडियोहरू हेर्नुहोस्</p>
             </div>
+            
             <div class="cyber-gallery">
-                @if(isset($hostel->images) && count($hostel->images) > 0)
-                    @foreach($hostel->images as $image)
-                    <div class="cyber-gallery-item">
-                        <img src="{{ asset('storage/' . $image) }}" 
-                             alt="{{ $hostel->name }} - Image {{ $loop->iteration }}">
+                @php
+                    $galleries = $hostel->activeGalleries ?? collect();
+                @endphp
+                
+                @if($galleries->count() > 0)
+                    @foreach($galleries as $gallery)
+                    <div class="cyber-gallery-item group">
+                        @if($gallery->media_type === 'image')
+                            <img src="{{ $gallery->thumbnail_url }}" 
+                                 alt="{{ $gallery->title }}"
+                                 class="w-full h-full object-cover">
+                        @elseif($gallery->media_type === 'external_video')
+                            <div class="w-full h-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center relative">
+                                <i class="fab fa-youtube text-white text-3xl"></i>
+                            </div>
+                        @else
+                            <div class="w-full h-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center relative">
+                                <i class="fas fa-video text-white text-3xl"></i>
+                            </div>
+                        @endif
+                        
+                        <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-70 transition-all duration-300 flex items-center justify-center p-4">
+                            <div class="text-white text-center transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                                <h4 class="font-semibold text-sm mb-1 nepali-font">{{ $gallery->title }}</h4>
+                                @if($gallery->description)
+                                    <p class="text-xs opacity-90 nepali-font">{{ Str::limit($gallery->description, 60) }}</p>
+                                @endif
+                                @if($gallery->is_featured)
+                                    <span class="inline-block bg-yellow-500 text-white text-xs px-2 py-1 rounded-full mt-2 nepali-font">फिचर्ड</span>
+                                @endif
+                            </div>
+                        </div>
                     </div>
                     @endforeach
                 @else
-                    <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: var(--text-secondary);">
-                        <div style="width: 120px; height: 120px; background: var(--dark-3); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; border: 2px solid var(--neon-purple);">
-                            <i class="fas fa-images" style="font-size: 3rem; color: var(--neon-purple);"></i>
+                    <!-- Placeholder for empty gallery -->
+                    <div class="cyber-gallery-item">
+                        <div style="width: 100%; height: 100%; background: var(--dark-3); border: 2px solid var(--neon-purple); display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--neon-purple);">
+                            <i class="fas fa-images" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                            <span class="nepali-font" style="font-size: 0.9rem;">तस्बिरहरू थपिने...</span>
                         </div>
-                        <h3 style="font-size: 1.5rem; color: var(--text-primary); margin-bottom: 0.8rem;" class="nepali-font">कुनै तस्बिर उपलब्ध छैन</h3>
-                        <p style="font-size: 1.1rem;" class="nepali-font">यस होस्टलको ग्यालरी तस्बिरहरू चाँहि उपलब्ध छैनन्।</p>
+                    </div>
+                    <div class="cyber-gallery-item">
+                        <div style="width: 100%; height: 100%; background: var(--dark-3); border: 2px solid var(--neon-cyan); display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--neon-cyan);">
+                            <i class="fas fa-video" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                            <span class="nepali-font" style="font-size: 0.9rem;">भिडियोहरू थपिने...</span>
+                        </div>
                     </div>
                 @endif
             </div>
@@ -989,95 +1024,95 @@
         @endif
 
         <!-- Location Section -->
-<section class="cyber-container">
-    <div class="cyber-section-header">
-        <h2 class="cyber-section-title nepali-font">हाम्रो स्थान</h2>
-    </div>
-    <div style="padding: 2rem;">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: start;">
-            <div>
-                <h3 style="color: var(--text-primary); margin-bottom: 1.5rem; font-size: 1.5rem;" class="nepali-font">ठेगाना विवरण</h3>
-                @if($hostel->address)
-                    <p style="color: var(--text-secondary); line-height: 1.8; margin-bottom: 2rem; font-size: 1.1rem;" class="nepali-font">{{ $hostel->address }}</p>
-                @endif
-                
-                <div style="display: flex; flex-direction: column; gap: 1rem;">
-                    <a href="https://www.google.com/maps/search/?api=1&query=Kalikasthan+Mandir+Dillibazar+Kathmandu" 
-                       target="_blank" 
-                       class="cyber-btn btn-cyber-green"
-                       style="text-align: center;">
-                        <i class="fas fa-directions"></i>
-                        <span class="nepali-font">नक्सामा दिशा निर्देशन</span>
-                    </a>
+        <section class="cyber-container">
+            <div class="cyber-section-header">
+                <h2 class="cyber-section-title nepali-font">हाम्रो स्थान</h2>
+            </div>
+            <div style="padding: 2rem;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: start;">
+                    <div>
+                        <h3 style="color: var(--text-primary); margin-bottom: 1.5rem; font-size: 1.5rem;" class="nepali-font">ठेगाना विवरण</h3>
+                        @if($hostel->address)
+                            <p style="color: var(--text-secondary); line-height: 1.8; margin-bottom: 2rem; font-size: 1.1rem;" class="nepali-font">{{ $hostel->address }}</p>
+                        @endif
+                        
+                        <div style="display: flex; flex-direction: column; gap: 1rem;">
+                            <a href="https://www.google.com/maps/search/?api=1&query=Kalikasthan+Mandir+Dillibazar+Kathmandu" 
+                               target="_blank" 
+                               class="cyber-btn btn-cyber-green"
+                               style="text-align: center;">
+                                <i class="fas fa-directions"></i>
+                                <span class="nepali-font">नक्सामा दिशा निर्देशन</span>
+                            </a>
+                            
+                            <a href="https://www.google.com/maps/place/Kalikasthan+Mandir+Dillibazar+Kathmandu" 
+                               target="_blank" 
+                               class="cyber-btn"
+                               style="text-align: center;">
+                                <i class="fas fa-external-link-alt"></i>
+                                <span class="nepali-font">Google Map मा खोल्नुहोस्</span>
+                            </a>
+                        </div>
+                    </div>
                     
-                    <a href="https://www.google.com/maps/place/Kalikasthan+Mandir+Dillibazar+Kathmandu" 
-                       target="_blank" 
-                       class="cyber-btn"
-                       style="text-align: center;">
-                        <i class="fas fa-external-link-alt"></i>
-                        <span class="nepali-font">Google Map मा खोल्नुहोस्</span>
-                    </a>
-                </div>
-            </div>
-            
-            <!-- UPDATED: Actual Google Map Embed -->
-            <div style="background: var(--dark-3); border: 2px solid var(--neon-cyan); padding: 0; overflow: hidden; height: 400px; position: relative;">
-                <iframe 
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3532.8340378072015!2d85.3171482753358!3d27.69389037618937!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39eb1965f5ec93a7%3A0xf2a74108721b8b9e!2sKalikasthan%20Mandir!5e0!3m2!1sen!2snp!4v1699876543210!5m2!1sen!2snp" 
-                    width="100%" 
-                    height="100%" 
-                    style="border:0; filter: invert(90%) hue-rotate(180deg) contrast(85%);" 
-                    allowfullscreen="" 
-                    loading="lazy" 
-                    referrerpolicy="no-referrer-when-downgrade"
-                    title="Kalikasthan Mandir Location Map">
-                </iframe>
-                
-                <!-- Cyber overlay effect -->
-                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; background: linear-gradient(45deg, rgba(0,212,255,0.1) 0%, rgba(255,0,255,0.1) 100%);"></div>
-                
-                <!-- Scan line effect -->
-                <div style="position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent); animation: scanline 3s linear infinite;"></div>
-            </div>
-        </div>
-        
-        <!-- Additional Location Info -->
-        <div style="margin-top: 3rem; padding: 2rem; background: rgba(17, 17, 17, 0.6); border: 1px solid var(--neon-green);">
-            <h4 style="color: var(--text-primary); margin-bottom: 1rem; font-size: 1.3rem;" class="nepali-font">स्थानको बारेमा</h4>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
-                <div style="display: flex; align-items: center; gap: 1rem;">
-                    <div style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple)); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-landmark" style="color: var(--dark-1); font-size: 1rem;"></i>
-                    </div>
-                    <div>
-                        <div style="color: var(--neon-cyan); font-size: 0.9rem; font-weight: 600;" class="nepali-font">नजिकैको मन्दिर</div>
-                        <div style="color: var(--text-secondary); font-size: 0.9rem;" class="nepali-font">कालिकास्थान मन्दिर</div>
+                    <!-- UPDATED: Actual Google Map Embed -->
+                    <div style="background: var(--dark-3); border: 2px solid var(--neon-cyan); padding: 0; overflow: hidden; height: 400px; position: relative;">
+                        <iframe 
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3532.8340378072015!2d85.3171482753358!3d27.69389037618937!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39eb1965f5ec93a7%3A0xf2a74108721b8b9e!2sKalikasthan%20Mandir!5e0!3m2!1sen!2snp!4v1699876543210!5m2!1sen!2snp" 
+                            width="100%" 
+                            height="100%" 
+                            style="border:0; filter: invert(90%) hue-rotate(180deg) contrast(85%);" 
+                            allowfullscreen="" 
+                            loading="lazy" 
+                            referrerpolicy="no-referrer-when-downgrade"
+                            title="Kalikasthan Mandir Location Map">
+                        </iframe>
+                        
+                        <!-- Cyber overlay effect -->
+                        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; background: linear-gradient(45deg, rgba(0,212,255,0.1) 0%, rgba(255,0,255,0.1) 100%);"></div>
+                        
+                        <!-- Scan line effect -->
+                        <div style="position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent); animation: scanline 3s linear infinite;"></div>
                     </div>
                 </div>
                 
-                <div style="display: flex; align-items: center; gap: 1rem;">
-                    <div style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--neon-green), var(--neon-cyan)); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-bus" style="color: var(--dark-1); font-size: 1rem;"></i>
-                    </div>
-                    <div>
-                        <div style="color: var(--neon-green); font-size: 0.9rem; font-weight: 600;" class="nepali-font">यातायात</div>
-                        <div style="color: var(--text-secondary); font-size: 0.9rem;" class="nepali-font">सजिलो पहुँच</div>
-                    </div>
-                </div>
-                
-                <div style="display: flex; align-items: center; gap: 1rem;">
-                    <div style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple)); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-university" style="color: var(--dark-1); font-size: 1rem;"></i>
-                    </div>
-                    <div>
-                        <div style="color: var(--neon-pink); font-size: 0.9rem; font-weight: 600;" class="nepali-font">क्षेत्र</div>
-                        <div style="color: var(--text-secondary); font-size: 0.9rem;" class="nepali-font">दिल्लीबजार, काठमाडौं</div>
+                <!-- Additional Location Info -->
+                <div style="margin-top: 3rem; padding: 2rem; background: rgba(17, 17, 17, 0.6); border: 1px solid var(--neon-green);">
+                    <h4 style="color: var(--text-primary); margin-bottom: 1rem; font-size: 1.3rem;" class="nepali-font">स्थानको बारेमा</h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <div style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple)); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-landmark" style="color: var(--dark-1); font-size: 1rem;"></i>
+                            </div>
+                            <div>
+                                <div style="color: var(--neon-cyan); font-size: 0.9rem; font-weight: 600;" class="nepali-font">नजिकैको मन्दिर</div>
+                                <div style="color: var(--text-secondary); font-size: 0.9rem;" class="nepali-font">कालिकास्थान मन्दिर</div>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <div style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--neon-green), var(--neon-cyan)); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-bus" style="color: var(--dark-1); font-size: 1rem;"></i>
+                            </div>
+                            <div>
+                                <div style="color: var(--neon-green); font-size: 0.9rem; font-weight: 600;" class="nepali-font">यातायात</div>
+                                <div style="color: var(--text-secondary); font-size: 0.9rem;" class="nepali-font">सजिलो पहुँच</div>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <div style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple)); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-university" style="color: var(--dark-1); font-size: 1rem;"></i>
+                            </div>
+                            <div>
+                                <div style="color: var(--neon-pink); font-size: 0.9rem; font-weight: 600;" class="nepali-font">क्षेत्र</div>
+                                <div style="color: var(--text-secondary); font-size: 0.9rem;" class="nepali-font">दिल्लीबजार, काठमाडौं</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-</section>
+        </section>
 
         <!-- Reviews Section -->
         <section class="cyber-container" id="reviews">

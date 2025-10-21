@@ -15,7 +15,8 @@ use App\Http\Controllers\{
     Admin\PaymentController as AdminPaymentController,
     Owner\HostelController as OwnerHostelController,
     Owner\ReviewController as OwnerReviewController,
-    Owner\OwnerPublicPageController, // ✅ ADDED: Owner Public Page Controller
+    Owner\OwnerPublicPageController,
+    Owner\GalleryController as OwnerGalleryController, // ✅ ADDED: Owner Gallery Controller
     Frontend\GalleryController as FrontendGalleryController,
     Frontend\PublicContactController,
     Frontend\PublicController,
@@ -39,7 +40,7 @@ use App\Http\Controllers\{
     PaymentController,
     DocumentController,
     Admin\CircularController,
-    Student\StudentReviewController  // ✅ ADDED: Student Review Controller
+    Student\StudentReviewController
 };
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
@@ -443,6 +444,21 @@ Route::middleware(['auth', 'hasOrganization', 'role:owner,hostel_manager'])
             Route::post('/unpublish', [OwnerPublicPageController::class, 'unpublish'])->name('unpublish');
         });
 
+        // ✅ UPDATED: Owner Gallery Routes - Using OwnerGalleryController with proper methods
+        Route::prefix('galleries')->name('galleries.')->group(function () {
+            Route::resource('/', OwnerGalleryController::class)->names([
+                'index' => 'index',
+                'create' => 'create',
+                'store' => 'store',
+                'show' => 'show',
+                'edit' => 'edit',
+                'update' => 'update',
+                'destroy' => 'destroy'
+            ]);
+            Route::patch('/{gallery}/toggle-featured', [OwnerGalleryController::class, 'toggleFeatured'])->name('toggle-featured');
+            Route::patch('/{gallery}/toggle-active', [OwnerGalleryController::class, 'toggleActive'])->name('toggle-active');
+        });
+
         // Owner Payment Management Routes (Using Frontend PaymentController)
         Route::get('/payments/report', [PaymentController::class, 'ownerReport'])->name('payments.report');
         Route::post('/payments/manual', [PaymentController::class, 'createManualPayment'])->name('payments.manual');
@@ -493,13 +509,6 @@ Route::middleware(['auth', 'hasOrganization', 'role:owner,hostel_manager'])
         // ✅ CRITICAL FIX: Add the missing toggle-status route
         Route::patch('/hostels/{hostel}/toggle-status', [OwnerHostelController::class, 'toggleStatus'])
             ->name('hostels.toggle-status');
-
-        // Owner resource routes (similar to admin but for owner context)
-        Route::resource('galleries', GalleryController::class);
-        Route::post('/galleries/{gallery}/toggle-status', [GalleryController::class, 'toggleStatus'])
-            ->name('galleries.toggle-status');
-        Route::post('/galleries/{gallery}/toggle-featured', [GalleryController::class, 'toggleFeatured'])
-            ->name('galleries.toggle-featured');
 
         // ✅ FIXED: Owner reviews route - Using OwnerReviewController instead of AdminReviewController
         Route::resource('reviews', OwnerReviewController::class);

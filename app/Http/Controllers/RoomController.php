@@ -8,6 +8,7 @@ use App\Models\Hostel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Log;
 
 class RoomController extends Controller
 {
@@ -16,10 +17,11 @@ class RoomController extends Controller
      */
     public function index()
     {
-        $query = Room::with(['hostel', 'amenities'])
+        // ✅ FIXED: Remove 'amenities' from with()
+        $query = Room::with(['hostel']) // Remove 'amenities'
             ->where('status', 'available')
             ->whereHas('hostel', function ($query) {
-                $query->where('is_active', true);
+                $query->where('status', 'active');
             });
 
         // Filter by room type
@@ -35,16 +37,16 @@ class RoomController extends Controller
             $query->where('price', '<=', request('max_price'));
         }
 
-        // Filter by hostel location
+        // ✅ FIXED: Change 'location' to 'city' (as per your hostel table)
         if (request()->has('location')) {
             $query->whereHas('hostel', function ($q) {
-                $q->where('location', 'like', '%' . request('location') . '%');
+                $q->where('city', 'like', '%' . request('location') . '%');
             });
         }
 
         $rooms = $query->orderBy('price')->paginate(12);
 
-        return view('frontend.rooms.index', compact('rooms'));
+        return view('frontend.rooms.rooms', compact('rooms'));
     }
 
     /**
@@ -52,10 +54,11 @@ class RoomController extends Controller
      */
     public function show($id)
     {
-        $room = Room::with(['hostel', 'amenities', 'reviews.user'])
+        // ✅ FIXED: Remove 'amenities' from with()
+        $room = Room::with(['hostel', 'reviews.user']) // Remove 'amenities'
             ->where('status', 'available')
             ->whereHas('hostel', function ($query) {
-                $query->where('is_active', true);
+                $query->where('status', 'active');
             })
             ->findOrFail($id);
 
@@ -89,7 +92,7 @@ class RoomController extends Controller
         $query = Room::with('hostel')
             ->where('status', 'available')
             ->whereHas('hostel', function ($q) {
-                $q->where('is_active', true);
+                $q->where('status', 'active');
             });
 
         // Search in room number and description
@@ -97,8 +100,10 @@ class RoomController extends Controller
             $q->where('room_number', 'like', '%' . $request->query . '%')
                 ->orWhere('description', 'like', '%' . $request->query . '%')
                 ->orWhereHas('hostel', function ($q2) use ($request) {
+                    // ✅ FIXED: Change 'location' to 'city'
                     $q2->where('name', 'like', '%' . $request->query . '%')
-                        ->orWhere('location', 'like', '%' . $request->query . '%');
+                        ->orWhere('city', 'like', '%' . $request->query . '%')
+                        ->orWhere('address', 'like', '%' . $request->query . '%');
                 });
         });
 
@@ -173,12 +178,78 @@ class RoomController extends Controller
      */
     public function byHostel(Hostel $hostel)
     {
+        // ✅ FIXED: Only show rooms from active hostels
+        if ($hostel->status !== 'active') {
+            abort(404, 'यो होस्टेल हाल उपलब्ध छैन');
+        }
+
+        // ✅ FIXED: Remove 'amenities' from with()
         $rooms = Room::where('hostel_id', $hostel->id)
             ->where('status', 'available')
-            ->with('amenities')
+            ->with('hostel') // Remove 'amenities'
             ->orderBy('price')
             ->paginate(12);
 
         return view('frontend.rooms.by-hostel', compact('rooms', 'hostel'));
+    }
+
+    /**
+     * Owner room listing (for owner dashboard)
+     */
+    public function ownerIndex()
+    {
+        try {
+            $organizationId = session('current_organization_id');
+
+            // ✅ FIXED: Use 'status' column instead of 'is_active'
+            $rooms = Room::where('status', 'available')
+                ->whereHas('hostel', function ($query) use ($organizationId) {
+                    $query->where('organization_id', $organizationId)
+                        ->where('status', 'active');
+                })
+                ->with(['hostel'])
+                ->paginate(10);
+
+            return view('owner.rooms.rooms', compact('rooms'));
+        } catch (\Exception $e) {
+            Log::error('Room index error: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Rooms load गर्न असफल भयो');
+        }
+    }
+
+    /**
+     * Student room listing (for student dashboard)
+     */
+    public function studentIndex()
+    {
+        try {
+            $rooms = Room::where('status', 'available')
+                ->whereHas('hostel', function ($query) {
+                    $query->where('status', 'active');
+                })
+                ->with(['hostel'])
+                ->paginate(10);
+
+            return view('student.rooms.rooms', compact('rooms'));
+        } catch (\Exception $e) {
+            Log::error('Student room index error: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Rooms load गर्न असफल भयो');
+        }
+    }
+
+    /**
+     * Student room details
+     */
+    public function studentShow($id)
+    {
+        // ✅ FIXED: Remove 'amenities' from with()
+        $room = Room::with(['hostel']) // Remove 'amenities'
+            ->where('status', 'available')
+            ->whereHas('hostel', function ($query) {
+                $query->where('status', 'active');
+            })
+            ->findOrFail($id);
+
+        return view('student.rooms.show', compact('room'));
     }
 }

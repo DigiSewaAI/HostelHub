@@ -233,6 +233,7 @@
         box-shadow: 0 8px 25px rgba(0,0,0,0.2);
         transition: all 0.3s ease;
         background: white;
+        position: relative;
     }
 
     .classic-gallery-item:hover {
@@ -250,6 +251,34 @@
 
     .classic-gallery-item:hover img {
         transform: scale(1.1);
+    }
+
+    /* Gallery Overlay Styles */
+    .classic-gallery-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: all 0.3s ease;
+        padding: 1rem;
+    }
+
+    .classic-gallery-item:hover .classic-gallery-overlay {
+        opacity: 1;
+    }
+
+    .classic-gallery-overlay-content {
+        color: white;
+        text-align: center;
+        transform: translateY(1rem);
+        transition: transform 0.3s ease;
+    }
+
+    .classic-gallery-item:hover .classic-gallery-overlay-content {
+        transform: translateY(0);
     }
 
     /* Facilities Grid */
@@ -706,16 +735,43 @@
             </div>
         </section>
 
-        <!-- UPDATED: Gallery Section - IMMEDIATELY AFTER ABOUT SECTION -->
+        <!-- UPDATED: Dynamic Gallery Section -->
         <section class="classic-section">
             <h2 class="classic-section-title nepali-font">ग्यालरी</h2>
             <div class="classic-gallery">
-                <?php if(isset($hostel->images) && count($hostel->images) > 0): ?>
+                <?php
+                    $galleries = $hostel->activeGalleries ?? collect();
+                ?>
+                
+                <?php if($galleries->count() > 0): ?>
                     <div class="classic-gallery-grid">
-                        <?php $__currentLoopData = $hostel->images; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $image): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <?php $__currentLoopData = $galleries; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $gallery): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <div class="classic-gallery-item">
-                            <img src="<?php echo e(asset('storage/' . $image)); ?>" 
-                                 alt="<?php echo e($hostel->name); ?> - Image <?php echo e($loop->iteration); ?>">
+                            <?php if($gallery->media_type === 'image'): ?>
+                                <img src="<?php echo e($gallery->thumbnail_url); ?>" 
+                                     alt="<?php echo e($gallery->title); ?>"
+                                     style="width: 100%; height: 200px; object-fit: cover;">
+                            <?php elseif($gallery->media_type === 'external_video'): ?>
+                                <div style="width: 100%; height: 200px; background: linear-gradient(135deg, var(--deep-red) 0%, var(--dark-brown) 100%); display: flex; align-items: center; justify-content: center;">
+                                    <i class="fab fa-youtube text-white text-3xl"></i>
+                                </div>
+                            <?php else: ?>
+                                <div style="width: 100%; height: 200px; background: linear-gradient(135deg, var(--gold-color) 0%, var(--deep-red) 100%); display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-video text-white text-3xl"></i>
+                                </div>
+                            <?php endif; ?>
+                            
+                            <div class="classic-gallery-overlay">
+                                <div class="classic-gallery-overlay-content">
+                                    <h4 class="nepali-font" style="font-size: 1.1rem; font-weight: bold; margin-bottom: 0.5rem;"><?php echo e($gallery->title); ?></h4>
+                                    <?php if($gallery->description): ?>
+                                        <p class="nepali-font" style="font-size: 0.9rem; opacity: 0.9;"><?php echo e(Str::limit($gallery->description, 60)); ?></p>
+                                    <?php endif; ?>
+                                    <?php if($gallery->is_featured): ?>
+                                        <span class="nepali-font" style="display: inline-block; background: var(--gold-color); color: var(--deep-red); font-size: 0.8rem; padding: 0.2rem 0.5rem; border-radius: 1rem; margin-top: 0.5rem; font-weight: bold;">फिचर्ड</span>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
                         </div>
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </div>
