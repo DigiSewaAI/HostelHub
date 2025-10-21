@@ -191,6 +191,34 @@
         z-index: 1;
     }
 
+    /* Gallery Overlay Styles */
+    .gallery-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: all 0.3s ease;
+        padding: 1rem;
+    }
+
+    .gallery-item:hover .gallery-overlay {
+        opacity: 1;
+    }
+
+    .gallery-overlay-content {
+        color: white;
+        text-align: center;
+        transform: translateY(1rem);
+        transition: transform 0.3s ease;
+    }
+
+    .gallery-item:hover .gallery-overlay-content {
+        transform: translateY(0);
+    }
+
     /* Rest of the existing CSS remains the same */
     .vibrant-bg-animation {
         position: fixed;
@@ -957,18 +985,45 @@
             </div>
         </section>
 
-        <!-- Gallery Section -->
+        <!-- Dynamic Gallery Section -->
         <section class="glass-container">
             <div class="section-header">
                 <h2 class="section-title nepali-font">ग्यालरी</h2>
                 <div class="section-divider"></div>
             </div>
             <div class="vibrant-gallery">
-                <?php if(isset($hostel->images) && count($hostel->images) > 0): ?>
-                    <?php $__currentLoopData = $hostel->images; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $image): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <?php
+                    $galleries = $hostel->activeGalleries ?? collect();
+                ?>
+                
+                <?php if($galleries->count() > 0): ?>
+                    <?php $__currentLoopData = $galleries; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $gallery): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     <div class="gallery-item">
-                        <img src="<?php echo e(asset('storage/' . $image)); ?>" 
-                             alt="<?php echo e($hostel->name); ?> - Image <?php echo e($loop->iteration); ?>">
+                        <?php if($gallery->media_type === 'image'): ?>
+                            <img src="<?php echo e($gallery->thumbnail_url); ?>" 
+                                 alt="<?php echo e($gallery->title); ?>"
+                                 style="width: 100%; height: 100%; object-fit: cover;">
+                        <?php elseif($gallery->media_type === 'external_video'): ?>
+                            <div style="width: 100%; height: 100%; background: linear-gradient(135deg, var(--vibrant-purple), var(--vibrant-pink)); display: flex; align-items: center; justify-content: center;">
+                                <i class="fab fa-youtube text-white text-3xl"></i>
+                            </div>
+                        <?php else: ?>
+                            <div style="width: 100%; height: 100%; background: linear-gradient(135deg, var(--vibrant-blue), var(--vibrant-green)); display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-video text-white text-3xl"></i>
+                            </div>
+                        <?php endif; ?>
+                        
+                        <div class="gallery-overlay">
+                            <div class="gallery-overlay-content">
+                                <h4 class="nepali-font" style="font-size: 1.1rem; font-weight: bold; margin-bottom: 0.5rem;"><?php echo e($gallery->title); ?></h4>
+                                <?php if($gallery->description): ?>
+                                    <p class="nepali-font" style="font-size: 0.9rem; opacity: 0.9;"><?php echo e(Str::limit($gallery->description, 60)); ?></p>
+                                <?php endif; ?>
+                                <?php if($gallery->is_featured): ?>
+                                    <span class="nepali-font" style="display: inline-block; background: var(--vibrant-yellow); color: var(--dark-bg); font-size: 0.8rem; padding: 0.2rem 0.5rem; border-radius: 1rem; margin-top: 0.5rem; font-weight: bold;">फिचर्ड</span>
+                                <?php endif; ?>
+                            </div>
+                        </div>
                     </div>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 <?php else: ?>

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany; // ✅ ADD: This import
 
 class Room extends Model
 {
@@ -18,13 +19,13 @@ class Room extends Model
      */
     protected $fillable = [
         'hostel_id',
-        'room_number',  // पहिले: कोठा_नम्बर
-        'type',         // पहिले: प्रकार  
-        'capacity',     // पहिले: क्षमता
-        'price',        // पहिले: मूल्य
-        'status',       // पहिले: स्थिति
-        'image',        // पहिले: तस्वीर
-        'description',  // पहिले: विवरण
+        'room_number',
+        'type',
+        'capacity',
+        'price',
+        'status',
+        'image',
+        'description',
         'floor',
     ];
 
@@ -60,6 +61,19 @@ class Room extends Model
         return $this->hasMany(Booking::class);
     }
 
+    // ✅ ADD: Amenities relationship
+    public function amenities(): BelongsToMany
+    {
+        return $this->belongsToMany(Amenity::class, 'room_amenity', 'room_id', 'amenity_id')
+            ->withTimestamps();
+    }
+
+    // ✅ ADD: Reviews relationship (if needed)
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class);
+    }
+
     /**
      * Check if room is available for given dates
      */
@@ -74,7 +88,7 @@ class Room extends Model
                             ->where('check_out_date', '>=', $checkOut);
                     });
             })
-            ->whereIn('status', ['pending', 'approved']) // FIX: Use English status values
+            ->whereIn('status', ['pending', 'approved'])
             ->count();
 
         return $conflictingBookings === 0;

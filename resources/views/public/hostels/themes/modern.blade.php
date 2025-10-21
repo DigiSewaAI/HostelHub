@@ -38,26 +38,6 @@
         display: block !important;
     }
     
-    .verified-badge {
-        position: absolute;
-        bottom: -3px;
-        right: -3px;
-        width: 16px;
-        height: 16px;
-        background: #10b981;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border: 2px solid white;
-        z-index: 10;
-    }
-    
-    .verified-badge i {
-        font-size: 8px;
-        color: white;
-    }
-    
     /* Header Layout */
     .header-content {
         display: flex;
@@ -216,37 +196,64 @@
         margin-bottom: 20px;
     }
     
-    /* 🎨 ENHANCED GALLERY SECTION - MORE SPACIOUS */
-    .gallery-container {
-        min-height: 400px;
+    /* 🎨 ENHANCED GALLERY SECTION - VERTICAL AUTO SCROLL */
+    .gallery-vertical-container {
         background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
         border-radius: 16px;
-        padding: 30px;
+        padding: 25px;
         margin-bottom: 20px;
+        height: 600px; /* Fixed height for vertical scroll */
+        overflow: hidden;
+        position: relative;
     }
     
-    .gallery-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 20px;
-        margin-top: 20px;
+    .gallery-vertical-scroll {
+        height: 100%;
+        overflow-y: auto;
+        padding-right: 10px;
     }
     
-    .gallery-item {
+    .gallery-vertical-scroll::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .gallery-vertical-scroll::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 10px;
+    }
+    
+    .gallery-vertical-scroll::-webkit-scrollbar-thumb {
+        background: var(--theme-color);
+        border-radius: 10px;
+    }
+    
+    .gallery-vertical-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .gallery-vertical-item {
         border-radius: 12px;
         overflow: hidden;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         transition: all 0.3s ease;
         background: white;
         border: 1px solid #e2e8f0;
     }
     
-    .gallery-item:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    .gallery-vertical-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
     }
     
-    .gallery-placeholder {
+    .gallery-vertical-item img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+    }
+    
+    .gallery-placeholder-vertical {
         width: 100%;
         height: 200px;
         background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
@@ -257,13 +264,45 @@
         color: #64748b;
     }
     
-    .gallery-placeholder i {
-        font-size: 48px;
-        margin-bottom: 12px;
-        opacity: 0.5;
+    .view-gallery-btn {
+        background: linear-gradient(135deg, var(--theme-color), #7c3aed);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 15px;
     }
     
-    /* Facilities Grid */
+    .view-gallery-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(79, 70, 229, 0.3);
+    }
+    
+    /* Auto-scroll animation */
+    @keyframes autoScroll {
+        0% {
+            transform: translateY(0);
+        }
+        100% {
+            transform: translateY(calc(-100% + 600px));
+        }
+    }
+    
+    .gallery-auto-scroll {
+        animation: autoScroll 30s linear infinite;
+    }
+    
+    .gallery-auto-scroll:hover {
+        animation-play-state: paused;
+    }
+    
+    /* Facilities Grid - FIXED JSON DISPLAY */
     .facilities-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -568,7 +607,7 @@
         border: 1px solid #f1f5f9;
     }
     
-    /* Floating Actions */
+    /* FLOATING ACTIONS - ONLY WHATSAPP (NO PHONE) */
     .floating-actions {
         position: fixed;
         bottom: 20px;
@@ -597,10 +636,6 @@
         background: #25d366;
     }
     
-    .floating-btn.phone {
-        background: linear-gradient(135deg, #10b981, #059669);
-    }
-    
     .floating-btn:hover {
         transform: scale(1.1);
     }
@@ -621,6 +656,10 @@
         
         .reviews-grid {
             grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .gallery-vertical-container {
+            height: 500px;
         }
     }
     
@@ -651,12 +690,12 @@
             grid-template-columns: 1fr;
         }
         
-        .gallery-grid {
+        .reviews-grid {
             grid-template-columns: 1fr;
         }
         
-        .reviews-grid {
-            grid-template-columns: 1fr;
+        .gallery-vertical-container {
+            height: 400px;
         }
         
         /* Even smaller logo on mobile */
@@ -687,9 +726,6 @@
                                     <i class="fas fa-building text-white text-lg"></i>
                                 </div>
                             @endif
-                        </div>
-                        <div class="verified-badge">
-                            <i class="fas fa-check"></i>
                         </div>
                     </div>
                     
@@ -724,7 +760,7 @@
                     </div>
                 </div>
                 
-                <!-- Social Media and Phone -->
+                <!-- Social Media and Phone - KEEP PHONE IN HEADER -->
                 <div class="header-actions">
                     <div class="text-right">
                         <p class="text-white/80 nepali text-xs mb-1">हामीलाई फलो गर्नुहोस्</p>
@@ -876,38 +912,75 @@
                 </div>
             </div>
 
-            <!-- 🖼️ MIDDLE COLUMN - SPACIOUS GALLERY -->
+            <!-- 🖼️ MIDDLE COLUMN - VERTICAL AUTO-SCROLL GALLERY -->
             <div class="space-y-6">
-                <!-- Enhanced Gallery Section -->
-                <section class="gallery-container">
-                    <h2 class="section-title nepali text-center">हाम्रो ग्यालेरी</h2>
-                    <p class="text-gray-600 text-center nepali text-sm mb-6">हाम्रो होस्टलको सुन्दर तस्बिरहरू र भिडियोहरू हेर्नुहोस्</p>
+                <!-- Vertical Auto-Scroll Gallery -->
+                <section class="gallery-vertical-container">
+                    <h2 class="section-title nepali">हाम्रो ग्यालरी</h2>
+                    <p class="text-gray-600 text-center nepali text-sm mb-4">हाम्रो होस्टलको सुन्दर तस्बिरहरू र भिडियोहरू हेर्नुहोस्</p>
                     
-                    <div class="gallery-grid">
-                        <!-- Gallery items will be displayed here -->
-                        @include('public.hostels.partials.gallery')
-                        
-                        <!-- Placeholder for empty gallery -->
-                        @if(true) <!-- Replace with actual gallery check -->
-                        <div class="gallery-item">
-                            <div class="gallery-placeholder">
-                                <i class="fas fa-images"></i>
-                                <span class="nepali text-sm">तस्बिरहरू थपिने...</span>
-                            </div>
+                    <div class="gallery-vertical-scroll gallery-auto-scroll">
+                        <div class="gallery-vertical-grid">
+                            @php
+                                $galleries = $hostel->activeGalleries ?? collect();
+                            @endphp
+                            
+                            @if($galleries->count() > 0)
+                                @foreach($galleries as $gallery)
+                                <div class="gallery-vertical-item group">
+                                    @if($gallery->media_type === 'image')
+                                        <img src="{{ $gallery->thumbnail_url }}" 
+                                             alt="{{ $gallery->title }}"
+                                             class="w-full h-48 object-cover">
+                                    @elseif($gallery->media_type === 'external_video')
+                                        <div class="gallery-placeholder-vertical">
+                                            <i class="fab fa-youtube text-3xl"></i>
+                                            <span class="nepali text-sm mt-2">YouTube भिडियो</span>
+                                        </div>
+                                    @else
+                                        <div class="gallery-placeholder-vertical">
+                                            <i class="fas fa-video text-3xl"></i>
+                                            <span class="nepali text-sm mt-2">भिडियो</span>
+                                        </div>
+                                    @endif
+                                    
+                                    <div class="p-3">
+                                        <h4 class="font-semibold text-gray-900 nepali text-sm mb-1">{{ $gallery->title }}</h4>
+                                        @if($gallery->description)
+                                            <p class="text-gray-600 nepali text-xs">{{ Str::limit($gallery->description, 80) }}</p>
+                                        @endif
+                                    </div>
+                                </div>
+                                @endforeach
+                            @else
+                                <!-- Placeholder for empty gallery -->
+                                <div class="gallery-vertical-item">
+                                    <div class="gallery-placeholder-vertical">
+                                        <i class="fas fa-images text-3xl"></i>
+                                        <span class="nepali text-sm mt-2">तस्बिरहरू थपिने...</span>
+                                    </div>
+                                </div>
+                                <div class="gallery-vertical-item">
+                                    <div class="gallery-placeholder-vertical">
+                                        <i class="fas fa-bed text-3xl"></i>
+                                        <span class="nepali text-sm mt-2">कोठाका तस्बिरहरू</span>
+                                    </div>
+                                </div>
+                                <div class="gallery-vertical-item">
+                                    <div class="gallery-placeholder-vertical">
+                                        <i class="fas fa-utensils text-3xl"></i>
+                                        <span class="nepali text-sm mt-2">खानाको परिवेश</span>
+                                    </div>
+                                </div>
+                            @endif
                         </div>
-                        <div class="gallery-item">
-                            <div class="gallery-placeholder">
-                                <i class="fas fa-video"></i>
-                                <span class="nepali text-sm">भिडियोहरू थपिने...</span>
-                            </div>
-                        </div>
-                        <div class="gallery-item">
-                            <div class="gallery-placeholder">
-                                <i class="fas fa-camera"></i>
-                                <span class="nepali text-sm">कोठाका तस्बिरहरू</span>
-                            </div>
-                        </div>
-                        @endif
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <a href="#" class="view-gallery-btn nepali">
+                            <i class="fas fa-images"></i>
+                            पूरै ग्यालरी हेर्नुहोस्
+                        </a>
                     </div>
                 </section>
             </div>
@@ -1019,13 +1092,45 @@
                             हाम्रा सुविधाहरू
                         </h2>
                         <div class="facilities-grid">
-                            @foreach($facilities as $facility)
-                                @if(trim($facility))
+                            @php
+                                // FIXED: Proper JSON parsing for facilities
+                                $cleanFacilities = $facilities;
+                                if (is_string($cleanFacilities)) {
+                                    $decoded = json_decode($cleanFacilities, true);
+                                    if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                                        $cleanFacilities = $decoded;
+                                    } else {
+                                        // If it's a string but not JSON, try comma separation
+                                        $cleanFacilities = array_map('trim', explode(',', $cleanFacilities));
+                                    }
+                                }
+                                
+                                // Ensure it's an array
+                                if (!is_array($cleanFacilities)) {
+                                    $cleanFacilities = [];
+                                }
+                                
+                                // Filter out any empty values
+                                $cleanFacilities = array_filter($cleanFacilities, function($item) {
+                                    return !empty(trim($item)) && trim($item) !== '""' && trim($item) !== "''";
+                                });
+                            @endphp
+                            
+                            @foreach($cleanFacilities as $facility)
+                                @php
+                                    $facility = trim($facility);
+                                    // Remove JSON quotes if present
+                                    $facility = trim($facility, '"\'');
+                                @endphp
+                                
+                                @if(!empty($facility))
                                     <div class="facility-item">
                                         <div class="facility-icon">
                                             <i class="fas fa-check"></i>
                                         </div>
-                                        <span class="nepali font-medium text-gray-800 text-sm">{{ trim($facility) }}</span>
+                                        <span class="nepali font-medium text-gray-800 text-sm">
+                                            {{ $facility }}
+                                        </span>
                                     </div>
                                 @endif
                             @endforeach
@@ -1135,17 +1240,11 @@
         </section>
     </div>
 
-    <!-- Floating Action Buttons -->
+    <!-- FLOATING ACTIONS - ONLY WHATSAPP (NO PHONE) -->
     <div class="floating-actions">
         @if($hostel->whatsapp_number)
             <a href="https://wa.me/{{ $hostel->whatsapp_number }}" target="_blank" class="floating-btn whatsapp">
                 <i class="fab fa-whatsapp"></i>
-            </a>
-        @endif
-        
-        @if($hostel->contact_phone)
-            <a href="tel:{{ $hostel->contact_phone }}" class="floating-btn phone">
-                <i class="fas fa-phone"></i>
             </a>
         @endif
     </div>
@@ -1153,4 +1252,27 @@
 
 <!-- Add Font Awesome -->
 <script src="https://kit.fontawesome.com/your-fontawesome-kit.js" crossorigin="anonymous"></script>
+
+<script>
+// Auto-scroll functionality for gallery
+document.addEventListener('DOMContentLoaded', function() {
+    const galleryScroll = document.querySelector('.gallery-vertical-scroll');
+    if (galleryScroll) {
+        let scrollPosition = 0;
+        const scrollSpeed = 0.5; // pixels per frame
+        
+        function autoScroll() {
+            scrollPosition += scrollSpeed;
+            if (scrollPosition >= galleryScroll.scrollHeight - galleryScroll.clientHeight) {
+                scrollPosition = 0;
+            }
+            galleryScroll.scrollTop = scrollPosition;
+            requestAnimationFrame(autoScroll);
+        }
+        
+        // Start auto-scroll
+        autoScroll();
+    }
+});
+</script>
 @endsection

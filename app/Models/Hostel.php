@@ -74,8 +74,8 @@ class Hostel extends Model
         return $this->hasMany(HostelImage::class);
     }
 
-    // ✅ ADDED: Gallery images relationship
-    public function galleryImages(): HasMany
+    // ✅ UPDATED: Renamed to galleries for consistency
+    public function galleries(): HasMany
     {
         return $this->hasMany(Gallery::class);
     }
@@ -226,16 +226,28 @@ class Hostel extends Model
         return $this->rooms()->count() === 0 && $this->students()->count() === 0;
     }
 
-    // ✅ Get active gallery images count
+    // ✅ UPDATED: Use galleries relationship instead of galleryImages
     public function getActiveGalleryImagesCountAttribute()
     {
-        return $this->galleryImages()->where('is_active', true)->count();
+        return $this->galleries()->where('is_active', true)->count();
     }
 
-    // ✅ Get featured gallery images
+    // ✅ UPDATED: Use galleries relationship instead of galleryImages
     public function getFeaturedGalleryImagesAttribute()
     {
-        return $this->galleryImages()->where('is_active', true)->where('is_featured', true)->get();
+        return $this->galleries()->where('is_active', true)->where('is_featured', true)->get();
+    }
+
+    // ✅ ADDED: Get active gallery images
+    public function getActiveGalleriesAttribute()
+    {
+        return $this->galleries()->where('is_active', true)->get();
+    }
+
+    // ✅ ADDED: Get featured gallery images
+    public function getFeaturedGalleriesAttribute()
+    {
+        return $this->galleries()->where('is_active', true)->where('is_featured', true)->get();
     }
 
     // ✅ NEW: Check if hostel has any social media links

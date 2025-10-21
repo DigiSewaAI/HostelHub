@@ -21,7 +21,7 @@ class Gallery extends Model
         'is_featured',
         'is_active',
         'user_id',
-        'hostel_id' // ✅ ADDED: Make sure this exists
+        'hostel_id' // ✅ Make sure this exists
     ];
 
     protected $casts = [
@@ -88,5 +88,31 @@ class Gallery extends Model
         $pattern = '/(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/';
         preg_match($pattern, $url, $matches);
         return $matches[1] ?? null;
+    }
+
+    // ✅ ADDED: Get category name in Nepali
+    public function getCategoryNepaliAttribute(): string
+    {
+        $categories = [
+            'room' => 'कोठाका तस्बिरहरू',
+            'common_area' => 'साझा क्षेत्रहरू',
+            'facility' => 'सुविधाहरू',
+            'event' => 'कार्यक्रमहरू',
+            'other' => 'अन्य'
+        ];
+
+        return $categories[$this->category] ?? $this->category;
+    }
+
+    // ✅ ADDED: Get media type in Nepali
+    public function getMediaTypeNepaliAttribute(): string
+    {
+        $types = [
+            'image' => 'तस्बिर',
+            'video' => 'भिडियो',
+            'external_video' => 'यूट्युब भिडियो'
+        ];
+
+        return $types[$this->media_type] ?? $this->media_type;
     }
 }
