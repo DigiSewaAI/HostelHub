@@ -114,26 +114,72 @@
         </div>
 
         <!-- 🆕 PUBLIC PAGE STATUS CARD -->
-<div class="bg-white rounded-2xl shadow-sm p-6 border-l-4 border-teal-500">
-    <div class="flex justify-between items-center">
-        <div>
-            <h3 class="text-sm font-semibold text-gray-600">सार्वजनिक पृष्ठ</h3>
-            <p class="text-2xl font-bold text-gray-800">
-                @if(isset($hostel) && $hostel->getRawOriginal('is_published'))
-                    <span class="text-green-600">प्रकाशित</span>
-                @else
-                    <span class="text-amber-600">मस्यौदा</span>
-                @endif
-            </p>
-        </div>
-        <div class="bg-teal-100 p-3 rounded-xl">
-            <i class="fas fa-globe text-teal-600 text-xl"></i>
+        <div class="bg-white rounded-2xl shadow-sm p-6 border-l-4 border-teal-500">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-600">सार्वजनिक पृष्ठ</h3>
+                    <p class="text-2xl font-bold text-gray-800">
+                        @if(isset($hostel) && $hostel->getRawOriginal('is_published'))
+                            <span class="text-green-600">प्रकाशित</span>
+                        @else
+                            <span class="text-amber-600">मस्यौदा</span>
+                        @endif
+                    </p>
+                </div>
+                <div class="bg-teal-100 p-3 rounded-xl">
+                    <i class="fas fa-globe text-teal-600 text-xl"></i>
+                </div>
+            </div>
+            <a href="{{ route('owner.public-page.edit') }}" class="text-xs text-teal-600 hover:text-teal-800 font-medium mt-2 inline-block">
+                व्यवस्थापन गर्नुहोस् <i class="fas fa-arrow-circle-right ml-1"></i>
+            </a>
         </div>
     </div>
-    <a href="{{ route('owner.public-page.edit') }}" class="text-xs text-teal-600 hover:text-teal-800 font-medium mt-2 inline-block">
-        व्यवस्थापन गर्नुहोस् <i class="fas fa-arrow-circle-right ml-1"></i>
-    </a>
-</div>
+
+    <!-- Circular Engagement Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <!-- Today's Circulars -->
+        <div class="bg-white rounded-2xl shadow-sm p-6 border-l-4 border-blue-500">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-600">आजका सूचनाहरू</h3>
+                    <p class="text-2xl font-bold text-gray-800">{{ $todayCirculars ?? 0 }}</p>
+                </div>
+                <div class="bg-blue-100 p-3 rounded-xl">
+                    <i class="fas fa-bullhorn text-blue-600 text-xl"></i>
+                </div>
+            </div>
+            <p class="text-sm text-gray-600 mt-2">आज प्रकाशित सूचनाहरू</p>
+        </div>
+
+        <!-- Read Rate -->
+        <div class="bg-white rounded-2xl shadow-sm p-6 border-l-4 border-green-500">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-600">पढ्ने दर</h3>
+                    <p class="text-2xl font-bold text-gray-800">{{ $circularReadRate ?? 0 }}%</p>
+                </div>
+                <div class="bg-green-100 p-3 rounded-xl">
+                    <i class="fas fa-eye text-green-600 text-xl"></i>
+                </div>
+            </div>
+            <p class="text-sm text-gray-600 mt-2">सम्पूर्ण पढ्ने दर</p>
+        </div>
+
+        <!-- Student Engagement -->
+        <div class="bg-white rounded-2xl shadow-sm p-6 border-l-4 border-purple-500">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-600">विद्यार्थी संलग्नता</h3>
+                    <p class="text-2xl font-bold text-gray-800">{{ $studentEngagement ?? 0 }}%</p>
+                </div>
+                <div class="bg-purple-100 p-3 rounded-xl">
+                    <i class="fas fa-users text-purple-600 text-xl"></i>
+                </div>
+            </div>
+            <p class="text-sm text-gray-600 mt-2">सक्रिय विद्यार्थीहरू</p>
+        </div>
+    </div>
 
     @if(isset($hostel) && $hostel)
         <!-- Hostel Overview -->

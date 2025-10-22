@@ -16,7 +16,8 @@ use App\Http\Controllers\{
     Owner\HostelController as OwnerHostelController,
     Owner\ReviewController as OwnerReviewController,
     Owner\OwnerPublicPageController,
-    Owner\GalleryController as OwnerGalleryController, // ✅ ADDED: Owner Gallery Controller
+    Owner\GalleryController as OwnerGalleryController,
+    Owner\SettingsController as OwnerSettingsController,
     Frontend\GalleryController as FrontendGalleryController,
     Frontend\PublicContactController,
     Frontend\PublicController,
@@ -39,7 +40,9 @@ use App\Http\Controllers\{
     BookingController,
     PaymentController,
     DocumentController,
-    Admin\CircularController,
+    Admin\CircularController as AdminCircularController,
+    Owner\CircularController as OwnerCircularController,
+    Student\CircularController as StudentCircularController,
     Student\StudentReviewController
 };
 use Illuminate\Support\Facades\Route;
@@ -68,6 +71,10 @@ Route::group(['middleware' => 'web'], function () {
     // ✅ ADDED: Public hostel listing routes
     Route::get('/hostels', [PublicController::class, 'hostelsIndex'])->name('hostels.index');
     Route::get('/hostels/{slug}', [PublicController::class, 'hostelShow'])->name('hostels.show');
+
+    // ✅ ADDED: Public hostel gallery route - FIX FOR 404 ERROR
+    Route::get('/hostel/{slug}/gallery', [PublicController::class, 'hostelGallery'])->name('hostels.gallery');
+
     // ✅ ADDED: Missing hostel contact route
     Route::post('/hostels/{hostel}/contact', [PublicController::class, 'hostelContact'])->name('hostel.contact');
     // ✅ FIXED: Changed preview route to use OwnerPublicPageController
@@ -289,20 +296,30 @@ Route::middleware(['auth', 'hasOrganization', 'role:admin'])
         Route::get('/hostels/fix-room-counts', [AdminHostelController::class, 'fixRoomCounts'])->name('hostels.fix-room-counts');
         Route::post('/hostels/update-all-counts', [AdminHostelController::class, 'updateAllRoomCounts'])->name('hostels.update-all-counts');
 
-        // ✅ UPDATED: Admin Circular Routes - More organized structure
-        Route::prefix('circulars')->name('circulars.')->group(function () {
-            Route::get('/', [CircularController::class, 'index'])->name('index');
-            Route::get('/create', [CircularController::class, 'create'])->name('create');
-            Route::post('/', [CircularController::class, 'store'])->name('store');
-            Route::get('/{circular}', [CircularController::class, 'show'])->name('show');
-            Route::get('/{circular}/edit', [CircularController::class, 'edit'])->name('edit');
-            Route::put('/{circular}', [CircularController::class, 'update'])->name('update');
-            Route::delete('/{circular}', [CircularController::class, 'destroy'])->name('destroy');
-            Route::post('/{circular}/publish', [CircularController::class, 'publish'])->name('publish');
-            Route::get('/analytics', [CircularController::class, 'analytics'])->name('analytics');
-            Route::get('/{circular}/analytics', [CircularController::class, 'analytics'])->name('analytics.single');
-            Route::post('/{circular}/mark-read', [CircularController::class, 'markAsRead'])->name('mark-read');
+        // ✅ FIXED: Admin Settings Routes - COMPLETE FIX
+        Route::prefix('settings')->name('settings.')->group(function () {
+            Route::get('/', [SettingsController::class, 'index'])->name('index');
+            Route::get('/create', [SettingsController::class, 'create'])->name('create');
+            Route::post('/', [SettingsController::class, 'store'])->name('store');
+            Route::get('/{setting}', [SettingsController::class, 'show'])->name('show');
+            Route::get('/{setting}/edit', [SettingsController::class, 'edit'])->name('edit');
+            Route::put('/{setting}', [SettingsController::class, 'update'])->name('update');
+            Route::delete('/{setting}', [SettingsController::class, 'destroy'])->name('destroy');
+            Route::post('/bulk-update', [SettingsController::class, 'bulkUpdate'])->name('bulk-update');
         });
+
+        // ✅ ADDED: Direct settings route for compatibility
+        Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
+
+        // ✅ UPDATED: Admin Circular Routes - Using separate controller
+        Route::resource('circulars', AdminCircularController::class);
+        Route::post('/circulars/{circular}/publish', [AdminCircularController::class, 'publish'])->name('circulars.publish');
+        Route::get('/circulars/analytics', [AdminCircularController::class, 'analytics'])->name('circulars.analytics');
+        Route::get('/circulars/{circular}/analytics', [AdminCircularController::class, 'analytics'])->name('circulars.analytics.single');
+        Route::post('/circulars/{circular}/mark-read', [AdminCircularController::class, 'markAsRead'])->name('circulars.mark-read');
+
+        // ✅ ADDED: Circular Templates Route
+        Route::get('/circulars/templates', [AdminCircularController::class, 'templates'])->name('circulars.templates');
 
         // Payment Routes Structure
         Route::prefix('payments')->name('payments.')->group(function () {
@@ -352,11 +369,6 @@ Route::middleware(['auth', 'hasOrganization', 'role:admin'])
         // Meal Menus
         Route::resource('meal-menus', AdminMealMenuController::class)->only(['index', 'show']);
         Route::get('/meal-menus/search', [AdminMealMenuController::class, 'search'])->name('meal-menus.search');
-
-        // Settings routes
-        Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
-        Route::resource('settings', SettingsController::class)->except(['index']);
-        Route::post('settings/bulk-update', [SettingsController::class, 'bulkUpdate'])->name('settings.bulk-update');
     });
 
 /*|--------------------------------------------------------------------------
@@ -410,12 +422,10 @@ Route::middleware(['auth', 'role:student'])->prefix('student')->name('student.')
     // Student profile update
     Route::patch('/profile/update', [StudentController::class, 'updateProfile'])->name('profile.update');
 
-    // ✅ UPDATED: Student Circular Routes - More consistent naming
-    Route::prefix('circulars')->name('circulars.')->group(function () {
-        Route::get('/', [CircularController::class, 'studentIndex'])->name('index');
-        Route::get('/{circular}', [CircularController::class, 'studentShow'])->name('show');
-        Route::post('/{circular}/mark-read', [CircularController::class, 'markAsRead'])->name('mark-read');
-    });
+    // ✅ UPDATED: Student Circular Routes - Using separate controller
+    Route::get('/circulars', [StudentCircularController::class, 'index'])->name('circulars.index');
+    Route::get('/circulars/{circular}', [StudentCircularController::class, 'show'])->name('circulars.show');
+    Route::post('/circulars/{circular}/mark-read', [StudentCircularController::class, 'markAsRead'])->name('circulars.mark-read');
 
     // ✅ ADDED: New student routes as requested - WITH COMPATIBILITY
     Route::get('/gallery', [StudentController::class, 'gallery'])->name('gallery');
@@ -436,6 +446,22 @@ Route::middleware(['auth', 'hasOrganization', 'role:owner,hostel_manager'])
         // Owner dashboard - NOW WITH PROPER ACCESS
         Route::get('/dashboard', [DashboardController::class, 'ownerDashboard'])->name('dashboard');
 
+        // 🔥 CRITICAL FIX: Owner Settings Routes - CORRECTED AND COMPLETE
+        Route::get('/settings', [OwnerSettingsController::class, 'index'])->name('settings');
+
+        // ✅ ADDED: Complete settings routes for owner
+        Route::prefix('settings')->name('settings.')->group(function () {
+            Route::get('/', [OwnerSettingsController::class, 'index'])->name('index');
+            Route::post('/general', [OwnerSettingsController::class, 'updateGeneral'])->name('general.update');
+            Route::post('/payment', [OwnerSettingsController::class, 'updatePayment'])->name('payment.update');
+            Route::post('/notification', [OwnerSettingsController::class, 'updateNotification'])->name('notification.update');
+            Route::post('/security', [OwnerSettingsController::class, 'updateSecurity'])->name('security.update');
+        });
+
+        // ✅ ADDED: Owner profile routes to fix the missing route error
+        Route::get('/profile', [PublicProfileController::class, 'edit'])->name('profile');
+        Route::patch('/profile', [PublicProfileController::class, 'update'])->name('profile.update');
+
         // ✅ FIXED: Owner Public Page Management Routes - SINGLE ROUTE GROUP (duplicate removed)
         Route::prefix('public-page')->name('public-page.')->group(function () {
             Route::get('/edit', [OwnerPublicPageController::class, 'edit'])->name('edit');
@@ -444,19 +470,24 @@ Route::middleware(['auth', 'hasOrganization', 'role:owner,hostel_manager'])
             Route::post('/unpublish', [OwnerPublicPageController::class, 'unpublish'])->name('unpublish');
         });
 
-        // ✅ UPDATED: Owner Gallery Routes - Using OwnerGalleryController with proper methods
+        // ✅ CORRECTED: Owner Gallery Routes - Fixed resource routing structure
         Route::prefix('galleries')->name('galleries.')->group(function () {
-            Route::resource('/', OwnerGalleryController::class)->names([
-                'index' => 'index',
-                'create' => 'create',
-                'store' => 'store',
-                'show' => 'show',
-                'edit' => 'edit',
-                'update' => 'update',
-                'destroy' => 'destroy'
-            ]);
-            Route::patch('/{gallery}/toggle-featured', [OwnerGalleryController::class, 'toggleFeatured'])->name('toggle-featured');
-            Route::patch('/{gallery}/toggle-active', [OwnerGalleryController::class, 'toggleActive'])->name('toggle-active');
+            // ✅ FIXED: Proper resource routing without conflicting names
+            Route::get('/', [OwnerGalleryController::class, 'index'])->name('index');
+            Route::get('/create', [OwnerGalleryController::class, 'create'])->name('create');
+            Route::post('/', [OwnerGalleryController::class, 'store'])->name('store');
+            Route::get('/{gallery}', [OwnerGalleryController::class, 'show'])->name('show');
+            Route::get('/{gallery}/edit', [OwnerGalleryController::class, 'edit'])->name('edit');
+            Route::put('/{gallery}', [OwnerGalleryController::class, 'update'])->name('update');
+            Route::delete('/{gallery}', [OwnerGalleryController::class, 'destroy'])->name('destroy');
+
+            // ✅ FIXED: Feature toggle routes - Changed to POST for consistency
+            Route::post('/{gallery}/toggle-featured', [OwnerGalleryController::class, 'toggleFeatured'])->name('toggle-featured');
+            Route::post('/{gallery}/toggle-active', [OwnerGalleryController::class, 'toggleActive'])->name('toggle-active');
+            Route::post('/{gallery}/toggle-status', [OwnerGalleryController::class, 'toggleStatus'])->name('toggle-status');
+
+            // ✅ FIXED: Video URL route for gallery video playback
+            Route::get('/{gallery}/video', [OwnerGalleryController::class, 'getVideoUrl'])->name('video-url');
         });
 
         // Owner Payment Management Routes (Using Frontend PaymentController)
@@ -466,20 +497,12 @@ Route::middleware(['auth', 'hasOrganization', 'role:owner,hostel_manager'])
         Route::post('/payments/{payment}/reject', [PaymentController::class, 'rejectBankTransfer'])->name('payments.reject');
         Route::get('/payments/{payment}/proof', [PaymentController::class, 'viewProof'])->name('payments.proof');
 
-        // ✅ UPDATED: Owner Circular Routes - More organized structure
-        Route::prefix('circulars')->name('circulars.')->group(function () {
-            Route::get('/', [CircularController::class, 'index'])->name('index');
-            Route::get('/create', [CircularController::class, 'create'])->name('create');
-            Route::post('/', [CircularController::class, 'store'])->name('store');
-            Route::get('/{circular}', [CircularController::class, 'show'])->name('show');
-            Route::get('/{circular}/edit', [CircularController::class, 'edit'])->name('edit');
-            Route::put('/{circular}', [CircularController::class, 'update'])->name('update');
-            Route::delete('/{circular}', [CircularController::class, 'destroy'])->name('destroy');
-            Route::post('/{circular}/publish', [CircularController::class, 'publish'])->name('publish');
-            Route::get('/analytics', [CircularController::class, 'analytics'])->name('analytics');
-            Route::get('/{circular}/analytics', [CircularController::class, 'analytics'])->name('analytics.single');
-            Route::post('/{circular}/mark-read', [CircularController::class, 'markAsRead'])->name('mark-read');
-        });
+        // ✅ UPDATED: Owner Circular Routes - Using separate controller
+        Route::resource('circulars', OwnerCircularController::class);
+        Route::post('/circulars/{circular}/publish', [OwnerCircularController::class, 'publish'])->name('circulars.publish');
+        Route::get('/circulars/analytics', [OwnerCircularController::class, 'analytics'])->name('circulars.analytics');
+        Route::get('/circulars/{circular}/analytics', [OwnerCircularController::class, 'analytics'])->name('circulars.analytics.single');
+        Route::post('/circulars/{circular}/mark-read', [OwnerCircularController::class, 'markAsRead'])->name('circulars.mark-read');
 
         // ✅ ADDED: Owner Document Management Routes
         Route::prefix('documents')->name('documents.')->group(function () {
@@ -808,6 +831,102 @@ if (app()->environment('local')) {
             'cache_key' => 'admin_dashboard_metrics_' . $userId
         ];
     })->middleware('auth');
+
+    // ✅ UPDATED: Debug route for gallery testing with column fix
+    Route::get('/debug-gallery/{slug}', function ($slug) {
+        // Check what columns exist in galleries table
+        $columns = \DB::getSchemaBuilder()->getColumnListing('galleries');
+
+        $hostel = \App\Models\Hostel::with(['galleries' => function ($query) use ($columns) {
+            // Check which status column exists
+            if (in_array('is_active', $columns)) {
+                $query->where('is_active', true);
+            } else if (in_array('status', $columns)) {
+                $query->where('status', 'active');
+            }
+            // If neither exists, get all galleries
+        }])->where('slug', $slug)->first();
+
+        if (!$hostel) {
+            return "Hostel not found with slug: {$slug}";
+        }
+
+        return [
+            'galleries_table_columns' => $columns,
+            'hostel' => [
+                'id' => $hostel->id,
+                'name' => $hostel->name,
+                'slug' => $hostel->slug,
+                'is_published' => $hostel->is_published,
+            ],
+            'galleries' => $hostel->galleries->map(function ($gallery) {
+                return [
+                    'id' => $gallery->id,
+                    'title' => $gallery->title,
+                    'media_type' => $gallery->media_type,
+                    'file_path' => $gallery->file_path,
+                    'external_link' => $gallery->external_link,
+                    'category' => $gallery->category,
+                    'is_active' => $gallery->is_active ?? 'N/A',
+                    'status' => $gallery->status ?? 'N/A',
+                ];
+            }),
+            'gallery_count' => $hostel->galleries->count(),
+            'route_exists' => \Route::has('hostels.gallery'),
+            'route_url' => route('hostels.gallery', $slug),
+        ];
+    }); // ← THIS closing bracket was missing!
+
+    // ✅ ADDED: Temporary route to publish hostel for testing
+    Route::get('/publish-hostel/{slug}', function ($slug) {
+        $hostel = \App\Models\Hostel::where('slug', $slug)->first();
+
+        if (!$hostel) {
+            return "Hostel not found with slug: {$slug}";
+        }
+
+        $hostel->update(['is_published' => true]);
+
+        return [
+            'message' => "Hostel '{$hostel->name}' has been published!",
+            'hostel' => [
+                'id' => $hostel->id,
+                'name' => $hostel->name,
+                'slug' => $hostel->slug,
+                'is_published' => $hostel->is_published
+            ],
+            'gallery_url' => route('hostels.gallery', $slug)
+        ];
+    });
+
+    // ✅ ADDED: Debug view path
+    Route::get('/debug-view-path', function () {
+        $viewPaths = [
+            'public.hostels.gallery' => view()->exists('public.hostels.gallery'),
+            'frontend.hostels.gallery' => view()->exists('frontend.hostels.gallery'),
+            'public.hostels.gallery.blade' => view()->exists('public.hostels.gallery.blade'),
+        ];
+
+        return [
+            'view_exists' => $viewPaths,
+            'views_directory' => base_path('resources/views'),
+            'public_hostels_path' => is_dir(base_path('resources/views/public/hostels')) ? 'Exists' : 'Not found',
+            'gallery_file' => file_exists(base_path('resources/views/public/hostels/gallery.blade.php')) ? 'Exists' : 'Not found'
+        ];
+    });
+
+    // ✅ ADDED: Check gallery table structure
+    Route::get('/check-gallery-structure', function () {
+        $columns = \DB::getSchemaBuilder()->getColumnListing('galleries');
+
+        $sampleGallery = \App\Models\Gallery::first();
+
+        return [
+            'columns_in_galleries_table' => $columns,
+            'sample_gallery' => $sampleGallery ? $sampleGallery->toArray() : 'No galleries found',
+            'total_galleries' => \App\Models\Gallery::count()
+        ];
+    });
 
     // ✅ TEMPORARY TEST ROUTE - COMPLETELY OPEN
     Route::post('/test-hostel-update/{id}', function (Request $request, $id) {

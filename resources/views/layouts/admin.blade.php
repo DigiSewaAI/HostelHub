@@ -388,11 +388,20 @@
                     <i class="fas fa-file-alt sidebar-icon"></i>
                     <span class="sidebar-text" x-show="!sidebarCollapsed">कागजातहरू</span>
                 </a>
+
+                <!-- Circulars -->
+                <a href="{{ route('admin.circulars.index') }}"
+                   class="sidebar-link {{ request()->routeIs('admin.circulars.*') ? 'active' : '' }}"
+                   aria-current="{{ request()->routeIs('admin.circulars.*') ? 'page' : 'false' }}">
+                    <i class="fas fa-bullhorn sidebar-icon"></i>
+                    <span class="sidebar-text" x-show="!sidebarCollapsed">सूचनाहरू</span>
+                </a>
                 
                 <!-- Settings -->
-                <a href="{{ route('admin.settings') }}"
-                   class="sidebar-link {{ request()->routeIs('admin.settings') ? 'active' : '' }}"
-                   aria-current="{{ request()->routeIs('admin.settings') ? 'page' : 'false' }}">
+                <!-- 🔥 CRITICAL FIX: Changed route from admin.settings to admin.settings.index -->
+                <a href="{{ route('admin.settings.index') }}"
+                   class="sidebar-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}"
+                   aria-current="{{ request()->routeIs('admin.settings.*') ? 'page' : 'false' }}">
                     <i class="fas fa-cogs sidebar-icon"></i>
                     <span class="sidebar-text" x-show="!sidebarCollapsed">सेटिङ्हरू</span>
                 </a>
@@ -499,7 +508,7 @@
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end shadow dark:bg-gray-700">
                                     <li><a class="dropdown-item nepali dark:text-white dark:hover:bg-gray-600" href="#"><i class="fas fa-user me-2"></i>मेरो प्रोफाइल</a></li>
-                                    <li><a class="dropdown-item nepali dark:text-white dark:hover:bg-gray-600" href="#"><i class="fas fa-cog me-2"></i>सेटिङ्हरू</a></li>
+                                    <li><a class="dropdown-item nepali dark:text-white dark:hover:bg-gray-600" href="{{ route('admin.settings.index') }}"><i class="fas fa-cog me-2"></i>सेटिङ्हरू</a></li>
                                     <li><hr class="dropdown-divider dark:border-gray-600"></li>
                                     <li>
                                         <form method="POST" action="{{ route('logout') }}" id="logout-form-top">

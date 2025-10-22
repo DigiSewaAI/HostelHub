@@ -93,6 +93,52 @@
         </div>
     </div>
 
+    <!-- Unread Circulars Alert -->
+    @if(($unreadCirculars ?? 0) > 0)
+    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded">
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                <i class="fas fa-bell text-yellow-400 text-2xl"></i>
+            </div>
+            <div class="ml-3 flex-1">
+                <h3 class="text-sm font-semibold text-yellow-800">
+                    तपाईंसँग {{ $unreadCirculars }} वटा नपढिएका सूचनाहरू छन्!
+                </h3>
+                <p class="text-sm text-yellow-700 mt-1">
+                    कृपया तपाईंको सूचना बाकसमा जाँच गर्नुहोस्।
+                </p>
+            </div>
+            <a href="{{ route('student.circulars.index') }}" 
+               class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                हेर्नुहोस्
+            </a>
+        </div>
+    </div>
+    @endif
+
+    <!-- Urgent Circulars Alert -->
+    @if($urgentCirculars && $urgentCirculars->count() > 0)
+    <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-6 rounded">
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                <i class="fas fa-exclamation-triangle text-red-400 text-2xl"></i>
+            </div>
+            <div class="ml-3 flex-1">
+                <h3 class="text-sm font-semibold text-red-800">
+                    तपाईंसँग {{ $urgentCirculars->count() }} वटा जरुरी सूचनाहरू छन्!
+                </h3>
+                <p class="text-sm text-red-700 mt-1">
+                    कृपया तुरुन्तै यी जरुरी सूचनाहरू पढ्नुहोस्।
+                </p>
+            </div>
+            <a href="{{ route('student.circulars.index', ['priority' => 'urgent']) }}" 
+               class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                हेर्नुहोस्
+            </a>
+        </div>
+    </div>
+    @endif
+
     <!-- Quick Stats -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-200">

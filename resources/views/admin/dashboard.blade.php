@@ -110,6 +110,102 @@
         </div>
     </div>
 
+    <!-- Circular Statistics Section -->
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+        <!-- Total Circulars Card -->
+        <div class="stat-card bg-gradient-to-r from-indigo-50 to-indigo-100 border-l-4 border-indigo-500 p-5 rounded-lg shadow-sm card-hover">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h3 class="text-lg font-bold text-gray-800">कुल सूचनाहरू</h3>
+                    <p class="text-3xl font-bold mt-2 text-gray-900">{{ number_format($totalCirculars ?? 0) }}</p>
+                </div>
+                <div class="bg-indigo-500 text-white p-3 rounded-lg">
+                    <i class="fas fa-bullhorn text-xl"></i>
+                </div>
+            </div>
+            <p class="text-sm text-gray-600 mt-3">कुल प्रकाशित सूचनाहरू</p>
+            <a href="{{ route('admin.circulars.index') }}" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium mt-2 inline-block">
+                सबै हेर्नुहोस् <i class="fas fa-arrow-circle-right ml-1"></i>
+            </a>
+        </div>
+        
+        <!-- Published Circulars -->
+        <div class="stat-card bg-gradient-to-r from-green-50 to-green-100 border-l-4 border-green-500 p-5 rounded-lg shadow-sm card-hover">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h3 class="text-lg font-bold text-gray-800">प्रकाशित</h3>
+                    <p class="text-3xl font-bold mt-2 text-gray-900">{{ number_format($publishedCirculars ?? 0) }}</p>
+                </div>
+                <div class="bg-green-500 text-white p-3 rounded-lg">
+                    <i class="fas fa-paper-plane text-xl"></i>
+                </div>
+            </div>
+            <p class="text-sm text-gray-600 mt-3">सक्रिय सूचनाहरू</p>
+        </div>
+        
+        <!-- Urgent Circulars -->
+        <div class="stat-card bg-gradient-to-r from-red-50 to-red-100 border-l-4 border-red-500 p-5 rounded-lg shadow-sm card-hover">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h3 class="text-lg font-bold text-gray-800">जरुरी</h3>
+                    <p class="text-3xl font-bold mt-2 text-gray-900">{{ number_format($urgentCirculars ?? 0) }}</p>
+                </div>
+                <div class="bg-red-500 text-white p-3 rounded-lg">
+                    <i class="fas fa-exclamation-triangle text-xl"></i>
+                </div>
+            </div>
+            <p class="text-sm text-gray-600 mt-3">जरुरी प्राथमिकताका</p>
+        </div>
+        
+        <!-- Read Rate -->
+        <div class="stat-card bg-gradient-to-r from-blue-50 to-blue-100 border-l-4 border-blue-500 p-5 rounded-lg shadow-sm card-hover">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h3 class="text-lg font-bold text-gray-800">पढ्ने दर</h3>
+                    <p class="text-3xl font-bold mt-2 text-gray-900">{{ $circularReadRate ?? 0 }}%</p>
+                </div>
+                <div class="bg-blue-500 text-white p-3 rounded-lg">
+                    <i class="fas fa-eye text-xl"></i>
+                </div>
+            </div>
+            <p class="text-sm text-gray-600 mt-3">सम्पूर्ण पढ्ने दर</p>
+        </div>
+    </div>
+
+    <!-- Quick Circular Actions -->
+    <div class="bg-white rounded-2xl shadow-sm p-6 mb-6">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">सूचना कार्यहरू</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <a href="{{ route('admin.circulars.create') }}" class="p-4 bg-indigo-50 hover:bg-indigo-100 rounded-lg text-center transition-colors group border border-indigo-100">
+                <div class="text-indigo-600 text-2xl mb-2 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-plus-circle"></i>
+                </div>
+                <div class="font-medium text-indigo-800">नयाँ सूचना</div>
+            </a>
+            
+            <a href="{{ route('admin.circulars.index') }}" class="p-4 bg-green-50 hover:bg-green-100 rounded-lg text-center transition-colors group border border-green-100">
+                <div class="text-green-600 text-2xl mb-2 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-list"></i>
+                </div>
+                <div class="font-medium text-green-800">सबै सूचनाहरू</div>
+            </a>
+            
+            <a href="{{ route('admin.circulars.analytics') }}" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg text-center transition-colors group border border-blue-100">
+                <div class="text-blue-600 text-2xl mb-2 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <div class="font-medium text-blue-800">विश्लेषण</div>
+            </a>
+            
+            <a href="{{ route('admin.circulars.templates') }}" class="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg text-center transition-colors group border border-purple-100">
+                <div class="text-purple-600 text-2xl mb-2 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-stamp"></i>
+                </div>
+                <div class="font-medium text-purple-800">टेम्प्लेटहरू</div>
+            </a>
+        </div>
+    </div>
+
     <!-- Room Status Overview -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <div class="bg-blue-50 p-4 rounded-2xl text-center hover:bg-blue-100 transition-colors border border-blue-100">
@@ -398,7 +494,7 @@
                     <div class="font-medium text-blue-800">सम्पर्कहरू हेर्नुहोस्</div>
                 </a>
 
-                <a href="{{ route('admin.settings') }}" class="p-4 bg-gray-50 hover:bg-gray-100 rounded-lg text-center transition-colors group">
+                <a href="{{ route('admin.settings.index') }}" class="p-4 bg-gray-50 hover:bg-gray-100 rounded-lg text-center transition-colors group">
                     <div class="text-gray-600 text-2xl mb-2 group-hover:scale-110 transition-transform">
                         <i class="fas fa-cog"></i>
                     </div>

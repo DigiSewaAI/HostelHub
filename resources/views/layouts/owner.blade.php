@@ -199,14 +199,13 @@
 
         /* Main content area - FIXED */
         .main-content-area {
-    margin-left: var(--sidebar-width);
-    width: calc(100% - var(--sidebar-width));
-    transition: all var(--transition-speed);
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto; /* Add scrolling if content overflows */
-}
+            margin-left: var(--sidebar-width);
+            width: calc(100% - var(--sidebar-width));
+            transition: all var(--transition-speed);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
 
         .sidebar.collapsed ~ .main-content-area {
             margin-left: var(--sidebar-collapsed-width);
@@ -355,6 +354,14 @@
                     <i class="fas fa-globe sidebar-icon"></i>
                     <span class="sidebar-text">सार्वजनिक पृष्ठ</span>
                 </a>
+
+                <!-- Circulars -->
+                <a href="{{ route('owner.circulars.index') }}"
+                   class="sidebar-link {{ request()->routeIs('owner.circulars.*') ? 'active' : '' }}"
+                   aria-current="{{ request()->routeIs('owner.circulars.*') ? 'page' : 'false' }}">
+                    <i class="fas fa-bullhorn sidebar-icon"></i>
+                    <span class="sidebar-text">सूचनाहरू</span>
+                </a>
                 
                 <!-- Logout Section -->
                 <div class="mt-auto pt-4 border-t border-blue-700">
@@ -430,194 +437,207 @@
                                     </div>
                                 </a>
                                 <div class="px-4 py-2 border-t border-gray-200 text-center">
-                                    <a href="#" class="text-indigo-600 text-sm hover:underline">सबै सूचनाहरू हेर्नुहोस्</a>
+                                    <a href="#" class="text-sm text-blue-600 hover:text-blue-800 font-medium">सबै सूचनाहरू हेर्नुहोस्</a>
                                 </div>
                             </div>
                         </div>
                         
-                        <!-- User Dropdown -->
-                        <div class="d-flex align-items-center user-dropdown">
-                            <span class="text-white me-3 d-none d-sm-inline">{{ auth()->user()->name }}</span>
-                            <div class="dropdown">
-                                <button class="btn btn-outline-light dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="fas fa-user-circle me-1"></i>
-                                    <span>मालिक</span>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end shadow">
-                                    <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>मेरो प्रोफाइल</a></li>
-                                    <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>सेटिङ्हरू</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li>
-                                        <form method="POST" action="{{ route('logout') }}" id="logout-form-top">
-                                            @csrf
-                                            <button type="submit" class="dropdown-item" style="border: none; background: none; width: 100%; text-align: left;">
-                                                <i class="fas fa-sign-out-alt me-2"></i>लगआउट
-                                            </button>
-                                        </form>
-                                    </li>
-                                </ul>
-                            </div>
+                        <!-- User Profile Dropdown -->
+                        <div class="dropdown user-dropdown">
+                            <button class="btn btn-outline-light dropdown-toggle d-flex align-items-center" 
+                                    type="button" 
+                                    id="userDropdown" 
+                                    data-bs-toggle="dropdown" 
+                                    aria-expanded="false"
+                                    aria-label="प्रयोगकर्ता मेनु">
+                                <i class="fas fa-user-circle me-2"></i>
+                                <span class="d-none d-md-inline">{{ Auth::user()->name ?? 'प्रयोगकर्ता' }}</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-lg rounded-xl border-0 py-2" aria-labelledby="userDropdown">
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center" href="{{ route('owner.profile') }}">
+                                        <i class="fas fa-user me-2"></i>प्रोफाइल
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center" href="{{ route('owner.dashboard') }}">
+                                        <i class="fas fa-cog me-2"></i>सेटिङहरू
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form method="POST" action="{{ route('logout') }}" class="mb-0">
+                                        @csrf
+                                        <button type="submit" class="dropdown-item d-flex align-items-center text-danger">
+                                            <i class="fas fa-sign-out-alt me-2"></i>लगआउट
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
                         </div>
                     </div>
                 </div>
             </header>
 
             <!-- Main Content Container -->
-            <div class="main-content-container flex-1">
+            <div class="main-content-container">
                 <!-- Page Content -->
-                <main id="main-content" class="page-content bg-gray-50 flex-1">
-                    <div class="max-w-7xl mx-auto h-full">
-                        <!-- ✅ FIXED: Removed duplicate page header section -->
-                        <!-- Session Messages -->
-                        @if (session('success'))
-                            <div class="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg flex items-center">
-                                <i class="fas fa-check-circle mr-2"></i>
-                                <span>{{ session('success') }}</span>
+                <main id="main-content" class="page-content">
+                    <!-- Flash Messages -->
+                    @if(session('success'))
+                        <div class="alert alert-success alert-dismissible fade show mb-4 rounded-xl" role="alert">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-check-circle me-2"></i>
+                                <strong class="nepali">{{ session('success') }}</strong>
                             </div>
-                        @endif
-                        
-                        @if (session('error'))
-                            <div class="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg flex items-center">
-                                <i class="fas fa-exclamation-circle mr-2"></i>
-                                <span>{{ session('error') }}</span>
-                            </div>
-                        @endif
-                        
-                        @if ($errors->any())
-                            <div class="mb-6 p-4 bg-yellow-50 border border-yellow-200 text-yellow-700 rounded-lg">
-                                <div class="flex items-center mb-2">
-                                    <i class="fas fa-exclamation-triangle mr-2"></i>
-                                    <strong class="font-medium">त्रुटिहरू पत्ता लाग्यो:</strong>
-                                </div>
-                                <ul class="list-disc pl-5 space-y-1">
-                                    @foreach ($errors->all() as $error)
-                                        <li>{{ $error }}</li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        @endif
-                        
-                        <!-- Page Content -->
-                        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
-                            @yield('content')
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
-                    </div>
+                    @endif
+
+                    @if(session('error'))
+                        <div class="alert alert-danger alert-dismissible fade show mb-4 rounded-xl" role="alert">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-exclamation-circle me-2"></i>
+                                <strong class="nepali">{{ session('error') }}</strong>
+                            </div>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    @endif
+
+                    <!-- Page Content -->
+                    @yield('content')
                 </main>
-                
-                <!-- Footer -->
-                <footer class="bg-white border-t border-gray-200 py-4 mt-auto">
-                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div class="flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
-                            <p class="mb-2 md:mb-0">&copy; {{ date('Y') }} HostelHub. सबै अधिकार सुरक्षित।</p>
-                            <div class="flex space-x-4">
-                                <a href="#" class="hover:text-gray-700">गोपनीयता नीति</a>
-                                <a href="#" class="hover:text-gray-700">सेवा सर्तहरू</a>
-                                <span>संस्करण: 1.0.0</span>
-                            </div>
-                        </div>
-                    </div>
-                </footer>
             </div>
         </div>
     </div>
-    
-    <!-- Mobile Sidebar Overlay -->
-    <div id="sidebar-overlay" class="sidebar-overlay hidden lg:hidden" aria-hidden="true"></div>
-    
-    <!-- Scripts -->
-    @stack('scripts')
+
+    <!-- Bootstrap Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Custom JavaScript -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Sidebar functionality
+            // Sidebar collapse functionality
             const sidebar = document.getElementById('sidebar');
             const sidebarCollapse = document.getElementById('sidebar-collapse');
             const mobileSidebarToggle = document.getElementById('mobile-sidebar-toggle');
-            const sidebarOverlay = document.getElementById('sidebar-overlay');
+            const mainContentArea = document.querySelector('.main-content-area');
             
-            // Collapse/Expand sidebar
+            // Desktop sidebar collapse
             if (sidebarCollapse) {
                 sidebarCollapse.addEventListener('click', function() {
                     sidebar.classList.toggle('collapsed');
+                    
+                    // Update aria-expanded
                     const isCollapsed = sidebar.classList.contains('collapsed');
-                    localStorage.setItem('sidebarCollapsed', isCollapsed);
+                    this.setAttribute('aria-expanded', !isCollapsed);
+                    this.setAttribute('aria-label', isCollapsed ? 
+                        'साइडबार विस्तार गर्नुहोस्' : 'साइडबार सङ्कुचित गर्नुहोस्');
                 });
             }
             
             // Mobile sidebar toggle
             if (mobileSidebarToggle) {
                 mobileSidebarToggle.addEventListener('click', function() {
-                    sidebar.classList.add('mobile-open');
-                    sidebarOverlay.classList.remove('hidden');
-                    document.body.style.overflow = 'hidden';
-                });
-            }
-            
-            // Close mobile sidebar
-            if (sidebarOverlay) {
-                sidebarOverlay.addEventListener('click', function() {
-                    sidebar.classList.remove('mobile-open');
-                    sidebarOverlay.classList.add('hidden');
-                    document.body.style.overflow = 'auto';
-                });
-            }
-            
-            // Close mobile sidebar when clicking on a link
-            const sidebarLinks = document.querySelectorAll('.sidebar-link');
-            sidebarLinks.forEach(link => {
-                link.addEventListener('click', function() {
-                    if (window.innerWidth < 1024) {
-                        sidebar.classList.remove('mobile-open');
-                        sidebarOverlay.classList.add('hidden');
-                        document.body.style.overflow = 'auto';
-                    }
-                });
-            });
-            
-            // Check saved state
-            if (localStorage.getItem('sidebarCollapsed') === 'true') {
-                sidebar.classList.add('collapsed');
-            }
-            
-            // Logout confirmation
-            const logoutForms = document.querySelectorAll('#logout-form, #logout-form-top');
-            logoutForms.forEach(form => {
-                form.addEventListener('submit', function(e) {
-                    if (!confirm('के तपाईं निश्चित रूपमा लगआउट गर्न चाहनुहुन्छ?')) {
-                        e.preventDefault();
-                    }
-                });
-            });
-
-            // Close dropdowns when clicking outside
-            document.addEventListener('click', function(event) {
-                const dropdowns = document.querySelectorAll('.dropdown');
-                dropdowns.forEach(dropdown => {
-                    if (!dropdown.contains(event.target)) {
-                        const dropdownMenu = dropdown.querySelector('.dropdown-menu');
-                        if (dropdownMenu && dropdownMenu.classList.contains('show')) {
-                            const dropdownToggle = dropdown.querySelector('.dropdown-toggle');
-                            if (dropdownToggle) {
-                                bootstrap.Dropdown.getInstance(dropdownToggle)?.hide();
-                            }
+                    sidebar.classList.toggle('mobile-open');
+                    
+                    // Create overlay when mobile sidebar opens
+                    if (sidebar.classList.contains('mobile-open')) {
+                        const overlay = document.createElement('div');
+                        overlay.className = 'sidebar-overlay';
+                        overlay.addEventListener('click', function() {
+                            sidebar.classList.remove('mobile-open');
+                            document.body.removeChild(overlay);
+                        });
+                        document.body.appendChild(overlay);
+                    } else {
+                        const overlay = document.querySelector('.sidebar-overlay');
+                        if (overlay) {
+                            document.body.removeChild(overlay);
                         }
                     }
+                    
+                    // Update aria-expanded
+                    const isOpen = sidebar.classList.contains('mobile-open');
+                    this.setAttribute('aria-expanded', isOpen);
+                    this.setAttribute('aria-label', isOpen ? 
+                        'मोबाइल साइडबार बन्द गर्नुहोस्' : 'मोबाइल साइडबार खोल्नुहोस्');
                 });
+            }
+            
+            // Initialize tooltips
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+            
+            // Auto-dismiss alerts after 5 seconds
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                setTimeout(function() {
+                    if (alert && alert.classList.contains('show')) {
+                        const bsAlert = new bootstrap.Alert(alert);
+                        bsAlert.close();
+                    }
+                }, 5000);
+            });
+            
+            // Add smooth scrolling for skip link
+            const skipLink = document.querySelector('.skip-link');
+            const mainContent = document.getElementById('main-content');
+            
+            if (skipLink && mainContent) {
+                skipLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    mainContent.scrollIntoView({ behavior: 'smooth' });
+                    mainContent.setAttribute('tabindex', '-1');
+                    mainContent.focus();
+                });
+            }
+            
+            // Keyboard navigation improvements
+            document.addEventListener('keydown', function(e) {
+                // Close dropdowns on Escape
+                if (e.key === 'Escape') {
+                    const openDropdowns = document.querySelectorAll('.dropdown-menu.show');
+                    openDropdowns.forEach(function(dropdown) {
+                        const dropdownInstance = bootstrap.Dropdown.getInstance(dropdown.previousElementSibling);
+                        if (dropdownInstance) {
+                            dropdownInstance.hide();
+                        }
+                    });
+                    
+                    // Close mobile sidebar
+                    if (sidebar && sidebar.classList.contains('mobile-open')) {
+                        sidebar.classList.remove('mobile-open');
+                        const overlay = document.querySelector('.sidebar-overlay');
+                        if (overlay) {
+                            document.body.removeChild(overlay);
+                        }
+                    }
+                }
             });
         });
-
+        
         // Handle window resize
         window.addEventListener('resize', function() {
             const sidebar = document.getElementById('sidebar');
-            const sidebarOverlay = document.getElementById('sidebar-overlay');
             
-            if (window.innerWidth >= 1024) {
+            // Close mobile sidebar on desktop
+            if (window.innerWidth >= 1024 && sidebar) {
                 sidebar.classList.remove('mobile-open');
-                sidebarOverlay.classList.add('hidden');
-                document.body.style.overflow = 'auto';
+                const overlay = document.querySelector('.sidebar-overlay');
+                if (overlay) {
+                    document.body.removeChild(overlay);
+                }
             }
         });
     </script>
+    
+    <!-- Page-specific JavaScript -->
+    @stack('scripts')
 </body>
 </html>

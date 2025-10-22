@@ -12,10 +12,25 @@
         </a>
     </div>
 
-    <form action="{{ route('owner.galleries.update', $gallery) }}" method="POST">
+    <form action="{{ route('owner.galleries.update', $gallery) }}" method="POST" enctype="multipart/form-data">
         @csrf
         @method('PUT')
         
+        <!-- Error Messages -->
+        @if($errors->any())
+        <div class="mb-6 bg-red-50 border border-red-200 rounded-xl p-4">
+            <div class="flex items-center mb-2">
+                <i class="fas fa-exclamation-triangle text-red-600 mr-2"></i>
+                <h3 class="text-red-800 font-semibold nepali">तपाईंको फारममा त्रुटिहरू छन्</h3>
+            </div>
+            <ul class="list-disc list-inside text-red-700 text-sm">
+                @foreach($errors->all() as $error)
+                <li class="nepali">{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+        @endif
+
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- Left Column -->
             <div class="space-y-6">
@@ -30,6 +45,9 @@
                                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                                    value="{{ old('title', $gallery->title) }}"
                                    placeholder="ग्यालरीको शीर्षक लेख्नुहोस्">
+                            @error('title')
+                                <p class="text-red-600 text-xs mt-1 nepali">{{ $message }}</p>
+                            @enderror
                         </div>
 
                         <div>
@@ -37,18 +55,80 @@
                             <textarea name="description" id="description" rows="3"
                                       class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                                       placeholder="ग्यालरीको छोटो विवरण लेख्नुहोस्">{{ old('description', $gallery->description) }}</textarea>
+                            @error('description')
+                                <p class="text-red-600 text-xs mt-1 nepali">{{ $message }}</p>
+                            @enderror
                         </div>
 
                         <div>
                             <label for="category" class="block text-sm font-medium text-gray-700 mb-2 nepali">श्रेणी *</label>
                             <select name="category" id="category" required
                                     class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
-                                <option value="room" {{ $gallery->category == 'room' ? 'selected' : '' }}>कोठाका तस्बिरहरू</option>
-                                <option value="common_area" {{ $gallery->category == 'common_area' ? 'selected' : '' }}>साझा क्षेत्रहरू</option>
-                                <option value="facility" {{ $gallery->category == 'facility' ? 'selected' : '' }}>सुविधाहरू</option>
-                                <option value="event" {{ $gallery->category == 'event' ? 'selected' : '' }}>कार्यक्रमहरू</option>
-                                <option value="other" {{ $gallery->category == 'other' ? 'selected' : '' }}>अन्य</option>
+                                <option value="">श्रेणी छान्नुहोस्</option>
+                                @foreach($categories as $key => $value)
+                                    <option value="{{ $key }}" {{ old('category', $gallery->category) == $key ? 'selected' : '' }}>{{ $value }}</option>
+                                @endforeach
                             </select>
+                            @error('category')
+                                <p class="text-red-600 text-xs mt-1 nepali">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Media Settings -->
+                <div class="bg-gray-50 p-6 rounded-xl border border-gray-200">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-4 nepali">मिडिया सेटिङहरू</h2>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label for="media_type" class="block text-sm font-medium text-gray-700 mb-2 nepali">मिडिया प्रकार *</label>
+                            <select name="media_type" id="media_type" required
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                                <option value="photo" {{ old('media_type', $gallery->media_type) == 'photo' ? 'selected' : '' }}>तस्बिर</option>
+                                <option value="local_video" {{ old('media_type', $gallery->media_type) == 'local_video' ? 'selected' : '' }}>भिडियो फाइल</option>
+                                <option value="external_video" {{ old('media_type', $gallery->media_type) == 'external_video' ? 'selected' : '' }}>यूट्युब लिङ्क</option>
+                            </select>
+                            @error('media_type')
+                                <p class="text-red-600 text-xs mt-1 nepali">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <!-- File Upload Field -->
+                        <div id="file_upload_field" class="{{ $gallery->media_type == 'external_video' ? 'hidden' : '' }}">
+                            <label for="media" class="block text-sm font-medium text-gray-700 mb-2 nepali">नयाँ फाइल छान्नुहोस्</label>
+                            <input type="file" name="media[]" id="media" 
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                   accept="image/*,video/*">
+                            <p class="text-xs text-gray-500 mt-1 nepali">अनुमतिहरू: JPEG, PNG, JPG, GIF, MP4, MOV, AVI (अधिकतम 100MB)</p>
+                            @error('media')
+                                <p class="text-red-600 text-xs mt-1 nepali">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <!-- External Link Field -->
+                        <div id="external_link_field" class="{{ $gallery->media_type == 'external_video' ? '' : 'hidden' }}">
+                            <label for="external_link" class="block text-sm font-medium text-gray-700 mb-2 nepali">यूट्युब लिङ्क *</label>
+                            <input type="url" name="external_link" id="external_link"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                                   placeholder="https://www.youtube.com/watch?v=..."
+                                   value="{{ old('external_link', $gallery->external_link) }}">
+                            @error('external_link')
+                                <p class="text-red-600 text-xs mt-1 nepali">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <!-- Status Field -->
+                        <div>
+                            <label for="status" class="block text-sm font-medium text-gray-700 mb-2 nepali">स्थिति *</label>
+                            <select name="status" id="status" required
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                                <option value="active" {{ old('status', $gallery->is_active ? 'active' : 'inactive') == 'active' ? 'selected' : '' }}>सक्रिय</option>
+                                <option value="inactive" {{ old('status', $gallery->is_active ? 'active' : 'inactive') == 'inactive' ? 'selected' : '' }}>निष्क्रिय</option>
+                            </select>
+                            @error('status')
+                                <p class="text-red-600 text-xs mt-1 nepali">{{ $message }}</p>
+                            @enderror
                         </div>
                     </div>
                 </div>
@@ -63,21 +143,11 @@
                     <div class="space-y-4">
                         <div class="flex items-center justify-between">
                             <div>
-                                <label for="is_featured" class="text-sm font-medium text-gray-700 nepali">फिचर्ड ग्यालरी बनाउनुहोस्</label>
+                                <label for="featured" class="text-sm font-medium text-gray-700 nepali">फिचर्ड ग्यालरी बनाउनुहोस्</label>
                                 <p class="text-xs text-gray-500 nepali">यो ग्यालरी होमपेजमा देखाइनेछ</p>
                             </div>
-                            <input type="checkbox" name="is_featured" id="is_featured" value="1"
-                                   {{ $gallery->is_featured ? 'checked' : '' }}
-                                   class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500">
-                        </div>
-
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <label for="is_active" class="text-sm font-medium text-gray-700 nepali">सक्रिय गर्नुहोस्</label>
-                                <p class="text-xs text-gray-500 nepali">ग्यालरी सार्वजनिक पृष्ठमा देखाइनेछ</p>
-                            </div>
-                            <input type="checkbox" name="is_active" id="is_active" value="1"
-                                   {{ $gallery->is_active ? 'checked' : '' }}
+                            <input type="checkbox" name="featured" id="featured" value="1"
+                                   {{ old('featured', $gallery->is_featured) ? 'checked' : '' }}
                                    class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500">
                         </div>
                     </div>
@@ -88,13 +158,16 @@
                     <h2 class="text-lg font-semibold text-gray-800 mb-4 nepali">हालको मिडिया</h2>
                     
                     <div class="aspect-video bg-gray-200 rounded-lg overflow-hidden">
-                        @if($gallery->media_type === 'image')
+                        @if($gallery->media_type === 'photo')
                             <img src="{{ $gallery->thumbnail_url }}" 
                                  alt="{{ $gallery->title }}"
                                  class="w-full h-full object-cover">
                         @elseif($gallery->media_type === 'external_video')
-                            <div class="w-full h-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                            <div class="w-full h-full bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center">
                                 <i class="fab fa-youtube text-white text-4xl"></i>
+                            </div>
+                            <div class="p-3 bg-gray-800 text-white text-sm">
+                                <p class="nepali truncate">{{ $gallery->external_link }}</p>
                             </div>
                         @else
                             <div class="w-full h-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
@@ -104,9 +177,9 @@
                     </div>
                     
                     <div class="mt-3 text-center text-sm text-gray-600">
-                        <p class="nepali">मिडिया प्रकार: {{ $gallery->media_type }}</p>
+                        <p class="nepali">मिडिया प्रकार: {{ $gallery->media_type_nepali }}</p>
                         @if($gallery->media_type === 'external_video')
-                            <a href="{{ $gallery->external_link }}" target="_blank" class="text-blue-600 hover:text-blue-800 nepali">
+                            <a href="{{ $gallery->external_link }}" target="_blank" class="text-blue-600 hover:text-blue-800 nepali text-xs">
                                 लिङ्क हेर्नुहोस्
                             </a>
                         @endif
@@ -124,4 +197,26 @@
         </div>
     </form>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const mediaTypeSelect = document.getElementById('media_type');
+    const fileUploadField = document.getElementById('file_upload_field');
+    const externalLinkField = document.getElementById('external_link_field');
+
+    function updateMediaFields() {
+        const mediaType = mediaTypeSelect.value;
+        
+        if (mediaType === 'external_video') {
+            fileUploadField.classList.add('hidden');
+            externalLinkField.classList.remove('hidden');
+        } else {
+            fileUploadField.classList.remove('hidden');
+            externalLinkField.classList.add('hidden');
+        }
+    }
+
+    mediaTypeSelect.addEventListener('change', updateMediaFields);
+});
+</script>
 @endsection
