@@ -13,8 +13,10 @@ class GalleryController extends Controller
     /**
      * Display the public gallery with filtering and caching.
      */
-    public function index(Request $request)
+
+    public function index(Request $request, $slug) // Add $slug parameter
     {
+        $hostel = Hostel::where('slug', $slug)->firstOrFail();
         $categories = $this->getCategoriesList();
         $selectedCategory = $request->input('category', 'all');
 
@@ -23,13 +25,14 @@ class GalleryController extends Controller
         }
 
         $galleryItems = $this->getGalleryItems($selectedCategory);
-        $stats = $this->getStats();
+        $stats = $this->getStats(); // This line should exist
 
         return view('frontend.gallery.index', compact(
+            'hostel', // Add hostel variable
             'galleryItems',
             'categories',
             'selectedCategory',
-            'stats'
+            'stats' // Make sure this is included
         ));
     }
 
@@ -177,7 +180,7 @@ class GalleryController extends Controller
     {
         // Fix the file path by removing duplicate 'admin/' prefixes
         $filePath = $this->fixFilePath($item->file_path);
-        
+
         $fileExists = Storage::disk('public')->exists($filePath);
 
         $result['file_exists'] = $fileExists ? '✅ हुन्छ' : '❌ हुँदैन';
@@ -209,7 +212,7 @@ class GalleryController extends Controller
     {
         // Fix the file path by removing duplicate 'admin/' prefixes
         $filePath = $this->fixFilePath($item->file_path);
-        
+
         $fileExists = Storage::disk('public')->exists($filePath);
 
         $result['file_exists'] = $fileExists ? '✅ हुन्छ' : '❌ हुँदैन';
@@ -222,7 +225,7 @@ class GalleryController extends Controller
             // Handle thumbnail
             if ($item->thumbnail) {
                 $thumbnailPath = $this->fixFilePath($item->thumbnail);
-                
+
                 if (filter_var($thumbnailPath, FILTER_VALIDATE_URL)) {
                     $result['thumbnail_url'] = $thumbnailPath;
                 } else {
@@ -277,12 +280,12 @@ class GalleryController extends Controller
         while (strpos($path, 'admin/admin/') === 0) {
             $path = substr($path, 6); // Remove the first 'admin/'
         }
-        
+
         // Also remove single leading 'admin/' if present
         if (strpos($path, 'admin/') === 0) {
             $path = substr($path, 6);
         }
-        
+
         return $path;
     }
 
