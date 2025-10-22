@@ -72,6 +72,13 @@ class DashboardController extends Controller
                 $totalDocuments = StudentDocument::count();
                 $totalCirculars = Circular::count();
 
+                // ✅ NEW: Circular Statistics
+                $publishedCirculars = Circular::where('status', 'published')->count();
+                $urgentCirculars = Circular::where('priority', 'urgent')->count();
+                $totalRecipients = CircularRecipient::count();
+                $readCirculars = CircularRecipient::where('is_read', true)->count();
+                $circularReadRate = $totalRecipients > 0 ? round(($readCirculars / $totalRecipients) * 100, 1) : 0;
+
                 // Batch room status queries for efficiency with null safety
                 $roomStatus = Room::selectRaw('
                     COUNT(CASE WHEN status = "available" THEN 1 END) as available,
@@ -145,15 +152,30 @@ class DashboardController extends Controller
                     'recent_hostels' => $recentHostels,
                     'recent_documents' => $recentDocuments,
                     'recent_circulars' => $recentCirculars,
+                    // ✅ NEW: Circular Statistics
+                    'published_circulars' => $publishedCirculars,
+                    'urgent_circulars' => $urgentCirculars,
+                    'circular_read_rate' => $circularReadRate,
                 ];
             });
 
             // Pass circular data to view
             $totalCirculars = $metrics['total_circulars'] ?? 0;
+            $publishedCirculars = $metrics['published_circulars'] ?? 0;
+            $urgentCirculars = $metrics['urgent_circulars'] ?? 0;
+            $circularReadRate = $metrics['circular_read_rate'] ?? 0;
             $recentCirculars = $metrics['recent_circulars'] ?? collect();
             $recentActivities = $this->getRecentActivities($metrics);
 
-            return view('admin.dashboard', compact('metrics', 'totalCirculars', 'recentCirculars', 'recentActivities'));
+            return view('admin.dashboard', compact(
+                'metrics',
+                'totalCirculars',
+                'publishedCirculars',
+                'urgentCirculars',
+                'circularReadRate',
+                'recentCirculars',
+                'recentActivities'
+            ));
         } catch (\Exception $e) {
             // Log error details for debugging
             Log::error('ड्यासबोर्ड लोड गर्न असफल: ' . $e->getMessage(), [
@@ -185,8 +207,14 @@ class DashboardController extends Controller
                     'recent_hostels' => collect(),
                     'recent_documents' => collect(),
                     'recent_circulars' => collect(),
+                    'published_circulars' => 0,
+                    'urgent_circulars' => 0,
+                    'circular_read_rate' => 0,
                 ],
                 'totalCirculars' => 0,
+                'publishedCirculars' => 0,
+                'urgentCirculars' => 0,
+                'circularReadRate' => 0,
                 'recentCirculars' => collect(),
                 'recentActivities' => collect(),
                 'error' => 'ड्यासबोर्ड डाटा लोड गर्न सकिएन। कृपया पछि प्रयास गर्नुहोस् वा समर्थन सम्पर्क गर्नुहोस्।'
@@ -203,6 +231,41 @@ class DashboardController extends Controller
         $occupiedRooms = Room::where('status', 'occupied')->count();
 
         return $totalRooms > 0 ? round(($occupiedRooms / $totalRooms) * 100) : 0;
+    }
+
+    /**
+     * Calculate circular read rate for organization
+     */
+    private function calculateOrganizationReadRate($organizationId)
+    {
+        $totalRecipients = CircularRecipient::whereHas('circular', function ($q) use ($organizationId) {
+            $q->where('organization_id', $organizationId);
+        })->count();
+
+        $readRecipients = CircularRecipient::whereHas('circular', function ($q) use ($organizationId) {
+            $q->where('organization_id', $organizationId);
+        })->where('is_read', true)->count();
+
+        return $totalRecipients > 0 ? round(($readRecipients / $totalRecipients) * 100, 1) : 0;
+    }
+
+    /**
+     * Get student engagement rate
+     */
+    private function calculateStudentEngagement($organizationId)
+    {
+        $organization = Organization::find($organizationId);
+        if (!$organization) return 0;
+
+        $totalStudents = $organization->students()->count();
+        $engagedStudents = $organization->students()->whereHas('user.circularRecipients', function ($q) use ($organizationId) {
+            $q->where('is_read', true)
+                ->whereHas('circular', function ($q2) use ($organizationId) {
+                    $q2->where('organization_id', $organizationId);
+                });
+        })->count();
+
+        return $totalStudents > 0 ? round(($engagedStudents / $totalStudents) * 100, 1) : 0;
     }
 
     /**
@@ -317,6 +380,10 @@ class DashboardController extends Controller
                     'normalCirculars' => 0,
                     'noticeCirculars' => 0,
                     'recentCirculars' => collect(),
+                    // ✅ NEW: Circular Engagement Stats
+                    'todayCirculars' => 0,
+                    'circularReadRate' => 0,
+                    'studentEngagement' => 0,
                 ]);
             }
 
@@ -354,6 +421,13 @@ class DashboardController extends Controller
                 ->latest('created_at')
                 ->take(5)
                 ->get();
+
+            // ✅ NEW: Circular Engagement Stats
+            $todayCirculars = Circular::where('organization_id', $organization->id)
+                ->whereDate('created_at', today())
+                ->count();
+            $circularReadRate = $this->calculateOrganizationReadRate($organization->id);
+            $studentEngagement = $this->calculateStudentEngagement($organization->id);
 
             // Financial calculations
             $totalMonthlyRevenue = $hostels->sum('monthly_rent');
@@ -401,7 +475,11 @@ class DashboardController extends Controller
                 'urgentCirculars',
                 'normalCirculars',
                 'noticeCirculars',
-                'recentCirculars'
+                'recentCirculars',
+                // ✅ NEW: Circular Engagement Stats
+                'todayCirculars',
+                'circularReadRate',
+                'studentEngagement'
             ));
         } catch (\Exception $e) {
             Log::error('होस्टेल मालिक ड्यासबोर्ड त्रुटि: ' . $e->getMessage(), [
@@ -430,6 +508,10 @@ class DashboardController extends Controller
                 'normalCirculars' => 0,
                 'noticeCirculars' => 0,
                 'recentCirculars' => collect(),
+                // ✅ NEW: Circular Engagement Stats
+                'todayCirculars' => 0,
+                'circularReadRate' => 0,
+                'studentEngagement' => 0,
             ]);
         }
     }
@@ -488,7 +570,7 @@ class DashboardController extends Controller
             // Get notifications
             $notifications = $user->notifications()->latest()->take(5)->get();
 
-            // Circulars data for student
+            // ✅ IMPROVED: Circulars data for student with Read Status
             $unreadCirculars = CircularRecipient::where('user_id', $user->id)
                 ->where('is_read', false)
                 ->count();
@@ -496,7 +578,9 @@ class DashboardController extends Controller
             $recentStudentCirculars = Circular::whereHas('recipients', function ($q) use ($user) {
                 $q->where('user_id', $user->id);
             })
-                ->with(['creator', 'organization', 'recipients'])
+                ->with(['creator', 'organization', 'recipients' => function ($q) use ($user) {
+                    $q->where('user_id', $user->id);
+                }])
                 ->latest()
                 ->take(5)
                 ->get();
@@ -505,6 +589,9 @@ class DashboardController extends Controller
                 $q->where('user_id', $user->id);
             })
                 ->where('priority', 'urgent')
+                ->whereDoesntHave('recipients', function ($q) use ($user) {
+                    $q->where('user_id', $user->id)->where('is_read', true);
+                })
                 ->with(['creator', 'organization'])
                 ->latest()
                 ->take(3)

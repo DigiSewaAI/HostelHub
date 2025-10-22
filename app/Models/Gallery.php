@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Storage;
 
 class Gallery extends Model
 {
@@ -21,7 +22,7 @@ class Gallery extends Model
         'is_featured',
         'is_active',
         'user_id',
-        'hostel_id' // ✅ Make sure this exists
+        'hostel_id'
     ];
 
     protected $casts = [
@@ -29,28 +30,29 @@ class Gallery extends Model
         'is_active' => 'boolean',
     ];
 
-    // Append thumbnail_url to model attributes
-    protected $appends = ['thumbnail_url'];
+    protected $appends = ['thumbnail_url', 'media_url', 'is_video', 'is_youtube_video', 'youtube_embed_url', 'category_nepali', 'media_type_nepali'];
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    // ✅ ADDED: Hostel relationship
     public function hostel(): BelongsTo
     {
         return $this->belongsTo(Hostel::class);
     }
 
-    public function getUrlAttribute(): string
+    public function getMediaUrlAttribute(): string
     {
         if ($this->media_type === 'external_video' && $this->external_link) {
             return $this->external_link;
         }
 
         if ($this->file_path) {
-            return asset('storage/' . ltrim($this->file_path, '/'));
+            // FIXED: Use proper storage URL
+            return Storage::disk('public')->exists($this->file_path)
+                ? asset('storage/' . $this->file_path)
+                : asset('images/default-gallery.jpg');
         }
 
         return asset('images/default-gallery.jpg');
@@ -58,27 +60,52 @@ class Gallery extends Model
 
     public function getThumbnailUrlAttribute(): string
     {
-        // If thumbnail exists locally
-        if ($this->thumbnail) {
-            return asset('storage/' . ltrim($this->thumbnail, '/'));
-        }
-
-        // For external videos (YouTube)
+        // YouTube videos
         if ($this->media_type === 'external_video' && $this->external_link) {
             $youtubeId = $this->getYoutubeId($this->external_link);
             if ($youtubeId) {
-                return 'https://img.youtube.com/vi/' . $youtubeId . '/mqdefault.jpg';
+                return 'https://img.youtube.com/vi/' . $youtubeId . '/hqdefault.jpg';
             }
             return asset('images/video-thumbnail.jpg');
         }
 
-        // For local videos
+        // Local videos
         if ($this->media_type === 'local_video') {
+            if ($this->thumbnail && Storage::disk('public')->exists($this->thumbnail)) {
+                return asset('storage/' . $this->thumbnail);
+            }
             return asset('images/video-thumbnail.jpg');
         }
 
-        // Default thumbnail
-        return asset('images/default-thumbnail.jpg');
+        // Images - FIXED: Check if file exists
+        if ($this->media_type === 'photo' && $this->file_path) {
+            return Storage::disk('public')->exists($this->file_path)
+                ? asset('storage/' . $this->file_path)
+                : asset('images/default-image.jpg');
+        }
+
+        return asset('images/default-image.jpg');
+    }
+
+    public function getIsVideoAttribute(): bool
+    {
+        return in_array($this->media_type, ['local_video', 'external_video']);
+    }
+
+    public function getIsYoutubeVideoAttribute(): bool
+    {
+        return $this->media_type === 'external_video';
+    }
+
+    public function getYoutubeEmbedUrlAttribute(): ?string
+    {
+        if ($this->media_type === 'external_video' && $this->external_link) {
+            $youtubeId = $this->getYoutubeId($this->external_link);
+            if ($youtubeId) {
+                return 'https://www.youtube.com/embed/' . $youtubeId . '?autoplay=1';
+            }
+        }
+        return null;
     }
 
     private function getYoutubeId($url): ?string
@@ -90,29 +117,63 @@ class Gallery extends Model
         return $matches[1] ?? null;
     }
 
-    // ✅ ADDED: Get category name in Nepali
     public function getCategoryNepaliAttribute(): string
     {
         $categories = [
-            'room' => 'कोठाका तस्बिरहरू',
-            'common_area' => 'साझा क्षेत्रहरू',
-            'facility' => 'सुविधाहरू',
-            'event' => 'कार्यक्रमहरू',
-            'other' => 'अन्य'
+            'video'       => 'भिडियो टुर',
+            '1 seater'    => '१ सिटर कोठा',
+            '2 seater'    => '२ सिटर कोठा',
+            '3 seater'    => '३ सिटर कोठा',
+            '4 seater'    => '४ सिटर कोठा',
+            'common'      => 'लिभिङ रूम',
+            'bathroom'    => 'बाथरूम',
+            'kitchen'     => 'भान्सा',
+            'living room' => 'लिभिङ रूम',
+            'study room'  => 'अध्ययन कोठा',
+            'event'       => 'कार्यक्रम'
         ];
 
         return $categories[$this->category] ?? $this->category;
     }
 
-    // ✅ ADDED: Get media type in Nepali
     public function getMediaTypeNepaliAttribute(): string
     {
         $types = [
-            'image' => 'तस्बिर',
-            'video' => 'भिडियो',
+            'photo' => 'तस्बिर',
+            'local_video' => 'भिडियो',
             'external_video' => 'यूट्युब भिडियो'
         ];
 
         return $types[$this->media_type] ?? $this->media_type;
+    }
+
+    /**
+     * Check if file exists in storage
+     */
+    public function fileExists(): bool
+    {
+        if (!$this->file_path) return false;
+
+        return Storage::disk('public')->exists($this->file_path);
+    }
+
+    /**
+     * Get file size in human readable format
+     */
+    public function getFileSizeAttribute(): string
+    {
+        if (!$this->file_path || !Storage::disk('public')->exists($this->file_path)) {
+            return '0 KB';
+        }
+
+        $size = Storage::disk('public')->size($this->file_path);
+
+        if ($size >= 1048576) {
+            return round($size / 1048576, 2) . ' MB';
+        } elseif ($size >= 1024) {
+            return round($size / 1024, 2) . ' KB';
+        } else {
+            return $size . ' bytes';
+        }
     }
 }

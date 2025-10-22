@@ -2,52 +2,55 @@
 
 namespace App\Models;
 
-use Laravel\Cashier\Billable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Log;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, HasRoles, Billable;
+    use HasFactory, Notifiable, HasRoles;
 
-    /**
-     * The attributes that are mass assignable.
-     */
     protected $fillable = [
         'name',
         'email',
         'password',
-        'organization_id',
-        'role_id',
         'phone',
         'address',
-        'payment_verified',
+        'email_notifications',
+        'sms_notifications',
+        'booking_alerts',
+        'payment_alerts',
+        'role_id',
         'student_id',
-        'hostel_id',
+        'payment_verified',
+        'stripe_id',
+        'pm_type',
+        'pm_last_four',
+        'trial_ends_at',
+        'organization_id',
+        'hostel_id'
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * The attributes that should be cast.
-     */
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'email_notifications' => 'boolean',
+        'sms_notifications' => 'boolean',
+        'booking_alerts' => 'boolean',
+        'payment_alerts' => 'boolean',
         'payment_verified' => 'boolean',
+        'trial_ends_at' => 'datetime'
     ];
 
     // ✅ FIXED: Organization relationship with null safety
@@ -229,7 +232,7 @@ class User extends Authenticatable
             return collect();
         }
 
-        return Room::where('hostel_id', $this->hostel_id)
+        return \App\Models\Room::where('hostel_id', $this->hostel_id)
             ->orderBy('room_number')
             ->get();
     }
@@ -243,9 +246,41 @@ class User extends Authenticatable
             return collect();
         }
 
-        return Room::where('hostel_id', $this->hostel_id)
+        return \App\Models\Room::where('hostel_id', $this->hostel_id)
             ->with('hostel')
             ->orderBy('room_number')
             ->get();
+    }
+
+    /**
+     * Check if user has email notifications enabled
+     */
+    public function receivesEmailNotifications(): bool
+    {
+        return $this->email_notifications ?? true;
+    }
+
+    /**
+     * Check if user has SMS notifications enabled
+     */
+    public function receivesSmsNotifications(): bool
+    {
+        return $this->sms_notifications ?? false;
+    }
+
+    /**
+     * Check if user has booking alerts enabled
+     */
+    public function receivesBookingAlerts(): bool
+    {
+        return $this->booking_alerts ?? true;
+    }
+
+    /**
+     * Check if user has payment alerts enabled
+     */
+    public function receivesPaymentAlerts(): bool
+    {
+        return $this->payment_alerts ?? true;
     }
 }

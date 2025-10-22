@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 class PublicController extends Controller
 {
@@ -335,6 +336,88 @@ class PublicController extends Controller
         return view('frontend.search-results', compact('rooms'));
     }
 
+    /**
+     * ✅ FIXED: Display hostel gallery - USING CORRECT COLUMN NAME 'is_active'
+     */
+    public function hostelGallery($slug)
+    {
+        try {
+            \Log::info("Attempting to access hostel gallery", ['slug' => $slug]);
+
+            // First, try to find published hostel
+            $hostel = Hostel::where('slug', $slug)
+                ->where('is_published', true)
+                ->with(['galleries' => function ($query) {
+                    // ✅ FIXED: Use correct column name 'is_active'
+                    $query->where('is_active', true)->latest();
+                }])
+                ->first();
+
+            // If not found, try without published check for preview/owner access
+            if (!$hostel) {
+                $hostel = Hostel::where('slug', $slug)
+                    ->with(['galleries' => function ($query) {
+                        // ✅ FIXED: Use correct column name 'is_active'
+                        $query->where('is_active', true)->latest();
+                    }])
+                    ->first();
+
+                if (!$hostel) {
+                    \Log::error("Hostel not found with slug: {$slug}");
+                    abort(404, 'होस्टल फेला परेन।');
+                }
+
+                // Check if user has permission to view unpublished hostel
+                $user = auth()->user();
+                $hasAccess = false;
+
+                if ($user) {
+                    // Admin can view any hostel
+                    if ($user->hasRole('admin')) {
+                        $hasAccess = true;
+                    }
+                    // Owner/hostel_manager can view their own hostels
+                    elseif ($user->hasRole('owner') || $user->hasRole('hostel_manager')) {
+                        $userOrganizationId = session('current_organization_id');
+                        if ($hostel->organization_id == $userOrganizationId) {
+                            $hasAccess = true;
+                        }
+                    }
+                }
+
+                if (!$hasAccess) {
+                    \Log::warning("Unauthorized access attempt to unpublished hostel: {$slug}");
+                    abort(404, 'होस्टल फेला परेन वा तपाईंसँग यसलाई हेर्ने अनुमति छैन।');
+                }
+            }
+
+            // Get gallery items for this specific hostel
+            $galleries = $hostel->galleries;
+
+            // Get categories with correct column name
+            $categories = $hostel->galleries()
+                ->where('is_active', true)
+                ->select('category')
+                ->distinct()
+                ->pluck('category');
+
+            \Log::info("Hostel gallery loaded successfully", [
+                'hostel_id' => $hostel->id,
+                'hostel_slug' => $hostel->slug,
+                'gallery_count' => $galleries->count(),
+                'categories_count' => $categories->count(),
+                'is_published' => $hostel->is_published
+            ]);
+
+            // ✅ FIXED: Use the correct view path - public.hostels.gallery
+            return view('public.hostels.gallery', compact('hostel', 'galleries', 'categories'));
+        } catch (\Exception $e) {
+            \Log::error('Hostel gallery error: ' . $e->getMessage());
+            \Log::error('Stack trace: ' . $e->getTraceAsString());
+            abort(404, 'ग्यालरी लोड गर्न असफल।');
+        }
+    }
+
     // Hostel search functionality
     public function hostelSearch(Request $request): View
     {
@@ -489,10 +572,6 @@ class PublicController extends Controller
             abort(500);
         }
     }
-
-    /**
-     * NEW METHODS ADDED BELOW
-     */
 
     /**
      * Display hostels index page with search and filtering

@@ -15,6 +15,21 @@
     <form action="{{ route('owner.galleries.store') }}" method="POST" enctype="multipart/form-data">
         @csrf
         
+        <!-- Error Messages -->
+        @if($errors->any())
+        <div class="mb-6 bg-red-50 border border-red-200 rounded-xl p-4">
+            <div class="flex items-center mb-2">
+                <i class="fas fa-exclamation-triangle text-red-600 mr-2"></i>
+                <h3 class="text-red-800 font-semibold nepali">तपाईंको फारममा त्रुटिहरू छन्</h3>
+            </div>
+            <ul class="list-disc list-inside text-red-700 text-sm">
+                @foreach($errors->all() as $error)
+                <li class="nepali">{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+        @endif
+
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- Left Column -->
             <div class="space-y-6">
@@ -27,14 +42,21 @@
                             <label for="title" class="block text-sm font-medium text-gray-700 mb-2 nepali">शीर्षक *</label>
                             <input type="text" name="title" id="title" required
                                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                                   placeholder="ग्यालरीको शीर्षक लेख्नुहोस्">
+                                   placeholder="ग्यालरीको शीर्षक लेख्नुहोस्"
+                                   value="{{ old('title') }}">
+                            @error('title')
+                                <p class="text-red-600 text-xs mt-1 nepali">{{ $message }}</p>
+                            @enderror
                         </div>
 
                         <div>
                             <label for="description" class="block text-sm font-medium text-gray-700 mb-2 nepali">विवरण</label>
                             <textarea name="description" id="description" rows="3"
                                       class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                                      placeholder="ग्यालरीको छोटो विवरण लेख्नुहोस्"></textarea>
+                                      placeholder="ग्यालरीको छोटो विवरण लेख्नुहोस्">{{ old('description') }}</textarea>
+                            @error('description')
+                                <p class="text-red-600 text-xs mt-1 nepali">{{ $message }}</p>
+                            @enderror
                         </div>
 
                         <div>
@@ -42,12 +64,13 @@
                             <select name="category" id="category" required
                                     class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
                                 <option value="">श्रेणी छान्नुहोस्</option>
-                                <option value="room">कोठाका तस्बिरहरू</option>
-                                <option value="common_area">साझा क्षेत्रहरू</option>
-                                <option value="facility">सुविधाहरू</option>
-                                <option value="event">कार्यक्रमहरू</option>
-                                <option value="other">अन्य</option>
+                                @foreach($categories as $key => $value)
+                                    <option value="{{ $key }}" {{ old('category') == $key ? 'selected' : '' }}>{{ $value }}</option>
+                                @endforeach
                             </select>
+                            @error('category')
+                                <p class="text-red-600 text-xs mt-1 nepali">{{ $message }}</p>
+                            @enderror
                         </div>
                     </div>
                 </div>
@@ -62,19 +85,28 @@
                             <select name="media_type" id="media_type" required
                                     class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
                                 <option value="">मिडिया प्रकार छान्नुहोस्</option>
-                                <option value="image">तस्बिर</option>
-                                <option value="video">भिडियो फाइल</option>
-                                <option value="external_video">यूट्युब लिङ्क</option>
+                                <option value="photo" {{ old('media_type') == 'photo' ? 'selected' : '' }}>तस्बिर</option>
+                                <option value="local_video" {{ old('media_type') == 'local_video' ? 'selected' : '' }}>भिडियो फाइल</option>
+                                <option value="external_video" {{ old('media_type') == 'external_video' ? 'selected' : '' }}>यूट्युब लिङ्क</option>
                             </select>
+                            @error('media_type')
+                                <p class="text-red-600 text-xs mt-1 nepali">{{ $message }}</p>
+                            @enderror
                         </div>
 
                         <!-- File Upload Field -->
                         <div id="file_upload_field">
-                            <label for="file" class="block text-sm font-medium text-gray-700 mb-2 nepali">फाइल छान्नुहोस् *</label>
-                            <input type="file" name="file" id="file" 
+                            <label for="media" class="block text-sm font-medium text-gray-700 mb-2 nepali">फाइल छान्नुहोस् *</label>
+                            <input type="file" name="media[]" id="media" multiple
                                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                                    accept="image/*,video/*">
-                            <p class="text-xs text-gray-500 mt-1 nepali">अनुमतिहरू: JPEG, PNG, JPG, GIF, MP4, MOV, AVI (अधिकतम 10MB)</p>
+                            <p class="text-xs text-gray-500 mt-1 nepali">अनुमतिहरू: JPEG, PNG, JPG, GIF, MP4, MOV, AVI (अधिकतम 100MB)</p>
+                            @error('media')
+                                <p class="text-red-600 text-xs mt-1 nepali">{{ $message }}</p>
+                            @enderror
+                            @error('media.*')
+                                <p class="text-red-600 text-xs mt-1 nepali">{{ $message }}</p>
+                            @enderror
                         </div>
 
                         <!-- External Link Field -->
@@ -82,7 +114,24 @@
                             <label for="external_link" class="block text-sm font-medium text-gray-700 mb-2 nepali">यूट्युब लिङ्क *</label>
                             <input type="url" name="external_link" id="external_link"
                                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                                   placeholder="https://www.youtube.com/watch?v=...">
+                                   placeholder="https://www.youtube.com/watch?v=..."
+                                   value="{{ old('external_link') }}">
+                            @error('external_link')
+                                <p class="text-red-600 text-xs mt-1 nepali">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <!-- Status Field -->
+                        <div>
+                            <label for="status" class="block text-sm font-medium text-gray-700 mb-2 nepali">स्थिति *</label>
+                            <select name="status" id="status" required
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                                <option value="active" {{ old('status') == 'active' ? 'selected' : '' }}>सक्रिय</option>
+                                <option value="inactive" {{ old('status') == 'inactive' ? 'selected' : '' }}>निष्क्रिय</option>
+                            </select>
+                            @error('status')
+                                <p class="text-red-600 text-xs mt-1 nepali">{{ $message }}</p>
+                            @enderror
                         </div>
                     </div>
                 </div>
@@ -97,16 +146,12 @@
                     <div class="space-y-4">
                         <div class="flex items-center justify-between">
                             <div>
-                                <label for="is_featured" class="text-sm font-medium text-gray-700 nepali">फिचर्ड ग्यालरी बनाउनुहोस्</label>
+                                <label for="featured" class="text-sm font-medium text-gray-700 nepali">फिचर्ड ग्यालरी बनाउनुहोस्</label>
                                 <p class="text-xs text-gray-500 nepali">यो ग्यालरी होमपेजमा देखाइनेछ</p>
                             </div>
-                            <input type="checkbox" name="is_featured" id="is_featured" value="1"
+                            <input type="checkbox" name="featured" id="featured" value="1"
+                                   {{ old('featured') ? 'checked' : '' }}
                                    class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500">
-                        </div>
-
-                        <div class="border-t border-gray-200 pt-4">
-                            <h3 class="text-md font-medium text-gray-800 mb-2 nepali">सार्वजनिक पृष्ठमा देखाउने</h3>
-                            <p class="text-sm text-gray-600 nepali">यो ग्यालरी तपाईंको सार्वजनिक पृष्ठको ग्यालरी सेक्सनमा देखाइनेछ।</p>
                         </div>
                     </div>
                 </div>
@@ -142,7 +187,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const fileUploadField = document.getElementById('file_upload_field');
     const externalLinkField = document.getElementById('external_link_field');
     const previewContainer = document.getElementById('preview_container');
-    const fileInput = document.getElementById('file');
+    const fileInput = document.getElementById('media');
+    const externalLinkInput = document.getElementById('external_link');
 
     function updateMediaFields() {
         const mediaType = mediaTypeSelect.value;
@@ -150,24 +196,34 @@ document.addEventListener('DOMContentLoaded', function() {
         if (mediaType === 'external_video') {
             fileUploadField.classList.add('hidden');
             externalLinkField.classList.remove('hidden');
-            previewContainer.innerHTML = `
-                <div class="text-center text-gray-500">
-                    <i class="fab fa-youtube text-3xl mb-2 text-red-600"></i>
-                    <p class="text-sm nepali">यूट्युब भिडियो पूर्वावलोकन</p>
-                </div>
-            `;
+            fileInput.removeAttribute('required');
+            externalLinkInput.setAttribute('required', 'required');
+            
+            // Show YouTube preview if URL is already entered
+            if (externalLinkInput.value) {
+                updateYouTubePreview(externalLinkInput.value);
+            } else {
+                previewContainer.innerHTML = `
+                    <div class="text-center text-gray-500">
+                        <i class="fab fa-youtube text-3xl mb-2 text-red-600"></i>
+                        <p class="text-sm nepali">यूट्युब भिडियो पूर्वावलोकन</p>
+                    </div>
+                `;
+            }
         } else {
             fileUploadField.classList.remove('hidden');
             externalLinkField.classList.add('hidden');
+            externalLinkInput.removeAttribute('required');
+            fileInput.setAttribute('required', 'required');
             
-            if (mediaType === 'image') {
+            if (mediaType === 'photo') {
                 previewContainer.innerHTML = `
                     <div class="text-center text-gray-500">
                         <i class="fas fa-image text-3xl mb-2"></i>
                         <p class="text-sm nepali">तस्बिर पूर्वावलोकन</p>
                     </div>
                 `;
-            } else if (mediaType === 'video') {
+            } else if (mediaType === 'local_video') {
                 previewContainer.innerHTML = `
                     <div class="text-center text-gray-500">
                         <i class="fas fa-video text-3xl mb-2"></i>
@@ -178,14 +234,52 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Handle file preview
+    function updateYouTubePreview(url) {
+        const youtubeId = getYouTubeId(url);
+        if (youtubeId) {
+            previewContainer.innerHTML = `
+                <div class="relative w-full h-full">
+                    <img src="https://img.youtube.com/vi/${youtubeId}/mqdefault.jpg" 
+                         class="w-full h-full object-cover rounded-lg"
+                         alt="YouTube preview">
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <i class="fab fa-youtube text-white text-4xl opacity-80"></i>
+                    </div>
+                </div>
+            `;
+        } else {
+            previewContainer.innerHTML = `
+                <div class="text-center text-gray-500">
+                    <i class="fab fa-youtube text-3xl mb-2 text-red-600"></i>
+                    <p class="text-sm nepali">अमान्य यूट्युब लिङ्क</p>
+                </div>
+            `;
+        }
+    }
+
+    function getYouTubeId(url) {
+        if (!url) return null;
+        const pattern = /(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+        const matches = url.match(pattern);
+        return matches ? matches[1] : null;
+    }
+
+    // Handle file preview for multiple files
     fileInput.addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
+        const files = e.target.files;
+        if (files.length > 0) {
+            const file = files[0];
             if (file.type.startsWith('image/')) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    previewContainer.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover rounded-lg" alt="Preview">`;
+                    previewContainer.innerHTML = `
+                        <div class="relative w-full h-full">
+                            <img src="${e.target.result}" class="w-full h-full object-cover rounded-lg" alt="Preview">
+                            <div class="absolute bottom-2 right-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-sm">
+                                ${files.length} फाइल${files.length > 1 ? 'हरू' : ''}
+                            </div>
+                        </div>
+                    `;
                 };
                 reader.readAsDataURL(file);
             } else if (file.type.startsWith('video/')) {
@@ -193,14 +287,24 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="text-center text-gray-500">
                         <i class="fas fa-video text-3xl mb-2 text-blue-600"></i>
                         <p class="text-sm nepali">भिडियो फाइल: ${file.name}</p>
+                        <p class="text-xs text-gray-400 nepali">${files.length} फाइल${files.length > 1 ? 'हरू' : ''} छान्नुभयो</p>
                     </div>
                 `;
             }
         }
     });
 
+    // Handle external link input for YouTube preview
+    externalLinkInput.addEventListener('input', function(e) {
+        if (mediaTypeSelect.value === 'external_video') {
+            updateYouTubePreview(e.target.value);
+        }
+    });
+
     mediaTypeSelect.addEventListener('change', updateMediaFields);
-    updateMediaFields(); // Initial call
+    
+    // Initialize the form
+    updateMediaFields();
 });
 </script>
 @endsection

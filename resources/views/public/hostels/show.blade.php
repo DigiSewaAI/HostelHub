@@ -16,16 +16,70 @@
 @php
   $logo = $hostel->logo_path ? asset('storage/' . $hostel->logo_path) : null;
   
-  // Handle facilities properly
+  // 🛠️ FIXED: COMPLETELY REWRITTEN FACILITIES PARSING
   $facilities = $hostel->facilities;
+  
+  // If facilities is string, parse it properly
   if (is_string($facilities)) {
+      // First, try to decode as JSON
       $decoded = json_decode($facilities, true);
-      if (json_last_error() === JSON_ERROR_NONE) {
+      
+      if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
           $facilities = $decoded;
       } else {
-          $facilities = array_map('trim', explode(',', $facilities));
+          // If JSON decode fails, try different approaches
+          // Remove brackets and quotes first
+          $cleaned = trim($facilities, '[]"\'');
+          
+          // Try splitting by commas
+          if (str_contains($cleaned, ',')) {
+              $facilities = array_map('trim', explode(',', $cleaned));
+          } 
+          // Try splitting by newlines
+          elseif (str_contains($cleaned, '\n')) {
+              $facilities = array_map('trim', explode('\n', $cleaned));
+          }
+          // Try splitting by actual newlines
+          elseif (str_contains($cleaned, "\n")) {
+              $facilities = array_map('trim', explode("\n", $cleaned));
+          }
+          else {
+              // Last resort: treat as single item
+              $facilities = [trim($cleaned)];
+          }
       }
   }
+  
+  // Ensure facilities is array and clean each item
+  if (!is_array($facilities)) {
+      $facilities = [];
+  }
+  
+  // Deep clean each facility item
+  $cleanFacilities = [];
+  foreach ($facilities as $facility) {
+      if (is_string($facility)) {
+          // Remove any JSON artifacts
+          $facility = trim($facility);
+          $facility = trim($facility, ',"\'[]');
+          
+          // Decode Unicode characters
+          if (preg_match('/\\\\u[0-9a-fA-F]{4}/', $facility)) {
+              $facility = json_decode('"' . str_replace('"', '\\"', $facility) . '"');
+          }
+          
+          // Remove any remaining quotes
+          $facility = trim($facility, '"\'');
+          
+          if (!empty($facility) && $facility !== '""' && $facility !== "''") {
+              $cleanFacilities[] = $facility;
+          }
+      } elseif (!empty($facility)) {
+          $cleanFacilities[] = $facility;
+      }
+  }
+  
+  $facilities = $cleanFacilities;
   
   // Use the correct counts from relationships
   $avgRating = $hostel->approved_reviews_avg_rating ?? 0;
@@ -238,6 +292,92 @@
     justify-content: center;
   }
 }
+
+/* 🆕 ENHANCED GALLERY SECTION - FULL HEIGHT TO BOTTOM */
+.gallery-full-height {
+  min-height: 700px; /* Increased height to reach bottom */
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 16px;
+  padding: 30px;
+  margin-bottom: 30px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.gallery-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.gallery-grid-enhanced {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  flex: 1;
+}
+
+.gallery-item-enhanced {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  background: white;
+  border: 1px solid #e2e8f0;
+  position: relative;
+  height: 250px;
+}
+
+.gallery-item-enhanced:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+.gallery-item-enhanced img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.gallery-placeholder-enhanced {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+}
+
+/* 🆕 FIXED: "Purai Gallery Hernuhos" Button at Bottom */
+.gallery-footer {
+  margin-top: auto;
+  padding-top: 20px;
+  border-top: 1px solid #e2e8f0;
+  text-align: center;
+}
+
+.view-full-gallery-btn {
+  background: linear-gradient(135deg, var(--theme-color), #7c3aed);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.view-full-gallery-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(79, 70, 229, 0.3);
+}
 </style>
 
 <!-- Professional Hero Section -->
@@ -420,10 +560,97 @@
         </div>
       </section>
 
-      <!-- Gallery Section -->
-      @include('public.hostels.partials.gallery')
+      <!-- 🆕 ENHANCED GALLERY SECTION - FULL HEIGHT TO BOTTOM -->
+      <section class="gallery-full-height">
+        <h2 class="text-2xl font-bold text-gray-900 nepali mb-6 flex items-center gap-3">
+          <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+            <i class="fas fa-images text-purple-600"></i>
+          </div>
+          हाम्रो ग्यालरी
+        </h2>
+        
+        <div class="gallery-content">
+          <p class="text-gray-600 text-center nepali text-base mb-6">
+            हाम्रो होस्टलको सुन्दर तस्बिरहरू र भिडियोहरू हेर्नुहोस्
+          </p>
+          
+          <div class="gallery-grid-enhanced">
+            @php
+                $galleries = $hostel->activeGalleries ?? collect();
+            @endphp
+            
+            @if($galleries->count() > 0)
+              @foreach($galleries as $gallery)
+                <div class="gallery-item-enhanced group">
+                  @if($gallery->media_type === 'image')
+                    <img src="{{ $gallery->thumbnail_url }}" 
+                         alt="{{ $gallery->title }}"
+                         class="w-full h-full object-cover">
+                  @elseif($gallery->media_type === 'external_video')
+                    <div class="gallery-placeholder-enhanced">
+                      <i class="fab fa-youtube text-4xl mb-3"></i>
+                      <span class="nepali text-sm">YouTube भिडियो</span>
+                    </div>
+                  @else
+                    <div class="gallery-placeholder-enhanced">
+                      <i class="fas fa-video text-4xl mb-3"></i>
+                      <span class="nepali text-sm">भिडियो</span>
+                    </div>
+                  @endif
+                  
+                  <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-70 transition-all duration-300 flex items-center justify-center p-4">
+                    <div class="text-white text-center transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                      <h4 class="font-semibold text-lg mb-2 nepali">{{ $gallery->title }}</h4>
+                      @if($gallery->description)
+                        <p class="text-sm opacity-90 nepali">{{ Str::limit($gallery->description, 80) }}</p>
+                      @endif
+                      @if($gallery->is_featured)
+                        <span class="inline-block bg-yellow-500 text-white text-xs px-3 py-1 rounded-full mt-3 nepali">फिचर्ड</span>
+                      @endif
+                    </div>
+                  </div>
+                </div>
+              @endforeach
+            @else
+              <!-- Placeholder for empty gallery -->
+              <div class="gallery-item-enhanced">
+                <div class="gallery-placeholder-enhanced">
+                  <i class="fas fa-images text-4xl mb-3"></i>
+                  <span class="nepali text-base">तस्बिरहरू थपिने...</span>
+                </div>
+              </div>
+              <div class="gallery-item-enhanced">
+                <div class="gallery-placeholder-enhanced">
+                  <i class="fas fa-bed text-4xl mb-3"></i>
+                  <span class="nepali text-base">कोठाका तस्बिरहरू</span>
+                </div>
+              </div>
+              <div class="gallery-item-enhanced">
+                <div class="gallery-placeholder-enhanced">
+                  <i class="fas fa-utensils text-4xl mb-3"></i>
+                  <span class="nepali text-base">खानाको परिवेश</span>
+                </div>
+              </div>
+              <div class="gallery-item-enhanced">
+                <div class="gallery-placeholder-enhanced">
+                  <i class="fas fa-couch text-4xl mb-3"></i>
+                  <span class="nepali text-base">आराम कोठा</span>
+                </div>
+              </div>
+            @endif
+          </div>
+          
+          <!-- 🆕 FIXED: "Purai Gallery Hernuhos" Button at Bottom -->
+          <div class="gallery-footer">
+            <a href="#" class="view-full-gallery-btn nepali">
+              <i class="fas fa-images"></i>
+              पूरै ग्यालरी हेर्नुहोस्
+            </a>
+          </div>
+        </div>
+      </section>
 
-      <!-- Facilities Section -->
+      <!-- 🛠️ FIXED: Facilities Section with PROPERLY PARSED DATA -->
       @if(!empty($facilities) && count($facilities) > 0)
         <section class="pro-card">
           <div class="pro-card-body">
@@ -431,14 +658,20 @@
               <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
                 <i class="fas fa-list-check text-green-600"></i>
               </div>
-              सुविधाहरू
+              हाम्रा सुविधाहरू
             </h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               @foreach($facilities as $facility)
-                @if(trim($facility))
+                @php
+                    // Final cleaning for display
+                    $displayFacility = trim($facility);
+                    $displayFacility = trim($displayFacility, ' ,"\'[]');
+                @endphp
+                
+                @if(!empty(trim($displayFacility)) && $displayFacility !== '""' && $displayFacility !== "''")
                   <div class="facility-chip">
                     <i class="fas fa-check text-green-500"></i>
-                    <span class="nepali">{{ trim($facility) }}</span>
+                    <span class="nepali">{{ $displayFacility }}</span>
                   </div>
                 @endif
               @endforeach
