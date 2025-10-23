@@ -251,7 +251,7 @@
                             <span class="nepali">प्रकाशित</span>
                         </span>
                         <span class="text-sm text-gray-600 nepali">
-                            प्रकाशित मिति: {{ $hostel->published_at->format('Y-m-d') }}
+                            प्रकाशित मिति: {{ $hostel->published_at ? $hostel->published_at->format('Y-m-d') : '—' }}
                         </span>
                     @else
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
