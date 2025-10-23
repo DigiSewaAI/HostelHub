@@ -72,8 +72,13 @@ Route::group(['middleware' => 'web'], function () {
     Route::get('/hostels', [PublicController::class, 'hostelsIndex'])->name('hostels.index');
     Route::get('/hostels/{slug}', [PublicController::class, 'hostelShow'])->name('hostels.show');
 
-    // ✅ ADDED: Public hostel gallery route - FIX FOR 404 ERROR
-    Route::get('/hostel/{slug}/gallery', [PublicController::class, 'hostelGallery'])->name('hostels.gallery');
+    // ✅ CORRECTED: Public hostel gallery routes - FIXED AND UPDATED
+    Route::get('/hostel/{slug}/gallery', [PublicController::class, 'hostelGallery'])->name('hostel.gallery');
+    Route::get('/hostel/{slug}/full-gallery', [PublicController::class, 'hostelFullGallery'])->name('hostel.full-gallery');
+
+
+    // ✅ ADDED: Missing book-room route that was causing the error
+    Route::get('/hostel/{slug}/book-room', [BookingController::class, 'create'])->name('hostel.book-room');
 
     // ✅ ADDED: Missing hostel contact route
     Route::post('/hostels/{hostel}/contact', [PublicController::class, 'hostelContact'])->name('hostel.contact');
@@ -872,10 +877,10 @@ if (app()->environment('local')) {
                 ];
             }),
             'gallery_count' => $hostel->galleries->count(),
-            'route_exists' => \Route::has('hostels.gallery'),
-            'route_url' => route('hostels.gallery', $slug),
+            'route_exists' => \Route::has('hostel.gallery'),
+            'route_url' => route('hostel.gallery', $slug),
         ];
-    }); // ← THIS closing bracket was missing!
+    });
 
     // ✅ ADDED: Temporary route to publish hostel for testing
     Route::get('/publish-hostel/{slug}', function ($slug) {
@@ -895,7 +900,7 @@ if (app()->environment('local')) {
                 'slug' => $hostel->slug,
                 'is_published' => $hostel->is_published
             ],
-            'gallery_url' => route('hostels.gallery', $slug)
+            'gallery_url' => route('hostel.gallery', $slug)
         ];
     });
 

@@ -69,7 +69,7 @@ class PublicController extends Controller
                     ->get();
             });
 
-            // 6. Room Types (with caching)
+            // 6. Room Types (with caching) - UPDATED
             $roomTypes = Cache::remember('home_room_types', 3600, function () {
                 return Room::distinct()->pluck('type');
             });
@@ -98,19 +98,17 @@ class PublicController extends Controller
                     });
             });
 
-            // 9. Upcoming Meals (Today + next 2 days) - ✅ FIXED: Status condition
+            // 9. Upcoming Meals (Today + next 2 days)
             $meals = collect();
             if (class_exists(Meal::class)) {
                 try {
-                    // Try with status condition first
                     $meals = Meal::whereDate('date', '>=', now())
-                        ->where('status', 'published') // Use the column you added
+                        ->where('status', 'published')
                         ->orderBy('date')
                         ->limit(3)
                         ->get();
                 } catch (\Exception $e) {
-                    // If status column doesn't exist yet, use without status condition
-                    Log::warning('Meals status column not available, fetching all meals: ' . $e->getMessage());
+                    Log::warning('Meals status column not available: ' . $e->getMessage());
                     $meals = Meal::whereDate('date', '>=', now())
                         ->orderBy('date')
                         ->limit(3)
@@ -131,8 +129,6 @@ class PublicController extends Controller
             ));
         } catch (\Exception $e) {
             Log::error('PublicController@home error: ' . $e->getMessage());
-            Log::error('Stack trace: ' . $e->getTraceAsString());
-
             return view('frontend.home', [
                 'featuredRooms' => collect(),
                 'metrics' => [
@@ -194,57 +190,6 @@ class PublicController extends Controller
     }
 
     /**
-     * Process gallery item for frontend display
-     */
-    private function processGalleryItem($item): array
-    {
-        $processed = [
-            'id' => $item->id,
-            'title' => $item->title ?? 'Untitled',
-            'media_type' => $item->media_type ?? 'image',
-            'file_path' => $item->file_path,
-            'thumbnail_url' => null,
-            'media_url' => null
-        ];
-
-        try {
-            if ($item->file_path) {
-                if (in_array($item->media_type, ['image', 'photo'])) {
-                    $url = $this->imageService->getUrl($item->file_path);
-                    $processed['media_url'] = $url;
-                    $processed['thumbnail_url'] = $url;
-                } elseif (in_array($item->media_type, ['video', 'local_video'])) {
-                    $url = $this->imageService->getUrl($item->file_path);
-                    $processed['media_url'] = $url;
-                    $processed['thumbnail_url'] = asset('images/default-video-thumbnail.jpg');
-
-                    if (
-                        strpos($item->file_path, 'youtube.com') !== false ||
-                        strpos($item->file_path, 'youtu.be') !== false
-                    ) {
-                        $youtubeThumbnail = $this->getYoutubeThumbnail($item->file_path);
-                        if ($youtubeThumbnail) {
-                            $processed['thumbnail_url'] = $youtubeThumbnail;
-                        }
-                    }
-                } else {
-                    $url = $this->imageService->getUrl(null);
-                    $processed['thumbnail_url'] = $processed['media_url'] = $url;
-                }
-            } else {
-                $url = $this->imageService->getUrl(null);
-                $processed['thumbnail_url'] = $processed['media_url'] = $url;
-            }
-        } catch (\Exception $e) {
-            Log::error('Error processing gallery item ' . $item->id . ': ' . $e->getMessage());
-            $url = $this->imageService->getUrl(null);
-            $processed['thumbnail_url'] = $processed['media_url'] = $url;
-        }
-
-        return $processed;
-    }
-
-    /**
      * Extract YouTube ID from URL
      */
     private function getYoutubeIdFromUrl(string $url): ?string
@@ -254,19 +199,6 @@ class PublicController extends Controller
         $pattern = '%^(?:https?://)?(?:www\.)?(?:youtu\.be/|youtube\.com(?:/embed/|/v/|/watch\?v=|/.+&v=))([\w-]{11})$%x';
         preg_match($pattern, $url, $matches);
         return $matches[1] ?? null;
-    }
-
-    /**
-     * Generate YouTube thumbnail URL
-     */
-    private function getYoutubeThumbnail(string $url): ?string
-    {
-        $id = $this->getYoutubeIdFromUrl($url);
-        if (!$id) {
-            return null;
-        }
-
-        return "https://img.youtube.com/vi/{$id}/maxresdefault.jpg";
     }
 
     /**
@@ -284,6 +216,111 @@ class PublicController extends Controller
         } catch (\Exception $e) {
             Log::error('Occupancy rate calculation failed: ' . $e->getMessage());
             return 0.0;
+        }
+    }
+
+    /**
+     * Show only available rooms gallery - CLEANED & FIXED
+     */
+    public function hostelGallery($slug)
+    {
+        try {
+            \Log::info("=== MAIN GALLERY DEBUG START ===", ['slug' => $slug]);
+
+            // Get hostel with available rooms and their images only
+            $hostel = Hostel::where('slug', $slug)
+                ->with(['rooms' => function ($query) {
+                    $query->where('status', 'available');
+                }])
+                ->first();
+
+            if (!$hostel) {
+                abort(404, 'होस्टल फेला परेन।');
+            }
+
+            // Get available room counts by type
+            $availableRoomCounts = [
+                '1 seater' => $hostel->rooms->where('type', '1 seater')->count(),
+                '2 seater' => $hostel->rooms->where('type', '2 seater')->count(),
+                '3 seater' => $hostel->rooms->where('type', '3 seater')->count(),
+                '4 seater' => $hostel->rooms->where('type', '4 seater')->count(),
+                'other' => $hostel->rooms->where('type', 'other')->count(),
+            ];
+
+            // Get only room images (no videos, no facilities)
+            $galleries = Gallery::where('hostel_id', $hostel->id)
+                ->where('is_active', true)
+                ->where('media_type', 'photo') // Only photos, no videos
+                ->whereIn('category', ['1 seater', '2 seater', '3 seater', '4 seater', 'other']) // Only room categories
+                ->orderBy('is_featured', 'desc')
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->filter(function ($gallery) use ($availableRoomCounts) {
+                    // Only show galleries for room types that have available rooms
+                    return ($availableRoomCounts[$gallery->category] ?? 0) > 0;
+                });
+
+            \Log::info("Main gallery data:", [
+                'hostel_id' => $hostel->id,
+                'available_rooms_count' => $hostel->rooms->count(),
+                'galleries_count' => $galleries->count(),
+                'available_room_counts' => $availableRoomCounts
+            ]);
+
+            return view('public.hostels.gallery', compact(
+                'hostel',
+                'galleries',
+                'availableRoomCounts'
+            ));
+        } catch (\Exception $e) {
+            \Log::error('Main gallery error: ' . $e->getMessage());
+            abort(404, 'ग्यालरी लोड गर्न असफल।');
+        }
+    }
+
+    /**
+     * Show full gallery with all images/videos - CLEANED & FIXED
+     */
+    public function hostelFullGallery($slug)
+    {
+        try {
+            \Log::info("=== FULL GALLERY DEBUG START ===", ['slug' => $slug]);
+
+            $hostel = Hostel::where('slug', $slug)
+                ->with(['galleries' => function ($query) {
+                    $query->where('is_active', true)
+                        ->orderBy('is_featured', 'desc')
+                        ->orderBy('created_at', 'desc');
+                }])
+                ->first();
+
+            if (!$hostel) {
+                abort(404, 'होस्टल फेला परेन।');
+            }
+
+            // Count items by category for full gallery
+            $activeGalleries = $hostel->galleries->where('is_active', true);
+
+            $categoryCounts = [
+                'rooms' => $activeGalleries->whereIn('category', ['1 seater', '2 seater', '3 seater', '4 seater', 'other'])->count(),
+                'kitchen' => $activeGalleries->where('category', 'kitchen')->count(),
+                'facilities' => $activeGalleries->whereIn('category', ['bathroom', 'common', 'living room', 'study room'])->count(),
+                'video' => $activeGalleries->whereIn('media_type', ['local_video', 'external_video'])->count()
+            ];
+
+            \Log::info("Full gallery data:", [
+                'hostel_id' => $hostel->id,
+                'total_galleries' => $hostel->galleries->count(),
+                'category_counts' => $categoryCounts
+            ]);
+
+            return view('public.hostels.full-gallery', compact(
+                'hostel',
+                'categoryCounts'
+            ));
+        } catch (\Exception $e) {
+            \Log::error('Full gallery error: ' . $e->getMessage());
+            abort(404, 'पूर्ण ग्यालरी लोड गर्न असफल।');
         }
     }
 
@@ -334,88 +371,6 @@ class PublicController extends Controller
             ->get();
 
         return view('frontend.search-results', compact('rooms'));
-    }
-
-    /**
-     * ✅ FIXED: Display hostel gallery - USING CORRECT COLUMN NAME 'is_active'
-     */
-    public function hostelGallery($slug)
-    {
-        try {
-            \Log::info("Attempting to access hostel gallery", ['slug' => $slug]);
-
-            // First, try to find published hostel
-            $hostel = Hostel::where('slug', $slug)
-                ->where('is_published', true)
-                ->with(['galleries' => function ($query) {
-                    // ✅ FIXED: Use correct column name 'is_active'
-                    $query->where('is_active', true)->latest();
-                }])
-                ->first();
-
-            // If not found, try without published check for preview/owner access
-            if (!$hostel) {
-                $hostel = Hostel::where('slug', $slug)
-                    ->with(['galleries' => function ($query) {
-                        // ✅ FIXED: Use correct column name 'is_active'
-                        $query->where('is_active', true)->latest();
-                    }])
-                    ->first();
-
-                if (!$hostel) {
-                    \Log::error("Hostel not found with slug: {$slug}");
-                    abort(404, 'होस्टल फेला परेन।');
-                }
-
-                // Check if user has permission to view unpublished hostel
-                $user = auth()->user();
-                $hasAccess = false;
-
-                if ($user) {
-                    // Admin can view any hostel
-                    if ($user->hasRole('admin')) {
-                        $hasAccess = true;
-                    }
-                    // Owner/hostel_manager can view their own hostels
-                    elseif ($user->hasRole('owner') || $user->hasRole('hostel_manager')) {
-                        $userOrganizationId = session('current_organization_id');
-                        if ($hostel->organization_id == $userOrganizationId) {
-                            $hasAccess = true;
-                        }
-                    }
-                }
-
-                if (!$hasAccess) {
-                    \Log::warning("Unauthorized access attempt to unpublished hostel: {$slug}");
-                    abort(404, 'होस्टल फेला परेन वा तपाईंसँग यसलाई हेर्ने अनुमति छैन।');
-                }
-            }
-
-            // Get gallery items for this specific hostel
-            $galleries = $hostel->galleries;
-
-            // Get categories with correct column name
-            $categories = $hostel->galleries()
-                ->where('is_active', true)
-                ->select('category')
-                ->distinct()
-                ->pluck('category');
-
-            \Log::info("Hostel gallery loaded successfully", [
-                'hostel_id' => $hostel->id,
-                'hostel_slug' => $hostel->slug,
-                'gallery_count' => $galleries->count(),
-                'categories_count' => $categories->count(),
-                'is_published' => $hostel->is_published
-            ]);
-
-            // ✅ FIXED: Use the correct view path - public.hostels.gallery
-            return view('public.hostels.gallery', compact('hostel', 'galleries', 'categories'));
-        } catch (\Exception $e) {
-            \Log::error('Hostel gallery error: ' . $e->getMessage());
-            \Log::error('Stack trace: ' . $e->getTraceAsString());
-            abort(404, 'ग्यालरी लोड गर्न असफल।');
-        }
     }
 
     // Hostel search functionality
@@ -497,15 +452,6 @@ class PublicController extends Controller
         return view('frontend.testimonials', compact('testimonials'));
     }
 
-    /**
-     * Display full reviews list (for admin/owner reference)
-     */
-    public function reviews(): View
-    {
-        $reviews = Review::with('student')->latest()->paginate(6);
-        return view('frontend.reviews', compact('reviews'));
-    }
-
     public function contact(): View
     {
         return view('frontend.contact');
@@ -522,28 +468,9 @@ class PublicController extends Controller
         return view('frontend.legal.terms');
     }
 
-    public function cookies(): View
-    {
-        return view('frontend.legal.cookies');
-    }
-
     public function demo(): View
     {
         return view('frontend.pages.demo');
-    }
-
-    // SEO routes
-    public function sitemap()
-    {
-        try {
-            $content = view('frontend.seo.sitemap')->render();
-            return Response::make($content, 200, [
-                'Content-Type' => 'application/xml'
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Sitemap generation failed: ' . $e->getMessage());
-            abort(500);
-        }
     }
 
     public function subscribeNewsletter(Request $request)
@@ -560,25 +487,11 @@ class PublicController extends Controller
         return back()->with('success', 'धन्यवाद! तपाईंको सदस्यता सफलतापूर्वक दर्ता गरियो।');
     }
 
-    public function robots()
-    {
-        try {
-            $content = view('frontend.seo.robots')->render();
-            return Response::make($content, 200, [
-                'Content-Type' => 'text/plain'
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Robots.txt generation failed: ' . $e->getMessage());
-            abort(500);
-        }
-    }
-
     /**
      * Display hostels index page with search and filtering
      */
     public function hostelsIndex(Request $request)
     {
-        // ✅ FIXED: Use proper published scope instead of temporary fix
         $query = Hostel::where('is_published', true)->withCount('approvedReviews');
 
         // Search functionality
@@ -607,7 +520,6 @@ class PublicController extends Controller
      */
     public function hostelShow($slug)
     {
-        // ✅ FIXED: Use proper published scope instead of temporary fix
         $hostel = Hostel::where('is_published', true)->where('slug', $slug)->firstOrFail();
         $reviews = $hostel->approvedReviews()->with('student.user')->paginate(10);
 
@@ -615,7 +527,7 @@ class PublicController extends Controller
     }
 
     /**
-     * ✅ FIXED: Preview hostel for owners/admins - Fixed 403 error
+     * Preview hostel for owners/admins
      */
     public function hostelPreview($slug)
     {
@@ -624,12 +536,12 @@ class PublicController extends Controller
             'images',
             'rooms',
             'approvedReviews.student.user',
-            'mealMenus' // ✅ Ensure this is included
+            'mealMenus'
         ])->where('slug', $slug)->firstOrFail();
 
         $user = auth()->user();
 
-        // ✅ FIXED: Allow preview for authenticated users with proper roles
+        // Allow preview for authenticated users with proper roles
         if ($user) {
             // Admin can preview any hostel
             if ($user->hasRole('admin')) {
@@ -648,7 +560,6 @@ class PublicController extends Controller
             }
         }
 
-        // ✅ FIXED: Instead of 403, show a more user-friendly error
         abort(404, 'होस्टल फेला परेन वा तपाईंसँग यसलाई हेर्ने अनुमति छैन।');
     }
 }

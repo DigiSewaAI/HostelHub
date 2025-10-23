@@ -1,49 +1,60 @@
-<!-- gallery.blade.php -->
 @extends('layouts.frontend')
 
-@section('page-title', 'Sanctuary Girls Hostel - Premium Gallery | HostelHub')
+@section('page-title', ($hostel->name ?? 'Sanctuary Girls Hostel') . ' - Premium Gallery | HostelHub')
 
-@section('page-header', 'Sanctuary Girls Hostel Premium Gallery')
+@section('page-header', ($hostel->name ?? 'Sanctuary Girls Hostel') . ' Premium Gallery')
 @section('page-description', 'हाम्रो होस्टलको विश्वस्तरीय सुविधाहरू, आधुनिक कोठाहरू, र रमाइलो विद्यार्थी जीवनको immersive experience')
 
 @section('content')
+@php
+    // Get gallery items from database
+    $galleries = $hostel->galleries ?? collect();
+    $featuredGalleries = $galleries->where('is_featured', true)->where('is_active', true);
+    $activeGalleries = $galleries->where('is_active', true);
+    
+    // Get available rooms
+    $availableRooms = $hostel->rooms->where('status', 'available') ?? collect();
+    
+    // Count items by category for stats
+    $categoryCounts = [
+        'rooms' => $activeGalleries->whereIn('category', ['1 seater', '2 seater', '3 seater', '4 seater'])->count(),
+        'kitchen' => $activeGalleries->where('category', 'kitchen')->count(),
+        'facilities' => $activeGalleries->whereIn('category', ['bathroom', 'common', 'living room', 'study room'])->count(),
+        'video' => $activeGalleries->whereIn('media_type', ['local_video', 'external_video'])->count()
+    ];
+
+    // For available rooms section
+    $filteredGalleries = $galleries->where('is_active', true)->filter(function($gallery) use ($availableRooms) {
+        return in_array($gallery->category, ['1 seater', '2 seater', '3 seater', '4 seater']);
+    });
+    
+    // FIXED: Ensure all values are integers, not collections
+    $availableRoomCounts = [
+        '1 seater' => $availableRooms->where('type', '1 seater')->count(),
+        '2 seater' => $availableRooms->where('type', '2 seater')->count(),
+        '3 seater' => $availableRooms->where('type', '3 seater')->count(),
+        '4 seater' => $availableRooms->where('type', '4 seater')->count(),
+        'other' => $availableRooms->whereNotIn('type', ['1 seater', '2 seater', '3 seater', '4 seater'])->count()
+    ];
+
+    // PERMANENT FIX: Nepali room types
+    $nepaliRoomTypes = [
+        '1 seater' => '१ सिटर',
+        '2 seater' => '२ सिटर', 
+        '3 seater' => '३ सिटर',
+        '4 seater' => '४ सिटर',
+        'other' => 'अन्य (५+ सिटर)'
+    ];
+    
+    // FIXED: Now all values are integers, so array_sum will work
+    $totalAvailableRooms = array_sum($availableRoomCounts);
+    $hasAvailableRooms = $totalAvailableRooms > 0 && $galleries->count() > 0;
+@endphp
+
 <style>
     /* Gallery Specific Styles */
-    .gallery-hero {
-        background: linear-gradient(rgba(30, 58, 138, 0.85), rgba(14, 165, 233, 0.85)), url('https://images.unsplash.com/photo-1555854877-bab0e564b8d5?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
-        background-size: cover;
-        background-position: center;
-        color: white;
-        padding: 80px 0 60px;
-        text-align: center;
-        margin-bottom: 50px;
-    }
-    
-    .gallery-stats {
-        display: flex;
-        justify-content: center;
-        gap: 40px;
-        margin-top: 40px;
-        flex-wrap: wrap;
-    }
-    
-    .stat-item {
-        text-align: center;
-    }
-    
-    .stat-number {
-        font-size: 2.2rem;
-        font-weight: 700;
-        margin-bottom: 5px;
-    }
-    
-    .stat-label {
-        font-size: 1rem;
-        opacity: 0.9;
-    }
-    
     .gallery-section {
-        padding: 30px 0 60px;
+        padding: 80px 0 60px;
     }
     
     .section-title {
@@ -157,56 +168,203 @@
         font-weight: 600;
         z-index: 2;
     }
+
+    .book-now-btn {
+        position: absolute;
+        bottom: 15px;
+        right: 15px;
+        background: var(--primary);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-decoration: none;
+        z-index: 3;
+        transition: background 0.3s;
+    }
+
+    .book-now-btn:hover {
+        background: var(--secondary);
+        color: white;
+    }
     
     .view-more {
         text-align: center;
         margin-top: 40px;
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        flex-wrap: wrap;
     }
     
-    .features-section {
+    /* Gallery Categories - Fixed Top Alignment */
+    .gallery-categories {
         background: var(--bg-light);
-        padding: 70px 0;
-        border-radius: var(--radius);
-        margin: 50px 0;
+        padding: 60px 0 80px;
+        margin-top: 0;
+        min-height: auto;
+        display: block;
     }
     
-    .features-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 30px;
-    }
-    
-    .feature-card {
+    .main-description {
         text-align: center;
-        padding: 40px 25px;
-        border-radius: var(--radius);
+        margin: 0 auto 60px;
+        color: var(--text-dark);
+        font-size: 2rem;
+        font-weight: 700;
+        line-height: 1.3;
+        max-width: 900px;
+        padding: 40px 20px 0;
+    }
+    
+    .category-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 25px;
+        margin-top: 0;
+        align-items: stretch;
+    }
+    
+    .category-card {
         background: white;
-        box-shadow: var(--shadow);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
         transition: transform 0.3s, box-shadow 0.3s;
+        text-align: center;
+        padding: 30px 20px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
     }
     
-    .feature-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+    .category-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
     }
     
-    .feature-icon {
-        font-size: 3rem;
+    .category-icon {
+        font-size: 2.5rem;
         margin-bottom: 20px;
         color: var(--primary);
     }
     
-    .feature-title {
-        font-size: 1.4rem;
-        margin-bottom: 15px;
+    .category-title {
+        font-size: 1.3rem;
+        margin-bottom: 12px;
         color: var(--text-dark);
         font-weight: 600;
     }
     
-    .feature-description {
-        color: var(--text-dark);
-        opacity: 0.8;
-        line-height: 1.6;
+    .category-count {
+        background: var(--primary);
+        color: white;
+        padding: 6px 15px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        display: inline-block;
+        margin-top: 12px;
+    }
+    
+    /* Available Rooms Specific Styles - UPDATED */
+    .available-rooms-section {
+        padding: 80px 0 60px;
+        background: var(--bg-light);
+    }
+    
+    .availability-stats {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 40px;
+        text-align: center;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 15px;
+        margin-top: 20px;
+    }
+    
+    .stat-item {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 20px;
+        border-radius: 10px;
+        backdrop-filter: blur(10px);
+        transition: transform 0.3s;
+    }
+
+    .stat-item:hover {
+        transform: translateY(-3px);
+    }
+    
+    .stat-count {
+        font-size: 2rem;
+        font-weight: bold;
+        color: white;
+        display: block;
+        margin-bottom: 5px;
+    }
+    
+    .stat-label {
+        color: rgba(255,255,255,0.9);
+        font-size: 0.9rem;
+    }
+    
+    .room-type-badge {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        background: var(--primary);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        z-index: 2;
+    }
+    
+    .available-badge {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: #10b981;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        z-index: 2;
+    }
+    
+    .full-gallery-cta {
+        text-align: center;
+        margin-top: 60px;
+        padding: 40px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    /* No Rooms Message Styles */
+    .no-rooms-message {
+        text-align: center;
+        padding: 80px 20px;
+        background: #f8f9fa;
+        border-radius: 15px;
+        margin: 40px 0;
+    }
+    
+    .no-rooms-icon {
+        font-size: 4rem;
+        color: #6c757d;
+        margin-bottom: 20px;
     }
     
     /* Modal Styles */
@@ -276,21 +434,29 @@
     .modal-content:hover .modal-caption {
         transform: translateY(0);
     }
+
+    /* Hidden items for view more functionality */
+    .gallery-item.hidden-item {
+        display: none;
+    }
+
+    .view-more-items .gallery-item {
+        display: block !important;
+    }
     
     /* Responsive Design */
+    @media (max-width: 1200px) {
+        .category-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .stats-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+    
     @media (max-width: 768px) {
-        .gallery-hero {
-            padding: 60px 0 40px;
-        }
-        
-        .gallery-stats {
-            gap: 25px;
-        }
-        
-        .stat-number {
-            font-size: 1.8rem;
-        }
-        
         .gallery-grid {
             grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
             gap: 20px;
@@ -300,8 +466,44 @@
             height: 240px;
         }
         
-        .features-grid {
+        .category-grid {
             grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        
+        .gallery-section {
+            padding: 60px 0 40px;
+        }
+        
+        .gallery-categories {
+            padding: 40px 0 60px;
+        }
+        
+        .view-more {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .main-description {
+            font-size: 1.6rem;
+            margin-bottom: 40px;
+            padding: 20px 15px 0;
+        }
+        
+        .category-icon {
+            font-size: 2.2rem;
+        }
+        
+        .category-title {
+            font-size: 1.2rem;
+        }
+
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .available-rooms-section {
+            padding: 60px 0 40px;
         }
     }
     
@@ -319,165 +521,282 @@
         }
         
         .filter-btn {
-            padding: 8px 16px;
-            font-size: 0.9rem;
+            padding: 8px 12px;
+            font-size: 0.8rem;
+        }
+        
+        .main-description {
+            font-size: 1.4rem;
+            padding: 15px 10px 0;
+        }
+        
+        .gallery-categories {
+            padding: 30px 0 40px;
+        }
+        
+        .category-card {
+            padding: 25px 15px;
+        }
+        
+        .category-icon {
+            font-size: 2rem;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .stat-item {
+            padding: 15px;
+        }
+        
+        .availability-stats {
+            padding: 20px 15px;
         }
     }
 </style>
 
-<!-- Gallery Hero Section -->
-<section class="gallery-hero">
+<!-- Gallery Categories -->
+<section class="gallery-categories">
     <div class="container">
-        <h1 class="nepali">Sanctuary Girls Hostel Premium Gallery Experience</h1>
-        <p class="nepali" style="max-width: 800px; margin: 0 auto 30px; font-size: 1.1rem;">
-            हाम्रो होस्टलको विश्वस्तरीय सुविधाहरू, आधुनिक कोठाहरू, र रमाइलो विद्यार्थी जीवनको immersive experience को साथ हेर्नुहोस्
-        </p>
-        
-        <div class="gallery-stats">
-            <div class="stat-item">
-                <div class="stat-number">🎓 500+</div>
-                <div class="stat-label nepali">विद्यार्थीहरू</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number">⭐ 98%</div>
-                <div class="stat-label nepali">सन्तुष्टि दर</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number">🏙️ 5+</div>
-                <div class="stat-label nepali">शहरहरू</div>
-            </div>
+        <div class="main-description nepali">
+            हाम्रो होस्टलको सुन्दर वातावरण र उत्कृष्ट सुविधाहरूको दृश्यात्मक अनुभव
         </div>
         
-        <div style="margin-top: 40px;">
-            <a href="#gallery" class="btn btn-primary nepali" style="margin-right: 15px;">ग्यालरी हेर्नुहोस्</a>
-            <a href="{{ route('contact') }}" class="btn btn-outline nepali" style="background: transparent; color: white; border-color: white;">अहिले बुक गर्नुहोस्</a>
+        <div class="category-grid">
+            <div class="category-card">
+                <div class="category-icon">🛏️</div>
+                <h3 class="category-title nepali">कोठाहरू</h3>
+                <p class="nepali">१, २, ३ र ४ सिटर कोठाहरू</p>
+                <span class="category-count nepali">{{ $categoryCounts['rooms'] }} फोटोहरू</span>
+            </div>
+            
+            <div class="category-card">
+                <div class="category-icon">🍳</div>
+                <h3 class="category-title nepali">किचन</h3>
+                <p class="nepali">आधुनिक किचन सुविधा</p>
+                <span class="category-count nepali">{{ $categoryCounts['kitchen'] }} फोटोहरू</span>
+            </div>
+            
+            <div class="category-card">
+                <div class="category-icon">🚽</div>
+                <h3 class="category-title nepali">अन्य सुविधाहरू</h3>
+                <p class="nepali">अध्ययन क्षेत्र, शौचालय, र अन्य</p>
+                <span class="category-count nepali">{{ $categoryCounts['facilities'] }} फोटोहरू</span>
+            </div>
+            
+            <div class="category-card">
+                <div class="category-icon">🎬</div>
+                <h3 class="category-title nepali">भिडियो टुर</h3>
+                <p class="nepali">होस्टलको पूर्ण टुर</p>
+                <span class="category-count nepali">{{ $categoryCounts['video'] }} भिडियोहरू</span>
+            </div>
         </div>
+    </div>
+</section>
+
+<!-- Available Rooms Section - UPDATED -->
+<section class="available-rooms-section">
+    <div class="container">
+        <!-- Availability Statistics -->
+        <div class="availability-stats">
+            <h2 class="nepali" style="color: white; margin-bottom: 10px;">कोठा उपलब्धता</h2>
+            <p class="nepali" style="color: rgba(255,255,255,0.9); margin-bottom: 30px;">
+                हाल उपलब्ध कोठाहरूको विवरण
+            </p>
+            
+            <div class="stats-grid">
+                @foreach($nepaliRoomTypes as $englishType => $nepaliType)
+                <div class="stat-item">
+                    <span class="stat-count">{{ $availableRoomCounts[$englishType] ?? 0 }}</span>
+                    <span class="stat-label nepali">{{ $nepaliType }}</span>
+                </div>
+                @endforeach
+            </div>
+        </div>
+
+        @if($hasAvailableRooms)
+            <h2 class="section-title nepali">हाल उपलब्ध कोठाहरू</h2>
+            <p style="text-align: center; margin-bottom: 40px; color: var(--text-dark); opacity: 0.8; max-width: 700px; margin-left: auto; margin-right: auto;" class="nepali">
+                तल दिइएका कोठाहरू हाल उपलब्ध छन्। तपाईंको रुचिको कोठा चयन गरी अहिलेै बुक गर्नुहोस्।
+            </p>
+            
+            <!-- Available Rooms Gallery -->
+            <div class="gallery-grid">
+                @foreach($galleries as $gallery)
+                    @php
+                        $roomCategory = $gallery->category;
+                        $availableCount = $availableRoomCounts[$roomCategory] ?? 0;
+                    @endphp
+                    
+                    <div class="gallery-item">
+                        <img src="{{ $gallery->thumbnail_url ?? $gallery->media_url }}" 
+                             alt="{{ $gallery->title }}" 
+                             onerror="this.src='{{ asset('images/default-room.jpg') }}'">
+                        
+                        <div class="room-type-badge nepali">
+                            {{ $nepaliRoomTypes[$roomCategory] ?? $roomCategory }}
+                        </div>
+                        
+                        <div class="available-badge nepali">
+                            {{ $availableCount }} उपलब्ध
+                        </div>
+                        
+                        <a href="{{ route('contact') }}?room_type={{ $roomCategory }}&hostel={{ $hostel->slug }}" 
+                           class="book-now-btn nepali">
+                            बुक गर्नुहोस्
+                        </a>
+                        
+                        <div class="gallery-overlay">
+                            <h3 class="gallery-title nepali">{{ $gallery->title }}</h3>
+                            <p class="nepali">{{ $gallery->description }}</p>
+                            <button class="btn btn-primary" 
+                                    style="margin-top: 12px; padding: 8px 16px; font-size: 0.9rem;" 
+                                    onclick="openRoomModal('{{ $gallery->id }}')">
+                                विस्तृत हेर्नुहोस्
+                            </button>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+            
+            <!-- Navigation Buttons -->
+            <div class="view-more">
+                <a href="{{ route('hostel.full-gallery', $hostel->slug) }}" class="btn btn-outline nepali" 
+                   style="border-color: var(--primary); color: var(--primary);">
+                    पूरा ग्यालरी हेर्नुहोस्
+                </a>
+                <a href="{{ route('contact') }}?hostel={{ $hostel->slug }}" class="btn btn-primary nepali">
+                    अहिले बुक गर्नुहोस्
+                </a>
+            </div>
+            
+        @else
+            <!-- No Available Rooms Message -->
+            <div class="no-rooms-message">
+                <div class="no-rooms-icon">🏠</div>
+                <h3 class="nepali" style="color: var(--text-dark); margin-bottom: 15px;">हाल कुनै कोठा उपलब्ध छैन</h3>
+                <p class="nepali" style="color: var(--text-dark); opacity: 0.8; margin-bottom: 25px;">
+                    माफ गर्नुहोस्, हाल यस होस्टलमा कुनै कोठा उपलब्ध छैन।<br>
+                    कृपया पछि फेरी जाँच गर्नुहोस् वा हाम्रो अन्य होस्टलहरू हेर्नुहोस्।
+                </p>
+                <div class="view-more">
+                    <a href="{{ route('hostels.index') }}" class="btn btn-primary nepali">
+                        अन्य होस्टलहरू हेर्नुहोस्
+                    </a>
+                    <a href="{{ route('contact') }}" class="btn btn-outline nepali">
+                        सम्पर्क गर्नुहोस्
+                    </a>
+                </div>
+            </div>
+        @endif
     </div>
 </section>
 
 <!-- Gallery Section -->
 <section class="gallery-section" id="gallery">
     <div class="container">
-        <h2 class="section-title nepali">Premium Gallery</h2>
+        <h2 class="section-title nepali">हाम्रो होस्टल ग्यालरी</h2>
         <p style="text-align: center; margin-bottom: 40px; color: var(--text-dark); opacity: 0.8; max-width: 700px; margin-left: auto; margin-right: auto;" class="nepali">
-            हाम्रो होस्टलको विशेषताहरूको immersive tour
+            विभिन्न कोठा र सुविधाहरूको विस्तृत दृश्यहरू
         </p>
         
         <div class="gallery-filters">
             <button class="filter-btn active nepali" data-filter="all">सबै</button>
             <button class="filter-btn nepali" data-filter="1-seater">१ सिटर कोठा</button>
             <button class="filter-btn nepali" data-filter="2-seater">२ सिटर कोठा</button>
+            <button class="filter-btn nepali" data-filter="3-seater">३ सिटर कोठा</button>
             <button class="filter-btn nepali" data-filter="4-seater">४ सिटर कोठा</button>
             <button class="filter-btn nepali" data-filter="video">भिडियो</button>
             <button class="filter-btn nepali" data-filter="facilities">सुविधाहरू</button>
         </div>
         
-        <div class="gallery-grid">
-            <!-- 1 Seater Room -->
-            <div class="gallery-item" data-category="1-seater">
-                <img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="आधुनिक १ सिटर कोठा">
-                <div class="featured-badge nepali">Featured</div>
-                <div class="gallery-overlay">
-                    <h3 class="gallery-title nepali">आधुनिक १ सिटर कोठा</h3>
-                    <p class="nepali">पूर्ण सुसज्जित आधुनिक १ सिटर कोठा</p>
-                    <button class="btn btn-primary" style="margin-top: 12px; padding: 8px 16px; font-size: 0.9rem;" onclick="openModal('image1')">विस्तृत हेर्नुहोस्</button>
-                </div>
-            </div>
+        <div class="gallery-grid" id="mainGallery">
+            @php
+                $displayedItems = 0;
+                $maxInitialDisplay = 8;
+            @endphp
             
-            <!-- 2 Seater Room -->
-            <div class="gallery-item" data-category="2-seater">
-                <img src="https://images.unsplash.com/photo-1555854877-bab0e564b8d5?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="२ सिटर कोठा">
-                <div class="gallery-overlay">
-                    <h3 class="gallery-title nepali">२ सिटर कोठा</h3>
-                    <p class="nepali">ठूलो २ सिटर कोठा</p>
-                    <button class="btn btn-primary" style="margin-top: 12px; padding: 8px 16px; font-size: 0.9rem;" onclick="openModal('image2')">विस्तृत हेर्नुहोस्</button>
-                </div>
-            </div>
-            
-            <!-- Video Tour -->
-            <div class="gallery-item" data-category="video">
-                <div style="width:100%; height:100%; background: #000; display: flex; align-items: center; justify-content: center; position: relative;">
-                    <i class="fas fa-play-circle" style="font-size: 4rem; color: white; position: absolute; z-index: 1;"></i>
-                    <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="होस्टल टुर भिडियो" style="opacity: 0.7;">
-                </div>
-                <div class="featured-badge nepali">Featured</div>
-                <div class="gallery-overlay">
-                    <h3 class="gallery-title nepali">होस्टल टुर भिडियो</h3>
-                    <p class="nepali">होस्टलको पूर्ण टुर</p>
-                    <button class="btn btn-primary" style="margin-top: 12px; padding: 8px 16px; font-size: 0.9rem;" onclick="openModal('video1')">भिडियो हेर्नुहोस्</button>
-                </div>
-            </div>
-            
-            <!-- 4 Seater Room -->
-            <div class="gallery-item" data-category="4-seater">
-                <img src="https://images.unsplash.com/photo-1595428774223-ef52624120d2?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="४ सिटर कोठा">
-                <div class="gallery-overlay">
-                    <h3 class="gallery-title nepali">४ सिटर कोठा</h3>
-                    <p class="nepali">व्यापक ४ सिटर कोठा</p>
-                    <button class="btn btn-primary" style="margin-top: 12px; padding: 8px 16px; font-size: 0.9rem;" onclick="openModal('image3')">विस्तृत हेर्नुहोस्</button>
-                </div>
-            </div>
-            
-            <!-- Kitchen -->
-            <div class="gallery-item" data-category="facilities">
-                <img src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="किचन">
-                <div class="gallery-overlay">
-                    <h3 class="gallery-title nepali">प्रिमियम किचन</h3>
-                    <p class="nepali">आधुनिक किचन सुविधा</p>
-                    <button class="btn btn-primary" style="margin-top: 12px; padding: 8px 16px; font-size: 0.9rem;" onclick="openModal('image4')">विस्तृत हेर्नुहोस्</button>
-                </div>
-            </div>
-            
-            <!-- Study Area -->
-            <div class="gallery-item" data-category="facilities">
-                <img src="https://images.unsplash.com/photo-1497366754035-f200968a6e72?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="अध्ययन क्षेत्र">
-                <div class="gallery-overlay">
-                    <h3 class="gallery-title nepali">अध्ययन क्षेत्र</h3>
-                    <p class="nepali">शान्त अध्ययन वातावरण</p>
-                    <button class="btn btn-primary" style="margin-top: 12px; padding: 8px 16px; font-size: 0.9rem;" onclick="openModal('image5')">विस्तृत हेर्नुहोस्</button>
-                </div>
-            </div>
-        </div>
-        
-        <div class="view-more">
-            <button class="btn btn-outline nepali" style="border-color: var(--primary); color: var(--primary);">थप ग्यालरी हेर्नुहोस्</button>
-        </div>
-    </div>
-</section>
+            @foreach($activeGalleries as $gallery)
+                @php
+                    // Determine category for filtering
+                    $filterCategory = '';
+                    if (in_array($gallery->category, ['1 seater', '2 seater', '3 seater', '4 seater'])) {
+                        $filterCategory = str_replace(' ', '-', $gallery->category);
+                    } elseif (in_array($gallery->media_type, ['local_video', 'external_video'])) {
+                        $filterCategory = 'video';
+                    } else {
+                        $filterCategory = 'facilities';
+                    }
 
-<!-- Features Section -->
-<section class="features-section">
-    <div class="container">
-        <h2 class="section-title nepali">हाम्रो Premium Features</h2>
-        <p style="text-align: center; margin-bottom: 50px; color: var(--text-dark); opacity: 0.8; max-width: 700px; margin-left: auto; margin-right: auto;" class="nepali">
-            विद्यार्थीहरूको लागि विशेष सुविधाहरू
-        </p>
-        
-        <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon">🔒</div>
-                <h3 class="feature-title nepali">Advanced Security</h3>
-                <p class="feature-description nepali">२४/७ सुरक्षा गार्ड, CCTV, biometric access र AI-based monitoring</p>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">🚀</div>
-                <h3 class="feature-title nepali">High-Speed Internet</h3>
-                <p class="feature-description nepali">1Gbps fiber internet, dedicated study line, र gaming-optimized connection</p>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">🍳</div>
-                <h3 class="feature-title nepali">Premium Kitchen</h3>
-                <p class="feature-description nepali">Modern appliances, weekly cleaning, र professional maintenance</p>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">💪</div>
-                <h3 class="feature-title nepali">Fitness Center</h3>
-                <p class="feature-description nepali">Fully equipped gym, yoga studio, र personal trainer availability</p>
-            </div>
+                    // Check if room is available for booking
+                    $isRoomAvailable = false;
+                    $roomType = '';
+                    if (in_array($gallery->category, ['1 seater', '2 seater', '3 seater', '4 seater'])) {
+                        $roomType = $gallery->category;
+                        $isRoomAvailable = $availableRooms->where('type', $roomType)->count() > 0;
+                    }
+
+                    $displayedItems++;
+                    $isHidden = $displayedItems > $maxInitialDisplay;
+                @endphp
+
+                <div class="gallery-item {{ $isHidden ? 'hidden-item' : '' }}" 
+                     data-category="{{ $filterCategory }}"
+                     data-gallery-id="{{ $gallery->id }}">
+                    
+                    @if($gallery->media_type === 'photo')
+                        <img src="{{ $gallery->thumbnail_url }}" alt="{{ $gallery->title }}">
+                    @elseif($gallery->media_type === 'local_video')
+                        <img src="{{ $gallery->thumbnail_url }}" alt="{{ $gallery->title }}">
+                    @elseif($gallery->media_type === 'external_video')
+                        <img src="{{ $gallery->thumbnail_url }}" alt="{{ $gallery->title }}">
+                    @endif
+
+                    @if($gallery->is_featured)
+                        <div class="featured-badge nepali">Featured</div>
+                    @endif
+
+                    @if($isRoomAvailable)
+                        <a href="{{ route('hostel.book-room', ['slug' => $hostel->slug, 'room_type' => $roomType]) }}" 
+                           class="book-now-btn nepali">
+                            बुक गर्नुहोस्
+                        </a>
+                    @endif
+
+                    <div class="gallery-overlay">
+                        <h3 class="gallery-title nepali">{{ $gallery->title }}</h3>
+                        <p class="nepali">{{ $gallery->description }}</p>
+                        <button class="btn btn-primary" 
+                                style="margin-top: 12px; padding: 8px 16px; font-size: 0.9rem;" 
+                                onclick="openModal('{{ $gallery->id }}', '{{ $gallery->media_type }}')">
+                            विस्तृत हेर्नुहोस्
+                        </button>
+                    </div>
+                </div>
+            @endforeach
+
+            @if($activeGalleries->count() === 0)
+                <div class="text-center py-12 col-span-full">
+                    <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-images text-gray-400 text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-600 nepali mb-2">कुनै ग्यालरी सामग्री छैन</h3>
+                    <p class="text-gray-500 nepali">यस होस्टलको ग्यालरी चाँहि उपलब्ध छैन।</p>
+                </div>
+            @endif
         </div>
+        
+        @if($activeGalleries->count() > $maxInitialDisplay)
+            <div class="view-more">
+                <button class="btn btn-outline nepali" 
+                        style="border-color: var(--primary); color: var(--primary);"
+                        onclick="showMoreGallery()">
+                    थप ग्यालरी हेर्नुहोस्
+                </button>
+                <a href="{{ route('contact') }}" class="btn btn-primary nepali">अहिले बुक गर्नुहोस्</a>
+            </div>
+        @endif
     </div>
 </section>
 
@@ -497,7 +816,7 @@
     <div class="modal-content">
         <span class="close-modal" onclick="closeModal()">&times;</span>
         <video id="modalVideo" controls>
-            <source src="#" type="video/mp4">
+            <source src="" type="video/mp4">
             तपाईंको ब्राउजरले भिडियो सपोर्ट गर्दैन।
         </video>
         <div class="modal-caption">
@@ -507,7 +826,67 @@
     </div>
 </div>
 
+<div class="gallery-modal" id="youtubeModal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeModal()">&times;</span>
+        <iframe id="modalYouTube" width="100%" height="400" frameborder="0" allowfullscreen></iframe>
+        <div class="modal-caption">
+            <h3 id="youtubeTitle" class="nepali"></h3>
+            <p id="youtubeDescription" class="nepali"></p>
+        </div>
+    </div>
+</div>
+
+<!-- Room Detail Modal -->
+<div class="gallery-modal" id="roomModal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeModal()">&times;</span>
+        <img id="modalRoomImage" src="" alt="">
+        <div class="modal-caption">
+            <h3 id="modalRoomTitle" class="nepali"></h3>
+            <p id="modalRoomDescription" class="nepali"></p>
+            <div id="modalRoomDetails" class="nepali" style="margin-top: 10px;"></div>
+            <a href="#" id="modalBookButton" class="btn btn-accent nepali" style="margin-top: 15px;">
+                यो कोठा बुक गर्नुहोस्
+            </a>
+        </div>
+    </div>
+</div>
+
 <script>
+    // Gallery data from backend
+    const galleryData = {
+        @foreach($activeGalleries as $gallery)
+        '{{ $gallery->id }}': {
+            title: '{{ $gallery->title }}',
+            description: '{{ $gallery->description }}',
+            media_type: '{{ $gallery->media_type }}',
+            media_url: '{{ $gallery->media_type === 'external_video' ? $gallery->external_link : $gallery->media_url }}',
+            thumbnail_url: '{{ $gallery->thumbnail_url }}',
+            youtube_embed_url: '{{ $gallery->youtube_embed_url }}'
+        },
+        @endforeach
+    };
+
+    // Room gallery data
+    const roomGalleryData = {
+        @foreach($filteredGalleries as $gallery)
+        '{{ $gallery->id }}': {
+            title: '{{ $gallery->title }}',
+            description: '{{ $gallery->description }}',
+            media_url: '{{ $gallery->media_url }}',
+            room_type: '{{ $gallery->category }}',
+            available_count: {{ $availableRoomCounts[$gallery->category] ?? 0 }},
+            nepali_type: {
+                '1 seater': '१ सिटर',
+                '2 seater': '२ सिटर',
+                '3 seater': '३ सिटर', 
+                '4 seater': '४ सिटर'
+            }['{{ $gallery->category }}'] || '{{ $gallery->category }}'
+        },
+        @endforeach
+    };
+
     // Gallery Filter Functionality
     document.addEventListener('DOMContentLoaded', function() {
         const filterButtons = document.querySelectorAll('.filter-btn');
@@ -533,26 +912,66 @@
         });
     });
     
-    // Modal Functionality
-    function openModal(type) {
-        if (type.includes('image')) {
+    // Show More Gallery Functionality
+    function showMoreGallery() {
+        const hiddenItems = document.querySelectorAll('.gallery-item.hidden-item');
+        hiddenItems.forEach(item => {
+            item.classList.remove('hidden-item');
+        });
+        
+        // Hide the show more button
+        document.querySelector('.view-more').style.display = 'none';
+    }
+    
+    // Modal Functionality with Dynamic Content
+    function openModal(galleryId, mediaType) {
+        const gallery = galleryData[galleryId];
+        if (!gallery) return;
+
+        if (mediaType === 'photo') {
             document.getElementById('imageModal').style.display = 'flex';
-            // In a real implementation, you would set the src to the actual image
-            document.getElementById('modalImage').src = "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80";
-            document.getElementById('modalTitle').textContent = "आधुनिक १ सिटर कोठा";
-            document.getElementById('modalDescription').textContent = "पूर्ण सुसज्जित आधुनिक १ सिटर कोठा";
-        } else if (type.includes('video')) {
+            document.getElementById('modalImage').src = gallery.media_url;
+            document.getElementById('modalTitle').textContent = gallery.title;
+            document.getElementById('modalDescription').textContent = gallery.description;
+        } else if (mediaType === 'local_video') {
             document.getElementById('videoModal').style.display = 'flex';
-            // In a real implementation, you would set the src to the actual video
-            document.getElementById('modalVideo').src = "#";
-            document.getElementById('videoTitle').textContent = "होस्टल टुर भिडियो";
-            document.getElementById('videoDescription').textContent = "होस्टलको पूर्ण टुर";
+            document.getElementById('modalVideo').src = gallery.media_url;
+            document.getElementById('videoTitle').textContent = gallery.title;
+            document.getElementById('videoDescription').textContent = gallery.description;
+        } else if (mediaType === 'external_video') {
+            document.getElementById('youtubeModal').style.display = 'flex';
+            document.getElementById('modalYouTube').src = gallery.youtube_embed_url || gallery.media_url;
+            document.getElementById('youtubeTitle').textContent = gallery.title;
+            document.getElementById('youtubeDescription').textContent = gallery.description;
         }
+    }
+
+    function openRoomModal(galleryId) {
+        const room = roomGalleryData[galleryId];
+        if (!room) return;
+
+        document.getElementById('roomModal').style.display = 'flex';
+        document.getElementById('modalRoomImage').src = room.media_url;
+        document.getElementById('modalRoomTitle').textContent = room.title;
+        document.getElementById('modalRoomDescription').textContent = room.description;
+        
+        // Room details
+        const detailsHtml = `
+            <strong>कोठाको प्रकार:</strong> ${room.nepali_type}<br>
+            <strong>उपलब्धता:</strong> ${room.available_count} कोठा उपलब्ध
+        `;
+        document.getElementById('modalRoomDetails').innerHTML = detailsHtml;
+        
+        // Book button
+        document.getElementById('modalBookButton').href = 
+            "{{ route('contact') }}?room_type=" + room.room_type + "&hostel={{ $hostel->slug }}";
     }
     
     function closeModal() {
         document.getElementById('imageModal').style.display = 'none';
         document.getElementById('videoModal').style.display = 'none';
+        document.getElementById('youtubeModal').style.display = 'none';
+        document.getElementById('roomModal').style.display = 'none';
         
         // Pause video when closing modal
         const video = document.getElementById('modalVideo');
@@ -565,6 +984,8 @@
     window.addEventListener('click', function(event) {
         const imageModal = document.getElementById('imageModal');
         const videoModal = document.getElementById('videoModal');
+        const youtubeModal = document.getElementById('youtubeModal');
+        const roomModal = document.getElementById('roomModal');
         
         if (event.target === imageModal) {
             imageModal.style.display = 'none';
@@ -573,6 +994,14 @@
         if (event.target === videoModal) {
             videoModal.style.display = 'none';
         }
+
+        if (event.target === youtubeModal) {
+            youtubeModal.style.display = 'none';
+        }
+
+        if (event.target === roomModal) {
+            roomModal.style.display = 'none';
+        }
     });
     
     // Close modal with Escape key
@@ -580,6 +1009,21 @@
         if (event.key === 'Escape') {
             closeModal();
         }
+    });
+
+    // Simple gallery item hover effect
+    document.addEventListener('DOMContentLoaded', function() {
+        const galleryItems = document.querySelectorAll('.gallery-item');
+        
+        galleryItems.forEach(item => {
+            item.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-8px)';
+            });
+            
+            item.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
     });
 </script>
 @endsection

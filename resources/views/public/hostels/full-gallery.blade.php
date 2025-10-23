@@ -1,42 +1,12 @@
+@extends('layouts.frontend')
 
+@section('page-title', ($hostel->name ?? 'Sanctuary Girls Hostel') . ' - Full Gallery | HostelHub')
 
-<?php $__env->startSection('page-title', ($hostel->name ?? 'Sanctuary Girls Hostel') . ' - Premium Gallery | HostelHub'); ?>
+@section('page-header', ($hostel->name ?? 'Sanctuary Girls Hostel') . ' - Full Gallery')
+@section('page-description', 'हाम्रो होस्टलको सम्पूर्ण सुविधाहरू, कोठाहरू, र भिडियोहरूको दृश्यात्मक अनुभव')
 
-<?php $__env->startSection('page-header', ($hostel->name ?? 'Sanctuary Girls Hostel') . ' Premium Gallery'); ?>
-<?php $__env->startSection('page-description', 'हाम्रो होस्टलको विश्वस्तरीय सुविधाहरू, आधुनिक कोठाहरू, र रमाइलो विद्यार्थी जीवनको immersive experience'); ?>
-
-<?php $__env->startSection('content'); ?>
-<?php
-    // Get gallery items from database
-    $galleries = $hostel->galleries ?? collect();
-    $featuredGalleries = $galleries->where('is_featured', true)->where('is_active', true);
-    $activeGalleries = $galleries->where('is_active', true);
-    
-    // Get available rooms
-    $availableRooms = $hostel->rooms->where('status', 'available') ?? collect();
-    
-    // Count items by category for stats
-    $categoryCounts = [
-        'rooms' => $activeGalleries->whereIn('category', ['1 seater', '2 seater', '3 seater', '4 seater'])->count(),
-        'kitchen' => $activeGalleries->where('category', 'kitchen')->count(),
-        'facilities' => $activeGalleries->whereIn('category', ['bathroom', 'common', 'living room', 'study room'])->count(),
-        'video' => $activeGalleries->whereIn('media_type', ['local_video', 'external_video'])->count()
-    ];
-
-    // For available rooms section
-    $filteredGalleries = $galleries->where('is_active', true)->filter(function($gallery) use ($availableRooms) {
-        return in_array($gallery->category, ['1 seater', '2 seater', '3 seater', '4 seater']);
-    });
-    
-    // FIXED: Ensure all values are integers, not collections
-    $availableRoomCounts = [
-        '1 seater' => $availableRooms->where('type', '1 seater')->count(),
-        '2 seater' => $availableRooms->where('type', '2 seater')->count(),
-        '3 seater' => $availableRooms->where('type', '3 seater')->count(),
-        '4 seater' => $availableRooms->where('type', '4 seater')->count(),
-        'other' => $availableRooms->whereNotIn('type', ['1 seater', '2 seater', '3 seater', '4 seater'])->count()
-    ];
-
+@section('content')
+@php
     // PERMANENT FIX: Nepali room types
     $nepaliRoomTypes = [
         '1 seater' => '१ सिटर',
@@ -45,11 +15,22 @@
         '4 seater' => '४ सिटर',
         'other' => 'अन्य (५+ सिटर)'
     ];
+
+    // Get all active gallery items
+    $galleries = $hostel->galleries ?? collect();
+    $activeGalleries = $galleries->where('is_active', true);
     
-    // FIXED: Now all values are integers, so array_sum will work
-    $totalAvailableRooms = array_sum($availableRoomCounts);
-    $hasAvailableRooms = $totalAvailableRooms > 0 && $galleries->count() > 0;
-?>
+    // Get available rooms for booking buttons
+    $availableRooms = $hostel->rooms->where('status', 'available') ?? collect();
+    
+    // Count items by category for stats
+    $categoryCounts = [
+        'rooms' => $activeGalleries->whereIn('category', ['1 seater', '2 seater', '3 seater', '4 seater', 'other'])->count(),
+        'kitchen' => $activeGalleries->where('category', 'kitchen')->count(),
+        'facilities' => $activeGalleries->whereIn('category', ['bathroom', 'common', 'living room', 'study room'])->count(),
+        'video' => $activeGalleries->whereIn('media_type', ['local_video', 'external_video'])->count()
+    ];
+@endphp
 
 <style>
     /* Gallery Specific Styles */
@@ -270,103 +251,6 @@
         margin-top: 12px;
     }
     
-    /* Available Rooms Specific Styles - UPDATED */
-    .available-rooms-section {
-        padding: 80px 0 60px;
-        background: var(--bg-light);
-    }
-    
-    .availability-stats {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 30px;
-        border-radius: 15px;
-        margin-bottom: 40px;
-        text-align: center;
-    }
-    
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(5, 1fr);
-        gap: 15px;
-        margin-top: 20px;
-    }
-    
-    .stat-item {
-        background: rgba(255, 255, 255, 0.2);
-        padding: 20px;
-        border-radius: 10px;
-        backdrop-filter: blur(10px);
-        transition: transform 0.3s;
-    }
-
-    .stat-item:hover {
-        transform: translateY(-3px);
-    }
-    
-    .stat-count {
-        font-size: 2rem;
-        font-weight: bold;
-        color: white;
-        display: block;
-        margin-bottom: 5px;
-    }
-    
-    .stat-label {
-        color: rgba(255,255,255,0.9);
-        font-size: 0.9rem;
-    }
-    
-    .room-type-badge {
-        position: absolute;
-        top: 15px;
-        left: 15px;
-        background: var(--primary);
-        color: white;
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        font-weight: 600;
-        z-index: 2;
-    }
-    
-    .available-badge {
-        position: absolute;
-        top: 15px;
-        right: 15px;
-        background: #10b981;
-        color: white;
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        font-weight: 600;
-        z-index: 2;
-    }
-    
-    .full-gallery-cta {
-        text-align: center;
-        margin-top: 60px;
-        padding: 40px;
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-    }
-
-    /* No Rooms Message Styles */
-    .no-rooms-message {
-        text-align: center;
-        padding: 80px 20px;
-        background: #f8f9fa;
-        border-radius: 15px;
-        margin: 40px 0;
-    }
-    
-    .no-rooms-icon {
-        font-size: 4rem;
-        color: #6c757d;
-        margin-bottom: 20px;
-    }
-    
     /* Modal Styles */
     .gallery-modal {
         display: none;
@@ -450,10 +334,6 @@
             grid-template-columns: repeat(2, 1fr);
             gap: 20px;
         }
-
-        .stats-grid {
-            grid-template-columns: repeat(3, 1fr);
-        }
     }
     
     @media (max-width: 768px) {
@@ -497,14 +377,6 @@
         .category-title {
             font-size: 1.2rem;
         }
-
-        .stats-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
-
-        .available-rooms-section {
-            padding: 60px 0 40px;
-        }
     }
     
     @media (max-width: 480px) {
@@ -541,18 +413,6 @@
         .category-icon {
             font-size: 2rem;
         }
-
-        .stats-grid {
-            grid-template-columns: 1fr;
-        }
-        
-        .stat-item {
-            padding: 15px;
-        }
-        
-        .availability-stats {
-            padding: 20px 15px;
-        }
     }
 </style>
 
@@ -567,130 +427,31 @@
             <div class="category-card">
                 <div class="category-icon">🛏️</div>
                 <h3 class="category-title nepali">कोठाहरू</h3>
-                <p class="nepali">१, २, ३ र ४ सिटर कोठाहरू</p>
-                <span class="category-count nepali"><?php echo e($categoryCounts['rooms']); ?> फोटोहरू</span>
+                <p class="nepali">१, २, ३, ४ र अन्य सिटर कोठाहरू</p>
+                <span class="category-count nepali">{{ $categoryCounts['rooms'] }} फोटोहरू</span>
             </div>
             
             <div class="category-card">
                 <div class="category-icon">🍳</div>
                 <h3 class="category-title nepali">किचन</h3>
                 <p class="nepali">आधुनिक किचन सुविधा</p>
-                <span class="category-count nepali"><?php echo e($categoryCounts['kitchen']); ?> फोटोहरू</span>
+                <span class="category-count nepali">{{ $categoryCounts['kitchen'] }} फोटोहरू</span>
             </div>
             
             <div class="category-card">
                 <div class="category-icon">🚽</div>
                 <h3 class="category-title nepali">अन्य सुविधाहरू</h3>
                 <p class="nepali">अध्ययन क्षेत्र, शौचालय, र अन्य</p>
-                <span class="category-count nepali"><?php echo e($categoryCounts['facilities']); ?> फोटोहरू</span>
+                <span class="category-count nepali">{{ $categoryCounts['facilities'] }} फोटोहरू</span>
             </div>
             
             <div class="category-card">
                 <div class="category-icon">🎬</div>
                 <h3 class="category-title nepali">भिडियो टुर</h3>
                 <p class="nepali">होस्टलको पूर्ण टुर</p>
-                <span class="category-count nepali"><?php echo e($categoryCounts['video']); ?> भिडियोहरू</span>
+                <span class="category-count nepali">{{ $categoryCounts['video'] }} भिडियोहरू</span>
             </div>
         </div>
-    </div>
-</section>
-
-<!-- Available Rooms Section - UPDATED -->
-<section class="available-rooms-section">
-    <div class="container">
-        <!-- Availability Statistics -->
-        <div class="availability-stats">
-            <h2 class="nepali" style="color: white; margin-bottom: 10px;">कोठा उपलब्धता</h2>
-            <p class="nepali" style="color: rgba(255,255,255,0.9); margin-bottom: 30px;">
-                हाल उपलब्ध कोठाहरूको विवरण
-            </p>
-            
-            <div class="stats-grid">
-                <?php $__currentLoopData = $nepaliRoomTypes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $englishType => $nepaliType): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                <div class="stat-item">
-                    <span class="stat-count"><?php echo e($availableRoomCounts[$englishType] ?? 0); ?></span>
-                    <span class="stat-label nepali"><?php echo e($nepaliType); ?></span>
-                </div>
-                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-            </div>
-        </div>
-
-        <?php if($hasAvailableRooms): ?>
-            <h2 class="section-title nepali">हाल उपलब्ध कोठाहरू</h2>
-            <p style="text-align: center; margin-bottom: 40px; color: var(--text-dark); opacity: 0.8; max-width: 700px; margin-left: auto; margin-right: auto;" class="nepali">
-                तल दिइएका कोठाहरू हाल उपलब्ध छन्। तपाईंको रुचिको कोठा चयन गरी अहिलेै बुक गर्नुहोस्।
-            </p>
-            
-            <!-- Available Rooms Gallery -->
-            <div class="gallery-grid">
-                <?php $__currentLoopData = $galleries; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $gallery): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                    <?php
-                        $roomCategory = $gallery->category;
-                        $availableCount = $availableRoomCounts[$roomCategory] ?? 0;
-                    ?>
-                    
-                    <div class="gallery-item">
-                        <img src="<?php echo e($gallery->thumbnail_url ?? $gallery->media_url); ?>" 
-                             alt="<?php echo e($gallery->title); ?>" 
-                             onerror="this.src='<?php echo e(asset('images/default-room.jpg')); ?>'">
-                        
-                        <div class="room-type-badge nepali">
-                            <?php echo e($nepaliRoomTypes[$roomCategory] ?? $roomCategory); ?>
-
-                        </div>
-                        
-                        <div class="available-badge nepali">
-                            <?php echo e($availableCount); ?> उपलब्ध
-                        </div>
-                        
-                        <a href="<?php echo e(route('contact')); ?>?room_type=<?php echo e($roomCategory); ?>&hostel=<?php echo e($hostel->slug); ?>" 
-                           class="book-now-btn nepali">
-                            बुक गर्नुहोस्
-                        </a>
-                        
-                        <div class="gallery-overlay">
-                            <h3 class="gallery-title nepali"><?php echo e($gallery->title); ?></h3>
-                            <p class="nepali"><?php echo e($gallery->description); ?></p>
-                            <button class="btn btn-primary" 
-                                    style="margin-top: 12px; padding: 8px 16px; font-size: 0.9rem;" 
-                                    onclick="openRoomModal('<?php echo e($gallery->id); ?>')">
-                                विस्तृत हेर्नुहोस्
-                            </button>
-                        </div>
-                    </div>
-                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-            </div>
-            
-            <!-- Navigation Buttons -->
-            <div class="view-more">
-                <a href="<?php echo e(route('hostel.full-gallery', $hostel->slug)); ?>" class="btn btn-outline nepali" 
-                   style="border-color: var(--primary); color: var(--primary);">
-                    पूरा ग्यालरी हेर्नुहोस्
-                </a>
-                <a href="<?php echo e(route('contact')); ?>?hostel=<?php echo e($hostel->slug); ?>" class="btn btn-primary nepali">
-                    अहिले बुक गर्नुहोस्
-                </a>
-            </div>
-            
-        <?php else: ?>
-            <!-- No Available Rooms Message -->
-            <div class="no-rooms-message">
-                <div class="no-rooms-icon">🏠</div>
-                <h3 class="nepali" style="color: var(--text-dark); margin-bottom: 15px;">हाल कुनै कोठा उपलब्ध छैन</h3>
-                <p class="nepali" style="color: var(--text-dark); opacity: 0.8; margin-bottom: 25px;">
-                    माफ गर्नुहोस्, हाल यस होस्टलमा कुनै कोठा उपलब्ध छैन।<br>
-                    कृपया पछि फेरी जाँच गर्नुहोस् वा हाम्रो अन्य होस्टलहरू हेर्नुहोस्।
-                </p>
-                <div class="view-more">
-                    <a href="<?php echo e(route('hostels.index')); ?>" class="btn btn-primary nepali">
-                        अन्य होस्टलहरू हेर्नुहोस्
-                    </a>
-                    <a href="<?php echo e(route('contact')); ?>" class="btn btn-outline nepali">
-                        सम्पर्क गर्नुहोस्
-                    </a>
-                </div>
-            </div>
-        <?php endif; ?>
     </div>
 </section>
 
@@ -702,27 +463,29 @@
             विभिन्न कोठा र सुविधाहरूको विस्तृत दृश्यहरू
         </p>
         
+        <!-- PERMANENT FIX: Updated filters with all room types -->
         <div class="gallery-filters">
             <button class="filter-btn active nepali" data-filter="all">सबै</button>
-            <button class="filter-btn nepali" data-filter="1-seater">१ सिटर कोठा</button>
-            <button class="filter-btn nepali" data-filter="2-seater">२ सिटर कोठा</button>
-            <button class="filter-btn nepali" data-filter="3-seater">३ सिटर कोठा</button>
-            <button class="filter-btn nepali" data-filter="4-seater">४ सिटर कोठा</button>
+            <button class="filter-btn nepali" data-filter="1-seater">१ सिटर</button>
+            <button class="filter-btn nepali" data-filter="2-seater">२ सिटर</button>
+            <button class="filter-btn nepali" data-filter="3-seater">३ सिटर</button>
+            <button class="filter-btn nepali" data-filter="4-seater">४ सिटर</button>
+            <button class="filter-btn nepali" data-filter="other">अन्य</button>
             <button class="filter-btn nepali" data-filter="video">भिडियो</button>
             <button class="filter-btn nepali" data-filter="facilities">सुविधाहरू</button>
         </div>
         
         <div class="gallery-grid" id="mainGallery">
-            <?php
+            @php
                 $displayedItems = 0;
                 $maxInitialDisplay = 8;
-            ?>
+            @endphp
             
-            <?php $__currentLoopData = $activeGalleries; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $gallery): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                <?php
-                    // Determine category for filtering
+            @foreach($activeGalleries as $gallery)
+                @php
+                    // PERMANENT FIX: Determine category for filtering with all room types
                     $filterCategory = '';
-                    if (in_array($gallery->category, ['1 seater', '2 seater', '3 seater', '4 seater'])) {
+                    if (in_array($gallery->category, ['1 seater', '2 seater', '3 seater', '4 seater', 'other'])) {
                         $filterCategory = str_replace(' ', '-', $gallery->category);
                     } elseif (in_array($gallery->media_type, ['local_video', 'external_video'])) {
                         $filterCategory = 'video';
@@ -733,51 +496,51 @@
                     // Check if room is available for booking
                     $isRoomAvailable = false;
                     $roomType = '';
-                    if (in_array($gallery->category, ['1 seater', '2 seater', '3 seater', '4 seater'])) {
+                    if (in_array($gallery->category, ['1 seater', '2 seater', '3 seater', '4 seater', 'other'])) {
                         $roomType = $gallery->category;
                         $isRoomAvailable = $availableRooms->where('type', $roomType)->count() > 0;
                     }
 
                     $displayedItems++;
                     $isHidden = $displayedItems > $maxInitialDisplay;
-                ?>
+                @endphp
 
-                <div class="gallery-item <?php echo e($isHidden ? 'hidden-item' : ''); ?>" 
-                     data-category="<?php echo e($filterCategory); ?>"
-                     data-gallery-id="<?php echo e($gallery->id); ?>">
+                <div class="gallery-item {{ $isHidden ? 'hidden-item' : '' }}" 
+                     data-category="{{ $filterCategory }}"
+                     data-gallery-id="{{ $gallery->id }}">
                     
-                    <?php if($gallery->media_type === 'photo'): ?>
-                        <img src="<?php echo e($gallery->thumbnail_url); ?>" alt="<?php echo e($gallery->title); ?>">
-                    <?php elseif($gallery->media_type === 'local_video'): ?>
-                        <img src="<?php echo e($gallery->thumbnail_url); ?>" alt="<?php echo e($gallery->title); ?>">
-                    <?php elseif($gallery->media_type === 'external_video'): ?>
-                        <img src="<?php echo e($gallery->thumbnail_url); ?>" alt="<?php echo e($gallery->title); ?>">
-                    <?php endif; ?>
+                    @if($gallery->media_type === 'photo')
+                        <img src="{{ $gallery->thumbnail_url ?? $gallery->media_url }}" alt="{{ $gallery->title }}">
+                    @elseif($gallery->media_type === 'local_video')
+                        <img src="{{ $gallery->thumbnail_url ?? asset('images/video-default.jpg') }}" alt="{{ $gallery->title }}">
+                    @elseif($gallery->media_type === 'external_video')
+                        <img src="{{ $gallery->thumbnail_url ?? asset('images/video-default.jpg') }}" alt="{{ $gallery->title }}">
+                    @endif
 
-                    <?php if($gallery->is_featured): ?>
+                    @if($gallery->is_featured)
                         <div class="featured-badge nepali">Featured</div>
-                    <?php endif; ?>
+                    @endif
 
-                    <?php if($isRoomAvailable): ?>
-                        <a href="<?php echo e(route('hostel.book-room', ['slug' => $hostel->slug, 'room_type' => $roomType])); ?>" 
+                    @if($isRoomAvailable)
+                        <a href="{{ route('contact') }}?room_type={{ $roomType }}&hostel={{ $hostel->slug }}" 
                            class="book-now-btn nepali">
                             बुक गर्नुहोस्
                         </a>
-                    <?php endif; ?>
+                    @endif
 
                     <div class="gallery-overlay">
-                        <h3 class="gallery-title nepali"><?php echo e($gallery->title); ?></h3>
-                        <p class="nepali"><?php echo e($gallery->description); ?></p>
+                        <h3 class="gallery-title nepali">{{ $gallery->title }}</h3>
+                        <p class="nepali">{{ $gallery->description }}</p>
                         <button class="btn btn-primary" 
                                 style="margin-top: 12px; padding: 8px 16px; font-size: 0.9rem;" 
-                                onclick="openModal('<?php echo e($gallery->id); ?>', '<?php echo e($gallery->media_type); ?>')">
+                                onclick="openModal('{{ $gallery->id }}', '{{ $gallery->media_type }}')">
                             विस्तृत हेर्नुहोस्
                         </button>
                     </div>
                 </div>
-            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+            @endforeach
 
-            <?php if($activeGalleries->count() === 0): ?>
+            @if($activeGalleries->count() === 0)
                 <div class="text-center py-12 col-span-full">
                     <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                         <i class="fas fa-images text-gray-400 text-3xl"></i>
@@ -785,19 +548,19 @@
                     <h3 class="text-xl font-bold text-gray-600 nepali mb-2">कुनै ग्यालरी सामग्री छैन</h3>
                     <p class="text-gray-500 nepali">यस होस्टलको ग्यालरी चाँहि उपलब्ध छैन।</p>
                 </div>
-            <?php endif; ?>
+            @endif
         </div>
         
-        <?php if($activeGalleries->count() > $maxInitialDisplay): ?>
+        @if($activeGalleries->count() > $maxInitialDisplay)
             <div class="view-more">
                 <button class="btn btn-outline nepali" 
                         style="border-color: var(--primary); color: var(--primary);"
                         onclick="showMoreGallery()">
                     थप ग्यालरी हेर्नुहोस्
                 </button>
-                <a href="<?php echo e(route('contact')); ?>" class="btn btn-primary nepali">अहिले बुक गर्नुहोस्</a>
+                <a href="{{ route('contact') }}" class="btn btn-primary nepali">अहिले बुक गर्नुहोस्</a>
             </div>
-        <?php endif; ?>
+        @endif
     </div>
 </section>
 
@@ -838,54 +601,19 @@
     </div>
 </div>
 
-<!-- Room Detail Modal -->
-<div class="gallery-modal" id="roomModal">
-    <div class="modal-content">
-        <span class="close-modal" onclick="closeModal()">&times;</span>
-        <img id="modalRoomImage" src="" alt="">
-        <div class="modal-caption">
-            <h3 id="modalRoomTitle" class="nepali"></h3>
-            <p id="modalRoomDescription" class="nepali"></p>
-            <div id="modalRoomDetails" class="nepali" style="margin-top: 10px;"></div>
-            <a href="#" id="modalBookButton" class="btn btn-accent nepali" style="margin-top: 15px;">
-                यो कोठा बुक गर्नुहोस्
-            </a>
-        </div>
-    </div>
-</div>
-
 <script>
     // Gallery data from backend
     const galleryData = {
-        <?php $__currentLoopData = $activeGalleries; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $gallery): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-        '<?php echo e($gallery->id); ?>': {
-            title: '<?php echo e($gallery->title); ?>',
-            description: '<?php echo e($gallery->description); ?>',
-            media_type: '<?php echo e($gallery->media_type); ?>',
-            media_url: '<?php echo e($gallery->media_type === 'external_video' ? $gallery->external_link : $gallery->media_url); ?>',
-            thumbnail_url: '<?php echo e($gallery->thumbnail_url); ?>',
-            youtube_embed_url: '<?php echo e($gallery->youtube_embed_url); ?>'
+        @foreach($activeGalleries as $gallery)
+        '{{ $gallery->id }}': {
+            title: '{{ $gallery->title }}',
+            description: '{{ $gallery->description }}',
+            media_type: '{{ $gallery->media_type }}',
+            media_url: '{{ $gallery->media_type === 'external_video' ? $gallery->external_link : $gallery->media_url }}',
+            thumbnail_url: '{{ $gallery->thumbnail_url }}',
+            youtube_embed_url: '{{ $gallery->youtube_embed_url }}'
         },
-        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-    };
-
-    // Room gallery data
-    const roomGalleryData = {
-        <?php $__currentLoopData = $filteredGalleries; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $gallery): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-        '<?php echo e($gallery->id); ?>': {
-            title: '<?php echo e($gallery->title); ?>',
-            description: '<?php echo e($gallery->description); ?>',
-            media_url: '<?php echo e($gallery->media_url); ?>',
-            room_type: '<?php echo e($gallery->category); ?>',
-            available_count: <?php echo e($availableRoomCounts[$gallery->category] ?? 0); ?>,
-            nepali_type: {
-                '1 seater': '१ सिटर',
-                '2 seater': '२ सिटर',
-                '3 seater': '३ सिटर', 
-                '4 seater': '४ सिटर'
-            }['<?php echo e($gallery->category); ?>'] || '<?php echo e($gallery->category); ?>'
-        },
-        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+        @endforeach
     };
 
     // Gallery Filter Functionality
@@ -946,33 +674,11 @@
             document.getElementById('youtubeDescription').textContent = gallery.description;
         }
     }
-
-    function openRoomModal(galleryId) {
-        const room = roomGalleryData[galleryId];
-        if (!room) return;
-
-        document.getElementById('roomModal').style.display = 'flex';
-        document.getElementById('modalRoomImage').src = room.media_url;
-        document.getElementById('modalRoomTitle').textContent = room.title;
-        document.getElementById('modalRoomDescription').textContent = room.description;
-        
-        // Room details
-        const detailsHtml = `
-            <strong>कोठाको प्रकार:</strong> ${room.nepali_type}<br>
-            <strong>उपलब्धता:</strong> ${room.available_count} कोठा उपलब्ध
-        `;
-        document.getElementById('modalRoomDetails').innerHTML = detailsHtml;
-        
-        // Book button
-        document.getElementById('modalBookButton').href = 
-            "<?php echo e(route('contact')); ?>?room_type=" + room.room_type + "&hostel=<?php echo e($hostel->slug); ?>";
-    }
     
     function closeModal() {
         document.getElementById('imageModal').style.display = 'none';
         document.getElementById('videoModal').style.display = 'none';
         document.getElementById('youtubeModal').style.display = 'none';
-        document.getElementById('roomModal').style.display = 'none';
         
         // Pause video when closing modal
         const video = document.getElementById('modalVideo');
@@ -986,7 +692,6 @@
         const imageModal = document.getElementById('imageModal');
         const videoModal = document.getElementById('videoModal');
         const youtubeModal = document.getElementById('youtubeModal');
-        const roomModal = document.getElementById('roomModal');
         
         if (event.target === imageModal) {
             imageModal.style.display = 'none';
@@ -999,10 +704,6 @@
         if (event.target === youtubeModal) {
             youtubeModal.style.display = 'none';
         }
-
-        if (event.target === roomModal) {
-            roomModal.style.display = 'none';
-        }
     });
     
     // Close modal with Escape key
@@ -1011,21 +712,5 @@
             closeModal();
         }
     });
-
-    // Simple gallery item hover effect
-    document.addEventListener('DOMContentLoaded', function() {
-        const galleryItems = document.querySelectorAll('.gallery-item');
-        
-        galleryItems.forEach(item => {
-            item.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateY(-8px)';
-            });
-            
-            item.addEventListener('mouseleave', function() {
-                this.style.transform = 'translateY(0)';
-            });
-        });
-    });
 </script>
-<?php $__env->stopSection(); ?>
-<?php echo $__env->make('layouts.frontend', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\My Projects\HostelHub\resources\views/public/hostels/gallery.blade.php ENDPATH**/ ?>
+@endsection
