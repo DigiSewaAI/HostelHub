@@ -23,10 +23,12 @@
         'video' => $activeGalleries->whereIn('media_type', ['local_video', 'external_video'])->count()
     ];
 
-    // For available rooms section
-    $filteredGalleries = $galleries->where('is_active', true)->filter(function($gallery) use ($availableRooms) {
-        return in_array($gallery->category, ['1 seater', '2 seater', '3 seater', '4 seater']);
-    });
+    // For available rooms section - ONLY PHOTOS, NO VIDEOS
+    $filteredGalleries = $galleries->where('is_active', true)
+        ->where('media_type', 'photo') // Only photos, no videos
+        ->filter(function($gallery) use ($availableRooms) {
+            return in_array($gallery->category, ['1 seater', '2 seater', '3 seater', '4 seater']);
+        });
     
     // FIXED: Ensure all values are integers, not collections
     $availableRoomCounts = [
@@ -48,7 +50,7 @@
     
     // FIXED: Now all values are integers, so array_sum will work
     $totalAvailableRooms = array_sum($availableRoomCounts);
-    $hasAvailableRooms = $totalAvailableRooms > 0 && $galleries->count() > 0;
+    $hasAvailableRooms = $totalAvailableRooms > 0 && $filteredGalleries->count() > 0;
 ?>
 
 <style>
@@ -434,15 +436,6 @@
     .modal-content:hover .modal-caption {
         transform: translateY(0);
     }
-
-    /* Hidden items for view more functionality */
-    .gallery-item.hidden-item {
-        display: none;
-    }
-
-    .view-more-items .gallery-item {
-        display: block !important;
-    }
     
     /* Responsive Design */
     @media (max-width: 1200px) {
@@ -595,7 +588,7 @@
     </div>
 </section>
 
-<!-- Available Rooms Section - UPDATED -->
+<!-- Available Rooms Section - UPDATED (ONLY AVAILABLE ROOM IMAGES, NO VIDEOS) -->
 <section class="available-rooms-section">
     <div class="container">
         <!-- Availability Statistics -->
@@ -621,9 +614,9 @@
                 तल दिइएका कोठाहरू हाल उपलब्ध छन्। तपाईंको रुचिको कोठा चयन गरी अहिलेै बुक गर्नुहोस्।
             </p>
             
-            <!-- Available Rooms Gallery -->
+            <!-- Available Rooms Gallery - ONLY PHOTOS -->
             <div class="gallery-grid">
-                <?php $__currentLoopData = $galleries; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $gallery): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <?php $__currentLoopData = $filteredGalleries; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $gallery): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     <?php
                         $roomCategory = $gallery->category;
                         $availableCount = $availableRoomCounts[$roomCategory] ?? 0;
@@ -694,150 +687,6 @@
     </div>
 </section>
 
-<!-- Gallery Section -->
-<section class="gallery-section" id="gallery">
-    <div class="container">
-        <h2 class="section-title nepali">हाम्रो होस्टल ग्यालरी</h2>
-        <p style="text-align: center; margin-bottom: 40px; color: var(--text-dark); opacity: 0.8; max-width: 700px; margin-left: auto; margin-right: auto;" class="nepali">
-            विभिन्न कोठा र सुविधाहरूको विस्तृत दृश्यहरू
-        </p>
-        
-        <div class="gallery-filters">
-            <button class="filter-btn active nepali" data-filter="all">सबै</button>
-            <button class="filter-btn nepali" data-filter="1-seater">१ सिटर कोठा</button>
-            <button class="filter-btn nepali" data-filter="2-seater">२ सिटर कोठा</button>
-            <button class="filter-btn nepali" data-filter="3-seater">३ सिटर कोठा</button>
-            <button class="filter-btn nepali" data-filter="4-seater">४ सिटर कोठा</button>
-            <button class="filter-btn nepali" data-filter="video">भिडियो</button>
-            <button class="filter-btn nepali" data-filter="facilities">सुविधाहरू</button>
-        </div>
-        
-        <div class="gallery-grid" id="mainGallery">
-            <?php
-                $displayedItems = 0;
-                $maxInitialDisplay = 8;
-            ?>
-            
-            <?php $__currentLoopData = $activeGalleries; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $gallery): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                <?php
-                    // Determine category for filtering
-                    $filterCategory = '';
-                    if (in_array($gallery->category, ['1 seater', '2 seater', '3 seater', '4 seater'])) {
-                        $filterCategory = str_replace(' ', '-', $gallery->category);
-                    } elseif (in_array($gallery->media_type, ['local_video', 'external_video'])) {
-                        $filterCategory = 'video';
-                    } else {
-                        $filterCategory = 'facilities';
-                    }
-
-                    // Check if room is available for booking
-                    $isRoomAvailable = false;
-                    $roomType = '';
-                    if (in_array($gallery->category, ['1 seater', '2 seater', '3 seater', '4 seater'])) {
-                        $roomType = $gallery->category;
-                        $isRoomAvailable = $availableRooms->where('type', $roomType)->count() > 0;
-                    }
-
-                    $displayedItems++;
-                    $isHidden = $displayedItems > $maxInitialDisplay;
-                ?>
-
-                <div class="gallery-item <?php echo e($isHidden ? 'hidden-item' : ''); ?>" 
-                     data-category="<?php echo e($filterCategory); ?>"
-                     data-gallery-id="<?php echo e($gallery->id); ?>">
-                    
-                    <?php if($gallery->media_type === 'photo'): ?>
-                        <img src="<?php echo e($gallery->thumbnail_url); ?>" alt="<?php echo e($gallery->title); ?>">
-                    <?php elseif($gallery->media_type === 'local_video'): ?>
-                        <img src="<?php echo e($gallery->thumbnail_url); ?>" alt="<?php echo e($gallery->title); ?>">
-                    <?php elseif($gallery->media_type === 'external_video'): ?>
-                        <img src="<?php echo e($gallery->thumbnail_url); ?>" alt="<?php echo e($gallery->title); ?>">
-                    <?php endif; ?>
-
-                    <?php if($gallery->is_featured): ?>
-                        <div class="featured-badge nepali">Featured</div>
-                    <?php endif; ?>
-
-                    <?php if($isRoomAvailable): ?>
-                        <a href="<?php echo e(route('hostel.book-room', ['slug' => $hostel->slug, 'room_type' => $roomType])); ?>" 
-                           class="book-now-btn nepali">
-                            बुक गर्नुहोस्
-                        </a>
-                    <?php endif; ?>
-
-                    <div class="gallery-overlay">
-                        <h3 class="gallery-title nepali"><?php echo e($gallery->title); ?></h3>
-                        <p class="nepali"><?php echo e($gallery->description); ?></p>
-                        <button class="btn btn-primary" 
-                                style="margin-top: 12px; padding: 8px 16px; font-size: 0.9rem;" 
-                                onclick="openModal('<?php echo e($gallery->id); ?>', '<?php echo e($gallery->media_type); ?>')">
-                            विस्तृत हेर्नुहोस्
-                        </button>
-                    </div>
-                </div>
-            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-
-            <?php if($activeGalleries->count() === 0): ?>
-                <div class="text-center py-12 col-span-full">
-                    <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-images text-gray-400 text-3xl"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-600 nepali mb-2">कुनै ग्यालरी सामग्री छैन</h3>
-                    <p class="text-gray-500 nepali">यस होस्टलको ग्यालरी चाँहि उपलब्ध छैन।</p>
-                </div>
-            <?php endif; ?>
-        </div>
-        
-        <?php if($activeGalleries->count() > $maxInitialDisplay): ?>
-            <div class="view-more">
-                <button class="btn btn-outline nepali" 
-                        style="border-color: var(--primary); color: var(--primary);"
-                        onclick="showMoreGallery()">
-                    थप ग्यालरी हेर्नुहोस्
-                </button>
-                <a href="<?php echo e(route('contact')); ?>" class="btn btn-primary nepali">अहिले बुक गर्नुहोस्</a>
-            </div>
-        <?php endif; ?>
-    </div>
-</section>
-
-<!-- Modals -->
-<div class="gallery-modal" id="imageModal">
-    <div class="modal-content">
-        <span class="close-modal" onclick="closeModal()">&times;</span>
-        <img id="modalImage" src="" alt="">
-        <div class="modal-caption">
-            <h3 id="modalTitle" class="nepali"></h3>
-            <p id="modalDescription" class="nepali"></p>
-        </div>
-    </div>
-</div>
-
-<div class="gallery-modal" id="videoModal">
-    <div class="modal-content">
-        <span class="close-modal" onclick="closeModal()">&times;</span>
-        <video id="modalVideo" controls>
-            <source src="" type="video/mp4">
-            तपाईंको ब्राउजरले भिडियो सपोर्ट गर्दैन।
-        </video>
-        <div class="modal-caption">
-            <h3 id="videoTitle" class="nepali"></h3>
-            <p id="videoDescription" class="nepali"></p>
-        </div>
-    </div>
-</div>
-
-<div class="gallery-modal" id="youtubeModal">
-    <div class="modal-content">
-        <span class="close-modal" onclick="closeModal()">&times;</span>
-        <iframe id="modalYouTube" width="100%" height="400" frameborder="0" allowfullscreen></iframe>
-        <div class="modal-caption">
-            <h3 id="youtubeTitle" class="nepali"></h3>
-            <p id="youtubeDescription" class="nepali"></p>
-        </div>
-    </div>
-</div>
-
 <!-- Room Detail Modal -->
 <div class="gallery-modal" id="roomModal">
     <div class="modal-content">
@@ -855,20 +704,6 @@
 </div>
 
 <script>
-    // Gallery data from backend
-    const galleryData = {
-        <?php $__currentLoopData = $activeGalleries; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $gallery): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-        '<?php echo e($gallery->id); ?>': {
-            title: '<?php echo e($gallery->title); ?>',
-            description: '<?php echo e($gallery->description); ?>',
-            media_type: '<?php echo e($gallery->media_type); ?>',
-            media_url: '<?php echo e($gallery->media_type === 'external_video' ? $gallery->external_link : $gallery->media_url); ?>',
-            thumbnail_url: '<?php echo e($gallery->thumbnail_url); ?>',
-            youtube_embed_url: '<?php echo e($gallery->youtube_embed_url); ?>'
-        },
-        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
-    };
-
     // Room gallery data
     const roomGalleryData = {
         <?php $__currentLoopData = $filteredGalleries; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $gallery): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
@@ -887,65 +722,6 @@
         },
         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
     };
-
-    // Gallery Filter Functionality
-    document.addEventListener('DOMContentLoaded', function() {
-        const filterButtons = document.querySelectorAll('.filter-btn');
-        const galleryItems = document.querySelectorAll('.gallery-item');
-        
-        filterButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                // Remove active class from all buttons
-                filterButtons.forEach(btn => btn.classList.remove('active'));
-                // Add active class to clicked button
-                button.classList.add('active');
-                
-                const filterValue = button.getAttribute('data-filter');
-                
-                galleryItems.forEach(item => {
-                    if (filterValue === 'all' || item.getAttribute('data-category') === filterValue) {
-                        item.style.display = 'block';
-                    } else {
-                        item.style.display = 'none';
-                    }
-                });
-            });
-        });
-    });
-    
-    // Show More Gallery Functionality
-    function showMoreGallery() {
-        const hiddenItems = document.querySelectorAll('.gallery-item.hidden-item');
-        hiddenItems.forEach(item => {
-            item.classList.remove('hidden-item');
-        });
-        
-        // Hide the show more button
-        document.querySelector('.view-more').style.display = 'none';
-    }
-    
-    // Modal Functionality with Dynamic Content
-    function openModal(galleryId, mediaType) {
-        const gallery = galleryData[galleryId];
-        if (!gallery) return;
-
-        if (mediaType === 'photo') {
-            document.getElementById('imageModal').style.display = 'flex';
-            document.getElementById('modalImage').src = gallery.media_url;
-            document.getElementById('modalTitle').textContent = gallery.title;
-            document.getElementById('modalDescription').textContent = gallery.description;
-        } else if (mediaType === 'local_video') {
-            document.getElementById('videoModal').style.display = 'flex';
-            document.getElementById('modalVideo').src = gallery.media_url;
-            document.getElementById('videoTitle').textContent = gallery.title;
-            document.getElementById('videoDescription').textContent = gallery.description;
-        } else if (mediaType === 'external_video') {
-            document.getElementById('youtubeModal').style.display = 'flex';
-            document.getElementById('modalYouTube').src = gallery.youtube_embed_url || gallery.media_url;
-            document.getElementById('youtubeTitle').textContent = gallery.title;
-            document.getElementById('youtubeDescription').textContent = gallery.description;
-        }
-    }
 
     function openRoomModal(galleryId) {
         const room = roomGalleryData[galleryId];
@@ -969,37 +745,13 @@
     }
     
     function closeModal() {
-        document.getElementById('imageModal').style.display = 'none';
-        document.getElementById('videoModal').style.display = 'none';
-        document.getElementById('youtubeModal').style.display = 'none';
         document.getElementById('roomModal').style.display = 'none';
-        
-        // Pause video when closing modal
-        const video = document.getElementById('modalVideo');
-        if (video) {
-            video.pause();
-        }
     }
     
     // Close modal when clicking outside the content
     window.addEventListener('click', function(event) {
-        const imageModal = document.getElementById('imageModal');
-        const videoModal = document.getElementById('videoModal');
-        const youtubeModal = document.getElementById('youtubeModal');
         const roomModal = document.getElementById('roomModal');
         
-        if (event.target === imageModal) {
-            imageModal.style.display = 'none';
-        }
-        
-        if (event.target === videoModal) {
-            videoModal.style.display = 'none';
-        }
-
-        if (event.target === youtubeModal) {
-            youtubeModal.style.display = 'none';
-        }
-
         if (event.target === roomModal) {
             roomModal.style.display = 'none';
         }

@@ -20,9 +20,6 @@
     $galleries = $hostel->galleries ?? collect();
     $activeGalleries = $galleries->where('is_active', true);
     
-    // Get available rooms for booking buttons
-    $availableRooms = $hostel->rooms->where('status', 'available') ?? collect();
-    
     // Count items by category for stats
     $categoryCounts = [
         'rooms' => $activeGalleries->whereIn('category', ['1 seater', '2 seater', '3 seater', '4 seater', 'other'])->count(),
@@ -148,26 +145,6 @@
         font-size: 0.8rem;
         font-weight: 600;
         z-index: 2;
-    }
-
-    .book-now-btn {
-        position: absolute;
-        bottom: 15px;
-        right: 15px;
-        background: var(--primary);
-        color: white;
-        padding: 8px 16px;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        font-weight: 600;
-        text-decoration: none;
-        z-index: 3;
-        transition: background 0.3s;
-    }
-
-    .book-now-btn:hover {
-        background: var(--secondary);
-        color: white;
     }
     
     .view-more {
@@ -493,14 +470,6 @@
                         $filterCategory = 'facilities';
                     }
 
-                    // Check if room is available for booking
-                    $isRoomAvailable = false;
-                    $roomType = '';
-                    if (in_array($gallery->category, ['1 seater', '2 seater', '3 seater', '4 seater', 'other'])) {
-                        $roomType = $gallery->category;
-                        $isRoomAvailable = $availableRooms->where('type', $roomType)->count() > 0;
-                    }
-
                     $displayedItems++;
                     $isHidden = $displayedItems > $maxInitialDisplay;
                 @endphp
@@ -519,13 +488,6 @@
 
                     @if($gallery->is_featured)
                         <div class="featured-badge nepali">Featured</div>
-                    @endif
-
-                    @if($isRoomAvailable)
-                        <a href="{{ route('contact') }}?room_type={{ $roomType }}&hostel={{ $hostel->slug }}" 
-                           class="book-now-btn nepali">
-                            बुक गर्नुहोस्
-                        </a>
                     @endif
 
                     <div class="gallery-overlay">
@@ -558,7 +520,7 @@
                         onclick="showMoreGallery()">
                     थप ग्यालरी हेर्नुहोस्
                 </button>
-                <a href="{{ route('contact') }}" class="btn btn-primary nepali">अहिले बुक गर्नुहोस्</a>
+                <a href="{{ route('contact') }}" class="btn btn-primary nepali">सम्पर्क गर्नुहोस्</a>
             </div>
         @endif
     </div>
