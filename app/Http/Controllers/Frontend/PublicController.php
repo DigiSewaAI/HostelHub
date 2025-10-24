@@ -516,18 +516,169 @@ class PublicController extends Controller
     }
 
     /**
-     * Display single hostel page
+     * Display single hostel page with dynamic theme
+     */
+    /**
+     * Display single hostel page with dynamic theme
      */
     public function hostelShow($slug)
     {
-        $hostel = Hostel::where('is_published', true)->where('slug', $slug)->firstOrFail();
+        $hostel = Hostel::where('is_published', true)
+            ->where('slug', $slug)
+            ->firstOrFail();
+
+        // Get reviews for the hostel
         $reviews = $hostel->approvedReviews()->with('student.user')->paginate(10);
 
-        return view('frontend.hostels.show', compact('hostel', 'reviews'));
+        // Calculate review statistics
+        $reviewCount = $hostel->approvedReviews()->count();
+        $avgRating = $hostel->approvedReviews()->avg('rating') ?? 0;
+
+        // Calculate student count
+        $studentCount = $hostel->students()->where('status', 'active')->count();
+
+        // ✅ FIXED: Proper logo URL normalization
+        $logo = $this->normalizeLogoUrl($hostel->logo_path);
+
+        // ✅ FIXED: Proper facilities parsing
+        $facilities = $this->parseFacilities($hostel->facilities);
+
+        // Log for debugging
+        \Log::info("Hostel Show - Slug: {$slug}", [
+            'logo_path' => $hostel->logo_path,
+            'logo_normalized' => $logo,
+            'facilities_raw' => $hostel->facilities,
+            'facilities_parsed' => $facilities
+        ]);
+
+        // Determine theme (default = modern)
+        $theme = $hostel->theme ?? 'modern';
+
+        // Construct view path dynamically
+        $viewPath = "public.hostels.themes.$theme";
+
+        // Fallback if chosen theme file doesn't exist
+        if (!view()->exists($viewPath)) {
+            $viewPath = 'public.hostels.themes.modern';
+        }
+
+        // Render themed view with all necessary data
+        return view($viewPath, compact(
+            'hostel',
+            'reviews',
+            'reviewCount',
+            'avgRating',
+            'studentCount',
+            'logo',
+            'facilities'
+        ));
     }
 
     /**
-     * Preview hostel for owners/admins
+     * ✅ FIXED: Better logo URL normalization
+     */
+    private function normalizeLogoUrl($logoPath)
+    {
+        if (empty($logoPath)) {
+            return null;
+        }
+
+        // If it's already a full URL, use it as is
+        if (filter_var($logoPath, FILTER_VALIDATE_URL)) {
+            return $logoPath;
+        }
+
+        // If it starts with http but might not validate as URL
+        if (str_starts_with($logoPath, 'http')) {
+            return $logoPath;
+        }
+
+        // Clean the path
+        $cleanPath = ltrim($logoPath, '/');
+
+        // Check if file exists in storage
+        if (\Storage::disk('public')->exists($cleanPath)) {
+            return asset('storage/' . $cleanPath);
+        }
+
+        // Fallback: try the original path
+        return asset('storage/' . $cleanPath);
+    }
+
+    /**
+     * ✅ FIXED: Better facilities parsing with Unicode handling
+     */
+    private function parseFacilities($facilitiesData)
+    {
+        if (empty($facilitiesData)) {
+            return [];
+        }
+
+        // If it's already an array, return as is
+        if (is_array($facilitiesData)) {
+            return array_values(array_filter(array_map('trim', $facilitiesData)));
+        }
+
+        // If it's a string, try to parse it
+        if (is_string($facilitiesData)) {
+            // Try JSON decode first
+            $decoded = json_decode($facilitiesData, true);
+
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                // JSON decoded successfully
+                $flattened = [];
+                array_walk_recursive($decoded, function ($item) use (&$flattened) {
+                    if (is_string($item) && !empty(trim($item))) {
+                        $trimmed = trim($item);
+                        // Clean and decode Unicode
+                        $cleaned = $this->cleanAndDecodeString($trimmed);
+                        if (!empty($cleaned)) {
+                            $flattened[] = $cleaned;
+                        }
+                    }
+                });
+                return array_values(array_unique(array_filter($flattened)));
+            } else {
+                // If not JSON, try different separators
+                $facilities = preg_split('/\r\n|\r|\n|,/', $facilitiesData);
+                $cleaned = array_map(function ($item) {
+                    return $this->cleanAndDecodeString($item);
+                }, $facilities);
+
+                return array_values(array_unique(array_filter($cleaned, function ($item) {
+                    return !empty($item) && $item !== '""' && $item !== "''";
+                })));
+            }
+        }
+
+        return [];
+    }
+
+    /**
+     * ✅ NEW: Clean and decode string with Unicode support
+     */
+    private function cleanAndDecodeString($string)
+    {
+        $trimmed = trim($string);
+        $trimmed = trim($trimmed, ' ,"\'[]{}');
+
+        if (empty($trimmed) || $trimmed === '""' || $trimmed === "''") {
+            return null;
+        }
+
+        // Handle Unicode escape sequences
+        if (preg_match('/\\\\u[0-9a-fA-F]{4}/', $trimmed)) {
+            $decoded = json_decode('"' . str_replace('"', '\\"', $trimmed) . '"');
+            if ($decoded !== null && json_last_error() === JSON_ERROR_NONE) {
+                return $decoded;
+            }
+        }
+
+        return $trimmed;
+    }
+
+    /**
+     * Preview hostel for owners/admins with dynamic theme
      */
     public function hostelPreview($slug)
     {
@@ -545,8 +696,7 @@ class PublicController extends Controller
         if ($user) {
             // Admin can preview any hostel
             if ($user->hasRole('admin')) {
-                $reviews = $hostel->approvedReviews()->with('student.user')->paginate(10);
-                return view('frontend.hostels.show', compact('hostel', 'reviews'))->with('preview', true);
+                return $this->renderHostelPreview($hostel);
             }
 
             // For owner and hostel_manager, check if the hostel belongs to their current organization
@@ -554,12 +704,53 @@ class PublicController extends Controller
                 $userOrganizationId = session('current_organization_id');
 
                 if ($hostel->organization_id == $userOrganizationId) {
-                    $reviews = $hostel->approvedReviews()->with('student.user')->paginate(10);
-                    return view('frontend.hostels.show', compact('hostel', 'reviews'))->with('preview', true);
+                    return $this->renderHostelPreview($hostel);
                 }
             }
         }
 
         abort(404, 'होस्टल फेला परेन वा तपाईंसँग यसलाई हेर्ने अनुमति छैन।');
+    }
+
+    /**
+     * Helper method to render hostel preview with theme
+     */
+    private function renderHostelPreview($hostel)
+    {
+        // Get reviews for the hostel
+        $reviews = $hostel->approvedReviews()->with('student.user')->paginate(10);
+
+        // Calculate review statistics
+        $reviewCount = $hostel->approvedReviews()->count();
+        $avgRating = $hostel->approvedReviews()->avg('rating') ?? 0;
+
+        // Calculate student count
+        $studentCount = $hostel->students()->where('status', 'active')->count();
+
+        // ✅ NORMALIZED: Use the same logo and facilities normalization
+        $logo = $this->normalizeLogoUrl($hostel->logo);
+        $facilities = $this->parseFacilities($hostel->facilities);
+
+        // Determine theme (default = modern)
+        $theme = $hostel->theme ?? 'modern';
+
+        // Construct view path dynamically
+        $viewPath = "public.hostels.themes.$theme";
+
+        // Fallback if chosen theme file doesn't exist
+        if (!view()->exists($viewPath)) {
+            $viewPath = "public.hostels.themes.modern";
+        }
+
+        // Render themed view with preview flag
+        return view($viewPath, compact(
+            'hostel',
+            'reviews',
+            'reviewCount',
+            'avgRating',
+            'studentCount',
+            'logo',
+            'facilities'
+        ))->with('preview', true);
     }
 }

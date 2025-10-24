@@ -114,7 +114,24 @@ class OwnerPublicPageController extends Controller
             ->latest()
             ->paginate(6);
 
-        return view('public.hostels.show', compact('hostel', 'reviews'))->with('preview', true);
+        // ✅ FIXED: Use same normalization as live page
+        $logo = $this->normalizeLogoUrl($hostel->logo_path);
+        $facilities = $this->parseFacilities($hostel->facilities);
+
+        // Log for debugging
+        \Log::info("Hostel Preview - Slug: {$slug}", [
+            'logo_path' => $hostel->logo_path,
+            'logo_normalized' => $logo,
+            'facilities_raw' => $hostel->facilities,
+            'facilities_parsed' => $facilities
+        ]);
+
+        return view('public.hostels.show', compact(
+            'hostel',
+            'reviews',
+            'logo',
+            'facilities'
+        ))->with('preview', true);
     }
 
     public function publish(Request $request)
@@ -166,5 +183,108 @@ class OwnerPublicPageController extends Controller
         $hostel->save();
 
         return back()->with('success', 'तपाईंको होस्टल पृष्ठ अप्रकाशित गरियो।');
+    }
+
+    /**
+     * ✅ FIXED: Logo URL normalization (same as PublicController)
+     */
+    private function normalizeLogoUrl($logoPath)
+    {
+        if (empty($logoPath)) {
+            return null;
+        }
+
+        // If it's already a full URL, use it as is
+        if (filter_var($logoPath, FILTER_VALIDATE_URL)) {
+            return $logoPath;
+        }
+
+        // If it starts with http but might not validate as URL
+        if (str_starts_with($logoPath, 'http')) {
+            return $logoPath;
+        }
+
+        // Clean the path
+        $cleanPath = ltrim($logoPath, '/');
+
+        // Check if file exists in storage
+        if (Storage::disk('public')->exists($cleanPath)) {
+            return asset('storage/' . $cleanPath);
+        }
+
+        // Fallback: try the original path
+        return asset('storage/' . $cleanPath);
+    }
+
+    /**
+     * ✅ FIXED: Facilities parsing (same as PublicController)
+     */
+    private function parseFacilities($facilitiesData)
+    {
+        if (empty($facilitiesData)) {
+            return [];
+        }
+
+        // If it's already an array, return as is
+        if (is_array($facilitiesData)) {
+            return array_values(array_filter(array_map('trim', $facilitiesData)));
+        }
+
+        // If it's a string, try to parse it
+        if (is_string($facilitiesData)) {
+            // Try JSON decode first
+            $decoded = json_decode($facilitiesData, true);
+
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                // JSON decoded successfully
+                $flattened = [];
+                array_walk_recursive($decoded, function ($item) use (&$flattened) {
+                    if (is_string($item) && !empty(trim($item))) {
+                        $trimmed = trim($item);
+                        // Clean and decode Unicode
+                        $cleaned = $this->cleanAndDecodeString($trimmed);
+                        if (!empty($cleaned)) {
+                            $flattened[] = $cleaned;
+                        }
+                    }
+                });
+                return array_values(array_unique(array_filter($flattened)));
+            } else {
+                // If not JSON, try different separators
+                $facilities = preg_split('/\r\n|\r|\n|,/', $facilitiesData);
+                $cleaned = array_map(function ($item) {
+                    return $this->cleanAndDecodeString($item);
+                }, $facilities);
+
+                return array_values(array_unique(array_filter($cleaned, function ($item) {
+                    return !empty($item) && $item !== '""' && $item !== "''";
+                })));
+            }
+        }
+
+        return [];
+    }
+
+    /**
+     * ✅ NEW: Clean and decode string with Unicode support
+     */
+    private function cleanAndDecodeString($string)
+    {
+        $trimmed = trim($string);
+        $trimmed = trim($trimmed, ' ,"\'[]{}');
+
+        if (empty($trimmed) || $trimmed === '""' || $trimmed === "''") {
+            return null;
+        }
+
+        // Handle Unicode escape sequences
+        if (preg_match('/\\\\u[0-9a-fA-F]{4}/', $trimmed)) {
+            $decoded = json_decode('"' . str_replace('"', '\\"', $trimmed) . '"');
+            if ($decoded !== null && json_last_error() === JSON_ERROR_NONE) {
+                return $decoded;
+            }
+        }
+
+        return $trimmed;
     }
 }
