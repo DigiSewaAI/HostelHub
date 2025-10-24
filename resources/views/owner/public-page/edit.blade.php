@@ -25,6 +25,7 @@
                 </div>
             @endif
 
+            <!-- 🛠️ FIXED: Form action route -->
             <form method="POST" action="{{ route('owner.public-page.preview') }}" enctype="multipart/form-data" class="space-y-6">
                 @csrf
 
@@ -83,7 +84,8 @@
                     <label class="block text-sm font-medium text-gray-700 mb-2 nepali">होस्टल लोगो</label>
                     <div class="flex items-center space-x-4">
                         @if($hostel->logo_path)
-                            <img src="{{ $hostel->logo_url }}" alt="{{ $hostel->name }}" class="h-16 w-16 rounded-lg object-cover">
+                            <!-- 🛠️ FIXED: Logo preview using correct path -->
+                            <img src="{{ asset('storage/' . $hostel->logo_path) }}" alt="{{ $hostel->name }}" class="h-16 w-16 rounded-lg object-cover">
                         @else
                             <div class="h-16 w-16 bg-gray-200 rounded-lg flex items-center justify-center">
                                 <i class="fas fa-building text-gray-400"></i>
@@ -110,7 +112,7 @@
                     <p class="text-xs text-gray-500 mt-1 nepali">यो विवरण तपाईंको सार्वजनिक पृष्ठमा देखिनेछ</p>
                 </div>
 
-                <!-- NEW: Social Media Links Section -->
+                <!-- Social Media Links Section -->
                 <div class="border-t border-gray-200 pt-6">
                     <h3 class="text-lg font-medium text-gray-900 mb-4 nepali flex items-center">
                         <i class="fas fa-share-alt text-purple-600 mr-2"></i>

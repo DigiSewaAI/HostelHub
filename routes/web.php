@@ -933,6 +933,26 @@ if (app()->environment('local')) {
         ];
     });
 
+    // Temporary debug route - remove after testing
+    Route::get('/debug-hostel-data/{slug}', function ($slug) {
+        $hostel = \App\Models\Hostel::where('slug', $slug)->first();
+
+        if (!$hostel) {
+            return "Hostel not found";
+        }
+
+        return [
+            'hostel_name' => $hostel->name,
+            'logo_path' => $hostel->logo_path,
+            'logo_path_raw' => $hostel->getRawOriginal('logo_path'),
+            'facilities' => $hostel->facilities,
+            'facilities_raw' => $hostel->getRawOriginal('facilities'),
+            'facilities_type' => gettype($hostel->facilities),
+            'storage_exists' => $hostel->logo_path ? \Storage::disk('public')->exists($hostel->logo_path) : false,
+            'storage_files' => $hostel->logo_path ? \Storage::disk('public')->files(dirname($hostel->logo_path)) : [],
+        ];
+    });
+
     // ✅ TEMPORARY TEST ROUTE - COMPLETELY OPEN
     Route::post('/test-hostel-update/{id}', function (Request $request, $id) {
         \Log::info("=== TEST UPDATE ROUTE HIT ===", [
