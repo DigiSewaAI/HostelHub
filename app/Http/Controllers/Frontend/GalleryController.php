@@ -11,6 +11,12 @@ use Illuminate\Support\Facades\Storage;
 
 class GalleryController extends Controller
 {
+    public function index()
+    {
+        // यहाँ आफ्नो gallery को logic लेख्नुहोस्
+        return view('frontend.gallery.index'); // gallery.blade.php file को path
+
+    }
     /**
      * Display the public gallery for a specific hostel
      */
