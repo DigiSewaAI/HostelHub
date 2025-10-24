@@ -11,12 +11,149 @@ use Illuminate\Support\Facades\Storage;
 
 class GalleryController extends Controller
 {
+    /**
+     * Display the main gallery page
+     */
     public function index()
     {
-        // यहाँ आफ्नो gallery को logic लेख्नुहोस्
-        return view('frontend.gallery.index'); // gallery.blade.php file को path
+        $galleryItems = [
+            [
+                'media_type' => 'image',
+                'url' => asset('storage/gallery/room1.jpg'),
+                'thumbnail_url' => asset('storage/gallery/room1-thumb.jpg'),
+                'title' => 'सफा कोठा',
+                'description' => 'आरामदायी र सफा कोठा',
+                'category' => '१ सिटर कोठा',
+                'date' => '2025-10-24'
+            ],
+            [
+                'media_type' => 'video',
+                'url' => 'https://youtube.com/watch?v=abc123',
+                'thumbnail_url' => asset('storage/gallery/video1-thumb.jpg'),
+                'youtube_id' => 'abc123',
+                'title' => 'होस्टल भिडियो टुर',
+                'description' => 'हाम्रो होस्टलको भिडियो टुर',
+                'category' => 'भिडियो टुर',
+                'date' => '2025-10-24'
+            ],
+            // ... more items
+        ];
 
+        return view('frontend.gallery.index', compact('galleryItems'));
     }
+
+    /**
+     * API: Get gallery categories
+     */
+    public function getCategories()
+    {
+        $categories = [
+            'all' => 'सबै',
+            'single' => '१ सिटर कोठा',
+            'double' => '२ सिटर कोठा',
+            'triple' => '३ सिटर कोठा',
+            'quad' => '४ सिटर कोठा',
+            'common' => 'लिभिङ रूम',
+            'bathroom' => 'बाथरूम',
+            'kitchen' => 'भान्सा',
+            'study' => 'अध्ययन कोठा',
+            'event' => 'कार्यक्रम',
+            'video' => 'भिडियो टुर'
+        ];
+
+        return response()->json($categories);
+    }
+
+    /**
+     * API: Get gallery stats
+     */
+    public function getStats()
+    {
+        $stats = [
+            'total_students' => 500,
+            'total_hostels' => 25,
+            'cities_available' => 5,
+            'satisfaction_rate' => '98%'
+        ];
+
+        return response()->json($stats);
+    }
+
+    /**
+     * API: Get gallery data
+     */
+    public function getGalleryData()
+    {
+        // Get sample gallery data - replace with your actual data source
+        $galleryItems = Cache::remember('gallery_items', 3600, function () {
+            return Gallery::where('is_active', true)
+                ->orderBy('is_featured', 'desc')
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->map(function ($item) {
+                    return $this->formatGalleryItem($item);
+                })
+                ->toArray();
+        });
+
+        // Fallback sample data if no items found
+        if (empty($galleryItems)) {
+            $galleryItems = $this->getSampleGalleryData();
+        }
+
+        return response()->json($galleryItems);
+    }
+
+    /**
+     * Format gallery item for API response
+     */
+    private function formatGalleryItem($item)
+    {
+        $formatted = [
+            'id' => $item->id,
+            'title' => $item->title,
+            'description' => $item->description,
+            'category' => $item->category,
+            'media_type' => $item->media_type,
+            'file_url' => $item->file_url ?? '',
+            'thumbnail_url' => $item->thumbnail_url ?? '',
+            'external_link' => $item->external_link ?? '',
+            'created_at' => $item->created_at->format('Y-m-d'),
+        ];
+
+        return $formatted;
+    }
+
+    /**
+     * Sample gallery data fallback
+     */
+    private function getSampleGalleryData()
+    {
+        return [
+            [
+                'id' => 1,
+                'title' => 'आरामदायी १ सिटर कोठा',
+                'description' => 'विद्यार्थीहरूको लागि आरामदायी एक सिटर कोठा',
+                'category' => '1 seater',
+                'media_type' => 'photo',
+                'file_url' => asset('images/sample-room-1.jpg'),
+                'thumbnail_url' => asset('images/sample-room-1-thumb.jpg'),
+                'created_at' => '2024-01-15'
+            ],
+            [
+                'id' => 2,
+                'title' => 'होस्टल भिडियो टुर',
+                'description' => 'हाम्रो होस्टलको पूर्ण भिडियो टुर',
+                'category' => 'video',
+                'media_type' => 'external_video',
+                'external_link' => 'https://www.youtube.com/embed/sample-video',
+                'thumbnail_url' => asset('images/video-thumbnail.jpg'),
+                'created_at' => '2024-01-10'
+            ],
+            // Add more sample items as needed
+        ];
+    }
+
     /**
      * Display the public gallery for a specific hostel
      */
@@ -51,7 +188,7 @@ class GalleryController extends Controller
     /**
      * API Endpoint: Get gallery data for a hostel
      */
-    public function getGalleryData($slug)
+    public function getHostelGalleryData($slug)
     {
         $hostel = Hostel::where('slug', $slug)->firstOrFail();
 

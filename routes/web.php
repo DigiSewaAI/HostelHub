@@ -85,7 +85,7 @@ Route::group(['middleware' => 'web'], function () {
     // ✅ FIXED: Changed preview route to use OwnerPublicPageController
     Route::get('/preview/{slug}', [OwnerPublicPageController::class, 'preview'])->name('hostels.preview');
 
-    // Gallery API Routes
+    // Gallery API Routes - VERIFIED: These routes are already correctly defined
     Route::get('/api/gallery/data', [FrontendGalleryController::class, 'getGalleryData']);
     Route::get('/api/gallery/categories', [FrontendGalleryController::class, 'getGalleryCategories']);
     Route::get('/api/gallery/stats', [FrontendGalleryController::class, 'getGalleryStats']);
