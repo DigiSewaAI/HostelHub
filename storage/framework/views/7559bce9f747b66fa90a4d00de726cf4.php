@@ -9,8 +9,8 @@
     <meta property="og:description" content="<?php echo $__env->yieldContent('og-description', 'HostelHub — होस्टल व्यवस्थापन सजिलो बनाउने SaaS'); ?>">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.12.0/dist/cdn.min.js" defer></script>
+    
+    <!-- Main Layout Styles -->
     <style>
         /* CSS styles will be the same as in home.blade.php */
         :root {
@@ -526,6 +526,9 @@
             }
         }
     </style>
+
+    <!-- Stack for additional styles from child views -->
+    <?php echo $__env->yieldPushContent('styles'); ?>
 </head>
 <body>
     <!-- Skip to content link for accessibility -->
@@ -547,6 +550,8 @@
                             <span class="nepali">होस्टल प्रबन्धन</span>
                         </div>
                     </a>
+                    
+                    <!-- Navigation Links with Auth Support -->
                     <div class="nav-links" id="main-nav">
                         <a href="<?php echo e(route('features')); ?>" class="nepali">सुविधाहरू</a>
                         <a href="<?php echo e(route('how-it-works')); ?>" class="nepali">कसरी काम गर्छ</a>
@@ -556,11 +561,37 @@
                         <a href="<?php echo e(route('about')); ?>" class="nepali">हाम्रो बारेमा</a>
                         <a href="<?php echo e(route('privacy')); ?>" class="nepali">गोप्यता नीति</a>
                         <a href="<?php echo e(route('terms')); ?>" class="nepali">सेवा सर्तहरू</a>
+                        
+                        <?php if(auth()->guard()->check()): ?>
+                            <!-- Dashboard Link for Authenticated Users -->
+                            <?php if(Auth::user()->hasRole('admin')): ?>
+                                <a href="<?php echo e(route('admin.dashboard')); ?>" class="nepali">ड्यासबोर्ड</a>
+                            <?php elseif(Auth::user()->hasRole('owner') || Auth::user()->hasRole('hostel_manager')): ?>
+                                <a href="<?php echo e(route('owner.dashboard')); ?>" class="nepali">ड्यासबोर्ड</a>
+                            <?php elseif(Auth::user()->hasRole('student')): ?>
+                                <a href="<?php echo e(route('student.dashboard')); ?>" class="nepali">ड्यासबोर्ड</a>
+                            <?php endif; ?>
+                        <?php else: ?>
+                            <a href="<?php echo e(route('login')); ?>" class="nepali">लगइन</a>
+                        <?php endif; ?>
                     </div>
+
+                    <!-- Header CTA with Auth Support -->
                     <div class="header-cta">
-                        <a href="<?php echo e(route('login')); ?>" class="btn btn-outline nepali">लगइन</a>
-                        <a href="<?php echo e(route('register')); ?>" class="btn btn-primary nepali">साइन अप</a>
+                        <?php if(auth()->guard()->check()): ?>
+                            <!-- Logout Button for Authenticated Users -->
+                            <form method="POST" action="<?php echo e(route('logout')); ?>" class="inline">
+                                <?php echo csrf_field(); ?>
+                                <button type="submit" class="btn btn-outline nepali" style="background: transparent; color: var(--text-light); border: 2px solid var(--text-light); font-weight: 600;">
+                                    लगआउट
+                                </button>
+                            </form>
+                        <?php else: ?>
+                            <a href="<?php echo e(route('login')); ?>" class="btn btn-outline nepali">लगइन</a>
+                            <a href="<?php echo e(route('register')); ?>" class="btn btn-primary nepali">साइन अप</a>
+                        <?php endif; ?>
                     </div>
+                    
                     <button class="mobile-menu-btn" aria-label="मेनु खोल्नुहोस्" aria-expanded="false" aria-controls="main-nav">
                         <i class="fas fa-bars"></i>
                     </button>
@@ -693,6 +724,7 @@
         });
     </script>
     
-    <?php echo $__env->yieldContent('scripts'); ?>
+    <!-- Stack for additional scripts from child views -->
+    <?php echo $__env->yieldPushContent('scripts'); ?>
 </body>
 </html><?php /**PATH D:\My Projects\HostelHub\resources\views/layouts/frontend.blade.php ENDPATH**/ ?>
