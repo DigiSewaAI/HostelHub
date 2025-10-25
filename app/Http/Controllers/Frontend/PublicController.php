@@ -237,7 +237,9 @@ class PublicController extends Controller
             // Get hostel with available rooms and their images only
             $hostel = Hostel::where('slug', $slug)
                 ->with(['rooms' => function ($query) {
-                    $query->where('status', 'available'); // ✅ Only available rooms
+                    // ✅ UPDATED: Only rooms that have available beds
+                    $query->where('available_beds', '>', 0)
+                        ->where('status', '!=', 'मर्मत सम्भार');
                 }])
                 ->first();
 
@@ -245,26 +247,16 @@ class PublicController extends Controller
                 abort(404, 'होस्टल फेला परेन।');
             }
 
-            // ✅ COMPLETELY FIXED: Count available rooms by CAPACITY
+            // ✅ UPDATED: Count available rooms by TYPE (not capacity)
             $availableRoomCounts = [
-                '1 seater' => $hostel->rooms->where('status', 'available')->filter(function ($room) {
-                    return $room->capacity == 1;
-                })->count(),
-                '2 seater' => $hostel->rooms->where('status', 'available')->filter(function ($room) {
-                    return $room->capacity == 2;
-                })->count(),
-                '3 seater' => $hostel->rooms->where('status', 'available')->filter(function ($room) {
-                    return $room->capacity == 3;
-                })->count(),
-                '4 seater' => $hostel->rooms->where('status', 'available')->filter(function ($room) {
-                    return $room->capacity == 4;
-                })->count(),
-                'other' => $hostel->rooms->where('status', 'available')->filter(function ($room) {
-                    return $room->capacity > 4;
-                })->count(),
+                '1 seater' => $hostel->rooms->where('type', '1 seater')->count(),
+                '2 seater' => $hostel->rooms->where('type', '2 seater')->count(),
+                '3 seater' => $hostel->rooms->where('type', '3 seater')->count(),
+                '4 seater' => $hostel->rooms->where('type', '4 seater')->count(),
+                'other' => $hostel->rooms->whereNotIn('type', ['1 seater', '2 seater', '3 seater', '4 seater'])->count(),
             ];
 
-            \Log::info("Fixed room counts by capacity:", [
+            \Log::info("Fixed room counts by type:", [
                 'hostel_id' => $hostel->id,
                 'available_rooms_count' => $hostel->rooms->count(),
                 'available_room_counts' => $availableRoomCounts,
@@ -273,6 +265,8 @@ class PublicController extends Controller
                         'room_number' => $room->room_number,
                         'type' => $room->type,
                         'capacity' => $room->capacity,
+                        'current_occupancy' => $room->current_occupancy,
+                        'available_beds' => $room->available_beds,
                         'status' => $room->status
                     ];
                 })

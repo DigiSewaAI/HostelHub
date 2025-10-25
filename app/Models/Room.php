@@ -9,21 +9,20 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Support\Facades\Storage; // ✅ ADD: Storage facade
+use Illuminate\Support\Facades\Storage;
 
 class Room extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     */
     protected $fillable = [
         'hostel_id',
         'room_number',
         'type',
         'gallery_category',
         'capacity',
+        'current_occupancy',
+        'available_beds',
         'price',
         'status',
         'image',
@@ -31,31 +30,47 @@ class Room extends Model
         'floor',
     ];
 
-    /**
-     * The attributes that should be cast.
-     */
     protected $casts = [
         'price' => 'decimal:2',
         'capacity' => 'integer',
+        'current_occupancy' => 'integer',
+        'available_beds' => 'integer',
     ];
 
-    /**
-     * The accessors to append to the model's array form.
-     */
-    protected $appends = ['image_url', 'has_image']; // ✅ ADD: Accessors
+    protected $appends = ['image_url', 'has_image', 'display_status'];
 
     /**
-     * Boot method for model events
+     * ✅ FIXED: Boot method with normalized status handling and gallery category fix
      */
     protected static function boot()
     {
         parent::boot();
 
+        // ✅ FIXED: Auto-calculate available beds and update status with normalized values
+        static::saving(function ($room) {
+            // Calculate available beds
+            $room->available_beds = $room->capacity - $room->current_occupancy;
+
+            // ✅ FIXED: Auto-update status with normalized values (only if not maintenance)
+            if ($room->status !== 'maintenance') {
+                if ($room->current_occupancy == 0) {
+                    $room->status = 'available';
+                } elseif ($room->current_occupancy == $room->capacity) {
+                    $room->status = 'occupied';
+                } else {
+                    $room->status = 'partially_available';
+                }
+            }
+
+            // ✅ FIXED: Always set gallery_category if empty
+            if (empty($room->gallery_category)) {
+                $room->gallery_category = $room->getGalleryCategoryByType();
+            }
+        });
+
         // Update hostel room counts when room is created, updated or deleted
         static::created(function ($room) {
             $room->hostel->updateRoomCounts();
-
-            // ✅ FIXED: Auto-sync room image to gallery when room is created
             if ($room->image) {
                 $room->syncImageToGallery();
             }
@@ -63,59 +78,65 @@ class Room extends Model
 
         static::updated(function ($room) {
             $room->hostel->updateRoomCounts();
-
-            // ✅ FIXED: Auto-sync room image to gallery when room image is updated
-            if ($room->isDirty('image')) {
+            if ($room->isDirty('image') || $room->isDirty('type')) {
                 $room->syncImageToGallery();
             }
         });
 
         static::deleted(function ($room) {
             $room->hostel->updateRoomCounts();
-
-            // ✅ FIXED: Auto-delete gallery entries when room is deleted
             $room->galleries()->delete();
         });
     }
 
     /**
-     * Get the hostel that this room belongs to.
+     * ✅ NEW: Unified status mapping for consistent display
      */
+    public static function statusOptions()
+    {
+        return [
+            'available' => 'उपलब्ध',
+            'partially_available' => 'आंशिक उपलब्ध',
+            'occupied' => 'व्यस्त',
+            'maintenance' => 'मर्मत सम्भार',
+        ];
+    }
+
+    /**
+     * ✅ NEW: Get status label in Nepali
+     */
+    public function getStatusLabelAttribute()
+    {
+        $map = self::statusOptions();
+        return $map[$this->status] ?? $this->status;
+    }
+
     public function hostel(): BelongsTo
     {
         return $this->belongsTo(Hostel::class);
     }
 
-    /**
-     * Get the students for the room.
-     */
     public function students(): HasMany
     {
         return $this->hasMany(Student::class);
     }
 
-    /**
-     * Get the bookings for the room.
-     */
     public function bookings(): HasMany
     {
         return $this->hasMany(Booking::class);
     }
 
-    // ✅ ADD: Amenities relationship
     public function amenities(): BelongsToMany
     {
         return $this->belongsToMany(Amenity::class, 'room_amenity', 'room_id', 'amenity_id')
             ->withTimestamps();
     }
 
-    // ✅ ADD: Reviews relationship (if needed)
     public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);
     }
 
-    // ✅ FIXED: Gallery relationship
     public function galleries(): HasMany
     {
         return $this->hasMany(Gallery::class);
@@ -146,29 +167,19 @@ class Room extends Model
      */
     public function scopeAvailable(Builder $query): Builder
     {
-        // FIX: Use English status values for queries
         return $query->where('status', 'available');
     }
 
-    /**
-     * Scope a query to only include occupied rooms.
-     */
     public function scopeOccupied(Builder $query): Builder
     {
         return $query->where('status', 'occupied');
     }
 
-    /**
-     * Scope a query to only include rooms under maintenance.
-     */
     public function scopeMaintenance(Builder $query): Builder
     {
         return $query->where('status', 'maintenance');
     }
 
-    /**
-     * Scope a query to only include rooms with available capacity.
-     */
     public function scopeWithAvailableCapacity(Builder $query): Builder
     {
         return $query->whereRaw('(SELECT COUNT(*) FROM students WHERE students.room_id = rooms.id) < capacity');
@@ -194,7 +205,7 @@ class Room extends Model
      */
     public function getOccupancyAttribute(): float
     {
-        $currentOccupancy = $this->students_count ?? $this->students()->count();
+        $currentOccupancy = $this->current_occupancy ?? 0;
         return $this->capacity ? round(($currentOccupancy / $this->capacity) * 100, 1) : 0.0;
     }
 
@@ -203,7 +214,7 @@ class Room extends Model
      */
     public function getCurrentOccupancyAttribute(): int
     {
-        return $this->students_count ?? $this->students()->count();
+        return $this->attributes['current_occupancy'] ?? $this->students()->count();
     }
 
     /**
@@ -211,7 +222,7 @@ class Room extends Model
      */
     public function getAvailableCapacityAttribute(): int
     {
-        $currentOccupancy = $this->students_count ?? $this->students()->count();
+        $currentOccupancy = $this->current_occupancy ?? 0;
         return max(0, $this->capacity - $currentOccupancy);
     }
 
@@ -244,28 +255,62 @@ class Room extends Model
     }
 
     /**
-     * Get Nepali room type
+     * ✅ FIXED: Get display status with normalized logic
+     */
+    public function getDisplayStatusAttribute(): array
+    {
+        $status = $this->status; // Now using normalized English values
+        $available_beds = $this->available_beds;
+
+        if ($status === 'maintenance') {
+            return [
+                'status' => 'maintenance',
+                'text' => 'मर्मत सम्भार',
+                'class' => 'maintenance',
+                'available_beds' => 0
+            ];
+        } elseif ($status === 'occupied') {
+            return [
+                'status' => 'occupied',
+                'text' => 'पूर्ण व्यस्त',
+                'class' => 'occupied',
+                'available_beds' => 0
+            ];
+        } elseif ($status === 'partially_available') {
+            return [
+                'status' => 'partially_available',
+                'text' => 'आंशिक उपलब्ध (' . $available_beds . ' बेड खाली)',
+                'class' => 'partially-available',
+                'available_beds' => $available_beds
+            ];
+        } else { // available
+            return [
+                'status' => 'available',
+                'text' => 'पूर्ण उपलब्ध (' . $available_beds . ' बेड)',
+                'class' => 'available',
+                'available_beds' => $available_beds
+            ];
+        }
+    }
+
+    /**
+     * ✅ FIXED: Get Nepali room type with unified types
      */
     public function getNepaliTypeAttribute(): string
     {
         $types = [
-            'single' => 'एकल कोठा',
-            'double' => 'दोहोरो कोठा',
-            'shared' => 'साझा कोठा',
-            'standard' => 'स्ट्यान्डर्ड कोठा',
-            'deluxe' => 'डीलक्स कोठा',
-            'vip' => 'विआईपी कोठा',
             '1 seater' => 'एक सिटर कोठा',
             '2 seater' => 'दुई सिटर कोठा',
             '3 seater' => 'तीन सिटर कोठा',
             '4 seater' => 'चार सिटर कोठा',
+            'साझा कोठा' => 'साझा कोठा',
         ];
 
         return $types[$this->type] ?? $this->type;
     }
 
     /**
-     * Get Nepali status
+     * Get Nepali status (for backward compatibility)
      */
     public function getNepaliStatusAttribute(): string
     {
@@ -273,6 +318,10 @@ class Room extends Model
             'available' => 'उपलब्ध',
             'occupied' => 'अधिभृत',
             'maintenance' => 'मर्मतमा',
+            'उपलब्ध' => 'उपलब्ध',
+            'व्यस्त' => 'व्यस्त',
+            'मर्मत सम्भार' => 'मर्मत सम्भार',
+            'आंशिक उपलब्ध' => 'आंशिक उपलब्ध',
         ];
 
         return $statuses[$this->status] ?? $this->status;
@@ -286,10 +335,8 @@ class Room extends Model
         return 'रु ' . number_format($this->price, 2);
     }
 
-    // ✅ FIXED: Gallery Integration Methods
-
     /**
-     * Sync room image to gallery system - COMPLETELY FIXED
+     * ✅ FIXED: Sync room image to gallery system using TYPE not capacity
      */
     public function syncImageToGallery(): void
     {
@@ -300,14 +347,14 @@ class Room extends Model
             return;
         }
 
-        // ✅ CRITICAL FIX: Determine category by CAPACITY, not type
-        $galleryCategory = $this->getGalleryCategoryByCapacity();
+        // ✅ FIXED: Use room TYPE for gallery category
+        $galleryCategory = $this->getGalleryCategoryByType();
 
         // Create gallery entry
         Gallery::create([
             'title' => "Room {$this->room_number} - {$this->type}",
             'description' => $this->description ?? "{$this->type} room at {$this->hostel->name}",
-            'category' => $galleryCategory, // ✅ FIXED: Correct category by capacity
+            'category' => $galleryCategory,
             'media_type' => 'photo',
             'file_path' => $this->image,
             'thumbnail' => $this->image,
@@ -321,31 +368,37 @@ class Room extends Model
     }
 
     /**
-     * Get gallery category by CAPACITY (CRITICAL FIX)
+     * ✅ FIXED: Get gallery category by ROOM TYPE (not capacity)
      */
-    private function getGalleryCategoryByCapacity(): string
+    private function getGalleryCategoryByType(): string
     {
-        // Use CAPACITY to determine category, not type
-        switch ($this->capacity) {
-            case 1:
+        // Use ROOM TYPE to determine category
+        switch ($this->type) {
+            case '1 seater':
                 return '1 seater';
-            case 2:
+            case '2 seater':
                 return '2 seater';
-            case 3:
+            case '3 seater':
                 return '3 seater';
-            case 4:
+            case '4 seater':
                 return '4 seater';
+            case 'साझा कोठा':
+                return '4 seater'; // Shared rooms show as 4 seater in gallery
             default:
-                return 'other';
+                // Fallback for old types
+                if ($this->capacity == 1) return '1 seater';
+                if ($this->capacity == 2) return '2 seater';
+                if ($this->capacity == 3) return '3 seater';
+                return '4 seater';
         }
     }
 
     /**
-     * Get gallery category for room type - FIXED
+     * ✅ FIXED: Get gallery category for room type
      */
     public function getGalleryCategoryAttribute(): string
     {
-        return $this->getGalleryCategoryByCapacity();
+        return $this->getGalleryCategoryByType();
     }
 
     /**

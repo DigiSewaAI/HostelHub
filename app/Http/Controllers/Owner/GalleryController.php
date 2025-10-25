@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Owner;
 use App\Http\Controllers\Controller;
 use App\Models\Gallery;
 use App\Models\Hostel;
+use App\Models\Room;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -21,7 +22,7 @@ class GalleryController extends Controller
     {
         $hostel = Auth::user()->hostel;
 
-        // Use same categories as Admin controller for consistency
+        // ✅ FIXED: Updated categories to match unified room types
         $categories = [
             'all'         => 'सबै',
             'video'       => 'भिडियो टुर',
@@ -57,7 +58,7 @@ class GalleryController extends Controller
     {
         $hostel = Auth::user()->hostel;
 
-        // Use same categories as Admin controller
+        // ✅ FIXED: Updated categories to match unified room types
         $categories = [
             'video'       => 'भिडियो टुर',
             '1 seater'    => '१ सिटर कोठा',
@@ -72,7 +73,12 @@ class GalleryController extends Controller
             'event'       => 'कार्यक्रम'
         ];
 
-        return view('owner.galleries.create', compact('hostel', 'categories'));
+        // ✅ NEW: Get available rooms for room-specific galleries
+        $rooms = Room::where('hostel_id', $hostel->id)
+            ->where('status', 'उपलब्ध')
+            ->get();
+
+        return view('owner.galleries.create', compact('hostel', 'categories', 'rooms'));
     }
 
     /**
@@ -82,7 +88,7 @@ class GalleryController extends Controller
     {
         $hostel = Auth::user()->hostel;
 
-        // Use same validation rules as Admin controller
+        // ✅ FIXED: Updated validation to include room_id and unified categories
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
@@ -94,6 +100,7 @@ class GalleryController extends Controller
                 'required',
                 Rule::in(['video', '1 seater', '2 seater', '3 seater', '4 seater', 'common', 'bathroom', 'kitchen', 'living room', 'study room', 'event'])
             ],
+            'room_id' => 'nullable|exists:rooms,id',
             'status' => 'required|in:active,inactive'
         ], [
             'media.required_if' => 'कृपया कम्तिमा एक फाइल अपलोड गर्नुहोस्।',
@@ -111,6 +118,19 @@ class GalleryController extends Controller
         // Add current user and hostel
         $validated['user_id'] = auth()->id();
         $validated['hostel_id'] = $hostel->id;
+
+        // ✅ NEW: Validate room belongs to hostel
+        if ($request->has('room_id') && $request->room_id) {
+            $room = Room::where('id', $request->room_id)
+                ->where('hostel_id', $hostel->id)
+                ->first();
+
+            if (!$room) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'यो कोठा तपाईंको होस्टलमा छैन');
+            }
+        }
 
         // Handle media upload with consistent paths - FIXED: Use 'galleries' directory
         if ($validated['media_type'] === 'external_video') {
@@ -186,7 +206,7 @@ class GalleryController extends Controller
 
         $hostel = Auth::user()->hostel;
 
-        // Use same categories as Admin controller
+        // ✅ FIXED: Updated categories to match unified room types
         $categories = [
             'video'       => 'भिडियो टुर',
             '1 seater'    => '१ सिटर कोठा',
@@ -201,7 +221,12 @@ class GalleryController extends Controller
             'event'       => 'कार्यक्रम'
         ];
 
-        return view('owner.galleries.edit', compact('gallery', 'hostel', 'categories'));
+        // ✅ NEW: Get available rooms for room-specific galleries
+        $rooms = Room::where('hostel_id', $hostel->id)
+            ->where('status', 'उपलब्ध')
+            ->get();
+
+        return view('owner.galleries.edit', compact('gallery', 'hostel', 'categories', 'rooms'));
     }
 
     /**
@@ -213,7 +238,7 @@ class GalleryController extends Controller
             abort(403, 'तपाईंसँग यो ग्यालरी अपडेट गर्ने अनुमति छैन');
         }
 
-        // Use same validation rules as Admin controller
+        // ✅ FIXED: Updated validation to include room_id and unified categories
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
@@ -225,6 +250,7 @@ class GalleryController extends Controller
                 'required',
                 Rule::in(['video', '1 seater', '2 seater', '3 seater', '4 seater', 'common', 'bathroom', 'kitchen', 'living room', 'study room', 'event'])
             ],
+            'room_id' => 'nullable|exists:rooms,id',
             'status' => 'required|in:active,inactive'
         ]);
 
@@ -234,6 +260,19 @@ class GalleryController extends Controller
 
         // Get featured status from request
         $validated['is_featured'] = $request->has('featured');
+
+        // ✅ NEW: Validate room belongs to hostel
+        if ($request->has('room_id') && $request->room_id) {
+            $room = Room::where('id', $request->room_id)
+                ->where('hostel_id', $gallery->hostel_id)
+                ->first();
+
+            if (!$room) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'यो कोठा तपाईंको होस्टलमा छैन');
+            }
+        }
 
         // Handle media changes
         $currentMediaType = $gallery->media_type;
