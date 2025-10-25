@@ -83,12 +83,10 @@ class RoomController extends Controller
     {
         $user = auth()->user();
 
-        // FIX: Use transaction for data consistency
         DB::beginTransaction();
 
         try {
             if ($user->hasRole('admin')) {
-                // Use StoreRoomRequest for admin with full validation
                 $validatedData = $request->validate([
                     'hostel_id' => 'required|exists:hostels,id',
                     'room_number' => 'required|string|max:50|unique:rooms,room_number,NULL,id,hostel_id,' . $request->hostel_id,
@@ -98,7 +96,7 @@ class RoomController extends Controller
                     'description' => 'nullable|string|max:500',
                     'status' => 'required|in:available,occupied,maintenance',
                     'floor' => 'nullable|string|max:20',
-                    'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+                    'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048' // ✅ ENABLED
                 ]);
 
                 // Upload image for admin
@@ -107,7 +105,6 @@ class RoomController extends Controller
                     $validatedData['image'] = $imagePath;
                 }
             } elseif ($user->hasRole('hostel_manager')) {
-                // FIX: Validate and check hostel ownership for owner
                 $organization = $user->organizations()->wherePivot('role', 'owner')->first();
 
                 if (!$organization) {
@@ -120,18 +117,25 @@ class RoomController extends Controller
                     'hostel_id' => 'required|exists:hostels,id',
                     'room_number' => 'required|string|max:50|unique:rooms,room_number,NULL,id,hostel_id,' . $request->hostel_id,
                     'type' => 'required|in:single,double,shared',
+                    'gallery_category' => 'required|in:1_seater,2_seater,3_seater,4_seater,living_room,bathroom,kitchen,study_room,events,video_tour', // ✅ ADD
                     'capacity' => 'required|integer|min:1|max:10',
                     'price' => 'required|numeric|min:0',
                     'description' => 'nullable|string|max:500',
                     'status' => 'required|in:available,occupied,maintenance',
+                    'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048'
                 ]);
 
-                // Check if hostel belongs to owner's organization
                 $hostel = $organization->hostels()->where('id', $request->hostel_id)->first();
                 if (!$hostel) {
                     return redirect()->back()
                         ->withInput()
                         ->with('error', 'तपाईंसँग यो होस्टलमा कोठा सिर्जना गर्ने अनुमति छैन');
+                }
+
+                // ✅ ENABLED: Handle image upload for owner
+                if ($request->hasFile('image')) {
+                    $imagePath = $request->file('image')->store('room_images', 'public');
+                    $validatedData['image'] = $imagePath;
                 }
             } else {
                 abort(403, 'Unauthorized action.');
@@ -140,7 +144,7 @@ class RoomController extends Controller
             // Create room
             $room = Room::create($validatedData);
 
-            // FIX: Update hostel room counts after room creation
+            // Update hostel room counts
             $room->hostel->updateRoomCounts();
 
             DB::commit();
@@ -150,6 +154,7 @@ class RoomController extends Controller
                 ->with('success', 'कोठा सफलतापूर्वक थपियो!');
         } catch (\Exception $e) {
             DB::rollBack();
+            \Log::error('Room creation error: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'कोठा थप्दा त्रुटि भयो: ' . $e->getMessage());
@@ -232,15 +237,12 @@ class RoomController extends Controller
     {
         $user = auth()->user();
 
-        // FIX: Use transaction for data consistency
         DB::beginTransaction();
 
         try {
-            $oldHostelId = $room->hostel_id; // Store old hostel ID for updating counts
+            $oldHostelId = $room->hostel_id;
 
-            // Check if user has permission to update this room
             if ($user->hasRole('hostel_manager')) {
-                // FIX: Check if room belongs to owner's organization
                 $organization = $user->organizations()->wherePivot('role', 'owner')->first();
 
                 if (!$organization) {
@@ -260,14 +262,26 @@ class RoomController extends Controller
                     'price' => 'required|numeric|min:0',
                     'description' => 'nullable|string|max:500',
                     'status' => 'required|in:available,occupied,maintenance',
+                    'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048' // ✅ ENABLED
                 ]);
 
-                // Check if new hostel belongs to owner's organization
                 $hostel = $organization->hostels()->where('id', $request->hostel_id)->first();
                 if (!$hostel) {
                     return redirect()->back()
                         ->withInput()
                         ->with('error', 'तपाईंसँग यो होस्टलमा कोठा अपडेट गर्ने अनुमति छैन');
+                }
+
+                // ✅ ENABLED: Handle image upload for owner
+                if ($request->hasFile('image')) {
+                    // Delete old image if exists
+                    if ($room->image) {
+                        Storage::disk('public')->delete($room->image);
+                    }
+
+                    // Save new image
+                    $imagePath = $request->file('image')->store('room_images', 'public');
+                    $validatedData['image'] = $imagePath;
                 }
             } elseif ($user->hasRole('admin')) {
                 $validatedData = $request->validate([
@@ -279,10 +293,10 @@ class RoomController extends Controller
                     'description' => 'nullable|string|max:500',
                     'status' => 'required|in:available,occupied,maintenance',
                     'floor' => 'nullable|string|max:20',
-                    'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+                    'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048' // ✅ ENABLED
                 ]);
 
-                // Update image for admin only
+                // Update image for admin
                 if ($request->hasFile('image')) {
                     // Delete old image if exists
                     if ($room->image) {
@@ -299,8 +313,7 @@ class RoomController extends Controller
 
             $room->update($validatedData);
 
-            // FIX: Update hostel room counts after room update
-            // If hostel changed, update both old and new hostel counts
+            // Update hostel room counts
             if ($oldHostelId != $room->hostel_id) {
                 $oldHostel = Hostel::find($oldHostelId);
                 if ($oldHostel) {
