@@ -8,7 +8,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany; // ✅ ADD: This import
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Facades\Storage; // ✅ ADD: Storage facade
 
 class Room extends Model
 {
@@ -21,6 +22,7 @@ class Room extends Model
         'hostel_id',
         'room_number',
         'type',
+        'gallery_category',
         'capacity',
         'price',
         'status',
@@ -36,6 +38,11 @@ class Room extends Model
         'price' => 'decimal:2',
         'capacity' => 'integer',
     ];
+
+    /**
+     * The accessors to append to the model's array form.
+     */
+    protected $appends = ['image_url', 'has_image']; // ✅ ADD: Accessors
 
     /**
      * Get the hostel that this room belongs to.
@@ -174,6 +181,26 @@ class Room extends Model
     public function getHasAvailableSpaceAttribute(): bool
     {
         return $this->available_capacity > 0;
+    }
+
+    /**
+     * Get the room image URL
+     */
+    public function getImageUrlAttribute(): string
+    {
+        if ($this->image && Storage::disk('public')->exists($this->image)) {
+            return Storage::disk('public')->url($this->image);
+        }
+
+        return asset('images/no-image.png');
+    }
+
+    /**
+     * Check if room has image
+     */
+    public function getHasImageAttribute(): bool
+    {
+        return !empty($this->image) && Storage::disk('public')->exists($this->image);
     }
 
     /**

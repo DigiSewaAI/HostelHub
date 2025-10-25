@@ -68,7 +68,27 @@
                         </div>
                     </div>
 
+                    {{-- ✅ ADDED: Gallery Category Field --}}
                     <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="gallery_category" class="form-label">ग्यालरी श्रेणी <span class="text-danger">*</span></label>
+                            <select name="gallery_category" id="gallery_category" class="form-select @error('gallery_category') is-invalid @enderror" required>
+                                <option value="">श्रेणी छान्नुहोस्</option>
+                                <option value="1_seater" {{ old('gallery_category') == '1_seater' ? 'selected' : '' }}>१ सिटर कोठा</option>
+                                <option value="2_seater" {{ old('gallery_category') == '2_seater' ? 'selected' : '' }}>२ सिटर कोठा</option>
+                                <option value="3_seater" {{ old('gallery_category') == '3_seater' ? 'selected' : '' }}>३ सिटर कोठा</option>
+                                <option value="4_seater" {{ old('gallery_category') == '4_seater' ? 'selected' : '' }}>४ सिटर कोठा</option>
+                                <option value="living_room" {{ old('gallery_category') == 'living_room' ? 'selected' : '' }}>लिभिङ रूम</option>
+                                <option value="bathroom" {{ old('gallery_category') == 'bathroom' ? 'selected' : '' }}>बाथरूम</option>
+                                <option value="kitchen" {{ old('gallery_category') == 'kitchen' ? 'selected' : '' }}>भान्सा</option>
+                                <option value="study_room" {{ old('gallery_category') == 'study_room' ? 'selected' : '' }}>अध्ययन कोठा</option>
+                                <option value="events" {{ old('gallery_category') == 'events' ? 'selected' : '' }}>कार्यक्रम</option>
+                                <option value="video_tour" {{ old('gallery_category') == 'video_tour' ? 'selected' : '' }}>भिडियो टुर</option>
+                            </select>
+                            @error('gallery_category')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
                         <div class="col-md-6 mb-3">
                             <label for="price" class="form-label">मूल्य (प्रति महिना) <span class="text-danger">*</span></label>
                             <div class="input-group">
@@ -80,6 +100,9 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
+                    </div>
+
+                    <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="status" class="form-label">स्थिति <span class="text-danger">*</span></label>
                             <select name="status" id="status" class="form-select @error('status') is-invalid @enderror" required>
@@ -90,6 +113,24 @@
                             @error('status')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
+                        </div>
+                    </div>
+
+                    {{-- ✅ Room Image Upload Field --}}
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label for="image" class="form-label">कोठाको फोटो</label>
+                            <input type="file" name="image" id="image" class="form-control @error('image') is-invalid @enderror" 
+                                   accept="image/jpeg,image/png,image/jpg,image/gif,image/webp">
+                            <div class="form-text">JPG, PNG, JPEG, GIF, WEBP format मा मात्र, अधिकतम size: 2MB</div>
+                            @error('image')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                            
+                            {{-- Image Preview --}}
+                            <div id="imagePreview" class="mt-2" style="display: none;">
+                                <img id="preview" src="#" alt="Image Preview" style="max-width: 200px; max-height: 150px; border-radius: 8px;">
+                            </div>
                         </div>
                     </div>
 
@@ -122,21 +163,64 @@
         // Auto-calculate capacity based on room type
         const typeSelect = document.getElementById('type');
         const capacityInput = document.getElementById('capacity');
+        const galleryCategorySelect = document.getElementById('gallery_category');
         
-        if (typeSelect && capacityInput) {
+        if (typeSelect && capacityInput && galleryCategorySelect) {
             typeSelect.addEventListener('change', function() {
                 switch(this.value) {
                     case 'single':
                         capacityInput.value = 1;
+                        galleryCategorySelect.value = '1_seater';
                         break;
                     case 'double':
                         capacityInput.value = 2;
+                        galleryCategorySelect.value = '2_seater';
                         break;
                     case 'shared':
                         capacityInput.value = 4;
+                        galleryCategorySelect.value = '4_seater';
                         break;
                     default:
                         capacityInput.value = 1;
+                }
+            });
+
+            // Also update gallery category when capacity changes manually
+            capacityInput.addEventListener('change', function() {
+                const capacity = parseInt(this.value);
+                if (capacity >= 1 && capacity <= 4) {
+                    galleryCategorySelect.value = capacity + '_seater';
+                }
+            });
+
+            // Set initial gallery category based on default capacity
+            if (capacityInput.value) {
+                const initialCapacity = parseInt(capacityInput.value);
+                if (initialCapacity >= 1 && initialCapacity <= 4) {
+                    galleryCategorySelect.value = initialCapacity + '_seater';
+                }
+            }
+        }
+
+        // ✅ Image preview functionality
+        const imageInput = document.getElementById('image');
+        const imagePreview = document.getElementById('imagePreview');
+        const preview = document.getElementById('preview');
+
+        if (imageInput && preview) {
+            imageInput.addEventListener('change', function() {
+                const file = this.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    
+                    reader.addEventListener('load', function() {
+                        preview.src = reader.result;
+                        imagePreview.style.display = 'block';
+                    });
+                    
+                    reader.readAsDataURL(file);
+                } else {
+                    imagePreview.style.display = 'none';
                 }
             });
         }
