@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 class PublicController extends Controller
 {
@@ -74,10 +75,12 @@ class PublicController extends Controller
                 return Room::distinct()->pluck('type');
             });
 
-            // 7. Hero Slider Items (with caching)
+            // 7. Hero Slider Items (with caching) - ✅ UPDATED: Include hostel names
             $heroSliderItems = Cache::remember('home_hero_slider_items', 3600, function () {
-                return Gallery::where('is_active', true)
+                return Gallery::with(['hostel', 'room.hostel'])
+                    ->where('is_active', true)
                     ->whereNotNull('file_path')
+                    ->orderBy('is_featured', 'desc')
                     ->orderBy('created_at', 'desc')
                     ->take(5)
                     ->get()
@@ -86,9 +89,10 @@ class PublicController extends Controller
                     });
             });
 
-            // 8. Gallery Items (with caching)
+            // 8. Gallery Items (with caching) - ✅ UPDATED: Include hostel names
             $galleryItems = Cache::remember('home_gallery_items', 3600, function () {
-                return Gallery::where('is_active', true)
+                return Gallery::with(['hostel', 'room.hostel'])
+                    ->where('is_active', true)
                     ->whereNotNull('file_path')
                     ->orderBy('created_at', 'desc')
                     ->take(10)
@@ -150,7 +154,7 @@ class PublicController extends Controller
     }
 
     /**
-     * Process gallery item for home page
+     * Process gallery item for home page WITH HOSTEL NAME
      */
     private function processGalleryItemForHome(Gallery $item): array
     {
@@ -164,6 +168,9 @@ class PublicController extends Controller
             'thumbnail_url' => '',
             'file_url' => '',
             'youtube_id' => null,
+            'hostel_name' => $item->hostel_name, // ✅ ADDED: Hostel name
+            'hostel_id' => $item->hostel_id,
+            'is_room_image' => !is_null($item->room_id) // ✅ ADDED: Room image flag
         ];
 
         if ($item->media_type === 'photo') {
@@ -220,7 +227,7 @@ class PublicController extends Controller
     }
 
     /**
-     * Show only available rooms gallery - CLEANED & FIXED
+     * Show only available rooms gallery - COMPLETELY FIXED COUNTS
      */
     public function hostelGallery($slug)
     {
@@ -230,7 +237,7 @@ class PublicController extends Controller
             // Get hostel with available rooms and their images only
             $hostel = Hostel::where('slug', $slug)
                 ->with(['rooms' => function ($query) {
-                    $query->where('status', 'available');
+                    $query->where('status', 'available'); // ✅ Only available rooms
                 }])
                 ->first();
 
@@ -238,17 +245,42 @@ class PublicController extends Controller
                 abort(404, 'होस्टल फेला परेन।');
             }
 
-            // Get available room counts by type
+            // ✅ COMPLETELY FIXED: Count available rooms by CAPACITY
             $availableRoomCounts = [
-                '1 seater' => $hostel->rooms->where('type', '1 seater')->count(),
-                '2 seater' => $hostel->rooms->where('type', '2 seater')->count(),
-                '3 seater' => $hostel->rooms->where('type', '3 seater')->count(),
-                '4 seater' => $hostel->rooms->where('type', '4 seater')->count(),
-                'other' => $hostel->rooms->where('type', 'other')->count(),
+                '1 seater' => $hostel->rooms->where('status', 'available')->filter(function ($room) {
+                    return $room->capacity == 1;
+                })->count(),
+                '2 seater' => $hostel->rooms->where('status', 'available')->filter(function ($room) {
+                    return $room->capacity == 2;
+                })->count(),
+                '3 seater' => $hostel->rooms->where('status', 'available')->filter(function ($room) {
+                    return $room->capacity == 3;
+                })->count(),
+                '4 seater' => $hostel->rooms->where('status', 'available')->filter(function ($room) {
+                    return $room->capacity == 4;
+                })->count(),
+                'other' => $hostel->rooms->where('status', 'available')->filter(function ($room) {
+                    return $room->capacity > 4;
+                })->count(),
             ];
 
-            // Get only room images (no videos, no facilities)
-            $galleries = Gallery::where('hostel_id', $hostel->id)
+            \Log::info("Fixed room counts by capacity:", [
+                'hostel_id' => $hostel->id,
+                'available_rooms_count' => $hostel->rooms->count(),
+                'available_room_counts' => $availableRoomCounts,
+                'rooms_debug' => $hostel->rooms->map(function ($room) {
+                    return [
+                        'room_number' => $room->room_number,
+                        'type' => $room->type,
+                        'capacity' => $room->capacity,
+                        'status' => $room->status
+                    ];
+                })
+            ]);
+
+            // ✅ UPDATED: Get galleries with hostel and room relationships
+            $galleries = Gallery::with(['hostel', 'room'])
+                ->where('hostel_id', $hostel->id)
                 ->where('is_active', true)
                 ->where('media_type', 'photo') // Only photos, no videos
                 ->whereIn('category', ['1 seater', '2 seater', '3 seater', '4 seater', 'other']) // Only room categories
@@ -286,9 +318,11 @@ class PublicController extends Controller
         try {
             \Log::info("=== FULL GALLERY DEBUG START ===", ['slug' => $slug]);
 
+            // ✅ UPDATED: Include room relationship for room galleries
             $hostel = Hostel::where('slug', $slug)
                 ->with(['galleries' => function ($query) {
                     $query->where('is_active', true)
+                        ->with('room') // ✅ ADDED: Load room relationship
                         ->orderBy('is_featured', 'desc')
                         ->orderBy('created_at', 'desc');
                 }])
@@ -321,6 +355,50 @@ class PublicController extends Controller
         } catch (\Exception $e) {
             \Log::error('Full gallery error: ' . $e->getMessage());
             abort(404, 'पूर्ण ग्यालरी लोड गर्न असफल।');
+        }
+    }
+
+    /**
+     * API: Get hostel gallery data WITH HOSTEL NAME BADGES
+     */
+    public function getHostelGalleryData($slug)
+    {
+        try {
+            $hostel = Hostel::where('slug', $slug)->firstOrFail();
+
+            // ✅ UPDATED: Include room relationship and use hostel_name
+            $galleries = $hostel->galleries()
+                ->with('room')
+                ->where('is_active', true)
+                ->get()
+                ->map(function ($item) use ($hostel) {
+                    return [
+                        'id' => $item->id,
+                        'title' => $item->title,
+                        'description' => $item->description,
+                        'category' => $item->category,
+                        'media_type' => $item->media_type,
+                        'file_path' => $item->file_path,
+                        'thumbnail' => $item->thumbnail,
+                        'external_link' => $item->external_link,
+                        'is_featured' => $item->is_featured,
+                        'is_active' => $item->is_active,
+                        'media_url' => $item->media_url,
+                        'thumbnail_url' => $item->thumbnail_url,
+                        'is_video' => $item->is_video,
+                        'is_youtube_video' => $item->is_youtube_video,
+                        'youtube_embed_url' => $item->youtube_embed_url,
+                        'category_nepali' => $item->category_nepali,
+                        'hostel_name' => $hostel->name, // ✅ ADDED: Hostel name
+                        'room_number' => $item->room ? $item->room->room_number : null,
+                        'is_room_image' => !is_null($item->room_id) // ✅ ADDED: Room image flag
+                    ];
+                });
+
+            return response()->json($galleries);
+        } catch (\Exception $e) {
+            \Log::error('Hostel gallery API error: ' . $e->getMessage());
+            return response()->json(['error' => 'ग्यालरी डाटा लोड गर्न असफल'], 500);
         }
     }
 
@@ -518,9 +596,6 @@ class PublicController extends Controller
     /**
      * Display single hostel page with dynamic theme
      */
-    /**
-     * Display single hostel page with dynamic theme
-     */
     public function hostelShow($slug)
     {
         $hostel = Hostel::where('is_published', true)
@@ -543,12 +618,16 @@ class PublicController extends Controller
         // ✅ FIXED: Proper facilities parsing
         $facilities = $this->parseFacilities($hostel->facilities);
 
+        // ✅ NEW: Get room galleries for this hostel
+        $roomGalleries = $hostel->publicRoomGalleries;
+
         // Log for debugging
         \Log::info("Hostel Show - Slug: {$slug}", [
             'logo_path' => $hostel->logo_path,
             'logo_normalized' => $logo,
             'facilities_raw' => $hostel->facilities,
-            'facilities_parsed' => $facilities
+            'facilities_parsed' => $facilities,
+            'room_galleries_count' => $roomGalleries->count()
         ]);
 
         // Determine theme (default = modern)
@@ -570,7 +649,8 @@ class PublicController extends Controller
             'avgRating',
             'studentCount',
             'logo',
-            'facilities'
+            'facilities',
+            'roomGalleries' // ✅ ADDED: Room galleries for display
         ));
     }
 
@@ -731,6 +811,9 @@ class PublicController extends Controller
         $logo = $this->normalizeLogoUrl($hostel->logo);
         $facilities = $this->parseFacilities($hostel->facilities);
 
+        // ✅ NEW: Get room galleries for this hostel
+        $roomGalleries = $hostel->publicRoomGalleries;
+
         // Determine theme (default = modern)
         $theme = $hostel->theme ?? 'modern';
 
@@ -750,7 +833,91 @@ class PublicController extends Controller
             'avgRating',
             'studentCount',
             'logo',
-            'facilities'
+            'facilities',
+            'roomGalleries' // ✅ ADDED: Room galleries for display
         ))->with('preview', true);
+    }
+
+    // ✅ NEW: Gallery Integration Methods
+
+    /**
+     * Get featured gallery items for homepage WITH HOSTEL NAMES
+     */
+    private function getFeaturedGalleryItems()
+    {
+        return Cache::remember('featured_galleries_with_hostels', 3600, function () {
+            return Gallery::with(['hostel', 'room.hostel'])
+                ->where('is_active', true)
+                ->where('is_featured', true)
+                ->orderBy('created_at', 'desc')
+                ->take(8)
+                ->get()
+                ->map(function ($item) {
+                    return $this->processGalleryItemForHome($item);
+                });
+        });
+    }
+
+    /**
+     * Get recent gallery items for homepage WITH HOSTEL NAMES
+     */
+    private function getRecentGalleryItems()
+    {
+        return Cache::remember('recent_galleries_with_hostels', 3600, function () {
+            return Gallery::with(['hostel', 'room.hostel'])
+                ->where('is_active', true)
+                ->orderBy('created_at', 'desc')
+                ->take(12)
+                ->get()
+                ->map(function ($item) {
+                    return $this->processGalleryItemForHome($item);
+                });
+        });
+    }
+
+    /**
+     * API: Get public gallery data WITH HOSTEL NAMES
+     */
+    public function getPublicGalleryData()
+    {
+        try {
+            $galleries = Cache::remember('public_galleries_with_hostels', 3600, function () {
+                return Gallery::with(['hostel', 'room.hostel'])
+                    ->where('is_active', true)
+                    ->orderBy('is_featured', 'desc')
+                    ->orderBy('created_at', 'desc')
+                    ->get()
+                    ->map(function ($item) {
+                        return $this->formatGalleryItemWithHostel($item);
+                    });
+            });
+
+            return response()->json($galleries);
+        } catch (\Exception $e) {
+            \Log::error('Public gallery API error: ' . $e->getMessage());
+            return response()->json(['error' => 'ग्यालरी डाटा लोड गर्न असफल'], 500);
+        }
+    }
+
+    /**
+     * Format gallery item WITH HOSTEL NAME for API response
+     */
+    private function formatGalleryItemWithHostel($item): array
+    {
+        return [
+            'id' => $item->id,
+            'title' => $item->title,
+            'description' => $item->description,
+            'category' => $item->category,
+            'media_type' => $item->media_type,
+            'file_url' => $item->media_url,
+            'thumbnail_url' => $item->thumbnail_url,
+            'external_link' => $item->external_link,
+            'created_at' => $item->created_at->format('Y-m-d'),
+            'hostel_name' => $item->hostel_name, // ✅ ADDED: Hostel name
+            'hostel_id' => $item->hostel_id,
+            'room_number' => $item->room ? $item->room->room_number : null,
+            'is_room_image' => !is_null($item->room_id) // ✅ ADDED: Room image flag
+        ];
     }
 }

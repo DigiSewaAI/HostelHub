@@ -5,6 +5,65 @@
 <?php $__env->startPush('styles'); ?>
 <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
 <link rel="stylesheet" href="<?php echo e(asset('css/home.css')); ?>">
+<style>
+.gallery-slide-container {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    height: 100%;
+}
+
+.hostel-badge-sm {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(0, 31, 91, 0.9);
+    color: white;
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    z-index: 10;
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    max-width: 120px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.hostel-badge-sm i {
+    font-size: 0.6rem;
+    flex-shrink: 0;
+}
+
+.room-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: rgba(34, 197, 94, 0.9);
+    color: white;
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    z-index: 10;
+    backdrop-filter: blur(4px);
+}
+
+.swiper-slide {
+    height: auto;
+}
+
+.gallery-swiper .swiper-slide img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+</style>
 <?php $__env->stopPush(); ?>
 
 <?php $__env->startSection('content'); ?>
@@ -114,7 +173,7 @@
     </div>
 </div>
 
-<!-- Gallery Section -->
+<!-- Enhanced Gallery Section with Hostel Badges -->
 <section class="section gallery" id="gallery">
     <div class="container">
         <h2 class="section-title nepali">हाम्रो ग्यालरी</h2>
@@ -123,16 +182,32 @@
             <div class="swiper-wrapper">
                 <?php $__currentLoopData = $galleryItems; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                 <div class="swiper-slide">
-                    <?php if($item['media_type'] === 'image'): ?>
-                        <img src="<?php echo e($item['thumbnail_url']); ?>" alt="<?php echo e($item['title']); ?>" loading="lazy" onerror="this.onerror=null;this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgZmlsbD0iI2YwZjlmZiI+PC9yZWN0Pjx0ZXh0IHg9IjQwMCIgeT0iMjI1IiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQi IGZpbGw9IiMxZjI5MzciPkltYWdlIFRodW1ibmFpbDwvdGV4dD48L3N2Zz4=';">
-                    <?php else: ?>
-                        <img src="<?php echo e($item['thumbnail_url']); ?>" alt="<?php echo e($item['title']); ?>" loading="lazy" class="youtube-thumbnail" data-youtube-id="<?php echo e($item['youtube_id'] ?? ''); ?>" onerror="this.onerror=null;this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgZmlsbD0iIzFlM2E4YSI+PC9yZWN0Pjx0ZXh0IHg9IjQwMCIgeT0iMjI1IiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IiNmZmYiPlZpZGVvIFRodW1ibmFpbDwvdGV4dD48L3N2Zz4=';">
-                        <div class="video-overlay">
-                            <div class="video-play-icon">
-                                <i class="fas fa-play"></i>
+                    <div class="gallery-slide-container">
+                        <?php if($item['media_type'] === 'image'): ?>
+                            <img src="<?php echo e($item['thumbnail_url']); ?>" alt="<?php echo e($item['title']); ?>" loading="lazy" onerror="this.onerror=null;this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgZmlsbD0iI2YwZjlmZiI+PC9yZWN0Pjx0ZXh0IHg9IjQwMCIgeT0iMjI1IiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQi IGZpbGw9IiMxZjI5MzciPkltYWdlIFRodW1ibmFpbDwvdGV4dD48L3N2Zz4=';">
+                        <?php else: ?>
+                            <img src="<?php echo e($item['thumbnail_url']); ?>" alt="<?php echo e($item['title']); ?>" loading="lazy" class="youtube-thumbnail" data-youtube-id="<?php echo e($item['youtube_id'] ?? ''); ?>" onerror="this.onerror=null;this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgZmlsbD0iIzFlM2E4YSI+PC9yZWN0Pjx0ZXh0IHg9IjQwMCIgeT0iMjI1IiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IiNmZmYiPlZpZGVvIFRodW1ibmFpbDwvdGV4dD48L3N2Zz4=';">
+                            <div class="video-overlay">
+                                <div class="video-play-icon">
+                                    <i class="fas fa-play"></i>
+                                </div>
                             </div>
+                        <?php endif; ?>
+                        
+                        <!-- Hostel Badge for Homepage -->
+                        <div class="hostel-badge-sm">
+                            <i class="fas fa-building"></i>
+                            <span class="nepali"><?php echo e($item['hostel_name'] ?? 'Unknown Hostel'); ?></span>
                         </div>
-                    <?php endif; ?>
+
+                        <!-- Room Badge if it's a room image -->
+                        <?php if(isset($item['is_room_image']) && $item['is_room_image'] && isset($item['room_number'])): ?>
+                            <div class="room-badge">
+                                <i class="fas fa-door-open"></i>
+                                <span class="nepali">कोठा <?php echo e($item['room_number']); ?></span>
+                            </div>
+                        <?php endif; ?>
+                    </div>
                 </div>
                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </div>

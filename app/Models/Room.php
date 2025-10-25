@@ -45,6 +45,40 @@ class Room extends Model
     protected $appends = ['image_url', 'has_image']; // ✅ ADD: Accessors
 
     /**
+     * Boot method for model events
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Update hostel room counts when room is created, updated or deleted
+        static::created(function ($room) {
+            $room->hostel->updateRoomCounts();
+
+            // ✅ FIXED: Auto-sync room image to gallery when room is created
+            if ($room->image) {
+                $room->syncImageToGallery();
+            }
+        });
+
+        static::updated(function ($room) {
+            $room->hostel->updateRoomCounts();
+
+            // ✅ FIXED: Auto-sync room image to gallery when room image is updated
+            if ($room->isDirty('image')) {
+                $room->syncImageToGallery();
+            }
+        });
+
+        static::deleted(function ($room) {
+            $room->hostel->updateRoomCounts();
+
+            // ✅ FIXED: Auto-delete gallery entries when room is deleted
+            $room->galleries()->delete();
+        });
+    }
+
+    /**
      * Get the hostel that this room belongs to.
      */
     public function hostel(): BelongsTo
@@ -79,6 +113,12 @@ class Room extends Model
     public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);
+    }
+
+    // ✅ FIXED: Gallery relationship
+    public function galleries(): HasMany
+    {
+        return $this->hasMany(Gallery::class);
     }
 
     /**
@@ -215,6 +255,10 @@ class Room extends Model
             'standard' => 'स्ट्यान्डर्ड कोठा',
             'deluxe' => 'डीलक्स कोठा',
             'vip' => 'विआईपी कोठा',
+            '1 seater' => 'एक सिटर कोठा',
+            '2 seater' => 'दुई सिटर कोठा',
+            '3 seater' => 'तीन सिटर कोठा',
+            '4 seater' => 'चार सिटर कोठा',
         ];
 
         return $types[$this->type] ?? $this->type;
@@ -242,24 +286,94 @@ class Room extends Model
         return 'रु ' . number_format($this->price, 2);
     }
 
+    // ✅ FIXED: Gallery Integration Methods
+
     /**
-     * Boot method for model events
+     * Sync room image to gallery system - COMPLETELY FIXED
      */
-    protected static function boot()
+    public function syncImageToGallery(): void
     {
-        parent::boot();
+        // Delete existing room galleries
+        $this->galleries()->delete();
 
-        // Update hostel room counts when room is created, updated or deleted
-        static::created(function ($room) {
-            $room->hostel->updateRoomCounts();
-        });
+        if (!$this->image) {
+            return;
+        }
 
-        static::updated(function ($room) {
-            $room->hostel->updateRoomCounts();
-        });
+        // ✅ CRITICAL FIX: Determine category by CAPACITY, not type
+        $galleryCategory = $this->getGalleryCategoryByCapacity();
 
-        static::deleted(function ($room) {
-            $room->hostel->updateRoomCounts();
-        });
+        // Create gallery entry
+        Gallery::create([
+            'title' => "Room {$this->room_number} - {$this->type}",
+            'description' => $this->description ?? "{$this->type} room at {$this->hostel->name}",
+            'category' => $galleryCategory, // ✅ FIXED: Correct category by capacity
+            'media_type' => 'photo',
+            'file_path' => $this->image,
+            'thumbnail' => $this->image,
+            'is_featured' => false,
+            'is_active' => true,
+            'user_id' => auth()->id() ?? 1,
+            'hostel_id' => $this->hostel_id,
+            'room_id' => $this->id,
+            'hostel_name' => $this->hostel->name ?? 'Unknown Hostel'
+        ]);
+    }
+
+    /**
+     * Get gallery category by CAPACITY (CRITICAL FIX)
+     */
+    private function getGalleryCategoryByCapacity(): string
+    {
+        // Use CAPACITY to determine category, not type
+        switch ($this->capacity) {
+            case 1:
+                return '1 seater';
+            case 2:
+                return '2 seater';
+            case 3:
+                return '3 seater';
+            case 4:
+                return '4 seater';
+            default:
+                return 'other';
+        }
+    }
+
+    /**
+     * Get gallery category for room type - FIXED
+     */
+    public function getGalleryCategoryAttribute(): string
+    {
+        return $this->getGalleryCategoryByCapacity();
+    }
+
+    /**
+     * Check if room has gallery images
+     */
+    public function getHasGalleryImagesAttribute(): bool
+    {
+        return $this->galleries()->where('is_active', true)->exists();
+    }
+
+    /**
+     * Get active gallery images for this room
+     */
+    public function getGalleryImagesAttribute()
+    {
+        return $this->galleries()->where('is_active', true)->get();
+    }
+
+    /**
+     * Get primary gallery image (room image or first gallery image)
+     */
+    public function getPrimaryGalleryImageAttribute(): string
+    {
+        if ($this->image) {
+            return $this->image_url;
+        }
+
+        $firstGallery = $this->galleries()->where('is_active', true)->first();
+        return $firstGallery ? $firstGallery->media_url : asset('images/no-image.png');
     }
 }

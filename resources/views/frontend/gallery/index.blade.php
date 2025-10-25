@@ -6,18 +6,90 @@
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/gallery.css') }}">
+<style>
+    .hostel-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(0, 31, 91, 0.9);
+        color: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        z-index: 10;
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .hostel-badge i {
+        font-size: 0.7rem;
+    }
+
+    .hostel-filter {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .gallery-item {
+        position: relative;
+    }
+
+    .room-number-badge {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: rgba(34, 197, 94, 0.9);
+        color: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        font-weight: 500;
+        z-index: 10;
+        backdrop-filter: blur(4px);
+    }
+
+    @media (max-width: 768px) {
+        .hostel-badge {
+            font-size: 0.7rem;
+            padding: 3px 6px;
+        }
+        
+        .room-number-badge {
+            font-size: 0.6rem;
+            padding: 2px 6px;
+        }
+    }
+</style>
 @endpush
 
 @section('content')
 
-<!-- Filters Section -->
+<!-- Enhanced Filters Section with Hostel Filter -->
 <section class="gallery-filters">
     <div class="filter-container">
         <div class="filter-header">
             <h2 class="nepali">ग्यालरी फिल्टर गर्नुहोस्</h2>
-            <p class="nepali">तपाईंले हेर्न चाहनुभएको विशेष प्रकारको मिडिया चयन गर्नुहोस्</p>
+            <p class="nepali">तपाईंले हेर्न चाहनुभएको विशेष प्रकारको मिडिया वा होस्टल चयन गर्नुहोस्</p>
         </div>
         
+        <!-- Hostel Filter -->
+        <div class="hostel-filter">
+            <label class="nepali" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
+                <i class="fas fa-building"></i> होस्टल छान्नुहोस्:
+            </label>
+            <select id="hostelFilter" class="form-control">
+                <option value="">सबै होस्टलहरू</option>
+                @foreach($hostels as $hostel)
+                    <option value="{{ $hostel->id }}">{{ $hostel->name }}</option>
+                @endforeach
+            </select>
+        </div>
+
         <div class="filter-controls">
             <div class="filter-categories">
                 <button class="filter-btn active nepali" data-filter="all">सबै</button>
@@ -35,137 +107,92 @@
             
             <div class="search-box">
                 <i class="fas fa-search search-icon"></i>
-                <input type="text" class="search-input nepali" placeholder="कोठा, सुविधा वा स्थान खोज्नुहोस्...">
+                <input type="text" class="search-input nepali" placeholder="कोठा, सुविधा, होस्टल वा स्थान खोज्नुहोस्...">
             </div>
         </div>
     </div>
 </section>
 
-<!-- Main Gallery Section -->
+<!-- Main Gallery Section WITH HOSTEL BADGES -->
 <section class="gallery-main">
     <div class="gallery-container">
         <!-- Gallery Grid -->
         <div class="gallery-grid">
-            <!-- Sample gallery items - Replace with dynamic data from controller -->
-            <div class="gallery-item image" 
-                 data-category="१ सिटर कोठा"
-                 data-title="सफा कोठा"
-                 data-description="आरामदायी र सफा कोठा"
-                 data-date="2025-10-24">
-                <img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" alt="सफा कोठा" class="gallery-media" loading="lazy">
-                <div class="media-overlay">
-                    <div class="media-title nepali">सफा कोठा</div>
-                    <div class="media-description nepali">आरामदायी र सफा कोठा</div>
-                    <div class="media-meta">
-                        <span class="media-category nepali">१ सिटर कोठा</span>
-                        <span class="media-date">2025-10-24</span>
-                    </div>
-                </div>
-            </div>
+            @foreach($galleries as $gallery)
+            <div class="gallery-item {{ $gallery->media_type }}" 
+                 data-category="{{ $gallery->category_nepali }}"
+                 data-title="{{ $gallery->title }}"
+                 data-description="{{ $gallery->description }}"
+                 data-date="{{ $gallery->created_at->format('Y-m-d') }}"
+                 data-hostel="{{ $gallery->hostel_name }}"
+                 data-hostel-id="{{ $gallery->hostel_id }}"
+                 data-room-number="{{ $gallery->room ? $gallery->room->room_number : '' }}"
+                 data-media-type="{{ $gallery->media_type }}"
+                 @if($gallery->media_type === 'external_video' && $gallery->youtube_embed_url)
+                 data-youtube-embed="{{ $gallery->youtube_embed_url }}"
+                 @endif>
 
-            <div class="gallery-item video" 
-                 data-category="भिडियो टुर"
-                 data-title="होस्टल भिडियो टुर"
-                 data-description="हाम्रो होस्टलको भिडियो टुर"
-                 data-date="2025-10-24"
-                 data-youtube-id="abc123">
-                <img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" alt="होस्टल भिडियो टुर" class="gallery-media" loading="lazy">
-                <div class="video-badge">
-                    <i class="fas fa-play"></i>
-                    <span>भिडियो</span>
+                <!-- Hostel Badge -->
+                <div class="hostel-badge" title="{{ $gallery->hostel_name }}">
+                    <i class="fas fa-building"></i>
+                    <span class="nepali">{{ Str::limit($gallery->hostel_name, 20) }}</span>
                 </div>
-                <div class="media-overlay">
-                    <div class="media-title nepali">होस्टल भिडियो टुर</div>
-                    <div class="media-description nepali">हाम्रो होस्टलको भिडियो टुर</div>
-                    <div class="media-meta">
-                        <span class="media-category nepali">भिडियो टुर</span>
-                        <span class="media-date">2025-10-24</span>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Add more sample items or use dynamic data -->
-            <div class="gallery-item image" 
-                 data-category="२ सिटर कोठा"
-                 data-title="आरामदायी कोठा"
-                 data-description="ठूलो र आरामदायी २ सिटर कोठा"
-                 data-date="2025-10-23">
-                <img src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" alt="आरामदायी कोठा" class="gallery-media" loading="lazy">
-                <div class="media-overlay">
-                    <div class="media-title nepali">आरामदायी कोठा</div>
-                    <div class="media-description nepali">ठूलो र आरामदायी २ सिटर कोठा</div>
-                    <div class="media-meta">
-                        <span class="media-category nepali">२ सिटर कोठा</span>
-                        <span class="media-date">2025-10-23</span>
-                    </div>
+                <!-- Room Number Badge -->
+                @if($gallery->room && $gallery->room->room_number)
+                <div class="room-number-badge" title="कोठा नम्बर: {{ $gallery->room->room_number }}">
+                    <i class="fas fa-door-open"></i>
+                    <span class="nepali">कोठा {{ $gallery->room->room_number }}</span>
                 </div>
-            </div>
+                @endif
 
-            <div class="gallery-item image" 
-                 data-category="लिभिङ रूम"
-                 data-title="साझा लिभिङ रूम"
-                 data-description="आधुनिक साझा लिभिङ रूम"
-                 data-date="2025-10-22">
-                <img src="https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" alt="साझा लिभिङ रूम" class="gallery-media" loading="lazy">
-                <div class="media-overlay">
-                    <div class="media-title nepali">साझा लिभिङ रूम</div>
-                    <div class="media-description nepali">आधुनिक साझा लिभिङ रूम</div>
-                    <div class="media-meta">
-                        <span class="media-category nepali">लिभिङ रूम</span>
-                        <span class="media-date">2025-10-22</span>
+                @if($gallery->media_type === 'photo')
+                    <img src="{{ $gallery->thumbnail_url ?? $gallery->media_url }}" alt="{{ $gallery->title }}" class="gallery-media" loading="lazy">
+                @elseif($gallery->media_type === 'external_video')
+                    <img src="{{ $gallery->thumbnail_url }}" alt="{{ $gallery->title }}" class="gallery-media" loading="lazy">
+                    <div class="video-badge">
+                        <i class="fas fa-play"></i>
+                        <span>भिडियो</span>
                     </div>
-                </div>
-            </div>
+                @elseif($gallery->media_type === 'local_video')
+                    <img src="{{ $gallery->thumbnail_url }}" alt="{{ $gallery->title }}" class="gallery-media" loading="lazy">
+                    <div class="video-badge">
+                        <i class="fas fa-play"></i>
+                        <span>भिडियो</span>
+                    </div>
+                @endif
 
-            <div class="gallery-item image" 
-                 data-category="भान्सा"
-                 data-title="आधुनिक भान्सा"
-                 data-description="सफा र आधुनिक भान्सा"
-                 data-date="2025-10-21">
-                <img src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" alt="आधुनिक भान्सा" class="gallery-media" loading="lazy">
                 <div class="media-overlay">
-                    <div class="media-title nepali">आधुनिक भान्सा</div>
-                    <div class="media-description nepali">सफा र आधुनिक भान्सा</div>
+                    <div class="media-title nepali">{{ $gallery->title }}</div>
+                    <div class="media-description nepali">{{ $gallery->description }}</div>
                     <div class="media-meta">
-                        <span class="media-category nepali">भान्सा</span>
-                        <span class="media-date">2025-10-21</span>
+                        <span class="media-category nepali">{{ $gallery->category_nepali }}</span>
+                        <span class="media-date">{{ $gallery->created_at->format('Y-m-d') }}</span>
+                        @if($gallery->room && $gallery->room->room_number)
+                        <span class="room-number nepali">कोठा: {{ $gallery->room->room_number }}</span>
+                        @endif
                     </div>
                 </div>
             </div>
+            @endforeach
+        </div>
 
-            <div class="gallery-item image" 
-                 data-category="अध्ययन कोठा"
-                 data-title="अध्ययन कोठा"
-                 data-description="शान्त अध्ययन कोठा"
-                 data-date="2025-10-20">
-                <img src="https://images.unsplash.com/photo-1497366754035-f200968a6e72?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" alt="अध्ययन कोठा" class="gallery-media" loading="lazy">
-                <div class="media-overlay">
-                    <div class="media-title nepali">अध्ययन कोठा</div>
-                    <div class="media-description nepali">शान्त अध्ययन कोठा</div>
-                    <div class="media-meta">
-                        <span class="media-category nepali">अध्ययन कोठा</span>
-                        <span class="media-date">2025-10-20</span>
-                    </div>
-                </div>
-            </div>
+        <!-- Pagination -->
+        <div class="pagination-container">
+            {{ $galleries->links() }}
         </div>
 
         <!-- No Results Message -->
-        <div class="no-results">
+        <div class="no-results hidden">
             <i class="fas fa-search"></i>
             <h3 class="nepali">कुनै परिणाम फेला परेन</h3>
             <p class="nepali">तपाईंको खोजसँग मिल्ने कुनै ग्यालरी आइटम फेला परेन। कृपया अर्को खोज प्रयास गर्नुहोस्।</p>
         </div>
 
         <!-- Loading Indicator -->
-        <div class="gallery-loading">
+        <div class="gallery-loading hidden">
             <div class="loading-spinner"></div>
             <p class="nepali">ग्यालरी आइटमहरू लोड हुँदैछ...</p>
-        </div>
-
-        <!-- Load More Button -->
-        <div class="load-more-section">
-            <button class="load-more-btn nepali">थप हेर्नुहोस्</button>
         </div>
     </div>
 </section>
@@ -174,15 +201,15 @@
 <section class="gallery-stats">
     <div class="stats-grid">
         <div class="stat-item">
-            <div class="stat-number">500+</div>
+            <div class="stat-number">{{ $metrics['total_students'] ?? '500+' }}</div>
             <div class="stat-label nepali">खुसी विद्यार्थीहरू</div>
         </div>
         <div class="stat-item">
-            <div class="stat-number">25</div>
+            <div class="stat-number">{{ $metrics['total_hostels'] ?? '25' }}</div>
             <div class="stat-label nepali">सहयोगी होस्टल</div>
         </div>
         <div class="stat-item">
-            <div class="stat-number">5</div>
+            <div class="stat-number">{{ $cities->count() ?? '5' }}</div>
             <div class="stat-label nepali">शहरहरूमा उपलब्ध</div>
         </div>
         <div class="stat-item">
@@ -226,6 +253,8 @@
         <div class="modal-meta">
             <span class="modal-category"></span>
             <span class="modal-date"></span>
+            <span class="modal-hostel"></span>
+            <span class="modal-room"></span>
         </div>
     </div>
 </div>
@@ -233,4 +262,187 @@
 
 @push('scripts')
 <script src="{{ asset('js/gallery.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Hostel filter functionality
+    const hostelFilter = document.getElementById('hostelFilter');
+    const galleryItems = document.querySelectorAll('.gallery-item');
+    const noResults = document.querySelector('.no-results');
+    
+    function filterGalleries() {
+        const selectedHostelId = hostelFilter.value;
+        const searchTerm = document.querySelector('.search-input').value.toLowerCase();
+        const activeCategory = document.querySelector('.filter-btn.active').getAttribute('data-filter');
+        
+        let visibleCount = 0;
+        
+        galleryItems.forEach(item => {
+            const itemHostelId = item.getAttribute('data-hostel-id');
+            const title = item.getAttribute('data-title').toLowerCase();
+            const description = item.getAttribute('data-description').toLowerCase();
+            const category = item.getAttribute('data-category');
+            const hostel = item.getAttribute('data-hostel').toLowerCase();
+            const roomNumber = item.getAttribute('data-room-number').toLowerCase();
+            
+            // Hostel filter
+            const hostelMatch = !selectedHostelId || itemHostelId === selectedHostelId;
+            
+            // Search filter
+            const searchMatch = !searchTerm || 
+                title.includes(searchTerm) || 
+                description.includes(searchTerm) || 
+                category.includes(searchTerm) ||
+                hostel.includes(searchTerm) ||
+                roomNumber.includes(searchTerm);
+            
+            // Category filter
+            const categoryMatch = activeCategory === 'all' || category === activeCategory;
+            
+            if (hostelMatch && searchMatch && categoryMatch) {
+                item.style.display = 'block';
+                visibleCount++;
+            } else {
+                item.style.display = 'none';
+            }
+        });
+        
+        // Show/hide no results message
+        if (visibleCount === 0) {
+            noResults.classList.remove('hidden');
+        } else {
+            noResults.classList.add('hidden');
+        }
+    }
+    
+    // Hostel filter event
+    hostelFilter.addEventListener('change', filterGalleries);
+    
+    // Search input event
+    const searchInput = document.querySelector('.search-input');
+    searchInput.addEventListener('input', filterGalleries);
+    
+    // Category filter events
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    filterButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Remove active class from all buttons
+            filterButtons.forEach(btn => btn.classList.remove('active'));
+            // Add active class to clicked button
+            this.classList.add('active');
+            // Apply filters
+            filterGalleries();
+        });
+    });
+
+    // Enhanced modal functionality with hostel info
+    const modal = document.querySelector('.gallery-modal');
+    const modalTitle = modal.querySelector('.modal-title');
+    const modalDescription = modal.querySelector('.modal-description');
+    const modalCategory = modal.querySelector('.modal-category');
+    const modalDate = modal.querySelector('.modal-date');
+    const modalHostel = modal.querySelector('.modal-hostel');
+    const modalRoom = modal.querySelector('.modal-room');
+    const modalContent = modal.querySelector('.modal-content');
+    
+    // Gallery item click event
+    galleryItems.forEach(item => {
+        item.addEventListener('click', function() {
+            const title = this.getAttribute('data-title');
+            const description = this.getAttribute('data-description');
+            const category = this.getAttribute('data-category');
+            const date = this.getAttribute('data-date');
+            const hostel = this.getAttribute('data-hostel');
+            const roomNumber = this.getAttribute('data-room-number');
+            const mediaType = this.getAttribute('data-media-type');
+            const youtubeEmbed = this.getAttribute('data-youtube-embed');
+            
+            // Set modal content
+            modalTitle.textContent = title;
+            modalDescription.textContent = description;
+            modalCategory.textContent = category;
+            modalDate.textContent = date;
+            modalHostel.textContent = hostel;
+            modalRoom.textContent = roomNumber ? `कोठा: ${roomNumber}` : '';
+            
+            // Clear previous content
+            modalContent.innerHTML = '';
+            
+            // Add media based on type
+            if (mediaType === 'photo') {
+                const img = document.createElement('img');
+                img.src = this.querySelector('img').src;
+                img.alt = title;
+                img.style.width = '100%';
+                img.style.height = 'auto';
+                modalContent.appendChild(img);
+            } else if (mediaType === 'external_video' && youtubeEmbed) {
+                const iframe = document.createElement('iframe');
+                iframe.src = youtubeEmbed;
+                iframe.width = '100%';
+                iframe.height = '400';
+                iframe.allowFullscreen = true;
+                modalContent.appendChild(iframe);
+            } else if (mediaType === 'local_video') {
+                const video = document.createElement('video');
+                video.src = this.querySelector('source')?.src || '#';
+                video.controls = true;
+                video.style.width = '100%';
+                video.style.height = 'auto';
+                modalContent.appendChild(video);
+            }
+            
+            // Show modal
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+    });
+    
+    // Close modal
+    modal.querySelector('.modal-close').addEventListener('click', function() {
+        modal.classList.remove('active');
+        document.body.style.overflow = 'auto';
+    });
+    
+    // Close modal when clicking outside content
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            modal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+    });
+    
+    // Navigation between gallery items in modal
+    let currentIndex = 0;
+    const visibleItems = Array.from(galleryItems).filter(item => item.style.display !== 'none');
+    
+    function showItemInModal(index) {
+        if (index >= 0 && index < visibleItems.length) {
+            currentIndex = index;
+            visibleItems[currentIndex].click();
+        }
+    }
+    
+    modal.querySelector('.modal-next').addEventListener('click', function() {
+        showItemInModal(currentIndex + 1);
+    });
+    
+    modal.querySelector('.modal-prev').addEventListener('click', function() {
+        showItemInModal(currentIndex - 1);
+    });
+    
+    // Keyboard navigation
+    document.addEventListener('keydown', function(e) {
+        if (modal.classList.contains('active')) {
+            if (e.key === 'ArrowRight') {
+                showItemInModal(currentIndex + 1);
+            } else if (e.key === 'ArrowLeft') {
+                showItemInModal(currentIndex - 1);
+            } else if (e.key === 'Escape') {
+                modal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+        }
+    });
+});
+</script>
 @endpush

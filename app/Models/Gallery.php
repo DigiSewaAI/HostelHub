@@ -22,7 +22,9 @@ class Gallery extends Model
         'is_featured',
         'is_active',
         'user_id',
-        'hostel_id'
+        'hostel_id',
+        'room_id',
+        'hostel_name'
     ];
 
     protected $casts = [
@@ -32,6 +34,12 @@ class Gallery extends Model
 
     protected $appends = ['thumbnail_url', 'media_url', 'is_video', 'is_youtube_video', 'youtube_embed_url', 'category_nepali', 'media_type_nepali'];
 
+    // ✅ NEW: Room relationship
+    public function room(): BelongsTo
+    {
+        return $this->belongsTo(Room::class);
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
@@ -40,6 +48,64 @@ class Gallery extends Model
     public function hostel(): BelongsTo
     {
         return $this->belongsTo(Hostel::class);
+    }
+
+    // ✅ NEW: Auto-sync hostel name when hostel_id or room_id changes
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::saving(function ($gallery) {
+            // Auto-set hostel name when hostel_id is set/changed
+            if ($gallery->isDirty('hostel_id') && $gallery->hostel_id) {
+                $hostel = Hostel::find($gallery->hostel_id);
+                if ($hostel) {
+                    $gallery->hostel_name = $hostel->name;
+                }
+            }
+
+            // Auto-set hostel name from room if room_id is set
+            if ($gallery->isDirty('room_id') && $gallery->room_id && !$gallery->hostel_name) {
+                $room = Room::with('hostel')->find($gallery->room_id);
+                if ($room && $room->hostel) {
+                    $gallery->hostel_id = $room->hostel_id;
+                    $gallery->hostel_name = $room->hostel->name;
+                }
+            }
+        });
+    }
+
+    // ✅ NEW: Get hostel name (with fallback)
+    public function getHostelNameAttribute(): string
+    {
+        if (!empty($this->attributes['hostel_name'])) {
+            return $this->attributes['hostel_name'];
+        }
+
+        if ($this->hostel) {
+            return $this->hostel->name;
+        }
+
+        if ($this->room && $this->room->hostel) {
+            return $this->room->hostel->name;
+        }
+
+        return 'Unknown Hostel';
+    }
+
+    // ✅ NEW: Scope for room galleries
+    public function scopeRoomGalleries($query)
+    {
+        return $query->whereNotNull('room_id');
+    }
+
+    // ✅ NEW: Scope for public display
+    public function scopeForPublic($query)
+    {
+        return $query->where('is_active', true)
+            ->whereHas('hostel', function ($q) {
+                $q->where('is_published', true);
+            });
     }
 
     public function getMediaUrlAttribute(): string
