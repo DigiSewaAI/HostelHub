@@ -5,41 +5,37 @@ namespace App\Http\Controllers\Frontend;
 use App\Http\Controllers\Controller;
 use App\Models\Gallery;
 use App\Models\Hostel;
+use App\Services\GalleryCacheService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
 class GalleryController extends Controller
 {
+    protected $cacheService;
+
+    // ✅ NEW: Service initialize
+    public function __construct()
+    {
+        $this->cacheService = new GalleryCacheService();
+    }
+
     /**
-     * Display the main gallery page
+     * Display the main gallery page WITH HOSTEL NAMES AND CACHE
      */
     public function index()
     {
-        $galleryItems = [
-            [
-                'media_type' => 'image',
-                'url' => asset('storage/gallery/room1.jpg'),
-                'thumbnail_url' => asset('storage/gallery/room1-thumb.jpg'),
-                'title' => 'सफा कोठा',
-                'description' => 'आरामदायी र सफा कोठा',
-                'category' => '१ सिटर कोठा',
-                'date' => '2025-10-24'
-            ],
-            [
-                'media_type' => 'video',
-                'url' => 'https://youtube.com/watch?v=abc123',
-                'thumbnail_url' => asset('storage/gallery/video1-thumb.jpg'),
-                'youtube_id' => 'abc123',
-                'title' => 'होस्टल भिडियो टुर',
-                'description' => 'हाम्रो होस्टलको भिडियो टुर',
-                'category' => 'भिडियो टुर',
-                'date' => '2025-10-24'
-            ],
-            // ... more items
-        ];
+        // ✅ MODIFIED: Cache bata galleries lyaune
+        $galleries = $this->cacheService->getPublicGalleries();
 
-        return view('frontend.gallery.index', compact('galleryItems'));
+        // Get unique hostels for filter
+        $hostels = Hostel::where('is_published', true)
+            ->whereHas('galleries', function ($query) {
+                $query->where('is_active', true);
+            })
+            ->get(['id', 'name']);
+
+        return view('frontend.gallery.index', compact('galleries', 'hostels'));
     }
 
     /**
@@ -80,32 +76,62 @@ class GalleryController extends Controller
     }
 
     /**
-     * API: Get gallery data
+     * API: Get gallery data WITH HOSTEL NAMES AND CACHE
      */
     public function getGalleryData()
     {
-        // Get sample gallery data - replace with your actual data source
-        $galleryItems = Cache::remember('gallery_items', 3600, function () {
-            return Gallery::where('is_active', true)
-                ->orderBy('is_featured', 'desc')
-                ->orderBy('created_at', 'desc')
-                ->get()
-                ->map(function ($item) {
-                    return $this->formatGalleryItem($item);
-                })
-                ->toArray();
-        });
+        // ✅ MODIFIED: Cache service use garne
+        $galleries = $this->cacheService->getPublicGalleries()
+            ->map(function ($item) {
+                return $this->formatGalleryItemWithHostel($item);
+            });
 
         // Fallback sample data if no items found
-        if (empty($galleryItems)) {
-            $galleryItems = $this->getSampleGalleryData();
+        if ($galleries->isEmpty()) {
+            $galleries = collect($this->getSampleGalleryData());
         }
 
-        return response()->json($galleryItems);
+        return response()->json($galleries);
     }
 
     /**
-     * Format gallery item for API response
+     * API: Get featured galleries WITH CACHE
+     */
+    public function getFeaturedGalleries()
+    {
+        // ✅ NEW: Featured galleries cache bata lyaune
+        $galleries = $this->cacheService->getFeaturedGalleries()
+            ->map(function ($item) {
+                return $this->formatGalleryItemWithHostel($item);
+            });
+
+        return response()->json($galleries);
+    }
+
+    /**
+     * Format gallery item WITH HOSTEL NAME for API response
+     */
+    private function formatGalleryItemWithHostel($item): array
+    {
+        return [
+            'id' => $item->id,
+            'title' => $item->title,
+            'description' => $item->description,
+            'category' => $item->category,
+            'media_type' => $item->media_type,
+            'file_url' => $item->media_url,
+            'thumbnail_url' => $item->thumbnail_url,
+            'external_link' => $item->external_link,
+            'created_at' => $item->created_at->format('Y-m-d'),
+            'hostel_name' => $item->hostel_name, // ✅ ADDED: Hostel name
+            'hostel_id' => $item->hostel_id,
+            'room_number' => $item->room ? $item->room->room_number : null,
+            'is_room_image' => !is_null($item->room_id) // ✅ ADDED: Room image flag
+        ];
+    }
+
+    /**
+     * Format gallery item for API response (original preserved)
      */
     private function formatGalleryItem($item)
     {
@@ -138,7 +164,11 @@ class GalleryController extends Controller
                 'media_type' => 'photo',
                 'file_url' => asset('images/sample-room-1.jpg'),
                 'thumbnail_url' => asset('images/sample-room-1-thumb.jpg'),
-                'created_at' => '2024-01-15'
+                'created_at' => '2024-01-15',
+                'hostel_name' => 'नमूना होस्टल', // ✅ ADDED: Hostel name
+                'hostel_id' => 1,
+                'room_number' => '101',
+                'is_room_image' => true
             ],
             [
                 'id' => 2,
@@ -148,7 +178,11 @@ class GalleryController extends Controller
                 'media_type' => 'external_video',
                 'external_link' => 'https://www.youtube.com/embed/sample-video',
                 'thumbnail_url' => asset('images/video-thumbnail.jpg'),
-                'created_at' => '2024-01-10'
+                'created_at' => '2024-01-10',
+                'hostel_name' => 'नमूना होस्टल', // ✅ ADDED: Hostel name
+                'hostel_id' => 1,
+                'room_number' => null,
+                'is_room_image' => false
             ],
             // Add more sample items as needed
         ];
@@ -186,16 +220,17 @@ class GalleryController extends Controller
     }
 
     /**
-     * API Endpoint: Get gallery data for a hostel
+     * API Endpoint: Get gallery data for a hostel WITH HOSTEL NAME BADGES
      */
     public function getHostelGalleryData($slug)
     {
         $hostel = Hostel::where('slug', $slug)->firstOrFail();
 
-        $galleries = Gallery::where('hostel_id', $hostel->id)
+        $galleries = $hostel->galleries()
+            ->with('room')
             ->where('is_active', true)
             ->get()
-            ->map(function ($item) {
+            ->map(function ($item) use ($hostel) {
                 return [
                     'id' => $item->id,
                     'title' => $item->title,
@@ -213,7 +248,32 @@ class GalleryController extends Controller
                     'is_youtube_video' => $item->is_youtube_video,
                     'youtube_embed_url' => $item->youtube_embed_url,
                     'category_nepali' => $item->category_nepali,
+                    'hostel_name' => $hostel->name, // ✅ ADDED: Hostel name
+                    'room_number' => $item->room ? $item->room->room_number : null,
+                    'is_room_image' => !is_null($item->room_id)
                 ];
+            });
+
+        return response()->json($galleries);
+    }
+
+    /**
+     * API: Filter galleries by hostel
+     */
+    public function filterByHostel(Request $request)
+    {
+        $hostelId = $request->get('hostel_id');
+
+        $galleries = Gallery::with(['hostel', 'room'])
+            ->forPublic()
+            ->when($hostelId, function ($query) use ($hostelId) {
+                return $query->where('hostel_id', $hostelId);
+            })
+            ->orderBy('is_featured', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($item) {
+                return $this->formatGalleryItemWithHostel($item);
             });
 
         return response()->json($galleries);
@@ -237,6 +297,17 @@ class GalleryController extends Controller
             'event'     => 'कार्यक्रम',
             'video'     => 'भिडियो टुर',
         ];
+    }
+
+    /**
+     * Clear gallery cache (Admin/Owner ko laagi)
+     */
+    public function clearCache()
+    {
+        // ✅ NEW: Cache clear garne method
+        $this->cacheService->clearCache();
+
+        return back()->with('success', 'Gallery cache cleared successfully!');
     }
 
     /**

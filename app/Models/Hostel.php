@@ -54,6 +54,64 @@ class Hostel extends Model
         'show_hostelhub_branding' => 'boolean'
     ];
 
+    /**
+     * Boot method for model events
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Update room counts when hostel is loaded (for existing data)
+        static::retrieved(function ($hostel) {
+            // Only update if counts are outdated (optional - can be heavy on performance)
+            // $hostel->updateRoomCounts();
+        });
+
+        // Update slug when name is changed
+        static::saving(function ($hostel) {
+            if ($hostel->isDirty('name') && !$hostel->isDirty('slug')) {
+                $hostel->slug = \Illuminate\Support\Str::slug($hostel->name);
+            }
+        });
+
+        // ✅ NEW: Clean social media URLs before saving
+        static::saving(function ($hostel) {
+            $socialFields = [
+                'facebook_url',
+                'instagram_url',
+                'twitter_url',
+                'tiktok_url',
+                'youtube_url',
+                'linkedin_url'
+            ];
+
+            foreach ($socialFields as $field) {
+                if (!empty($hostel->$field)) {
+                    // Remove any whitespace
+                    $hostel->$field = trim($hostel->$field);
+                    // Ensure it starts with http:// or https://
+                    if (!preg_match('/^https?:\/\//', $hostel->$field)) {
+                        $hostel->$field = 'https://' . $hostel->$field;
+                    }
+                }
+            }
+
+            // Clean WhatsApp number (remove any non-digit characters except +)
+            if (!empty($hostel->whatsapp_number)) {
+                $hostel->whatsapp_number = preg_replace('/[^\d+]/', '', $hostel->whatsapp_number);
+            }
+        });
+
+        // ✅ NEW: Auto-update hostel name in galleries when hostel name changes
+        static::updated(function ($hostel) {
+            if ($hostel->isDirty('name')) {
+                // Update cached hostel name in all galleries
+                \App\Models\Gallery::where('hostel_id', $hostel->id)
+                    ->update(['hostel_name' => $hostel->name]);
+            }
+        });
+    }
+
     public function rooms(): HasMany
     {
         return $this->hasMany(Room::class);
@@ -291,52 +349,145 @@ class Hostel extends Model
         return $count;
     }
 
+    // ✅ NEW: Gallery Integration Methods
+
     /**
-     * Boot method for model events
+     * Get room galleries (galleries linked to rooms)
      */
-    protected static function boot()
+    public function getRoomGalleriesAttribute()
     {
-        parent::boot();
+        return $this->galleries()->whereNotNull('room_id')->get();
+    }
 
-        // Update room counts when hostel is loaded (for existing data)
-        static::retrieved(function ($hostel) {
-            // Only update if counts are outdated (optional - can be heavy on performance)
-            // $hostel->updateRoomCounts();
-        });
+    /**
+     * Get public room galleries for display
+     */
+    public function getPublicRoomGalleriesAttribute()
+    {
+        return $this->galleries()
+            ->whereNotNull('room_id')
+            ->where('is_active', true)
+            ->with('room')
+            ->get();
+    }
 
-        // Update slug when name is changed
-        static::saving(function ($hostel) {
-            if ($hostel->isDirty('name') && !$hostel->isDirty('slug')) {
-                $hostel->slug = \Illuminate\Support\Str::slug($hostel->name);
-            }
-        });
+    /**
+     * Get room galleries count
+     */
+    public function getRoomGalleriesCountAttribute()
+    {
+        return $this->galleries()->whereNotNull('room_id')->count();
+    }
 
-        // ✅ NEW: Clean social media URLs before saving
-        static::saving(function ($hostel) {
-            $socialFields = [
-                'facebook_url',
-                'instagram_url',
-                'twitter_url',
-                'tiktok_url',
-                'youtube_url',
-                'linkedin_url'
-            ];
+    /**
+     * Get public room galleries count
+     */
+    public function getPublicRoomGalleriesCountAttribute()
+    {
+        return $this->galleries()
+            ->whereNotNull('room_id')
+            ->where('is_active', true)
+            ->count();
+    }
 
-            foreach ($socialFields as $field) {
-                if (!empty($hostel->$field)) {
-                    // Remove any whitespace
-                    $hostel->$field = trim($hostel->$field);
-                    // Ensure it starts with http:// or https://
-                    if (!preg_match('/^https?:\/\//', $hostel->$field)) {
-                        $hostel->$field = 'https://' . $hostel->$field;
-                    }
+    /**
+     * Check if hostel has room galleries
+     */
+    public function getHasRoomGalleriesAttribute()
+    {
+        return $this->galleries()->whereNotNull('room_id')->exists();
+    }
+
+    /**
+     * Get featured room galleries
+     */
+    public function getFeaturedRoomGalleriesAttribute()
+    {
+        return $this->galleries()
+            ->whereNotNull('room_id')
+            ->where('is_active', true)
+            ->where('is_featured', true)
+            ->with('room')
+            ->get();
+    }
+
+    /**
+     * Sync all room images to galleries for this hostel
+     */
+    public function syncAllRoomImagesToGallery(): array
+    {
+        $results = [
+            'success' => 0,
+            'failed' => 0,
+            'total' => 0
+        ];
+
+        $rooms = $this->rooms()->whereNotNull('image')->get();
+
+        foreach ($rooms as $room) {
+            try {
+                // Delete existing gallery entries for this room
+                $room->galleries()->delete();
+
+                // Create new gallery entry
+                if ($room->image) {
+                    $room->syncImageToGallery();
+                    $results['success']++;
                 }
+            } catch (\Exception $e) {
+                \Log::error("Failed to sync room {$room->id} to gallery: " . $e->getMessage());
+                $results['failed']++;
             }
+            $results['total']++;
+        }
 
-            // Clean WhatsApp number (remove any non-digit characters except +)
-            if (!empty($hostel->whatsapp_number)) {
-                $hostel->whatsapp_number = preg_replace('/[^\d+]/', '', $hostel->whatsapp_number);
-            }
-        });
+        return $results;
+    }
+
+    /**
+     * Get gallery statistics
+     */
+    public function getGalleryStatisticsAttribute()
+    {
+        return [
+            'total_galleries' => $this->galleries()->count(),
+            'active_galleries' => $this->galleries()->where('is_active', true)->count(),
+            'featured_galleries' => $this->galleries()->where('is_featured', true)->count(),
+            'room_galleries' => $this->room_galleries_count,
+            'public_room_galleries' => $this->public_room_galleries_count,
+        ];
+    }
+
+    /**
+     * Get all gallery categories used by this hostel
+     */
+    public function getGalleryCategoriesAttribute()
+    {
+        return $this->galleries()
+            ->where('is_active', true)
+            ->distinct()
+            ->pluck('category')
+            ->filter()
+            ->values();
+    }
+
+    /**
+     * Get room types that have gallery images
+     */
+    public function getRoomTypesWithGalleriesAttribute()
+    {
+        return $this->rooms()
+            ->whereHas('galleries', function ($query) {
+                $query->where('is_active', true);
+            })
+            ->distinct()
+            ->pluck('type')
+            ->map(function ($type) {
+                return [
+                    'type' => $type,
+                    'nepali_type' => (new Room())->getNepaliTypeAttribute($type),
+                    'count' => $this->rooms()->where('type', $type)->whereHas('galleries')->count()
+                ];
+            });
     }
 }
