@@ -94,9 +94,14 @@
                                     <td>
                                         <?php
                                             $galleryCategories = [
+                                                // ✅ ADDED: Both space and underscore versions
+                                                '1 seater' => '१ सिटर कोठा',
                                                 '1_seater' => '१ सिटर कोठा',
+                                                '2 seater' => '२ सिटर कोठा', 
                                                 '2_seater' => '२ सिटर कोठा',
+                                                '3 seater' => '३ सिटर कोठा',
                                                 '3_seater' => '३ सिटर कोठा',
+                                                '4 seater' => '४ सिटर कोठा',
                                                 '4_seater' => '४ सिटर कोठा',
                                                 'living_room' => 'लिभिङ रूम',
                                                 'bathroom' => 'बाथरूम',
@@ -112,13 +117,43 @@
                                     <td><?php echo e($room->capacity); ?></td>
                                     <td>रु. <?php echo e(number_format($room->price)); ?></td>
                                     <td>
-                                        <?php if($room->status == 'available' || $room->status == 'उपलब्ध'): ?>
-                                            <span class="badge bg-success">उपलब्ध</span>
-                                        <?php elseif($room->status == 'occupied' || $room->status == 'बुक भएको'): ?>
-                                            <span class="badge bg-danger">व्यस्त</span>
-                                        <?php else: ?>
-                                            <span class="badge bg-warning">मर्मत सम्भार</span>
-                                        <?php endif; ?>
+                                        
+                                    <td>
+                                        <?php
+                                            // Use the display_status accessor if available, otherwise fallback to current logic
+                                            if (method_exists($room, 'getDisplayStatusAttribute')) {
+                                                $displayStatus = $room->display_status;
+                                                $badgeClass = match($displayStatus['class']) {
+                                                    'available' => 'bg-success text-white',
+                                                    'occupied' => 'bg-danger text-white',
+                                                    'maintenance' => 'bg-secondary text-white', 
+                                                    'partially-available' => 'bg-warning text-dark',
+                                                    default => 'bg-primary text-white'
+                                                };
+                                            } else {
+                                                // Fallback logic
+                                                $status = $room->status;
+                                                $available_beds = $room->available_beds ?? ($room->capacity - $room->current_occupancy);
+                                                
+                                                if ($status === 'maintenance' || $status === 'मर्मत सम्भार') {
+                                                    $displayStatus = ['text' => 'मर्मत सम्भार'];
+                                                    $badgeClass = 'bg-secondary text-white';
+                                                } elseif ($status === 'occupied' || $status === 'व्यस्त' || $status === 'बुक भएको') {
+                                                    $displayStatus = ['text' => 'व्यस्त'];
+                                                    $badgeClass = 'bg-danger text-white';
+                                                } elseif ($status === 'partially_available' || $status === 'आंशिक उपलब्ध') {
+                                                    $displayStatus = ['text' => 'आंशिक उपलब्ध (' . $available_beds . ' बेड खाली)'];
+                                                    $badgeClass = 'bg-warning text-dark';
+                                                } else {
+                                                    $displayStatus = ['text' => 'उपलब्ध'];
+                                                    $badgeClass = 'bg-success text-white';
+                                                }
+                                            }
+                                        ?>
+                                        <span class="badge <?php echo e($badgeClass); ?> p-2">
+                                            <?php echo e($displayStatus['text']); ?>
+
+                                        </span>
                                     </td>
                                     <td class="text-center">
                                         <a href="<?php echo e(route('owner.rooms.show', $room)); ?>" class="btn btn-sm btn-info me-1" title="हेर्नुहोस्">

@@ -34,10 +34,15 @@ class Gallery extends Model
 
     protected $appends = ['thumbnail_url', 'media_url', 'is_video', 'is_youtube_video', 'youtube_embed_url', 'category_nepali', 'media_type_nepali'];
 
-    // ✅ NEW: Room relationship
+    /**
+     * ✅ ENHANCED: Room relationship with proper constraints
+     */
     public function room(): BelongsTo
     {
-        return $this->belongsTo(Room::class);
+        return $this->belongsTo(Room::class)->withDefault([
+            'room_number' => 'N/A',
+            'type' => 'N/A'
+        ]);
     }
 
     public function user(): BelongsTo
@@ -47,10 +52,14 @@ class Gallery extends Model
 
     public function hostel(): BelongsTo
     {
-        return $this->belongsTo(Hostel::class);
+        return $this->belongsTo(Hostel::class)->withDefault([
+            'name' => 'Unknown Hostel'
+        ]);
     }
 
-    // ✅ NEW: Auto-sync hostel name when hostel_id or room_id changes
+    /**
+     * ✅ ENHANCED: Auto-sync with better room type handling
+     */
     protected static function boot()
     {
         parent::boot();
@@ -64,18 +73,33 @@ class Gallery extends Model
                 }
             }
 
-            // Auto-set hostel name from room if room_id is set
-            if ($gallery->isDirty('room_id') && $gallery->room_id && !$gallery->hostel_name) {
+            // ✅ FIXED: Better room-gallery synchronization
+            if ($gallery->isDirty('room_id') && $gallery->room_id) {
                 $room = Room::with('hostel')->find($gallery->room_id);
                 if ($room && $room->hostel) {
                     $gallery->hostel_id = $room->hostel_id;
                     $gallery->hostel_name = $room->hostel->name;
+
+                    // ✅ Auto-set category based on room type if not set
+                    if (!$gallery->category) {
+                        $gallery->category = $room->gallery_category;
+                    }
                 }
+            }
+        });
+
+        // ✅ NEW: Auto-update gallery when room is updated
+        static::updated(function ($gallery) {
+            if ($gallery->room_id && $gallery->isDirty('category')) {
+                // If gallery category changed, update room's gallery category
+                $gallery->room->update(['gallery_category' => $gallery->category]);
             }
         });
     }
 
-    // ✅ NEW: Get hostel name (with fallback)
+    /**
+     * ✅ NEW: Get hostel name (with fallback)
+     */
     public function getHostelNameAttribute(): string
     {
         if (!empty($this->attributes['hostel_name'])) {
@@ -93,13 +117,17 @@ class Gallery extends Model
         return 'Unknown Hostel';
     }
 
-    // ✅ NEW: Scope for room galleries
+    /**
+     * ✅ NEW: Scope for room galleries
+     */
     public function scopeRoomGalleries($query)
     {
         return $query->whereNotNull('room_id');
     }
 
-    // ✅ NEW: Scope for public display
+    /**
+     * ✅ NEW: Scope for public display
+     */
     public function scopeForPublic($query)
     {
         return $query->where('is_active', true)

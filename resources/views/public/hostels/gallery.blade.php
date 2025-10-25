@@ -13,7 +13,7 @@
     $activeGalleries = $galleries->where('is_active', true);
     
     // Get available rooms
-    $availableRooms = $hostel->rooms->where('status', 'available') ?? collect();
+    $availableRooms = $hostel->rooms->whereIn('status', ['उपलब्ध', 'आंशिक उपलब्ध']) ?? collect();
     
     // Count items by category for stats
     $categoryCounts = [
@@ -37,6 +37,15 @@
         '3 seater' => $availableRooms->where('type', '3 seater')->count(),
         '4 seater' => $availableRooms->where('type', '4 seater')->count(),
         'other' => $availableRooms->whereNotIn('type', ['1 seater', '2 seater', '3 seater', '4 seater'])->count()
+    ];
+
+    // Calculate available beds for each room type
+    $availableBedsCounts = [
+        '1 seater' => $availableRooms->where('type', '1 seater')->sum('available_beds'),
+        '2 seater' => $availableRooms->where('type', '2 seater')->sum('available_beds'),
+        '3 seater' => $availableRooms->where('type', '3 seater')->sum('available_beds'),
+        '4 seater' => $availableRooms->where('type', '4 seater')->sum('available_beds'),
+        'other' => $availableRooms->whereNotIn('type', ['1 seater', '2 seater', '3 seater', '4 seater'])->sum('available_beds')
     ];
 
     // PERMANENT FIX: Nepali room types
@@ -300,6 +309,7 @@
         border-radius: 10px;
         backdrop-filter: blur(10px);
         transition: transform 0.3s;
+        text-align: center;
     }
 
     .stat-item:hover {
@@ -317,6 +327,15 @@
     .stat-label {
         color: rgba(255,255,255,0.9);
         font-size: 0.9rem;
+        display: block;
+        margin-bottom: 5px;
+    }
+
+    .stat-subtext {
+        color: rgba(255,255,255,0.8);
+        font-size: 0.8rem;
+        display: block;
+        margin-top: 5px;
     }
     
     .room-type-badge {
@@ -603,6 +622,13 @@
                 <div class="stat-item">
                     <span class="stat-count">{{ $availableRoomCounts[$englishType] ?? 0 }}</span>
                     <span class="stat-label nepali">{{ $nepaliType }}</span>
+                    @if(isset($availableRoomCounts[$englishType]) && $availableRoomCounts[$englishType] > 0)
+                        @php
+                            $roomsOfType = $hostel->rooms->where('type', $englishType);
+                            $totalAvailableBeds = $roomsOfType->sum('available_beds');
+                        @endphp
+                        <span class="stat-subtext nepali">({{ $totalAvailableBeds }} बेड खाली)</span>
+                    @endif
                 </div>
                 @endforeach
             </div>
@@ -620,6 +646,10 @@
                     @php
                         $roomCategory = $gallery->category;
                         $availableCount = $availableRoomCounts[$roomCategory] ?? 0;
+                        
+                        // Find the room associated with this gallery
+                        $room = $hostel->rooms->where('type', $roomCategory)->first();
+                        $availableBeds = $room ? $room->available_beds : 0;
                     @endphp
                     
                     <div class="gallery-item">
@@ -631,8 +661,13 @@
                             {{ $nepaliRoomTypes[$roomCategory] ?? $roomCategory }}
                         </div>
                         
+                        <!-- UPDATED: Available badge with bed count -->
                         <div class="available-badge nepali">
-                            {{ $availableCount }} उपलब्ध
+                            @if($availableBeds > 0)
+                                {{ $availableBeds }} बेड खाली
+                            @else
+                                पूर्ण व्यस्त
+                            @endif
                         </div>
                         
                         <a href="{{ route('contact') }}?room_type={{ $roomCategory }}&hostel={{ $hostel->slug }}" 
