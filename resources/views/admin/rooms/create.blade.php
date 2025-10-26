@@ -1,10 +1,12 @@
-@extends('layouts.app')
+@extends('layouts.admin')
+
+@section('title', 'नयाँ कोठा थप्नुहोस्')
 
 @section('content')
     <div class="container-fluid">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="h3">नयाँ कोठा थप्नुहोस्</h1>
-            <a href="{{ auth()->user()->hasRole('admin') ? route('admin.rooms.index') : route('owner.rooms.index') }}" class="btn btn-secondary">
+            <a href="{{ route('admin.rooms.index') }}" class="btn btn-secondary">
                 <i class="fas fa-arrow-left me-2"></i>पछाडि फर्कनुहोस्
             </a>
         </div>
@@ -14,12 +16,11 @@
                 <h6 class="m-0 font-weight-bold text-primary">कोठा विवरण</h6>
             </div>
             <div class="card-body">
-                <form action="{{ auth()->user()->hasRole('admin') ? route('admin.rooms.store') : route('owner.rooms.store') }}" method="POST" enctype="multipart/form-data">
+                {{-- ✅ FIXED: Changed to admin.rooms.store --}}
+                <form action="{{ route('admin.rooms.store') }}" method="POST" enctype="multipart/form-data" id="roomForm">
                     @csrf
                     
                     <div class="row">
-                        {{-- Hostel Selection for both Admin and Owner --}}
-                        @if(auth()->user()->hasRole('admin') || auth()->user()->hasRole('hostel_manager'))
                         <div class="col-md-6 mb-3">
                             <label for="hostel_id" class="form-label">होस्टल <span class="text-danger">*</span></label>
                             <select name="hostel_id" id="hostel_id" class="form-select @error('hostel_id') is-invalid @enderror" required>
@@ -34,7 +35,6 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-                        @endif
                         
                         <div class="col-md-6 mb-3">
                             <label for="room_number" class="form-label">कोठा नम्बर <span class="text-danger">*</span></label>
@@ -51,9 +51,11 @@
                             <label for="type" class="form-label">कोठा प्रकार <span class="text-danger">*</span></label>
                             <select name="type" id="type" class="form-select @error('type') is-invalid @enderror" required>
                                 <option value="">प्रकार छान्नुहोस्</option>
-                                <option value="single" {{ old('type') == 'single' ? 'selected' : '' }}>एकल कोठा</option>
-                                <option value="double" {{ old('type') == 'double' ? 'selected' : '' }}>दुई ब्यक्ति कोठा</option>
-                                <option value="shared" {{ old('type') == 'shared' ? 'selected' : '' }}>साझा कोठा</option>
+                                <option value="1 seater" {{ old('type') == '1 seater' ? 'selected' : '' }}>१ सिटर कोठा</option>
+                                <option value="2 seater" {{ old('type') == '2 seater' ? 'selected' : '' }}>२ सिटर कोठा</option>
+                                <option value="3 seater" {{ old('type') == '3 seater' ? 'selected' : '' }}>३ सिटर कोठा</option>
+                                <option value="4 seater" {{ old('type') == '4 seater' ? 'selected' : '' }}>४ सिटर कोठा</option>
+                                <option value="साझा कोठा" {{ old('type') == 'साझा कोठा' ? 'selected' : '' }}>साझा कोठा</option>
                             </select>
                             @error('type')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -62,7 +64,8 @@
                         <div class="col-md-6 mb-3">
                             <label for="capacity" class="form-label">क्षमता (व्यक्ति संख्या) <span class="text-danger">*</span></label>
                             <input type="number" name="capacity" id="capacity" class="form-control @error('capacity') is-invalid @enderror"
-                                   value="{{ old('capacity', 1) }}" min="1" max="10" required>
+                                   value="{{ old('capacity', 1) }}" min="1" max="20" required readonly>
+                            <small class="form-text text-muted" id="capacityHelp">कोठा प्रकार छान्नुहोस्</small>
                             @error('capacity')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -70,7 +73,17 @@
                     </div>
 
                     <div class="row">
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
+                            <label for="current_occupancy" class="form-label">हालको अधिभोग <span class="text-danger">*</span></label>
+                            <input type="number" name="current_occupancy" id="current_occupancy" class="form-control @error('current_occupancy') is-invalid @enderror"
+                                   value="{{ old('current_occupancy', 0) }}" min="0" max="1" required>
+                            <small class="form-text text-muted">कोठामा हाल बस्ने विद्यार्थीहरूको संख्या</small>
+                            @error('current_occupancy')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
                             <label for="price" class="form-label">मूल्य (प्रति महिना) <span class="text-danger">*</span></label>
                             <div class="input-group">
                                 <span class="input-group-text">रु.</span>
@@ -81,41 +94,39 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
+
+                    <div class="row">
+                        {{-- ✅ FIXED: Status Field with Normalized Values --}}
                         <div class="col-md-6 mb-3">
                             <label for="status" class="form-label">स्थिति <span class="text-danger">*</span></label>
                             <select name="status" id="status" class="form-select @error('status') is-invalid @enderror" required>
                                 <option value="available" {{ old('status', 'available') == 'available' ? 'selected' : '' }}>उपलब्ध</option>
+                                <option value="partially_available" {{ old('status') == 'partially_available' ? 'selected' : '' }}>आंशिक उपलब्ध</option>
                                 <option value="occupied" {{ old('status') == 'occupied' ? 'selected' : '' }}>व्यस्त</option>
                                 <option value="maintenance" {{ old('status') == 'maintenance' ? 'selected' : '' }}>मर्मत सम्भार</option>
                             </select>
+                            <small class="form-text text-muted">स्वचालित रूपमा अद्यावधिक हुन्छ</small>
                             @error('status')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-                    </div>
 
-                    {{-- Admin only fields --}}
-                    @role('admin')
-                    <div class="row">
+                        {{-- ✅ Room Image Upload Field --}}
                         <div class="col-md-6 mb-3">
-                            <label for="floor" class="form-label">तल्ला</label>
-                            <input type="text" name="floor" id="floor" class="form-control @error('floor') is-invalid @enderror"
-                                   value="{{ old('floor') }}" placeholder="जस्तै: 1, 2, Ground">
-                            @error('floor')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="image" class="form-label">कोठाको तस्वीर</label>
+                            <label for="image" class="form-label">कोठाको फोटो</label>
                             <input type="file" name="image" id="image" class="form-control @error('image') is-invalid @enderror" 
-                                   accept="image/*">
-                            <div class="form-text">JPG, PNG, JPEG format मा मात्र, अधिकतम size: 2MB</div>
+                                   accept="image/jpeg,image/png,image/jpg,image/gif,image/webp">
+                            <div class="form-text">JPG, PNG, JPEG, GIF, WEBP format मा मात्र, अधिकतम size: 2MB</div>
                             @error('image')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
+                            
+                            {{-- Image Preview --}}
+                            <div id="imagePreview" class="mt-2" style="display: none;">
+                                <img id="preview" src="#" alt="Image Preview" style="max-width: 200px; max-height: 150px; border-radius: 8px;">
+                            </div>
                         </div>
                     </div>
-                    @endrole
 
                     <div class="mb-3">
                         <label for="description" class="form-label">विवरण</label>
@@ -143,33 +154,172 @@
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // ✅ Type-capacity validation rules
+        const typeCapacityRules = {
+            '1 seater': 1,
+            '2 seater': 2,
+            '3 seater': 3,
+            '4 seater': 4,
+            'साझा कोठा': 'custom'
+        };
+
+        // ✅ Type-capacity validation function
+        function validateTypeCapacity(type, capacity) {
+            if (typeCapacityRules[type] && typeCapacityRules[type] !== 'custom') {
+                return capacity == typeCapacityRules[type];
+            }
+            return type !== 'साझा कोठा' || capacity >= 5;
+        }
+
         // Auto-calculate capacity based on room type
         const typeSelect = document.getElementById('type');
         const capacityInput = document.getElementById('capacity');
+        const currentOccupancyInput = document.getElementById('current_occupancy');
+        const statusSelect = document.getElementById('status');
+        const capacityHelp = document.getElementById('capacityHelp');
+        const form = document.getElementById('roomForm');
         
-        if (typeSelect && capacityInput) {
+        if (typeSelect && capacityInput && currentOccupancyInput && statusSelect) {
             typeSelect.addEventListener('change', function() {
-                switch(this.value) {
-                    case 'single':
+                const selectedType = this.value;
+                
+                switch(selectedType) {
+                    case '1 seater':
                         capacityInput.value = 1;
+                        capacityInput.readOnly = true;
+                        currentOccupancyInput.max = 1;
+                        capacityHelp.textContent = '१ सिटर कोठाको क्षमता 1 हुनुपर्छ';
+                        capacityHelp.className = 'form-text text-success';
                         break;
-                    case 'double':
+                    case '2 seater':
                         capacityInput.value = 2;
+                        capacityInput.readOnly = true;
+                        currentOccupancyInput.max = 2;
+                        capacityHelp.textContent = '२ सिटर कोठाको क्षमता 2 हुनुपर्छ';
+                        capacityHelp.className = 'form-text text-success';
                         break;
-                    case 'shared':
+                    case '3 seater':
+                        capacityInput.value = 3;
+                        capacityInput.readOnly = true;
+                        currentOccupancyInput.max = 3;
+                        capacityHelp.textContent = '३ सिटर कोठाको क्षमता 3 हुनुपर्छ';
+                        capacityHelp.className = 'form-text text-success';
+                        break;
+                    case '4 seater':
                         capacityInput.value = 4;
+                        capacityInput.readOnly = true;
+                        currentOccupancyInput.max = 4;
+                        capacityHelp.textContent = '४ सिटर कोठाको क्षमता 4 हुनुपर्छ';
+                        capacityHelp.className = 'form-text text-success';
+                        break;
+                    case 'साझा कोठा':
+                        capacityInput.value = 5;
+                        capacityInput.readOnly = false;
+                        capacityInput.min = 5;
+                        currentOccupancyInput.max = capacityInput.value;
+                        capacityHelp.textContent = 'साझा कोठाको क्षमता कम्तिमा 5 हुनुपर्छ';
+                        capacityHelp.className = 'form-text text-info';
                         break;
                     default:
                         capacityInput.value = 1;
+                        capacityInput.readOnly = true;
+                        currentOccupancyInput.max = 1;
+                        capacityHelp.textContent = 'कोठा प्रकार छान्नुहोस्';
+                        capacityHelp.className = 'form-text text-muted';
+                }
+                
+                // Ensure current occupancy doesn't exceed new capacity
+                if (parseInt(currentOccupancyInput.value) > parseInt(capacityInput.value)) {
+                    currentOccupancyInput.value = capacityInput.value;
+                }
+                
+                // Auto-update status based on new capacity and occupancy
+                updateStatus();
+            });
+
+            // Update capacity max for current occupancy when capacity changes manually (only for shared rooms)
+            capacityInput.addEventListener('change', function() {
+                if (typeSelect.value === 'साझा कोठा') {
+                    const capacity = parseInt(this.value);
+                    currentOccupancyInput.max = capacity;
+                    
+                    // Ensure current occupancy doesn't exceed new capacity
+                    if (parseInt(currentOccupancyInput.value) > capacity) {
+                        currentOccupancyInput.value = capacity;
+                    }
+                    
+                    // Auto-update status based on new capacity and occupancy
+                    updateStatus();
+                }
+            });
+
+            // Set initial values based on default type
+            if (typeSelect.value) {
+                typeSelect.dispatchEvent(new Event('change'));
+            } else {
+                // Set default state
+                capacityInput.readOnly = true;
+                capacityHelp.textContent = 'कोठा प्रकार छान्नुहोस्';
+            }
+
+            // ✅ FIXED: Update status based on occupancy using normalized English values
+            currentOccupancyInput.addEventListener('change', updateStatus);
+            
+            // ✅ FIXED: Status update function with normalized English values
+            function updateStatus() {
+                const capacity = parseInt(capacityInput.value);
+                const occupancy = parseInt(currentOccupancyInput.value);
+                
+                // Don't auto-update if status is manually set to maintenance
+                if (statusSelect.value === 'maintenance') {
+                    return;
+                }
+                
+                if (occupancy === 0) {
+                    statusSelect.value = 'available';
+                } else if (occupancy === capacity) {
+                    statusSelect.value = 'occupied';
+                } else if (occupancy > 0 && occupancy < capacity) {
+                    statusSelect.value = 'partially_available';
+                }
+            }
+
+            // Initialize status on page load
+            updateStatus();
+        }
+
+        // ✅ Image preview functionality
+        const imageInput = document.getElementById('image');
+        const imagePreview = document.getElementById('imagePreview');
+        const preview = document.getElementById('preview');
+
+        if (imageInput && preview) {
+            imageInput.addEventListener('change', function() {
+                const file = this.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    
+                    reader.addEventListener('load', function() {
+                        preview.src = reader.result;
+                        imagePreview.style.display = 'block';
+                    });
+                    
+                    reader.readAsDataURL(file);
+                } else {
+                    imagePreview.style.display = 'none';
                 }
             });
         }
         
-        // Form validation
-        const form = document.querySelector('form');
+        // ✅ ENHANCED: Form validation with type-capacity checking
         form.addEventListener('submit', function(e) {
             let isValid = true;
             const requiredFields = form.querySelectorAll('[required]');
+            
+            // Clear previous invalid states
+            form.querySelectorAll('.is-invalid').forEach(field => {
+                field.classList.remove('is-invalid');
+            });
             
             requiredFields.forEach(field => {
                 if (!field.value.trim()) {
@@ -177,10 +327,52 @@
                     field.classList.add('is-invalid');
                 }
             });
+
+            // Enhanced capacity validation
+            const capacity = parseInt(capacityInput.value);
+            const occupancy = parseInt(currentOccupancyInput.value);
+            const selectedType = typeSelect.value;
+            
+            // Validate type-capacity consistency
+            if (!validateTypeCapacity(selectedType, capacity)) {
+                isValid = false;
+                capacityInput.classList.add('is-invalid');
+                
+                const errorMsg = selectedType === 'साझा कोठा' 
+                    ? 'साझा कोठाको लागि क्षमता कम्तिमा 5 हुनुपर्छ'
+                    : `${selectedType} को लागि क्षमता ${typeCapacityRules[selectedType]} हुनुपर्छ`;
+                    
+                alert(errorMsg);
+            }
+            
+            // Validate occupancy doesn't exceed capacity
+            if (occupancy > capacity) {
+                isValid = false;
+                currentOccupancyInput.classList.add('is-invalid');
+                alert('हालको अधिभोग क्षमताभन्दा बढी हुन सक्दैन');
+            }
             
             if (!isValid) {
                 e.preventDefault();
-                alert('कृपया सबै आवश्यक फिल्डहरू भर्नुहोस्');
+                alert('कृपया सबै आवश्यक फिल्डहरू सही ढंगले भर्नुहोस्');
+            }
+        });
+
+        // ✅ Reset form handler
+        form.addEventListener('reset', function() {
+            // Clear invalid states
+            form.querySelectorAll('.is-invalid').forEach(field => {
+                field.classList.remove('is-invalid');
+            });
+            
+            // Reset capacity field to default state
+            capacityInput.readOnly = true;
+            capacityHelp.textContent = 'कोठा प्रकार छान्नुहोस्';
+            capacityHelp.className = 'form-text text-muted';
+            
+            // Hide image preview
+            if (imagePreview) {
+                imagePreview.style.display = 'none';
             }
         });
     });

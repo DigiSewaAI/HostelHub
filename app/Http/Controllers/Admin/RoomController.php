@@ -55,21 +55,40 @@ class RoomController extends Controller
     {
         $user = auth()->user();
 
+        \Log::info('RoomController create method accessed', [
+            'user_id' => $user->id,
+            'user_roles' => $user->getRoleNames()->toArray()
+        ]);
+
+        // ✅ ENHANCED: More specific role check
         if ($user->hasRole('admin')) {
             $hostels = Hostel::all();
+            \Log::info('Admin accessing room create form', ['hostels_count' => $hostels->count()]);
             return view('admin.rooms.create', compact('hostels'));
-        } elseif ($user->hasRole('hostel_manager')) {
+        }
+
+        // ✅ ADDED: Explicit check for other roles to prevent fall-through
+        if ($user->hasRole('hostel_manager') || $user->hasRole('owner')) {
             $organization = $user->organizations()->wherePivot('role', 'owner')->first();
 
             if (!$organization) {
+                \Log::warning('Organization not found for user', ['user_id' => $user->id]);
                 return redirect()->route('owner.rooms.index')
                     ->with('error', 'तपाईंको संस्था फेला परेन');
             }
 
             $hostels = $organization->hostels;
+            \Log::info('Owner/Manager accessing room create form', [
+                'organization_id' => $organization->id,
+                'hostels_count' => $hostels->count()
+            ]);
             return view('owner.rooms.create', compact('hostels'));
         }
 
+        \Log::warning('Unauthorized access to room create', [
+            'user_id' => $user->id,
+            'roles' => $user->getRoleNames()->toArray()
+        ]);
         abort(403, 'Unauthorized action.');
     }
 
@@ -105,11 +124,6 @@ class RoomController extends Controller
                 return redirect()->back()
                     ->withInput()
                     ->with('error', $validationError);
-            }
-
-            // Add floor field for admin only
-            if ($user->hasRole('admin') && $request->has('floor')) {
-                $validatedData['floor'] = $request->floor;
             }
 
             // Check permissions for hostel_manager
@@ -260,11 +274,6 @@ class RoomController extends Controller
                 return redirect()->back()
                     ->withInput()
                     ->with('error', $validationError);
-            }
-
-            // Add floor field for admin only
-            if ($user->hasRole('admin') && $request->has('floor')) {
-                $validatedData['floor'] = $request->floor;
             }
 
             // Check permissions for hostel_manager
@@ -457,7 +466,6 @@ class RoomController extends Controller
             $rooms = Room::where('room_number', 'like', "%$query%")
                 ->orWhere('type', 'like', "%$query%")
                 ->orWhere('status', 'like', "%$query%")
-                ->orWhere('floor', 'like', "%$query%")
                 ->orWhereHas('hostel', function ($q) use ($query) {
                     $q->where('name', 'like', "%$query%")
                         ->orWhere('address', 'like', "%$query%");
@@ -480,8 +488,7 @@ class RoomController extends Controller
                 ->where(function ($q) use ($query) {
                     $q->where('room_number', 'like', "%$query%")
                         ->orWhere('type', 'like', "%$query%")
-                        ->orWhere('status', 'like', "%$query%")
-                        ->orWhere('floor', 'like', "%$query%");
+                        ->orWhere('status', 'like', "%$query%");
                 })
                 ->with('hostel')
                 ->latest()
@@ -580,7 +587,7 @@ class RoomController extends Controller
                 "Expires"             => "0"
             );
 
-            $columns = array('होस्टल', 'कोठा नम्बर', 'प्रकार', 'क्षमता', 'वर्तमान अधिभोग', 'मूल्य', 'स्थिति', 'तल्ला');
+            $columns = array('होस्टल', 'कोठा नम्बर', 'प्रकार', 'क्षमता', 'वर्तमान अधिभोग', 'मूल्य', 'स्थिति');
 
             $callback = function () use ($rooms, $columns) {
                 $file = fopen('php://output', 'w');
@@ -594,8 +601,7 @@ class RoomController extends Controller
                         $room->capacity,
                         $room->current_occupancy ?? 0,
                         $room->price,
-                        $this->getStatusText($room->status),
-                        $room->floor ?? 'N/A'
+                        $this->getStatusText($room->status)
                     ];
 
                     fputcsv($file, $row);

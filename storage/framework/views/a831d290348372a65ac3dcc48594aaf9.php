@@ -1,5 +1,3 @@
-
-
 <?php $__env->startSection('title', 'कोठा विवरण'); ?>
 
 <?php $__env->startSection('content'); ?>
@@ -159,10 +157,10 @@
                 </div>
 
                 <div class="card-footer">
-                    <a href="<?php echo e(route('owner.rooms.edit', $room)); ?>" class="btn btn-primary">
+                    <a href="<?php echo e(route('admin.rooms.edit', $room)); ?>" class="btn btn-primary">
                         <i class="fas fa-edit"></i> सम्पादन गर्नुहोस्
                     </a>
-                    <a href="<?php echo e(route('owner.rooms.index')); ?>" class="btn btn-default">
+                    <a href="<?php echo e(route('admin.rooms.index')); ?>" class="btn btn-default">
                         <i class="fas fa-arrow-left"></i> कोठा सूचीमा फर्कनुहोस्
                     </a>
                 </div>
@@ -171,4 +169,4 @@
     </div>
 </div>
 <?php $__env->stopSection(); ?>
-<?php echo $__env->make('layouts.owner', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\My Projects\HostelHub\resources\views/owner/rooms/show.blade.php ENDPATH**/ ?>
+<?php echo $__env->make('layouts.admin', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\My Projects\HostelHub\resources\views/admin/rooms/show.blade.php ENDPATH**/ ?>
