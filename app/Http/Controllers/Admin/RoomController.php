@@ -88,7 +88,7 @@ class RoomController extends Controller
                 'hostel_id' => 'required|exists:hostels,id',
                 'room_number' => 'required|string|max:50|unique:rooms,room_number,NULL,id,hostel_id,' . $request->hostel_id,
                 'type' => 'required|in:1 seater,2 seater,3 seater,4 seater,साझा कोठा',
-                'capacity' => 'required|integer|min:1|max:10',
+                'capacity' => 'required|integer|min:1|max:20',
                 'current_occupancy' => 'required|integer|min:0|lte:capacity',
                 'price' => 'required|numeric|min:0',
                 'description' => 'nullable|string|max:500',
@@ -98,6 +98,14 @@ class RoomController extends Controller
 
             // ✅ FIXED: Normalize status to English values
             $validatedData['status'] = $this->normalizeStatus($validatedData['status']);
+
+            // ✅ NEW: Server-side type-capacity validation
+            $validationError = $this->validateTypeCapacity($validatedData['type'], $validatedData['capacity']);
+            if ($validationError) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', $validationError);
+            }
 
             // Add floor field for admin only
             if ($user->hasRole('admin') && $request->has('floor')) {
@@ -235,7 +243,7 @@ class RoomController extends Controller
                 'hostel_id' => 'required|exists:hostels,id',
                 'room_number' => 'required|string|max:50|unique:rooms,room_number,' . $room->id . ',id,hostel_id,' . $request->hostel_id,
                 'type' => 'required|in:1 seater,2 seater,3 seater,4 seater,साझा कोठा',
-                'capacity' => 'required|integer|min:1|max:10',
+                'capacity' => 'required|integer|min:1|max:20',
                 'current_occupancy' => 'required|integer|min:0|lte:capacity',
                 'price' => 'required|numeric|min:0',
                 'description' => 'nullable|string|max:500',
@@ -245,6 +253,14 @@ class RoomController extends Controller
 
             // ✅ FIXED: Normalize status to English values
             $validatedData['status'] = $this->normalizeStatus($validatedData['status']);
+
+            // ✅ NEW: Server-side type-capacity validation
+            $validationError = $this->validateTypeCapacity($validatedData['type'], $validatedData['capacity']);
+            if ($validationError) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', $validationError);
+            }
 
             // Add floor field for admin only
             if ($user->hasRole('admin') && $request->has('floor')) {
@@ -593,6 +609,45 @@ class RoomController extends Controller
             return redirect()->back()
                 ->with('error', 'CSV निर्यात गर्दा त्रुटि भयो: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * ✅ NEW: Helper method to validate type-capacity consistency
+     */
+    private function validateTypeCapacity($type, $capacity)
+    {
+        $typeCapacityRules = [
+            '1 seater' => 1,
+            '2 seater' => 2,
+            '3 seater' => 3,
+            '4 seater' => 4,
+            'साझा कोठा' => 'custom'
+        ];
+
+        if (array_key_exists($type, $typeCapacityRules)) {
+            $expectedCapacity = $typeCapacityRules[$type];
+
+            if ($expectedCapacity === 'custom') {
+                // Shared room must have capacity >= 5
+                if ($capacity < 5) {
+                    return 'साझा कोठाको लागि क्षमता कम्तिमा 5 हुनुपर्छ';
+                }
+            } else {
+                // Fixed capacity rooms must match exactly
+                if ($capacity != $expectedCapacity) {
+                    $nepaliTypes = [
+                        '1 seater' => '१ सिटर कोठा',
+                        '2 seater' => '२ सिटर कोठा',
+                        '3 seater' => '३ सिटर कोठा',
+                        '4 seater' => '४ सिटर कोठा'
+                    ];
+
+                    return "{$nepaliTypes[$type]} को लागि क्षमता {$expectedCapacity} हुनुपर्छ";
+                }
+            }
+        }
+
+        return null; // No error
     }
 
     /**

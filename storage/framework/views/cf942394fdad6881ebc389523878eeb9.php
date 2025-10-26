@@ -4,7 +4,6 @@
 
 <?php $__env->startSection('content'); ?>
     <div class="container-fluid">
-        <!-- ✅ FIXED: Removed duplicate title - now only one clean header -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="h3">कोठा व्यवस्थापन</h1>
             
@@ -46,11 +45,11 @@
                         <thead class="table-light">
                             <tr>
                                 <th>क्रम संख्या</th>
-                                <th>फोटो</th> 
+                                <th>फोटो</th>
                                 <th>होस्टल</th>
                                 <th>कोठा नम्बर</th>
                                 <th>प्रकार</th>
-                                <th>ग्यालरी श्रेणी</th> 
+                                <th>ग्यालरी श्रेणी</th>
                                 <th>क्षमता</th>
                                 <th>मूल्य</th>
                                 <th>स्थिति</th>
@@ -63,6 +62,7 @@
                                     <!-- ✅ FIXED: Pagination serial numbers continue across pages -->
                                     <td><?php echo e($rooms->firstItem() + $loop->index); ?></td>
                                     
+                                    <!-- ✅ FIXED: Room Image Thumbnail -->
                                     <td class="text-center">
                                         <?php if($room->has_image): ?>
                                             <img src="<?php echo e($room->image_url); ?>" 
@@ -76,14 +76,19 @@
                                                  style="width: 60px; height: 60px; object-fit: cover; border-radius: 6px; opacity: 0.6;">
                                         <?php endif; ?>
                                     </td>
+                                    
                                     <td><?php echo e($room->hostel ? $room->hostel->name : 'N/A'); ?></td>
                                     <td><?php echo e($room->room_number); ?></td>
+                                    
+                                    <!-- ✅ FIXED: Room Type Display -->
                                     <td>
-                                        <?php if($room->type == 'single'): ?>
+                                        <?php if($room->type == '1 seater'): ?>
                                             एकल कोठा
-                                        <?php elseif($room->type == 'double'): ?>
-                                            दुई ब्यक्ति कोठा
-                                        <?php elseif($room->type == 'shared'): ?>
+                                        <?php elseif($room->type == '2 seater'): ?>
+                                            दोहोरो कोठा
+                                        <?php elseif($room->type == '3 seater'): ?>
+                                            तीन कोठा
+                                        <?php elseif($room->type == '4 seater' || $room->type == 'साझा कोठा'): ?>
                                             साझा कोठा
                                         <?php else: ?>
                                             <?php echo e($room->type); ?>
@@ -91,10 +96,10 @@
                                         <?php endif; ?>
                                     </td>
                                     
+                                    <!-- ✅ FIXED: Gallery Category Display -->
                                     <td>
                                         <?php
                                             $galleryCategories = [
-                                                // ✅ ADDED: Both space and underscore versions
                                                 '1 seater' => '१ सिटर कोठा',
                                                 '1_seater' => '१ सिटर कोठा',
                                                 '2 seater' => '२ सिटर कोठा', 
@@ -103,6 +108,7 @@
                                                 '3_seater' => '३ सिटर कोठा',
                                                 '4 seater' => '४ सिटर कोठा',
                                                 '4_seater' => '४ सिटर कोठा',
+                                                'साझा कोठा' => 'साझा कोठा',
                                                 'living_room' => 'लिभिङ रूम',
                                                 'bathroom' => 'बाथरूम',
                                                 'kitchen' => 'भान्सा',
@@ -111,69 +117,62 @@
                                                 'video_tour' => 'भिडियो टुर'
                                             ];
                                         ?>
-                                        <?php echo e($galleryCategories[$room->gallery_category] ?? 'N/A'); ?>
+                                        <?php echo e($galleryCategories[$room->gallery_category] ?? $room->gallery_category); ?>
 
                                     </td>
+                                    
                                     <td><?php echo e($room->capacity); ?></td>
                                     <td>रु. <?php echo e(number_format($room->price)); ?></td>
-                                    <td>
-                                        
+                                    
+                                    <!-- ✅ FIXED: Status Display - Now properly in Status column -->
                                     <td>
                                         <?php
-                                            // Use the display_status accessor if available, otherwise fallback to current logic
-                                            if (method_exists($room, 'getDisplayStatusAttribute')) {
-                                                $displayStatus = $room->display_status;
-                                                $badgeClass = match($displayStatus['class']) {
-                                                    'available' => 'bg-success text-white',
-                                                    'occupied' => 'bg-danger text-white',
-                                                    'maintenance' => 'bg-secondary text-white', 
-                                                    'partially-available' => 'bg-warning text-dark',
-                                                    default => 'bg-primary text-white'
-                                                };
+                                            // Status display logic
+                                            $status = $room->status;
+                                            $available_beds = $room->available_beds ?? ($room->capacity - $room->current_occupancy);
+                                            
+                                            if ($status === 'maintenance' || $status === 'मर्मत सम्भार') {
+                                                $displayStatus = 'मर्मत सम्भार';
+                                                $badgeClass = 'bg-secondary text-white';
+                                            } elseif ($status === 'occupied' || $status === 'व्यस्त' || $status === 'बुक भएको') {
+                                                $displayStatus = 'व्यस्त';
+                                                $badgeClass = 'bg-danger text-white';
+                                            } elseif ($status === 'partially_available' || $status === 'आंशिक उपलब्ध') {
+                                                $displayStatus = 'आंशिक उपलब्ध (' . $available_beds . ' बेड खाली)';
+                                                $badgeClass = 'bg-warning text-dark';
                                             } else {
-                                                // Fallback logic
-                                                $status = $room->status;
-                                                $available_beds = $room->available_beds ?? ($room->capacity - $room->current_occupancy);
-                                                
-                                                if ($status === 'maintenance' || $status === 'मर्मत सम्भार') {
-                                                    $displayStatus = ['text' => 'मर्मत सम्भार'];
-                                                    $badgeClass = 'bg-secondary text-white';
-                                                } elseif ($status === 'occupied' || $status === 'व्यस्त' || $status === 'बुक भएको') {
-                                                    $displayStatus = ['text' => 'व्यस्त'];
-                                                    $badgeClass = 'bg-danger text-white';
-                                                } elseif ($status === 'partially_available' || $status === 'आंशिक उपलब्ध') {
-                                                    $displayStatus = ['text' => 'आंशिक उपलब्ध (' . $available_beds . ' बेड खाली)'];
-                                                    $badgeClass = 'bg-warning text-dark';
-                                                } else {
-                                                    $displayStatus = ['text' => 'उपलब्ध'];
-                                                    $badgeClass = 'bg-success text-white';
-                                                }
+                                                $displayStatus = 'उपलब्ध';
+                                                $badgeClass = 'bg-success text-white';
                                             }
                                         ?>
                                         <span class="badge <?php echo e($badgeClass); ?> p-2">
-                                            <?php echo e($displayStatus['text']); ?>
+                                            <?php echo e($displayStatus); ?>
 
                                         </span>
                                     </td>
+                                    
+                                    <!-- ✅ FIXED: Actions Column - Only action buttons now -->
                                     <td class="text-center">
-                                        <a href="<?php echo e(route('owner.rooms.show', $room)); ?>" class="btn btn-sm btn-info me-1" title="हेर्नुहोस्">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                        <a href="<?php echo e(route('owner.rooms.edit', $room)); ?>" class="btn btn-sm btn-primary me-1" title="सम्पादन गर्नुहोस्">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <form action="<?php echo e(route('owner.rooms.destroy', $room)); ?>" method="POST" class="d-inline" onsubmit="return confirm('के तपाईं यो कोठा हटाउन चाहनुहुन्छ?')">
-                                            <?php echo csrf_field(); ?>
-                                            <?php echo method_field('DELETE'); ?>
-                                            <button type="submit" class="btn btn-sm btn-danger" title="हटाउनुहोस्">
-                                                <i class="fas fa-trash-alt"></i>
-                                            </button>
-                                        </form>
+                                        <div class="btn-group" role="group">
+                                            <a href="<?php echo e(route('owner.rooms.show', $room)); ?>" class="btn btn-sm btn-info me-1" title="हेर्नुहोस्">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="<?php echo e(route('owner.rooms.edit', $room)); ?>" class="btn btn-sm btn-primary me-1" title="सम्पादन गर्नुहोस्">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <form action="<?php echo e(route('owner.rooms.destroy', $room)); ?>" method="POST" class="d-inline" onsubmit="return confirm('के तपाईं यो कोठा हटाउन चाहनुहुन्छ?')">
+                                                <?php echo csrf_field(); ?>
+                                                <?php echo method_field('DELETE'); ?>
+                                                <button type="submit" class="btn btn-sm btn-danger" title="हटाउनुहोस्">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                                 <tr>
-                                    <td colspan="10" class="text-center">कुनै कोठा फेला परेन</td> 
+                                    <td colspan="10" class="text-center">कुनै कोठा फेला परेन</td>
                                 </tr>
                             <?php endif; ?>
                         </tbody>
