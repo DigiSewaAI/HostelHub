@@ -1,12 +1,10 @@
-
-
 <?php $__env->startSection('title', 'नयाँ कोठा थप्नुहोस्'); ?>
 
 <?php $__env->startSection('content'); ?>
     <div class="container-fluid">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="h3">नयाँ कोठा थप्नुहोस्</h1>
-            <a href="<?php echo e(route('owner.rooms.index')); ?>" class="btn btn-secondary">
+            <a href="<?php echo e(route('admin.rooms.index')); ?>" class="btn btn-secondary">
                 <i class="fas fa-arrow-left me-2"></i>पछाडि फर्कनुहोस्
             </a>
         </div>
@@ -16,7 +14,8 @@
                 <h6 class="m-0 font-weight-bold text-primary">कोठा विवरण</h6>
             </div>
             <div class="card-body">
-                <form action="<?php echo e(route('owner.rooms.store')); ?>" method="POST" enctype="multipart/form-data" id="roomForm">
+                
+                <form action="<?php echo e(route('admin.rooms.store')); ?>" method="POST" enctype="multipart/form-data" id="roomForm">
                     <?php echo csrf_field(); ?>
                     
                     <div class="row">
@@ -85,7 +84,6 @@ if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>" required>
                                 <option value="">प्रकार छान्नुहोस्</option>
-                                
                                 <option value="1 seater" <?php echo e(old('type') == '1 seater' ? 'selected' : ''); ?>>१ सिटर कोठा</option>
                                 <option value="2 seater" <?php echo e(old('type') == '2 seater' ? 'selected' : ''); ?>>२ सिटर कोठा</option>
                                 <option value="3 seater" <?php echo e(old('type') == '3 seater' ? 'selected' : ''); ?>>३ सिटर कोठा</option>
@@ -129,7 +127,7 @@ unset($__errorArgs, $__bag); ?>
                     </div>
 
                     <div class="row">
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
                             <label for="current_occupancy" class="form-label">हालको अधिभोग <span class="text-danger">*</span></label>
                             <input type="number" name="current_occupancy" id="current_occupancy" class="form-control <?php $__errorArgs = ['current_occupancy'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -153,7 +151,7 @@ endif;
 unset($__errorArgs, $__bag); ?>
                         </div>
                         
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
                             <label for="price" class="form-label">मूल्य (प्रति महिना) <span class="text-danger">*</span></label>
                             <div class="input-group">
                                 <span class="input-group-text">रु.</span>
@@ -178,46 +176,8 @@ if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>
                         </div>
-                    </div>
 
-                    
                     <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="gallery_category" class="form-label">ग्यालरी श्रेणी</label>
-                            <select name="gallery_category" id="gallery_category" class="form-select <?php $__errorArgs = ['gallery_category'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>">
-                                <option value="">स्वचालित रूपमा सेट हुन्छ</option>
-                                <option value="1 seater">१ सिटर कोठा</option>
-                                <option value="2 seater">२ सिटर कोठा</option>
-                                <option value="3 seater">३ सिटर कोठा</option>
-                                <option value="4 seater">४ सिटर कोठा</option>
-                                <option value="साझा कोठा">साझा कोठा</option> <!-- ✅ NEW OPTION -->
-                                <option value="living_room">लिभिङ रूम</option>
-                                <option value="bathroom">बाथरूम</option>
-                                <option value="kitchen">भान्सा</option>
-                                <option value="study_room">अध्ययन कोठा</option>
-                                <option value="events">कार्यक्रम</option>
-                                <option value="video_tour">भिडियो टुर</option>
-                            </select>
-                            <small class="form-text text-muted">स्वचालित रूपमा कोठा प्रकार अनुसार सेट हुन्छ</small>
-                            <?php $__errorArgs = ['gallery_category'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?>
-                                <div class="invalid-feedback"><?php echo e($message); ?></div>
-                            <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>
-                        </div>
-                        
                         
                         <div class="col-md-6 mb-3">
                             <label for="status" class="form-label">स्थिति <span class="text-danger">*</span></label>
@@ -229,7 +189,6 @@ $message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>" required>
-                                
                                 <option value="available" <?php echo e(old('status', 'available') == 'available' ? 'selected' : ''); ?>>उपलब्ध</option>
                                 <option value="partially_available" <?php echo e(old('status') == 'partially_available' ? 'selected' : ''); ?>>आंशिक उपलब्ध</option>
                                 <option value="occupied" <?php echo e(old('status') == 'occupied' ? 'selected' : ''); ?>>व्यस्त</option>
@@ -247,11 +206,9 @@ if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>
                         </div>
-                    </div>
 
-                    
-                    <div class="row">
-                        <div class="col-md-12 mb-3">
+                        
+                        <div class="col-md-6 mb-3">
                             <label for="image" class="form-label">कोठाको फोटो</label>
                             <input type="file" name="image" id="image" class="form-control <?php $__errorArgs = ['image'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
@@ -321,7 +278,7 @@ unset($__errorArgs, $__bag); ?>
 <?php $__env->startPush('scripts'); ?>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // ✅ NEW: Type-capacity validation rules
+        // ✅ Type-capacity validation rules
         const typeCapacityRules = {
             '1 seater': 1,
             '2 seater': 2,
@@ -330,7 +287,7 @@ unset($__errorArgs, $__bag); ?>
             'साझा कोठा': 'custom'
         };
 
-        // ✅ NEW: Type-capacity validation function
+        // ✅ Type-capacity validation function
         function validateTypeCapacity(type, capacity) {
             if (typeCapacityRules[type] && typeCapacityRules[type] !== 'custom') {
                 return capacity == typeCapacityRules[type];
@@ -342,12 +299,11 @@ unset($__errorArgs, $__bag); ?>
         const typeSelect = document.getElementById('type');
         const capacityInput = document.getElementById('capacity');
         const currentOccupancyInput = document.getElementById('current_occupancy');
-        const galleryCategorySelect = document.getElementById('gallery_category');
         const statusSelect = document.getElementById('status');
         const capacityHelp = document.getElementById('capacityHelp');
         const form = document.getElementById('roomForm');
         
-        if (typeSelect && capacityInput && galleryCategorySelect && currentOccupancyInput && statusSelect) {
+        if (typeSelect && capacityInput && currentOccupancyInput && statusSelect) {
             typeSelect.addEventListener('change', function() {
                 const selectedType = this.value;
                 
@@ -356,7 +312,6 @@ unset($__errorArgs, $__bag); ?>
                         capacityInput.value = 1;
                         capacityInput.readOnly = true;
                         currentOccupancyInput.max = 1;
-                        galleryCategorySelect.value = '1 seater';
                         capacityHelp.textContent = '१ सिटर कोठाको क्षमता 1 हुनुपर्छ';
                         capacityHelp.className = 'form-text text-success';
                         break;
@@ -364,7 +319,6 @@ unset($__errorArgs, $__bag); ?>
                         capacityInput.value = 2;
                         capacityInput.readOnly = true;
                         currentOccupancyInput.max = 2;
-                        galleryCategorySelect.value = '2 seater';
                         capacityHelp.textContent = '२ सिटर कोठाको क्षमता 2 हुनुपर्छ';
                         capacityHelp.className = 'form-text text-success';
                         break;
@@ -372,7 +326,6 @@ unset($__errorArgs, $__bag); ?>
                         capacityInput.value = 3;
                         capacityInput.readOnly = true;
                         currentOccupancyInput.max = 3;
-                        galleryCategorySelect.value = '3 seater';
                         capacityHelp.textContent = '३ सिटर कोठाको क्षमता 3 हुनुपर्छ';
                         capacityHelp.className = 'form-text text-success';
                         break;
@@ -380,7 +333,6 @@ unset($__errorArgs, $__bag); ?>
                         capacityInput.value = 4;
                         capacityInput.readOnly = true;
                         currentOccupancyInput.max = 4;
-                        galleryCategorySelect.value = '4 seater';
                         capacityHelp.textContent = '४ सिटर कोठाको क्षमता 4 हुनुपर्छ';
                         capacityHelp.className = 'form-text text-success';
                         break;
@@ -389,7 +341,6 @@ unset($__errorArgs, $__bag); ?>
                         capacityInput.readOnly = false;
                         capacityInput.min = 5;
                         currentOccupancyInput.max = capacityInput.value;
-                        galleryCategorySelect.value = 'साझा कोठा'; // ✅ CHANGED: '4 seater' → 'साझा कोठा'
                         capacityHelp.textContent = 'साझा कोठाको क्षमता कम्तिमा 5 हुनुपर्छ';
                         capacityHelp.className = 'form-text text-info';
                         break;
@@ -531,7 +482,7 @@ unset($__errorArgs, $__bag); ?>
             }
         });
 
-        // ✅ NEW: Reset form handler
+        // ✅ Reset form handler
         form.addEventListener('reset', function() {
             // Clear invalid states
             form.querySelectorAll('.is-invalid').forEach(field => {
@@ -551,4 +502,4 @@ unset($__errorArgs, $__bag); ?>
     });
 </script>
 <?php $__env->stopPush(); ?>
-<?php echo $__env->make('layouts.owner', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\My Projects\HostelHub\resources\views/owner/rooms/create.blade.php ENDPATH**/ ?>
+<?php echo $__env->make('layouts.admin', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\My Projects\HostelHub\resources\views/admin/rooms/create.blade.php ENDPATH**/ ?>

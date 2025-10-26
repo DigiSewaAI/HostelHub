@@ -76,7 +76,6 @@ Route::group(['middleware' => 'web'], function () {
     Route::get('/hostel/{slug}/gallery', [PublicController::class, 'hostelGallery'])->name('hostel.gallery');
     Route::get('/hostel/{slug}/full-gallery', [PublicController::class, 'hostelFullGallery'])->name('hostel.full-gallery');
 
-
     // ✅ ADDED: Missing book-room route that was causing the error
     Route::get('/hostel/{slug}/book-room', [BookingController::class, 'create'])->name('hostel.book-room');
 
@@ -281,9 +280,8 @@ Route::middleware(['auth', 'hasOrganization', 'role:admin'])
 
         Route::resource('reviews', AdminReviewController::class);
 
-        Route::resource('rooms', RoomController::class)->except(['create', 'store']);
-        Route::get('/rooms/create', [RoomController::class, 'create'])->name('rooms.create');
-        Route::post('/rooms', [RoomController::class, 'store'])->name('rooms.store');
+        // ✅ FIXED: Admin Room Routes - REMOVED EXCEPT AND USING FULL RESOURCE
+        Route::resource('rooms', RoomController::class);
         Route::get('/rooms/search', [RoomController::class, 'search'])->name('rooms.search');
         Route::post('/rooms/{room}/change-status', [RoomController::class, 'changeStatus'])->name('rooms.change-status');
         Route::get('/rooms/export/csv', [RoomController::class, 'exportCSV'])->name('rooms.export-csv');
@@ -789,6 +787,26 @@ if (app()->environment('local')) {
 
         return "Hostel data updated! Check: " . route('debug-hostel', $slug);
     });
+
+    // ✅ ADDED: Debug route for admin routes testing
+    Route::get('/debug-admin-routes', function () {
+        $user = auth()->user();
+        $routes = [
+            'admin.rooms.create' => route('admin.rooms.create'),
+            'admin.rooms.store' => route('admin.rooms.store'),
+            'admin.rooms.index' => route('admin.rooms.index'),
+        ];
+
+        return [
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'roles' => $user->getRoleNames()->toArray(),
+            ],
+            'routes' => $routes,
+            'route_exists' => Route::has('admin.rooms.create'),
+        ];
+    })->middleware(['auth', 'role:admin']);
 }
 
 /*|--------------------------------------------------------------------------
@@ -952,6 +970,28 @@ if (app()->environment('local')) {
             'storage_files' => $hostel->logo_path ? \Storage::disk('public')->files(dirname($hostel->logo_path)) : [],
         ];
     });
+
+    // TEMPORARY DEBUG ROUTE - Add this right after your admin routes group
+    Route::get('/test-admin-rooms-create', function () {
+        $user = auth()->user();
+
+        if (!$user) {
+            return "Not authenticated";
+        }
+
+        if (!$user->hasRole('admin')) {
+            return "Not an admin user. Roles: " . $user->getRoleNames()->implode(', ');
+        }
+
+        // Test if we can access the controller method directly
+        try {
+            $controller = new \App\Http\Controllers\Admin\RoomController();
+            $hostels = \App\Models\Hostel::all();
+            return "Controller accessible. Hostels count: " . $hostels->count();
+        } catch (\Exception $e) {
+            return "Controller error: " . $e->getMessage();
+        }
+    })->middleware(['auth', 'hasOrganization', 'role:admin']);
 
     // ✅ TEMPORARY TEST ROUTE - COMPLETELY OPEN
     Route::post('/test-hostel-update/{id}', function (Request $request, $id) {
