@@ -1,12 +1,12 @@
-@extends('layouts.owner')
 
-@section('title', 'नयाँ कोठा थप्नुहोस्')
 
-@section('content')
+<?php $__env->startSection('title', 'नयाँ कोठा थप्नुहोस्'); ?>
+
+<?php $__env->startSection('content'); ?>
     <div class="container-fluid">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="h3">नयाँ कोठा थप्नुहोस्</h1>
-            <a href="{{ route('owner.rooms.index') }}" class="btn btn-secondary">
+            <a href="<?php echo e(route('owner.rooms.index')); ?>" class="btn btn-secondary">
                 <i class="fas fa-arrow-left me-2"></i>पछाडि फर्कनुहोस्
             </a>
         </div>
@@ -16,91 +16,182 @@
                 <h6 class="m-0 font-weight-bold text-primary">कोठा विवरण</h6>
             </div>
             <div class="card-body">
-                <form action="{{ route('owner.rooms.store') }}" method="POST" enctype="multipart/form-data" id="roomForm">
-                    @csrf
+                <form action="<?php echo e(route('owner.rooms.store')); ?>" method="POST" enctype="multipart/form-data" id="roomForm">
+                    <?php echo csrf_field(); ?>
                     
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="hostel_id" class="form-label">होस्टल <span class="text-danger">*</span></label>
-                            <select name="hostel_id" id="hostel_id" class="form-select @error('hostel_id') is-invalid @enderror" required>
+                            <select name="hostel_id" id="hostel_id" class="form-select <?php $__errorArgs = ['hostel_id'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>" required>
                                 <option value="">होस्टल छान्नुहोस्</option>
-                                @foreach($hostels as $hostel)
-                                    <option value="{{ $hostel->id }}" {{ old('hostel_id') == $hostel->id ? 'selected' : '' }}>
-                                        {{ $hostel->name }} ({{ $hostel->location }})
+                                <?php $__currentLoopData = $hostels; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $hostel): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($hostel->id); ?>" <?php echo e(old('hostel_id') == $hostel->id ? 'selected' : ''); ?>>
+                                        <?php echo e($hostel->name); ?> (<?php echo e($hostel->location); ?>)
                                     </option>
-                                @endforeach
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </select>
-                            @error('hostel_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            <?php $__errorArgs = ['hostel_id'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                <div class="invalid-feedback"><?php echo e($message); ?></div>
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                         </div>
                         
                         <div class="col-md-6 mb-3">
                             <label for="room_number" class="form-label">कोठा नम्बर <span class="text-danger">*</span></label>
-                            <input type="text" name="room_number" id="room_number" class="form-control @error('room_number') is-invalid @enderror"
-                                   value="{{ old('room_number') }}" required placeholder="जस्तै: 101, A-12">
-                            @error('room_number')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            <input type="text" name="room_number" id="room_number" class="form-control <?php $__errorArgs = ['room_number'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>"
+                                   value="<?php echo e(old('room_number')); ?>" required placeholder="जस्तै: 101, A-12">
+                            <?php $__errorArgs = ['room_number'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                <div class="invalid-feedback"><?php echo e($message); ?></div>
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                         </div>
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="type" class="form-label">कोठा प्रकार <span class="text-danger">*</span></label>
-                            <select name="type" id="type" class="form-select @error('type') is-invalid @enderror" required>
+                            <select name="type" id="type" class="form-select <?php $__errorArgs = ['type'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>" required>
                                 <option value="">प्रकार छान्नुहोस्</option>
-                                {{-- ✅ FIXED: Unified room types --}}
-                                <option value="1 seater" {{ old('type') == '1 seater' ? 'selected' : '' }}>१ सिटर कोठा</option>
-                                <option value="2 seater" {{ old('type') == '2 seater' ? 'selected' : '' }}>२ सिटर कोठा</option>
-                                <option value="3 seater" {{ old('type') == '3 seater' ? 'selected' : '' }}>३ सिटर कोठा</option>
-                                <option value="4 seater" {{ old('type') == '4 seater' ? 'selected' : '' }}>४ सिटर कोठा</option>
-                                <option value="साझा कोठा" {{ old('type') == 'साझा कोठा' ? 'selected' : '' }}>साझा कोठा</option>
+                                
+                                <option value="1 seater" <?php echo e(old('type') == '1 seater' ? 'selected' : ''); ?>>१ सिटर कोठा</option>
+                                <option value="2 seater" <?php echo e(old('type') == '2 seater' ? 'selected' : ''); ?>>२ सिटर कोठा</option>
+                                <option value="3 seater" <?php echo e(old('type') == '3 seater' ? 'selected' : ''); ?>>३ सिटर कोठा</option>
+                                <option value="4 seater" <?php echo e(old('type') == '4 seater' ? 'selected' : ''); ?>>४ सिटर कोठा</option>
+                                <option value="साझा कोठा" <?php echo e(old('type') == 'साझा कोठा' ? 'selected' : ''); ?>>साझा कोठा</option>
                             </select>
-                            @error('type')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            <?php $__errorArgs = ['type'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                <div class="invalid-feedback"><?php echo e($message); ?></div>
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="capacity" class="form-label">क्षमता (व्यक्ति संख्या) <span class="text-danger">*</span></label>
-                            <input type="number" name="capacity" id="capacity" class="form-control @error('capacity') is-invalid @enderror"
-                                   value="{{ old('capacity', 1) }}" min="1" max="20" required readonly>
+                            <input type="number" name="capacity" id="capacity" class="form-control <?php $__errorArgs = ['capacity'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>"
+                                   value="<?php echo e(old('capacity', 1)); ?>" min="1" max="20" required readonly>
                             <small class="form-text text-muted" id="capacityHelp">कोठा प्रकार छान्नुहोस्</small>
-                            @error('capacity')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            <?php $__errorArgs = ['capacity'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                <div class="invalid-feedback"><?php echo e($message); ?></div>
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                         </div>
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="current_occupancy" class="form-label">हालको अधिभोग <span class="text-danger">*</span></label>
-                            <input type="number" name="current_occupancy" id="current_occupancy" class="form-control @error('current_occupancy') is-invalid @enderror"
-                                   value="{{ old('current_occupancy', 0) }}" min="0" max="1" required>
+                            <input type="number" name="current_occupancy" id="current_occupancy" class="form-control <?php $__errorArgs = ['current_occupancy'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>"
+                                   value="<?php echo e(old('current_occupancy', 0)); ?>" min="0" max="1" required>
                             <small class="form-text text-muted">कोठामा हाल बस्ने विद्यार्थीहरूको संख्या</small>
-                            @error('current_occupancy')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            <?php $__errorArgs = ['current_occupancy'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                <div class="invalid-feedback"><?php echo e($message); ?></div>
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                         </div>
                         
                         <div class="col-md-6 mb-3">
                             <label for="price" class="form-label">मूल्य (प्रति महिना) <span class="text-danger">*</span></label>
                             <div class="input-group">
                                 <span class="input-group-text">रु.</span>
-                                <input type="number" name="price" id="price" class="form-control @error('price') is-invalid @enderror"
-                                       value="{{ old('price') }}" min="0" step="0.01" required placeholder="5000">
+                                <input type="number" name="price" id="price" class="form-control <?php $__errorArgs = ['price'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>"
+                                       value="<?php echo e(old('price')); ?>" min="0" step="0.01" required placeholder="5000">
                             </div>
-                            @error('price')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            <?php $__errorArgs = ['price'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                <div class="invalid-feedback"><?php echo e($message); ?></div>
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                         </div>
                     </div>
 
-                    {{-- ✅ FIXED: Gallery Category Field with auto-selection based on room type --}}
+                    
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="gallery_category" class="form-label">ग्यालरी श्रेणी</label>
-                            <select name="gallery_category" id="gallery_category" class="form-select @error('gallery_category') is-invalid @enderror">
+                            <select name="gallery_category" id="gallery_category" class="form-select <?php $__errorArgs = ['gallery_category'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>">
                                 <option value="">स्वचालित रूपमा सेट हुन्छ</option>
                                 <option value="1 seater">१ सिटर कोठा</option>
                                 <option value="2 seater">२ सिटर कोठा</option>
@@ -115,40 +206,75 @@
                                 <option value="video_tour">भिडियो टुर</option>
                             </select>
                             <small class="form-text text-muted">स्वचालित रूपमा कोठा प्रकार अनुसार सेट हुन्छ</small>
-                            @error('gallery_category')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            <?php $__errorArgs = ['gallery_category'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                <div class="invalid-feedback"><?php echo e($message); ?></div>
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                         </div>
                         
-                        {{-- ✅ FIXED: Status Field with Normalized Values --}}
+                        
                         <div class="col-md-6 mb-3">
                             <label for="status" class="form-label">स्थिति <span class="text-danger">*</span></label>
-                            <select name="status" id="status" class="form-select @error('status') is-invalid @enderror" required>
-                                {{-- ✅ FIXED: Using normalized English values with Nepali labels --}}
-                                <option value="available" {{ old('status', 'available') == 'available' ? 'selected' : '' }}>उपलब्ध</option>
-                                <option value="partially_available" {{ old('status') == 'partially_available' ? 'selected' : '' }}>आंशिक उपलब्ध</option>
-                                <option value="occupied" {{ old('status') == 'occupied' ? 'selected' : '' }}>व्यस्त</option>
-                                <option value="maintenance" {{ old('status') == 'maintenance' ? 'selected' : '' }}>मर्मत सम्भार</option>
+                            <select name="status" id="status" class="form-select <?php $__errorArgs = ['status'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>" required>
+                                
+                                <option value="available" <?php echo e(old('status', 'available') == 'available' ? 'selected' : ''); ?>>उपलब्ध</option>
+                                <option value="partially_available" <?php echo e(old('status') == 'partially_available' ? 'selected' : ''); ?>>आंशिक उपलब्ध</option>
+                                <option value="occupied" <?php echo e(old('status') == 'occupied' ? 'selected' : ''); ?>>व्यस्त</option>
+                                <option value="maintenance" <?php echo e(old('status') == 'maintenance' ? 'selected' : ''); ?>>मर्मत सम्भार</option>
                             </select>
                             <small class="form-text text-muted">स्वचालित रूपमा अद्यावधिक हुन्छ</small>
-                            @error('status')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            <?php $__errorArgs = ['status'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                <div class="invalid-feedback"><?php echo e($message); ?></div>
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                         </div>
                     </div>
 
-                    {{-- ✅ Room Image Upload Field --}}
+                    
                     <div class="row">
                         <div class="col-md-12 mb-3">
                             <label for="image" class="form-label">कोठाको फोटो</label>
-                            <input type="file" name="image" id="image" class="form-control @error('image') is-invalid @enderror" 
+                            <input type="file" name="image" id="image" class="form-control <?php $__errorArgs = ['image'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>" 
                                    accept="image/jpeg,image/png,image/jpg,image/gif,image/webp">
                             <div class="form-text">JPG, PNG, JPEG, GIF, WEBP format मा मात्र, अधिकतम size: 2MB</div>
-                            @error('image')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            <?php $__errorArgs = ['image'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                <div class="invalid-feedback"><?php echo e($message); ?></div>
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                             
-                            {{-- Image Preview --}}
+                            
                             <div id="imagePreview" class="mt-2" style="display: none;">
                                 <img id="preview" src="#" alt="Image Preview" style="max-width: 200px; max-height: 150px; border-radius: 8px;">
                             </div>
@@ -157,11 +283,25 @@
 
                     <div class="mb-3">
                         <label for="description" class="form-label">विवरण</label>
-                        <textarea name="description" id="description" class="form-control @error('description') is-invalid @enderror" 
-                                  rows="3" placeholder="कोठाको बारेमा थप विवरण...">{{ old('description') }}</textarea>
-                        @error('description')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
+                        <textarea name="description" id="description" class="form-control <?php $__errorArgs = ['description'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>" 
+                                  rows="3" placeholder="कोठाको बारेमा थप विवरण..."><?php echo e(old('description')); ?></textarea>
+                        <?php $__errorArgs = ['description'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                            <div class="invalid-feedback"><?php echo e($message); ?></div>
+                        <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                     </div>
 
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
@@ -176,9 +316,9 @@
             </div>
         </div>
     </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // ✅ NEW: Type-capacity validation rules
@@ -410,4 +550,5 @@
         });
     });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+<?php echo $__env->make('layouts.owner', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\My Projects\HostelHub\resources\views/owner/rooms/create.blade.php ENDPATH**/ ?>

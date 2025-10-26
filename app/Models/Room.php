@@ -40,14 +40,27 @@ class Room extends Model
     protected $appends = ['image_url', 'has_image', 'display_status'];
 
     /**
-     * ✅ FIXED: Boot method with normalized status handling and gallery category fix
+     * ✅ FIXED: Boot method with type-capacity auto-sync and normalized status handling
      */
     protected static function boot()
     {
         parent::boot();
 
-        // ✅ FIXED: Auto-calculate available beds and update status with normalized values
+        // ✅ FIXED: Auto-calculate available beds, update status, and sync capacity with type
         static::saving(function ($room) {
+            // ✅ NEW: Auto-set capacity based on room type
+            $typeCapacityMap = [
+                '1 seater' => 1,
+                '2 seater' => 2,
+                '3 seater' => 3,
+                '4 seater' => 4,
+                // 'साझा कोठा' keeps existing capacity (custom)
+            ];
+
+            if (isset($typeCapacityMap[$room->type]) && $room->type !== 'साझा कोठा') {
+                $room->capacity = $typeCapacityMap[$room->type];
+            }
+
             // Calculate available beds
             $room->available_beds = $room->capacity - $room->current_occupancy;
 
@@ -383,7 +396,7 @@ class Room extends Model
             case '4 seater':
                 return '4 seater';
             case 'साझा कोठा':
-                return '4 seater'; // Shared rooms show as 4 seater in gallery
+                return 'साझा कोठा'; // ✅ FIXED: Changed from '4 seater' to 'साझा कोठा'
             default:
                 // Fallback for old types
                 if ($this->capacity == 1) return '1 seater';
@@ -428,5 +441,90 @@ class Room extends Model
 
         $firstGallery = $this->galleries()->where('is_active', true)->first();
         return $firstGallery ? $firstGallery->media_url : asset('images/no-image.png');
+    }
+
+    /**
+     * ✅ NEW: Helper method to validate if capacity matches room type
+     */
+    public function validateCapacityWithType(): bool
+    {
+        $typeCapacityRules = [
+            '1 seater' => 1,
+            '2 seater' => 2,
+            '3 seater' => 3,
+            '4 seater' => 4,
+            'साझा कोठा' => 'custom'
+        ];
+
+        if (array_key_exists($this->type, $typeCapacityRules)) {
+            $expectedCapacity = $typeCapacityRules[$this->type];
+
+            if ($expectedCapacity === 'custom') {
+                return $this->capacity >= 5;
+            } else {
+                return $this->capacity == $expectedCapacity;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * ✅ NEW: Get capacity validation error message
+     */
+    public function getCapacityValidationError(): ?string
+    {
+        $typeCapacityRules = [
+            '1 seater' => 1,
+            '2 seater' => 2,
+            '3 seater' => 3,
+            '4 seater' => 4,
+            'साझा कोठा' => 'custom'
+        ];
+
+        if (array_key_exists($this->type, $typeCapacityRules)) {
+            $expectedCapacity = $typeCapacityRules[$this->type];
+
+            if ($expectedCapacity === 'custom') {
+                if ($this->capacity < 5) {
+                    return 'साझा कोठाको लागि क्षमता कम्तिमा 5 हुनुपर्छ';
+                }
+            } else {
+                if ($this->capacity != $expectedCapacity) {
+                    $nepaliTypes = [
+                        '1 seater' => '१ सिटर कोठा',
+                        '2 seater' => '२ सिटर कोठा',
+                        '3 seater' => '३ सिटर कोठा',
+                        '4 seater' => '४ सिटर कोठा'
+                    ];
+
+                    return "{$nepaliTypes[$this->type]} को लागि क्षमता {$expectedCapacity} हुनुपर्छ";
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * ✅ NEW: Get gallery category in Nepali for display
+     */
+    public function getGalleryCategoryNepaliAttribute(): string
+    {
+        $categories = [
+            '1 seater' => '१ सिटर कोठा',
+            '2 seater' => '२ सिटर कोठा',
+            '3 seater' => '३ सिटर कोठा',
+            '4 seater' => '४ सिटर कोठा',
+            'साझा कोठा' => 'साझा कोठा',
+            'living_room' => 'लिभिङ रूम',
+            'bathroom' => 'बाथरूम',
+            'kitchen' => 'भान्सा',
+            'study_room' => 'अध्ययन कोठा',
+            'events' => 'कार्यक्रम',
+            'video_tour' => 'भिडियो टुर'
+        ];
+
+        return $categories[$this->gallery_category] ?? $this->gallery_category;
     }
 }
