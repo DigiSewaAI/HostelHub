@@ -23,7 +23,7 @@ class RouteServiceProvider extends ServiceProvider
         $this->configureRateLimiting();
 
         $this->routes(function () {
-            // All routes are now in web.php
+            // ✅ DIRECT load web.php without any extra grouping
             Route::middleware('web')
                 ->group(base_path('routes/web.php'));
 
@@ -33,6 +33,10 @@ class RouteServiceProvider extends ServiceProvider
                 ->group(base_path('routes/api.php'));
         });
     }
+
+    /**
+     * ✅ COMPLETELY REMOVE the mapWebRoutes method
+     */
 
     /**
      * Configure the rate limiters for the application.

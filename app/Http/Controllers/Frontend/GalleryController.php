@@ -25,8 +25,12 @@ class GalleryController extends Controller
      */
     public function index()
     {
-        // ✅ MODIFIED: Cache bata galleries lyaune
-        $galleries = $this->cacheService->getPublicGalleries();
+        // ✅ FIXED: Use paginate instead of get() for cache service
+        $galleries = Gallery::with(['hostel', 'room'])
+            ->where('is_active', true)
+            ->orderBy('is_featured', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->paginate(12); // ✅ 12 items per page
 
         // Get unique hostels for filter
         $hostels = Hostel::where('is_published', true)
@@ -35,7 +39,22 @@ class GalleryController extends Controller
             })
             ->get(['id', 'name']);
 
-        return view('frontend.gallery.index', compact('galleries', 'hostels'));
+        // ✅ FIXED: Add cities data for the stats section
+        $cities = Hostel::where('is_published', true)
+            ->distinct('city')
+            ->pluck('city')
+            ->filter()
+            ->values();
+
+        // ✅ FIXED: Add metrics data for the stats section
+        $metrics = [
+            'total_students' => 500,
+            'total_hostels' => $hostels->count(),
+            'cities_available' => $cities->count(),
+            'satisfaction_rate' => '98%'
+        ];
+
+        return view('frontend.gallery.index', compact('galleries', 'hostels', 'cities', 'metrics'));
     }
 
     /**
@@ -80,7 +99,7 @@ class GalleryController extends Controller
      */
     public function getGalleryData()
     {
-        // ✅ MODIFIED: Cache service use garne
+        // ✅ FIXED: Use cache service for API (API maa pagination chaina)
         $galleries = $this->cacheService->getPublicGalleries()
             ->map(function ($item) {
                 return $this->formatGalleryItemWithHostel($item);
@@ -210,7 +229,7 @@ class GalleryController extends Controller
             ->where('is_active', true)
             ->orderBy('is_featured', 'desc')
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate(12); // ✅ FIXED: Use paginate here too
 
         \Log::info('Gallery items count:', ['count' => $galleries->count()]);
         \Log::info('Gallery items:', $galleries->toArray());
