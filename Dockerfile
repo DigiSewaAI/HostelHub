@@ -1,33 +1,39 @@
+# Use official PHP with Apache
 FROM php:8.2-apache
 
-# System dependencies
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
-    git curl libpng-dev libonig-dev libxml2-dev zip unzip \
-    libzip-dev libpq-dev
+    git curl libpng-dev libonig-dev libxml2-dev zip unzip libzip-dev libpq-dev
 
-# PHP extensions
+# Install PHP extensions
 RUN docker-php-ext-install pdo pdo_mysql pdo_pgsql mbstring exif pcntl bcmath gd zip
 
-# Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+# Enable Apache mod_rewrite
+RUN a2enmod rewrite
 
-# Working directory
+# Set working directory
 WORKDIR /var/www/html
 
-# Copy project files
+# Copy application code
 COPY . .
 
-# Install dependencies
-RUN composer install --no-dev --optimize-autoloader --no-scripts
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Permissions
+# Install PHP dependencies (production mode)
+RUN composer install --no-dev --optimize-autoloader
+
+# Set correct permissions
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/storage \
     && chmod -R 755 /var/www/html/bootstrap/cache
 
-# Apache setup
-RUN a2enmod rewrite
+# Tell Render which port to use
+ENV PORT=10000
+EXPOSE 10000
 
-EXPOSE 80
+# Update Apache to listen on Render's port
+RUN sed -i "s/Listen 80/Listen ${PORT}/" /etc/apache2/ports.conf
 
+# Start Apache
 CMD ["apache2-foreground"]
