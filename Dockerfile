@@ -4,10 +4,6 @@ FROM php:8.3-apache
 # Enable mod_rewrite for Apache
 RUN a2enmod rewrite
 
-# ✅ CHANGE DOCUMENT ROOT TO PUBLIC (ADD THESE LINES)
-COPY ./public /var/www/html
-RUN chown -R www-data:www-data /var/www/html
-
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     git \
@@ -45,6 +41,10 @@ RUN chown -R www-data:www-data storage bootstrap/cache
 
 # Install PHP dependencies (production mode)
 RUN composer install --no-dev --optimize-autoloader
+
+# ✅ CHANGE DOCUMENT ROOT TO PUBLIC (WITHOUT OVERWRITING VENDOR)
+RUN sed -ri -e 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/*.conf
+RUN sed -ri -e 's!/var/www/!/var/www/html/public!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
 # Set correct permissions
 RUN chown -R www-data:www-data /var/www/html
