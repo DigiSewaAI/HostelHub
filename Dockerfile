@@ -4,6 +4,10 @@ FROM php:8.3-apache
 # Enable mod_rewrite for Apache
 RUN a2enmod rewrite
 
+# ✅ CHANGE DOCUMENT ROOT TO PUBLIC (ADD THESE LINES)
+COPY ./public /var/www/html
+RUN chown -R www-data:www-data /var/www/html
+
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     git \
@@ -30,13 +34,12 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Copy existing application directory contents
 COPY . .
 
-# ✅ CREATE LARAVEL CACHE DIRECTORIES
+# Create Laravel cache directories and set permissions
 RUN mkdir -p storage/framework/cache \
     storage/framework/sessions \
     storage/framework/views \
     bootstrap/cache
 
-# ✅ SET PERMISSIONS BEFORE COMPOSER INSTALL
 RUN chmod -R 775 storage bootstrap/cache
 RUN chown -R www-data:www-data storage bootstrap/cache
 
