@@ -9,6 +9,8 @@ use App\Services\GalleryCacheService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\View\View;
+use Illuminate\Support\Facades\Log;
 
 class GalleryController extends Controller
 {
@@ -22,7 +24,7 @@ class GalleryController extends Controller
     /**
      * Display the main gallery page WITH HOSTEL NAMES AND CACHE
      */
-    public function index()
+    public function index(): View
     {
         try {
             // ✅ DEPLOYMENT FIX: Simplified with static data to prevent 500 errors
@@ -39,7 +41,7 @@ class GalleryController extends Controller
 
             return view('frontend.gallery.index', compact('galleries', 'hostels', 'cities', 'metrics'));
         } catch (\Exception $e) {
-            \Log::error('Gallery index error: ' . $e->getMessage());
+            Log::error('Gallery index error: ' . $e->getMessage());
 
             // Return empty data on error
             return view('frontend.gallery.index', [
@@ -104,7 +106,7 @@ class GalleryController extends Controller
 
             return response()->json($galleries);
         } catch (\Exception $e) {
-            \Log::error('Gallery API data error: ' . $e->getMessage());
+            Log::error('Gallery API data error: ' . $e->getMessage());
             return response()->json($this->getSampleGalleryData());
         }
     }
@@ -123,7 +125,7 @@ class GalleryController extends Controller
 
             return response()->json($galleries);
         } catch (\Exception $e) {
-            \Log::error('Featured galleries error: ' . $e->getMessage());
+            Log::error('Featured galleries error: ' . $e->getMessage());
             return response()->json([]);
         }
     }
@@ -173,18 +175,18 @@ class GalleryController extends Controller
     /**
      * Format gallery item for API response (original preserved)
      */
-    private function formatGalleryItem($item)
+    private function formatGalleryItem($item): array
     {
         $formatted = [
-            'id' => $item->id,
-            'title' => $item->title,
-            'description' => $item->description,
-            'category' => $item->category,
-            'media_type' => $item->media_type,
-            'file_url' => $item->file_url ?? '',
-            'thumbnail_url' => $item->thumbnail_url ?? '',
-            'external_link' => $item->external_link ?? '',
-            'created_at' => $item->created_at->format('Y-m-d'),
+            'id' => $item->id ?? $item['id'] ?? 0,
+            'title' => $item->title ?? $item['title'] ?? '',
+            'description' => $item->description ?? $item['description'] ?? '',
+            'category' => $item->category ?? $item['category'] ?? 'common',
+            'media_type' => $item->media_type ?? $item['media_type'] ?? 'photo',
+            'file_url' => $item->file_url ?? $item['file_url'] ?? '',
+            'thumbnail_url' => $item->thumbnail_url ?? $item['thumbnail_url'] ?? '',
+            'external_link' => $item->external_link ?? $item['external_link'] ?? '',
+            'created_at' => isset($item->created_at) ? $item->created_at->format('Y-m-d') : now()->format('Y-m-d'),
         ];
 
         return $formatted;
@@ -193,7 +195,7 @@ class GalleryController extends Controller
     /**
      * Sample gallery data fallback
      */
-    private function getSampleGalleryData()
+    private function getSampleGalleryData(): array
     {
         return [
             [
@@ -230,10 +232,10 @@ class GalleryController extends Controller
     /**
      * Display the public gallery for a specific hostel
      */
-    public function show($slug)
+    public function show($slug): View
     {
         try {
-            \Log::info('=== GALLERY DEBUG START ===');
+            Log::info('=== GALLERY DEBUG START ===');
 
             // ✅ DEPLOYMENT FIX: Simplified with empty data
             $hostel = (object) [
@@ -246,12 +248,12 @@ class GalleryController extends Controller
 
             $galleries = [];
 
-            \Log::info('Gallery items count:', ['count' => count($galleries)]);
-            \Log::info('=== GALLERY DEBUG END ===');
+            Log::info('Gallery items count:', ['count' => count($galleries)]);
+            Log::info('=== GALLERY DEBUG END ===');
 
             return view('public.hostels.gallery', compact('hostel', 'galleries'));
         } catch (\Exception $e) {
-            \Log::error('Hostel gallery show error: ' . $e->getMessage());
+            Log::error('Hostel gallery show error: ' . $e->getMessage());
 
             // Return empty data instead of 404 for deployment
             $hostel = (object) [
@@ -301,7 +303,7 @@ class GalleryController extends Controller
 
             return response()->json($galleries);
         } catch (\Exception $e) {
-            \Log::error('Hostel gallery API error: ' . $e->getMessage());
+            Log::error('Hostel gallery API error: ' . $e->getMessage());
             return response()->json([]);
         }
     }
@@ -320,7 +322,7 @@ class GalleryController extends Controller
 
             return response()->json($galleries);
         } catch (\Exception $e) {
-            \Log::error('Gallery filter error: ' . $e->getMessage());
+            Log::error('Gallery filter error: ' . $e->getMessage());
             return response()->json([]);
         }
     }
@@ -328,7 +330,7 @@ class GalleryController extends Controller
     /**
      * Helper method to get categories list
      */
-    private function getCategoriesList()
+    private function getCategoriesList(): array
     {
         return [
             'all'       => 'सबै',
@@ -356,7 +358,7 @@ class GalleryController extends Controller
 
             return back()->with('success', 'Gallery cache cleared successfully!');
         } catch (\Exception $e) {
-            \Log::error('Clear cache error: ' . $e->getMessage());
+            Log::error('Clear cache error: ' . $e->getMessage());
             return back()->with('error', 'Failed to clear gallery cache.');
         }
     }
@@ -499,16 +501,5 @@ class GalleryController extends Controller
         }
 
         return null;
-    }
-
-    /**
-     * ✅ NEW: Add missing scope method for Gallery model compatibility
-     */
-    public function scopeForPublic($query)
-    {
-        return $query->where('is_active', true)
-            ->whereHas('hostel', function ($q) {
-                $q->where('is_published', true);
-            });
     }
 }
