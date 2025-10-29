@@ -28,17 +28,23 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Copy project files
 COPY . .
 
-# Create ALL Laravel directories with proper permissions FIRST
-RUN mkdir -p storage/framework/{cache,data,sessions,views} \
-    && mkdir -p bootstrap/cache \
-    && chmod -R 777 storage bootstrap/cache \
-    && chown -R www-data:www-data storage bootstrap/cache
+# Create ALL necessary Laravel directories with proper structure
+RUN mkdir -p storage/framework/cache \
+    && mkdir -p storage/framework/sessions \
+    && mkdir -p storage/framework/views \
+    && mkdir -p storage/framework/testing \
+    && mkdir -p storage/logs \
+    && mkdir -p bootstrap/cache
 
-# Install dependencies without running scripts initially
+# Set full permissions for build process
+RUN chmod -R 777 storage bootstrap/cache
+
+# Install dependencies WITHOUT running scripts
 RUN composer install --no-dev --optimize-autoloader --no-scripts
 
-# Now run the composer scripts with proper permissions
-RUN composer run-script post-autoload-dump
+# Now manually create the cache files that Laravel needs
+RUN php artisan config:clear || true
+RUN php artisan cache:clear || true
 
 # Generate application key
 RUN if [ ! -f .env ]; then \
@@ -50,6 +56,9 @@ RUN php artisan key:generate --force || true
 RUN sed -ri -e 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/!/var/www/html/public!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
+# Run package discovery manually (this should work now)
+RUN php artisan package:discover --ansi || true
+
 # Run migrations and create storage link
 RUN php artisan migrate --force || true
 RUN php artisan storage:link || true
@@ -57,9 +66,9 @@ RUN php artisan storage:link || true
 # Cache configuration for production
 RUN php artisan config:cache && php artisan route:cache && php artisan view:cache
 
-# Fix permissions again for web server
-RUN chmod -R 775 storage bootstrap/cache \
-    && chown -R www-data:www-data storage bootstrap/cache
+# Fix permissions for web server
+RUN chmod -R 775 storage bootstrap/cache
+RUN chown -R www-data:www-data storage bootstrap/cache
 
 # Expose port 80
 EXPOSE 80
