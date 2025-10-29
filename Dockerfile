@@ -14,11 +14,11 @@ RUN a2enmod rewrite
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy application code
-COPY . .
-
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Copy application code
+COPY . .
 
 # Install PHP dependencies (production mode)
 RUN composer install --no-dev --optimize-autoloader
