@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y \
     git \
     curl \
     libpng-dev \
-    libonig-dev \
+    libonign-dev \
     libxml2-dev \
     libzip-dev \
     zip \
@@ -25,7 +25,7 @@ WORKDIR /var/www/html
 # Copy composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Copy project files (use .dockerignore to exclude unnecessary files)
+# Copy project files
 COPY . .
 
 # Create Laravel storage directories and set permissions
@@ -34,22 +34,30 @@ RUN mkdir -p storage/framework/{cache,sessions,views} \
     && chmod -R 775 storage bootstrap/cache \
     && chown -R www-data:www-data storage bootstrap/cache
 
-# Install dependencies (production)
-RUN composer install --no-dev --optimize-autoloader --no-scripts
-
-# Now run the artisan commands
-RUN php artisan config:clear \
-    && php artisan cache:clear \
-    && php artisan view:clear
+# Install dependencies (production) WITHOUT --no-scripts
+RUN composer install --no-dev --optimize-autoloader
 
 # Generate application key if not exists
 RUN if [ ! -f .env ]; then \
-        cp .env.example .env && php artisan key:generate; \
+        cp .env.example .env; \
     fi
+
+# Run artisan commands safely
+RUN php artisan key:generate --force || true
 
 # Change Apache root to Laravel /public directory
 RUN sed -ri -e 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/!/var/www/html/public!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+
+# Run migrations and create storage link
+RUN php artisan migrate --force || true
+RUN php artisan storage:link || true
+
+# Cache configuration for production
+RUN php artisan config:cache && php artisan route:cache && php artisan view:cache
+
+# Fix permissions again
+RUN chown -R www-data:www-data /var/www/html
 
 # Expose port 80
 EXPOSE 80
