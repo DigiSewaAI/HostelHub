@@ -511,7 +511,7 @@
 <section class="free-trial">
     <div class="container">
         <div class="trial-content">
-            <h2 class="trial-title nepali">७ दिनको निःशुल्क परीक्षण</h2>
+            <h2 class="trial-title nepali">७ दिनको निःशुल्क परीक्षण.</h2>
             <p class="trial-subtitle nepali">हाम्रो प्रणालीको सबै सुविधाहरू निःशुल्क परीक्षण गर्नुहोस्, कुनै पनि बाध्यता बिना</p>
             <div class="trial-highlight">
                 <p class="trial-highlight-text nepali">७ दिन निःशुल्क • कुनै क्रेडिट कार्ड आवश्यक छैन • कुनै पनि प्रतिबद्धता छैन</p>
