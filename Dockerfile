@@ -4,12 +4,12 @@ FROM php:8.3-apache
 # Enable Apache rewrite module
 RUN a2enmod rewrite
 
-# Install system dependencies
+# Install system dependencies - FIXED: libonign-dev -> libonig-dev
 RUN apt-get update && apt-get install -y \
     git \
     curl \
     libpng-dev \
-    libonign-dev \
+    libonig-dev \
     libxml2-dev \
     libzip-dev \
     zip \
@@ -34,7 +34,7 @@ RUN mkdir -p storage/framework/{cache,sessions,views} \
     && chmod -R 775 storage bootstrap/cache \
     && chown -R www-data:www-data storage bootstrap/cache
 
-# Install dependencies (production) WITHOUT --no-scripts
+# Install dependencies (production)
 RUN composer install --no-dev --optimize-autoloader
 
 # Generate application key if not exists
