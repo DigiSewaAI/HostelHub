@@ -28,12 +28,8 @@ RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/storage \
     && chmod -R 755 /var/www/html/bootstrap/cache
 
-# Tell Render which port to use
-ENV PORT=10000
-EXPOSE 10000
-
-# Update Apache to listen on Render's port
-RUN sed -i "s/Listen 80/Listen ${PORT}/" /etc/apache2/ports.conf
+# Use default port 80
+EXPOSE 80
 
 # Start Apache
 CMD ["apache2-foreground"]
