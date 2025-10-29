@@ -29,6 +29,11 @@ class PricingController extends Controller
             $plans = collect(); // Return empty collection instead of failing
         }
 
+        // Emergency fix for production - ensure we always return valid data
+        if (!isset($plans) {
+            $plans = collect();
+        }
+
         // ✅ Corrected view path: frontend.pricing.index 
         return view('frontend.pricing.index', compact('plans'));
     }
@@ -182,5 +187,45 @@ class PricingController extends Controller
                 'selected_plan' => null
             ]);
         }
+    }
+
+    /**
+     * Emergency fallback for production deployment
+     * This ensures the pricing page always loads even if database is unavailable
+     */
+    private function getFallbackPlans()
+    {
+        return collect([
+            [
+                'id' => 1,
+                'name' => 'Basic',
+                'description' => 'Essential features for small hostels',
+                'price' => 299,
+                'duration' => 'monthly',
+                'features' => ['room_management', 'student_management'],
+                'is_popular' => false,
+                'sort_order' => 1
+            ],
+            [
+                'id' => 2,
+                'name' => 'Standard',
+                'description' => 'Complete hostel management solution',
+                'price' => 599,
+                'duration' => 'monthly',
+                'features' => ['room_management', 'student_management', 'payment_processing', 'meal_management'],
+                'is_popular' => true,
+                'sort_order' => 2
+            ],
+            [
+                'id' => 3,
+                'name' => 'Premium',
+                'description' => 'Advanced features for large hostels',
+                'price' => 999,
+                'duration' => 'monthly',
+                'features' => ['room_management', 'student_management', 'payment_processing', 'meal_management', 'attendance_tracking', 'reports_analytics'],
+                'is_popular' => false,
+                'sort_order' => 3
+            ]
+        ]);
     }
 }
