@@ -1,11 +1,9 @@
-@extends('layouts.frontend')
+<?php $__env->startSection('page-title', 'ग्यालरी - HostelHub'); ?>
+<?php $__env->startSection('page-header', 'हाम्रो ग्यालरी'); ?>
+<?php $__env->startSection('page-description', 'हाम्रा विभिन्न होस्टलहरूको कोठा, सुविधा र आवासीय क्षेत्रहरूको वास्तविक झलकहरू अन्वेषण गर्नुहोस्'); ?>
 
-@section('page-title', 'ग्यालरी - HostelHub')
-@section('page-header', 'हाम्रो ग्यालरी')
-@section('page-description', 'हाम्रा विभिन्न होस्टलहरूको कोठा, सुविधा र आवासीय क्षेत्रहरूको वास्तविक झलकहरू अन्वेषण गर्नुहोस्')
-
-@push('styles')
-<link rel="stylesheet" href="{{ asset('css/gallery.css') }}">
+<?php $__env->startPush('styles'); ?>
+<link rel="stylesheet" href="<?php echo e(asset('css/gallery.css')); ?>">
 <style>
     .hostel-badge {
         position: absolute;
@@ -197,9 +195,9 @@
         100% { transform: rotate(360deg); }
     }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 
 <!-- Enhanced Filters Section with Hostel Filter -->
 <section class="gallery-filters">
@@ -216,9 +214,9 @@
             </label>
             <select id="hostelFilter" class="form-control">
                 <option value="">सबै होस्टलहरू</option>
-                @foreach($hostels as $hostel)
-                    <option value="{{ $hostel->id }}">{{ $hostel->name }}</option>
-                @endforeach
+                <?php $__currentLoopData = $hostels; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $hostel): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <option value="<?php echo e($hostel->id); ?>"><?php echo e($hostel->name); ?></option>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </select>
         </div>
 
@@ -250,77 +248,78 @@
     <div class="gallery-container">
         <!-- Gallery Grid -->
         <div class="gallery-grid">
-            @forelse($galleries as $gallery)
-            <div class="gallery-item {{ $gallery->media_type }}" 
-                 data-category="{{ $gallery->category_nepali }}"
-                 data-title="{{ $gallery->title }}"
-                 data-description="{{ $gallery->description }}"
-                 data-date="{{ $gallery->created_at->format('Y-m-d') }}"
-                 data-hostel="{{ $gallery->hostel_name }}"
-                 data-hostel-id="{{ $gallery->hostel_id }}"
-                 data-room-number="{{ $gallery->room ? $gallery->room->room_number : '' }}"
-                 data-media-type="{{ $gallery->media_type }}"
-                 @if($gallery->media_type === 'external_video' && $gallery->youtube_embed_url)
-                 data-youtube-embed="{{ $gallery->youtube_embed_url }}"
-                 @endif>
+            <?php $__empty_1 = true; $__currentLoopData = $galleries; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $gallery): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+            <div class="gallery-item <?php echo e($gallery->media_type); ?>" 
+                 data-category="<?php echo e($gallery->category_nepali); ?>"
+                 data-title="<?php echo e($gallery->title); ?>"
+                 data-description="<?php echo e($gallery->description); ?>"
+                 data-date="<?php echo e($gallery->created_at->format('Y-m-d')); ?>"
+                 data-hostel="<?php echo e($gallery->hostel_name); ?>"
+                 data-hostel-id="<?php echo e($gallery->hostel_id); ?>"
+                 data-room-number="<?php echo e($gallery->room ? $gallery->room->room_number : ''); ?>"
+                 data-media-type="<?php echo e($gallery->media_type); ?>"
+                 <?php if($gallery->media_type === 'external_video' && $gallery->youtube_embed_url): ?>
+                 data-youtube-embed="<?php echo e($gallery->youtube_embed_url); ?>"
+                 <?php endif; ?>>
 
                 <!-- Hostel Badge -->
-                <div class="hostel-badge" title="{{ $gallery->hostel_name }}">
+                <div class="hostel-badge" title="<?php echo e($gallery->hostel_name); ?>">
                     <i class="fas fa-building"></i>
-                    <span class="nepali">{{ Str::limit($gallery->hostel_name, 20) }}</span>
+                    <span class="nepali"><?php echo e(Str::limit($gallery->hostel_name, 20)); ?></span>
                 </div>
 
                 <!-- Room Number Badge -->
-                @if($gallery->room && $gallery->room->room_number)
-                <div class="room-number-badge" title="कोठा नम्बर: {{ $gallery->room->room_number }}">
+                <?php if($gallery->room && $gallery->room->room_number): ?>
+                <div class="room-number-badge" title="कोठा नम्बर: <?php echo e($gallery->room->room_number); ?>">
                     <i class="fas fa-door-open"></i>
-                    <span class="nepali">कोठा {{ $gallery->room->room_number }}</span>
+                    <span class="nepali">कोठा <?php echo e($gallery->room->room_number); ?></span>
                 </div>
-                @endif
+                <?php endif; ?>
 
-                @if($gallery->media_type === 'photo')
-                    <img src="{{ $gallery->thumbnail_url ?? $gallery->media_url }}" alt="{{ $gallery->title }}" class="gallery-media" loading="lazy">
-                @elseif($gallery->media_type === 'external_video')
-                    <img src="{{ $gallery->thumbnail_url }}" alt="{{ $gallery->title }}" class="gallery-media" loading="lazy">
+                <?php if($gallery->media_type === 'photo'): ?>
+                    <img src="<?php echo e($gallery->thumbnail_url ?? $gallery->media_url); ?>" alt="<?php echo e($gallery->title); ?>" class="gallery-media" loading="lazy">
+                <?php elseif($gallery->media_type === 'external_video'): ?>
+                    <img src="<?php echo e($gallery->thumbnail_url); ?>" alt="<?php echo e($gallery->title); ?>" class="gallery-media" loading="lazy">
                     <div class="video-badge">
                         <i class="fas fa-play"></i>
                         <span>भिडियो</span>
                     </div>
-                @elseif($gallery->media_type === 'local_video')
-                    <img src="{{ $gallery->thumbnail_url }}" alt="{{ $gallery->title }}" class="gallery-media" loading="lazy">
+                <?php elseif($gallery->media_type === 'local_video'): ?>
+                    <img src="<?php echo e($gallery->thumbnail_url); ?>" alt="<?php echo e($gallery->title); ?>" class="gallery-media" loading="lazy">
                     <div class="video-badge">
                         <i class="fas fa-play"></i>
                         <span>भिडियो</span>
                     </div>
-                @endif
+                <?php endif; ?>
 
                 <div class="media-overlay">
-                    <div class="media-title nepali">{{ $gallery->title }}</div>
-                    <div class="media-description nepali">{{ $gallery->description }}</div>
+                    <div class="media-title nepali"><?php echo e($gallery->title); ?></div>
+                    <div class="media-description nepali"><?php echo e($gallery->description); ?></div>
                     <div class="media-meta">
-                        <span class="media-category nepali">{{ $gallery->category_nepali }}</span>
-                        <span class="media-date">{{ $gallery->created_at->format('Y-m-d') }}</span>
-                        @if($gallery->room && $gallery->room->room_number)
-                        <span class="room-number nepali">कोठा: {{ $gallery->room->room_number }}</span>
-                        @endif
+                        <span class="media-category nepali"><?php echo e($gallery->category_nepali); ?></span>
+                        <span class="media-date"><?php echo e($gallery->created_at->format('Y-m-d')); ?></span>
+                        <?php if($gallery->room && $gallery->room->room_number): ?>
+                        <span class="room-number nepali">कोठा: <?php echo e($gallery->room->room_number); ?></span>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
-            @empty
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
             <div class="no-results">
                 <i class="fas fa-images" style="font-size: 3rem; color: #ccc; margin-bottom: 1rem;"></i>
                 <h3 class="nepali">कुनै ग्यालरी आइटम फेला परेन</h3>
                 <p class="nepali">हाल कुनै ग्यालरी आइटम उपलब्ध छैन। कृपया पछि फर्कनुहोस्।</p>
             </div>
-            @endforelse
+            <?php endif; ?>
         </div>
 
         <!-- Pagination -->
-        @if($galleries->count() > 0)
+        <?php if($galleries->count() > 0): ?>
         <div class="pagination-container">
-            {{ $galleries->links() }}
+            <?php echo e($galleries->links()); ?>
+
         </div>
-        @endif
+        <?php endif; ?>
 
         <!-- No Results Message -->
         <div class="no-results hidden">
@@ -341,15 +340,15 @@
 <section class="gallery-stats">
     <div class="stats-grid">
         <div class="stat-item">
-            <div class="stat-number">{{ $metrics['total_students'] ?? '500+' }}</div>
+            <div class="stat-number"><?php echo e($metrics['total_students'] ?? '500+'); ?></div>
             <div class="stat-label nepali">खुसी विद्यार्थीहरू</div>
         </div>
         <div class="stat-item">
-            <div class="stat-number">{{ $metrics['total_hostels'] ?? '25' }}</div>
+            <div class="stat-number"><?php echo e($metrics['total_hostels'] ?? '25'); ?></div>
             <div class="stat-label nepali">सहयोगी होस्टल</div>
         </div>
         <div class="stat-item">
-            <div class="stat-number">{{ $cities->count() ?? '5' }}</div>
+            <div class="stat-number"><?php echo e($cities->count() ?? '5'); ?></div>
             <div class="stat-label nepali">शहरहरूमा उपलब्ध</div>
         </div>
         <div class="stat-item">
@@ -365,8 +364,8 @@
         <h2 class="nepali">तपाईंको होस्टललाई HostelHub संग जोड्नुहोस्</h2>
         <p class="nepali">७ दिन निःशुल्क परीक्षण गर्नुहोस् र होस्टल व्यवस्थापनलाई सजिलो, द्रुत र भरपर्दो बनाउनुहोस्</p>
         <div class="cta-buttons">
-            <a href="{{ route('register') }}" class="cta-btn primary nepali">निःशुल्क साइन अप गर्नुहोस्</a>
-            <a href="{{ route('demo') }}" class="cta-btn secondary nepali">डेमो हेर्नुहोस्</a>
+            <a href="<?php echo e(route('register')); ?>" class="cta-btn primary nepali">निःशुल्क साइन अप गर्नुहोस्</a>
+            <a href="<?php echo e(route('demo')); ?>" class="cta-btn secondary nepali">डेमो हेर्नुहोस्</a>
         </div>
     </div>
 </section>
@@ -398,10 +397,10 @@
         </div>
     </div>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
-<script src="{{ asset('js/gallery.js') }}"></script>
+<?php $__env->startPush('scripts'); ?>
+<script src="<?php echo e(asset('js/gallery.js')); ?>"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Hostel filter functionality
@@ -603,4 +602,5 @@ document.addEventListener('DOMContentLoaded', function() {
     filterGalleries();
 });
 </script>
-@endpush
+<?php $__env->stopPush(); ?>
+<?php echo $__env->make('layouts.frontend', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\My Projects\HostelHub\resources\views/frontend/gallery/index.blade.php ENDPATH**/ ?>
