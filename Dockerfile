@@ -30,6 +30,16 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Copy existing application directory contents
 COPY . .
 
+# ✅ CREATE LARAVEL CACHE DIRECTORIES
+RUN mkdir -p storage/framework/cache \
+    storage/framework/sessions \
+    storage/framework/views \
+    bootstrap/cache
+
+# ✅ SET PERMISSIONS BEFORE COMPOSER INSTALL
+RUN chmod -R 775 storage bootstrap/cache
+RUN chown -R www-data:www-data storage bootstrap/cache
+
 # Install PHP dependencies (production mode)
 RUN composer install --no-dev --optimize-autoloader
 
