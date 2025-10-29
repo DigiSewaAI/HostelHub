@@ -4,7 +4,7 @@ FROM php:8.3-apache
 # Enable Apache rewrite module
 RUN a2enmod rewrite
 
-# Install system dependencies - FIXED: libonign-dev -> libonig-dev
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -28,21 +28,22 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Copy project files
 COPY . .
 
-# Create Laravel storage directories and set permissions
-RUN mkdir -p storage/framework/{cache,sessions,views} \
+# Create ALL Laravel directories with proper permissions FIRST
+RUN mkdir -p storage/framework/{cache,data,sessions,views} \
     && mkdir -p bootstrap/cache \
-    && chmod -R 775 storage bootstrap/cache \
+    && chmod -R 777 storage bootstrap/cache \
     && chown -R www-data:www-data storage bootstrap/cache
 
-# Install dependencies (production)
-RUN composer install --no-dev --optimize-autoloader
+# Install dependencies without running scripts initially
+RUN composer install --no-dev --optimize-autoloader --no-scripts
 
-# Generate application key if not exists
+# Now run the composer scripts with proper permissions
+RUN composer run-script post-autoload-dump
+
+# Generate application key
 RUN if [ ! -f .env ]; then \
         cp .env.example .env; \
     fi
-
-# Run artisan commands safely
 RUN php artisan key:generate --force || true
 
 # Change Apache root to Laravel /public directory
@@ -56,8 +57,9 @@ RUN php artisan storage:link || true
 # Cache configuration for production
 RUN php artisan config:cache && php artisan route:cache && php artisan view:cache
 
-# Fix permissions again
-RUN chown -R www-data:www-data /var/www/html
+# Fix permissions again for web server
+RUN chmod -R 775 storage bootstrap/cache \
+    && chown -R www-data:www-data storage bootstrap/cache
 
 # Expose port 80
 EXPOSE 80
