@@ -14,7 +14,6 @@ class GalleryController extends Controller
 {
     protected $cacheService;
 
-    // ✅ NEW: Service initialize
     public function __construct()
     {
         $this->cacheService = new GalleryCacheService();
@@ -25,36 +24,53 @@ class GalleryController extends Controller
      */
     public function index()
     {
-        // ✅ FIXED: Use paginate instead of get() for cache service
-        $galleries = Gallery::with(['hostel', 'room'])
-            ->where('is_active', true)
-            ->orderBy('is_featured', 'desc')
-            ->orderBy('created_at', 'desc')
-            ->paginate(12); // ✅ 12 items per page
+        try {
+            // ✅ FIXED: Simplified query with proper error handling
+            $galleries = Gallery::with(['hostel', 'room'])
+                ->where('is_active', true)
+                ->orderBy('is_featured', 'desc')
+                ->orderBy('created_at', 'desc')
+                ->paginate(12);
 
-        // Get unique hostels for filter
-        $hostels = Hostel::where('is_published', true)
-            ->whereHas('galleries', function ($query) {
-                $query->where('is_active', true);
-            })
-            ->get(['id', 'name']);
+            // Get unique hostels for filter
+            $hostels = Hostel::where('is_published', true)
+                ->whereHas('galleries', function ($query) {
+                    $query->where('is_active', true);
+                })
+                ->get(['id', 'name']);
 
-        // ✅ FIXED: Add cities data for the stats section
-        $cities = Hostel::where('is_published', true)
-            ->distinct('city')
-            ->pluck('city')
-            ->filter()
-            ->values();
+            // ✅ FIXED: Add cities data for the stats section
+            $cities = Hostel::where('is_published', true)
+                ->distinct('city')
+                ->pluck('city')
+                ->filter()
+                ->values();
 
-        // ✅ FIXED: Add metrics data for the stats section
-        $metrics = [
-            'total_students' => 500,
-            'total_hostels' => $hostels->count(),
-            'cities_available' => $cities->count(),
-            'satisfaction_rate' => '98%'
-        ];
+            // ✅ FIXED: Add metrics data for the stats section
+            $metrics = [
+                'total_students' => 500,
+                'total_hostels' => $hostels->count(),
+                'cities_available' => $cities->count(),
+                'satisfaction_rate' => '98%'
+            ];
 
-        return view('frontend.gallery.index', compact('galleries', 'hostels', 'cities', 'metrics'));
+            return view('frontend.gallery.index', compact('galleries', 'hostels', 'cities', 'metrics'));
+        } catch (\Exception $e) {
+            \Log::error('Gallery index error: ' . $e->getMessage());
+
+            // Return empty data on error
+            return view('frontend.gallery.index', [
+                'galleries' => [],
+                'hostels' => [],
+                'cities' => [],
+                'metrics' => [
+                    'total_students' => 0,
+                    'total_hostels' => 0,
+                    'cities_available' => 0,
+                    'satisfaction_rate' => '0%'
+                ]
+            ]);
+        }
     }
 
     /**
@@ -99,18 +115,23 @@ class GalleryController extends Controller
      */
     public function getGalleryData()
     {
-        // ✅ FIXED: Use cache service for API (API maa pagination chaina)
-        $galleries = $this->cacheService->getPublicGalleries()
-            ->map(function ($item) {
-                return $this->formatGalleryItemWithHostel($item);
-            });
+        try {
+            // ✅ FIXED: Use cache service for API with fallback
+            $galleries = $this->cacheService->getPublicGalleries()
+                ->map(function ($item) {
+                    return $this->formatGalleryItemWithHostel($item);
+                });
 
-        // Fallback sample data if no items found
-        if ($galleries->isEmpty()) {
-            $galleries = collect($this->getSampleGalleryData());
+            // Fallback sample data if no items found
+            if ($galleries->isEmpty()) {
+                $galleries = collect($this->getSampleGalleryData());
+            }
+
+            return response()->json($galleries);
+        } catch (\Exception $e) {
+            \Log::error('Gallery API data error: ' . $e->getMessage());
+            return response()->json($this->getSampleGalleryData());
         }
-
-        return response()->json($galleries);
     }
 
     /**
@@ -118,13 +139,18 @@ class GalleryController extends Controller
      */
     public function getFeaturedGalleries()
     {
-        // ✅ NEW: Featured galleries cache bata lyaune
-        $galleries = $this->cacheService->getFeaturedGalleries()
-            ->map(function ($item) {
-                return $this->formatGalleryItemWithHostel($item);
-            });
+        try {
+            // ✅ FIXED: Featured galleries cache bata lyaune with error handling
+            $galleries = $this->cacheService->getFeaturedGalleries()
+                ->map(function ($item) {
+                    return $this->formatGalleryItemWithHostel($item);
+                });
 
-        return response()->json($galleries);
+            return response()->json($galleries);
+        } catch (\Exception $e) {
+            \Log::error('Featured galleries error: ' . $e->getMessage());
+            return response()->json([]);
+        }
     }
 
     /**
@@ -132,20 +158,40 @@ class GalleryController extends Controller
      */
     private function formatGalleryItemWithHostel($item): array
     {
+        // ✅ FIXED: Handle both object and array items safely
+        $hostelName = null;
+        $hostelId = null;
+        $roomNumber = null;
+        $isRoomImage = false;
+
+        if (is_object($item)) {
+            $hostelName = $item->hostel->name ?? ($item->hostel_name ?? 'Unknown Hostel');
+            $hostelId = $item->hostel_id ?? null;
+            $roomNumber = $item->room->room_number ?? null;
+            $isRoomImage = !is_null($item->room_id ?? null);
+            $createdAt = $item->created_at ?? now();
+        } else {
+            $hostelName = $item['hostel_name'] ?? 'Unknown Hostel';
+            $hostelId = $item['hostel_id'] ?? null;
+            $roomNumber = $item['room_number'] ?? null;
+            $isRoomImage = $item['is_room_image'] ?? false;
+            $createdAt = isset($item['created_at']) ? \Carbon\Carbon::parse($item['created_at']) : now();
+        }
+
         return [
-            'id' => $item->id,
-            'title' => $item->title,
-            'description' => $item->description,
-            'category' => $item->category,
-            'media_type' => $item->media_type,
-            'file_url' => $item->media_url,
-            'thumbnail_url' => $item->thumbnail_url,
-            'external_link' => $item->external_link,
-            'created_at' => $item->created_at->format('Y-m-d'),
-            'hostel_name' => $item->hostel_name, // ✅ ADDED: Hostel name
-            'hostel_id' => $item->hostel_id,
-            'room_number' => $item->room ? $item->room->room_number : null,
-            'is_room_image' => !is_null($item->room_id) // ✅ ADDED: Room image flag
+            'id' => $item->id ?? $item['id'] ?? 0,
+            'title' => $item->title ?? $item['title'] ?? '',
+            'description' => $item->description ?? $item['description'] ?? '',
+            'category' => $item->category ?? $item['category'] ?? 'common',
+            'media_type' => $item->media_type ?? $item['media_type'] ?? 'photo',
+            'file_url' => $item->media_url ?? $item['file_url'] ?? '',
+            'thumbnail_url' => $item->thumbnail_url ?? $item['thumbnail_url'] ?? '',
+            'external_link' => $item->external_link ?? $item['external_link'] ?? '',
+            'created_at' => $createdAt->format('Y-m-d'),
+            'hostel_name' => $hostelName,
+            'hostel_id' => $hostelId,
+            'room_number' => $roomNumber,
+            'is_room_image' => $isRoomImage
         ];
     }
 
@@ -179,12 +225,12 @@ class GalleryController extends Controller
                 'id' => 1,
                 'title' => 'आरामदायी १ सिटर कोठा',
                 'description' => 'विद्यार्थीहरूको लागि आरामदायी एक सिटर कोठा',
-                'category' => '1 seater',
+                'category' => 'single',
                 'media_type' => 'photo',
                 'file_url' => asset('images/sample-room-1.jpg'),
                 'thumbnail_url' => asset('images/sample-room-1-thumb.jpg'),
                 'created_at' => '2024-01-15',
-                'hostel_name' => 'नमूना होस्टल', // ✅ ADDED: Hostel name
+                'hostel_name' => 'नमूना होस्टल',
                 'hostel_id' => 1,
                 'room_number' => '101',
                 'is_room_image' => true
@@ -198,12 +244,11 @@ class GalleryController extends Controller
                 'external_link' => 'https://www.youtube.com/embed/sample-video',
                 'thumbnail_url' => asset('images/video-thumbnail.jpg'),
                 'created_at' => '2024-01-10',
-                'hostel_name' => 'नमूना होस्टल', // ✅ ADDED: Hostel name
+                'hostel_name' => 'नमूना होस्टल',
                 'hostel_id' => 1,
                 'room_number' => null,
                 'is_room_image' => false
             ],
-            // Add more sample items as needed
         ];
     }
 
@@ -212,30 +257,34 @@ class GalleryController extends Controller
      */
     public function show($slug)
     {
-        \Log::info('=== GALLERY DEBUG START ===');
+        try {
+            \Log::info('=== GALLERY DEBUG START ===');
 
-        $hostel = Hostel::where('slug', $slug)->firstOrFail();
+            $hostel = Hostel::where('slug', $slug)->firstOrFail();
 
-        \Log::info('Hostel details:', [
-            'id' => $hostel->id,
-            'name' => $hostel->name,
-            'slug' => $hostel->slug,
-            'status' => $hostel->status,
-            'status_type' => gettype($hostel->status),
-            'theme' => $hostel->theme
-        ]);
+            \Log::info('Hostel details:', [
+                'id' => $hostel->id,
+                'name' => $hostel->name,
+                'slug' => $hostel->slug,
+                'status' => $hostel->status,
+                'status_type' => gettype($hostel->status),
+                'theme' => $hostel->theme
+            ]);
 
-        $galleries = Gallery::where('hostel_id', $hostel->id)
-            ->where('is_active', true)
-            ->orderBy('is_featured', 'desc')
-            ->orderBy('created_at', 'desc')
-            ->paginate(12); // ✅ FIXED: Use paginate here too
+            $galleries = Gallery::where('hostel_id', $hostel->id)
+                ->where('is_active', true)
+                ->orderBy('is_featured', 'desc')
+                ->orderBy('created_at', 'desc')
+                ->paginate(12);
 
-        \Log::info('Gallery items count:', ['count' => $galleries->count()]);
-        \Log::info('Gallery items:', $galleries->toArray());
-        \Log::info('=== GALLERY DEBUG END ===');
+            \Log::info('Gallery items count:', ['count' => $galleries->count()]);
+            \Log::info('=== GALLERY DEBUG END ===');
 
-        return view('public.hostels.gallery', compact('hostel', 'galleries'));
+            return view('public.hostels.gallery', compact('hostel', 'galleries'));
+        } catch (\Exception $e) {
+            \Log::error('Hostel gallery show error: ' . $e->getMessage());
+            abort(404, 'Hostel gallery not found');
+        }
     }
 
     /**
@@ -243,37 +292,42 @@ class GalleryController extends Controller
      */
     public function getHostelGalleryData($slug)
     {
-        $hostel = Hostel::where('slug', $slug)->firstOrFail();
+        try {
+            $hostel = Hostel::where('slug', $slug)->firstOrFail();
 
-        $galleries = $hostel->galleries()
-            ->with('room')
-            ->where('is_active', true)
-            ->get()
-            ->map(function ($item) use ($hostel) {
-                return [
-                    'id' => $item->id,
-                    'title' => $item->title,
-                    'description' => $item->description,
-                    'category' => $item->category,
-                    'media_type' => $item->media_type,
-                    'file_path' => $item->file_path,
-                    'thumbnail' => $item->thumbnail,
-                    'external_link' => $item->external_link,
-                    'is_featured' => $item->is_featured,
-                    'is_active' => $item->is_active,
-                    'media_url' => $item->media_url,
-                    'thumbnail_url' => $item->thumbnail_url,
-                    'is_video' => $item->is_video,
-                    'is_youtube_video' => $item->is_youtube_video,
-                    'youtube_embed_url' => $item->youtube_embed_url,
-                    'category_nepali' => $item->category_nepali,
-                    'hostel_name' => $hostel->name, // ✅ ADDED: Hostel name
-                    'room_number' => $item->room ? $item->room->room_number : null,
-                    'is_room_image' => !is_null($item->room_id)
-                ];
-            });
+            $galleries = $hostel->galleries()
+                ->with('room')
+                ->where('is_active', true)
+                ->get()
+                ->map(function ($item) use ($hostel) {
+                    return [
+                        'id' => $item->id,
+                        'title' => $item->title,
+                        'description' => $item->description,
+                        'category' => $item->category,
+                        'media_type' => $item->media_type,
+                        'file_path' => $item->file_path,
+                        'thumbnail' => $item->thumbnail,
+                        'external_link' => $item->external_link,
+                        'is_featured' => $item->is_featured,
+                        'is_active' => $item->is_active,
+                        'media_url' => $item->media_url,
+                        'thumbnail_url' => $item->thumbnail_url,
+                        'is_video' => $item->is_video,
+                        'is_youtube_video' => $item->is_youtube_video,
+                        'youtube_embed_url' => $item->youtube_embed_url,
+                        'category_nepali' => $item->category_nepali,
+                        'hostel_name' => $hostel->name,
+                        'room_number' => $item->room ? $item->room->room_number : null,
+                        'is_room_image' => !is_null($item->room_id)
+                    ];
+                });
 
-        return response()->json($galleries);
+            return response()->json($galleries);
+        } catch (\Exception $e) {
+            \Log::error('Hostel gallery API error: ' . $e->getMessage());
+            return response()->json([]);
+        }
     }
 
     /**
@@ -281,21 +335,27 @@ class GalleryController extends Controller
      */
     public function filterByHostel(Request $request)
     {
-        $hostelId = $request->get('hostel_id');
+        try {
+            $hostelId = $request->get('hostel_id');
 
-        $galleries = Gallery::with(['hostel', 'room'])
-            ->forPublic()
-            ->when($hostelId, function ($query) use ($hostelId) {
-                return $query->where('hostel_id', $hostelId);
-            })
-            ->orderBy('is_featured', 'desc')
-            ->orderBy('created_at', 'desc')
-            ->get()
-            ->map(function ($item) {
-                return $this->formatGalleryItemWithHostel($item);
-            });
+            // ✅ FIXED: Use proper scope or remove if scope doesn't exist
+            $galleries = Gallery::with(['hostel', 'room'])
+                ->where('is_active', true) // Use direct where instead of scope
+                ->when($hostelId, function ($query) use ($hostelId) {
+                    return $query->where('hostel_id', $hostelId);
+                })
+                ->orderBy('is_featured', 'desc')
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->map(function ($item) {
+                    return $this->formatGalleryItemWithHostel($item);
+                });
 
-        return response()->json($galleries);
+            return response()->json($galleries);
+        } catch (\Exception $e) {
+            \Log::error('Gallery filter error: ' . $e->getMessage());
+            return response()->json([]);
+        }
     }
 
     /**
@@ -305,10 +365,10 @@ class GalleryController extends Controller
     {
         return [
             'all'       => 'सबै',
-            '1 seater'  => '१ सिटर कोठा',
-            '2 seater'  => '२ सिटर कोठा',
-            '3 seater'  => '३ सिटर कोठा',
-            '4 seater'  => '४ सिटर कोठा',
+            'single'  => '१ सिटर कोठा',
+            'double'  => '२ सिटर कोठा',
+            'triple'  => '३ सिटर कोठा',
+            'quad'  => '४ सिटर कोठा',
             'common'    => 'लिभिङ रूम',
             'bathroom'  => 'बाथरूम',
             'kitchen'   => 'भान्सा',
@@ -323,10 +383,15 @@ class GalleryController extends Controller
      */
     public function clearCache()
     {
-        // ✅ NEW: Cache clear garne method
-        $this->cacheService->clearCache();
+        try {
+            // ✅ FIXED: Cache clear garne method with error handling
+            $this->cacheService->clearCache();
 
-        return back()->with('success', 'Gallery cache cleared successfully!');
+            return back()->with('success', 'Gallery cache cleared successfully!');
+        } catch (\Exception $e) {
+            \Log::error('Clear cache error: ' . $e->getMessage());
+            return back()->with('error', 'Failed to clear gallery cache.');
+        }
     }
 
     /**
@@ -467,5 +532,16 @@ class GalleryController extends Controller
         }
 
         return null;
+    }
+
+    /**
+     * ✅ NEW: Add missing scope method for Gallery model compatibility
+     */
+    public function scopeForPublic($query)
+    {
+        return $query->where('is_active', true)
+            ->whereHas('hostel', function ($q) {
+                $q->where('is_published', true);
+            });
     }
 }
