@@ -37,7 +37,7 @@ class StudentController extends Controller
         return view('students.my', compact('students'));
     }
 
-    // FIXED: Dashboard method with circular data
+    // PERMANENT FIX: Dashboard method with BOTH variables to prevent any errors
     public function dashboard()
     {
         try {
@@ -70,22 +70,21 @@ class StudentController extends Controller
             // ✅ FIXED: Add payment status based on last payment
             $paymentStatus = 'Unpaid'; // Default status
             if ($lastPayment) {
-                // Check if payment has a status field, otherwise determine based on amount/date
                 if (isset($lastPayment->status)) {
                     $paymentStatus = $lastPayment->status == 'paid' ? 'Paid' : 'Unpaid';
                 } else {
-                    // If no status field, assume paid if amount is positive
                     $paymentStatus = $lastPayment->amount > 0 ? 'Paid' : 'Unpaid';
                 }
             }
 
             // ✅ FIXED: Add all variables that the view expects
-            $notifications = collect(); // Empty collection for notifications
-            $upcomingEvents = collect(); // Empty collection for events
+            $notifications = collect();
+            $upcomingEvents = collect();
 
-            // ✅ ADDED: Circular data for student
+            // ✅ PERMANENT FIX: Circular data with BOTH variable names
             $unreadCirculars = 0;
             $recentStudentCirculars = collect();
+            $urgentCirculars = collect();
             $importantCirculars = collect();
 
             // Check if Circular models exist
@@ -102,7 +101,7 @@ class StudentController extends Controller
                     ->take(5)
                     ->get();
 
-                $importantCirculars = Circular::whereHas('recipients', function ($q) use ($user) {
+                $urgentCirculars = Circular::whereHas('recipients', function ($q) use ($user) {
                     $q->where('user_id', $user->id);
                 })
                     ->where('priority', 'urgent')
@@ -110,6 +109,9 @@ class StudentController extends Controller
                     ->latest()
                     ->take(3)
                     ->get();
+
+                // ✅ PERMANENT FIX: Set both variables to same data
+                $importantCirculars = $urgentCirculars;
             }
 
             return view('student.dashboard', compact(
@@ -122,9 +124,10 @@ class StudentController extends Controller
                 'upcomingEvents',
                 'lastPayment',
                 'paymentStatus',
-                // ✅ ADDED: Circular variables
+                // ✅ PERMANENT FIX: Pass BOTH variables to view
                 'unreadCirculars',
                 'recentStudentCirculars',
+                'urgentCirculars',
                 'importantCirculars'
             ));
         } catch (\Exception $e) {
@@ -234,7 +237,7 @@ class StudentController extends Controller
                 ->latest()
                 ->paginate(10);
         } else {
-            $reviews = collect(); // Empty collection if Review model doesn't exist
+            $reviews = collect();
         }
 
         return view('student.reviews', compact('reviews', 'student'));
@@ -255,7 +258,7 @@ class StudentController extends Controller
                 ->orderBy('event_date')
                 ->paginate(10);
         } else {
-            $events = collect(); // Empty collection if Event model doesn't exist
+            $events = collect();
         }
 
         return view('student.events', compact('events', 'student'));
@@ -266,7 +269,7 @@ class StudentController extends Controller
         $user = Auth::user();
 
         // Simple notifications implementation
-        $notifications = []; // You can implement proper notifications later
+        $notifications = [];
 
         return view('student.notifications', compact('notifications'));
     }
