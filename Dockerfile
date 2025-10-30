@@ -1,9 +1,10 @@
+# Use official PHP 8.3 with Apache
 FROM php:8.3-apache
 
 # Enable Apache modules
 RUN a2enmod rewrite headers
 
-# Install system dependencies and PHP extensions
+# Install required system dependencies and PHP extensions
 RUN apt-get update && apt-get install -y \
     libpng-dev \
     libjpeg-dev \
@@ -24,10 +25,11 @@ RUN apt-get update && apt-get install -y \
         gd \
         zip \
         bcmath \
-        opcache
+        opcache \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+# Copy Composer from official image
+COPY --from=composer:2.7 /usr/bin/composer /usr/bin/composer
 
 # Set working directory
 WORKDIR /var/www/html
@@ -35,26 +37,33 @@ WORKDIR /var/www/html
 # Copy application code
 COPY . .
 
-# Fix permissions and clean cache
-RUN rm -rf bootstrap/cache/* \
-    && chmod -R 777 storage bootstrap/cache
+# Fix permissions and prepare writable directories
+RUN mkdir -p storage/framework/{cache,sessions,views} \
+    && mkdir -p storage/logs \
+    && chmod -R 775 storage bootstrap/cache \
+    && chown -R www-data:www-data storage bootstrap/cache
 
-# Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader --no-scripts
+# Install PHP dependencies (no dev, optimized autoloader)
+RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
 
-# Generate application key and setup environment
-RUN if [ ! -f .env ]; then cp .env.example .env; fi \
-    && php artisan key:generate --force || true
+# Copy example environment if .env not present (Render will override via Environment tab)
+RUN if [ ! -f .env ]; then cp .env.example .env; fi
 
-# Optimize application (skip route cache to avoid conflicts)
+# Clear any stale caches before building
+RUN php artisan config:clear || true \
+    && php artisan cache:clear || true \
+    && php artisan route:clear || true \
+    && php artisan view:clear || true
+
+# Optimize Laravel for production
 RUN php artisan config:cache || true \
     && php artisan view:cache || true
 
-# Fix Apache document root to point to public directory
+# Set Apache DocumentRoot to Laravel's public directory
 RUN sed -ri -e 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/*.conf \
     && sed -ri -e 's!/var/www/!/var/www/html/public!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
-# Create Apache virtual host configuration
+# Create Apache VirtualHost
 RUN echo '<VirtualHost *:80>\n\
     ServerName localhost\n\
     DocumentRoot /var/www/html/public\n\
@@ -69,26 +78,16 @@ RUN echo '<VirtualHost *:80>\n\
     CustomLog ${APACHE_LOG_DIR}/access.log combined\n\
 </VirtualHost>' > /etc/apache2/sites-available/000-default.conf
 
-# Set proper permissions
-RUN chmod -R 775 storage bootstrap/cache \
-    && chown -R www-data:www-data storage bootstrap/cache
+# Ensure correct ownership
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 775 /var/www/html
 
-# Create necessary directories
-RUN mkdir -p /var/www/html/storage/framework/views \
-    && mkdir -p /var/www/html/storage/framework/cache \
-    && mkdir -p /var/www/html/storage/framework/sessions \
-    && mkdir -p /var/www/html/storage/logs
-
-# Set permissions for Laravel storage
-RUN chown -R www-data:www-data /var/www/html/storage \
-    && chmod -R 775 /var/www/html/storage
-
-# Expose port 80
+# Expose port 80 (Render automatically handles HTTPS)
 EXPOSE 80
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+# Health check endpoint
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD curl -f http://localhost/ || exit 1
 
-# Start Apache server
+# Start Apache in the foreground
 CMD ["apache2-foreground"]
