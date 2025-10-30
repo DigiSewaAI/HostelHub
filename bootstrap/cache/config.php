@@ -116,8 +116,8 @@
   'app' => 
   array (
     'name' => 'Laravel',
-    'env' => 'local',
-    'debug' => true,
+    'env' => 'Production',
+    'debug' => false,
     'url' => 'https://hostelhub-fjkg.onrender.com/',
     'frontend_url' => 'http://localhost:3000',
     'asset_url' => NULL,
@@ -557,14 +557,14 @@
       array (
         'driver' => 'single',
         'path' => 'C:\\laragon\\www\\HostelHub\\storage\\logs/laravel.log',
-        'level' => 'debug',
+        'level' => 'error',
         'replace_placeholders' => true,
       ),
       'daily' => 
       array (
         'driver' => 'daily',
         'path' => 'C:\\laragon\\www\\HostelHub\\storage\\logs/laravel.log',
-        'level' => 'debug',
+        'level' => 'error',
         'days' => 14,
         'replace_placeholders' => true,
       ),
@@ -574,13 +574,13 @@
         'url' => NULL,
         'username' => 'Laravel Log',
         'emoji' => ':boom:',
-        'level' => 'debug',
+        'level' => 'error',
         'replace_placeholders' => true,
       ),
       'papertrail' => 
       array (
         'driver' => 'monolog',
-        'level' => 'debug',
+        'level' => 'error',
         'handler' => 'Monolog\\Handler\\SyslogUdpHandler',
         'handler_with' => 
         array (
@@ -596,7 +596,7 @@
       'stderr' => 
       array (
         'driver' => 'monolog',
-        'level' => 'debug',
+        'level' => 'error',
         'handler' => 'Monolog\\Handler\\StreamHandler',
         'handler_with' => 
         array (
@@ -611,14 +611,14 @@
       'syslog' => 
       array (
         'driver' => 'syslog',
-        'level' => 'debug',
+        'level' => 'error',
         'facility' => 8,
         'replace_placeholders' => true,
       ),
       'errorlog' => 
       array (
         'driver' => 'errorlog',
-        'level' => 'debug',
+        'level' => 'error',
         'replace_placeholders' => true,
       ),
       'null' => 
