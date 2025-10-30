@@ -56,6 +56,9 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-di
 # Copy example environment if missing
 RUN if [ ! -f .env ]; then cp .env.example .env; fi
 
+# Generate application key if not exists
+RUN if [ -f .env ] && ! grep -q "APP_KEY=base64:" .env; then php artisan key:generate --force; fi
+
 # Clear all Laravel caches
 RUN php artisan config:clear || true \
     && php artisan cache:clear || true \
@@ -78,6 +81,7 @@ RUN echo '<VirtualHost *:80>\n\
         Options Indexes FollowSymLinks\n\
         AllowOverride All\n\
         Require all granted\n\
+        FallbackResource /index.php\n\
     </Directory>\n\
     ErrorLog ${APACHE_LOG_DIR}/error.log\n\
     CustomLog ${APACHE_LOG_DIR}/access.log combined\n\
@@ -94,5 +98,45 @@ EXPOSE 80
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD curl -f http://localhost/ || exit 1
 
-# Run Laravel deploy script before Apache
-CMD ["bash", "deploy.sh"] && apache2-foreground
+# ✅ FIXED: Create deploy script and run it properly
+RUN echo '#!/bin/bash\n\
+\n\
+echo "🚀 Starting Laravel deployment..."\n\
+\n\
+# Run database migrations if needed\n\
+# php artisan migrate --force --no-interaction\n\
+\n\
+# Clear and cache config\n\
+php artisan config:clear\n\
+php artisan config:cache\n\
+\n\
+# Clear and cache routes\n\
+php artisan route:clear\n\
+php artisan route:cache\n\
+\n\
+# Clear and cache views\n\
+php artisan view:clear\n\
+php artisan view:cache\n\
+\n\
+# Clear and cache events\n\
+php artisan event:clear\n\
+php artisan event:cache\n\
+\n\
+# Cache packages\n\
+php artisan package:discover\n\
+\n\
+# Set proper permissions\n\
+chown -R www-data:www-data /var/www/html/storage\n\
+chown -R www-data:www-data /var/www/html/bootstrap/cache\n\
+chmod -R 775 /var/www/html/storage\n\
+chmod -R 775 /var/www/html/bootstrap/cache\n\
+\n\
+echo "✅ Laravel deployment completed!"\n\
+\n\
+# Start Apache in foreground\n\
+exec apache2-foreground' > /deploy.sh
+
+RUN chmod +x /deploy.sh
+
+# ✅ FIXED: Use proper CMD syntax
+CMD ["/bin/bash", "/deploy.sh"]
