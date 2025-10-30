@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 
 class GalleryController extends Controller
 {
@@ -22,15 +24,40 @@ class GalleryController extends Controller
     }
 
     /**
-     * Display the main gallery page WITH HOSTEL NAMES AND CACHE
+     * Display the main gallery page WITH PAGINATION FIX
      */
     public function index(): View
     {
         try {
-            // ✅ DEPLOYMENT FIX: Simplified with static data to prevent 500 errors
-            $galleries = [];
-            $hostels = [];
-            $cities = collect();
+            // ✅ FIXED: Use sample data with proper pagination and objects
+            $sampleData = $this->getSampleGalleryData();
+
+            // Create paginator manually for arrays
+            $page = request()->get('page', 1);
+            $perPage = 12;
+            $offset = ($page - 1) * $perPage;
+            $currentPageItems = array_slice($sampleData, $offset, $perPage);
+
+            $galleries = new LengthAwarePaginator(
+                $currentPageItems,
+                count($sampleData),
+                $perPage,
+                $page,
+                ['path' => request()->url(), 'query' => request()->query()]
+            );
+
+            // Get hostels for filter
+            $hostels = [
+                (object)['id' => 1, 'name' => 'नमूना होस्टल १'],
+                (object)['id' => 2, 'name' => 'नमूना होस्टल २'],
+                (object)['id' => 3, 'name' => 'नमूना होस्टल ३']
+            ];
+
+            $cities = collect([
+                (object)['name' => 'काठमाडौं'],
+                (object)['name' => 'पोखरा'],
+                (object)['name' => 'चितवन']
+            ]);
 
             $metrics = [
                 'total_students' => 500,
@@ -43,19 +70,234 @@ class GalleryController extends Controller
         } catch (\Exception $e) {
             Log::error('Gallery index error: ' . $e->getMessage());
 
-            // Return empty data on error
-            return view('frontend.gallery.index', [
-                'galleries' => [],
-                'hostels' => [],
-                'cities' => collect(),
-                'metrics' => [
-                    'total_students' => 500,
-                    'total_hostels' => 25,
-                    'satisfaction_rate' => 98,
-                    'cities_covered' => 15
-                ]
-            ]);
+            // Return empty paginated data on error
+            $galleries = new LengthAwarePaginator([], 0, 12, 1);
+            $hostels = [];
+            $cities = collect();
+            $metrics = [
+                'total_students' => 500,
+                'total_hostels' => 25,
+                'satisfaction_rate' => 98,
+                'cities_covered' => 15
+            ];
+
+            return view('frontend.gallery.index', compact('galleries', 'hostels', 'cities', 'metrics'));
         }
+    }
+
+    /**
+     * Enhanced sample gallery data with more items for pagination
+     * ✅ FIXED: Now returns array of objects instead of arrays
+     */
+    private function getSampleGalleryData(): array
+    {
+        return [
+            (object)[
+                'id' => 1,
+                'title' => 'आरामदायी १ सिटर कोठा',
+                'description' => 'विद्यार्थीहरूको लागि आरामदायी एक सिटर कोठा',
+                'category' => '१ सिटर कोठा',
+                'category_nepali' => '१ सिटर कोठा',
+                'media_type' => 'photo',
+                'media_url' => 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400',
+                'thumbnail_url' => 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400',
+                'created_at' => now()->subDays(5),
+                'hostel_name' => 'नमूना होस्टल १',
+                'hostel_id' => 1,
+                'room' => (object)['room_number' => '101'],
+                'room_number' => '101',
+                'is_room_image' => true,
+                'youtube_embed_url' => null
+            ],
+            (object)[
+                'id' => 2,
+                'title' => 'होस्टल भिडियो टुर',
+                'description' => 'हाम्रो होस्टलको पूर्ण भिडियो टुर',
+                'category' => 'भिडियो टुर',
+                'category_nepali' => 'भिडियो टुर',
+                'media_type' => 'external_video',
+                'media_url' => 'https://www.youtube.com/embed/sample-video',
+                'thumbnail_url' => 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400',
+                'created_at' => now()->subDays(10),
+                'hostel_name' => 'नमूना होस्टल २',
+                'hostel_id' => 2,
+                'room' => null,
+                'room_number' => null,
+                'is_room_image' => false,
+                'youtube_embed_url' => 'https://www.youtube.com/embed/sample-video'
+            ],
+            (object)[
+                'id' => 3,
+                'title' => '२ सिटर कोठा',
+                'description' => 'दुई विद्यार्थीको लागि उपयुक्त कोठा',
+                'category' => '२ सिटर कोठा',
+                'category_nepali' => '२ सिटर कोठा',
+                'media_type' => 'photo',
+                'media_url' => 'https://images.unsplash.com/photo-1560185127-6ed189bf02f4?w=400',
+                'thumbnail_url' => 'https://images.unsplash.com/photo-1560185127-6ed189bf02f4?w=400',
+                'created_at' => now()->subDays(3),
+                'hostel_name' => 'नमूना होस्टल ३',
+                'hostel_id' => 3,
+                'room' => (object)['room_number' => '201'],
+                'room_number' => '201',
+                'is_room_image' => true,
+                'youtube_embed_url' => null
+            ],
+            (object)[
+                'id' => 4,
+                'title' => 'लिभिङ रूम',
+                'description' => 'विद्यार्थीहरूको लागि साझा लिभिङ रूम',
+                'category' => 'लिभिङ रूम',
+                'category_nepali' => 'लिभिङ रूम',
+                'media_type' => 'photo',
+                'media_url' => 'https://images.unsplash.com/photo-1583847268967-bbe5f524f5cd?w=400',
+                'thumbnail_url' => 'https://images.unsplash.com/photo-1583847268967-bbe5f524f5cd?w=400',
+                'created_at' => now()->subDays(7),
+                'hostel_name' => 'नमूना होस्टल १',
+                'hostel_id' => 1,
+                'room' => null,
+                'room_number' => null,
+                'is_room_image' => false,
+                'youtube_embed_url' => null
+            ],
+            (object)[
+                'id' => 5,
+                'title' => 'भान्सा क्षेत्र',
+                'description' => 'सफा र आधुनिक भान्सा',
+                'category' => 'भान्सा',
+                'category_nepali' => 'भान्सा',
+                'media_type' => 'photo',
+                'media_url' => 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400',
+                'thumbnail_url' => 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400',
+                'created_at' => now()->subDays(2),
+                'hostel_name' => 'नमूना होस्टल २',
+                'hostel_id' => 2,
+                'room' => null,
+                'room_number' => null,
+                'is_room_image' => false,
+                'youtube_embed_url' => null
+            ],
+            (object)[
+                'id' => 6,
+                'title' => 'बाथरूम',
+                'description' => 'सफा र आधुनिक बाथरूम',
+                'category' => 'बाथरूम',
+                'category_nepali' => 'बाथरूम',
+                'media_type' => 'photo',
+                'media_url' => 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=400',
+                'thumbnail_url' => 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=400',
+                'created_at' => now()->subDays(1),
+                'hostel_name' => 'नमूना होस्टल ३',
+                'hostel_id' => 3,
+                'room' => null,
+                'room_number' => null,
+                'is_room_image' => false,
+                'youtube_embed_url' => null
+            ],
+            (object)[
+                'id' => 7,
+                'title' => '३ सिटर कोठा',
+                'description' => 'तिन विद्यार्थीको लागि उपयुक्त कोठा',
+                'category' => '३ सिटर कोठा',
+                'category_nepali' => '३ सिटर कोठा',
+                'media_type' => 'photo',
+                'media_url' => 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=400',
+                'thumbnail_url' => 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=400',
+                'created_at' => now()->subDays(4),
+                'hostel_name' => 'नमूना होस्टल १',
+                'hostel_id' => 1,
+                'room' => (object)['room_number' => '301'],
+                'room_number' => '301',
+                'is_room_image' => true,
+                'youtube_embed_url' => null
+            ],
+            (object)[
+                'id' => 8,
+                'title' => 'अध्ययन कोठा',
+                'description' => 'शान्त वातावरणमा अध्ययन कोठा',
+                'category' => 'अध्ययन कोठा',
+                'category_nepali' => 'अध्ययन कोठा',
+                'media_type' => 'photo',
+                'media_url' => 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=400',
+                'thumbnail_url' => 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=400',
+                'created_at' => now()->subDays(6),
+                'hostel_name' => 'नमूना होस्टल २',
+                'hostel_id' => 2,
+                'room' => null,
+                'room_number' => null,
+                'is_room_image' => false,
+                'youtube_embed_url' => null
+            ],
+            // ✅ FIX: Added more items for better pagination
+            (object)[
+                'id' => 9,
+                'title' => '४ सिटर कोठा',
+                'description' => 'चार विद्यार्थीको लागि उपयुक्त कोठा',
+                'category' => '४ सिटर कोठा',
+                'category_nepali' => '४ सिटर कोठा',
+                'media_type' => 'photo',
+                'media_url' => 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400',
+                'thumbnail_url' => 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400',
+                'created_at' => now()->subDays(8),
+                'hostel_name' => 'नमूना होस्टल ३',
+                'hostel_id' => 3,
+                'room' => (object)['room_number' => '401'],
+                'room_number' => '401',
+                'is_room_image' => true,
+                'youtube_embed_url' => null
+            ],
+            (object)[
+                'id' => 10,
+                'title' => 'खेलकुद क्षेत्र',
+                'description' => 'विद्यार्थीहरूको लागि खेलकुद क्षेत्र',
+                'category' => 'कार्यक्रम',
+                'category_nepali' => 'कार्यक्रम',
+                'media_type' => 'photo',
+                'media_url' => 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=400',
+                'thumbnail_url' => 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=400',
+                'created_at' => now()->subDays(9),
+                'hostel_name' => 'नमूना होस्टल १',
+                'hostel_id' => 1,
+                'room' => null,
+                'room_number' => null,
+                'is_room_image' => false,
+                'youtube_embed_url' => null
+            ],
+            (object)[
+                'id' => 11,
+                'title' => 'पुस्तकालय',
+                'description' => 'अध्ययनको लागि पुस्तकालय',
+                'category' => 'अध्ययन कोठा',
+                'category_nepali' => 'अध्ययन कोठा',
+                'media_type' => 'photo',
+                'media_url' => 'https://images.unsplash.com/photo-1589998059171-988d887df646?w=400',
+                'thumbnail_url' => 'https://images.unsplash.com/photo-1589998059171-988d887df646?w=400',
+                'created_at' => now()->subDays(11),
+                'hostel_name' => 'नमूना होस्टल २',
+                'hostel_id' => 2,
+                'room' => null,
+                'room_number' => null,
+                'is_room_image' => false,
+                'youtube_embed_url' => null
+            ],
+            (object)[
+                'id' => 12,
+                'title' => 'विद्यार्थीहरूको कार्यक्रम',
+                'description' => 'वार्षिक विद्यार्थी कार्यक्रम',
+                'category' => 'कार्यक्रम',
+                'category_nepali' => 'कार्यक्रम',
+                'media_type' => 'photo',
+                'media_url' => 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400',
+                'thumbnail_url' => 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400',
+                'created_at' => now()->subDays(12),
+                'hostel_name' => 'नमूना होस्टल ३',
+                'hostel_id' => 3,
+                'room' => null,
+                'room_number' => null,
+                'is_room_image' => false,
+                'youtube_embed_url' => null
+            ]
+        ];
     }
 
     /**
@@ -101,7 +343,7 @@ class GalleryController extends Controller
     public function getGalleryData()
     {
         try {
-            // ✅ DEPLOYMENT FIX: Return sample data without database dependency
+            // ✅ FIXED: Return sample data without database dependency
             $galleries = collect($this->getSampleGalleryData());
 
             return response()->json($galleries);
@@ -117,7 +359,7 @@ class GalleryController extends Controller
     public function getFeaturedGalleries()
     {
         try {
-            // ✅ DEPLOYMENT FIX: Return sample featured data
+            // ✅ FIXED: Return sample featured data
             $galleries = collect([$this->getSampleGalleryData()[0]])
                 ->map(function ($item) {
                     return $this->formatGalleryItemWithHostel($item);
@@ -142,10 +384,10 @@ class GalleryController extends Controller
         $isRoomImage = false;
 
         if (is_object($item)) {
-            $hostelName = $item->hostel->name ?? ($item->hostel_name ?? 'Unknown Hostel');
+            $hostelName = $item->hostel_name ?? 'Unknown Hostel';
             $hostelId = $item->hostel_id ?? null;
-            $roomNumber = $item->room->room_number ?? null;
-            $isRoomImage = !is_null($item->room_id ?? null);
+            $roomNumber = $item->room_number ?? null;
+            $isRoomImage = $item->is_room_image ?? false;
             $createdAt = $item->created_at ?? now();
         } else {
             $hostelName = $item['hostel_name'] ?? 'Unknown Hostel';
@@ -160,10 +402,12 @@ class GalleryController extends Controller
             'title' => $item->title ?? $item['title'] ?? '',
             'description' => $item->description ?? $item['description'] ?? '',
             'category' => $item->category ?? $item['category'] ?? 'common',
+            'category_nepali' => $item->category_nepali ?? $item['category_nepali'] ?? 'सामान्य',
             'media_type' => $item->media_type ?? $item['media_type'] ?? 'photo',
             'file_url' => $item->media_url ?? $item['file_url'] ?? '',
             'thumbnail_url' => $item->thumbnail_url ?? $item['thumbnail_url'] ?? '',
             'external_link' => $item->external_link ?? $item['external_link'] ?? '',
+            'youtube_embed_url' => $item->youtube_embed_url ?? $item['youtube_embed_url'] ?? null,
             'created_at' => $createdAt->format('Y-m-d'),
             'hostel_name' => $hostelName,
             'hostel_id' => $hostelId,
@@ -182,51 +426,16 @@ class GalleryController extends Controller
             'title' => $item->title ?? $item['title'] ?? '',
             'description' => $item->description ?? $item['description'] ?? '',
             'category' => $item->category ?? $item['category'] ?? 'common',
+            'category_nepali' => $item->category_nepali ?? $item['category_nepali'] ?? 'सामान्य',
             'media_type' => $item->media_type ?? $item['media_type'] ?? 'photo',
             'file_url' => $item->file_url ?? $item['file_url'] ?? '',
             'thumbnail_url' => $item->thumbnail_url ?? $item['thumbnail_url'] ?? '',
             'external_link' => $item->external_link ?? $item['external_link'] ?? '',
+            'youtube_embed_url' => $item->youtube_embed_url ?? $item['youtube_embed_url'] ?? null,
             'created_at' => isset($item->created_at) ? $item->created_at->format('Y-m-d') : now()->format('Y-m-d'),
         ];
 
         return $formatted;
-    }
-
-    /**
-     * Sample gallery data fallback
-     */
-    private function getSampleGalleryData(): array
-    {
-        return [
-            [
-                'id' => 1,
-                'title' => 'आरामदायी १ सिटर कोठा',
-                'description' => 'विद्यार्थीहरूको लागि आरामदायी एक सिटर कोठा',
-                'category' => 'single',
-                'media_type' => 'photo',
-                'file_url' => asset('images/sample-room-1.jpg'),
-                'thumbnail_url' => asset('images/sample-room-1-thumb.jpg'),
-                'created_at' => '2024-01-15',
-                'hostel_name' => 'नमूना होस्टल',
-                'hostel_id' => 1,
-                'room_number' => '101',
-                'is_room_image' => true
-            ],
-            [
-                'id' => 2,
-                'title' => 'होस्टल भिडियो टुर',
-                'description' => 'हाम्रो होस्टलको पूर्ण भिडियो टुर',
-                'category' => 'video',
-                'media_type' => 'external_video',
-                'external_link' => 'https://www.youtube.com/embed/sample-video',
-                'thumbnail_url' => asset('images/video-thumbnail.jpg'),
-                'created_at' => '2024-01-10',
-                'hostel_name' => 'नमूना होस्टल',
-                'hostel_id' => 1,
-                'room_number' => null,
-                'is_room_image' => false
-            ],
-        ];
     }
 
     /**
@@ -237,7 +446,7 @@ class GalleryController extends Controller
         try {
             Log::info('=== GALLERY DEBUG START ===');
 
-            // ✅ DEPLOYMENT FIX: Simplified with empty data
+            // ✅ FIXED: Simplified with empty data
             $hostel = (object) [
                 'id' => 1,
                 'name' => 'Sample Hostel',
@@ -275,29 +484,29 @@ class GalleryController extends Controller
     public function getHostelGalleryData($slug)
     {
         try {
-            // ✅ DEPLOYMENT FIX: Return sample data
+            // ✅ FIXED: Return sample data
             $galleries = collect($this->getSampleGalleryData())
                 ->map(function ($item) {
                     return [
-                        'id' => $item['id'],
-                        'title' => $item['title'],
-                        'description' => $item['description'],
-                        'category' => $item['category'],
-                        'media_type' => $item['media_type'],
-                        'file_path' => $item['file_url'],
-                        'thumbnail' => $item['thumbnail_url'],
-                        'external_link' => $item['external_link'] ?? '',
+                        'id' => $item->id,
+                        'title' => $item->title,
+                        'description' => $item->description,
+                        'category' => $item->category,
+                        'media_type' => $item->media_type,
+                        'file_path' => $item->media_url,
+                        'thumbnail' => $item->thumbnail_url,
+                        'external_link' => $item->external_link ?? '',
                         'is_featured' => true,
                         'is_active' => true,
-                        'media_url' => $item['file_url'],
-                        'thumbnail_url' => $item['thumbnail_url'],
-                        'is_video' => $item['media_type'] === 'external_video',
-                        'is_youtube_video' => $item['media_type'] === 'external_video',
-                        'youtube_embed_url' => $item['external_link'] ?? '',
-                        'category_nepali' => $item['category'],
-                        'hostel_name' => $item['hostel_name'],
-                        'room_number' => $item['room_number'],
-                        'is_room_image' => $item['is_room_image']
+                        'media_url' => $item->media_url,
+                        'thumbnail_url' => $item->thumbnail_url,
+                        'is_video' => $item->media_type === 'external_video',
+                        'is_youtube_video' => $item->media_type === 'external_video',
+                        'youtube_embed_url' => $item->youtube_embed_url ?? '',
+                        'category_nepali' => $item->category_nepali,
+                        'hostel_name' => $item->hostel_name,
+                        'room_number' => $item->room_number,
+                        'is_room_image' => $item->is_room_image
                     ];
                 });
 
@@ -314,7 +523,7 @@ class GalleryController extends Controller
     public function filterByHostel(Request $request)
     {
         try {
-            // ✅ DEPLOYMENT FIX: Return sample filtered data
+            // ✅ FIXED: Return sample filtered data
             $galleries = collect($this->getSampleGalleryData())
                 ->map(function ($item) {
                     return $this->formatGalleryItemWithHostel($item);
