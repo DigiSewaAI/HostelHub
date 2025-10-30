@@ -6,50 +6,104 @@ echo "🔧 Starting Laravel Deployment..."
 # Move to working directory
 cd /var/www/html || exit
 
+# Environment Detection and .env Setup
+if [ "$RENDER" = "true" ]; then
+    echo "🚀 Production Environment Detected - Using .env.production"
+    if [ -f .env.production ]; then
+        cp .env.production .env
+        echo "✅ .env.production copied to .env"
+    else
+        echo "⚠️  .env.production not found, using .env.example"
+        cp .env.example .env
+    fi
+else
+    echo "💻 Local Development Environment Detected - Using .env.local"
+    if [ -f .env.local ]; then
+        cp .env.local .env
+        echo "✅ .env.local copied to .env"
+    else
+        echo "⚠️  .env.local not found, using .env.example"
+        cp .env.example .env
+    fi
+fi
+
+# Generate application key if not exists
+if ! grep -q "APP_KEY=base64:" .env; then
+    echo "🔑 Generating Application Key..."
+    php artisan key:generate --force
+    echo "✅ Application key generated"
+else
+    echo "✅ Application key already exists"
+fi
+
 # Ensure vendor folder exists
 if [ ! -d "vendor" ]; then
     echo "📦 Installing PHP dependencies..."
     composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
-fi
-
-# Copy .env if not present
-if [ ! -f .env ]; then
-    echo "⚙️  No .env found, copying default..."
-    cp .env.example .env
+    echo "✅ PHP dependencies installed"
+else
+    echo "✅ Vendor folder already exists"
 fi
 
 # Set permissions before artisan commands
 echo "🔐 Setting permissions..."
 chown -R www-data:www-data storage bootstrap/cache
 chmod -R 775 storage bootstrap/cache
+echo "✅ Permissions set"
 
 # Clear caches
 echo "🧹 Clearing caches..."
-php artisan config:clear || true
-php artisan cache:clear || true
-php artisan route:clear || true
-php artisan view:clear || true
+php artisan config:clear || echo "⚠️  Config clear skipped"
+php artisan cache:clear || echo "⚠️  Cache clear skipped"
+php artisan route:clear || echo "⚠️  Route clear skipped"
+php artisan view:clear || echo "⚠️  View clear skipped"
+echo "✅ Caches cleared"
 
-# Run migrations safely
-echo "🗃️  Running migrations..."
-php artisan migrate --force || echo "⚠️  Migration skipped (DB might not be ready yet)"
-
-# Optimize for production
-echo "⚡ Optimizing Laravel..."
-php artisan config:cache || true
-php artisan view:cache || true
-
-# Check and cache routes if safe
-php artisan route:list --name=register.organization > /dev/null 2>&1
-if [ $? -eq 0 ]; then
-    php artisan route:cache && echo "✅ Routes cached successfully"
+# Run migrations safely (only in production if needed)
+if [ "$RENDER" = "true" ]; then
+    echo "🗃️  Running migrations for production..."
+    php artisan migrate --force --no-interaction || echo "⚠️  Production migration skipped"
 else
-    echo "⚠️  Route caching skipped (potential conflicts)"
+    echo "🗃️  Running migrations for development..."
+    php artisan migrate --force --no-interaction || echo "⚠️  Development migration skipped"
+fi
+
+# Optimize based on environment
+if [ "$RENDER" = "true" ]; then
+    echo "⚡ Optimizing for Production..."
+    php artisan config:cache || echo "⚠️  Config cache skipped"
+    php artisan view:cache || echo "⚠️  View cache skipped"
+    
+    # Safe route caching
+    echo "🔄 Checking routes for caching..."
+    php artisan route:list --name=login > /dev/null 2>&1
+    if [ $? -eq 0 ]; then
+        php artisan route:cache && echo "✅ Routes cached successfully"
+    else
+        echo "⚠️  Route caching skipped (route check failed)"
+    fi
+    
+    # Cache events and packages
+    php artisan event:cache || echo "⚠️  Event cache skipped"
+    php artisan package:discover || echo "⚠️  Package discovery skipped"
+else
+    echo "🔓 Development Mode - Minimal optimization"
+    php artisan config:cache || echo "⚠️  Config cache skipped"
+    php artisan view:cache || echo "⚠️  View cache skipped"
+    echo "ℹ️  Route caching disabled in development"
 fi
 
 # Final permission fix
 echo "🔒 Finalizing permissions..."
 chown -R www-data:www-data /var/www/html
 chmod -R 775 /var/www/html
+echo "✅ Final permissions set"
 
-echo "🚀 Deployment completed successfully!"
+echo "🎉 Deployment completed successfully!"
+echo "📊 Environment: $(grep APP_ENV .env | cut -d '=' -f2)"
+echo "🌐 App URL: $(grep APP_URL .env | cut -d '=' -f2)"
+echo "🐛 Debug Mode: $(grep APP_DEBUG .env | cut -d '=' -f2)"
+
+# Start Apache in foreground
+echo "🌐 Starting Apache web server..."
+exec apache2-foreground

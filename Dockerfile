@@ -6,6 +6,9 @@
 # Use official PHP 8.3 image with Apache
 FROM php:8.3-apache
 
+# Set environment variable for Render detection
+ENV RENDER=true
+
 # Enable required Apache modules
 RUN a2enmod rewrite headers
 
@@ -42,9 +45,18 @@ WORKDIR /var/www/html
 # Copy all project files
 COPY . .
 
+# Copy environment files explicitly
+COPY .env.local .env.local
+COPY .env.production .env.production
+COPY deploy.sh /deploy.sh
+
+# Make deploy script executable
+RUN chmod +x /deploy.sh
+
 # Ensure writable directories exist
 RUN mkdir -p storage/framework/{cache,sessions,views} \
-    && mkdir -p storage/logs
+    && mkdir -p storage/logs \
+    && mkdir -p bootstrap/cache
 
 # Fix permissions
 RUN chmod -R 775 storage bootstrap/cache \
@@ -52,22 +64,6 @@ RUN chmod -R 775 storage bootstrap/cache \
 
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
-
-# Copy example environment if missing
-RUN if [ ! -f .env ]; then cp .env.example .env; fi
-
-# Generate application key if not exists
-RUN if [ -f .env ] && ! grep -q "APP_KEY=base64:" .env; then php artisan key:generate --force; fi
-
-# Clear all Laravel caches
-RUN php artisan config:clear || true \
-    && php artisan cache:clear || true \
-    && php artisan route:clear || true \
-    && php artisan view:clear || true
-
-# Optimize Laravel for production
-RUN php artisan config:cache || true \
-    && php artisan view:cache || true
 
 # Set Apache document root to Laravel public directory
 RUN sed -ri -e 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/*.conf \
@@ -98,45 +94,5 @@ EXPOSE 80
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD curl -f http://localhost/ || exit 1
 
-# ✅ FIXED: Create deploy script and run it properly
-RUN echo '#!/bin/bash\n\
-\n\
-echo "🚀 Starting Laravel deployment..."\n\
-\n\
-# Run database migrations if needed\n\
-# php artisan migrate --force --no-interaction\n\
-\n\
-# Clear and cache config\n\
-php artisan config:clear\n\
-php artisan config:cache\n\
-\n\
-# Clear and cache routes\n\
-php artisan route:clear\n\
-php artisan route:cache\n\
-\n\
-# Clear and cache views\n\
-php artisan view:clear\n\
-php artisan view:cache\n\
-\n\
-# Clear and cache events\n\
-php artisan event:clear\n\
-php artisan event:cache\n\
-\n\
-# Cache packages\n\
-php artisan package:discover\n\
-\n\
-# Set proper permissions\n\
-chown -R www-data:www-data /var/www/html/storage\n\
-chown -R www-data:www-data /var/www/html/bootstrap/cache\n\
-chmod -R 775 /var/www/html/storage\n\
-chmod -R 775 /var/www/html/bootstrap/cache\n\
-\n\
-echo "✅ Laravel deployment completed!"\n\
-\n\
-# Start Apache in foreground\n\
-exec apache2-foreground' > /deploy.sh
-
-RUN chmod +x /deploy.sh
-
-# ✅ FIXED: Use proper CMD syntax
+# ✅ FIXED: Use the external deploy.sh script instead of embedded one
 CMD ["/bin/bash", "/deploy.sh"]

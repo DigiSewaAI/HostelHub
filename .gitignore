@@ -1,24 +1,173 @@
-*.log
-.DS_Store
+# -------------------------------
+# 🚨 Laravel Specific Ignore Rules
+# -------------------------------
+
+# Environment files (except .env.example)
 .env
 .env.backup
 .env.production
-.phpactor.json
-.phpunit.result.cache
-/.fleet
-/.idea
-/.nova
-/.phpunit.cache
-/.vscode
-/.zed
-/auth.json
-/node_modules
-/public/build
+.env.local
+.env.testing
+.env.staging
+
+# Laravel framework files
+bootstrap/cache/*
+!bootstrap/cache/.gitkeep
+storage/framework/cache/*
+!storage/framework/cache/.gitkeep
+storage/framework/sessions/*
+!storage/framework/sessions/.gitkeep
+storage/framework/views/*
+!storage/framework/views/.gitkeep
+storage/logs/*
+!storage/logs/.gitkeep
+storage/app/public/*
+!storage/app/public/.gitkeep
+
+# Composer dependencies
+/vendor/
+composer.lock
+
+# Node.js dependencies
+/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Build assets
+/public/build/
 /public/hot
 /public/storage
+/public/mix-manifest.json
+
+# Application key
 /storage/*.key
 /storage/pail
-/vendor
+
+# -------------------------------
+# 🖥️ Operating System Files
+# -------------------------------
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+.directory
+*~
+
+# -------------------------------
+# 🔧 IDE and Editor Files
+# -------------------------------
+
+# PHPStorm
+/.idea/
+*.iws
+
+# VS Code
+/.vscode/
+*.swp
+*.swo
+
+# Fleet
+/.fleet/
+
+# Nova
+/.nova/
+
+# Zed
+/.zed/
+
+# PHPUnit
+/.phpunit.result.cache
+/.phpunit.cache
+
+# PHP Actor
+/.phpactor.json
+
+# -------------------------------
+# 🐳 Docker and Development
+# -------------------------------
+
+# Docker
+docker-compose.override.yml
+.dockerignore
+
+# Homestead
 Homestead.json
 Homestead.yaml
-Thumbs.db
+
+# Laravel Sail
+/.env.sail
+
+# -------------------------------
+# 📦 Package Manager Files
+# -------------------------------
+
+# Composer
+/auth.json
+
+# NPM
+/.npm
+/.node_repl_history
+
+# -------------------------------
+# 🧪 Testing and Temporary Files
+# -------------------------------
+
+# PHPUnit
+phpunit.xml
+
+# Laravel Dusk
+/database/database.sqlite
+/database/database.sqlite-journal
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# -------------------------------
+# 🔐 Security and Sensitive Files
+# -------------------------------
+
+# SSL certificates
+*.pem
+*.crt
+*.key
+
+# Backups
+*.backup
+*.bak
+
+# -------------------------------
+# 📝 Custom Rules for HostelHub
+# -------------------------------
+
+# Payment gateway test files
+/payment-logs/
+/test-transactions/
+
+# Uploaded files (if stored locally)
+/public/uploads/
+/storage/uploads/
+
+# Database dumps (if any)
+*.sql
+*.dump
+
+# Render specific (if any)
+.render/
