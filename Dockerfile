@@ -46,8 +46,8 @@ WORKDIR /var/www/html
 COPY . .
 
 # Copy environment files explicitly
-COPY .env.local .env.local
-COPY .env.production .env.production
+#COPY .env.local .env.local
+#COPY .env.production .env.production
 COPY deploy.sh /deploy.sh
 
 # Make deploy script executable
