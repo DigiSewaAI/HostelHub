@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
     <meta name="robots" content="noindex, nofollow">
-    <title>@yield('title', 'ड्यासबोर्ड') - HostelHub Owner</title>
+    <title><?php echo $__env->yieldContent('title', 'ड्यासबोर्ड'); ?> - HostelHub Owner</title>
     
     <!-- Favicon -->
-    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
+    <link rel="shortcut icon" href="<?php echo e(asset('favicon.ico')); ?>" type="image/x-icon">
     
     <!-- Google Fonts for Nepali -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -19,7 +19,7 @@
           crossorigin="anonymous" referrerpolicy="no-referrer">
     
     <!-- Tailwind CSS with Vite -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <?php echo app('Illuminate\Foundation\Vite')(['resources/css/app.css', 'resources/js/app.js']); ?>
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -175,7 +175,7 @@
             padding: 0.4rem 0.75rem !important;
         }
         
-        /* Logo Styles - UPDATED WITH FALLBACK */
+        /* Logo Styles */
         .logo-container {
             display: flex;
             align-items: center;
@@ -185,9 +185,6 @@
             height: 40px;
             width: auto;
             object-fit: contain;
-            background: white;
-            padding: 3px;
-            border-radius: 6px;
         }
         .logo-text {
             margin-left: 10px;
@@ -198,29 +195,6 @@
         .mobile-logo {
             height: 32px;
             width: auto;
-            background: white;
-            padding: 2px;
-            border-radius: 4px;
-        }
-        .text-logo {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: white;
-            border-radius: 6px;
-            padding: 5px;
-            height: 40px;
-            width: 40px;
-            font-weight: bold;
-            color: #4e73df;
-            font-size: 16px;
-            border: 2px solid white;
-        }
-        .mobile-text-logo {
-            height: 32px;
-            width: 32px;
-            font-size: 14px;
-            padding: 4px;
         }
 
         /* Main content area - FIXED */
@@ -282,7 +256,7 @@
     </style>
     
     <!-- Page-specific CSS -->
-    @stack('styles')
+    <?php echo $__env->yieldPushContent('styles'); ?>
 </head>
 <body class="bg-gray-50 font-sans">
     <a href="#main-content" class="skip-link">मुख्य सामग्रीमा जानुहोस्</a>
@@ -291,31 +265,8 @@
         <!-- Sidebar -->
         <aside id="sidebar" class="sidebar text-white z-20 flex-shrink-0 transition-all duration-300 ease-in-out flex flex-col h-full">
             <div class="p-4 border-b border-blue-700 flex items-center justify-between">
-                <a href="{{ url('/owner/dashboard') }}" class="logo-container">
-                    <!-- FIXED LOGO WITH MULTIPLE FALLBACKS -->
-                    @php
-                        $logoPaths = [
-                            'images/logo.png',
-                            'storage/images/logo.png',
-                            'assets/images/logo.png',
-                            'public/images/logo.png'
-                        ];
-                        $logoFound = false;
-                    @endphp
-                    
-                    @foreach($logoPaths as $logoPath)
-                        @if(file_exists(public_path($logoPath)) && !$logoFound)
-                            <img src="{{ asset($logoPath) }}" alt="HostelHub Logo" class="logo-img">
-                            @php $logoFound = true; @endphp
-                        @endif
-                    @endforeach
-                    
-                    @if(!$logoFound)
-                        <!-- FALLBACK TEXT LOGO -->
-                        <div class="text-logo">
-                            HH
-                        </div>
-                    @endif
+                <a href="<?php echo e(url('/owner/dashboard')); ?>" class="logo-container">
+                    <img src="<?php echo e(asset('storage/images/logo.png')); ?>" alt="HostelHub Logo" class="logo-img">
                     <span class="logo-text sidebar-text">होस्टलहब</span>
                 </a>
                 <button id="sidebar-collapse" class="text-gray-300 hover:text-white sidebar-text" aria-label="साइडबार सङ्कुचित गर्नुहोस्">
@@ -325,97 +276,97 @@
             
             <nav class="mt-5 px-2 flex-1 overflow-y-auto">
                 <!-- Dashboard -->
-                <a href="{{ route('owner.dashboard') }}"
-                   class="sidebar-link {{ request()->routeIs('owner.dashboard') ? 'active' : '' }}"
-                   aria-current="{{ request()->routeIs('owner.dashboard') ? 'page' : 'false' }}">
+                <a href="<?php echo e(route('owner.dashboard')); ?>"
+                   class="sidebar-link <?php echo e(request()->routeIs('owner.dashboard') ? 'active' : ''); ?>"
+                   aria-current="<?php echo e(request()->routeIs('owner.dashboard') ? 'page' : 'false'); ?>">
                     <i class="fas fa-tachometer-alt sidebar-icon"></i>
                     <span class="sidebar-text">ड्यासबोर्ड</span>
                 </a>
                 
                 <!-- Meal Menus -->
-                <a href="{{ route('owner.meal-menus.index') }}"
-                   class="sidebar-link {{ request()->routeIs('owner.meal-menus.*') ? 'active' : '' }}"
-                   aria-current="{{ request()->routeIs('owner.meal-menus.*') ? 'page' : 'false' }}">
+                <a href="<?php echo e(route('owner.meal-menus.index')); ?>"
+                   class="sidebar-link <?php echo e(request()->routeIs('owner.meal-menus.*') ? 'active' : ''); ?>"
+                   aria-current="<?php echo e(request()->routeIs('owner.meal-menus.*') ? 'page' : 'false'); ?>">
                     <i class="fas fa-utensils sidebar-icon"></i>
                     <span class="sidebar-text">खानाको योजना</span>
                 </a>
                 
                 <!-- Gallery -->
-                <a href="{{ route('owner.galleries.index') }}"
-                   class="sidebar-link {{ request()->routeIs('owner.galleries.*') ? 'active' : '' }}"
-                   aria-current="{{ request()->routeIs('owner.galleries.*') ? 'page' : 'false' }}">
+                <a href="<?php echo e(route('owner.galleries.index')); ?>"
+                   class="sidebar-link <?php echo e(request()->routeIs('owner.galleries.*') ? 'active' : ''); ?>"
+                   aria-current="<?php echo e(request()->routeIs('owner.galleries.*') ? 'page' : 'false'); ?>">
                     <i class="fas fa-images sidebar-icon"></i>
                     <span class="sidebar-text">ग्यालरी</span>
                 </a>
                 
                 <!-- Rooms -->
-                <a href="{{ route('owner.rooms.index') }}"
-                   class="sidebar-link {{ request()->routeIs('owner.rooms.*') ? 'active' : '' }}"
-                   aria-current="{{ request()->routeIs('owner.rooms.*') ? 'page' : 'false' }}">
+                <a href="<?php echo e(route('owner.rooms.index')); ?>"
+                   class="sidebar-link <?php echo e(request()->routeIs('owner.rooms.*') ? 'active' : ''); ?>"
+                   aria-current="<?php echo e(request()->routeIs('owner.rooms.*') ? 'page' : 'false'); ?>">
                     <i class="fas fa-door-open sidebar-icon"></i>
                     <span class="sidebar-text">कोठाहरू</span>
                 </a>
                 
                 <!-- Students -->
-                <a href="{{ route('owner.students.index') }}"
-                   class="sidebar-link {{ request()->routeIs('owner.students.*') ? 'active' : '' }}"
-                   aria-current="{{ request()->routeIs('owner.students.*') ? 'page' : 'false' }}">
+                <a href="<?php echo e(route('owner.students.index')); ?>"
+                   class="sidebar-link <?php echo e(request()->routeIs('owner.students.*') ? 'active' : ''); ?>"
+                   aria-current="<?php echo e(request()->routeIs('owner.students.*') ? 'page' : 'false'); ?>">
                     <i class="fas fa-user-graduate sidebar-icon"></i>
                     <span class="sidebar-text">विद्यार्थीहरू</span>
                 </a>
                 
                 <!-- Payments -->
-                <a href="{{ route('owner.payments.index') }}"
-                   class="sidebar-link {{ request()->routeIs('owner.payments.*') ? 'active' : '' }}"
-                   aria-current="{{ request()->routeIs('owner.payments.*') ? 'page' : 'false' }}">
+                <a href="<?php echo e(route('owner.payments.index')); ?>"
+                   class="sidebar-link <?php echo e(request()->routeIs('owner.payments.*') ? 'active' : ''); ?>"
+                   aria-current="<?php echo e(request()->routeIs('owner.payments.*') ? 'page' : 'false'); ?>">
                     <i class="fas fa-money-bill-wave sidebar-icon"></i>
                     <span class="sidebar-text">भुक्तानी</span>
                 </a>
                 
                 <!-- Reviews -->
-                <a href="{{ route('owner.reviews.index') }}"
-                   class="sidebar-link {{ request()->routeIs('owner.reviews.*') ? 'active' : '' }}"
-                   aria-current="{{ request()->routeIs('owner.reviews.*') ? 'page' : 'false' }}">
+                <a href="<?php echo e(route('owner.reviews.index')); ?>"
+                   class="sidebar-link <?php echo e(request()->routeIs('owner.reviews.*') ? 'active' : ''); ?>"
+                   aria-current="<?php echo e(request()->routeIs('owner.reviews.*') ? 'page' : 'false'); ?>">
                     <i class="fas fa-star sidebar-icon"></i>
                     <span class="sidebar-text">समीक्षाहरू</span>
                 </a>
                 
                 <!-- Hostels -->
-                <a href="{{ route('owner.hostels.index') }}"
-                   class="sidebar-link {{ request()->routeIs('owner.hostels.*') ? 'active' : '' }}"
-                   aria-current="{{ request()->routeIs('owner.hostels.*') ? 'page' : 'false' }}">
+                <a href="<?php echo e(route('owner.hostels.index')); ?>"
+                   class="sidebar-link <?php echo e(request()->routeIs('owner.hostels.*') ? 'active' : ''); ?>"
+                   aria-current="<?php echo e(request()->routeIs('owner.hostels.*') ? 'page' : 'false'); ?>">
                     <i class="fas fa-building sidebar-icon"></i>
                     <span class="sidebar-text">होस्टल</span>
                 </a>
 
                 <!-- Documents Management -->
-                <a href="{{ route('owner.documents.index') }}"
-                   class="sidebar-link {{ request()->routeIs('owner.documents.*') ? 'active' : '' }}"
-                   aria-current="{{ request()->routeIs('owner.documents.*') ? 'page' : 'false' }}">
+                <a href="<?php echo e(route('owner.documents.index')); ?>"
+                   class="sidebar-link <?php echo e(request()->routeIs('owner.documents.*') ? 'active' : ''); ?>"
+                   aria-current="<?php echo e(request()->routeIs('owner.documents.*') ? 'page' : 'false'); ?>">
                     <i class="fas fa-file-alt sidebar-icon"></i>
                     <span class="sidebar-text">कागजात व्यवस्थापन</span>
                 </a>
 
                 <!-- Public Page Management -->
-                <a href="{{ route('owner.public-page.edit') }}"
-                   class="sidebar-link {{ request()->routeIs('owner.public-page.*') ? 'active' : '' }}"
-                   aria-current="{{ request()->routeIs('owner.public-page.*') ? 'page' : 'false' }}">
+                <a href="<?php echo e(route('owner.public-page.edit')); ?>"
+                   class="sidebar-link <?php echo e(request()->routeIs('owner.public-page.*') ? 'active' : ''); ?>"
+                   aria-current="<?php echo e(request()->routeIs('owner.public-page.*') ? 'page' : 'false'); ?>">
                     <i class="fas fa-globe sidebar-icon"></i>
                     <span class="sidebar-text">सार्वजनिक पृष्ठ</span>
                 </a>
 
                 <!-- Circulars -->
-                <a href="{{ route('owner.circulars.index') }}"
-                   class="sidebar-link {{ request()->routeIs('owner.circulars.*') ? 'active' : '' }}"
-                   aria-current="{{ request()->routeIs('owner.circulars.*') ? 'page' : 'false' }}">
+                <a href="<?php echo e(route('owner.circulars.index')); ?>"
+                   class="sidebar-link <?php echo e(request()->routeIs('owner.circulars.*') ? 'active' : ''); ?>"
+                   aria-current="<?php echo e(request()->routeIs('owner.circulars.*') ? 'page' : 'false'); ?>">
                     <i class="fas fa-bullhorn sidebar-icon"></i>
                     <span class="sidebar-text">सूचनाहरू</span>
                 </a>
                 
                 <!-- Logout Section -->
                 <div class="mt-auto pt-4 border-t border-blue-700">
-                    <form method="POST" action="{{ route('logout') }}" id="logout-form">
-                        @csrf
+                    <form method="POST" action="<?php echo e(route('logout')); ?>" id="logout-form">
+                        <?php echo csrf_field(); ?>
                         <button type="submit" class="w-full flex items-center px-2 py-2 text-sm rounded-md hover:bg-blue-700 transition-colors">
                             <i class="fas fa-sign-out-alt sidebar-icon"></i>
                             <span class="sidebar-text">लगआउट</span>
@@ -434,26 +385,9 @@
                         <button id="mobile-sidebar-toggle" class="lg:hidden text-white hover:text-gray-200 mr-4" aria-label="मोबाइल साइडबार खोल्नुहोस्">
                             <i class="fas fa-bars text-xl"></i>
                         </button>
-                        <!-- Brand with Logo - FIXED -->
-                        <a href="{{ url('/owner/dashboard') }}" class="navbar-brand text-white flex items-center">
-                            <!-- FIXED MOBILE LOGO WITH FALLBACK -->
-                            @php
-                                $mobileLogoFound = false;
-                            @endphp
-                            
-                            @foreach($logoPaths as $logoPath)
-                                @if(file_exists(public_path($logoPath)) && !$mobileLogoFound)
-                                    <img src="{{ asset($logoPath) }}" alt="HostelHub Logo" class="mobile-logo mr-2">
-                                    @php $mobileLogoFound = true; @endphp
-                                @endif
-                            @endforeach
-                            
-                            @if(!$mobileLogoFound)
-                                <!-- FALLBACK MOBILE TEXT LOGO -->
-                                <div class="mobile-text-logo mr-2">
-                                    HH
-                                </div>
-                            @endif
+                        <!-- Brand with Logo -->
+                        <a href="<?php echo e(url('/owner/dashboard')); ?>" class="navbar-brand text-white flex items-center">
+                            <img src="<?php echo e(asset('storage/images/logo.png')); ?>" alt="HostelHub Logo" class="mobile-logo mr-2">
                             <span class="hidden md:inline">होस्टलहब - मालिक प्यानल</span>
                         </a>
                     </div>
@@ -517,23 +451,23 @@
                                     aria-expanded="false"
                                     aria-label="प्रयोगकर्ता मेनु">
                                 <i class="fas fa-user-circle me-2"></i>
-                                <span class="d-none d-md-inline">{{ Auth::user()->name ?? 'प्रयोगकर्ता' }}</span>
+                                <span class="d-none d-md-inline"><?php echo e(Auth::user()->name ?? 'प्रयोगकर्ता'); ?></span>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end shadow-lg rounded-xl border-0 py-2" aria-labelledby="userDropdown">
                                 <li>
-                                    <a class="dropdown-item d-flex align-items-center" href="{{ route('owner.profile') }}">
+                                    <a class="dropdown-item d-flex align-items-center" href="<?php echo e(route('owner.profile')); ?>">
                                         <i class="fas fa-user me-2"></i>प्रोफाइल
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item d-flex align-items-center" href="{{ route('owner.dashboard') }}">
+                                    <a class="dropdown-item d-flex align-items-center" href="<?php echo e(route('owner.dashboard')); ?>">
                                         <i class="fas fa-cog me-2"></i>सेटिङहरू
                                     </a>
                                 </li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
-                                    <form method="POST" action="{{ route('logout') }}" class="mb-0">
-                                        @csrf
+                                    <form method="POST" action="<?php echo e(route('logout')); ?>" class="mb-0">
+                                        <?php echo csrf_field(); ?>
                                         <button type="submit" class="dropdown-item d-flex align-items-center text-danger">
                                             <i class="fas fa-sign-out-alt me-2"></i>लगआउट
                                         </button>
@@ -550,28 +484,28 @@
                 <!-- Page Content -->
                 <main id="main-content" class="page-content">
                     <!-- Flash Messages -->
-                    @if(session('success'))
+                    <?php if(session('success')): ?>
                         <div class="alert alert-success alert-dismissible fade show mb-4 rounded-xl" role="alert">
                             <div class="d-flex align-items-center">
                                 <i class="fas fa-check-circle me-2"></i>
-                                <strong class="nepali">{{ session('success') }}</strong>
+                                <strong class="nepali"><?php echo e(session('success')); ?></strong>
                             </div>
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
-                    @endif
+                    <?php endif; ?>
 
-                    @if(session('error'))
+                    <?php if(session('error')): ?>
                         <div class="alert alert-danger alert-dismissible fade show mb-4 rounded-xl" role="alert">
                             <div class="d-flex align-items-center">
                                 <i class="fas fa-exclamation-circle me-2"></i>
-                                <strong class="nepali">{{ session('error') }}</strong>
+                                <strong class="nepali"><?php echo e(session('error')); ?></strong>
                             </div>
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
-                    @endif
+                    <?php endif; ?>
 
                     <!-- Page Content -->
-                    @yield('content')
+                    <?php echo $__env->yieldContent('content'); ?>
                 </main>
             </div>
         </div>
@@ -704,6 +638,6 @@
     </script>
     
     <!-- Page-specific JavaScript -->
-    @stack('scripts')
+    <?php echo $__env->yieldPushContent('scripts'); ?>
 </body>
-</html>
+</html><?php /**PATH C:\laragon\www\HostelHub\resources\views/layouts/owner.blade.php ENDPATH**/ ?>
