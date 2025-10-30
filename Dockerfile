@@ -7,22 +7,25 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /var/www/html
 
-# Copy project files FIRST
 COPY . .
 
-# Remove any existing corrupted cache
+# Remove corrupted cache
 RUN rm -rf bootstrap/cache/*
 
 # Set permissions
 RUN chmod -R 777 storage bootstrap/cache
 
-# Install composer and dependencies
+# Install composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 RUN composer install --no-dev --optimize-autoloader --no-scripts
 
-# Generate key and basic setup
+# Basic setup without route caching
 RUN if [ ! -f .env ]; then cp .env.example .env; fi
 RUN php artisan key:generate --force || true
+
+# Only config and view cache (skip route cache to avoid conflicts)
+RUN php artisan config:cache || true
+RUN php artisan view:cache || true
 
 # Fix Apache document root
 RUN sed -ri -e 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/*.conf
@@ -32,4 +35,9 @@ RUN chmod -R 775 storage bootstrap/cache
 RUN chown -R www-data:www-data storage bootstrap/cache
 
 EXPOSE 80
-CMD ["apache2-foreground"]
+
+# Use a startup script that handles route caching safely
+COPY deploy.sh /usr/local/bin/deploy.sh
+RUN chmod +x /usr/local/bin/deploy.sh
+
+CMD ["/usr/local/bin/deploy.sh"]

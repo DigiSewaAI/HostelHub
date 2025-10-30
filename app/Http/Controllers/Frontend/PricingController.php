@@ -29,8 +29,8 @@ class PricingController extends Controller
             $plans = $this->getFallbackPlans(); // Use fallback plans instead of empty collection
         }
 
-        // Emergency fix for production - ensure we always return valid data
-        if (!isset($plans) {
+        // ✅ FIXED: Added missing closing parenthesis
+        if (!isset($plans)) {
             $plans = $this->getFallbackPlans();
         }
 
