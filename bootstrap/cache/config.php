@@ -536,7 +536,7 @@
   ),
   'logging' => 
   array (
-    'default' => 'stack',
+    'default' => 'stderr',
     'deprecations' => 
     array (
       'channel' => NULL,
