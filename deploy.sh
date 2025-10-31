@@ -68,6 +68,14 @@ echo "🛡️  SKIPPING ALL DATABASE OPERATIONS - PROTECTING EXISTING DATA"
 echo "📊 Existing users, hostels, students data preserved 100%"
 echo "🔒 No migrations, no seeders, no database changes"
 
+# Manual user creation instructions
+echo "🔐 MANUAL STEP REQUIRED:"
+echo "   1. Go to Render Database > Connect"
+echo "   2. Run PSQL command"
+echo "   3. Insert user manually with:"
+echo "      Email: parasharregmi@gmail.com"
+echo "      Password: password"
+
 # Optimize based on environment
 if [ "$RENDER" = "true" ]; then
     echo "⚡ Optimizing for Production..."

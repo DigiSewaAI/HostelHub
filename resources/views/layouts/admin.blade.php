@@ -17,16 +17,32 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
           integrity="sha512-iecdLmaskl7CVskpV0uYGFkTd73EVdjGN7teJQ8N+2ER5yiJHHIyMI1GAa5I80LzvcpbKjByZcXc9j5QFZUvSJQ=="
           crossorigin="anonymous" referrerpolicy="no-referrer">
+
+    <!-- 🔥 CRITICAL: Tailwind CDN as Primary -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': '#4e73df',
+                        'primary-dark': '#224abe',
+                        'accent': '#1cc88a',
+                        'accent-dark': '#13855c'
+                    }
+                }
+            }
+        }
+    </script>
     
-    <!-- Tailwind CSS with Vite -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    
+    <!-- 🔥 Manual CSS Load (Backup) -->
+    @if(file_exists(public_path('build/assets/app-DHdFXIum.css')))
+        <link rel="stylesheet" href="{{ asset('build/assets/app-DHdFXIum.css') }}">
+    @endif
+
     <!-- DataTables CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.tailwindcss.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.tailwindcss.min.css">
-    
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
     <!-- Custom Styles -->
     <style>
@@ -59,28 +75,28 @@
         }
         
         .sidebar.collapsed .sidebar-text {
-            display: none;
+            display: none !important;
         }
         
         .sidebar.collapsed .sidebar-icon {
-            margin: 0 auto;
+            margin: 0 auto !important;
         }
         
         .dark-mode {
-            background-color: #1e293b;
-            color: #f1f5f9;
+            background-color: #1e293b !important;
+            color: #f1f5f9 !important;
         }
         
         .dark-mode .main-content {
-            background-color: #1e293b;
+            background-color: #1e293b !important;
         }
         
         .dark-mode .sidebar {
-            background-color: #1e293b;
+            background-color: #1e293b !important;
         }
         
         .dark-mode .dropdown-menu {
-            background-color: #334155;
+            background-color: #334155 !important;
         }
         
         .dark-mode .text-gray-700 {
@@ -100,77 +116,78 @@
         }
         
         .sidebar-link {
-            display: flex;
-            align-items: center;
-            padding: 0.8rem 1rem;
-            border-radius: 0.375rem;
-            color: #ffffff;
-            transition: all 0.3s;
-            margin-bottom: 0.25rem;
+            display: flex !important;
+            align-items: center !important;
+            padding: 0.8rem 1rem !important;
+            border-radius: 0.375rem !important;
+            color: #ffffff !important;
+            transition: all 0.3s !important;
+            margin-bottom: 0.25rem !important;
+            text-decoration: none !important;
         }
         
         .sidebar-link:hover {
             background-color: rgba(255, 255, 255, 0.15) !important;
             transform: translateX(3px);
-            color: white;
+            color: white !important;
         }
         
         .sidebar-link i {
-            width: 1.5rem;
-            text-align: center;
-            margin-right: 0.75rem;
-            font-size: 1.1rem;
+            width: 1.5rem !important;
+            text-align: center !important;
+            margin-right: 0.75rem !important;
+            font-size: 1.1rem !important;
         }
         
         .skip-link {
-            position: absolute;
-            top: -40px;
-            left: 0;
-            background: #1e40af;
-            color: white;
-            padding: 8px 16px;
-            z-index: 100;
-            transition: top 0.3s;
+            position: absolute !important;
+            top: -40px !important;
+            left: 0 !important;
+            background: #1e40af !important;
+            color: white !important;
+            padding: 8px 16px !important;
+            z-index: 100 !important;
+            transition: top 0.3s !important;
         }
         
         .skip-link:focus {
-            top: 0;
+            top: 0 !important;
         }
         
         .notification-dot {
-            position: absolute;
-            top: 3px;
-            right: 3px;
-            width: 8px;
-            height: 8px;
-            background-color: #ef4444;
-            border-radius: 50%;
-            z-index: 10;
+            position: absolute !important;
+            top: 3px !important;
+            right: 3px !important;
+            width: 8px !important;
+            height: 8px !important;
+            background-color: #ef4444 !important;
+            border-radius: 50% !important;
+            z-index: 10 !important;
         }
         
         .notification-button {
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            position: relative !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
         }
         
         .notification-button i {
-            font-size: 1.25rem;
+            font-size: 1.25rem !important;
         }
         
         /* साइडबार स्क्रोलबार स्टाइल */
         .sidebar::-webkit-scrollbar {
-            width: 6px;
+            width: 6px !important;
         }
         
         .sidebar::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.1);
+            background: rgba(0, 0, 0, 0.1) !important;
         }
         
         .sidebar::-webkit-scrollbar-thumb {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 3px;
+            background: rgba(0, 0, 0, 0.3) !important;
+            border-radius: 3px !important;
         }
         
         .bg-gradient-primary {
@@ -178,60 +195,60 @@
         }
         
         .btn {
-            border-radius: 0.5rem;
-            font-weight: 600;
-            padding: 0.5rem 1rem;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s;
+            border-radius: 0.5rem !important;
+            font-weight: 600 !important;
+            padding: 0.5rem 1rem !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            transition: all 0.3s !important;
         }
         
         .btn-primary {
-            background: linear-gradient(45deg, var(--primary-color), var(--primary-dark));
-            border: none;
-            box-shadow: 0 2px 5px rgba(78, 115, 223, 0.3);
+            background: linear-gradient(45deg, var(--primary-color), var(--primary-dark)) !important;
+            border: none !important;
+            box-shadow: 0 2px 5px rgba(78, 115, 223, 0.3) !important;
         }
         
         .btn-primary:hover {
-            background: linear-gradient(45deg, var(--primary-dark), var(--primary-color));
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(78, 115, 223, 0.4);
+            background: linear-gradient(45deg, var(--primary-dark), var(--primary-color)) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 4px 8px rgba(78, 115, 223, 0.4) !important;
         }
         
         .btn-success {
-            background: linear-gradient(45deg, var(--accent-color), var(--accent-dark));
-            border: none;
-            box-shadow: 0 2px 5px rgba(28, 200, 138, 0.3);
+            background: linear-gradient(45deg, var(--accent-color), var(--accent-dark)) !important;
+            border: none !important;
+            box-shadow: 0 2px 5px rgba(28, 200, 138, 0.3) !important;
         }
         
         .btn-success:hover {
-            background: linear-gradient(45deg, var(--accent-dark), var(--accent-color));
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(28, 200, 138, 0.4);
+            background: linear-gradient(45deg, var(--accent-dark), var(--accent-color)) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 4px 8px rgba(28, 200, 138, 0.4) !important;
         }
         
         .dropdown-item {
-            padding: 0.5rem 1rem;
-            border-radius: 0.35rem;
-            margin: 0.1rem 0.25rem;
-            width: auto;
-            display: flex;
-            align-items: center;
+            padding: 0.5rem 1rem !important;
+            border-radius: 0.35rem !important;
+            margin: 0.1rem 0.25rem !important;
+            width: auto !important;
+            display: flex !important;
+            align-items: center !important;
         }
         
         .dropdown-item:hover {
-            background-color: #f8f9fc;
+            background-color: #f8f9fc !important;
         }
         
         .dropdown-menu {
-            border: none;
-            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
-            border-radius: 0.5rem;
+            border: none !important;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15) !important;
+            border-radius: 0.5rem !important;
         }
         
         .nepali {
-            font-family: 'Noto Sans Devanagari', sans-serif;
+            font-family: 'Noto Sans Devanagari', sans-serif !important;
         }
         
         /* Reduced header height by 20% */
@@ -254,32 +271,87 @@
         
         /* Logo Styles */
         .logo-container {
-            display: flex;
-            align-items: center;
-            text-decoration: none;
+            display: flex !important;
+            align-items: center !important;
+            text-decoration: none !important;
         }
         
         .logo-img {
-            height: 40px;
-            width: auto;
-            object-fit: contain;
+            height: 40px !important;
+            width: auto !important;
+            object-fit: contain !important;
         }
         
         .logo-text {
-            margin-left: 10px;
-            color: white;
-            font-weight: bold;
-            font-size: 18px;
+            margin-left: 10px !important;
+            color: white !important;
+            font-weight: bold !important;
+            font-size: 18px !important;
         }
         
         .mobile-logo {
-            height: 32px;
-            width: auto;
+            height: 32px !important;
+            width: auto !important;
         }
         
         /* Component-specific styles */
         .alert-dismissible {
-            transition: opacity 0.5s;
+            transition: opacity 0.5s !important;
+        }
+
+        /* 🔥 FIX: Mobile sidebar classes */
+        .sidebar-mobile {
+            transform: translateX(-100%) !important;
+        }
+        
+        .sidebar-mobile.open {
+            transform: translateX(0) !important;
+        }
+
+        /* 🔥 CRITICAL: Force Tailwind utilities */
+        .flex { display: flex !important; }
+        .hidden { display: none !important; }
+        .block { display: block !important; }
+        .lg\:hidden { 
+            display: none !important; 
+        }
+        
+        @media (min-width: 1024px) {
+            .lg\:hidden { 
+                display: none !important; 
+            }
+            .lg\:block { 
+                display: block !important; 
+            }
+            .lg\:flex {
+                display: flex !important;
+            }
+            .lg\:relative {
+                position: relative !important;
+            }
+        }
+
+        /* Ensure main content spacing */
+        .main-content-spacing {
+            margin-left: 16rem !important;
+            transition: margin-left 0.3s !important;
+        }
+        
+        .main-content-spacing.collapsed {
+            margin-left: 4.5rem !important;
+        }
+
+        /* Mobile fixes */
+        @media (max-width: 1023px) {
+            .sidebar-mobile {
+                transform: translateX(-100%) !important;
+            }
+            .sidebar-mobile.open {
+                transform: translateX(0) !important;
+            }
+            .main-content-spacing {
+                margin-left: 0 !important;
+            }
         }
     </style>
     
@@ -287,17 +359,20 @@
     @stack('styles')
 </head>
 
-<body class="bg-gray-50 font-sans" x-data="{ darkMode: localStorage.getItem('darkMode') === 'true', sidebarCollapsed: localStorage.getItem('sidebarCollapsed') === 'true' }" :class="{ 'dark-mode': darkMode }">
+<body class="bg-gray-50 font-sans" x-data="{ darkMode: localStorage.getItem('darkMode') === 'true', sidebarCollapsed: localStorage.getItem('sidebarCollapsed') === 'true', mobileSidebarOpen: false }" :class="{ 'dark-mode': darkMode }">
     <a href="#main-content" class="skip-link nepali">मुख्य सामग्रीमा जानुहोस्</a>
     
     <div class="flex h-screen overflow-hidden">
         <!-- Sidebar Component -->
         <aside id="sidebar" 
-               class="sidebar text-white z-20 flex-shrink-0 transition-all duration-300 ease-in-out flex flex-col h-full"
-               :class="{ 'collapsed': sidebarCollapsed }">
+               class="sidebar text-white z-20 flex-shrink-0 transition-all duration-300 ease-in-out flex flex-col h-full fixed lg:relative sidebar-mobile lg:sidebar-mobile-open"
+               :class="{ 
+                 'collapsed': sidebarCollapsed,
+                 'open': mobileSidebarOpen 
+               }">
             <div class="p-4 border-b border-blue-700 flex items-center justify-between">
                 <a href="{{ url('/admin/dashboard') }}" class="logo-container">
-                    <img src="{{ asset('storage/images/logo.png') }}" alt="HostelHub Logo" class="logo-img">
+                    <img src="{{ asset('images/logo.png') }}" alt="HostelHub Logo" class="logo-img" onerror="this.src='{{ asset('build/assets/logo.png') }}'">
                     <span class="logo-text sidebar-text" x-show="!sidebarCollapsed">होस्टलहब</span>
                 </a>
                 <button @click="sidebarCollapsed = !sidebarCollapsed; localStorage.setItem('sidebarCollapsed', sidebarCollapsed)" 
@@ -398,7 +473,6 @@
                 </a>
                 
                 <!-- Settings -->
-                <!-- 🔥 CRITICAL FIX: Changed route from admin.settings to admin.settings.index -->
                 <a href="{{ route('admin.settings.index') }}"
                    class="sidebar-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}"
                    aria-current="{{ request()->routeIs('admin.settings.*') ? 'page' : 'false' }}">
@@ -420,17 +494,17 @@
         </aside>
 
         <!-- Main Content -->
-        <div class="flex-1 flex flex-col overflow-hidden" :class="{ 'ml-16': sidebarCollapsed, 'ml-64': !sidebarCollapsed }">
+        <div class="flex-1 flex flex-col overflow-hidden main-content-spacing transition-all duration-300" :class="{ 'collapsed': sidebarCollapsed }">
             <!-- Top Navigation -->
             <header class="bg-gradient-primary shadow-sm z-10">
                 <div class="flex items-center justify-between px-6 header-content">
                     <div class="flex items-center">
-                        <button id="mobile-sidebar-toggle" class="lg:hidden text-white hover:text-gray-200 mr-4" aria-label="मोबाइल साइडबार खोल्नुहोस्">
+                        <button @click="mobileSidebarOpen = !mobileSidebarOpen" class="lg:hidden text-white hover:text-gray-200 mr-4" aria-label="मोबाइल साइडबार खोल्नुहोस्">
                             <i class="fas fa-bars text-xl"></i>
                         </button>
                         <!-- Brand with Logo -->
                         <a href="{{ url('/admin/dashboard') }}" class="navbar-brand text-white flex items-center">
-                            <img src="{{ asset('storage/images/logo.png') }}" alt="HostelHub Logo" class="mobile-logo mr-2">
+                            <img src="{{ asset('images/logo.png') }}" alt="HostelHub Logo" class="mobile-logo mr-2" onerror="this.src='{{ asset('build/assets/logo.png') }}'">
                             <span class="hidden md:inline">होस्टलहब - प्रशासक प्यानल</span>
                         </a>
                     </div>
@@ -499,26 +573,38 @@
                         </div>
                         
                         <!-- User Dropdown -->
-                        <div class="d-flex align-items-center user-dropdown">
-                            <span class="text-white me-3 nepali" x-show="!sidebarCollapsed || window.innerWidth >= 1024">पराशर रेग्मी</span>
-                            <div class="dropdown">
-                                <button class="btn btn-outline-light dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="fas fa-user-circle me-1"></i>
+                        <div class="flex items-center space-x-2 user-dropdown">
+                            <span class="text-white nepali" x-show="!sidebarCollapsed || window.innerWidth >= 1024">पराशर रेग्मी</span>
+                            <div class="relative" x-data="{ userDropdownOpen: false }">
+                                <button @click="userDropdownOpen = !userDropdownOpen" class="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-3 py-2 rounded-lg flex items-center space-x-2 transition-all">
+                                    <i class="fas fa-user-circle"></i>
                                     <span class="nepali">प्रशासक</span>
+                                    <i class="fas fa-chevron-down text-xs"></i>
                                 </button>
-                                <ul class="dropdown-menu dropdown-menu-end shadow dark:bg-gray-700">
-                                    <li><a class="dropdown-item nepali dark:text-white dark:hover:bg-gray-600" href="#"><i class="fas fa-user me-2"></i>मेरो प्रोफाइल</a></li>
-                                    <li><a class="dropdown-item nepali dark:text-white dark:hover:bg-gray-600" href="{{ route('admin.settings.index') }}"><i class="fas fa-cog me-2"></i>सेटिङ्हरू</a></li>
-                                    <li><hr class="dropdown-divider dark:border-gray-600"></li>
-                                    <li>
-                                        <form method="POST" action="{{ route('logout') }}" id="logout-form-top">
-                                            @csrf
-                                            <button type="submit" class="dropdown-item nepali dark:text-white dark:hover:bg-gray-600" style="border: none; background: none; width: 100%; text-align: left;">
-                                                <i class="fas fa-sign-out-alt me-2"></i>लगआउट
-                                            </button>
-                                        </form>
-                                    </li>
-                                </ul>
+                                
+                                <div x-show="userDropdownOpen" 
+                                     @click.away="userDropdownOpen = false"
+                                     x-transition:enter="transition ease-out duration-200"
+                                     x-transition:enter-start="opacity-0 transform scale-95"
+                                     x-transition:enter-end="opacity-100 transform scale-100"
+                                     x-transition:leave="transition ease-in duration-75"
+                                     x-transition:leave-start="opacity-100 transform scale-100"
+                                     x-transition:leave-end="opacity-0 transform scale-95"
+                                     class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-20 border border-gray-200 dark:bg-gray-700 dark:border-gray-600">
+                                    <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-600">
+                                        <i class="fas fa-user mr-2"></i>मेरो प्रोफाइल
+                                    </a>
+                                    <a href="{{ route('admin.settings.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-600">
+                                        <i class="fas fa-cog mr-2"></i>सेटिङ्हरू
+                                    </a>
+                                    <div class="border-t border-gray-200 dark:border-gray-600 my-1"></div>
+                                    <form method="POST" action="{{ route('logout') }}">
+                                        @csrf
+                                        <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-600">
+                                            <i class="fas fa-sign-out-alt mr-2"></i>लगआउट
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -600,7 +686,17 @@
     </div>
 
     <!-- Mobile Sidebar Overlay -->
-    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-10 hidden lg:hidden" aria-hidden="true"></div>
+    <div x-show="mobileSidebarOpen" 
+         @click="mobileSidebarOpen = false"
+         class="fixed inset-0 bg-black bg-opacity-50 z-10 lg:hidden" 
+         aria-hidden="true"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0">
+    </div>
 
     <!-- Video Modal -->
     <div id="video-modal" class="fixed inset-0 bg-black bg-opacity-90 z-50 hidden flex items-center justify-center p-4">
@@ -624,41 +720,16 @@
 
     <!-- Scripts -->
     @stack('scripts')
+    
+    <!-- 🔥 Manual JS Load (Backup) -->
+    @if(file_exists(public_path('build/assets/app-B5qYSx8J.js')))
+        <script src="{{ asset('build/assets/app-B5qYSx8J.js') }}" defer></script>
+    @endif
+    
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Mobile sidebar functionality
-            const sidebar = document.getElementById('sidebar');
-            const mobileSidebarToggle = document.getElementById('mobile-sidebar-toggle');
-            const sidebarOverlay = document.getElementById('sidebar-overlay');
-            
-            // Mobile sidebar toggle
-            if (mobileSidebarToggle) {
-                mobileSidebarToggle.addEventListener('click', function() {
-                    sidebar.classList.remove('-translate-x-full');
-                    sidebarOverlay.classList.remove('hidden');
-                    // For accessibility, trap focus inside the sidebar
-                    const sidebarLinks = sidebar.querySelectorAll('a, button');
-                    if (sidebarLinks.length > 0) {
-                        sidebarLinks[0].focus();
-                    }
-                });
-            }
-            
-            // Close mobile sidebar
-            if (sidebarOverlay) {
-                sidebarOverlay.addEventListener('click', function() {
-                    sidebar.classList.add('-translate-x-full');
-                    sidebarOverlay.classList.add('hidden');
-                    // Return focus to the toggle button for accessibility
-                    if (mobileSidebarToggle) {
-                        mobileSidebarToggle.focus();
-                    }
-                });
-            }
-
             // Video Modal Functionality
             const playVideoBtns = document.querySelectorAll('.play-video-btn');
             const videoModal = document.getElementById('video-modal');
@@ -777,25 +848,6 @@
                     }
                 });
             });
-
-            // Add focus trap for mobile sidebar
-            if (sidebar && sidebarOverlay) {
-                sidebar.addEventListener('keydown', function(e) {
-                    const focusableElements = sidebar.querySelectorAll('a, button, input, select, textarea');
-                    const firstFocusable = focusableElements[0];
-                    const lastFocusable = focusableElements[focusableElements.length - 1];
-                    
-                    if (e.key === 'Tab') {
-                        if (e.shiftKey && document.activeElement === firstFocusable) {
-                            e.preventDefault();
-                            lastFocusable.focus();
-                        } else if (!e.shiftKey && document.activeElement === lastFocusable) {
-                            e.preventDefault();
-                            firstFocusable.focus();
-                        }
-                    }
-                });
-            }
         });
     </script>
 </body>
