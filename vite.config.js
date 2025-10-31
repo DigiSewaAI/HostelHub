@@ -1,6 +1,5 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
-import { resolve } from 'path';
 
 export default defineConfig({
     plugins: [
@@ -12,9 +11,13 @@ export default defineConfig({
             refresh: true,
         }),
     ],
-    resolve: {
-        alias: {
-            '@fortawesome': resolve(__dirname, 'node_modules/@fortawesome'),
+    build: {
+        outDir: 'public/build',
+        manifest: true,
+        rollupOptions: {
+            input: {
+                app: 'resources/css/app.css'
+            }
         }
     }
 });
