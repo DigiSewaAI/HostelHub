@@ -35,13 +35,15 @@ class PublicController extends Controller
     public function home(): View
     {
         try {
-            // 1. Featured Rooms (Available rooms with at least one vacancy)
+            // 1. Featured Rooms (Available rooms with at least one vacancy) - FIXED FOR POSTGRESQL
             $featuredRooms = Room::where('status', 'available')
-                ->withCount('students')
-                ->having('students_count', '<', DB::raw('capacity'))
-                ->orderBy('price')
-                ->limit(3)
-                ->get();
+                ->with(['students']) // Load students relationship
+                ->get()
+                ->filter(function ($room) {
+                    return $room->students->count() < $room->capacity;
+                })
+                ->sortBy('price')
+                ->take(3);
 
             // 2. System Metrics
             $metrics = [
