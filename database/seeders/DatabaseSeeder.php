@@ -139,7 +139,7 @@ class DatabaseSeeder extends Seeder
             )
         ];
 
-        // Create users WITHOUT organization_id
+        // Create users WITHOUT organization_id - ORIGINAL PASSWORDS RESTORED
         $admin = User::firstOrCreate(
             ['email' => 'parasharregmi@gmail.com'],
             [
@@ -170,7 +170,7 @@ class DatabaseSeeder extends Seeder
             ['email' => 'shresthaxok@gmail.com'],
             [
                 'name' => 'Ashok Shrestha',
-                'password' => Hash::make('password123'),
+                'password' => Hash::make('Himalayan@1980'),
                 'email_verified_at' => now(),
                 'phone' => '9851134338',
                 'address' => 'पोखरा, नेपाल',
@@ -178,6 +178,19 @@ class DatabaseSeeder extends Seeder
             ]
         );
         $student->assignRole('student');
+
+        // Create additional test users with SIMPLE password for testing only
+        User::firstOrCreate(
+            ['email' => 'student@hostelhub.com'],
+            [
+                'name' => 'Test Student',
+                'password' => Hash::make('password123'),
+                'email_verified_at' => now(),
+                'phone' => '9800000000',
+                'address' => 'Kathmandu, Nepal',
+                'payment_verified' => false,
+            ]
+        )->assignRole('student');
 
         // Create organization-user relationships using sync to avoid duplicates
         $admin->organizations()->sync([
@@ -195,18 +208,33 @@ class DatabaseSeeder extends Seeder
             $organizations[0]->id => ['role' => 'student']
         ]);
 
-        // Run other seeders
-        $this->call([
-            CollegeSeeder::class,
-            CourseSeeder::class,
-            HostelSeeder::class,
-            RoomSeeder::class,
-            StudentSeeder::class,
-        ]);
+        // Run other seeders only if they exist
+        $seeders = [
+            'CollegeSeeder',
+            'CourseSeeder', 
+            'HostelSeeder',
+            'RoomSeeder',
+            'StudentSeeder',
+        ];
+
+        foreach ($seeders as $seeder) {
+            if (class_exists("Database\\Seeders\\{$seeder}")) {
+                $this->call($seeder);
+            }
+        }
 
         // Clear permission cache again
         if (class_exists(\Spatie\Permission\PermissionRegistrar::class)) {
             app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
         }
+
+        // Output login information
+        echo "\n\n🎉 DEFAULT LOGIN CREDENTIALS:\n";
+        echo "==============================\n";
+        echo "👑 Admin: parasharregmi@gmail.com / Himalayan@1980\n";
+        echo "👨‍💼 Manager: regmiashish629@gmail.com / Himalayan@1980\n"; 
+        echo "🎓 Student: shresthaxok@gmail.com / Himalayan@1980\n";
+        echo "🧪 Test Student: student@hostelhub.com / password123\n";
+        echo "==============================\n\n";
     }
 }
