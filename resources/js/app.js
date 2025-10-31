@@ -1,5 +1,4 @@
 import './bootstrap';
-import 'flowbite';
 
 // Alpine.js
 import Alpine from 'alpinejs';
@@ -199,57 +198,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-
-    // Auto-save functionality for forms
-    window.enableAutoSave = function(formId, saveUrl) {
-        const form = document.getElementById(formId);
-        if (!form) return;
-
-        let timeout;
-        form.addEventListener('input', function() {
-            clearTimeout(timeout);
-            timeout = setTimeout(() => {
-                const formData = new FormData(form);
-                fetch(saveUrl, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                    }
-                }).then(response => response.json())
-                  .then(data => {
-                      if (data.success) {
-                          console.log('Auto-save successful');
-                      }
-                  })
-                  .catch(error => console.error('Auto-save error:', error));
-            }, 1000);
-        });
-    };
-
-    // Initialize tooltips
-    const tooltips = document.querySelectorAll('[data-tooltip]');
-    tooltips.forEach(element => {
-        element.addEventListener('mouseenter', function() {
-            const tooltip = document.createElement('div');
-            tooltip.className = 'fixed bg-gray-800 text-white px-2 py-1 rounded text-sm z-50';
-            tooltip.textContent = this.dataset.tooltip;
-            document.body.appendChild(tooltip);
-
-            const rect = this.getBoundingClientRect();
-            tooltip.style.left = rect.left + 'px';
-            tooltip.style.top = (rect.top - tooltip.offsetHeight - 5) + 'px';
-
-            this._tooltip = tooltip;
-        });
-
-        element.addEventListener('mouseleave', function() {
-            if (this._tooltip) {
-                this._tooltip.remove();
-                this._tooltip = null;
-            }
-        });
-    });
 });
 
 // Export for use in other modules
@@ -260,7 +208,6 @@ window.HostelHub = {
     closeModal: window.closeModal,
     showToast: window.showToast,
     copyToClipboard: window.copyToClipboard,
-    enableAutoSave: window.enableAutoSave,
     addFormField: window.addFormField,
     removeFormField: window.removeFormField
 };

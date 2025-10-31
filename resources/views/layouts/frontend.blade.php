@@ -10,14 +10,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- CSS Loading Strategy -->
+    <!-- CSS Loading Strategy - SIMPLIFIED -->
     @env('local')
         <!-- Local Development: Vite Hot Reload -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     @else
         <!-- Production: Built Assets -->
-        <link rel="stylesheet" href="{{ asset('build/assets/app.css') }}">
-        <script type="module" src="{{ asset('build/assets/app.js') }}" defer></script>
+        <link rel="stylesheet" href="{{ asset('build/assets/app-BA4f1sf9.css') }}">
+        <script src="{{ asset('build/assets/app.js') }}" defer></script>
     @endenv
 
     <!-- Main Layout Styles - INLINE FOR RELIABILITY -->
