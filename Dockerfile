@@ -31,8 +31,8 @@ RUN apt-get update && apt-get install -y \
         opcache \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install Node.js and npm (CRITICAL FOR VITE BUILD)
-RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+# Install Node.js 20 (CRITICAL FIX - Updated from 18 to 20)
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs
 
 # Copy Composer from official Composer image
@@ -60,8 +60,11 @@ RUN chmod -R 775 storage bootstrap/cache \
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
 
-# Install Node.js dependencies
-RUN npm install
+# Install Node.js dependencies with retry and timeout
+RUN npm install --registry https://registry.npmjs.org/ --timeout=600000
+
+# Build assets (CRITICAL FOR UI - Added this missing step)
+RUN npm run build
 
 # Set Apache document root to Laravel public directory
 RUN sed -ri -e 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/*.conf \

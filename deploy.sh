@@ -63,19 +63,10 @@ echo "✅ Caches cleared"
 echo "📁 Creating storage link..."
 php artisan storage:link || echo "⚠️  Storage link creation skipped"
 
-# Run migrations safely (only in production if needed)
-if [ "$RENDER" = "true" ]; then
-    echo "🗃️  Running migrations for production..."
-    php artisan migrate --force --no-interaction || echo "⚠️  Production migration skipped - database might not be ready"
-else
-    echo "🗃️  Running migrations for development..."
-    php artisan migrate --force --no-interaction || echo "⚠️  Development migration skipped"
-fi
-
-# Create session table if using database sessions (CRITICAL FOR LOGIN)
-echo "💾 Setting up sessions..."
-php artisan session:table || echo "⚠️  Session table setup skipped"
-php artisan migrate --force --no-interaction || echo "⚠️  Session migration skipped"
+# 🚨 CRITICAL: SKIP ALL DATABASE OPERATIONS 🚨
+echo "🛡️  SKIPPING ALL DATABASE OPERATIONS - PROTECTING EXISTING DATA"
+echo "📊 Existing users, hostels, students data preserved 100%"
+echo "🔒 No migrations, no seeders, no database changes"
 
 # Optimize based on environment
 if [ "$RENDER" = "true" ]; then
@@ -116,7 +107,7 @@ echo "🎉 Deployment completed successfully!"
 echo "📊 Environment: $(grep APP_ENV .env | cut -d '=' -f2)"
 echo "🌐 App URL: $(grep APP_URL .env | cut -d '=' -f2)"
 echo "🐛 Debug Mode: $(grep APP_DEBUG .env | cut -d '=' -f2)"
-echo "🗄️  Database: $(grep DB_CONNECTION .env | cut -d '=' -f2)"
+echo "🛡️  Database: EXISTING DATA PROTECTED - NO CHANGES MADE"
 
 # Start Apache in foreground
 echo "🌐 Starting Apache web server..."
