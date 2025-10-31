@@ -1,8 +1,3 @@
-# -------------------------------
-# ✅ Laravel Production Dockerfile
-# PHP 8.3 + Apache + Composer + Optimized Laravel Setup
-# -------------------------------
-
 # Use official PHP 8.3 image with Apache
 FROM php:8.3-apache
 
@@ -36,6 +31,10 @@ RUN apt-get update && apt-get install -y \
         opcache \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
+# Install Node.js and npm (CRITICAL FOR VITE BUILD)
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get install -y nodejs
+
 # Copy Composer from official Composer image
 COPY --from=composer:2.7 /usr/bin/composer /usr/bin/composer
 
@@ -45,12 +44,8 @@ WORKDIR /var/www/html
 # Copy all project files
 COPY . .
 
-# Copy environment files explicitly
-#COPY .env.local .env.local
-#COPY .env.production .env.production
+# Copy deploy script
 COPY deploy.sh /deploy.sh
-
-# Make deploy script executable
 RUN chmod +x /deploy.sh
 
 # Ensure writable directories exist
@@ -65,23 +60,12 @@ RUN chmod -R 775 storage bootstrap/cache \
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
 
+# Install Node.js dependencies
+RUN npm install
+
 # Set Apache document root to Laravel public directory
 RUN sed -ri -e 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/*.conf \
     && sed -ri -e 's!/var/www/!/var/www/html/public!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
-
-# Create Apache VirtualHost
-RUN echo '<VirtualHost *:80>\n\
-    ServerName localhost\n\
-    DocumentRoot /var/www/html/public\n\
-    <Directory /var/www/html/public>\n\
-        Options Indexes FollowSymLinks\n\
-        AllowOverride All\n\
-        Require all granted\n\
-        FallbackResource /index.php\n\
-    </Directory>\n\
-    ErrorLog ${APACHE_LOG_DIR}/error.log\n\
-    CustomLog ${APACHE_LOG_DIR}/access.log combined\n\
-</VirtualHost>' > /etc/apache2/sites-available/000-default.conf
 
 # Fix ownership for all project files
 RUN chown -R www-data:www-data /var/www/html \
@@ -94,5 +78,5 @@ EXPOSE 80
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD curl -f http://localhost/ || exit 1
 
-# ✅ FIXED: Use the external deploy.sh script instead of embedded one
+# Use the deploy script
 CMD ["/bin/bash", "/deploy.sh"]
