@@ -10,7 +10,17 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Main Layout Styles -->
+    <!-- CSS Loading Strategy -->
+    @env('local')
+        <!-- Local Development: Vite Hot Reload -->
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @else
+        <!-- Production: Built Assets -->
+        <link rel="stylesheet" href="{{ asset('build/assets/app.css') }}">
+        <script type="module" src="{{ asset('build/assets/app.js') }}" defer></script>
+    @endenv
+
+    <!-- Main Layout Styles - INLINE FOR RELIABILITY -->
     <style>
         /* CSS styles will be the same as in home.blade.php */
         :root {
@@ -693,38 +703,44 @@
         </div>
     </footer>
 
-    <script>
-        // Header scroll behavior
-        window.addEventListener('scroll', () => {
-            const siteHeader = document.getElementById('site-header');
-            if (window.scrollY > 40) {
-                siteHeader.classList.add('header-scrolled');
-            } else {
-                siteHeader.classList.remove('header-scrolled');
-            }
-        });
-        
-        // Mobile menu toggle
-        const menuBtn = document.querySelector('.mobile-menu-btn');
-        const navLinks = document.querySelector('.nav-links');
-        if (menuBtn && navLinks) {
-            menuBtn.addEventListener('click', () => {
-                const expanded = menuBtn.getAttribute('aria-expanded') === 'true' || false;
-                menuBtn.setAttribute('aria-expanded', !expanded);
-                navLinks.classList.toggle('show');
-            });
-        }
-
-        // Close mobile menu when clicking on a link
-        document.querySelectorAll('.nav-links a').forEach(link => {
-            link.addEventListener('click', () => {
-                if (navLinks.classList.contains('show')) {
-                    navLinks.classList.remove('show');
-                    menuBtn.setAttribute('aria-expanded', 'false');
+    <!-- JavaScript Loading Strategy -->
+    @env('local')
+        <!-- Vite will handle this automatically -->
+    @else
+        <!-- Production JS Fallback -->
+        <script>
+            // Header scroll behavior
+            window.addEventListener('scroll', () => {
+                const siteHeader = document.getElementById('site-header');
+                if (window.scrollY > 40) {
+                    siteHeader.classList.add('header-scrolled');
+                } else {
+                    siteHeader.classList.remove('header-scrolled');
                 }
             });
-        });
-    </script>
+            
+            // Mobile menu toggle
+            const menuBtn = document.querySelector('.mobile-menu-btn');
+            const navLinks = document.querySelector('.nav-links');
+            if (menuBtn && navLinks) {
+                menuBtn.addEventListener('click', () => {
+                    const expanded = menuBtn.getAttribute('aria-expanded') === 'true' || false;
+                    menuBtn.setAttribute('aria-expanded', !expanded);
+                    navLinks.classList.toggle('show');
+                });
+            }
+
+            // Close mobile menu when clicking on a link
+            document.querySelectorAll('.nav-links a').forEach(link => {
+                link.addEventListener('click', () => {
+                    if (navLinks.classList.contains('show')) {
+                        navLinks.classList.remove('show');
+                        menuBtn.setAttribute('aria-expanded', 'false');
+                    }
+                });
+            });
+        </script>
+    @endenv
     
     <!-- Stack for additional scripts from child views -->
     @stack('scripts')
