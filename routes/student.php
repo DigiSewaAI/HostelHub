@@ -70,6 +70,7 @@ Route::middleware(['auth', 'role:student'])
         Route::get('/circulars/{circular}', [StudentCircularController::class, 'show'])->name('circulars.show');
         Route::post('/circulars/{circular}/mark-read', [StudentCircularController::class, 'markAsRead'])->name('circulars.mark-read');
 
+
         // Additional student routes
         Route::get('/gallery', [StudentController::class, 'gallery'])->name('gallery');
         Route::get('/events', [StudentController::class, 'events'])->name('events');

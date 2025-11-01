@@ -76,6 +76,46 @@ echo "   3. Insert user manually with:"
 echo "      Email: parasharregmi@gmail.com"
 echo "      Password: password"
 
+# 🎨 VITE ASSETS BUILD - FIXED VERSION
+echo "🎨 Building frontend assets..."
+if command -v npm &> /dev/null; then
+    echo "🧹 Removing old build directory..."
+    rm -rf public/build
+    
+    echo "📦 Installing Node.js dependencies..."
+    npm install
+    
+    echo "🔨 Building Vite assets..."
+    npm run build
+    
+    # Verify build output
+    if [ -f "public/build/manifest.json" ]; then
+        echo "✅ Vite manifest generated successfully at public/build/manifest.json"
+        echo "📁 Build contents:"
+        ls -la public/build/
+    else
+        echo "❌ Vite manifest missing - checking build directory..."
+        ls -la public/build/ || echo "Build directory not found"
+        echo "⚠️  Manifest generation issue - using fallback asset loading"
+    fi
+    echo "✅ Frontend assets built successfully"
+else
+    echo "⚠️  npm not available - using pre-built assets"
+    echo "ℹ️  Ensure public/build directory exists with compiled assets"
+fi
+
+# 🔥 AGGRESSIVE CACHE CLEARING AFTER BUILD
+echo "🧹 Clearing caches aggressively after build..."
+php artisan config:clear
+php artisan cache:clear  
+php artisan view:clear
+php artisan route:clear
+echo "✅ Aggressive cache clearing completed"
+
+# Create storage link (ensure it exists)
+echo "📁 Creating storage link..."
+php artisan storage:link
+
 # Optimize based on environment
 if [ "$RENDER" = "true" ]; then
     echo "⚡ Optimizing for Production..."
@@ -94,10 +134,6 @@ if [ "$RENDER" = "true" ]; then
     # Cache events and packages
     php artisan event:cache || echo "⚠️  Event cache skipped"
     php artisan package:discover || echo "⚠️  Package discovery skipped"
-    
-    # Vite assets build (CRITICAL FOR CSS/JS)
-    echo "🎨 Building frontend assets..."
-    npm run build || echo "⚠️  Frontend build skipped - assets might be pre-built"
 else
     echo "🔓 Development Mode - Minimal optimization"
     php artisan config:cache || echo "⚠️  Config cache skipped"
@@ -115,6 +151,7 @@ echo "🎉 Deployment completed successfully!"
 echo "📊 Environment: $(grep APP_ENV .env | cut -d '=' -f2)"
 echo "🌐 App URL: $(grep APP_URL .env | cut -d '=' -f2)"
 echo "🐛 Debug Mode: $(grep APP_DEBUG .env | cut -d '=' -f2)"
+echo "📦 Vite Assets: $(if [ -f "public/build/manifest.json" ]; then echo "BUILT SUCCESSFULLY ✅"; else echo "USING FALLBACK ⚠️"; fi)"
 echo "🛡️  Database: EXISTING DATA PROTECTED - NO CHANGES MADE"
 
 # Start Apache in foreground

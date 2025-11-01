@@ -3,6 +3,7 @@
 @extends('layouts.public')
 
 @push('head')
+@vite(['resources/css/public-themes.css'])
 <style>
     :root {
         --theme-color: {{ $hostel->theme_color ?? '#8B4513' }};
@@ -945,7 +946,4 @@
         </section>
     </div>
 </div>
-
-<!-- Add Font Awesome -->
-<script src="https://kit.fontawesome.com/your-fontawesome-kit.js" crossorigin="anonymous"></script>
 @endsection

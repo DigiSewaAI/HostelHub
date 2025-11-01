@@ -2,6 +2,10 @@
 
 @section('title', 'सार्वजनिक पृष्ठ व्यवस्थापन')
 
+@push('styles')
+@vite(['resources/css/app.css', 'resources/css/public-themes.css'])
+@endpush
+
 @section('content')
 <div class="max-w-4xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">

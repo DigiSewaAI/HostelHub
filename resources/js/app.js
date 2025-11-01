@@ -10,6 +10,65 @@ window.addEventListener('error', function(e) {
     console.error('Global error:', e.error);
 });
 
+// 🚨 EMERGENCY ADMIN DASHBOARD FIX
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚨 Applying emergency admin dashboard fixes...');
+    
+    // Force sidebar visibility
+    const sidebar = document.querySelector('[id*="sidebar"], .sidebar, aside');
+    if (sidebar) {
+        sidebar.style.display = 'flex';
+        sidebar.style.position = 'fixed';
+        sidebar.style.left = '0';
+        sidebar.style.top = '0';
+        sidebar.style.bottom = '0';
+        sidebar.style.width = '16rem';
+        sidebar.style.background = 'linear-gradient(180deg, #1e40af 0%, #1e3a8a 100%)';
+        sidebar.style.color = 'white';
+        sidebar.style.zIndex = '1000';
+        sidebar.style.transform = 'translateX(0)';
+    }
+    
+    // Force main content margin
+    const mainContent = document.querySelector('.main-content, [class*="main"], .content');
+    if (mainContent) {
+        mainContent.style.marginLeft = '16rem';
+        mainContent.style.width = 'calc(100% - 16rem)';
+        mainContent.style.display = 'block';
+    }
+    
+    // Force all cards visible
+    document.querySelectorAll('.card, [class*="card"]').forEach(card => {
+        card.style.background = 'white';
+        card.style.borderRadius = '0.5rem';
+        card.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+        card.style.border = '1px solid #e5e7eb';
+        card.style.display = 'block';
+    });
+    
+    // Force all buttons visible
+    document.querySelectorAll('button, .btn, [class*="btn"]').forEach(btn => {
+        if (btn.className.includes('primary') || btn.textContent.includes('थप्नुहोस्')) {
+            btn.style.background = '#1e40af';
+            btn.style.color = 'white';
+        }
+        if (btn.className.includes('danger')) {
+            btn.style.background = '#dc2626';
+            btn.style.color = 'white';
+        }
+    });
+    
+    console.log('✅ Emergency fixes applied');
+});
+
+// 🚨 FORCE RELOAD IF STILL BROKEN
+setTimeout(() => {
+    if (document.querySelector('.sidebar') && document.querySelector('.sidebar').offsetHeight === 0) {
+        console.log('🔄 Forcing page reload...');
+        window.location.reload();
+    }
+}, 1000);
+
 // Form handling enhancements
 document.addEventListener('DOMContentLoaded', function() {
     // Auto-dismiss alerts
@@ -198,6 +257,25 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // Check if CSS is loaded
+    if (!document.querySelector('link[href*="app-C2VmGskO.css"]')) {
+        console.warn('CSS not loaded, injecting fallback');
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = '/build/assets/app-C2VmGskO.css';
+        document.head.appendChild(link);
+    }
+    
+    // Admin sidebar functionality
+    window.toggleSidebar = function() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        if (sidebar && overlay) {
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+        }
+    };
 });
 
 // Export for use in other modules

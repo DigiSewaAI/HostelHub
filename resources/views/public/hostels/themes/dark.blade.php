@@ -3,6 +3,7 @@
 @extends('layouts.public')
 
 @push('head')
+@vite(['resources/css/public-themes.css'])
 <style>
     :root {
         --theme-color: {{ $hostel->theme_color ?? '#00D4FF' }};
@@ -1037,7 +1038,7 @@
                         @endif
                         
                         <div style="display: flex; flex-direction: column; gap: 1rem;">
-                            <a href="https://www.google.com/maps/search/?api=1&query=Kalikasthan+Mandir+Dillibazar+Kathmandu" 
+                            <a href="https://www.google.com/maps/search/?api=1&query={{ urlencode($hostel->address) }}" 
                                target="_blank" 
                                class="cyber-btn btn-cyber-green"
                                style="text-align: center;">
@@ -1045,7 +1046,7 @@
                                 <span class="nepali-font">नक्सामा दिशा निर्देशन</span>
                             </a>
                             
-                            <a href="https://www.google.com/maps/place/Kalikasthan+Mandir+Dillibazar+Kathmandu" 
+                            <a href="https://www.google.com/maps/search/?api=1&query={{ urlencode($hostel->address) }}" 
                                target="_blank" 
                                class="cyber-btn"
                                style="text-align: center;">
@@ -1260,12 +1261,8 @@
     </a>
 @endif
 
-<!-- Add Font Awesome -->
-<script src="https://kit.fontawesome.com/your-fontawesome-kit.js" crossorigin="anonymous"></script>
-
-<!-- Add Cyber Fonts -->
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
+@push('scripts')
+@vite(['resources/js/app.js'])
 <!-- Cyber JavaScript -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -1275,22 +1272,26 @@ document.addEventListener('DOMContentLoaded', function() {
     const prevBtn = document.querySelector('.prev-cyber-review');
     const nextBtn = document.querySelector('.next-cyber-review');
     
-    if (slides.length > 1) {
+    if (slides.length > 1 && track) {
         let currentSlide = 0;
 
         function updateCarousel() {
             track.style.transform = `translateX(-${currentSlide * 100}%)`;
         }
 
-        nextBtn.addEventListener('click', function() {
-            currentSlide = (currentSlide + 1) % slides.length;
-            updateCarousel();
-        });
+        if (nextBtn) {
+            nextBtn.addEventListener('click', function() {
+                currentSlide = (currentSlide + 1) % slides.length;
+                updateCarousel();
+            });
+        }
 
-        prevBtn.addEventListener('click', function() {
-            currentSlide = (currentSlide - 1 + slides.length) % slides.length;
-            updateCarousel();
-        });
+        if (prevBtn) {
+            prevBtn.addEventListener('click', function() {
+                currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+                updateCarousel();
+            });
+        }
 
         // Auto slide
         setInterval(function() {
@@ -1301,11 +1302,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Matrix effect enhancement
     const matrixCode = document.querySelector('.matrix-code');
-    setInterval(() => {
-        matrixCode.style.background = 
-            `repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255}, 0.03) 2px, rgba(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255}, 0.03) 4px),
-            repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255}, 0.03) 2px, rgba(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255}, 0.03) 4px)`;
-    }, 3000);
+    if (matrixCode) {
+        setInterval(() => {
+            matrixCode.style.background = 
+                `repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255}, 0.03) 2px, rgba(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255}, 0.03) 4px),
+                repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255}, 0.03) 2px, rgba(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255}, 0.03) 4px)`;
+        }, 3000);
+    }
 });
 </script>
+@endpush
+
+<!-- External Dependencies -->
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 @endsection

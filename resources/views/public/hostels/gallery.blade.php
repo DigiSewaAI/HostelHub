@@ -5,6 +5,10 @@
 @section('page-header', ($hostel->name ?? 'Sanctuary Girls Hostel') . ' Premium Gallery')
 @section('page-description', 'हाम्रो होस्टलको विश्वस्तरीय सुविधाहरू, आधुनिक कोठाहरू, र रमाइलो विद्यार्थी जीवनको immersive experience')
 
+@push('styles')
+@vite(['resources/css/gallery.css', 'resources/css/public-themes.css'])
+@endpush
+
 @section('content')
 @php
     // Get gallery items from database

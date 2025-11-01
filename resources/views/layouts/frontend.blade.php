@@ -10,16 +10,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- ✅ GUARANTEED CSS LOADING - SIMPLIFIED & RELIABLE -->
-    @env('local')
-        <!-- Local Development: Vite Hot Reload -->
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
-    @else
-        <!-- Production: Built Assets with Multiple Fallbacks -->
-        <link rel="stylesheet" href="{{ asset('build/assets/app.css') }}" onerror="console.log('Built CSS failed, using inline styles')">
-        <link rel="stylesheet" href="{{ asset('css/app.css') }}" onerror="console.log('CSS fallback failed')">
-        <script src="{{ asset('build/assets/app.js') }}" defer onerror="console.log('JS failed, using inline scripts')"></script>
-    @endenv
+    <!-- ✅ VITE ASSET LOADING - SIMPLIFIED & RELIABLE -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <!-- ✅ MAIN LAYOUT STYLES - INLINE FOR 100% RELIABILITY -->
     <style>
