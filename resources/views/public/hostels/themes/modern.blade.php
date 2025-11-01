@@ -1,6 +1,7 @@
 @extends('layouts.public')
 
 @push('head')
+@vite(['resources/css/public-themes.css'])
 <style>
     :root {
         --theme-color: {{ $hostel->theme_color ?? '#3b82f6' }};
@@ -1224,9 +1225,6 @@
         @endif
     </div>
 </div>
-
-<!-- Add Font Awesome -->
-<script src="https://kit.fontawesome.com/your-fontawesome-kit.js" crossorigin="anonymous"></script>
 
 <script>
 // Auto-scroll functionality for gallery

@@ -3,6 +3,7 @@
 @extends('layouts.public')
 
 @push('head')
+@vite(['resources/css/public-themes.css'])
 <style>
     :root {
         --theme-color: {{ $hostel->theme_color ?? '#6366F1' }};
@@ -1273,12 +1274,8 @@
     </a>
 @endif
 
-<!-- Add Font Awesome -->
-<script src="https://kit.fontawesome.com/your-fontawesome-kit.js" crossorigin="anonymous"></script>
-
-<!-- Add Poppins Font -->
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-
+@push('scripts')
+@vite(['resources/js/app.js'])
 <!-- UPDATED: JavaScript for Reviews Slider -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -1302,16 +1299,20 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Next button
-        nextBtn.addEventListener('click', function() {
-            currentSlide = (currentSlide + 1) % totalSlides;
-            updateSlider();
-        });
+        if (nextBtn) {
+            nextBtn.addEventListener('click', function() {
+                currentSlide = (currentSlide + 1) % totalSlides;
+                updateSlider();
+            });
+        }
 
         // Previous button
-        prevBtn.addEventListener('click', function() {
-            currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
-            updateSlider();
-        });
+        if (prevBtn) {
+            prevBtn.addEventListener('click', function() {
+                currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+                updateSlider();
+            });
+        }
 
         // Dot navigation
         dots.forEach((dot, index) => {
@@ -1329,4 +1330,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+@endpush
+
+<!-- External Dependencies -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 @endsection

@@ -5,7 +5,7 @@
 @section('page-description', 'हाम्रा विभिन्न होस्टलहरूको कोठा, सुविधा र आवासीय क्षेत्रहरूको वास्तविक झलकहरू अन्वेषण गर्नुहोस्')
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('css/gallery.css') }}">
+@vite(['resources/css/gallery.css'])
 <style>
     .hostel-badge {
         position: absolute;
@@ -425,7 +425,7 @@
 @endsection
 
 @push('scripts')
-<script src="{{ asset('js/gallery.js') }}"></script>
+@vite(['resources/js/gallery.js'])
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Hostel filter functionality

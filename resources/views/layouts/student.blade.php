@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="robots" content="noindex, nofollow">
-    <title>@yield('title', 'ड्यासबोर्ड') - HostelHub Owner</title>
+    <title>@yield('title', 'ड्यासबोर्ड') - HostelHub Student</title>
     
     <!-- Favicon -->
     <link rel="shortcut icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
@@ -15,7 +15,7 @@
     
     <!-- Font Awesome 6.4.0 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-          integrity="sha512-iecdLmaskl7CVskpV0uYGFkTd73EVdjGN7teJQ8N+2ER5yiJHHIyMI1GAa5I80LzvcpbKjByZcXc9j5QFZUvSJQ=="
+          integrity="sha512-iecdLmaskl7CVskpV0u:YGFkTd73EVdjGN7teJQ8N+2ER5yiJHHIyMI1GAa5I80LzvcpbKjByZcXc9j5QFZUvSJQ=="
           crossorigin="anonymous" referrerpolicy="no-referrer">
     
     <!-- Tailwind CSS with Vite -->
@@ -42,7 +42,7 @@
         .sidebar {
             width: var(--sidebar-width);
             transition: width var(--transition-speed);
-            background: linear-gradient(45deg, #4e73df, #224abe) !important;
+            background: linear-gradient(45deg, #4e73df, #224abe) !important; /* CHANGED: Royal Navy Blue */
             position: fixed;
             left: 0;
             top: 0;
@@ -95,7 +95,7 @@
         }
         
         .bg-gradient-primary {
-            background: linear-gradient(45deg, #4e73df, #224abe) !important;
+            background: linear-gradient(45deg, #4e73df, #224abe) !important; /* CHANGED: Royal Navy Blue */
         }
         
         .btn {
@@ -109,13 +109,13 @@
         }
         
         .btn-primary {
-            background: linear-gradient(45deg, #4e73df, #224abe);
+            background: linear-gradient(45deg, #4e73df, #224abe); /* CHANGED: Royal Navy Blue */
             border: none;
             box-shadow: 0 2px 5px rgba(78, 115, 223, 0.3);
         }
         
         .btn-primary:hover {
-            background: linear-gradient(45deg, #224abe, #4e73df);
+            background: linear-gradient(45deg, #224abe, #4e73df); /* CHANGED: Royal Navy Blue */
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(78, 115, 223, 0.4);
         }
@@ -146,7 +146,7 @@
             position: absolute;
             top: -40px;
             left: 0;
-            background: #1e40af;
+            background: #224abe; /* CHANGED: Royal Navy Blue */
             color: white;
             padding: 8px 16px;
             z-index: 100;
@@ -212,7 +212,7 @@
             height: 40px;
             width: 40px;
             font-weight: bold;
-            color: #4e73df;
+            color: #4e73df; /* CHANGED: Royal Navy Blue */
             font-size: 16px;
             border: 2px solid white;
         }
@@ -279,6 +279,25 @@
                 padding: 1.5rem;
             }
         }
+
+        /* Student specific styles */
+        .student-badge {
+            background: linear-gradient(45deg, #4e73df, #224abe); /* CHANGED: Royal Navy Blue */
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        /* CHANGED: Updated border colors to match navy blue theme */
+        .sidebar-border {
+            border-color: #2d4fc7 !important;
+        }
+        
+        .hover-sidebar-item:hover {
+            background-color: rgba(255, 255, 255, 0.15) !important;
+        }
     </style>
     
     <!-- Page-specific CSS -->
@@ -288,10 +307,10 @@
     <a href="#main-content" class="skip-link">मुख्य सामग्रीमा जानुहोस्</a>
     
     <div class="flex min-h-screen">
-        <!-- Sidebar -->
+        <!-- Sidebar - STUDENT SPECIFIC -->
         <aside id="sidebar" class="sidebar text-white z-20 flex-shrink-0 transition-all duration-300 ease-in-out flex flex-col h-full">
-            <div class="p-4 border-b border-blue-700 flex items-center justify-between">
-                <a href="{{ url('/owner/dashboard') }}" class="logo-container">
+            <div class="p-4 border-b sidebar-border flex items-center justify-between">
+                <a href="{{ url('/student/dashboard') }}" class="logo-container">
                     <!-- FIXED LOGO WITH MULTIPLE FALLBACKS -->
                     @php
                         $logoPaths = [
@@ -325,98 +344,90 @@
             
             <nav class="mt-5 px-2 flex-1 overflow-y-auto">
                 <!-- Dashboard -->
-                <a href="{{ route('owner.dashboard') }}"
-                   class="sidebar-link {{ request()->routeIs('owner.dashboard') ? 'active' : '' }}"
-                   aria-current="{{ request()->routeIs('owner.dashboard') ? 'page' : 'false' }}">
+                <a href="{{ route('student.dashboard') }}"
+                   class="sidebar-link {{ request()->routeIs('student.dashboard') ? 'active' : '' }}"
+                   aria-current="{{ request()->routeIs('student.dashboard') ? 'page' : 'false' }}">
                     <i class="fas fa-tachometer-alt sidebar-icon"></i>
                     <span class="sidebar-text">ड्यासबोर्ड</span>
                 </a>
                 
-                <!-- Meal Menus -->
-                <a href="{{ route('owner.meal-menus.index') }}"
-                   class="sidebar-link {{ request()->routeIs('owner.meal-menus.*') ? 'active' : '' }}"
-                   aria-current="{{ request()->routeIs('owner.meal-menus.*') ? 'page' : 'false' }}">
-                    <i class="fas fa-utensils sidebar-icon"></i>
-                    <span class="sidebar-text">खानाको योजना</span>
+                <!-- My Profile -->
+                <a href="{{ route('student.profile') }}"
+                   class="sidebar-link {{ request()->routeIs('student.profile') ? 'active' : '' }}"
+                   aria-current="{{ request()->routeIs('student.profile') ? 'page' : 'false' }}">
+                    <i class="fas fa-user sidebar-icon"></i>
+                    <span class="sidebar-text">मेरो प्रोफाइल</span>
                 </a>
                 
-                <!-- Gallery -->
-                <a href="{{ route('owner.galleries.index') }}"
-                   class="sidebar-link {{ request()->routeIs('owner.galleries.*') ? 'active' : '' }}"
-                   aria-current="{{ request()->routeIs('owner.galleries.*') ? 'page' : 'false' }}">
-                    <i class="fas fa-images sidebar-icon"></i>
-                    <span class="sidebar-text">ग्यालरी</span>
-                </a>
-                
-                <!-- Rooms -->
-                <a href="{{ route('owner.rooms.index') }}"
-                   class="sidebar-link {{ request()->routeIs('owner.rooms.*') ? 'active' : '' }}"
-                   aria-current="{{ request()->routeIs('owner.rooms.*') ? 'page' : 'false' }}">
+                <!-- Rooms - CHANGED FROM "My Room" to "Rooms" -->
+                <a href="{{ route('student.rooms.index') }}"
+                   class="sidebar-link {{ request()->routeIs('student.rooms.*') ? 'active' : '' }}"
+                   aria-current="{{ request()->routeIs('student.rooms.*') ? 'page' : 'false' }}">
                     <i class="fas fa-door-open sidebar-icon"></i>
                     <span class="sidebar-text">कोठाहरू</span>
                 </a>
                 
-                <!-- Students -->
-                <a href="{{ route('owner.students.index') }}"
-                   class="sidebar-link {{ request()->routeIs('owner.students.*') ? 'active' : '' }}"
-                   aria-current="{{ request()->routeIs('owner.students.*') ? 'page' : 'false' }}">
-                    <i class="fas fa-user-graduate sidebar-icon"></i>
-                    <span class="sidebar-text">विद्यार्थीहरू</span>
+                <!-- Meal Menus -->
+                <a href="{{ route('student.meal-menus') }}"
+                   class="sidebar-link {{ request()->routeIs('student.meal-menus') ? 'active' : '' }}"
+                   aria-current="{{ request()->routeIs('student.meal-menus') ? 'page' : 'false' }}">
+                    <i class="fas fa-utensils sidebar-icon"></i>
+                    <span class="sidebar-text">खानाको योजना</span>
+                </a>
+                
+                <!-- Circulars (Notices) - CHANGED FROM "Notices" to "Circulars" -->
+                <a href="{{ route('student.circulars.index') }}"
+                   class="sidebar-link {{ request()->routeIs('student.circulars.*') ? 'active' : '' }}"
+                   aria-current="{{ request()->routeIs('student.circulars.*') ? 'page' : 'false' }}">
+                    <i class="fas fa-bullhorn sidebar-icon"></i>
+                    <span class="sidebar-text">सूचनाहरू</span>
                 </a>
                 
                 <!-- Payments -->
-                <a href="{{ route('owner.payments.index') }}"
-                   class="sidebar-link {{ request()->routeIs('owner.payments.*') ? 'active' : '' }}"
-                   aria-current="{{ request()->routeIs('owner.payments.*') ? 'page' : 'false' }}">
+                <a href="{{ route('student.payments.index') }}"
+                   class="sidebar-link {{ request()->routeIs('student.payments.*') ? 'active' : '' }}"
+                   aria-current="{{ request()->routeIs('student.payments.*') ? 'page' : 'false' }}">
                     <i class="fas fa-money-bill-wave sidebar-icon"></i>
                     <span class="sidebar-text">भुक्तानी</span>
                 </a>
                 
                 <!-- Reviews -->
-                <a href="{{ route('owner.reviews.index') }}"
-                   class="sidebar-link {{ request()->routeIs('owner.reviews.*') ? 'active' : '' }}"
-                   aria-current="{{ request()->routeIs('owner.reviews.*') ? 'page' : 'false' }}">
+                <a href="{{ route('student.reviews.index') }}"
+                   class="sidebar-link {{ request()->routeIs('student.reviews.*') ? 'active' : '' }}"
+                   aria-current="{{ request()->routeIs('student.reviews.*') ? 'page' : 'false' }}">
                     <i class="fas fa-star sidebar-icon"></i>
-                    <span class="sidebar-text">समीक्षाहरू</span>
+                    <span class="sidebar-text">समीक्षा</span>
                 </a>
                 
-                <!-- Hostels -->
-                <a href="{{ route('owner.hostels.index') }}"
-                   class="sidebar-link {{ request()->routeIs('owner.hostels.*') ? 'active' : '' }}"
-                   aria-current="{{ request()->routeIs('owner.hostels.*') ? 'page' : 'false' }}">
-                    <i class="fas fa-building sidebar-icon"></i>
-                    <span class="sidebar-text">होस्टल</span>
+                <!-- Bookings -->
+                <a href="{{ route('student.bookings.index') }}"
+                   class="sidebar-link {{ request()->routeIs('student.bookings.*') ? 'active' : '' }}"
+                   aria-current="{{ request()->routeIs('student.bookings.*') ? 'page' : 'false' }}">
+                    <i class="fas fa-calendar-check sidebar-icon"></i>
+                    <span class="sidebar-text">बुकिङहरू</span>
                 </a>
-
-                <!-- Documents Management -->
-                <a href="{{ route('owner.documents.index') }}"
-                   class="sidebar-link {{ request()->routeIs('owner.documents.*') ? 'active' : '' }}"
-                   aria-current="{{ request()->routeIs('owner.documents.*') ? 'page' : 'false' }}">
-                    <i class="fas fa-file-alt sidebar-icon"></i>
-                    <span class="sidebar-text">कागजात व्यवस्थापन</span>
+                
+                <!-- Gallery -->
+                <a href="{{ route('student.gallery') }}"
+                   class="sidebar-link {{ request()->routeIs('student.gallery') ? 'active' : '' }}"
+                   aria-current="{{ request()->routeIs('student.gallery') ? 'page' : 'false' }}">
+                    <i class="fas fa-images sidebar-icon"></i>
+                    <span class="sidebar-text">ग्यालरी</span>
                 </a>
-
-                <!-- Public Page Management -->
-                <a href="{{ route('owner.public-page.edit') }}"
-                   class="sidebar-link {{ request()->routeIs('owner.public-page.*') ? 'active' : '' }}"
-                   aria-current="{{ request()->routeIs('owner.public-page.*') ? 'page' : 'false' }}">
-                    <i class="fas fa-globe sidebar-icon"></i>
-                    <span class="sidebar-text">सार्वजनिक पृष्ठ</span>
-                </a>
-
-                <!-- Circulars -->
-                <a href="{{ route('owner.circulars.index') }}"
-                   class="sidebar-link {{ request()->routeIs('owner.circulars.*') ? 'active' : '' }}"
-                   aria-current="{{ request()->routeIs('owner.circulars.*') ? 'page' : 'false' }}">
-                    <i class="fas fa-bullhorn sidebar-icon"></i>
-                    <span class="sidebar-text">सूचनाहरू</span>
+                
+                <!-- Events -->
+                <a href="{{ route('student.events') }}"
+                   class="sidebar-link {{ request()->routeIs('student.events') ? 'active' : '' }}"
+                   aria-current="{{ request()->routeIs('student.events') ? 'page' : 'false' }}">
+                    <i class="fas fa-calendar-alt sidebar-icon"></i>
+                    <span class="sidebar-text">घटनाहरू</span>
                 </a>
                 
                 <!-- Logout Section -->
-                <div class="mt-auto pt-4 border-t border-blue-700">
+                <div class="mt-auto pt-4 border-t sidebar-border">
                     <form method="POST" action="{{ route('logout') }}" id="logout-form">
                         @csrf
-                        <button type="submit" class="w-full flex items-center px-2 py-2 text-sm rounded-md hover:bg-blue-700 transition-colors">
+                        <button type="submit" class="w-full flex items-center px-2 py-2 text-sm rounded-md hover-sidebar-item transition-colors">
                             <i class="fas fa-sign-out-alt sidebar-icon"></i>
                             <span class="sidebar-text">लगआउट</span>
                         </button>
@@ -435,7 +446,7 @@
                             <i class="fas fa-bars text-xl"></i>
                         </button>
                         <!-- Brand with Logo - FIXED -->
-                        <a href="{{ url('/owner/dashboard') }}" class="navbar-brand text-white flex items-center">
+                        <a href="{{ url('/student/dashboard') }}" class="navbar-brand text-white flex items-center">
                             <!-- FIXED MOBILE LOGO WITH FALLBACK -->
                             @php
                                 $mobileLogoFound = false;
@@ -454,11 +465,17 @@
                                     HH
                                 </div>
                             @endif
-                            <span class="hidden md:inline">होस्टलहब - मालिक प्यानल</span>
+                            <span class="hidden md:inline">होस्टलहब - विद्यार्थी प्यानल</span>
                         </a>
                     </div>
                     
                     <div class="flex items-center space-x-3">
+                        <!-- Student Info Badge -->
+                        <div class="student-badge hidden md:flex items-center space-x-2">
+                            <i class="fas fa-user-graduate"></i>
+                            <span>विद्यार्थी</span>
+                        </div>
+
                         <!-- Notifications -->
                         <div class="dropdown">
                             <button class="notification-button text-white hover:text-gray-200 p-2 rounded-full hover:bg-blue-700 dropdown-toggle" 
@@ -476,8 +493,8 @@
                                     <h3 class="font-semibold text-gray-800">सूचनाहरू</h3>
                                 </div>
                                 <a href="#" class="flex items-start px-4 py-3 hover:bg-gray-50 border-b border-gray-100">
-                                    <div class="bg-indigo-100 p-2 rounded-lg mr-3">
-                                        <i class="fas fa-utensils text-indigo-600"></i>
+                                    <div class="bg-blue-100 p-2 rounded-lg mr-3">
+                                        <i class="fas fa-utensils text-blue-600"></i>
                                     </div>
                                     <div>
                                         <p class="text-sm font-medium text-gray-800">नयाँ खानाको योजना सिर्जना गरियो</p>
@@ -489,16 +506,16 @@
                                         <i class="fas fa-money-bill-wave text-amber-600"></i>
                                     </div>
                                     <div>
-                                        <p class="text-sm font-medium text-gray-800">भुक्तानी प्राप्त भयो</p>
+                                        <p class="text-sm font-medium text-gray-800">भुक्तानी म्याद नजिकिँदैछ</p>
                                         <p class="text-xs text-gray-500">१ घण्टा अघि</p>
                                     </div>
                                 </a>
                                 <a href="#" class="flex items-start px-4 py-3 hover:bg-gray-50">
-                                    <div class="bg-red-100 p-2 rounded-lg mr-3">
-                                        <i class="fas fa-star text-red-600"></i>
+                                    <div class="bg-indigo-100 p-2 rounded-lg mr-3">
+                                        <i class="fas fa-bullhorn text-indigo-600"></i>
                                     </div>
                                     <div>
-                                        <p class="text-sm font-medium text-gray-800">नयाँ समीक्षा प्राप्त भयो</p>
+                                        <p class="text-sm font-medium text-gray-800">नयाँ सूचना प्रकाशित भयो</p>
                                         <p class="text-xs text-gray-500">२ घण्टा अघि</p>
                                     </div>
                                 </a>
@@ -517,16 +534,16 @@
                                     aria-expanded="false"
                                     aria-label="प्रयोगकर्ता मेनु">
                                 <i class="fas fa-user-circle me-2"></i>
-                                <span class="d-none d-md-inline">{{ Auth::user()->name ?? 'प्रयोगकर्ता' }}</span>
+                                <span class="d-none d-md-inline">{{ Auth::user()->name ?? 'विद्यार्थी' }}</span>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end shadow-lg rounded-xl border-0 py-2" aria-labelledby="userDropdown">
                                 <li>
-                                    <a class="dropdown-item d-flex align-items-center" href="{{ route('owner.profile') }}">
+                                    <a class="dropdown-item d-flex align-items-center" href="{{ route('student.profile') }}">
                                         <i class="fas fa-user me-2"></i>प्रोफाइल
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item d-flex align-items-center" href="{{ route('owner.dashboard') }}">
+                                    <a class="dropdown-item d-flex align-items-center" href="{{ route('student.dashboard') }}">
                                         <i class="fas fa-cog me-2"></i>सेटिङहरू
                                     </a>
                                 </li>

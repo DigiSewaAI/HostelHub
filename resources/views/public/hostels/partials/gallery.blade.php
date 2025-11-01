@@ -3,6 +3,10 @@
     $featuredGalleries = $hostel->featuredGalleries ?? collect();
 @endphp
 
+@push('styles')
+@vite(['resources/css/gallery.css', 'resources/css/public-themes.css'])
+@endpush
+
 @if($galleries->count() > 0)
 <section class="gallery-section mt-8">
     <h2 class="text-2xl font-bold text-gray-900 nepali mb-6">ग्यालरी</h2>

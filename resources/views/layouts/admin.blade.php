@@ -18,27 +18,17 @@
           integrity="sha512-iecdLmaskl7CVskpV0uYGFkTd73EVdjGN7teJQ8N+2ER5yiJHHIyMI1GAa5I80LzvcpbKjByZcXc9j5QFZUvSJQ=="
           crossorigin="anonymous" referrerpolicy="no-referrer">
 
-    <!-- 🔥 CRITICAL: Tailwind CDN as Primary -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'primary': '#4e73df',
-                        'primary-dark': '#224abe',
-                        'accent': '#1cc88a',
-                        'accent-dark': '#13855c'
-                    }
-                }
-            }
-        }
-    </script>
+    <!-- 🔥 CRITICAL: Vite Asset Loading - Fixed -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     
-    <!-- 🔥 Manual CSS Load (Backup) -->
-    @if(file_exists(public_path('build/assets/app-DHdFXIum.css')))
-        <link rel="stylesheet" href="{{ asset('build/assets/app-DHdFXIum.css') }}">
-    @endif
+    <!-- 🔥 BACKUP: Manual CSS Load if Vite fails -->
+    @production
+        @if(file_exists(public_path('build/assets/app.css')))
+            <link rel="stylesheet" href="{{ asset('build/assets/app.css') }}">
+        @elseif(file_exists(public_path('build/assets/app-DHdFXIum.css')))
+            <link rel="stylesheet" href="{{ asset('build/assets/app-DHdFXIum.css') }}">
+        @endif
+    @endproduction
 
     <!-- DataTables CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.tailwindcss.min.css">
@@ -331,14 +321,63 @@
             }
         }
 
-        /* Ensure main content spacing */
+        /* 🚨 EMERGENCY WHITE SPACE FIX - CRITICAL */
         .main-content-spacing {
             margin-left: 16rem !important;
+            width: calc(100vw - 16rem) !important;
+            max-width: none !important;
             transition: margin-left 0.3s !important;
         }
         
         .main-content-spacing.collapsed {
             margin-left: 4.5rem !important;
+            width: calc(100vw - 4.5rem) !important;
+        }
+
+        .max-w-7xl {
+            max-width: none !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 1rem !important;
+        }
+
+        main#main-content {
+            padding: 1rem !important;
+            margin: 0 !important;
+            width: 100% !important;
+        }
+
+        .bg-white.rounded-xl {
+            border-radius: 0.5rem !important;
+            margin: 0 !important;
+            width: 100% !important;
+        }
+
+        /* Fix main content container */
+        .main-content {
+            margin-left: 0 !important;
+            width: 100% !important;
+            max-width: none !important;
+        }
+
+        /* Remove any extra padding/margin from main content */
+        #main-content {
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        /* Fix the main content area */
+        .flex-1.overflow-y-auto {
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        /* Ensure content uses full available space */
+        .bg-white.dark\:bg-gray-700.rounded-xl {
+            border-radius: 0.5rem !important;
+            margin: 0 !important;
+            min-height: calc(100vh - 8rem) !important;
         }
 
         /* Mobile fixes */
@@ -351,7 +390,26 @@
             }
             .main-content-spacing {
                 margin-left: 0 !important;
+                width: 100vw !important;
             }
+            
+            .max-w-7xl.mx-auto {
+                padding: 0 0.5rem !important;
+            }
+        }
+
+        /* 🔥 VITE FALLBACK STYLES - Critical for when Vite fails */
+        .vite-fallback {
+            display: none;
+        }
+        
+        /* Show fallback only when Vite fails */
+        .no-vite .vite-fallback {
+            display: block;
+        }
+        
+        .no-vite .vite-asset {
+            display: none;
         }
     </style>
     
@@ -721,15 +779,28 @@
     <!-- Scripts -->
     @stack('scripts')
     
-    <!-- 🔥 Manual JS Load (Backup) -->
-    @if(file_exists(public_path('build/assets/app-B5qYSx8J.js')))
-        <script src="{{ asset('build/assets/app-B5qYSx8J.js') }}" defer></script>
-    @endif
+    <!-- 🔥 BACKUP: Manual JS Load if Vite fails -->
+    @production
+        @if(file_exists(public_path('build/assets/app.js')))
+            <script src="{{ asset('build/assets/app.js') }}" defer></script>
+        @elseif(file_exists(public_path('build/assets/app-B5qYSx8J.js')))
+            <script src="{{ asset('build/assets/app-B5qYSx8J.js') }}" defer></script>
+        @endif
+    @endproduction
     
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Vite Asset Detection - Add fallback class if Vite fails
+            setTimeout(function() {
+                const viteStyles = document.querySelector('link[href*="build/assets/app"]');
+                if (!viteStyles) {
+                    document.body.classList.add('no-vite');
+                    console.warn('Vite assets not detected, using fallback assets');
+                }
+            }, 1000);
+
             // Video Modal Functionality
             const playVideoBtns = document.querySelectorAll('.play-video-btn');
             const videoModal = document.getElementById('video-modal');

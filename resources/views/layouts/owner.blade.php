@@ -18,13 +18,15 @@
           integrity="sha512-iecdLmaskl7CVskpV0uYGFkTd73EVdjGN7teJQ8N+2ER5yiJHHIyMI1GAa5I80LzvcpbKjByZcXc9j5QFZUvSJQ=="
           crossorigin="anonymous" referrerpolicy="no-referrer">
     
-    <!-- Tailwind CSS with Vite -->
+    <!-- Vite CSS Assets -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
+    <!-- 🚨 EMERGENCY CSS FIX FOR VITE MANIFEST ISSUES -->
     <style>
+        /* 🚨 CRITICAL: Ensure sidebar and main content display even if Vite fails */
         :root {
             --sidebar-width: 16rem;
             --sidebar-collapsed-width: 4.5rem;
@@ -185,6 +187,9 @@
             height: 40px;
             width: auto;
             object-fit: contain;
+            background: white;
+            padding: 3px;
+            border-radius: 6px;
         }
         .logo-text {
             margin-left: 10px;
@@ -195,9 +200,32 @@
         .mobile-logo {
             height: 32px;
             width: auto;
+            background: white;
+            padding: 2px;
+            border-radius: 4px;
+        }
+        .text-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border-radius: 6px;
+            padding: 5px;
+            height: 40px;
+            width: 40px;
+            font-weight: bold;
+            color: #4e73df;
+            font-size: 16px;
+            border: 2px solid white;
+        }
+        .mobile-text-logo {
+            height: 32px;
+            width: 32px;
+            font-size: 14px;
+            padding: 4px;
         }
 
-        /* Main content area - FIXED */
+        /* 🚨 CRITICAL FIX: Main content area - FIXED for Vite */
         .main-content-area {
             margin-left: var(--sidebar-width);
             width: calc(100% - var(--sidebar-width));
@@ -253,12 +281,66 @@
                 padding: 1.5rem;
             }
         }
+
+        /* Owner specific styles */
+        .owner-badge {
+            background: linear-gradient(45deg, #4e73df, #224abe);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        /* Logo fallback styles */
+        .logo-fallback {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border-radius: 6px;
+            padding: 5px;
+            height: 40px;
+            width: 40px;
+            font-weight: bold;
+            color: #4e73df;
+            font-size: 16px;
+            border: 2px solid white;
+        }
+        .mobile-logo-fallback {
+            height: 32px;
+            width: 32px;
+            font-size: 14px;
+            padding: 4px;
+        }
+
+        /* 🚨 EMERGENCY FALLBACK STYLES - Applied if Vite fails */
+        .vite-fallback {
+            display: none;
+        }
+        
+        /* Show fallback message if Vite manifest fails */
+        .vite-error-message {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            display: none;
+        }
     </style>
     
     <!-- Page-specific CSS -->
     @stack('styles')
 </head>
 <body class="bg-gray-50 font-sans">
+    <!-- 🚨 Vite Manifest Error Message (Hidden by default) -->
+    <div class="vite-error-message" id="viteError">
+        <strong>⚠️ Vite Asset Loading Issue</strong>
+        <p>Please run: <code>npm run build</code> to generate frontend assets.</p>
+    </div>
+
     <a href="#main-content" class="skip-link">मुख्य सामग्रीमा जानुहोस्</a>
     
     <div class="flex min-h-screen">
@@ -266,7 +348,30 @@
         <aside id="sidebar" class="sidebar text-white z-20 flex-shrink-0 transition-all duration-300 ease-in-out flex flex-col h-full">
             <div class="p-4 border-b border-blue-700 flex items-center justify-between">
                 <a href="{{ url('/owner/dashboard') }}" class="logo-container">
-                    <img src="{{ asset('storage/images/logo.png') }}" alt="HostelHub Logo" class="logo-img">
+                    <!-- FIXED LOGO WITH MULTIPLE FALLBACKS -->
+                    @php
+                        $logoPaths = [
+                            'images/logo.png',
+                            'storage/images/logo.png',
+                            'assets/images/logo.png',
+                            'public/images/logo.png'
+                        ];
+                        $logoFound = false;
+                    @endphp
+                    
+                    @foreach($logoPaths as $logoPath)
+                        @if(file_exists(public_path($logoPath)) && !$logoFound)
+                            <img src="{{ asset($logoPath) }}" alt="HostelHub Logo" class="logo-img">
+                            @php $logoFound = true; @endphp
+                        @endif
+                    @endforeach
+                    
+                    @if(!$logoFound)
+                        <!-- FALLBACK TEXT LOGO -->
+                        <div class="logo-fallback">
+                            HH
+                        </div>
+                    @endif
                     <span class="logo-text sidebar-text">होस्टलहब</span>
                 </a>
                 <button id="sidebar-collapse" class="text-gray-300 hover:text-white sidebar-text" aria-label="साइडबार सङ्कुचित गर्नुहोस्">
@@ -385,15 +490,38 @@
                         <button id="mobile-sidebar-toggle" class="lg:hidden text-white hover:text-gray-200 mr-4" aria-label="मोबाइल साइडबार खोल्नुहोस्">
                             <i class="fas fa-bars text-xl"></i>
                         </button>
-                        <!-- Brand with Logo -->
+                        <!-- Brand with Logo - FIXED -->
                         <a href="{{ url('/owner/dashboard') }}" class="navbar-brand text-white flex items-center">
-                            <img src="{{ asset('storage/images/logo.png') }}" alt="HostelHub Logo" class="mobile-logo mr-2">
+                            <!-- FIXED MOBILE LOGO WITH FALLBACK -->
+                            @php
+                                $mobileLogoFound = false;
+                            @endphp
+                            
+                            @foreach($logoPaths as $logoPath)
+                                @if(file_exists(public_path($logoPath)) && !$mobileLogoFound)
+                                    <img src="{{ asset($logoPath) }}" alt="HostelHub Logo" class="mobile-logo mr-2">
+                                    @php $mobileLogoFound = true; @endphp
+                                @endif
+                            @endforeach
+                            
+                            @if(!$mobileLogoFound)
+                                <!-- FALLBACK MOBILE TEXT LOGO -->
+                                <div class="mobile-logo-fallback mr-2">
+                                    HH
+                                </div>
+                            @endif
                             <span class="hidden md:inline">होस्टलहब - मालिक प्यानल</span>
                         </a>
                     </div>
                     
                     <div class="flex items-center space-x-3">
-                        <!-- Notifications -->
+                        <!-- Owner Info Badge -->
+                        <div class="owner-badge hidden md:flex items-center space-x-2">
+                            <i class="fas fa-crown"></i>
+                            <span>मालिक</span>
+                        </div>
+
+                        <!-- 🔔 NOTIFICATION BELL - ADDED -->
                         <div class="dropdown">
                             <button class="notification-button text-white hover:text-gray-200 p-2 rounded-full hover:bg-blue-700 dropdown-toggle" 
                                     type="button" 
@@ -410,29 +538,29 @@
                                     <h3 class="font-semibold text-gray-800">सूचनाहरू</h3>
                                 </div>
                                 <a href="#" class="flex items-start px-4 py-3 hover:bg-gray-50 border-b border-gray-100">
-                                    <div class="bg-indigo-100 p-2 rounded-lg mr-3">
-                                        <i class="fas fa-utensils text-indigo-600"></i>
+                                    <div class="bg-blue-100 p-2 rounded-lg mr-3">
+                                        <i class="fas fa-money-bill-wave text-blue-600"></i>
                                     </div>
                                     <div>
-                                        <p class="text-sm font-medium text-gray-800">नयाँ खानाको योजना सिर्जना गरियो</p>
+                                        <p class="text-sm font-medium text-gray-800">नयाँ भुक्तानी प्राप्त भयो</p>
                                         <p class="text-xs text-gray-500">३० मिनेट अघि</p>
                                     </div>
                                 </a>
                                 <a href="#" class="flex items-start px-4 py-3 hover:bg-gray-50 border-b border-gray-100">
-                                    <div class="bg-amber-100 p-2 rounded-lg mr-3">
-                                        <i class="fas fa-money-bill-wave text-amber-600"></i>
+                                    <div class="bg-green-100 p-2 rounded-lg mr-3">
+                                        <i class="fas fa-star text-green-600"></i>
                                     </div>
                                     <div>
-                                        <p class="text-sm font-medium text-gray-800">भुक्तानी प्राप्त भयो</p>
+                                        <p class="text-sm font-medium text-gray-800">नयाँ समीक्षा प्राप्त भयो</p>
                                         <p class="text-xs text-gray-500">१ घण्टा अघि</p>
                                     </div>
                                 </a>
                                 <a href="#" class="flex items-start px-4 py-3 hover:bg-gray-50">
-                                    <div class="bg-red-100 p-2 rounded-lg mr-3">
-                                        <i class="fas fa-star text-red-600"></i>
+                                    <div class="bg-amber-100 p-2 rounded-lg mr-3">
+                                        <i class="fas fa-user-plus text-amber-600"></i>
                                     </div>
                                     <div>
-                                        <p class="text-sm font-medium text-gray-800">नयाँ समीक्षा प्राप्त भयो</p>
+                                        <p class="text-sm font-medium text-gray-800">नयाँ विद्यार्थी दर्ता भयो</p>
                                         <p class="text-xs text-gray-500">२ घण्टा अघि</p>
                                     </div>
                                 </a>
@@ -517,6 +645,30 @@
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     
+    <!-- Vite Manifest Fallback Detection -->
+    <script>
+        // Check if Vite assets loaded properly
+        document.addEventListener('DOMContentLoaded', function() {
+            // Detect if Vite CSS failed to load
+            setTimeout(function() {
+                const viteLinks = document.querySelectorAll('link[href*="/build/assets/"]');
+                let viteLoaded = false;
+                
+                viteLinks.forEach(link => {
+                    if (link.sheet && link.sheet.cssRules.length > 0) {
+                        viteLoaded = true;
+                    }
+                });
+                
+                // If no Vite CSS loaded and we're not in development, show error
+                if (!viteLoaded && !window.location.hostname.includes('localhost')) {
+                    document.getElementById('viteError').style.display = 'block';
+                    console.error('Vite assets not loaded. Run: npm run build');
+                }
+            }, 1000);
+        });
+    </script>
+
     <!-- Custom JavaScript -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {

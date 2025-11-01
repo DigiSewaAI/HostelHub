@@ -1,6 +1,7 @@
 @extends('layouts.public')
 
 @push('head')
+@vite(['resources/css/app.css', 'resources/css/public-themes.css'])
 <style>
     :root {
         --theme-color: {{ $hostel->theme_color ?? '#3b82f6' }};

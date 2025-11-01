@@ -479,11 +479,11 @@
                      data-gallery-id="{{ $gallery->id }}">
                     
                     @if($gallery->media_type === 'photo')
-                        <img src="{{ $gallery->thumbnail_url ?? $gallery->media_url }}" alt="{{ $gallery->title }}">
+                        <img src="{{ $gallery->thumbnail_url ?? $gallery->media_url }}" alt="{{ $gallery->title }}" loading="lazy">
                     @elseif($gallery->media_type === 'local_video')
-                        <img src="{{ $gallery->thumbnail_url ?? asset('images/video-default.jpg') }}" alt="{{ $gallery->title }}">
+                        <img src="{{ $gallery->thumbnail_url ?? asset('images/video-default.jpg') }}" alt="{{ $gallery->title }}" loading="lazy">
                     @elseif($gallery->media_type === 'external_video')
-                        <img src="{{ $gallery->thumbnail_url ?? asset('images/video-default.jpg') }}" alt="{{ $gallery->title }}">
+                        <img src="{{ $gallery->thumbnail_url ?? asset('images/video-default.jpg') }}" alt="{{ $gallery->title }}" loading="lazy">
                     @endif
 
                     @if($gallery->is_featured)
@@ -568,12 +568,12 @@
     const galleryData = {
         @foreach($activeGalleries as $gallery)
         '{{ $gallery->id }}': {
-            title: '{{ $gallery->title }}',
-            description: '{{ $gallery->description }}',
+            title: '{{ addslashes($gallery->title) }}',
+            description: '{{ addslashes($gallery->description) }}',
             media_type: '{{ $gallery->media_type }}',
-            media_url: '{{ $gallery->media_type === 'external_video' ? $gallery->external_link : $gallery->media_url }}',
-            thumbnail_url: '{{ $gallery->thumbnail_url }}',
-            youtube_embed_url: '{{ $gallery->youtube_embed_url }}'
+            media_url: '{{ $gallery->media_type === 'external_video' ? addslashes($gallery->external_link) : addslashes($gallery->media_url) }}',
+            thumbnail_url: '{{ addslashes($gallery->thumbnail_url) }}',
+            youtube_embed_url: '{{ addslashes($gallery->youtube_embed_url) }}'
         },
         @endforeach
     };
@@ -647,6 +647,12 @@
         if (video) {
             video.pause();
         }
+        
+        // Reset YouTube iframe
+        const youtubeIframe = document.getElementById('modalYouTube');
+        if (youtubeIframe) {
+            youtubeIframe.src = '';
+        }
     }
     
     // Close modal when clicking outside the content
@@ -656,15 +662,15 @@
         const youtubeModal = document.getElementById('youtubeModal');
         
         if (event.target === imageModal) {
-            imageModal.style.display = 'none';
+            closeModal();
         }
         
         if (event.target === videoModal) {
-            videoModal.style.display = 'none';
+            closeModal();
         }
 
         if (event.target === youtubeModal) {
-            youtubeModal.style.display = 'none';
+            closeModal();
         }
     });
     

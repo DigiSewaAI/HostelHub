@@ -3,6 +3,10 @@
 @section('page-title', 'होस्टलहरू')
 @section('page-description', 'नेपालका विभिन्न होस्टलहरूको सूची। आफ्नो लागि उपयुक्त होस्टल खोज्नुहोस्।')
 
+@push('styles')
+@vite(['resources/css/public-themes.css'])
+@endpush
+
 @section('content')
 <div class="min-h-screen bg-gray-50">
     <!-- Search Section -->
