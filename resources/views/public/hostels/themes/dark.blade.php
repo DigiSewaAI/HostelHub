@@ -691,15 +691,15 @@
         flex-wrap: wrap;
     }
 
-    /* Fixed Phone Button */
-    .cyber-phone-btn {
+    /* WhatsApp Floating Button */
+    .cyber-whatsapp-btn {
         position: fixed;
         bottom: 30px;
         right: 30px;
         z-index: 1000;
         width: 70px;
         height: 70px;
-        background: linear-gradient(135deg, var(--neon-green), var(--neon-cyan));
+        background: linear-gradient(135deg, #25D366, #128C7E);
         border-radius: 50%;
         display: flex;
         align-items: center;
@@ -707,32 +707,32 @@
         color: var(--dark-1);
         text-decoration: none;
         box-shadow: 
-            0 0 20px rgba(0, 255, 136, 0.5),
-            0 0 40px rgba(0, 212, 255, 0.3);
+            0 0 20px rgba(37, 211, 102, 0.5),
+            0 0 40px rgba(18, 140, 126, 0.3);
         transition: all 0.3s ease;
         border: 2px solid var(--dark-1);
-        animation: phonePulse 2s ease-in-out infinite;
+        animation: whatsappPulse 2s ease-in-out infinite;
     }
 
-    @keyframes phonePulse {
+    @keyframes whatsappPulse {
         0%, 100% { 
             box-shadow: 
-                0 0 20px rgba(0, 255, 136, 0.5),
-                0 0 40px rgba(0, 212, 255, 0.3);
+                0 0 20px rgba(37, 211, 102, 0.5),
+                0 0 40px rgba(18, 140, 126, 0.3);
         }
         50% { 
             box-shadow: 
-                0 0 30px rgba(0, 255, 136, 0.8),
-                0 0 60px rgba(0, 212, 255, 0.5);
+                0 0 30px rgba(37, 211, 102, 0.8),
+                0 0 60px rgba(18, 140, 126, 0.5);
         }
     }
 
-    .cyber-phone-btn:hover {
+    .cyber-whatsapp-btn:hover {
         transform: scale(1.1) rotate(10deg);
     }
 
-    .cyber-phone-btn i {
-        font-size: 1.5rem;
+    .cyber-whatsapp-btn i {
+        font-size: 1.8rem;
     }
 
     /* Responsive Design */
@@ -772,7 +772,7 @@
             grid-template-columns: 1fr;
         }
 
-        .cyber-phone-btn {
+        .cyber-whatsapp-btn {
             width: 60px;
             height: 60px;
             bottom: 20px;
@@ -1254,10 +1254,10 @@
     </div>
 </div>
 
-<!-- Cyber Phone Button -->
-@if($hostel->contact_phone)
-    <a href="tel:{{ $hostel->contact_phone }}" class="cyber-phone-btn" aria-label="फोन गर्नुहोस्">
-        <i class="fas fa-phone"></i>
+<!-- WhatsApp Floating Button -->
+@if($hostel->whatsapp_number)
+    <a href="https://wa.me/{{ $hostel->whatsapp_number }}" target="_blank" class="cyber-whatsapp-btn" aria-label="WhatsApp मा सन्देश पठाउनुहोस्">
+        <i class="fab fa-whatsapp"></i>
     </a>
 @endif
 

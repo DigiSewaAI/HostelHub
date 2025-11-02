@@ -101,6 +101,67 @@
         transition: none;
       }
     }
+
+    /* 🚨 FIX: Contact Card Overlap & Layout Issues */
+    .third-column { 
+        z-index: 10; 
+        position: relative; 
+    }
+
+    .gallery-vertical-container { 
+        z-index: 5; 
+        position: relative; 
+    }
+
+    .sidebar-card.sticky { 
+        z-index: 15; 
+        position: sticky; 
+        top: 1rem; 
+    }
+
+    /* Layout Fix */
+    @media (min-width: 1024px) {
+        .third-column { 
+            margin-left: 0 !important; 
+        }
+        
+        .gallery-vertical-container { 
+            margin-right: 0 !important; 
+        }
+    }
+
+    /* 🚨 FIX: Floating actions styling */
+    .floating-actions {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .floating-btn {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 16px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+
+    .floating-btn.whatsapp {
+        background: #25d366;
+    }
+
+    .floating-btn:hover {
+        transform: scale(1.1);
+    }
   </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
@@ -249,8 +310,9 @@
     </footer>
   @endif
 
-  <!-- Simple Floating Button -->
+  <!-- ✅ UPDATED: Conditional Phone Icon - Only show if not modern OR dark theme -->
   @if(isset($hostel) && $hostel->contact_phone)
+    @if(!isset($hostel->theme) || ($hostel->theme !== 'modern' && $hostel->theme !== 'dark'))
     <div class="fixed bottom-6 right-6 z-50 no-print">
       <a href="tel:{{ $hostel->contact_phone }}" 
          class="w-14 h-14 bg-green-600 text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl smooth-transition hover:bg-green-700 focus-visible"
@@ -258,6 +320,7 @@
         <i class="fas fa-phone"></i>
       </a>
     </div>
+    @endif
   @endif
 
   <!-- Simple JavaScript for Mobile Menu -->
@@ -305,6 +368,18 @@
           meta.content = themeColor;
           document.head.appendChild(meta);
         }
+      }
+    });
+
+    // 🚨 FIX: Handle logo loading errors
+    document.addEventListener('DOMContentLoaded', function() {
+      const hostelLogo = document.querySelector('img[src*="hostel_logos"]');
+      if (hostelLogo) {
+        hostelLogo.addEventListener('error', function() {
+          console.log('Logo failed to load:', this.src);
+          // You can set a fallback logo here if needed
+          // this.src = '/images/default-logo.png';
+        });
       }
     });
   </script>

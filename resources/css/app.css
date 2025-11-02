@@ -6,7 +6,6 @@
 @import './themes.css';
 @import './public-themes.css';
 
-
 /* 🚨 EMERGENCY FIX FOR ADMIN DASHBOARD */
 @layer base {
     .bg-primary { background-color: #1e40af !important; }
@@ -55,15 +54,15 @@
     width: calc(100% - 4.5rem) !important;
 }
 
-/* Remove container constraints */
+/* 🚨 FIXED: Safe container constraints */
 .max-w-7xl {
-    max-width: none !important;
+    max-width: 80rem !important;
     width: 100% !important;
 }
 
 .mx-auto {
-    margin-left: 0 !important;
-    margin-right: 0 !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
 }
 
 /* Fix main content area */
@@ -130,10 +129,14 @@
     display: block !important;
 }
 
-/* 🚨 FORCE ALL ELEMENTS VISIBLE */
-* {
+/* 🚨 FIXED: Safe element visibility (removed breaking rules) */
+/* * { visibility: visible !important; opacity: 1 !important; } - REMOVED */
+
+/* 🚨 CRITICAL: Logo protection */
+.hostel-logo-container img {
     visibility: visible !important;
     opacity: 1 !important;
+    display: block !important;
 }
 
 /* CRITICAL: Force Tailwind Utilities */
@@ -492,10 +495,11 @@ body {
     width: calc(100vw - 4.5rem) !important;
 }
 
+/* 🚨 FIXED: Safe max-width for containers */
 .max-w-7xl {
-    max-width: none !important;
+    max-width: 80rem !important;
     width: 100% !important;
-    margin: 0 !important;
+    margin: 0 auto !important;
     padding: 0 1rem !important;
 }
 
@@ -553,10 +557,65 @@ main#main-content {
     overflow-y: auto !important;
 }
 
-/* Final container fix to eliminate white space */
+/* 🚨 FIXED: Safe container rules */
 .container {
-    max-width: none !important;
+    max-width: 80rem !important;
     width: 100% !important;
-    padding: 0 !important;
-    margin: 0 !important;
+    padding: 0 1rem !important;
+    margin: 0 auto !important;
+}
+
+/* 🚨 CRITICAL FIXES FOR PUBLIC PAGES */
+/* Logo display protection */
+.hostel-logo-container img {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Remove any pseudo elements that might break images */
+.hostel-logo-container img:before,
+.hostel-logo-container img:after {
+    display: none !important;
+    content: none !important;
+}
+
+/* Safe z-index for theme compatibility */
+.modern-theme .third-column {
+    z-index: 10;
+}
+
+.modern-theme .gallery-vertical-container {
+    z-index: 5;
+}
+
+/* Footer container protection */
+footer .max-w-7xl {
+    max-width: 80rem !important;
+    width: 100% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+/* Ensure theme z-index works properly */
+.sidebar-card.sticky {
+    z-index: 15;
+}
+
+/* 🚨 PROTECT AGAINST IMAGE HIDING */
+img:not([src]):not([srcset]) {
+    display: none !important;
+}
+
+/* Logo fallback protection */
+.logo-fallback {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* 🚨 FINAL OVERRIDE PROTECTION */
+.hostel-logo-container * {
+    visibility: visible !important;
+    opacity: 1 !important;
 }

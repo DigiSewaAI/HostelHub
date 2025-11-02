@@ -642,6 +642,47 @@
         transform: scale(1.1);
     }
     
+    /* 🚨 FIX: Contact Card Overlap & Layout Issues */
+    .third-column { 
+        z-index: 10; 
+        position: relative; 
+    }
+
+    .gallery-vertical-container { 
+        z-index: 5; 
+        position: relative; 
+    }
+
+    /* 🚨 FIXED: Remove ALL sticky behavior from sidebar cards */
+    .sidebar-card {
+        position: relative !important;
+        top: auto !important;
+        z-index: auto !important;
+    }
+
+    /* Ensure normal layout flow */
+    .third-column {
+        position: relative;
+        z-index: auto;
+        height: auto !important;
+    }
+
+    /* Remove any sticky positioning */
+    .sticky {
+        position: relative !important;
+    }
+
+    /* Layout Fix */
+    @media (min-width: 1024px) {
+        .third-column { 
+            margin-left: 0 !important; 
+        }
+        
+        .gallery-vertical-container { 
+            margin-right: 0 !important; 
+        }
+    }
+    
     /* Responsive Design */
     @media (max-width: 1024px) {
         .three-column-layout {
@@ -717,54 +758,55 @@
             <!-- Header Row -->
             <div class="header-content">
                 <!-- Logo and Basic Info - STRICT SIZE ENFORCED -->
-<div class="flex items-start gap-3 flex-1">
-    <div class="relative">
-        <div class="logo-container">
-            @if($logo)
-                <img src="{{ $logo }}" alt="{{ $hostel->name }}" 
-                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
-                     style="width: 100% !important; height: 100% !important; object-fit: cover !important; object-position: center !important;">
-                <div class="w-full h-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center" style="display: none;">
-                    <i class="fas fa-building text-white text-lg"></i>
-                </div>
-            @else
-                <div class="w-full h-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
-                    <i class="fas fa-building text-white text-lg"></i>
-                </div>
-            @endif
-        </div>
-    </div>
-    
-    <div class="hostel-info">
-        <h1 class="hostel-name nepali">{{ $hostel->name }}</h1>
-        
-        <div class="hostel-meta">
-            <div class="meta-badge">
-                <i class="fas fa-map-marker-alt text-xs"></i>
-                <span class="nepali">{{ $hostel->city ?? 'काठमाडौं' }}</span>
-            </div>
-            
-            @if($reviewCount > 0 && $avgRating > 0)
-                <div class="meta-badge">
-                    <div class="flex items-center gap-1">
-                        @for($i = 1; $i <= 5; $i++)
-                            <i class="fas fa-star {{ $i <= round($avgRating) ? 'text-yellow-300' : 'text-white/60' }} text-xs"></i>
-                        @endfor
+                <div class="flex items-start gap-3 flex-1">
+                    <div class="relative">
+                        <!-- 🚨 FIXED: Logo Display with Better Error Handling -->
+                        <div class="logo-container">
+                            @if($logo)
+                                <img src="{{ $logo }}" alt="{{ $hostel->name }}" 
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+                                     style="width: 100% !important; height: 100% !important; object-fit: cover !important;">
+                                <div class="w-full h-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center" style="display: none;">
+                                    <i class="fas fa-building text-white text-lg"></i>
+                                </div>
+                            @else
+                                <div class="w-full h-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
+                                    <i class="fas fa-building text-white text-lg"></i>
+                                </div>
+                            @endif
+                        </div>
                     </div>
-                    <span class="font-bold">{{ number_format($avgRating, 1) }}</span>
-                    <span class="nepali">({{ $reviewCount }})</span>
+                    
+                    <div class="hostel-info">
+                        <h1 class="hostel-name nepali">{{ $hostel->name }}</h1>
+                        
+                        <div class="hostel-meta">
+                            <div class="meta-badge">
+                                <i class="fas fa-map-marker-alt text-xs"></i>
+                                <span class="nepali">{{ $hostel->city ?? 'काठमाडौं' }}</span>
+                            </div>
+                            
+                            @if($reviewCount > 0 && $avgRating > 0)
+                                <div class="meta-badge">
+                                    <div class="flex items-center gap-1">
+                                        @for($i = 1; $i <= 5; $i++)
+                                            <i class="fas fa-star {{ $i <= round($avgRating) ? 'text-yellow-300' : 'text-white/60' }} text-xs"></i>
+                                        @endfor
+                                    </div>
+                                    <span class="font-bold">{{ number_format($avgRating, 1) }}</span>
+                                    <span class="nepali">({{ $reviewCount }})</span>
+                                </div>
+                            @endif
+                            
+                            @if($hostel->available_rooms > 0)
+                                <div class="meta-badge availability-badge">
+                                    <i class="fas fa-bed text-xs"></i>
+                                    <span class="nepali">{{ $hostel->available_rooms }} कोठा उपलब्ध</span>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
                 </div>
-            @endif
-            
-            @if($hostel->available_rooms > 0)
-                <div class="meta-badge availability-badge">
-                    <i class="fas fa-bed text-xs"></i>
-                    <span class="nepali">{{ $hostel->available_rooms }} कोठा उपलब्ध</span>
-                </div>
-            @endif
-        </div>
-    </div>
-</div>
                 
                 <!-- Social Media and Phone - KEEP PHONE IN HEADER -->
                 <div class="header-actions">
@@ -993,8 +1035,8 @@
 
             <!-- 📋 RIGHT COLUMN - Sidebar Content -->
             <div class="third-column space-y-6">
-                <!-- Contact Information -->
-                <div class="sidebar-card sticky top-4">
+                <!-- 🚨 FIXED: Contact Information WITHOUT Sticky -->
+                <div class="sidebar-card">
                     <h3 class="text-lg font-bold text-gray-900 nepali mb-3 flex items-center gap-2">
                         <i class="fas fa-address-card text-blue-600 text-sm"></i>
                         सम्पर्क जानकारी
@@ -1091,28 +1133,28 @@
                 @endif
 
                 <!-- 🆕 FIXED: FACILITIES SECTION - BELOW AVAILABILITY -->
-@if(!empty($facilities) && count($facilities) > 0)
-    <section class="sidebar-card">
-        <h2 class="text-lg font-bold text-gray-900 nepali mb-3 flex items-center gap-2">
-            <i class="fas fa-list-check text-blue-600 text-sm"></i>
-            हाम्रा सुविधाहरू
-        </h2>
-        <div class="facilities-grid">
-            @foreach($facilities as $facility)
-                @if(!empty(trim($facility)) && !in_array(trim($facility), ['[', ']', '"']))
-                    <div class="facility-item">
-                        <div class="facility-icon">
-                            <i class="fas fa-check"></i>
+                @if(!empty($facilities) && count($facilities) > 0)
+                    <section class="sidebar-card">
+                        <h2 class="text-lg font-bold text-gray-900 nepali mb-3 flex items-center gap-2">
+                            <i class="fas fa-list-check text-blue-600 text-sm"></i>
+                            हाम्रा सुविधाहरू
+                        </h2>
+                        <div class="facilities-grid">
+                            @foreach($facilities as $facility)
+                                @if(!empty(trim($facility)) && !in_array(trim($facility), ['[', ']', '"']))
+                                    <div class="facility-item">
+                                        <div class="facility-icon">
+                                            <i class="fas fa-check"></i>
+                                        </div>
+                                        <span class="nepali font-medium text-gray-800 text-sm">
+                                            {{ trim($facility) }}
+                                        </span>
+                                    </div>
+                                @endif
+                            @endforeach
                         </div>
-                        <span class="nepali font-medium text-gray-800 text-sm">
-                            {{ trim($facility) }}
-                        </span>
-                    </div>
+                    </section>
                 @endif
-            @endforeach
-        </div>
-    </section>
-@endif
 
                 <!-- 🆕 SPECIAL FEATURES - AT THE BOTTOM -->
                 <div class="sidebar-card">

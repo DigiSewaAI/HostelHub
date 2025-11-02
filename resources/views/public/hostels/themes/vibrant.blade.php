@@ -673,6 +673,7 @@
         font-weight: 600;
     }
 
+    /* FIXED: Contact Form Styles with Visible Placeholders */
     .contact-form {
         background: var(--glass-bg);
         backdrop-filter: blur(10px);
@@ -699,6 +700,11 @@
         transition: all 0.3s ease;
     }
 
+    .form-input::placeholder {
+        color: rgba(255, 255, 255, 0.7);
+        opacity: 1;
+    }
+
     .form-input:focus {
         outline: none;
         border-color: var(--vibrant-pink);
@@ -717,6 +723,11 @@
         resize: vertical;
         margin-bottom: 1.5rem;
         transition: all 0.3s ease;
+    }
+
+    .form-textarea::placeholder {
+        color: rgba(255, 255, 255, 0.7);
+        opacity: 1;
     }
 
     .form-textarea:focus {
