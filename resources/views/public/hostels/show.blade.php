@@ -31,6 +31,28 @@
   }
 @endphp
 
+<!-- 🚨 DEBUG: Logo Information -->
+@if(isset($preview) && $preview)
+<div style="background: #ffeb3b; padding: 15px; margin: 15px; border: 2px solid #ff9800; border-radius: 8px; font-family: monospace;">
+    <strong style="color: #ff5722;">🚨 LOGO DEBUG INFORMATION:</strong><br>
+    <strong>Logo Path from DB:</strong> {{ $hostel->logo_path ?? 'NULL' }}<br>
+    <strong>Normalized Logo URL:</strong> {{ $logo ?? 'NULL' }}<br>
+    <strong>Storage Exists:</strong> 
+    @if($hostel->logo_path)
+        {{ Storage::disk('public')->exists($hostel->logo_path) ? '✅ YES' : '❌ NO' }}
+    @else
+        N/A
+    @endif
+    <br>
+    <strong>Direct Image Test:</strong> 
+    @if($logo)
+        <a href="{{ $logo }}" target="_blank" style="color: blue;">Click to test image URL</a>
+    @else
+        N/A
+    @endif
+</div>
+@endif
+
 @if($theme === 'default')
 <style>
 .whitespace-pre-line {
@@ -342,18 +364,22 @@
     <div class="pro-card max-w-7xl mx-auto">
       <div class="pro-card-header">
         <div class="flex flex-col lg:flex-row items-center justify-between gap-6">
-          <!-- Logo and Basic Info -->
-          <div class="flex flex-col items-start">
-            <div class="flex items-center space-x-6">
-              <div class="hostel-logo-container">
-                @if($logo)
-                  <img src="{{ $logo }}" alt="{{ $hostel->name }}" class="w-full h-full object-cover">
-                @else
-                  <div class="w-full h-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center">
-                    <i class="fas fa-building text-white text-2xl"></i>
-                  </div>
-                @endif
-              </div>
+          <!-- 🚨 FIXED: Logo and Basic Info with Better Error Handling -->
+            <div class="flex flex-col items-start">
+              <div class="flex items-center space-x-6">
+                <!-- 🚨 ULTRA-SIMPLE LOGO TEST -->
+                <div class="hostel-logo-container" style="border: 3px solid red;">
+                    @if($logo)
+                        <img src="{{ $logo }}" 
+                             alt="{{ $hostel->name }}"
+                             style="width: 100px; height: 100px; border: 2px solid green;"
+                             onerror="console.log('Logo failed to load')">
+                    @else
+                        <div style="width: 100px; height: 100px; background: blue; color: white; display: flex; align-items: center; justify-content: center;">
+                            NO LOGO
+                        </div>
+                    @endif
+                </div>
               <div class="text-white">
                 <h1 class="text-3xl font-bold nepali mb-2">{{ $hostel->name }}</h1>
                 <div class="flex items-center space-x-6">

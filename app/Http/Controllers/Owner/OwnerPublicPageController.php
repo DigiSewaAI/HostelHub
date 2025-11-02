@@ -118,12 +118,12 @@ class OwnerPublicPageController extends Controller
         $logo = $this->normalizeLogoUrl($hostel->logo_path);
         $facilities = $this->parseFacilities($hostel->facilities);
 
-        // Log for debugging
-        \Log::info("Hostel Preview - Slug: {$slug}", [
-            'logo_path' => $hostel->logo_path,
-            'logo_normalized' => $logo,
-            'facilities_raw' => $hostel->facilities,
-            'facilities_parsed' => $facilities
+        // 🚨 DEBUG: Log logo information
+        \Log::info("LOGO DEBUG - Hostel: {$hostel->name}", [
+            'logo_path_from_db' => $hostel->logo_path,
+            'normalized_logo_url' => $logo,
+            'storage_exists' => $hostel->logo_path ? Storage::disk('public')->exists($hostel->logo_path) : false,
+            'full_storage_path' => $hostel->logo_path ? storage_path('app/public/' . $hostel->logo_path) : null,
         ]);
 
         return view('public.hostels.show', compact(
@@ -186,38 +186,32 @@ class OwnerPublicPageController extends Controller
     }
 
     /**
-     * ✅ FIXED: Logo URL normalization (same as PublicController)
+     * ✅ FIXED: Logo URL normalization (ULTRA SIMPLIFIED)
      */
     private function normalizeLogoUrl($logoPath)
     {
+        // If no logo, return null for CSS fallback
         if (empty($logoPath)) {
             return null;
         }
 
-        // If it's already a full URL, use it as is
+        // If already full URL, use as is
         if (filter_var($logoPath, FILTER_VALIDATE_URL)) {
             return $logoPath;
         }
 
-        // If it starts with http but might not validate as URL
+        // If starts with http, use as is  
         if (str_starts_with($logoPath, 'http')) {
             return $logoPath;
         }
 
-        // Clean the path
-        $cleanPath = ltrim($logoPath, '/');
-
-        // Check if file exists in storage
-        if (Storage::disk('public')->exists($cleanPath)) {
-            return asset('storage/' . $cleanPath);
-        }
-
-        // Fallback: try the original path
-        return asset('storage/' . $cleanPath);
+        // ULTRA SIMPLE: Just return the storage URL
+        // This works for most cases
+        return Storage::disk('public')->url($logoPath);
     }
 
     /**
-     * ✅ FIXED: Facilities parsing (same as PublicController)
+     * ✅ FIXED: Facilities parsing
      */
     private function parseFacilities($facilitiesData)
     {
