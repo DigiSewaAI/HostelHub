@@ -67,6 +67,20 @@
                             </div>
 
                             <div class="col-md-6 mb-3">
+                                <label for="due_date" class="form-label">भुक्तानी अन्तिम मिति</label>
+                                <input type="date" 
+                                       class="form-control @error('due_date') is-invalid @enderror" 
+                                       id="due_date" name="due_date" 
+                                       value="{{ old('due_date', $payment->due_date ? $payment->due_date->format('Y-m-d') : '') }}">
+                                @error('due_date')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                                <small class="form-text text-muted">खाली छोड्नुहोस् यदि भुक्तानी अहिले नै गर्नुपर्छ</small>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
                                 <label for="payment_method" class="form-label">भुक्तानी विधि *</label>
                                 <select class="form-select @error('payment_method') is-invalid @enderror" 
                                         id="payment_method" name="payment_method" required>
@@ -80,9 +94,7 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
-                        </div>
 
-                        <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="status" class="form-label">स्थिति *</label>
                                 <select class="form-select @error('status') is-invalid @enderror" 

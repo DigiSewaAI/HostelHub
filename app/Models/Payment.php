@@ -47,6 +47,8 @@ class Payment extends Model
         'transaction_id',
         'status',
         'remarks',
+        'created_by',      // ✅ ADDED: Created by user
+        'updated_by',      // ✅ ADDED: Updated by user
         'verified_by',
         'verified_at',
         'metadata'         // ✅ Additional payment data
@@ -74,6 +76,17 @@ class Payment extends Model
             if (empty($payment->status)) {
                 $payment->status = self::STATUS_PENDING;
             }
+            // ✅ Set created_by if not set
+            if (empty($payment->created_by) && auth()->check()) {
+                $payment->created_by = auth()->id();
+            }
+        });
+
+        static::updating(function ($payment) {
+            // ✅ Set updated_by if not set
+            if (empty($payment->updated_by) && auth()->check()) {
+                $payment->updated_by = auth()->id();
+            }
         });
     }
 
@@ -89,21 +102,25 @@ class Payment extends Model
         return $this->belongsTo(User::class);
     }
 
+    // ✅ STUDENT RELATIONSHIP
     public function student(): BelongsTo
     {
         return $this->belongsTo(Student::class);
     }
 
+    // ✅ HOSTEL RELATIONSHIP
     public function hostel(): BelongsTo
     {
         return $this->belongsTo(Hostel::class);
     }
 
+    // ✅ ROOM RELATIONSHIP
     public function room(): BelongsTo
     {
         return $this->belongsTo(Room::class);
     }
 
+    // ✅ BOOKING RELATIONSHIP
     public function booking(): BelongsTo
     {
         return $this->belongsTo(Booking::class);
@@ -113,6 +130,18 @@ class Payment extends Model
     public function subscription(): BelongsTo
     {
         return $this->belongsTo(Subscription::class);
+    }
+
+    // ✅ CREATED BY RELATIONSHIP (ADDED)
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    // ✅ UPDATED BY RELATIONSHIP (ADDED)
+    public function updatedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'updated_by');
     }
 
     // ✅ VERIFIED BY RELATIONSHIP
@@ -266,6 +295,7 @@ class Payment extends Model
         return $this->due_date->diffInDays(now());
     }
 
+
     /**
      * Get receipt number
      */
@@ -297,5 +327,47 @@ class Payment extends Model
         }
 
         return $this->payment_date->copy()->addMonths($this->getPaymentDuration());
+    }
+
+    /**
+     * ✅ ADDED: Get created by user name safely
+     */
+    public function getCreatedByName(): string
+    {
+        return $this->createdBy ? $this->createdBy->name : 'System';
+    }
+
+    /**
+     * ✅ ADDED: Get updated by user name safely
+     */
+    public function getUpdatedByName(): string
+    {
+        return $this->updatedBy ? $this->updatedBy->name : 'System';
+    }
+
+    /**
+     * ✅ ADDED: Static method to get payment method text
+     */
+    /**
+     * Get payment method text in Nepali (static version for export)
+     */
+    public static function getPaymentMethodTextStatic($method): string
+    {
+        return match ($method) {
+            'cash' => 'नगद',
+            'bank_transfer' => 'बैंक स्थानान्तरण',
+            'khalti' => 'खल्ती',
+            'esewa' => 'ईसेवा',
+            'connectips' => 'कनेक्टआइपीएस',
+            default => $method
+        };
+    }
+
+    /**
+     * ✅ ADDED: Get verified by user name safely
+     */
+    public function getVerifiedByName(): string
+    {
+        return $this->verifiedBy ? $this->verifiedBy->name : 'N/A';
     }
 }

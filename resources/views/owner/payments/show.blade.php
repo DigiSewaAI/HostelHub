@@ -40,6 +40,16 @@
                                     </td>
                                 </tr>
                                 <tr>
+                                    <th>कोठा:</th>
+                                    <td>
+                                        @if($payment->room)
+                                            कोठा {{ $payment->room->room_number }}
+                                        @else
+                                            <span class="text-muted">कोठा नभएको (अग्रिम/बाँकी भुक्तानी)</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                                <tr>
                                     <th>होस्टल:</th>
                                     <td>
                                         @if($payment->hostel)
@@ -61,6 +71,16 @@
                                 <tr>
                                     <th width="40%">भुक्तानी मिति:</th>
                                     <td>{{ $payment->payment_date->format('Y-m-d') }}</td>
+                                </tr>
+                                <tr>
+                                    <th>अन्तिम मिति:</th>
+                                    <td>
+                                        @if($payment->due_date)
+                                            {{ $payment->due_date->format('Y-m-d') }}
+                                        @else
+                                            <span class="text-muted">-</span>
+                                        @endif
+                                    </td>
                                 </tr>
                                 <tr>
                                     <th>भुक्तानी विधि:</th>
@@ -92,6 +112,18 @@
                                         @endif
                                     </td>
                                 </tr>
+                                @if($payment->updated_at->ne($payment->created_at))
+                                <tr>
+                                    <th>अद्यावधिक गरिएको:</th>
+                                    <td>
+                                        {{ $payment->updated_at->format('Y-m-d H:i') }}
+                                        @if($payment->updatedBy)
+                                            <br>
+                                            <small class="text-muted">द्वारा: {{ $payment->updatedBy->name }}</small>
+                                        @endif
+                                    </td>
+                                </tr>
+                                @endif
                             </table>
                         </div>
                     </div>
@@ -102,6 +134,17 @@
                             <h6 class="text-muted">टिप्पणी</h6>
                             <div class="border rounded p-3 bg-light">
                                 {{ $payment->notes }}
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+
+                    @if($payment->remarks)
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <h6 class="text-muted">अतिरिक्त विवरण</h6>
+                            <div class="border rounded p-3 bg-light">
+                                {{ $payment->remarks }}
                             </div>
                         </div>
                     </div>
