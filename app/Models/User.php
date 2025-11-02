@@ -159,6 +159,15 @@ class User extends Authenticatable
     }
 
     /**
+     * 🔥 FIX: Add missing circularRecipients relationship
+     * This was causing the error in dashboard
+     */
+    public function circularRecipients(): HasMany
+    {
+        return $this->hasMany(CircularRecipient::class);
+    }
+
+    /**
      * 🔥 CRITICAL: Auto-fix hostel_id if it's null but user owns a hostel
      * This acts as a safety net for existing users
      */

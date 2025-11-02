@@ -9,14 +9,13 @@ use App\Http\Controllers\{
     Owner\CircularController as OwnerCircularController,
     Admin\DashboardController,
     ProfileController,
-    PaymentController,
     DocumentController,
     Admin\MealController,
+    Admin\PaymentController, // ✅ CORRECTED: PaymentController (capital C)
     Admin\RoomController,
     Admin\StudentController,
     Admin\ContactController,
-    Admin\MealMenuController as AdminMealMenuController,
-    Admin\PaymentController as AdminPaymentController
+    Admin\MealMenuController as AdminMealMenuController
 };
 
 /*|--------------------------------------------------------------------------
@@ -24,9 +23,8 @@ use App\Http\Controllers\{
 |--------------------------------------------------------------------------
 */
 
-// ✅ REMOVE the prefix from here - prefix is now in web.php
 Route::middleware(['auth', 'hasOrganization', 'role:owner,hostel_manager'])
-    ->name('owner.')  // ✅ KEEP only the name prefix
+    ->name('owner.')
     ->group(function () {
 
         // Owner dashboard
@@ -42,7 +40,7 @@ Route::middleware(['auth', 'hasOrganization', 'role:owner,hostel_manager'])
             Route::post('/security', [OwnerSettingsController::class, 'updateSecurity'])->name('security.update');
         });
 
-        // Owner profile routes - FIXED: Changed from PublicProfileController to ProfileController
+        // Owner profile routes
         Route::get('/profile', [ProfileController::class, 'edit'])->name('profile');
         Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
@@ -73,12 +71,31 @@ Route::middleware(['auth', 'hasOrganization', 'role:owner,hostel_manager'])
             Route::get('/{gallery}/video', [OwnerGalleryController::class, 'getVideoUrl'])->name('video-url');
         });
 
-        // Owner Payment Management Routes
-        Route::get('/payments/report', [PaymentController::class, 'ownerReport'])->name('payments.report');
-        Route::post('/payments/manual', [PaymentController::class, 'createManualPayment'])->name('payments.manual');
-        Route::post('/payments/{payment}/approve', [PaymentController::class, 'approveBankTransfer'])->name('payments.approve');
-        Route::post('/payments/{payment}/reject', [PaymentController::class, 'rejectBankTransfer'])->name('payments.reject');
-        Route::get('/payments/{payment}/proof', [PaymentController::class, 'viewProof'])->name('payments.proof');
+        // ✅ FIXED: Owner Payment Management Routes - Use PaymentController directly
+        Route::prefix('payments')->name('payments.')->group(function () {
+            // Payment report and manual payment
+            Route::get('/report', [PaymentController::class, 'ownerReport'])->name('report');
+            Route::post('/manual', [PaymentController::class, 'createManualPayment'])->name('manual');
+
+            // Bank transfer approval routes
+            Route::post('/{payment}/approve', [PaymentController::class, 'approveBankTransfer'])->name('approve');
+            Route::post('/{payment}/reject', [PaymentController::class, 'rejectBankTransfer'])->name('reject');
+            Route::get('/{payment}/proof', [PaymentController::class, 'viewProof'])->name('proof');
+
+            // Regular payment management routes
+            Route::get('/', [PaymentController::class, 'index'])->name('index');
+            Route::get('/create', [PaymentController::class, 'create'])->name('create');
+            Route::post('/', [PaymentController::class, 'store'])->name('store');
+            Route::get('/{payment}', [PaymentController::class, 'show'])->name('show');
+            Route::get('/{payment}/edit', [PaymentController::class, 'edit'])->name('edit');
+            Route::put('/{payment}', [PaymentController::class, 'update'])->name('update');
+            Route::delete('/{payment}', [PaymentController::class, 'destroy'])->name('destroy');
+            Route::get('/search', [PaymentController::class, 'search'])->name('search');
+            Route::post('/{payment}/update-status', [PaymentController::class, 'updateStatus'])->name('update-status');
+
+            // ✅ FIXED: Excel Export Route - यो route थपिएको छ
+            Route::Post('/export', [PaymentController::class, 'export'])->name('export');
+        });
 
         // Owner Circular Routes
         Route::resource('circulars', OwnerCircularController::class);
@@ -149,22 +166,6 @@ Route::middleware(['auth', 'hasOrganization', 'role:owner,hostel_manager'])
         Route::delete('students/{student}', [StudentController::class, 'destroy'])->name('students.destroy');
         Route::get('students/search', [StudentController::class, 'search'])->name('students.search');
         Route::get('students/export/csv', [StudentController::class, 'exportCSV'])->name('students.export-csv');
-
-        // Owner payment routes with correct permissions
-        Route::middleware([\App\Http\Middleware\CheckPermission::class . ':payments_access'])->group(function () {
-            Route::prefix('payments')->name('payments.')->group(function () {
-                Route::get('/', [AdminPaymentController::class, 'index'])->name('index');
-                Route::get('/create', [AdminPaymentController::class, 'create'])->name('create');
-                Route::post('/', [AdminPaymentController::class, 'store'])->name('store');
-                Route::get('/{payment}', [AdminPaymentController::class, 'show'])->name('show');
-                Route::get('/{payment}/edit', [AdminPaymentController::class, 'edit'])->name('edit');
-                Route::put('/{payment}', [AdminPaymentController::class, 'update'])->name('update');
-                Route::delete('/{payment}', [AdminPaymentController::class, 'destroy'])->name('destroy');
-                Route::get('/search', [AdminPaymentController::class, 'search'])->name('search');
-                Route::post('/{payment}/update-status', [AdminPaymentController::class, 'updateStatus'])->name('update-status');
-                Route::get('/export', [AdminPaymentController::class, 'export'])->name('export');
-            });
-        });
 
         // Contact routes
         Route::resource('contacts', ContactController::class);

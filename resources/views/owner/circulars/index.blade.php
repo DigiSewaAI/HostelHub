@@ -1,5 +1,3 @@
-<?php
-
 @extends('layouts.owner')
 
 @section('title', 'मेरा सूचनाहरू')
