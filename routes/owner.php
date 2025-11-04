@@ -11,7 +11,7 @@ use App\Http\Controllers\{
     ProfileController,
     DocumentController,
     Admin\MealController,
-    Admin\PaymentController, // ✅ CORRECTED: PaymentController (capital C)
+    Admin\PaymentController,
     Admin\RoomController,
     Admin\StudentController,
     Admin\ContactController,
@@ -71,7 +71,7 @@ Route::middleware(['auth', 'hasOrganization', 'role:owner,hostel_manager'])
             Route::get('/{gallery}/video', [OwnerGalleryController::class, 'getVideoUrl'])->name('video-url');
         });
 
-        // ✅ FIXED: Owner Payment Management Routes - Use PaymentController directly
+        // ✅ FIXED: Owner Payment Management Routes
         Route::prefix('payments')->name('payments.')->group(function () {
             // Payment report and manual payment
             Route::get('/report', [PaymentController::class, 'ownerReport'])->name('report');
@@ -81,6 +81,11 @@ Route::middleware(['auth', 'hasOrganization', 'role:owner,hostel_manager'])
             Route::post('/{payment}/approve', [PaymentController::class, 'approveBankTransfer'])->name('approve');
             Route::post('/{payment}/reject', [PaymentController::class, 'rejectBankTransfer'])->name('reject');
             Route::get('/{payment}/proof', [PaymentController::class, 'viewProof'])->name('proof');
+
+            // ✅ FIXED: Bill and Receipt Routes - CORRECTLY DEFINED
+            //Route::get('/{id}/bill', [PaymentController::class, 'generateBill'])->name('bill');
+            //Route::get('/{id}/receipt', [PaymentController::class, 'generateReceipt'])->name('receipt');
+            Route::get('/student/search', [PaymentController::class, 'studentSearchForInvoice'])->name('student.search');
 
             // Regular payment management routes
             Route::get('/', [PaymentController::class, 'index'])->name('index');
@@ -93,9 +98,12 @@ Route::middleware(['auth', 'hasOrganization', 'role:owner,hostel_manager'])
             Route::get('/search', [PaymentController::class, 'search'])->name('search');
             Route::post('/{payment}/update-status', [PaymentController::class, 'updateStatus'])->name('update-status');
 
-            // ✅ FIXED: Excel Export Route - यो route थपिएको छ
+            // Excel Export Route
             Route::Post('/export', [PaymentController::class, 'export'])->name('export');
         });
+
+        // Hostel Logo Upload Route
+        Route::post('/hostels/{hostel}/logo/upload', [PaymentController::class, 'uploadHostelLogo'])->name('hostels.logo.upload');
 
         // Owner Circular Routes
         Route::resource('circulars', OwnerCircularController::class);
