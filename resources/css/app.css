@@ -843,3 +843,16 @@ main {
     flex: 1 !important;
     width: 100% !important;
 }
+
+/* Add this to app.css to prevent horizontal scroll */
+html, body {
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Ensure no other elements cause horizontal scroll */
+* {
+    box-sizing: border-box !important;
+}
