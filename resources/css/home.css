@@ -1,23 +1,30 @@
 /* Homepage-specific styles only */
-/* Hero Section - COMPLETELY FIXED & OPTIMIZED */
+/* 🚨 HERO SECTION FULL WIDTH - ULTIMATE SOLUTION - FIXED */
 .hero {
-    min-height: 100vh; /* Full viewport height */
-    padding: calc(var(--header-height) + 2rem) 0 2rem; /* Account for header */
+    min-height: 100vh;
+    padding: calc(var(--header-height) - 4rem) 0 2rem !important; /* 4cm maathi sarnu */
     background: linear-gradient(135deg, #1e3a8a, #0ea5e9);
     position: relative;
     overflow: hidden;
     z-index: 1;
     display: flex;
     align-items: center;
-    width: 100%;
-    margin: 0;
+    
+    /* 🚨 CRITICAL FULL WIDTH FIXES */
+    width: 100vw !important;
+    margin: 0 !important;
+    margin-left: calc(-50vw + 50%) !important;
+    margin-right: calc(-50vw + 50%) !important;
+    left: 0 !important;
+    right: 0 !important;
+    max-width: 100vw !important;
 }
 
 .hero-video {
     position: absolute;
     top: 0;
     left: 0;
-    width: 100%;
+    width: 100vw !important;
     height: 100%;
     object-fit: cover;
     z-index: -1;
@@ -26,13 +33,16 @@
 
 .hero-content {
     display: grid;
-    grid-template-columns: 1.1fr 0.9fr; /* Better balance */
+    grid-template-columns: 1.1fr 0.9fr;
     gap: 2.5rem;
     align-items: center;
     height: 100%;
     position: relative;
     z-index: 15;
     width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
 }
 
 .hero-text {
@@ -43,7 +53,7 @@
 }
 
 .hero-title {
-    font-size: 2.5rem; /* Perfect size */
+    font-size: 2.5rem;
     font-weight: 800;
     line-height: 1.1;
     margin-bottom: 1rem;
@@ -119,7 +129,7 @@
     overflow: hidden;
     box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.3);
     border: 2px solid rgba(255, 255, 255, 0.3);
-    height: 350px; /* Perfect horizontal rectangle */
+    height: 350px;
     width: 100%;
 }
 
@@ -141,7 +151,6 @@
     transform: scale(1.05);
 }
 
-/* Swiper container for horizontal layout */
 .hero-slider {
     width: 100%;
     height: 100%;
@@ -173,6 +182,206 @@
     transform: scale(1.1);
 }
 
+/* Mobile responsiveness for full width hero */
+@media (max-width: 1024px) {
+    .hero {
+        width: 100vw !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        padding: calc(var(--header-height) - 2rem) 0 1rem !important; /* Adjust for tablet */
+    }
+    
+    .hero-content {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+        text-align: left;
+        padding: 0 1rem !important;
+    }
+    
+    .hero-text {
+        padding-right: 0;
+        order: 2;
+    }
+    
+    .hero-slideshow {
+        order: 1;
+        height: 300px;
+        max-width: 100%;
+    }
+    
+    .hero-title {
+        font-size: 2rem;
+        text-align: left;
+    }
+    
+    .hero-subtitle {
+        font-size: 1rem;
+        text-align: left;
+    }
+}
+
+@media (max-width: 768px) {
+    .hero {
+        padding: calc(var(--header-height) - 1rem) 0 0.5rem !important; /* Adjust for mobile */
+    }
+    
+    .hero-content {
+        padding: 0 1rem !important;
+    }
+    
+    .hero-title {
+        font-size: 1.8rem;
+    }
+    
+    .hero-cta {
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 0.6rem;
+    }
+    
+    .hero-cta .btn {
+        width: auto;
+        max-width: none;
+        padding: 0.7rem 1.2rem;
+        font-size: 0.9rem;
+    }
+    
+    .hero-stats {
+        flex-direction: row;
+        gap: 0.8rem;
+    }
+    
+    .stat-item {
+        max-width: 90px;
+    }
+    
+    .stat-number {
+        font-size: 1.6rem;
+        min-width: 70px;
+        padding: 0.4rem 0.6rem;
+    }
+    
+    .hero-slideshow {
+        height: 250px;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero {
+        padding: calc(var(--header-height) - 0.5rem) 0 0.5rem !important; /* Small mobile adjustment */
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        width: 100vw !important;
+    }
+    
+    .hero-content {
+        padding: 0 0.5rem !important;
+    }
+    
+    .hero-title {
+        font-size: 1.6rem;
+    }
+    
+    .hero-subtitle {
+        font-size: 0.9rem;
+    }
+    
+    .hero-cta {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .hero-cta .btn {
+        width: 100%;
+        max-width: 180px;
+    }
+    
+    .stat-number {
+        font-size: 1.4rem;
+        min-width: 60px;
+    }
+    
+    .hero-slideshow {
+        height: 200px;
+    }
+    
+    .hero-stats {
+        gap: 0.5rem;
+    }
+    
+    .stat-item {
+        max-width: 70px;
+    }
+    
+    .stat-label {
+        font-size: 0.75rem;
+    }
+}
+
+/* 🚨 SEARCH WIDGET POSITION FIX - अझ माथि */
+.search-widget {
+    background: var(--bg-light);
+    border-radius: var(--radius);
+    box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.2);
+    padding: 1.8rem;
+    margin: -3rem auto 1.5rem !important; /* 🚨 CRITICAL: -3rem le hero भन्दा माथि उठाउँछ */
+    position: relative;
+    z-index: 100;
+    width: 100%;
+    max-width: 1200px;
+    border: 1px solid rgba(14, 165, 233, 0.1);
+}
+
+.widget-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 1.2rem;
+    text-align: center;
+    color: var(--primary);
+    width: 100%;
+}
+
+.widget-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.8rem; /* Gap पनि सानो गर्ने */
+    width: 100%;
+}
+
+.form-group {
+    margin-bottom: 0; /* Remove extra margin */
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.7rem 0.8rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 0.9rem;
+    transition: var(--transition);
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--secondary);
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+}
+
+/* Mobile मा पनि सही राख्ने */
+@media (max-width: 768px) {
+    .search-widget {
+        margin: -2rem auto 1.2rem !important;
+        padding: 1.3rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .search-widget {
+        margin: -1.5rem auto 1rem !important;
+        padding: 1rem;
+    }
+}
+
 /* Enhanced Pricing Section Styles - FIXED HEIGHT */
 .pricing {
     background-color: var(--bg-light);
@@ -186,10 +395,11 @@
     width: 100%;
 }
 
+/* 🚨 PRICING CARDS HEIGHT FIX - लामो समस्या समाधान */
 .pricing-card {
     background: var(--light-bg);
     border-radius: var(--radius);
-    padding: 2rem 1.5rem; /* Reduced padding */
+    padding: 1.5rem 1.2rem; /* Reduced padding */
     box-shadow: var(--shadow);
     text-align: center;
     border: 1px solid var(--border);
@@ -199,7 +409,8 @@
     display: flex;
     flex-direction: column;
     height: auto;
-    min-height: 480px; /* Reduced height */
+    min-height: 380px !important; /* 🚨 FIXED: 480px बाट 380px मा घटाउने */
+    max-height: 420px; /* Maximum height पनि set गर्ने */
 }
 
 .pricing-card:hover {
@@ -229,8 +440,8 @@
 }
 
 .pricing-header {
-    margin-bottom: 1rem; /* Reduced margin */
-    padding-bottom: 1rem;
+    margin-bottom: 0.8rem !important; /* Reduced margin */
+    padding-bottom: 0.8rem;
     border-bottom: 1px solid var(--border);
 }
 
@@ -265,22 +476,23 @@
 
 .pricing-features {
     list-style: none;
-    margin: 1.2rem 0; /* Reduced margin */
+    margin: 0.8rem 0 !important; /* Reduced margin */
     text-align: left;
     flex-grow: 1;
+    overflow-y: auto; /* यदि धेरै content भएमा scroll हुन्छ */
+    max-height: 200px; /* Features को maximum height */
 }
 
 .pricing-features li {
-    padding: 0.5rem 0; /* Reduced padding */
+    padding: 0.4rem 0 !important; /* Reduced padding */
     border-bottom: 1px solid var(--border);
     display: flex;
     align-items: flex-start;
     gap: 0.6rem;
     justify-content: flex-start;
     padding-left: 0;
-    font-size: 0.95rem;
-    line-height: 1.5;
-    transition: var(--transition);
+    font-size: 0.9rem; /* थोरै सानो font */
+    line-height: 1.4; /* Line height पनि adjust गर्ने */
 }
 
 .pricing-features li:hover {
@@ -313,7 +525,7 @@
 /* Enhanced Pricing Button Styles */
 .pricing-button {
     margin-top: auto;
-    padding-top: 1rem; /* Reduced padding */
+    padding-top: 0.8rem !important; /* Reduced padding */
 }
 
 .pricing-btn {
@@ -396,6 +608,62 @@
     left: 100%;
 }
 
+/* Enterprise note लाई पनि सानो बनाउने */
+.enterprise-note {
+    font-size: 0.75rem !important;
+    color: #6B7280;
+    margin-top: 0.3rem !important;
+    font-style: italic;
+    text-align: left;
+    background: rgba(14, 165, 233, 0.05);
+    padding: 0.4rem 0.6rem !important;
+    border-radius: 4px;
+    border-left: 3px solid var(--secondary);
+    line-height: 1.3;
+}
+
+/* Mobile responsiveness पनि update गर्ने */
+@media (max-width: 1024px) {
+    .pricing-card {
+        min-height: 360px !important;
+        max-height: 400px;
+    }
+}
+
+@media (max-width: 768px) {
+    .pricing-card {
+        min-height: auto !important; /* Mobile मा automatic height */
+        max-height: none;
+        padding: 1.2rem 1rem;
+    }
+    
+    .pricing-features {
+        max-height: 180px;
+    }
+    
+    .popular-badge {
+        right: -25px;
+        padding: 6px 25px;
+        font-size: 0.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .pricing-card {
+        padding: 1rem 0.8rem;
+    }
+    
+    .pricing-features {
+        max-height: 160px;
+        margin: 0.6rem 0 !important;
+    }
+    
+    .pricing-features li {
+        font-size: 0.85rem;
+        padding: 0.3rem 0 !important;
+    }
+}
+
 /* Footer Layout Fix */
 footer .footer-grid {
     display: grid;
@@ -432,203 +700,6 @@ body {
     width: 100% !important;
     margin: 0 auto !important;
     padding: 0 1.5rem !important;
-}
-
-/* Improved mobile responsiveness */
-@media (max-width: 1024px) {
-    .hero {
-        min-height: auto;
-        padding: calc(var(--header-height) + 1rem) 0 1rem;
-    }
-    
-    .hero-content {
-        grid-template-columns: 1fr;
-        gap: 1.5rem;
-        text-align: left;
-    }
-    
-    .hero-text {
-        padding-right: 0;
-        order: 2;
-    }
-    
-    .hero-slideshow {
-        order: 1;
-        height: 300px;
-        max-width: 100%;
-    }
-    
-    .hero-title {
-        font-size: 2rem;
-        text-align: left;
-    }
-    
-    .hero-subtitle {
-        font-size: 1rem;
-        text-align: left;
-    }
-    
-    .hero-cta {
-        justify-content: flex-start;
-    }
-    
-    .hero-stats {
-        justify-content: flex-start;
-        gap: 1rem;
-    }
-
-    .pricing-card {
-        min-height: 450px;
-    }
-
-    footer .footer-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 1.5rem;
-    }
-
-    .footer-col:first-child {
-        grid-column: 1 / -1;
-    }
-}
-
-@media (max-width: 768px) {
-    .hero {
-        padding: calc(var(--header-height) + 0.5rem) 0 0.5rem;
-    }
-    
-    .hero-title {
-        font-size: 1.6rem;
-        margin-bottom: 0.8rem;
-    }
-    
-    .hero-subtitle {
-        font-size: 0.95rem;
-        margin-bottom: 1.2rem;
-    }
-    
-    .hero-cta {
-        flex-direction: row;
-        align-items: flex-start;
-        gap: 0.6rem;
-    }
-    
-    .hero-cta .btn {
-        width: auto;
-        max-width: none;
-        padding: 0.7rem 1.2rem;
-        font-size: 0.9rem;
-    }
-    
-    .hero-stats {
-        flex-direction: row;
-        gap: 0.8rem;
-    }
-    
-    .stat-item {
-        max-width: 90px;
-    }
-    
-    .stat-number {
-        font-size: 1.6rem;
-        min-width: 70px;
-        padding: 0.4rem 0.6rem;
-    }
-    
-    .hero-slideshow {
-        height: 250px;
-    }
-
-    .pricing-card {
-        min-height: auto;
-        padding: 1.5rem 1rem;
-    }
-
-    footer .footer-grid {
-        grid-template-columns: 1fr;
-        gap: 1.5rem;
-    }
-
-    .footer-col:first-child {
-        grid-column: 1;
-    }
-}
-
-@media (max-width: 480px) {
-    .hero-title {
-        font-size: 1.4rem;
-    }
-    
-    .hero-subtitle {
-        font-size: 0.9rem;
-    }
-    
-    .hero-cta {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    
-    .hero-cta .btn {
-        width: 100%;
-        max-width: 180px;
-    }
-    
-    .stat-number {
-        font-size: 1.4rem;
-        min-width: 60px;
-    }
-    
-    .hero-slideshow {
-        height: 200px;
-    }
-    
-    .hero-stats {
-        gap: 0.5rem;
-    }
-    
-    .stat-item {
-        max-width: 70px;
-    }
-    
-    .stat-label {
-        font-size: 0.75rem;
-    }
-
-    .pricing-card {
-        padding: 1.2rem 0.8rem;
-    }
-
-    .container {
-        padding: 0 1rem !important;
-    }
-}
-
-/* Search Widget */
-.search-widget {
-    background: var(--bg-light);
-    border-radius: var(--radius);
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-    padding: 1.8rem;
-    margin: 1.5rem auto;
-    position: relative;
-    z-index: 20;
-    width: 100%;
-    max-width: 1200px;
-}
-
-.widget-title {
-    font-size: 1.4rem;
-    font-weight: 700;
-    margin-bottom: 1.2rem;
-    text-align: center;
-    color: var(--primary);
-    width: 100%;
-}
-
-.widget-form {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-    width: 100%;
 }
 
 /* Statistics Section */
@@ -1030,20 +1101,6 @@ body {
     font-size: 1.3rem;
 }
 
-/* Additional info for enterprise plan */
-.enterprise-note {
-    font-size: 0.85rem;
-    color: #6B7280;
-    margin-top: 0.5rem;
-    font-style: italic;
-    text-align: left;
-    padding-left: 1.8rem;
-    background: rgba(14, 165, 233, 0.05);
-    padding: 0.5rem 0.8rem;
-    border-radius: 4px;
-    border-left: 3px solid var(--secondary);
-}
-
 /* Section Title Enhancement */
 .pricing .section-title {
     background: linear-gradient(135deg, var(--primary), var(--secondary));
@@ -1193,7 +1250,7 @@ body {
     opacity: 0;
 }
 
-/* Responsive Design */
+/* Responsive Design for other sections */
 @media (max-width: 1024px) {
     .hero-title {
         font-size: 2.5rem;
@@ -1249,11 +1306,6 @@ body {
     }
     .pricing-card.popular {
         transform: none;
-    }
-    .popular-badge {
-        right: -25px;
-        padding: 6px 25px;
-        font-size: 0.75rem;
     }
     .trial-cta {
         flex-direction: column;

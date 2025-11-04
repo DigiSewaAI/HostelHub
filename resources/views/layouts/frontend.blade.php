@@ -165,7 +165,7 @@
             height: 100%;
             min-width: 0;
         }
-        /* Logo styles */
+        /* Logo styles - FIXED LOGO DISPLAY WITH BORDER */
         .logo {
             display: flex;
             align-items: center;
@@ -188,12 +188,15 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: var(--secondary);
+            background: transparent;
             border-radius: var(--radius);
             color: var(--text-light);
             font-weight: bold;
             font-size: 18px;
             flex-shrink: 0;
+            /* ✅ ADDED SKY BLUE BORDER */
+            border: 2px solid var(--secondary);
+            padding: 4px;
         }
         .logo-text {
             display: flex;
@@ -286,18 +289,28 @@
             padding: 2.5rem 1.5rem;
         }
         
-        /* Footer Styles */
+        /* Footer Styles - UPDATED */
         footer {
             background-color: var(--primary);
             color: var(--text-light);
             padding: 1rem 0 0.2rem;
         }
+        
+        /* NEW: Footer Grid Layout for balanced spacing */
         .footer-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.2rem;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
+            align-items: start;
+            justify-content: space-between;
             margin-bottom: 1rem;
         }
+        
+        .footer-col {
+            display: flex;
+            flex-direction: column;
+        }
+        
         .footer-col h3 {
             font-size: 1.3rem;
             margin-bottom: 1rem;
@@ -348,13 +361,14 @@
             margin-bottom: 0.8rem;
             display: flex;
             align-items: flex-start;
+            gap: 12px; /* ✅ ADDED SPACING BETWEEN ICONS AND TEXT */
         }
         .contact-info i {
-            margin-right: 12px;
             color: var(--secondary);
             font-size: 1.1rem;
             margin-top: 4px;
             flex-shrink: 0;
+            min-width: 20px; /* ✅ ENSURES CONSISTENT ICON SPACING */
         }
         .footer-logo {
             display: flex;
@@ -366,6 +380,15 @@
             color: var(--text-light);
             text-decoration: none;
         }
+        
+        /* ✅ ENLARGED FOOTER LOGO - IMPROVED RESOLUTION */
+        .footer-logo img {
+            height: 120px !important; /* ✅ Adjusted for better resolution */
+            width: 120px !important; /* ✅ Fixed width for consistent aspect ratio */
+            object-fit: contain; /* ✅ Ensures image maintains quality */
+            object-position: center;
+        }
+        
         .footer-logo-icon {
             width: 35px;
             height: 35px;
@@ -453,7 +476,14 @@
             transition: all 0.3s ease-in-out;
         }
         
-        /* Responsive Design */
+        /* Responsive Design - UPDATED FOOTER */
+        @media (max-width: 1024px) {
+            .footer-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1.5rem;
+            }
+        }
+        
         @media (max-width: 768px) {
             .mobile-menu-btn {
                 display: block;
@@ -494,6 +524,21 @@
             .content-container {
                 padding: 1.8rem 1.2rem;
             }
+            
+            /* Footer mobile adjustments */
+            .footer-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .footer-logo img {
+                height: 100px !important; /* ✅ Adjusted for mobile */
+                width: 100px !important;
+            }
+            
+            .contact-info li {
+                gap: 10px; /* ✅ Slightly less spacing on mobile */
+            }
         }
         @media (max-width: 480px) {
             :root {
@@ -512,6 +557,11 @@
             .content-container {
                 padding: 1.5rem 1rem;
             }
+            
+            .footer-logo img {
+                height: 80px !important; /* ✅ Further adjustment for small mobile */
+                width: 80px !important;
+            }
         }
         @media (max-width: 360px) {
             header .logo img {
@@ -526,6 +576,11 @@
             }
             .page-header h1 {
                 font-size: 1.4rem;
+            }
+            
+            .footer-logo img {
+                height: 70px !important; /* ✅ Final adjustment for very small screens */
+                width: 70px !important;
             }
         }
     </style>
@@ -542,9 +597,9 @@
     <div class="header-inner">
         <div class="container">
             <div class="navbar">
-                <!-- Header Logo - FIXED PATH with spacing -->
+                <!-- Header Logo - FIXED WITH SKY BLUE BORDER -->
                 <a href="{{ route('home') }}" class="logo" style="margin-right: auto;">
-                    <!-- Real Logo Image with corrected path -->
+                    <!-- Real Logo Image with corrected styling and border -->
                     <div class="logo-image">
                         <img src="{{ asset('images/logo.png') }}" alt="HostelHub Logo" style="height: 50px; width: auto;" onerror="this.style.display='none'">
                     </div>
@@ -619,20 +674,25 @@
 
     <!-- Main Content -->
     <main id="main">
+        <!-- 🚨 CRITICAL CHANGE: Hero section outside content-container -->
+        @hasSection('hero-section')
+            @yield('hero-section')
+        @endif
+        
         <div class="content-container">
             @yield('content')
         </div>
     </main>
 
-    <!-- Footer -->
+    <!-- Footer - UPDATED WITH ALL FIXES -->
     <footer>
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-col">
-                    <!-- Footer Logo with corrected path -->
+                    <!-- ✅ ENLARGED AND CLEAR FOOTER LOGO WITH BETTER RESOLUTION -->
                     <a href="{{ route('home') }}" class="footer-logo">
-                        <img src="{{ asset('images/logo.png') }}" alt="HostelHub Logo" style="height: 40px; width: auto;" onerror="this.style.display='none'">
-                        <span>HostelHub</span>
+                        <img src="{{ asset('images/logo.png') }}" alt="HostelHub Logo">
+                        <span style="font-size: 1.8rem; font-weight: 800; letter-spacing: 0.5px;">HostelHub</span>
                     </a>
                     <p class="nepali" style="color: rgba(249, 250, 251, 0.8); margin-top: 12px; line-height: 1.6;">
                         नेपालको नम्बर १ होस्टल प्रबन्धन प्रणाली। हामी होस्टल व्यवस्थापनलाई सहज, दक्ष र विश्वसनीय बनाउँछौं।
