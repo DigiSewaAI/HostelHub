@@ -916,4 +916,137 @@ class PublicController extends Controller
             'is_room_image' => !is_null($item->room_id) // ✅ ADDED: Room image flag
         ];
     }
+
+    /**
+     * ✅ NEW: Get available hostels for search
+     */
+    public function getAvailableHostels(Request $request)
+    {
+        try {
+            $query = Hostel::where('is_published', true)
+                ->where('status', 'active');
+
+            if ($request->has('city') && !empty($request->city)) {
+                $query->where('city', 'like', '%' . $request->city . '%');
+            }
+
+            $hostels = $query->select('id', 'name', 'city', 'slug')
+                ->orderBy('name')
+                ->get();
+
+            return response()->json($hostels);
+        } catch (\Exception $e) {
+            \Log::error('Available hostels API error: ' . $e->getMessage());
+            return response()->json(['error' => 'होस्टल डाटा लोड गर्न असफल'], 500);
+        }
+    }
+
+    /**
+     * ✅ NEW: Get room availability for specific hostel
+     */
+    public function getHostelRoomAvailability($slug)
+    {
+        try {
+            $hostel = Hostel::where('slug', $slug)
+                ->with(['rooms' => function ($query) {
+                    $query->where('status', 'available')
+                        ->where('available_beds', '>', 0)
+                        ->select('id', 'room_number', 'type', 'capacity', 'available_beds', 'price');
+                }])
+                ->firstOrFail();
+
+            $availableRooms = $hostel->rooms->groupBy('type')->map(function ($rooms, $type) {
+                return [
+                    'type' => $type,
+                    'count' => $rooms->count(),
+                    'min_price' => $rooms->min('price'),
+                    'max_price' => $rooms->max('price'),
+                    'rooms' => $rooms
+                ];
+            });
+
+            return response()->json([
+                'hostel' => [
+                    'name' => $hostel->name,
+                    'slug' => $hostel->slug,
+                    'city' => $hostel->city
+                ],
+                'available_rooms' => $availableRooms
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Hostel room availability error: ' . $e->getMessage());
+            return response()->json(['error' => 'कोठा उपलब्धता जानकारी लोड गर्न असफल'], 500);
+        }
+    }
+
+    /**
+     * ✅ NEW: Quick search functionality
+     */
+    public function quickSearch(Request $request)
+    {
+        $request->validate([
+            'query' => 'required|string|min:2'
+        ]);
+
+        try {
+            $query = $request->get('query');
+
+            // Search hostels
+            $hostels = Hostel::where('is_published', true)
+                ->where(function ($q) use ($query) {
+                    $q->where('name', 'like', "%{$query}%")
+                        ->orWhere('city', 'like', "%{$query}%")
+                        ->orWhere('address', 'like', "%{$query}%");
+                })
+                ->select('id', 'name', 'city', 'slug', 'logo_path')
+                ->take(5)
+                ->get()
+                ->map(function ($hostel) {
+                    return [
+                        'id' => $hostel->id,
+                        'name' => $hostel->name,
+                        'city' => $hostel->city,
+                        'slug' => $hostel->slug,
+                        'logo' => $this->normalizeLogoUrl($hostel->logo_path),
+                        'type' => 'hostel'
+                    ];
+                });
+
+            // Search available rooms
+            $rooms = Room::where('status', 'available')
+                ->where('available_beds', '>', 0)
+                ->whereHas('hostel', function ($q) use ($query) {
+                    $q->where('is_published', true)
+                        ->where(function ($hostelQuery) use ($query) {
+                            $hostelQuery->where('name', 'like', "%{$query}%")
+                                ->orWhere('city', 'like', "%{$query}%");
+                        });
+                })
+                ->with('hostel:id,name,slug,city')
+                ->select('id', 'room_number', 'type', 'price', 'hostel_id')
+                ->take(5)
+                ->get()
+                ->map(function ($room) {
+                    return [
+                        'id' => $room->id,
+                        'room_number' => $room->room_number,
+                        'type' => $room->type,
+                        'price' => $room->price,
+                        'hostel_name' => $room->hostel->name,
+                        'hostel_slug' => $room->hostel->slug,
+                        'city' => $room->hostel->city,
+                        'type' => 'room'
+                    ];
+                });
+
+            return response()->json([
+                'hostels' => $hostels,
+                'rooms' => $rooms,
+                'total_results' => $hostels->count() + $rooms->count()
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Quick search error: ' . $e->getMessage());
+            return response()->json(['error' => 'खोजी प्रक्रिया असफल'], 500);
+        }
+    }
 }
