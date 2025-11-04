@@ -174,6 +174,38 @@
         </div>
     </div>
 
+    <!-- 🔍 NEW: Student Search for Invoice Generation -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-search me-2"></i>विद्यार्थी खोजेर बिल तयार गर्नुहोस्
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form action="{{ route('owner.payments.student.search') }}" method="GET" class="form-inline">
+                        <div class="row">
+                            <div class="col-md-8 mb-2">
+                                <input type="text" name="query" class="form-control" 
+                                       placeholder="विद्यार्थीको नाम, इमेल वा आईडी लेख्नुहोस्..." 
+                                       value="{{ old('query') }}" required style="width: 100%;">
+                            </div>
+                            <div class="col-md-4 mb-2">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-search me-2"></i>विद्यार्थी खोज्नुहोस्
+                                </button>
+                            </div>
+                        </div>
+                        <small class="text-muted">
+                            तपाईंले कुनै पनि विद्यार्थीको नाम, इमेल वा आईडीले खोजेर सिधै बिल वा रसिद तयार गर्न सक्नुहुन्छ।
+                        </small>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- म्यानुअल भुक्तानी फर्म -->
     <div class="row mb-4">
         <div class="col-12">
@@ -361,6 +393,22 @@
                                                class="btn btn-sm btn-info action-btn" title="विवरण हेर्नुहोस्">
                                                 <i class="fas fa-eye"></i>
                                             </a>
+                                            <!-- 🔍 NEW: Bill/Receipt Buttons -->
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-sm btn-success dropdown-toggle action-btn" 
+                                                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                                                        title="बिल / रसिद">
+                                                    <i class="fas fa-file-pdf"></i>
+                                                </button>
+                                                <div class="dropdown-menu dropdown-menu-right">
+                                                    <a class="dropdown-item" href="{{ route('owner.payments.bill', $payment) }}" target="_blank">
+                                                        <i class="fas fa-file-invoice text-primary mr-2"></i>बिल डाउनलोड
+                                                    </a>
+                                                    <a class="dropdown-item" href="{{ route('owner.payments.receipt', $payment) }}" target="_blank">
+                                                        <i class="fas fa-receipt text-success mr-2"></i>रसिद डाउनलोड
+                                                    </a>
+                                                </div>
+                                            </div>
                                         </div>
                                     </td>
                                 </tr>
@@ -401,6 +449,68 @@
         </div>
     </div>
 </div>
+
+<!-- 🆕 NEW: Logo Upload Modal -->
+<div class="modal fade" id="logoUploadModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-upload mr-2"></i>होस्टल लोगो अपलोड गर्नुहोस्
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            @php
+                // Get first hostel for logo upload
+                $firstHostel = App\Models\Hostel::where('owner_id', auth()->id())
+                    ->orWhere('manager_id', auth()->id())
+                    ->first();
+            @endphp
+            @if($firstHostel)
+            <form action="{{ route('owner.hostels.logo.upload', $firstHostel->id) }}" method="POST" enctype="multipart/form-data" id="logoUploadForm">
+                @csrf
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        बिल र रसिद जारी गर्नका लागि होस्टलको लोगो आवश्यक छ।
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="logo" class="form-label">लोगो छनौट गर्नुहोस्</label>
+                        <input type="file" class="form-control" id="logo" name="logo" accept="image/*" required>
+                        <div class="form-text">
+                            स्वीकार्य फाइलहरू: JPEG, PNG, JPG, GIF। अधिकतम साइज: 2MB
+                        </div>
+                    </div>
+
+                    <div class="logo-preview mb-3 text-center" style="display: none;">
+                        <img id="logoPreview" src="#" alt="Logo Preview" class="img-thumbnail" style="max-height: 150px;">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">रद्द गर्नुहोस्</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-upload mr-2"></i>अपलोड गर्नुहोस्
+                    </button>
+                </div>
+            </form>
+            @else
+            <div class="modal-body">
+                <div class="alert alert-warning text-center">
+                    <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                    <h5>कुनै होस्टल भेटिएन</h5>
+                    <p class="mb-0">कृपया पहिले होस्टल सिर्जना गर्नुहोस्।</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">बन्द गर्नुहोस्</button>
+            </div>
+            @endif
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('styles')
@@ -425,6 +535,7 @@
     flex-wrap: wrap;
     gap: 0.25rem;
     justify-content: center;
+    align-items: center;
 }
 
 .action-btn {
@@ -503,6 +614,18 @@
     .form-inline .form-control {
         margin-bottom: 0.5rem;
     }
+
+    /* Improved dropdown for mobile */
+    .dropdown-menu {
+        position: absolute;
+        right: 0;
+        left: auto;
+    }
+}
+
+/* 🔍 NEW: Student search form improvements */
+.form-inline .form-control {
+    margin-bottom: 0.5rem;
 }
 </style>
 @endpush
@@ -556,5 +679,46 @@ document.addEventListener('DOMContentLoaded', function() {
         endDateInput.value = new Date().toISOString().split('T')[0];
     }
 });
+
+// 🔍 NEW: Logo preview functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const logoInput = document.getElementById('logo');
+    const logoPreview = document.getElementById('logoPreview');
+    const logoPreviewContainer = document.querySelector('.logo-preview');
+    
+    if (logoInput) {
+        logoInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    logoPreview.src = e.target.result;
+                    logoPreviewContainer.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            } else {
+                logoPreviewContainer.style.display = 'none';
+            }
+        });
+    }
+    
+    // Show modal if triggered by session
+    @if(session('show_logo_modal'))
+        $('#logoUploadModal').modal('show');
+    @endif
+
+    // Show modal when bill/receipt buttons are clicked and logo is missing
+    document.querySelectorAll('[href*="bill"], [href*="receipt"]').forEach(link => {
+        link.addEventListener('click', function(e) {
+            // Check if we need to show logo modal (this would typically be set by the server)
+            // For now, we'll let the server handle the logo check and redirect back with 'show_logo_modal'
+        });
+    });
+});
+
+// 🔍 NEW: Show logo modal manually if needed
+function showLogoModal() {
+    $('#logoUploadModal').modal('show');
+}
 </script>
 @endpush
