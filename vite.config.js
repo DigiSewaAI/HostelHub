@@ -16,7 +16,8 @@ export default defineConfig({
                 
                 // JS Files
                 'resources/js/app.js',
-                'resources/js/home.js'
+                'resources/js/home.js',
+                'resources/js/gallery.js' // ← ADDED THIS LINE
             ],
             refresh: true,
         }),
