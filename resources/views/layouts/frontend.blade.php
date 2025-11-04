@@ -538,70 +538,72 @@
     <a href="#main" class="skip-link nepali">सामग्रीमा जानुहोस्</a>
     
     <!-- Fixed Header -->
-    <header id="site-header">
-        <div class="header-inner">
-            <div class="container">
-                <div class="navbar">
-                    <!-- Header Logo - FIXED PATH -->
-                    <a href="{{ route('home') }}" class="logo">
-                        <!-- Real Logo Image with corrected path -->
-                        <div class="logo-image">
-                            <img src="{{ asset('images/logo.png') }}" alt="HostelHub Logo" style="height: 50px; width: auto;" onerror="this.style.display='none'">
-                        </div>
-                        <div class="logo-text">
-                            <h1>HostelHub</h1>
-                            <span class="nepali">होस्टल प्रबन्धन</span>
-                        </div>
-                    </a>
-                    
-                    <!-- Navigation Links with Auth Support -->
-                    <div class="nav-links" id="main-nav">
-                        <a href="{{ route('features') }}" class="nepali">सुविधाहरू</a>
-                        <a href="{{ route('how-it-works') }}" class="nepali">कसरी काम गर्छ</a>
-                        <a href="{{ route('gallery') }}" class="nepali">ग्यालरी</a>
-                        <a href="{{ route('pricing') }}" class="nepali">मूल्य</a>
-                        <a href="{{ route('testimonials') }}" class="nepali">प्रशंसापत्रहरू</a>
-                        <a href="{{ route('about') }}" class="nepali">हाम्रो बारेमा</a>
-                        <a href="{{ route('privacy') }}" class="nepali">गोप्यता नीति</a>
-                        <a href="{{ route('terms') }}" class="nepali">सेवा सर्तहरू</a>
-                        
-                        @auth
-                            <!-- Dashboard Link for Authenticated Users -->
-                            @if(Auth::user()->hasRole('admin'))
-                                <a href="{{ route('admin.dashboard') }}" class="nepali">ड्यासबोर्ड</a>
-                            @elseif(Auth::user()->hasRole('owner') || Auth::user()->hasRole('hostel_manager'))
-                                <a href="{{ route('owner.dashboard') }}" class="nepali">ड्यासबोर्ड</a>
-                            @elseif(Auth::user()->hasRole('student'))
-                                <a href="{{ route('student.dashboard') }}" class="nepali">ड्यासबोर्ड</a>
-                            @endif
-                        @else
-                            <a href="{{ route('login') }}" class="nepali">लगइन</a>
-                        @endauth
+<header id="site-header">
+    <div class="header-inner">
+        <div class="container">
+            <div class="navbar">
+                <!-- Header Logo - FIXED PATH with spacing -->
+                <a href="{{ route('home') }}" class="logo" style="margin-right: auto;">
+                    <!-- Real Logo Image with corrected path -->
+                    <div class="logo-image">
+                        <img src="{{ asset('images/logo.png') }}" alt="HostelHub Logo" style="height: 50px; width: auto;" onerror="this.style.display='none'">
                     </div>
-
-                    <!-- Header CTA with Auth Support -->
-                    <div class="header-cta">
-                        @auth
-                            <!-- Logout Button for Authenticated Users -->
-                            <form method="POST" action="{{ route('logout') }}" class="inline">
-                                @csrf
-                                <button type="submit" class="btn btn-outline nepali" style="background: transparent; color: var(--text-light); border: 2px solid var(--text-light); font-weight: 600;">
-                                    लगआउट
-                                </button>
-                            </form>
-                        @else
-                            <a href="{{ route('login') }}" class="btn btn-outline nepali">लगइन</a>
-                            <a href="{{ route('register') }}" class="btn btn-primary nepali">साइन अप</a>
-                        @endauth
+                    <div class="logo-text">
+                        <h1>HostelHub</h1>
+                        <span class="nepali">होस्टल प्रबन्धन</span>
                     </div>
-                    
-                    <button class="mobile-menu-btn" aria-label="मेनु खोल्नुहोस्" aria-expanded="false" aria-controls="main-nav">
-                        <i class="fas fa-bars"></i>
-                    </button>
+                </a>
+                
+                <!-- Navigation Links with Auth Support -->
+                <div class="nav-links" id="main-nav">
+                    <a href="{{ route('features') }}" class="nepali">सुविधाहरू</a>
+                    <a href="{{ route('how-it-works') }}" class="nepali">कसरी काम गर्छ</a>
+                    <a href="{{ route('gallery') }}" class="nepali">ग्यालरी</a>
+                    <a href="{{ route('pricing') }}" class="nepali">मूल्य</a>
+                    <a href="{{ route('testimonials') }}" class="nepali">प्रशंसापत्रहरू</a>
+                    <a href="{{ route('about') }}" class="nepali">हाम्रो बारेमा</a>
+                    <a href="{{ route('privacy') }}" class="nepali">गोप्यता नीति</a>
+                    <a href="{{ route('terms') }}" class="nepali">सेवा सर्तहरू</a>
                 </div>
+
+                <!-- Header CTA with Auth Support - FIXED: Both buttons same size -->
+                <div class="header-cta" style="margin-left: 2rem;">
+                    @auth
+                        <!-- Dashboard Link for Authenticated Users -->
+                        @if(Auth::user()->hasRole('admin'))
+                            <a href="{{ route('admin.dashboard') }}" class="nepali dashboard-link" style="color: white !important; text-decoration: none; font-weight: 600; padding: 0.5rem 1.5rem; border: 2px solid white; border-radius: var(--radius); transition: var(--transition); margin-right: 0.8rem;">
+                                ड्यासबोर्ड
+                            </a>
+                        @elseif(Auth::user()->hasRole('owner') || Auth::user()->hasRole('hostel_manager'))
+                            <a href="{{ route('owner.dashboard') }}" class="nepali dashboard-link" style="color: white !important; text-decoration: none; font-weight: 600; padding: 0.5rem 1.5rem; border: 2px solid white; border-radius: var(--radius); transition: var(--transition); margin-right: 0.8rem;">
+                                ड्यासबोर्ड
+                            </a>
+                        @elseif(Auth::user()->hasRole('student'))
+                            <a href="{{ route('student.dashboard') }}" class="nepali dashboard-link" style="color: white !important; text-decoration: none; font-weight: 600; padding: 0.5rem 1.5rem; border: 2px solid white; border-radius: var(--radius); transition: var(--transition); margin-right: 0.8rem;">
+                                ड्यासबोर्ड
+                            </a>
+                        @endif
+                        
+                        <!-- Logout Button for Authenticated Users - FIXED: Same size as dashboard -->
+                        <form method="POST" action="{{ route('logout') }}" class="inline" style="margin: 0;">
+                            @csrf
+                            <button type="submit" class="nepali logout-btn" style="color: white !important; text-decoration: none; font-weight: 600; padding: 0.5rem 1.5rem; border: 2px solid white; border-radius: var(--radius); transition: var(--transition); background: transparent; cursor: pointer;">
+                                लगआउट
+                            </button>
+                        </form>
+                    @else
+                        <a href="{{ route('login') }}" class="btn btn-outline nepali">लगइन</a>
+                        <a href="{{ route('register') }}" class="btn btn-primary nepali">साइन अप</a>
+                    @endauth
+                </div>
+                
+                <button class="mobile-menu-btn" aria-label="मेनु खोल्नुहोस्" aria-expanded="false" aria-controls="main-nav">
+                    <i class="fas fa-bars"></i>
+                </button>
             </div>
         </div>
-    </header>
+    </div>
+</header>
 
     <!-- Page Header Section -->
     @hasSection('page-header')
