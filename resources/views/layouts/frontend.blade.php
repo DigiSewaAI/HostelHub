@@ -278,15 +278,15 @@
             opacity: 0.9;
         }
         
-        /* Main Content Styles */
+        /* 🚨 CRITICAL FIX: Main Content Styles - REMOVED padding-top */
         main {
             flex: 1;
-            padding-top: 0;
+            padding-top: 0; /* ✅ This was pushing content down */
         }
         .content-container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 2.5rem 1.5rem;
+            padding: 0 1.5rem; /* ✅ REMOVED padding-top: 2.5rem */
         }
         
         /* Footer Styles - UPDATED */
@@ -522,7 +522,7 @@
                 font-size: 1rem;
             }
             .content-container {
-                padding: 1.8rem 1.2rem;
+                padding: 0 1.2rem; /* ✅ REMOVED padding-top for mobile too */
             }
             
             /* Footer mobile adjustments */
@@ -555,7 +555,7 @@
                 font-size: 1.6rem;
             }
             .content-container {
-                padding: 1.5rem 1rem;
+                padding: 0 1rem; /* ✅ REMOVED padding-top for small mobile */
             }
             
             .footer-logo img {
