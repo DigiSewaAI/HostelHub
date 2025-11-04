@@ -335,7 +335,7 @@
 <!-- Testimonials -->
 <section class="section testimonials" id="testimonials">
     <div class="container">
-        <h2 class="section-title nepali" style="color: var(--text-light);">ग्राहकहरूको प्रशंसापत्रहरू हेर्नुहोस्</h2>
+        <h2 class="section-title nepali" style="color: var(--text-light);">ग्राहकहरूको प्रशंसापत्रहरू</h2>
         <p class="section-subtitle" style="color: rgba(249, 250, 251, 0.9);">HostelHub प्रयोग गर्ने हाम्रा ग्राहकहरूले के भन्छन्</p>
         <div class="testimonials-grid">
             @foreach($testimonials as $testimonial)

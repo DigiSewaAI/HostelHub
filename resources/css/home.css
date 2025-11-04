@@ -318,7 +318,7 @@
     }
 }
 
-/* 🚨 ENHANCED SEARCH WIDGET - VISUAL APPEALING VERSION */
+/* 🚨 ENHANCED SEARCH WIDGET - UPDATED PROFESSIONAL VERSION */
 .search-widget {
     background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
     border-radius: 20px;
@@ -379,6 +379,20 @@
     position: relative;
 }
 
+.input-with-icon {
+    position: relative;
+}
+
+.input-with-icon i {
+    position: absolute;
+    left: 1rem;
+    top: 2.8rem;
+    color: var(--primary);
+    font-size: 1.1rem;
+    z-index: 2;
+    transition: var(--transition);
+}
+
 .form-group label {
     display: block;
     margin-bottom: 0.6rem;
@@ -390,7 +404,7 @@
 
 .form-control {
     width: 100%;
-    padding: 1rem 1.2rem;
+    padding: 1rem 1.2rem 1rem 3rem;
     border: 2px solid #e2e8f0;
     border-radius: 12px;
     font-size: 1rem;
@@ -398,6 +412,7 @@
     background: #ffffff;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
     font-family: 'Inter', sans-serif;
+    position: relative;
 }
 
 .form-control:focus {
@@ -414,8 +429,8 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
 }
 
-/* Enhanced Submit Button */
-.widget-form .btn-primary {
+/* Enhanced Search Button */
+.btn-search-enhanced {
     background: linear-gradient(135deg, var(--primary), var(--secondary));
     color: white;
     border: none;
@@ -427,17 +442,21 @@
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
-    margin-top: 0.5rem;
     width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    cursor: pointer;
 }
 
-.widget-form .btn-primary:hover {
+.btn-search-enhanced:hover {
     transform: translateY(-3px);
     box-shadow: 0 12px 25px rgba(14, 165, 233, 0.4);
     background: linear-gradient(135deg, var(--primary-dark), var(--secondary-dark));
 }
 
-.widget-form .btn-primary::before {
+.btn-search-enhanced::before {
     content: '';
     position: absolute;
     top: 0;
@@ -448,39 +467,14 @@
     transition: 0.5s;
 }
 
-.widget-form .btn-primary:hover::before {
+.btn-search-enhanced:hover::before {
     left: 100%;
 }
 
-/* Form Icons */
-.form-group::before {
-    content: '';
-    position: absolute;
-    right: 1rem;
-    top: 2.8rem;
-    width: 18px;
-    height: 18px;
-    background-size: contain;
-    background-repeat: no-repeat;
-    opacity: 0.6;
-    transition: var(--transition);
-}
-
-.form-group:first-child::before {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%231e3a8a'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z'/%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M15 11a3 3 0 11-6 0 3 3 0 016 0z'/%3E%3C/svg%3E");
-}
-
-.form-group:nth-child(2)::before {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%231e3a8a'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4'/%3E%3C/svg%3E");
-}
-
-.form-group:nth-child(3)::before,
-.form-group:nth-child(4)::before {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%231e3a8a'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'/%3E%3C/svg%3E");
-}
-
-.form-control:focus + .form-group::before {
-    opacity: 1;
+.search-button-container {
+    display: flex;
+    align-items: end;
+    height: 100%;
 }
 
 /* Error message styling */
@@ -519,10 +513,15 @@
     }
     
     .form-control {
-        padding: 0.9rem 1rem;
+        padding: 0.9rem 1rem 0.9rem 2.8rem;
     }
     
-    .widget-form .btn-primary {
+    .input-with-icon i {
+        top: 2.6rem;
+        left: 0.8rem;
+    }
+    
+    .btn-search-enhanced {
         padding: 1rem 1.2rem;
         margin-top: 0.3rem;
     }
@@ -541,18 +540,19 @@
     }
     
     .form-control {
-        padding: 0.8rem 1rem;
+        padding: 0.8rem 1rem 0.8rem 2.5rem;
         font-size: 0.95rem;
     }
     
-    .widget-form .btn-primary {
-        padding: 0.9rem 1rem;
+    .input-with-icon i {
+        top: 2.4rem;
+        left: 0.8rem;
         font-size: 1rem;
     }
     
-    /* Hide icons on very small screens */
-    .form-group::before {
-        display: none;
+    .btn-search-enhanced {
+        padding: 0.9rem 1rem;
+        font-size: 1rem;
     }
 }
 

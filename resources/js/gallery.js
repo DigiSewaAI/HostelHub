@@ -3,6 +3,7 @@ class GalleryManager {
     constructor() {
         this.currentFilter = 'all';
         this.currentSearch = '';
+        this.currentHostelFilter = '';
         this.visibleItems = 12;
         this.currentMediaIndex = 0;
         this.mediaItems = [];
@@ -12,11 +13,11 @@ class GalleryManager {
     }
     
     init() {
+        console.log('GalleryManager initialized');
         this.cacheElements();
         this.bindEvents();
         this.initMediaItems();
-        this.showVisibleItems();
-        this.updateLoadMoreButton();
+        this.applyFilters();
     }
     
     cacheElements() {
@@ -24,6 +25,7 @@ class GalleryManager {
             filterButtons: document.querySelectorAll('.filter-btn'),
             galleryItems: document.querySelectorAll('.gallery-item'),
             searchInput: document.querySelector('.search-input'),
+            hostelFilter: document.getElementById('hostelFilter'),
             loadMoreBtn: document.querySelector('.load-more-btn'),
             galleryModal: document.querySelector('.gallery-modal'),
             modalContent: document.querySelector('.modal-content'),
@@ -34,6 +36,8 @@ class GalleryManager {
             modalDescription: document.querySelector('.modal-description'),
             modalCategory: document.querySelector('.modal-category'),
             modalDate: document.querySelector('.modal-date'),
+            modalHostel: document.querySelector('.modal-hostel'),
+            modalRoom: document.querySelector('.modal-room'),
             galleryGrid: document.querySelector('.gallery-grid'),
             loadingIndicator: document.querySelector('.gallery-loading'),
             noResults: document.querySelector('.no-results')
@@ -49,6 +53,11 @@ class GalleryManager {
         // Search input
         if (this.elements.searchInput) {
             this.elements.searchInput.addEventListener('input', (e) => this.handleSearch(e));
+        }
+        
+        // Hostel filter
+        if (this.elements.hostelFilter) {
+            this.elements.hostelFilter.addEventListener('change', (e) => this.handleHostelFilter(e));
         }
         
         // Load more
@@ -78,15 +87,18 @@ class GalleryManager {
         document.addEventListener('keydown', (e) => this.handleKeyboard(e));
         
         // Close modal on outside click
-        this.elements.galleryModal.addEventListener('click', (e) => {
-            if (e.target === this.elements.galleryModal) {
-                this.closeModal();
-            }
-        });
+        if (this.elements.galleryModal) {
+            this.elements.galleryModal.addEventListener('click', (e) => {
+                if (e.target === this.elements.galleryModal) {
+                    this.closeModal();
+                }
+            });
+        }
     }
     
     initMediaItems() {
         this.mediaItems = Array.from(this.elements.galleryItems);
+        console.log(`Initialized ${this.mediaItems.length} media items`);
     }
     
     handleFilter(e) {
@@ -108,6 +120,12 @@ class GalleryManager {
         this.applyFilters();
     }
     
+    handleHostelFilter(e) {
+        this.currentHostelFilter = e.target.value;
+        this.visibleItems = 12; // Reset visible items
+        this.applyFilters();
+    }
+    
     applyFilters() {
         let visibleCount = 0;
         
@@ -115,9 +133,13 @@ class GalleryManager {
             const matchesFilter = this.currentFilter === 'all' || item.dataset.category === this.currentFilter;
             const matchesSearch = this.currentSearch === '' || 
                                 item.dataset.title.toLowerCase().includes(this.currentSearch) ||
-                                (item.dataset.description && item.dataset.description.toLowerCase().includes(this.currentSearch));
+                                (item.dataset.description && item.dataset.description.toLowerCase().includes(this.currentSearch)) ||
+                                (item.dataset.hostel && item.dataset.hostel.toLowerCase().includes(this.currentSearch)) ||
+                                (item.dataset.roomNumber && item.dataset.roomNumber.toLowerCase().includes(this.currentSearch));
             
-            if (matchesFilter && matchesSearch) {
+            const matchesHostel = this.currentHostelFilter === '' || item.dataset.hostelId === this.currentHostelFilter;
+            
+            if (matchesFilter && matchesSearch && matchesHostel) {
                 item.style.display = 'block';
                 visibleCount++;
                 
@@ -125,6 +147,7 @@ class GalleryManager {
                 if (visibleCount <= this.visibleItems) {
                     item.style.opacity = '1';
                     item.style.transform = 'scale(1)';
+                    item.style.animationDelay = `${(index % 12) * 0.1}s`;
                 } else {
                     item.style.opacity = '0';
                     item.style.transform = 'scale(0.8)';
@@ -236,30 +259,59 @@ class GalleryManager {
         this.currentMediaIndex = index;
         const media = this.mediaItems[index];
         
-        this.elements.modalTitle.textContent = media.dataset.title;
+        // Set modal content
+        this.elements.modalTitle.textContent = media.dataset.title || '';
         this.elements.modalDescription.textContent = media.dataset.description || '';
         this.elements.modalCategory.textContent = media.dataset.category || '';
         this.elements.modalDate.textContent = media.dataset.date || '';
+        this.elements.modalHostel.textContent = media.dataset.hostel || '';
         
-        if (media.classList.contains('video')) {
-            const youtubeId = media.dataset.youtubeId;
-            this.elements.modalContent.innerHTML = `
-                <div class="modal-media-container">
-                    <iframe class="modal-video" 
-                            src="https://www.youtube.com/embed/${youtubeId}?autoplay=1&rel=0" 
-                            frameborder="0" 
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                            allowfullscreen>
-                    </iframe>
-                </div>
-            `;
+        const roomNumber = media.dataset.roomNumber;
+        this.elements.modalRoom.textContent = roomNumber ? `कोठा: ${roomNumber}` : '';
+        
+        // Clear previous content
+        this.elements.modalContent.innerHTML = '';
+        
+        const mediaType = media.dataset.mediaType;
+        const youtubeEmbed = media.dataset.youtubeEmbed;
+        
+        // Add media based on type
+        if (mediaType === 'photo') {
+            const img = document.createElement('img');
+            img.src = media.querySelector('img').src;
+            img.alt = media.dataset.title || 'Gallery Image';
+            img.style.width = '100%';
+            img.style.height = 'auto';
+            img.style.display = 'block';
+            img.className = 'modal-image';
+            this.elements.modalContent.appendChild(img);
+        } else if ((mediaType === 'external_video' || mediaType === 'local_video') && youtubeEmbed) {
+            const iframe = document.createElement('iframe');
+            iframe.src = youtubeEmbed + (youtubeEmbed.includes('?') ? '&' : '?') + 'autoplay=1&rel=0';
+            iframe.width = '100%';
+            iframe.height = '400';
+            iframe.allowFullscreen = true;
+            iframe.style.border = 'none';
+            iframe.className = 'modal-video';
+            iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+            this.elements.modalContent.appendChild(iframe);
+        } else if (mediaType === 'local_video') {
+            const video = document.createElement('video');
+            video.src = media.querySelector('source')?.src || '#';
+            video.controls = true;
+            video.style.width = '100%';
+            video.style.height = 'auto';
+            video.className = 'modal-video';
+            this.elements.modalContent.appendChild(video);
         } else {
-            const imageSrc = media.querySelector('img').src;
-            this.elements.modalContent.innerHTML = `
-                <div class="modal-media-container">
-                    <img class="modal-image" src="${imageSrc}" alt="${media.dataset.title}">
-                </div>
-            `;
+            // Fallback for unknown media types
+            const img = document.createElement('img');
+            img.src = media.querySelector('img')?.src || '';
+            img.alt = media.dataset.title || 'Gallery Image';
+            img.style.width = '100%';
+            img.style.height = 'auto';
+            img.style.display = 'block';
+            this.elements.modalContent.appendChild(img);
         }
         
         this.elements.galleryModal.classList.add('active');
@@ -278,37 +330,39 @@ class GalleryManager {
         if (iframe) {
             iframe.src = '';
         }
+        
+        const video = this.elements.modalContent.querySelector('video');
+        if (video) {
+            video.pause();
+        }
     }
     
     navigateModal(direction) {
-        let newIndex = this.currentMediaIndex + direction;
-        
-        // Wrap around
-        if (newIndex < 0) {
-            newIndex = this.mediaItems.length - 1;
-        } else if (newIndex >= this.mediaItems.length) {
-            newIndex = 0;
-        }
-        
-        // Find next visible media item
+        // Get currently visible items
         const visibleItems = this.mediaItems.filter(item => 
             item.style.display !== 'none'
         );
         
-        if (visibleItems.length > 0) {
-            const currentVisibleIndex = visibleItems.findIndex(item => 
-                item === this.mediaItems[this.currentMediaIndex]
-            );
-            let newVisibleIndex = currentVisibleIndex + direction;
-            
-            if (newVisibleIndex < 0) newVisibleIndex = visibleItems.length - 1;
-            if (newVisibleIndex >= visibleItems.length) newVisibleIndex = 0;
-            
-            newIndex = this.mediaItems.indexOf(visibleItems[newVisibleIndex]);
+        if (visibleItems.length === 0) return;
+        
+        // Find current index in visible items
+        const currentVisibleIndex = visibleItems.findIndex(item => 
+            item === this.mediaItems[this.currentMediaIndex]
+        );
+        
+        let newVisibleIndex = currentVisibleIndex + direction;
+        
+        // Wrap around
+        if (newVisibleIndex < 0) {
+            newVisibleIndex = visibleItems.length - 1;
+        } else if (newVisibleIndex >= visibleItems.length) {
+            newVisibleIndex = 0;
         }
         
+        const newIndex = this.mediaItems.indexOf(visibleItems[newVisibleIndex]);
+        
         this.closeModal();
-        setTimeout(() => this.openModal(newIndex), 300);
+        setTimeout(() => this.openModal(newIndex), 50);
     }
     
     handleKeyboard(e) {
@@ -330,10 +384,11 @@ class GalleryManager {
 
 // Initialize gallery when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, initializing GalleryManager');
     new GalleryManager();
 });
 
-// Add CSS animation for modal
+// Add CSS animation for modal and gallery items
 const style = document.createElement('style');
 style.textContent = `
     @keyframes modalAppear {
@@ -359,6 +414,30 @@ style.textContent = `
         to {
             opacity: 1;
             transform: translateY(0);
+        }
+    }
+    
+    .modal-image {
+        max-width: 100%;
+        max-height: 80vh;
+        object-fit: contain;
+    }
+    
+    .modal-video {
+        width: 100%;
+        height: 400px;
+        max-height: 80vh;
+    }
+    
+    @media (max-width: 768px) {
+        .modal-video {
+            height: 300px;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .modal-video {
+            height: 250px;
         }
     }
 `;
