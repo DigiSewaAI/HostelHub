@@ -623,6 +623,201 @@ img:not([src]):not([srcset]) {
     opacity: 1 !important;
 }
 
+/* ✅ IMPROVED FOOTER STYLES - FROM REFERENCE */
+footer {
+    background-color: var(--primary);
+    color: var(--text-light);
+    padding: 1rem 0 0.2rem;
+}
+
+.footer-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.2rem;
+    margin-bottom: 1rem;
+}
+
+.footer-col h3 {
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+    position: relative;
+    padding-bottom: 0.4rem;
+    color: var(--text-light);
+}
+
+.footer-col h3::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 50px;
+    height: 3px;
+    background: var(--secondary);
+}
+
+.footer-links {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.footer-links li {
+    margin-bottom: 0.6rem;
+}
+
+.footer-links a {
+    color: rgba(249, 250, 251, 0.8);
+    text-decoration: none;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    font-size: 0.95rem;
+}
+
+.footer-links a:hover {
+    color: var(--secondary);
+    transform: translateX(5px);
+}
+
+.footer-links i {
+    margin-right: 10px;
+    width: 18px;
+    color: var(--secondary);
+}
+
+.contact-info {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.contact-info li {
+    margin-bottom: 0.8rem;
+    display: flex;
+    align-items: flex-start;
+}
+
+.contact-info i {
+    margin-right: 12px;
+    color: var(--secondary);
+    font-size: 1.1rem;
+    margin-top: 4px;
+    flex-shrink: 0;
+}
+
+.footer-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--text-light);
+    text-decoration: none;
+}
+
+.footer-logo-icon {
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--secondary);
+    border-radius: var(--radius);
+    color: var(--text-light);
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.copyright {
+    margin-top: 1.2rem;
+    padding-top: 0.8rem;
+    border-top: 1px solid rgba(249, 250, 251, 0.1);
+    font-size: 1rem;
+    color: rgba(249, 250, 251, 0.6);
+    text-align: center;
+    grid-column: 1 / -1;
+}
+
+.social-links {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+}
+
+.social-links a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    color: var(--text-light);
+    font-size: 1rem;
+    transition: var(--transition);
+    text-decoration: none;
+}
+
+.social-links a:hover {
+    background: var(--secondary);
+    color: var(--text-light);
+    transform: translateY(-3px);
+}
+
+.newsletter-form {
+    display: flex;
+    gap: 0.4rem;
+    margin-top: 0.8rem;
+    flex-wrap: wrap;
+}
+
+.newsletter-form input {
+    flex: 1;
+    min-width: 200px;
+    padding: 0.7rem 0.9rem;
+    border: none;
+    border-radius: var(--radius);
+    font-family: inherit;
+    font-size: 0.9rem;
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-light);
+}
+
+.newsletter-form input::placeholder {
+    color: rgba(249, 255, 251, 0.6);
+}
+
+.newsletter-form button {
+    background: var(--secondary);
+    color: var(--text-light);
+    border: none;
+    border-radius: var(--radius);
+    padding: 0.7rem 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+.newsletter-form button:hover {
+    background: var(--secondary-dark);
+    transform: translateY(-3px);
+}
+
+/* Footer Responsive Design */
+@media (max-width: 768px) {
+    .newsletter-form {
+        flex-direction: column;
+    }
+    
+    .newsletter-form input {
+        min-width: 100%;
+    }
+}
+
 /* 🚨 URGENT WHITE SPACE FIXES - ADDED TO YOUR EXISTING FILE */
 
 /* Fix body spacing issues */
@@ -843,6 +1038,7 @@ main {
     flex: 1 !important;
     width: 100% !important;
 }
+
 
 /* Add this to app.css to prevent horizontal scroll */
 html, body {
