@@ -371,7 +371,7 @@
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: 1.2rem;
     width: 100%;
-    align-items: end;
+    align-items: start;
 }
 
 .form-group {
@@ -1570,3 +1570,4 @@ body {
         font-size: 1.4rem;
     }
 }
+
