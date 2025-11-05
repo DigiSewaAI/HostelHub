@@ -289,26 +289,33 @@
             padding: 0 1.5rem; /* ✅ REMOVED padding-top: 2.5rem */
         }
         
-        /* ✅ UPDATED FOOTER STYLES - COMPACT & BETTER SPACING */
+        /* Footer Styles - UPDATED */
         footer {
             background-color: var(--primary);
             color: var(--text-light);
-            padding: 1.5rem 0 0.5rem; /* ✅ REDUCED HEIGHT */
+            padding: 1rem 0 0.2rem;
         }
         
+        /* NEW: Footer Grid Layout for balanced spacing */
         .footer-grid {
             display: grid;
-            grid-template-columns: 2fr 1.5fr 1.5fr 1.5fr; /* ✅ BETTER COLUMN DISTRIBUTION */
-            gap: 1.5rem;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
             align-items: start;
-            margin-bottom: 0.8rem; /* ✅ REDUCED MARGIN */
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+        
+        .footer-col {
+            display: flex;
+            flex-direction: column;
         }
         
         .footer-col h3 {
-            font-size: 1.2rem; /* ✅ SMALLER HEADINGS */
-            margin-bottom: 0.8rem; /* ✅ REDUCED SPACING */
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
             position: relative;
-            padding-bottom: 0.3rem;
+            padding-bottom: 0.4rem;
             color: var(--text-light);
         }
         .footer-col h3::after {
@@ -316,8 +323,8 @@
             position: absolute;
             bottom: 0;
             left: 0;
-            width: 40px; /* ✅ SMALLER UNDERLINE */
-            height: 2px;
+            width: 50px;
+            height: 3px;
             background: var(--secondary);
         }
         .footer-links {
@@ -326,7 +333,7 @@
             padding: 0;
         }
         .footer-links li {
-            margin-bottom: 0.4rem; /* ✅ TIGHTER SPACING */
+            margin-bottom: 0.6rem;
         }
         .footer-links a {
             color: rgba(249, 250, 251, 0.8);
@@ -334,17 +341,16 @@
             transition: var(--transition);
             display: flex;
             align-items: center;
-            font-size: 0.9rem; /* ✅ SMALLER FONT */
+            font-size: 0.95rem;
         }
         .footer-links a:hover {
             color: var(--secondary);
-            transform: translateX(3px);
+            transform: translateX(5px);
         }
         .footer-links i {
-            margin-right: 8px;
-            width: 16px;
+            margin-right: 10px;
+            width: 18px;
             color: var(--secondary);
-            font-size: 0.8rem;
         }
         .contact-info {
             list-style: none;
@@ -352,39 +358,40 @@
             padding: 0;
         }
         .contact-info li {
-            margin-bottom: 0.6rem; /* ✅ REDUCED SPACING */
+            margin-bottom: 0.8rem;
             display: flex;
             align-items: flex-start;
-            gap: 10px;
+            gap: 12px; /* ✅ ADDED SPACING BETWEEN ICONS AND TEXT */
         }
         .contact-info i {
             color: var(--secondary);
-            font-size: 1rem;
-            margin-top: 2px;
+            font-size: 1.1rem;
+            margin-top: 4px;
             flex-shrink: 0;
-            min-width: 16px;
+            min-width: 20px; /* ✅ ENSURES CONSISTENT ICON SPACING */
         }
         .footer-logo {
             display: flex;
             align-items: center;
-            gap: 0.8rem;
-            font-size: 1.4rem; /* ✅ SMALLER LOGO TEXT */
+            gap: 0.6rem;
+            font-size: 1.6rem;
             font-weight: 700;
-            margin-bottom: 0.8rem; /* ✅ REDUCED SPACING */
+            margin-bottom: 1rem;
             color: var(--text-light);
             text-decoration: none;
         }
         
-        /* ✅ COMPACT FOOTER LOGO */
+        /* ✅ ENLARGED FOOTER LOGO - IMPROVED RESOLUTION */
         .footer-logo img {
-            height: 45px !important; /* ✅ SMALLER LOGO */
-            width: 45px !important;
-            object-fit: contain;
+            height: 120px !important; /* ✅ Adjusted for better resolution */
+            width: 120px !important; /* ✅ Fixed width for consistent aspect ratio */
+            object-fit: contain; /* ✅ Ensures image maintains quality */
+            object-position: center;
         }
         
         .footer-logo-icon {
-            width: 30px;
-            height: 30px;
+            width: 35px;
+            height: 35px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -392,46 +399,41 @@
             border-radius: var(--radius);
             color: var(--text-light);
             font-weight: bold;
-            font-size: 16px;
+            font-size: 18px;
         }
-        
         .copyright {
-            margin-top: 1rem; /* ✅ REDUCED SPACING */
+            margin-top: 1.2rem;
             padding-top: 0.8rem;
             border-top: 1px solid rgba(249, 250, 251, 0.1);
-            font-size: 0.9rem; /* ✅ SMALLER FONT */
+            font-size: 1rem;
             color: rgba(249, 250, 251, 0.6);
             text-align: center;
             grid-column: 1 / -1;
         }
-        
-        /* ✅ SOCIAL MEDIA MOVED TO RIGHT SIDE WITH BETTER SPACING */
         .social-links {
             display: flex;
-            gap: 8px;
-            margin-top: 1rem;
+            gap: 10px;
+            margin-top: 12px;
             flex-wrap: wrap;
-            justify-content: flex-start; /* ✅ ALIGN LEFT IN COLUMN */
         }
         .social-links a {
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 32px; /* ✅ SMALLER ICONS */
-            height: 32px;
+            width: 36px;
+            height: 36px;
             background: rgba(255, 255, 255, 0.1);
             border-radius: 50%;
             color: var(--text-light);
-            font-size: 0.9rem;
+            font-size: 1rem;
             transition: var(--transition);
             text-decoration: none;
         }
         .social-links a:hover {
             background: var(--secondary);
             color: var(--text-light);
-            transform: translateY(-2px);
+            transform: translateY(-3px);
         }
-        
         .newsletter-form {
             display: flex;
             gap: 0.4rem;
@@ -440,12 +442,12 @@
         }
         .newsletter-form input {
             flex: 1;
-            min-width: 180px; /* ✅ SMALLER INPUT */
-            padding: 0.6rem 0.8rem; /* ✅ COMPACT PADDING */
+            min-width: 200px;
+            padding: 0.7rem 0.9rem;
             border: none;
             border-radius: var(--radius);
             font-family: inherit;
-            font-size: 0.85rem; /* ✅ SMALLER FONT */
+            font-size: 0.9rem;
             background: rgba(255, 255, 255, 0.1);
             color: var(--text-light);
         }
@@ -457,16 +459,16 @@
             color: var(--text-light);
             border: none;
             border-radius: var(--radius);
-            padding: 0.6rem 0.9rem; /* ✅ COMPACT PADDING */
+            padding: 0.7rem 1rem;
             font-weight: 600;
             cursor: pointer;
             transition: var(--transition);
-            font-size: 0.85rem; /* ✅ SMALLER FONT */
+            font-size: 0.9rem;
             white-space: nowrap;
         }
         .newsletter-form button:hover {
             background: var(--secondary-dark);
-            transform: translateY(-2px);
+            transform: translateY(-3px);
         }
         
         /* Smooth transition utility */
@@ -478,7 +480,7 @@
         @media (max-width: 1024px) {
             .footer-grid {
                 grid-template-columns: repeat(2, 1fr);
-                gap: 1.2rem;
+                gap: 1.5rem;
             }
         }
         
@@ -530,16 +532,12 @@
             }
             
             .footer-logo img {
-                height: 40px !important; /* ✅ Adjusted for mobile */
-                width: 40px !important;
+                height: 100px !important; /* ✅ Adjusted for mobile */
+                width: 100px !important;
             }
             
             .contact-info li {
-                gap: 8px; /* ✅ Slightly less spacing on mobile */
-            }
-            
-            .social-links {
-                justify-content: center; /* ✅ Center on mobile */
+                gap: 10px; /* ✅ Slightly less spacing on mobile */
             }
         }
         @media (max-width: 480px) {
@@ -561,12 +559,8 @@
             }
             
             .footer-logo img {
-                height: 35px !important; /* ✅ Further adjustment for small mobile */
-                width: 35px !important;
-            }
-            
-            footer {
-                padding: 1rem 0 0.3rem; /* ✅ EVEN MORE COMPACT ON MOBILE */
+                height: 80px !important; /* ✅ Further adjustment for small mobile */
+                width: 80px !important;
             }
         }
         @media (max-width: 360px) {
@@ -585,8 +579,8 @@
             }
             
             .footer-logo img {
-                height: 30px !important; /* ✅ Final adjustment for very small screens */
-                width: 30px !important;
+                height: 70px !important; /* ✅ Final adjustment for very small screens */
+                width: 70px !important;
             }
         }
     </style>
@@ -690,81 +684,79 @@
         </div>
     </main>
 
-<!-- Footer -->
-<footer>
-    <div class="container">
-        <div class="footer-grid">
-            <div class="footer-col">
-                <!-- Footer Logo with corrected path -->
-                <a href="{{ route('home') }}" class="footer-logo">
-        <img src="{{ asset('images/logo.png') }}" alt="HostelHub Logo" 
-             style="height: 120px !important; width: 120px !important; object-fit: contain !important; margin: 1rem 0 !important; display: block !important;"
-             onerror="this.style.display='none'">
-        <span style="font-size: 2rem; display: block; margin-top: 1rem;">HostelHub</span>
-    </a>
-                <p class="nepali" style="color: rgba(249, 250, 251, 0.8); margin-top: 12px; line-height: 1.6;">
-                    नेपालको नम्बर १ होस्टल प्रबन्धन प्रणाली। हामी होस्टल व्यवस्थापनलाई सहज, दक्ष र विश्वसनीय बनाउँछौं।
-                </p>
-                <div class="social-links">
-                    <a href="#" aria-label="फेसबुक"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#" aria-label="ट्विटर"><i class="fab fa-twitter"></i></a>
-                    <a href="#" aria-label="इन्स्टाग्राम"><i class="fab fa-instagram"></i></a>
-                    <a href="#" aria-label="लिङ्क्डइन"><i class="fab fa-linkedin-in"></i></a>
+    <!-- Footer - UPDATED WITH ALL FIXES -->
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <!-- ✅ ENLARGED AND CLEAR FOOTER LOGO WITH BETTER RESOLUTION -->
+                    <a href="{{ route('home') }}" class="footer-logo">
+                        <img src="{{ asset('images/logo.png') }}" alt="HostelHub Logo">
+                        <span style="font-size: 1.8rem; font-weight: 800; letter-spacing: 0.5px;">HostelHub</span>
+                    </a>
+                    <p class="nepali" style="color: rgba(249, 250, 251, 0.8); margin-top: 12px; line-height: 1.6;">
+                        नेपालको नम्बर १ होस्टल प्रबन्धन प्रणाली। हामी होस्टल व्यवस्थापनलाई सहज, दक्ष र विश्वसनीय बनाउँछौं।
+                    </p>
+                    <div class="social-links">
+                        <a href="#" aria-label="फेसबुक"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" aria-label="ट्विटर"><i class="fab fa-twitter"></i></a>
+                        <a href="#" aria-label="इन्स्टाग्राम"><i class="fab fa-instagram"></i></a>
+                        <a href="#" aria-label="लिङ्क्डइन"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                <div class="footer-col">
+                    <h3 class="nepali">तिब्र लिङ्कहरू</h3>
+                    <ul class="footer-links">
+                        <li><a href="{{ route('home') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">होम</span></a></li>
+                        <li><a href="{{ route('features') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">सुविधाहरू</span></a></li>
+                        <li><a href="{{ route('how-it-works') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">कसरी काम गर्छ</span></a></li>
+                        <li><a href="{{ route('gallery') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">ग्यालरी</span></a></li>
+                        <li><a href="{{ route('pricing') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">मूल्य</span></a></li>
+                        <li><a href="{{ route('testimonials') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">प्रशंसापत्रहरू</span></a></li>
+                        <li><a href="{{ route('about') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">हाम्रो बारेमा</span></a></li>
+                        <li><a href="{{ route('privacy') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">गोप्यता नीति</span></a></li>
+                        <li><a href="{{ route('terms') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">सेवा सर्तहरू</span></a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h3 class="nepali">सम्पर्क जानकारी</h3>
+                    <ul class="contact-info">
+                        <li>
+                            <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
+                            <div class="nepali">कमलपोखरी, काठमाडौं, नेपाल</div>
+                        </li>
+                        <li>
+                            <i class="fas fa-phone-alt" aria-hidden="true"></i>
+                            <div>+९७७ ९७६१७६२०३६</div>
+                        </li>
+                        <li>
+                            <i class="fas fa-envelope" aria-hidden="true"></i>
+                            <div>info@hostelhub.com</div>
+                        </li>
+                        <li>
+                            <i class="fas fa-clock" aria-hidden="true"></i>
+                            <div class="nepali">सोम-शुक्र: ९:०० बिहान - ५:०० बेलुका</div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h3 class="nepali">समाचारपत्र</h3>
+                    <p class="nepali" style="color: rgba(249, 250, 251, 0.8); margin-bottom: 12px; line-height: 1.6;">
+                        हाम्रो नवीनतम अपडेटहरू प्राप्त गर्न तपाईंको इमेल दर्ता गर्नुहोस्
+                    </p>
+                    <form class="newsletter-form" action="{{ route('newsletter.subscribe') }}" method="POST">
+                        @csrf
+                        <input type="email" name="email" placeholder="तपाईंको इमेल" required aria-label="इमेल ठेगाना">
+                        <input type="text" name="honeypot" style="display:none" aria-hidden="true">
+                        <button type="submit" class="nepali">दर्ता गर्नुहोस्</button>
+                    </form>
+                </div>
+                <div class="copyright">
+                    <p class="nepali">© 2025 HostelHub. सबै अधिकार सुरक्षित।</p>
                 </div>
             </div>
-            <div class="footer-col">
-                <h3 class="nepali">तिब्र लिङ्कहरू</h3>
-                <ul class="footer-links">
-                    <li><a href="{{ route('home') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">होम</span></a></li>
-                    <li><a href="{{ route('features') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">सुविधाहरू</span></a></li>
-                    <li><a href="{{ route('how-it-works') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">कसरी काम गर्छ</span></a></li>
-                    <li><a href="{{ route('gallery') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">ग्यालरी</span></a></li>
-                    <li><a href="{{ route('pricing') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">मूल्य</span></a></li>
-                    <li><a href="{{ route('testimonials') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">प्रशंसापत्रहरू</span></a></li>
-                    <li><a href="{{ route('about') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">हाम्रो बारेमा</span></a></li>
-                    <li><a href="{{ route('privacy') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">गोप्यता नीति</span></a></li>
-                    <li><a href="{{ route('terms') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">सेवा सर्तहरू</span></a></li>
-                </ul>
-            </div>
-            <div class="footer-col">
-                <h3 class="nepali">सम्पर्क जानकारी</h3>
-                <ul class="contact-info">
-                    <li>
-                        <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
-                        <div class="nepali">कमलपोखरी, काठमाडौं, नेपाल</div>
-                    </li>
-                    <li>
-                        <i class="fas fa-phone-alt" aria-hidden="true"></i>
-                        <div>+९७७ ९७६१७६२०३६</div>
-                    </li>
-                    <li>
-                        <i class="fas fa-envelope" aria-hidden="true"></i>
-                        <div>info@hostelhub.com</div>
-                    </li>
-                    <li>
-                        <i class="fas fa-clock" aria-hidden="true"></i>
-                        <div class="nepali">सोम-शुक्र: ९:०० बिहान - ५:०० बेलुका</div>
-                    </li>
-                </ul>
-            </div>
-            <div class="footer-col">
-                <h3 class="nepali">समाचारपत्र</h3>
-                <p class="nepali" style="color: rgba(249, 250, 251, 0.8); margin-bottom: 12px; line-height: 1.6;">
-                    हाम्रो नवीनतम अपडेटहरू प्राप्त गर्न तपाईंको इमेल दर्ता गर्नुहोस्
-                </p>
-                <form class="newsletter-form" action="{{ route('newsletter.subscribe') }}" method="POST">
-                    @csrf
-                    <input type="email" name="email" placeholder="तपाईंको इमेल" required aria-label="इमेल ठेगाना">
-                    <input type="text" name="honeypot" style="display:none" aria-hidden="true">
-                    <button type="submit" class="nepali">दर्ता गर्नुहोस्</button>
-                </form>
-            </div>
-            <div class="copyright">
-                <p class="nepali">© 2025 HostelHub. सबै अधिकार सुरक्षित।</p>
-            </div>
         </div>
-    </div>
-</footer>
+    </footer>
 
     <!-- ✅ GUARANTEED JAVASCRIPT - MULTIPLE FALLBACKS -->
     <script>
