@@ -11,6 +11,11 @@
 <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
 @vite(['resources/css/home.css'])
 <style>
+/* 🚨 QUICK FIX - Search Form Alignment */
+.widget-form {
+    align-items: start !important;
+}
+
 .gallery-slide-container {
     position: relative;
     border-radius: 8px;
