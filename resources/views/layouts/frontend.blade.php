@@ -706,7 +706,12 @@
                     नेपालको नम्बर १ होस्टल प्रबन्धन प्रणाली। हामी होस्टल व्यवस्थापनलाई सहज, दक्ष र विश्वसनीय बनाउँछौं।
                 </p>
                 <div class="social-links">
-                    <a href="#" aria-label="फेसबुक"><i class="fab fa-facebook-f"></i></a>
+                        <a href="https://www.facebook.com/HostelHubNepal" 
+   aria-label="फेसबुक" 
+   target="_blank" 
+   rel="noopener noreferrer">
+   <i class="fab fa-facebook-f"></i>
+</a>
                     <a href="#" aria-label="ट्विटर"><i class="fab fa-twitter"></i></a>
                     <a href="#" aria-label="इन्स्टाग्राम"><i class="fab fa-instagram"></i></a>
                     <a href="#" aria-label="लिङ्क्डइन"><i class="fab fa-linkedin-in"></i></a>
