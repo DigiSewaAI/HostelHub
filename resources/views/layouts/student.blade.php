@@ -249,9 +249,9 @@
             }
             
             .main-content-area {
-                margin-left: 0 !important;
-                width: 100% !important;
-            }
+    margin-left: 0 !important;
+    width: 100vw !important;
+}
             
             .sidebar-overlay {
                 position: fixed;
@@ -437,7 +437,7 @@
         </aside>
 
         <!-- Main Content Area - FIXED -->
-        <div class="main-content-area">
+        <div class="main-content-area" style="margin-left: 16rem !important; width: calc(100vw - 16rem) !important; min-height: 100vh !important; display: flex !important; flex-direction: column !important;">
             <!-- Top Navigation -->
             <header class="bg-gradient-primary shadow-sm z-10">
                 <div class="flex items-center justify-between px-6 header-content">
@@ -565,7 +565,7 @@
             <!-- Main Content Container -->
             <div class="main-content-container">
                 <!-- Page Content -->
-                <main id="main-content" class="page-content">
+                <main id="main-content" class="page-content" style="width: 100% !important; padding: 1rem !important; flex: 1 !important; display: block !important;">
                     <!-- Flash Messages -->
                     @if(session('success'))
                         <div class="alert alert-success alert-dismissible fade show mb-4 rounded-xl" role="alert">
