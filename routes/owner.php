@@ -7,15 +7,15 @@ use App\Http\Controllers\{
     Owner\GalleryController as OwnerGalleryController,
     Owner\SettingsController as OwnerSettingsController,
     Owner\CircularController as OwnerCircularController,
+    Owner\MealController as OwnerMealController,
+    Owner\MealMenuController as OwnerMealMenuController,
     Admin\DashboardController,
     ProfileController,
     DocumentController,
-    Admin\MealController,
     Admin\PaymentController,
     Admin\RoomController,
     Admin\StudentController,
-    Admin\ContactController,
-    Admin\MealMenuController as AdminMealMenuController
+    Admin\ContactController
 };
 
 /*|--------------------------------------------------------------------------
@@ -146,8 +146,11 @@ Route::middleware(['auth', 'hasOrganization', 'role:owner,hostel_manager'])
         Route::post('/reviews/{review}/reply', [OwnerReviewController::class, 'reply'])->name('reviews.reply');
 
         // Owner Meal Routes
-        Route::resource('meals', MealController::class);
-        Route::get('/meals/search', [MealController::class, 'search'])->name('meals.search');
+        Route::resource('meals', OwnerMealController::class);
+        Route::get('/meals/search', [OwnerMealController::class, 'search'])->name('meals.search');
+
+        // Owner Meal Menu Routes  
+        Route::resource('meal-menus', OwnerMealMenuController::class);
 
         // Room routes with plan limits
         Route::get('rooms', [RoomController::class, 'index'])->name('rooms.index');
@@ -160,9 +163,6 @@ Route::middleware(['auth', 'hasOrganization', 'role:owner,hostel_manager'])
         Route::get('rooms/search', [RoomController::class, 'search'])->name('rooms.search');
         Route::post('rooms/{room}/change-status', [RoomController::class, 'changeStatus'])->name('rooms.change-status');
         Route::get('rooms/export/csv', [RoomController::class, 'exportCSV'])->name('rooms.export-csv');
-
-        // Meal menu routes
-        Route::resource('meal-menus', AdminMealMenuController::class);
 
         // Owner student routes
         Route::get('students', [StudentController::class, 'index'])->name('students.index');
