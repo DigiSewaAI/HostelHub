@@ -5,9 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class MealMenu extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'hostel_id',
         'meal_type',
@@ -74,5 +77,29 @@ class MealMenu extends Model
     public function getDinnerAttribute(): string
     {
         return $this->items['dinner'] ?? 'उपलब्ध छैन';
+    }
+
+    /**
+     * Items लाई formatted string मा पाउने method (नयाँ थपिएको)
+     */
+    public function getFormattedItemsAttribute(): string
+    {
+        if (is_array($this->items)) {
+            $formatted = [];
+
+            if (isset($this->items['breakfast'])) {
+                $formatted[] = 'विहान: ' . $this->items['breakfast'];
+            }
+            if (isset($this->items['lunch'])) {
+                $formatted[] = 'दिउँसो: ' . $this->items['lunch'];
+            }
+            if (isset($this->items['dinner'])) {
+                $formatted[] = 'बेलुका: ' . $this->items['dinner'];
+            }
+
+            return implode(', ', $formatted);
+        }
+
+        return $this->items ?? 'उपलब्ध छैन';
     }
 }

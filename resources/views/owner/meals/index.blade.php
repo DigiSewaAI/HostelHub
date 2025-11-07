@@ -9,7 +9,7 @@
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h3><i class="fas fa-clipboard-check me-2"></i> भोजन ट्र्याकिंग</h3>
                 <a href="{{ route('owner.meals.create') }}" class="btn btn-primary">
-                    <i class="fas fa-plus me-1"></i> नयाँ भोजन थप्नुहोस्
+                    <i class="fas fa-plus me-1"></i> नयाँ भोजन रेकर्ड
                 </a>
             </div>
 

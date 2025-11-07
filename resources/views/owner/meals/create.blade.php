@@ -1,6 +1,6 @@
 @extends('layouts.owner')
 
-@section('title', 'नयाँ भोजन थप्नुहोस्')
+@section('title', 'नयाँ भोजन रेकर्ड')
 
 @section('content')
 <div class="container-fluid py-4">
@@ -8,7 +8,7 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="mb-0"><i class="fas fa-utensils me-2"></i> नयाँ भोजन थप्नुहोस्</h3>
+                    <h3 class="mb-0"><i class="fas fa-utensils me-2"></i>नयाँ भोजन रेकर्ड</h3>
                 </div>
                 <div class="card-body">
                     <form action="{{ route('owner.meals.store') }}" method="POST">

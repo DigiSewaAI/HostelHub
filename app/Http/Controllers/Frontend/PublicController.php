@@ -10,6 +10,7 @@ use App\Models\Room;
 use App\Models\Student;
 use App\Models\Review;
 use App\Models\Newsletter;
+use App\Models\MealMenu; // ✅ NEW: MealMenu model import
 use App\Services\ImageService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -122,6 +123,18 @@ class PublicController extends Controller
                 }
             }
 
+            // ✅ NEW: Featured Meal Menus for Homepage
+            $featuredMealMenus = Cache::remember('home_featured_meal_menus', 3600, function () {
+                return MealMenu::with('hostel')
+                    ->where('is_active', true)
+                    ->whereHas('hostel', function ($query) {
+                        $query->where('is_published', true);
+                    })
+                    ->orderBy('created_at', 'desc')
+                    ->take(6)
+                    ->get();
+            });
+
             return view('frontend.home', compact(
                 'featuredRooms',
                 'metrics',
@@ -131,7 +144,8 @@ class PublicController extends Controller
                 'roomTypes',
                 'heroSliderItems',
                 'galleryItems',
-                'meals'
+                'meals',
+                'featuredMealMenus' // ✅ NEW: Featured meal menus
             ));
         } catch (\Exception $e) {
             Log::error('PublicController@home error: ' . $e->getMessage());
@@ -150,7 +164,8 @@ class PublicController extends Controller
                 'roomTypes' => collect(),
                 'heroSliderItems' => collect(),
                 'galleryItems' => collect(),
-                'meals' => collect()
+                'meals' => collect(),
+                'featuredMealMenus' => collect() // ✅ NEW: Empty collection on error
             ]);
         }
     }
@@ -258,10 +273,18 @@ class PublicController extends Controller
                 'other' => $hostel->rooms->whereNotIn('type', ['1 seater', '2 seater', '3 seater', '4 seater'])->count(),
             ];
 
+            // ✅ NEW: Get meal menus for this hostel
+            $mealMenus = MealMenu::where('hostel_id', $hostel->id)
+                ->where('is_active', true)
+                ->orderBy('day_of_week')
+                ->orderBy('meal_type')
+                ->get();
+
             \Log::info("Fixed room counts by type:", [
                 'hostel_id' => $hostel->id,
                 'available_rooms_count' => $hostel->rooms->count(),
                 'available_room_counts' => $availableRoomCounts,
+                'meal_menus_count' => $mealMenus->count(),
                 'rooms_debug' => $hostel->rooms->map(function ($room) {
                     return [
                         'room_number' => $room->room_number,
@@ -292,13 +315,15 @@ class PublicController extends Controller
                 'hostel_id' => $hostel->id,
                 'available_rooms_count' => $hostel->rooms->count(),
                 'galleries_count' => $galleries->count(),
-                'available_room_counts' => $availableRoomCounts
+                'available_room_counts' => $availableRoomCounts,
+                'meal_menus_count' => $mealMenus->count()
             ]);
 
             return view('public.hostels.gallery', compact(
                 'hostel',
                 'galleries',
-                'availableRoomCounts'
+                'availableRoomCounts',
+                'mealMenus' // ✅ NEW: Pass meal menus to view
             ));
         } catch (\Exception $e) {
             \Log::error('Main gallery error: ' . $e->getMessage());
@@ -328,6 +353,13 @@ class PublicController extends Controller
                 abort(404, 'होस्टल फेला परेन।');
             }
 
+            // ✅ NEW: Get meal menus for this hostel
+            $mealMenus = MealMenu::where('hostel_id', $hostel->id)
+                ->where('is_active', true)
+                ->orderBy('day_of_week')
+                ->orderBy('meal_type')
+                ->get();
+
             // Count items by category for full gallery
             $activeGalleries = $hostel->galleries->where('is_active', true);
 
@@ -335,18 +367,21 @@ class PublicController extends Controller
                 'rooms' => $activeGalleries->whereIn('category', ['1 seater', '2 seater', '3 seater', '4 seater', 'other'])->count(),
                 'kitchen' => $activeGalleries->where('category', 'kitchen')->count(),
                 'facilities' => $activeGalleries->whereIn('category', ['bathroom', 'common', 'living room', 'study room'])->count(),
-                'video' => $activeGalleries->whereIn('media_type', ['local_video', 'external_video'])->count()
+                'video' => $activeGalleries->whereIn('media_type', ['local_video', 'external_video'])->count(),
+                'meals' => $mealMenus->count() // ✅ NEW: Meal menus count
             ];
 
             \Log::info("Full gallery data:", [
                 'hostel_id' => $hostel->id,
                 'total_galleries' => $hostel->galleries->count(),
-                'category_counts' => $categoryCounts
+                'category_counts' => $categoryCounts,
+                'meal_menus_count' => $mealMenus->count()
             ]);
 
             return view('public.hostels.full-gallery', compact(
                 'hostel',
-                'categoryCounts'
+                'categoryCounts',
+                'mealMenus' // ✅ NEW: Pass meal menus to view
             ));
         } catch (\Exception $e) {
             \Log::error('Full gallery error: ' . $e->getMessage());
@@ -617,13 +652,21 @@ class PublicController extends Controller
         // ✅ NEW: Get room galleries for this hostel
         $roomGalleries = $hostel->publicRoomGalleries;
 
+        // ✅ NEW: Get meal menus for this hostel
+        $mealMenus = MealMenu::where('hostel_id', $hostel->id)
+            ->where('is_active', true)
+            ->orderBy('day_of_week')
+            ->orderBy('meal_type')
+            ->get();
+
         // Log for debugging
         \Log::info("Hostel Show - Slug: {$slug}", [
             'logo_path' => $hostel->logo_path,
             'logo_normalized' => $logo,
             'facilities_raw' => $hostel->facilities,
             'facilities_parsed' => $facilities,
-            'room_galleries_count' => $roomGalleries->count()
+            'room_galleries_count' => $roomGalleries->count(),
+            'meal_menus_count' => $mealMenus->count()
         ]);
 
         // Determine theme (default = modern)
@@ -646,7 +689,8 @@ class PublicController extends Controller
             'studentCount',
             'logo',
             'facilities',
-            'roomGalleries' // ✅ ADDED: Room galleries for display
+            'roomGalleries', // ✅ ADDED: Room galleries for display
+            'mealMenus' // ✅ NEW: Meal menus for display
         ));
     }
 
@@ -810,6 +854,13 @@ class PublicController extends Controller
         // ✅ NEW: Get room galleries for this hostel
         $roomGalleries = $hostel->publicRoomGalleries;
 
+        // ✅ NEW: Get meal menus for this hostel
+        $mealMenus = MealMenu::where('hostel_id', $hostel->id)
+            ->where('is_active', true)
+            ->orderBy('day_of_week')
+            ->orderBy('meal_type')
+            ->get();
+
         // Determine theme (default = modern)
         $theme = $hostel->theme ?? 'modern';
 
@@ -830,7 +881,8 @@ class PublicController extends Controller
             'studentCount',
             'logo',
             'facilities',
-            'roomGalleries' // ✅ ADDED: Room galleries for display
+            'roomGalleries', // ✅ ADDED: Room galleries for display
+            'mealMenus' // ✅ NEW: Meal menus for display
         ))->with('preview', true);
     }
 
@@ -1047,6 +1099,93 @@ class PublicController extends Controller
         } catch (\Exception $e) {
             \Log::error('Quick search error: ' . $e->getMessage());
             return response()->json(['error' => 'खोजी प्रक्रिया असफल'], 500);
+        }
+    }
+
+    // ✅ NEW: Meal Gallery Methods
+
+    /**
+     * Show meal gallery page
+     */
+    public function mealGallery(Request $request): View
+    {
+        $search = $request->get('search');
+        $type = $request->get('type');
+
+        $mealMenus = MealMenu::with('hostel')
+            ->where('is_active', true)
+            ->whereHas('hostel', function ($query) {
+                $query->where('is_published', true);
+            })
+            ->when($search, function ($query) use ($search) {
+                return $query->where('description', 'like', "%{$search}%")
+                    ->orWhereHas('hostel', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%");
+                    });
+            })
+            ->when($type && $type != 'all', function ($query) use ($type) {
+                return $query->where('meal_type', $type);
+            })
+            ->orderBy('created_at', 'desc')
+            ->paginate(12);
+
+        return view('frontend.pages.meal-gallery', compact('mealMenus', 'search', 'type'));
+    }
+
+    /**
+     * Get meal menu data for API
+     */
+    public function getMealMenuData($hostelId = null)
+    {
+        try {
+            $query = MealMenu::with('hostel')
+                ->where('is_active', true);
+
+            if ($hostelId) {
+                $query->where('hostel_id', $hostelId);
+            }
+
+            $mealMenus = $query->orderBy('day_of_week')
+                ->orderBy('meal_type')
+                ->get()
+                ->map(function ($menu) {
+                    return [
+                        'id' => $menu->id,
+                        'hostel_id' => $menu->hostel_id,
+                        'hostel_name' => $menu->hostel->name ?? 'Unknown Hostel',
+                        'meal_type' => $menu->meal_type,
+                        'meal_type_nepali' => $this->getMealTypeNepali($menu->meal_type),
+                        'day_of_week' => $menu->day_of_week,
+                        'items' => $menu->items,
+                        'formatted_items' => $menu->formatted_items,
+                        'image' => $menu->image ? asset('storage/' . $menu->image) : null,
+                        'description' => $menu->description,
+                        'is_active' => $menu->is_active,
+                        'created_at' => $menu->created_at->format('Y-m-d H:i:s')
+                    ];
+                });
+
+            return response()->json($mealMenus);
+        } catch (\Exception $e) {
+            \Log::error('Meal menu API error: ' . $e->getMessage());
+            return response()->json(['error' => 'खानाको मेनु डाटा लोड गर्न असफल'], 500);
+        }
+    }
+
+    /**
+     * Helper method to get meal type in Nepali
+     */
+    private function getMealTypeNepali($mealType): string
+    {
+        switch ($mealType) {
+            case 'breakfast':
+                return 'विहानको खाना';
+            case 'lunch':
+                return 'दिउसोको खाना';
+            case 'dinner':
+                return 'बेलुकाको खाना';
+            default:
+                return $mealType;
         }
     }
 }

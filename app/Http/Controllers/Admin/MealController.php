@@ -33,7 +33,7 @@ class MealController extends Controller
             'student_id' => 'required|exists:students,id',
             'hostel_id' => 'required|exists:hostels,id',
             'meal_type' => 'required|in:breakfast,lunch,dinner',
-            'meal_date' => 'required|date',
+            'date' => 'required|date',
             'status' => 'required|in:pending,served,missed',
             'remarks' => 'nullable|string|max:500'
         ]);
@@ -44,11 +44,11 @@ class MealController extends Controller
             });
 
             return redirect()->route('admin.meals.index')
-                ->with('success', 'भोजन अभिलेख सफलतापूर्वक थपियो');
+                ->with('success', 'भोजन रेकर्ड सफलतापूर्वक थपियो');
         } catch (\Exception $e) {
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'भोजन अभिलेख थप्दा त्रुटि भयो: ' . $e->getMessage());
+                ->with('error', 'भोजन रेकर्ड थप्दा त्रुटि भयो: ' . $e->getMessage());
         }
     }
 
@@ -65,7 +65,7 @@ class MealController extends Controller
             'student_id' => 'required|exists:students,id',
             'hostel_id' => 'required|exists:hostels,id',
             'meal_type' => 'required|in:breakfast,lunch,dinner',
-            'meal_date' => 'required|date',
+            'date' => 'required|date',
             'status' => 'required|in:pending,served,missed',
             'remarks' => 'nullable|string|max:500'
         ]);

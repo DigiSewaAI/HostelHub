@@ -5,6 +5,7 @@ use App\Http\Controllers\{
     Frontend\PublicContactController,
     Frontend\PublicController,
     Frontend\PricingController,
+    Frontend\MealGalleryController,
     Frontend\ReviewController as FrontendReviewController,
     Owner\OwnerPublicPageController,
     BookingController,
@@ -31,6 +32,10 @@ Route::group(['middleware' => 'web'], function () {
     // Public hostel gallery routes
     Route::get('/hostel/{slug}/gallery', [PublicController::class, 'hostelGallery'])->name('hostel.gallery');
     Route::get('/hostel/{slug}/full-gallery', [PublicController::class, 'hostelFullGallery'])->name('hostel.full-gallery');
+
+
+    Route::get('/menu-gallery', [MealGalleryController::class, 'index'])->name('menu-gallery');
+
 
     // Book room route
     Route::get('/hostel/{slug}/book-room', [BookingController::class, 'create'])->name('hostel.book-room');
