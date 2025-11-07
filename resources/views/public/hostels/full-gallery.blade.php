@@ -25,7 +25,8 @@
         'rooms' => $activeGalleries->whereIn('category', ['1 seater', '2 seater', '3 seater', '4 seater', 'other'])->count(),
         'kitchen' => $activeGalleries->where('category', 'kitchen')->count(),
         'facilities' => $activeGalleries->whereIn('category', ['bathroom', 'common', 'living room', 'study room'])->count(),
-        'video' => $activeGalleries->whereIn('media_type', ['local_video', 'external_video'])->count()
+        'video' => $activeGalleries->whereIn('media_type', ['local_video', 'external_video'])->count(),
+        'meal' => $mealMenus->count() ?? 0
     ];
 @endphp
 
@@ -52,6 +53,48 @@
         width: 80px;
         height: 3px;
         background: var(--secondary);
+    }
+    
+    .gallery-tabs {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 40px;
+        border-bottom: 2px solid var(--border);
+        padding-bottom: 20px;
+    }
+    
+    .tab-btn {
+        padding: 12px 28px;
+        background: white;
+        border: 2px solid var(--border);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-weight: 500;
+        color: var(--text-dark);
+        font-size: 1rem;
+    }
+    
+    .tab-btn.active, .tab-btn:hover {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+    }
+    
+    .tab-content {
+        display: none;
+        animation: fadeIn 0.5s ease-in;
+    }
+    
+    .tab-content.active {
+        display: block;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
     }
     
     .gallery-filters {
@@ -178,7 +221,7 @@
     
     .category-grid {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(5, 1fr);
         gap: 25px;
         margin-top: 0;
         align-items: stretch;
@@ -226,6 +269,98 @@
         font-weight: 600;
         display: inline-block;
         margin-top: 12px;
+    }
+    
+    /* Meal Gallery Styles */
+    .meal-gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 30px;
+        margin-bottom: 50px;
+    }
+    
+    .meal-item-card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    .meal-item-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    }
+    
+    .meal-image {
+        position: relative;
+        height: 200px;
+        overflow: hidden;
+    }
+    
+    .meal-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s;
+    }
+    
+    .meal-item-card:hover .meal-image img {
+        transform: scale(1.05);
+    }
+    
+    .meal-type-badge {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: var(--accent);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    .meal-content {
+        padding: 20px;
+    }
+    
+    .meal-content h4 {
+        font-size: 1.3rem;
+        margin-bottom: 8px;
+        color: var(--text-dark);
+        font-weight: 600;
+    }
+    
+    .meal-day {
+        color: var(--primary);
+        font-weight: 600;
+        margin-bottom: 10px;
+        font-size: 1rem;
+    }
+    
+    .meal-items {
+        color: var(--text-dark);
+        margin-bottom: 15px;
+        line-height: 1.5;
+    }
+    
+    .meal-time {
+        color: var(--text-light);
+        font-size: 0.9rem;
+        padding-top: 10px;
+        border-top: 1px solid var(--border);
+    }
+    
+    .no-meals {
+        text-align: center;
+        padding: 60px 20px;
+        grid-column: 1 / -1;
+    }
+    
+    .no-meals p {
+        font-size: 1.1rem;
+        color: var(--text-light);
     }
     
     /* Modal Styles */
@@ -308,8 +443,18 @@
     /* Responsive Design */
     @media (max-width: 1200px) {
         .category-grid {
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 20px;
+        }
+        
+        .meal-gallery-grid {
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        }
+    }
+    
+    @media (max-width: 992px) {
+        .category-grid {
+            grid-template-columns: repeat(2, 1fr);
         }
     }
     
@@ -354,6 +499,22 @@
         .category-title {
             font-size: 1.2rem;
         }
+        
+        .gallery-tabs {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .tab-btn {
+            width: 100%;
+            max-width: 300px;
+            text-align: center;
+        }
+        
+        .meal-gallery-grid {
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
     }
     
     @media (max-width: 480px) {
@@ -389,6 +550,14 @@
         
         .category-icon {
             font-size: 2rem;
+        }
+        
+        .meal-content {
+            padding: 15px;
+        }
+        
+        .meal-content h4 {
+            font-size: 1.2rem;
         }
     }
 </style>
@@ -428,6 +597,13 @@
                 <p class="nepali">होस्टलको पूर्ण टुर</p>
                 <span class="category-count nepali">{{ $categoryCounts['video'] }} भिडियोहरू</span>
             </div>
+            
+            <div class="category-card">
+                <div class="category-icon">🍽️</div>
+                <h3 class="category-title nepali">खानाको मेनु</h3>
+                <p class="nepali">दैनिक खानाको विवरण</p>
+                <span class="category-count nepali">{{ $categoryCounts['meal'] }} मेनुहरू</span>
+            </div>
         </div>
     </div>
 </section>
@@ -440,89 +616,206 @@
             विभिन्न कोठा र सुविधाहरूको विस्तृत दृश्यहरू
         </p>
         
-        <!-- PERMANENT FIX: Updated filters with all room types -->
-        <div class="gallery-filters">
-            <button class="filter-btn active nepali" data-filter="all">सबै</button>
-            <button class="filter-btn nepali" data-filter="1-seater">१ सिटर</button>
-            <button class="filter-btn nepali" data-filter="2-seater">२ सिटर</button>
-            <button class="filter-btn nepali" data-filter="3-seater">३ सिटर</button>
-            <button class="filter-btn nepali" data-filter="4-seater">४ सिटर</button>
-            <button class="filter-btn nepali" data-filter="other">अन्य</button>
-            <button class="filter-btn nepali" data-filter="video">भिडियो</button>
-            <button class="filter-btn nepali" data-filter="facilities">सुविधाहरू</button>
+        <!-- Gallery Tabs -->
+        <div class="gallery-tabs">
+            <button class="tab-btn active nepali" data-tab="photo-gallery">तस्बिरहरू</button>
+            <button class="tab-btn nepali" data-tab="video-gallery">भिडियोहरू</button>
+            <button class="tab-btn nepali" data-tab="meal-gallery">खानाको ग्यालरी</button>
         </div>
         
-        <div class="gallery-grid" id="mainGallery">
-            @php
-                $displayedItems = 0;
-                $maxInitialDisplay = 8;
-            @endphp
+        <!-- Photo Gallery Tab -->
+        <div class="tab-content active" id="photo-gallery">
+            <!-- PERMANENT FIX: Updated filters with all room types -->
+            <div class="gallery-filters">
+                <button class="filter-btn active nepali" data-filter="all">सबै</button>
+                <button class="filter-btn nepali" data-filter="1-seater">१ सिटर</button>
+                <button class="filter-btn nepali" data-filter="2-seater">२ सिटर</button>
+                <button class="filter-btn nepali" data-filter="3-seater">३ सिटर</button>
+                <button class="filter-btn nepali" data-filter="4-seater">४ सिटर</button>
+                <button class="filter-btn nepali" data-filter="other">अन्य</button>
+                <button class="filter-btn nepali" data-filter="facilities">सुविधाहरू</button>
+            </div>
             
-            @foreach($activeGalleries as $gallery)
+            <div class="gallery-grid" id="mainGallery">
                 @php
-                    // PERMANENT FIX: Determine category for filtering with all room types
-                    $filterCategory = '';
-                    if (in_array($gallery->category, ['1 seater', '2 seater', '3 seater', '4 seater', 'other'])) {
-                        $filterCategory = str_replace(' ', '-', $gallery->category);
-                    } elseif (in_array($gallery->media_type, ['local_video', 'external_video'])) {
-                        $filterCategory = 'video';
-                    } else {
-                        $filterCategory = 'facilities';
-                    }
-
-                    $displayedItems++;
-                    $isHidden = $displayedItems > $maxInitialDisplay;
+                    $displayedItems = 0;
+                    $maxInitialDisplay = 8;
                 @endphp
+                
+                @foreach($activeGalleries->whereIn('media_type', ['photo']) as $gallery)
+                    @php
+                        // PERMANENT FIX: Determine category for filtering with all room types
+                        $filterCategory = '';
+                        if (in_array($gallery->category, ['1 seater', '2 seater', '3 seater', '4 seater', 'other'])) {
+                            $filterCategory = str_replace(' ', '-', $gallery->category);
+                        } else {
+                            $filterCategory = 'facilities';
+                        }
 
-                <div class="gallery-item {{ $isHidden ? 'hidden-item' : '' }}" 
-                     data-category="{{ $filterCategory }}"
-                     data-gallery-id="{{ $gallery->id }}">
-                    
-                    @if($gallery->media_type === 'photo')
+                        $displayedItems++;
+                        $isHidden = $displayedItems > $maxInitialDisplay;
+                    @endphp
+
+                    <div class="gallery-item {{ $isHidden ? 'hidden-item' : '' }}" 
+                         data-category="{{ $filterCategory }}"
+                         data-gallery-id="{{ $gallery->id }}">
+                        
                         <img src="{{ $gallery->thumbnail_url ?? $gallery->media_url }}" alt="{{ $gallery->title }}" loading="lazy">
-                    @elseif($gallery->media_type === 'local_video')
-                        <img src="{{ $gallery->thumbnail_url ?? asset('images/video-default.jpg') }}" alt="{{ $gallery->title }}" loading="lazy">
-                    @elseif($gallery->media_type === 'external_video')
-                        <img src="{{ $gallery->thumbnail_url ?? asset('images/video-default.jpg') }}" alt="{{ $gallery->title }}" loading="lazy">
-                    @endif
 
-                    @if($gallery->is_featured)
-                        <div class="featured-badge nepali">Featured</div>
-                    @endif
+                        @if($gallery->is_featured)
+                            <div class="featured-badge nepali">Featured</div>
+                        @endif
 
-                    <div class="gallery-overlay">
-                        <h3 class="gallery-title nepali">{{ $gallery->title }}</h3>
-                        <p class="nepali">{{ $gallery->description }}</p>
-                        <button class="btn btn-primary" 
-                                style="margin-top: 12px; padding: 8px 16px; font-size: 0.9rem;" 
-                                onclick="openModal('{{ $gallery->id }}', '{{ $gallery->media_type }}')">
-                            विस्तृत हेर्नुहोस्
-                        </button>
+                        <div class="gallery-overlay">
+                            <h3 class="gallery-title nepali">{{ $gallery->title }}</h3>
+                            <p class="nepali">{{ $gallery->description }}</p>
+                            <button class="btn btn-primary" 
+                                    style="margin-top: 12px; padding: 8px 16px; font-size: 0.9rem;" 
+                                    onclick="openModal('{{ $gallery->id }}', '{{ $gallery->media_type }}')">
+                                विस्तृत हेर्नुहोस्
+                            </button>
+                        </div>
                     </div>
-                </div>
-            @endforeach
+                @endforeach
 
-            @if($activeGalleries->count() === 0)
-                <div class="text-center py-12 col-span-full">
-                    <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-images text-gray-400 text-3xl"></i>
+                @if($activeGalleries->whereIn('media_type', ['photo'])->count() === 0)
+                    <div class="text-center py-12 col-span-full">
+                        <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-images text-gray-400 text-3xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-600 nepali mb-2">कुनै तस्बिरहरू छैनन्</h3>
+                        <p class="text-gray-500 nepali">यस होस्टलको तस्बिर ग्यालरी चाँहि उपलब्ध छैन।</p>
                     </div>
-                    <h3 class="text-xl font-bold text-gray-600 nepali mb-2">कुनै ग्यालरी सामग्री छैन</h3>
-                    <p class="text-gray-500 nepali">यस होस्टलको ग्यालरी चाँहि उपलब्ध छैन।</p>
+                @endif
+            </div>
+            
+            @if($activeGalleries->whereIn('media_type', ['photo'])->count() > $maxInitialDisplay)
+                <div class="view-more">
+                    <button class="btn btn-outline nepali" 
+                            style="border-color: var(--primary); color: var(--primary);"
+                            onclick="showMoreGallery()">
+                        थप तस्बिर हेर्नुहोस्
+                    </button>
+                    <a href="{{ route('contact') }}" class="btn btn-primary nepali">सम्पर्क गर्नुहोस्</a>
                 </div>
             @endif
         </div>
         
-        @if($activeGalleries->count() > $maxInitialDisplay)
-            <div class="view-more">
-                <button class="btn btn-outline nepali" 
-                        style="border-color: var(--primary); color: var(--primary);"
-                        onclick="showMoreGallery()">
-                    थप ग्यालरी हेर्नुहोस्
-                </button>
-                <a href="{{ route('contact') }}" class="btn btn-primary nepali">सम्पर्क गर्नुहोस्</a>
+        <!-- Video Gallery Tab -->
+        <div class="tab-content" id="video-gallery">
+            <div class="gallery-grid">
+                @foreach($activeGalleries->whereIn('media_type', ['local_video', 'external_video']) as $gallery)
+                    <div class="gallery-item" data-gallery-id="{{ $gallery->id }}">
+                        
+                        @if($gallery->media_type === 'local_video')
+                            <img src="{{ $gallery->thumbnail_url ?? asset('images/video-default.jpg') }}" alt="{{ $gallery->title }}" loading="lazy">
+                        @elseif($gallery->media_type === 'external_video')
+                            <img src="{{ $gallery->thumbnail_url ?? asset('images/video-default.jpg') }}" alt="{{ $gallery->title }}" loading="lazy">
+                        @endif
+
+                        @if($gallery->is_featured)
+                            <div class="featured-badge nepali">Featured</div>
+                        @endif
+
+                        <div class="gallery-overlay">
+                            <h3 class="gallery-title nepali">{{ $gallery->title }}</h3>
+                            <p class="nepali">{{ $gallery->description }}</p>
+                            <button class="btn btn-primary" 
+                                    style="margin-top: 12px; padding: 8px 16px; font-size: 0.9rem;" 
+                                    onclick="openModal('{{ $gallery->id }}', '{{ $gallery->media_type }}')">
+                                भिडियो हेर्नुहोस्
+                            </button>
+                        </div>
+                    </div>
+                @endforeach
+
+                @if($activeGalleries->whereIn('media_type', ['local_video', 'external_video'])->count() === 0)
+                    <div class="text-center py-12 col-span-full">
+                        <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-video text-gray-400 text-3xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-600 nepali mb-2">कुनै भिडियोहरू छैनन्</h3>
+                        <p class="text-gray-500 nepali">यस होस्टलको भिडियो ग्यालरी चाँहि उपलब्ध छैन।</p>
+                    </div>
+                @endif
             </div>
-        @endif
+            
+            @if($activeGalleries->whereIn('media_type', ['local_video', 'external_video'])->count() > 0)
+                <div class="view-more">
+                    <a href="{{ route('contact') }}" class="btn btn-primary nepali">सम्पर्क गर्नुहोस्</a>
+                </div>
+            @endif
+        </div>
+        
+        <!-- Meal Gallery Tab -->
+        <div class="tab-content" id="meal-gallery">
+            <div class="meal-gallery-grid">
+                @if(isset($mealMenus) && $mealMenus->count() > 0)
+                    @foreach($mealMenus as $menu)
+                    <div class="meal-item-card">
+                        <div class="meal-image">
+                            @if($menu->image)
+                                <img src="{{ asset('storage/'.$menu->image) }}" 
+                                     alt="{{ $menu->description }}" 
+                                     style="width:100%; height:200px; object-fit:cover;">
+                            @else
+                                <img src="https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" 
+                                     alt="{{ $menu->description }}"
+                                     style="width:100%; height:200px; object-fit:cover;">
+                            @endif
+                            <span class="meal-type-badge">
+                                @if($menu->meal_type == 'breakfast')
+                                    विहानको खाना
+                                @elseif($menu->meal_type == 'lunch')
+                                    दिउसोको खाना
+                                @else
+                                    बेलुकाको खाना
+                                @endif
+                            </span>
+                        </div>
+                        <div class="meal-content">
+                            <h4 class="nepali">
+                                @if($menu->meal_type == 'breakfast')
+                                    विहानको खाना
+                                @elseif($menu->meal_type == 'lunch')
+                                    दिउसोको खाना
+                                @else
+                                    बेलुकाको खाना
+                                @endif
+                            </h4>
+                            <p class="meal-day nepali">{{ $menu->day_of_week }}</p>
+                            <p class="meal-items nepali">
+                                {{ $menu->formatted_items ?? $menu->description }}
+                            </p>
+                            <div class="meal-time nepali">
+                                @if($menu->meal_type == 'breakfast')
+                                    ७:०० - ९:०० बिहान
+                                @elseif($menu->meal_type == 'lunch')
+                                    १२:०० - २:०० दिउँसो
+                                @else
+                                    ६:०० - ८:०० बेलुका
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+                @else
+                    <div class="no-meals">
+                        <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-utensils text-gray-400 text-3xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-600 nepali mb-2">कुनै खानाको मेनु छैन</h3>
+                        <p class="text-gray-500 nepali">यस होस्टलको लागि कुनै खानाको मेनु उपलब्ध छैन।</p>
+                    </div>
+                @endif
+            </div>
+            
+            @if(isset($mealMenus) && $mealMenus->count() > 0)
+                <div class="view-more">
+                    <a href="{{ route('contact') }}" class="btn btn-primary nepali">सम्पर्क गर्नुहोस्</a>
+                </div>
+            @endif
+        </div>
     </div>
 </section>
 
@@ -578,10 +871,29 @@
         @endforeach
     };
 
-    // Gallery Filter Functionality
+    // Tab Functionality
     document.addEventListener('DOMContentLoaded', function() {
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Remove active class from all buttons and contents
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+                
+                // Add active class to clicked button
+                button.classList.add('active');
+                
+                // Show corresponding tab content
+                const tabId = button.getAttribute('data-tab');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+
+        // Gallery Filter Functionality (for photo tab only)
         const filterButtons = document.querySelectorAll('.filter-btn');
-        const galleryItems = document.querySelectorAll('.gallery-item');
+        const galleryItems = document.querySelectorAll('#photo-gallery .gallery-item');
         
         filterButtons.forEach(button => {
             button.addEventListener('click', () => {
@@ -605,13 +917,13 @@
     
     // Show More Gallery Functionality
     function showMoreGallery() {
-        const hiddenItems = document.querySelectorAll('.gallery-item.hidden-item');
+        const hiddenItems = document.querySelectorAll('#photo-gallery .gallery-item.hidden-item');
         hiddenItems.forEach(item => {
             item.classList.remove('hidden-item');
         });
         
         // Hide the show more button
-        document.querySelector('.view-more').style.display = 'none';
+        document.querySelector('#photo-gallery .view-more').style.display = 'none';
     }
     
     // Modal Functionality with Dynamic Content

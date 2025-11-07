@@ -1,6 +1,6 @@
 @extends('layouts.owner')
 
-@section('title', 'भोजन सम्पादन गर्नुहोस्')
+@section('title', 'भोजन रेकर्ड सम्पादन गर्नुहोस्')
 
 @section('content')
 <div class="container-fluid py-4">
@@ -8,7 +8,7 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="mb-0"><i class="fas fa-edit me-2"></i> भोजन सम्पादन गर्नुहोस्</h3>
+                    <h3 class="mb-0"><i class="fas fa-edit me-2"></i> भोजन रेकर्ड सम्पादन गर्नुहोस्</h3>
                 </div>
                 <div class="card-body">
                     <form action="{{ route('owner.meals.update', $meal) }}" method="POST">

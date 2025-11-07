@@ -426,6 +426,18 @@ class GalleryController extends Controller
         return null;
     }
 
+
+    public function mealGallery()
+    {
+        $organizationId = session('current_organization_id');
+
+        $mealMenus = MealMenu::whereHas('hostel', function ($query) use ($organizationId) {
+            $query->where('organization_id', $organizationId);
+        })->where('is_active', true)->get();
+
+        return view('owner.gallery.meal-gallery', compact('mealMenus'));
+    }
+
     /**
      * Generate thumbnail for video using FFmpeg
      */

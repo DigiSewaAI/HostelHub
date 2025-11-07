@@ -8,9 +8,15 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h3><i class="fas fa-utensils me-2"></i> खानाको योजना</h3>
-                <a href="{{ route('owner.meal-menus.create') }}" class="btn btn-primary">
-                    <i class="fas fa-plus me-1"></i> नयाँ योजना
-                </a>
+                <div>
+                    <!-- ADD THIS BUTTON FOR MEAL TRACKING -->
+                    <a href="{{ route('owner.meals.index') }}" class="btn btn-info me-2">
+                        <i class="fas fa-clipboard-check me-1"></i> भोजन ट्र्याकिंग
+                    </a>
+                    <a href="{{ route('owner.meal-menus.create') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i> नयाँ योजना
+                    </a>
+                </div>
             </div>
 
             @if(session('success'))
