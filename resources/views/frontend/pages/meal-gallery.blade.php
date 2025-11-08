@@ -1,19 +1,62 @@
 @extends('layouts.frontend')
 
 @section('content')
-    <!-- Enhanced Hero Section -->
+    <!-- Enhanced Hero Section - UPDATED WITH GALLERY CTA DESIGN -->
     <section class="meal-hero" style="padding-top: 120px;">
         <div class="container">
-            <div class="hero-content">
-                <h1 class="nepali hero-title">हाम्रो खानाको ग्यालरी</h1>
-                <p class="nepali hero-subtitle">ताजा, स्वस्थ र स्वादिष्ट खानाको अनुभव</p>
+            <div class="hero-content" style="
+                text-align: center;
+                background: linear-gradient(135deg, var(--primary), var(--secondary));
+                color: white;
+                padding: 2.5rem 1.5rem;
+                border-radius: 1rem;
+                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+                max-width: 1000px;
+                margin: 0 auto;
+            ">
+                <h1 class="nepali hero-title" style="font-size: 2.5rem; font-weight: 800; color: white; margin-bottom: 1rem;">
+                    हाम्रो खानाको ग्यालरी
+                </h1>
+                <p class="nepali hero-subtitle" style="font-size: 1.125rem; color: rgba(255, 255, 255, 0.9); margin-bottom: 2rem;">
+                    ताजा, स्वस्थ र स्वादिष्ट खानाको अनुभव
+                </p>
                 <div class="search-bar">
                     <form action="{{ route('menu-gallery') }}" method="GET">
-                        <div class="search-container">
-                            <i class="fas fa-search search-icon"></i>
+                        <div class="search-container" style="
+                            position: relative;
+                            max-width: 600px;
+                            margin: 0 auto;
+                            background: white;
+                            border-radius: 50px;
+                            padding: 5px;
+                            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+                            display: flex;
+                            align-items: center;
+                        ">
+                            <i class="fas fa-search search-icon" style="position: absolute; left: 20px; color: #667eea; font-size: 1.1rem;"></i>
                             <input type="text" name="search" placeholder="खाना वा होस्टलको नामले खोज्नुहोस्..." 
-                                   class="nepali search-input" value="{{ request('search') }}">
-                            <button type="submit" class="search-btn">खोज्नुहोस्</button>
+                                   class="nepali search-input" value="{{ request('search') }}" style="
+                                flex: 1;
+                                border: none;
+                                padding: 15px 20px 15px 50px;
+                                font-size: 1rem;
+                                background: transparent;
+                                outline: none;
+                                color: #000000;
+                            ">
+                            <button type="submit" class="search-btn" style="
+                                background: linear-gradient(135deg, var(--primary), var(--secondary));
+                                color: white;
+                                border: none;
+                                padding: 12px 30px;
+                                border-radius: 50px;
+                                font-weight: 600;
+                                cursor: pointer;
+                                transition: all 0.3s ease;
+                            " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 5px 15px rgba(102, 126, 234, 0.4)';"
+                               onmouseout="this.style.transform='none'; this.style.boxShadow='none';">
+                                खोज्नुहोस्
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -199,94 +242,72 @@
             </div>
         </div>
     </section>
+
+    <!-- CTA Section - CENTERED AND PROPERLY SPACED -->
+    <section class="cta-section" style="padding: 4rem 0; background: white;">
+        <div class="container">
+            <div style="
+                text-align: center;
+                background: linear-gradient(135deg, var(--primary), var(--secondary));
+                color: white;
+                padding: 3rem 2rem;
+                border-radius: 1rem;
+                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+                max-width: 800px;
+                margin: 0 auto;
+            ">
+                <h2 class="nepali" style="font-size: 1.875rem; font-weight: bold; margin-bottom: 1rem;">
+                    स्वस्थ खानाको अनुभव
+                </h2>
+                <p class="nepali" style="font-size: 1.25rem; margin-bottom: 2rem; opacity: 0.9;">
+                    तपाईंको होस्टलको लागि गुणस्तरीय खानाको व्यवस्थापन गर्नुहोस्
+                </p>
+                
+                <!-- Buttons -->
+                <div style="display: flex; flex-direction: column; gap: 1rem; align-items: center;">
+                    <a href="/register" class="nepali" style="
+                        background-color: white;
+                        color: #001F5B;
+                        font-weight: 600;
+                        padding: 0.75rem 2rem;
+                        border-radius: 0.5rem;
+                        text-decoration: none;
+                        min-width: 180px;
+                        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+                        transition: all 0.3s ease;
+                    " onmouseover="this.style.backgroundColor='#f3f4f6'; this.style.transform='translateY(-2px)';"
+                       onmouseout="this.style.backgroundColor='white'; this.style.transform='none';">
+                        निःशुल्क साइन अप
+                    </a>
+                    <a href="/demo" class="nepali" style="
+                        border: 2px solid white;
+                        color: white;
+                        font-weight: 600;
+                        padding: 0.75rem 2rem;
+                        border-radius: 0.5rem;
+                        text-decoration: none;
+                        min-width: 180px;
+                        background-color: transparent;
+                        transition: all 0.3s ease;
+                    " onmouseover="this.style.backgroundColor='white'; this.style.color='#001F5B'; this.style.transform='translateY(-2px)';"
+                       onmouseout="this.style.backgroundColor='transparent'; this.style.color='white'; this.style.transform='none';">
+                        डेमो हेर्नुहोस्
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
 @endsection
 
 @push('styles')
 <style>
 /* Fix Header Overlap - Added padding top */
 .meal-hero {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     padding: 120px 0 60px; /* Increased top padding to 120px */
     color: white;
     text-align: center;
     position: relative;
     overflow: hidden;
-}
-
-.meal-hero::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
-    opacity: 0.3;
-}
-
-.hero-title {
-    font-size: 3rem;
-    font-weight: 800;
-    margin-bottom: 1rem;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-}
-
-.hero-subtitle {
-    font-size: 1.3rem;
-    opacity: 0.9;
-    margin-bottom: 2.5rem;
-}
-
-.search-container {
-    position: relative;
-    max-width: 600px;
-    margin: 0 auto;
-    background: white;
-    border-radius: 50px;
-    padding: 5px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    display: flex;
-    align-items: center;
-}
-
-.search-icon {
-    position: absolute;
-    left: 20px;
-    color: #667eea;
-    font-size: 1.1rem;
-}
-
-/* FIX: Search input text color - changed to black */
-.search-input {
-    flex: 1;
-    border: none;
-    padding: 15px 20px 15px 50px;
-    font-size: 1rem;
-    background: transparent;
-    outline: none;
-    color: #000000; /* Changed from default to black */
-}
-
-/* FIX: Placeholder text color */
-.search-input::placeholder {
-    color: #666; /* Dark gray for placeholder */
-    opacity: 1; /* Ensure full opacity */
-}
-
-.search-btn {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border: none;
-    padding: 12px 30px;
-    border-radius: 50px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.search-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
 }
 
 /* Enhanced Filters */
@@ -319,11 +340,11 @@
 
 .filter-tab:hover,
 .filter-tab.active {
-    background: #667eea;
+    background: var(--primary);
     color: white;
-    border-color: #667eea;
+    border-color: var(--primary);
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 5px 15px rgba(30, 58, 138, 0.3);
 }
 
 /* Enhanced Food Gallery */
@@ -345,10 +366,10 @@
 .stat-item {
     text-align: center;
     padding: 2rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
     color: white;
     border-radius: 15px;
-    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+    box-shadow: 0 10px 30px rgba(30, 58, 138, 0.2);
 }
 
 .stat-item i {
@@ -444,7 +465,7 @@
 }
 
 .quick-view-btn {
-    background: #667eea;
+    background: var(--primary);
     color: white;
     border: none;
     padding: 10px 20px;
@@ -458,7 +479,7 @@
 }
 
 .quick-view-btn:hover {
-    background: #5a6fd8;
+    background: var(--primary-dark);
     transform: translateY(-2px);
 }
 
@@ -577,9 +598,9 @@
 }
 
 .action-btn:hover {
-    background: #667eea;
+    background: var(--primary);
     color: white;
-    border-color: #667eea;
+    border-color: var(--primary);
     transform: translateY(-2px);
 }
 
@@ -678,6 +699,12 @@
     font-weight: 700;
 }
 
+/* CTA Section Styling */
+.cta-section {
+    background: white;
+    padding: 4rem 0;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .meal-hero {
@@ -727,6 +754,12 @@
     .gallery-stats {
         grid-template-columns: 1fr;
     }
+
+    /* Responsive adjustments for CTA */
+    [style*="font-size: 2.5rem"] { font-size: 2rem !important; }
+    [style*="font-size: 1.875rem"] { font-size: 1.5rem !important; }
+    [style*="font-size: 1.25rem"] { font-size: 1.125rem !important; }
+    [style*="font-size: 1.125rem"] { font-size: 1rem !important; }
 }
 
 @media (max-width: 480px) {

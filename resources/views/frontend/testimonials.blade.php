@@ -8,27 +8,23 @@
   font-family: 'Segoe UI', sans-serif;
 ">
 
-  <!-- Page Header -->
+  <!-- Page Header - EXACT GALLERY CTA DESIGN -->
   <div style="
     text-align: center;
     margin-bottom: 3rem;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    padding: 2.5rem 1.5rem;
+    border-radius: 1rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+    max-width: 1000px;
+    margin-left: auto;
+    margin-right: auto;
   ">
-    <h1 style="
-      font-size: 2.5rem;
-      font-weight: 800;
-      color: #1f2937;
-      margin-bottom: 1rem;
-    ">
+    <h1 style="font-size: 2.5rem; font-weight: 800; color: white; margin-bottom: 1rem;">
       हाम्रा ग्राहकहरूको प्रशंसापत्र
-      
     </h1>
-    <p style="
-      font-size: 1.125rem;
-      color: #4b5563;
-      max-width: 700px;
-      margin: 0 auto;
-      line-height: 1.6;
-    ">
+    <p style="font-size: 1.125rem; color: rgba(255, 255, 255, 0.9); max-width: 700px; margin: 0 auto; line-height: 1.6;">
       HostelHub प्रयोग गर्ने होस्टल प्रबन्धक र मालिकहरूले के भन्छन् —<br>
       वास्तविक अनुभव, वास्तविक परिणाम।
     </p>
@@ -119,11 +115,11 @@
     @endforelse
   </div>
 
-  <!-- CTA Section -->
+  <!-- CTA Section - EXACT COPY FROM GALLERY PAGE -->
   <div style="
     text-align: center;
     margin-top: 4rem;
-    background: linear-gradient(90deg, #0a3a6a, #001F5B, #0a3a6a);
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
     color: white;
     padding: 2.5rem 1.5rem;
     border-radius: 1rem;
@@ -138,6 +134,8 @@
     <p style="font-size: 1.25rem; margin-bottom: 2rem; opacity: 0.9;">
       ७ दिनको निःशुल्क परीक्षणमा साइन अप गरेर तपाइँको होस्टललाई आधुनिक बनाउनुहोस्।
     </p>
+    
+    <!-- Buttons -->
     <div style="display: flex; flex-direction: column; gap: 1rem; align-items: center;">
       <a href="/register" style="
         background-color: white;
@@ -175,4 +173,17 @@
 <!-- Add Font Awesome for icons -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
+<style>
+  /* Responsive adjustments */
+  @media (max-width: 640px) {
+    [style*="font-size: 2.5rem"] { font-size: 2rem !important; }
+    [style*="font-size: 1.875rem"] { font-size: 1.5rem !important; }
+    [style*="font-size: 1.25rem"] { font-size: 1.125rem !important; }
+    [style*="font-size: 1.125rem"] { font-size: 1rem !important; }
+    
+    .testimonials-grid {
+      grid-template-columns: 1fr !important;
+    }
+  }
+</style>
 @endsection

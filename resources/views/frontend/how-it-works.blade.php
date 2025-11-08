@@ -3,12 +3,23 @@
 @section('content')
 <div class="max-w-7xl mx-auto px-4 py-16" style="margin-top: 70px;">
 
-  <!-- Page Header -->
-  <div class="text-center mb-16 max-w-4xl mx-auto">
-    <h1 class="text-4xl md:text-5xl font-extrabold text-gray-800 mb-4 leading-tight">
+  <!-- Page Header - EXACT GALLERY CTA DESIGN -->
+  <div style="
+    text-align: center;
+    margin-bottom: 3rem;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    padding: 2.5rem 1.5rem;
+    border-radius: 1rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+    max-width: 1000px;
+    margin-left: auto;
+    margin-right: auto;
+  ">
+    <h1 style="font-size: 2.5rem; font-weight: 800; color: white; margin-bottom: 1rem;">
       HostelHub कसरी काम गर्छ?
     </h1>
-    <p class="text-lg text-gray-600 leading-relaxed">
+    <p style="font-size: 1.125rem; color: rgba(255, 255, 255, 0.9); max-width: 700px; margin: 0 auto; line-height: 1.6;">
       तपाइँको होस्टल व्यवस्थापनलाई स्वचालित बनाउने ५ सजिला चरणहरू।<br>
       केवल केही मिनेटमा सेटअप गर्नुहोस् र तुरुन्तै उत्पादकता बढाउनुहोस्।
     </p>
@@ -84,60 +95,54 @@
 
   </div>
 
-  <!-- CTA Section -->
-  <div class="mt-20 mb-10 text-center max-w-3xl mx-auto">
-    <div style="
-      background: linear-gradient(90deg, #0a3a6a, #001F5B, #0a3a6a);
-      color: white;
-      padding: 2.5rem 1.5rem;
-      border-radius: 1rem;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-      max-width: 800px;
-      margin-left: auto;
-      margin-right: auto;
-    ">
-      <h2 style="font-size: 1.875rem; font-weight: bold; margin-bottom: 1rem; color: #ffffff;">
-        अहिले नै सुरु गर्नुहोस्
-      </h2>
-      <p style="font-size: 1.25rem; margin-bottom: 2rem; color: rgba(255, 255, 255, 0.9);">
-        तपाइँको होस्टललाई आधुनिक प्रणालीमा रूपान्तरण गर्नुहोस्।
-      </p>
+  <!-- CTA Section - EXACT COPY FROM GALLERY PAGE -->
+  <div style="
+    text-align: center;
+    margin-top: 4rem;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    padding: 2.5rem 1.5rem;
+    border-radius: 1rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+  ">
+    <h2 style="font-size: 1.875rem; font-weight: bold; margin-bottom: 1rem;">अहिले नै सुरु गर्नुहोस्</h2>
+    <p style="font-size: 1.25rem; margin-bottom: 2rem; opacity: 0.9;">
+      तपाइँको होस्टललाई आधुनिक प्रणालीमा रूपान्तरण गर्नुहोस्।
+    </p>
 
-      <!-- Buttons -->
-      <div style="display: flex; flex-direction: column; gap: 1rem; align-items: center;">
-
-        <!-- Sign Up Button -->
-        <a href="/register" style="
-          background-color: white;
-          color: #001F5B;
-          font-weight: 600;
-          padding: 0.75rem 2rem;
-          border-radius: 0.5rem;
-          text-decoration: none;
-          min-width: 180px;
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-          transition: all 0.3s ease;
-        " onmouseover="this.style.backgroundColor='#f3f4f6'; this.style.transform='translateY(-2px)';"
-           onmouseout="this.style.backgroundColor='white'; this.style.transform='none';">
-          निःशुल्क साइन अप
-        </a>
-
-        <!-- Demo Button -->
-        <a href="/demo" style="
-          border: 2px solid white;
-          color: white;
-          font-weight: 600;
-          padding: 0.75rem 2rem;
-          border-radius: 0.5rem;
-          text-decoration: none;
-          min-width: 180px;
-          background-color: transparent;
-          transition: all 0.3s ease;
-        " onmouseover="this.style.backgroundColor='white'; this.style.color='#001F5B'; this.style.transform='translateY(-2px)';"
-           onmouseout="this.style.backgroundColor='transparent'; this.style.color='white'; this.style.transform='none';">
-          डेमो हेर्नुहोस्
-        </a>
-      </div>
+    <!-- Buttons -->
+    <div style="display: flex; flex-direction: column; gap: 1rem; align-items: center;">
+      <a href="/register" style="
+        background-color: white;
+        color: #001F5B;
+        font-weight: 600;
+        padding: 0.75rem 2rem;
+        border-radius: 0.5rem;
+        text-decoration: none;
+        min-width: 180px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+      " onmouseover="this.style.backgroundColor='#f3f4f6'; this.style.transform='translateY(-2px)';"
+         onmouseout="this.style.backgroundColor='white'; this.style.transform='none';">
+        निःशुल्क साइन अप
+      </a>
+      <a href="/demo" style="
+        border: 2px solid white;
+        color: white;
+        font-weight: 600;
+        padding: 0.75rem 2rem;
+        border-radius: 0.5rem;
+        text-decoration: none;
+        min-width: 180px;
+        background-color: transparent;
+        transition: all 0.3s ease;
+      " onmouseover="this.style.backgroundColor='white'; this.style.color='#001F5B'; this.style.transform='translateY(-2px)';"
+         onmouseout="this.style.backgroundColor='transparent'; this.style.color='white'; this.style.transform='none';">
+        डेमो हेर्नुहोस्
+      </a>
     </div>
   </div>
 
@@ -152,10 +157,10 @@
 
   /* Responsive adjustments */
   @media (max-width: 640px) {
+    [style*="font-size: 2.5rem"] { font-size: 2rem !important; }
     [style*="font-size: 1.875rem"] { font-size: 1.5rem !important; }
     [style*="font-size: 1.25rem"] { font-size: 1.125rem !important; }
-    .mt-20 { margin-top: 3rem !important; }
-    .mb-10 { margin-bottom: 2rem !important; }
+    [style*="font-size: 1.125rem"] { font-size: 1rem !important; }
   }
 
   /* Prevent CTA from touching footer */

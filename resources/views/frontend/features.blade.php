@@ -3,18 +3,29 @@
 @section('content')
 <div style="max-width: 1200px; margin: 80px auto 0; padding: 3rem 1.5rem; font-family: 'Segoe UI', sans-serif;">
 
-  <!-- Page Header -->
-  <div style="text-align: center; margin-bottom: 3rem;">
-    <h1 style="font-size: 2.5rem; font-weight: 800; color: #1f2937; margin-bottom: 1rem;">
+  <!-- Page Header - EXACT GALLERY CTA DESIGN -->
+  <div style="
+    text-align: center;
+    margin-bottom: 3rem;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    padding: 2.5rem 1.5rem;
+    border-radius: 1rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+    max-width: 1000px;
+    margin-left: auto;
+    margin-right: auto;
+  ">
+    <h1 style="font-size: 2.5rem; font-weight: 800; color: white; margin-bottom: 1rem;">
       हाम्रा शक्तिशाली सुविधाहरू
     </h1>
-    <p style="font-size: 1.125rem; color: #4b5563; max-width: 700px; margin: 0 auto; line-height: 1.6;">
+    <p style="font-size: 1.125rem; color: rgba(255, 255, 255, 0.9); max-width: 700px; margin: 0 auto; line-height: 1.6;">
       HostelHub ले तपाइँको होस्टललाई आधुनिक, स्वचालित र दक्ष बनाउँछ।<br>
       सबै कार्यहरू एउटै सजिलो प्लेटफर्ममा एकीकृत गर्नुहोस्।
     </p>
   </div>
 
-  <!-- Features Grid -->
+  <!-- Features Grid (सबै फिचरहरू यहीँ रहनेछन्) -->
   <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 3rem;">
 
     <!-- Feature 1 -->
@@ -146,11 +157,11 @@
 
   </div>
 
-  <!-- CTA Section (Inline Gradient & Styles) -->
+  <!-- CTA Section - EXACT COPY FROM GALLERY PAGE -->
   <div style="
     text-align: center;
     margin-top: 4rem;
-    background: linear-gradient(90deg, #0a3a6a, #001F5B, #0a3a6a);
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
     color: white;
     padding: 2.5rem 1.5rem;
     border-radius: 1rem;
