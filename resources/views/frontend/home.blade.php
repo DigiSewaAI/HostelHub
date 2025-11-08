@@ -5,12 +5,81 @@
 @section('og-description', 'HostelHub — होस्टल व्यवस्थापन सजिलो बनाउने SaaS')
 
 @push('styles')
-<!-- FONT AWESOME CDN - YO THAPNU PARCHA -->
+<!-- FONT AWESOME CDN -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
 <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
+
 @vite(['resources/css/home.css'])
+
+<!-- 🚨 CRITICAL HERO FIX STYLES -->
 <style>
+/* 🚨 HERO SECTION PROTECTION - HIGHEST PRIORITY */
+.hero {
+    min-height: 100vh !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: linear-gradient(135deg, #1e3a8a, #0ea5e9) !important;
+    position: relative !important;
+    overflow: hidden !important;
+    z-index: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    left: 0 !important;
+    right: 0 !important;
+}
+
+/* 🚨 OVERRIDE ANY GLOBAL STYLES THAT MIGHT HIDE HERO */
+main.home-page-main {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+.content-container {
+    padding-top: 0 !important;
+}
+
+/* 🚨 HERO CONTENT VISIBILITY */
+.hero-content {
+    display: grid !important;
+    grid-template-columns: 1.1fr 0.9fr !important;
+    gap: 2.5rem !important;
+    align-items: center !important;
+    height: 100% !important;
+    position: relative !important;
+    z-index: 15 !important;
+    width: 100% !important;
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+    padding: 2rem 1.5rem !important;
+}
+
+.hero-text {
+    max-width: 100% !important;
+    color: var(--text-light) !important;
+    width: 100% !important;
+    padding-right: 1rem !important;
+}
+
+.hero-title {
+    font-size: 2.5rem !important;
+    font-weight: 800 !important;
+    line-height: 1.1 !important;
+    margin-bottom: 1rem !important;
+    color: var(--text-light) !important;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+    text-align: left !important;
+}
+
+.hero-subtitle {
+    font-size: 1.1rem !important;
+    color: rgba(249, 250, 251, 0.95) !important;
+    margin-bottom: 1.5rem !important;
+    line-height: 1.5 !important;
+    text-align: left !important;
+}
+
 /* 🚨 QUICK FIX - Search Form Alignment */
 .widget-form {
     align-items: start !important;
@@ -73,12 +142,56 @@
     object-fit: cover;
     border-radius: 8px;
 }
+
+
+/* 🚨 HERO FULL WIDTH FIX */
+.hero {
+    min-height: 100vh !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: linear-gradient(135deg, #1e3a8a, #0ea5e9) !important;
+    position: relative !important;
+    overflow: hidden !important;
+    z-index: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    left: 0 !important;
+    right: 0 !important;
+    
+    /* 🚨 CRITICAL: Remove any left spacing */
+    margin-left: calc(-50vw + 50%) !important;
+    margin-right: calc(-50vw + 50%) !important;
+}
+
+/* 🚨 HERO CONTENT FIX */
+.hero-content {
+    display: grid !important;
+    grid-template-columns: 1.1fr 0.9fr !important;
+    gap: 2.5rem !important;
+    align-items: center !important;
+    height: 100% !important;
+    position: relative !important;
+    z-index: 15 !important;
+    width: 100% !important;
+    max-width: 1200px !important;
+    margin: 0 auto !important;
+    padding: 2rem 1.5rem !important;
+}
+
+/* 🚨 REMOVE CONTAINER PADDING IN HERO */
+.hero .container {
+    padding: 0 !important;
+    margin: 0 auto !important;
+    width: 100% !important;
+    max-width: 1200px !important;
+}
 </style>
 @endpush
 
-<!-- 🚨 CRITICAL CHANGE: Hero section outside content-container -->
-@section('hero-section')
-<!-- Hero Section - PERFECTED LAYOUT -->
+@section('content')
+<!-- 🚨 HERO SECTION MOVED HERE - NO SEPARATE SECTION -->
 <section class="hero">
     <video autoplay muted loop playsinline preload="metadata" class="hero-video">
         <source src="https://assets.mixkit.co/videos/preview/mixkit-student-studying-in-a-dorm-room-44475-large.mp4" type="video/mp4">
@@ -112,25 +225,39 @@
                 </div>
             </div>
 
-            <!-- Image Slider - Right Side (Perfect Horizontal Rectangle) -->
+            <!-- Image Slider - Right Side -->
             <div class="hero-slideshow">
                 <div class="swiper hero-slider">
                     <div class="swiper-wrapper">
-                        @foreach($heroSliderItems as $item)
-                        <div class="swiper-slide">
-                            @if($item['media_type'] === 'image')
-                                <img src="{{ $item['thumbnail_url'] }}" 
-                                     alt="{{ $item['title'] }}" 
-                                     loading="lazy"
-                                     onerror="this.onerror=null;this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgZmlsbD0iIzFlM2E4YSI+PC9yZWN0Pjx0ZXh0IHg9IjQwMCIgeT0iMjI1IiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IiNmZmYiPkhvc3RlbEh1YiBJbWFnZTwvdGV4dD48L3N2Zz4=';">
-                            @else
-                                <img src="{{ $item['thumbnail_url'] }}" 
-                                     alt="{{ $item['title'] }}" 
-                                     loading="lazy"
-                                     onerror="this.onerror=null;this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgZmlsbD0iIzFlM2E4YSI+PC9yZWN0Pjx0ZXh0IHg9IjQwMCIgeT0iMjI1IiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWtkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IiNmZmYiPlZpZGVvIFRodW1ibmFpbDwvdGV4dD48L3N2Zz4=';">
-                            @endif
-                        </div>
-                        @endforeach
+                        @if(count($heroSliderItems ?? []) > 0)
+                            @foreach($heroSliderItems as $item)
+                            <div class="swiper-slide">
+                                @if($item['media_type'] === 'image')
+                                    <img src="{{ $item['thumbnail_url'] }}" 
+                                         alt="{{ $item['title'] }}" 
+                                         loading="lazy"
+                                         onerror="this.onerror=null;this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgZmlsbD0iIzFlM2E4YSI+PC9yZWN0Pjx0ZXh0IHg9IjQwMCIgeT0iMjI1IiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IiNmZmYiPkhvc3RlbEh1YiBJbWFnZTwvdGV4dD48L3N2Zz4=';">
+                                @else
+                                    <img src="{{ $item['thumbnail_url'] }}" 
+                                         alt="{{ $item['title'] }}" 
+                                         loading="lazy"
+                                         onerror="this.onerror=null;this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgZmlsbD0iIzFlM2E4YSI+PC9yZWN0Pjx0ZXh0IHg9IjQwMCIgeT0iMjI1IiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWtkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IiNmZmYiPlZpZGVvIFRodW1ibmFpbDwvdGV4dD48L3N2Zz4=';">
+                                @endif
+                            </div>
+                            @endforeach
+                        @else
+                            <!-- 🚨 FALLBACK SLIDES -->
+                            <div class="swiper-slide">
+                                <img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&h=450&fit=crop" 
+                                     alt="Comfortable Hostel Rooms" 
+                                     loading="lazy">
+                            </div>
+                            <div class="swiper-slide">
+                                <img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&h=450&fit=crop" 
+                                     alt="Modern Hostel Facilities" 
+                                     loading="lazy">
+                            </div>
+                        @endif
                     </div>
                     <!-- Navigation arrows -->
                     <div class="swiper-button-next"></div>
@@ -140,9 +267,7 @@
         </div>
     </div>
 </section>
-@endsection
 
-@section('content')
 <!-- Search Widget -->
 <div class="container">
     <div class="search-widget">
@@ -538,7 +663,32 @@
 
 @push('scripts')
 <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
-<!-- FONT AWESOME JS CDN - YO PANI THAPNU PARCHA -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚨 HERO FIXED - DIRECT IN CONTENT');
+    
+    // Initialize Swiper
+    try {
+        if (typeof Swiper !== 'undefined') {
+            const heroSwiper = new Swiper('.hero-slider', {
+                loop: true,
+                navigation: {
+                    nextEl: '.swiper-button-next',
+                    prevEl: '.swiper-button-prev',
+                },
+                autoplay: {
+                    delay: 5000,
+                },
+            });
+            console.log('✅ Hero Swiper initialized');
+        }
+    } catch (e) {
+        console.log('Swiper error:', e);
+    }
+});
+</script>
+
 @vite(['resources/js/home.js'])
 @endpush
