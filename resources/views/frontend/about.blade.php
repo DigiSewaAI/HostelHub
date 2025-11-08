@@ -6,42 +6,6 @@
 
 @push('styles')
 <style>
-    /* 🚨 FIX FOR HEADER OVERLAP ON ABOUT PAGE */
-    .about-page-main {
-        margin-top: var(--header-height) !important;
-        padding-top: 2rem !important;
-    }
-
-    /* Ensure page header is visible */
-    .page-header {
-        padding: 3rem 0 2rem !important;
-        margin-top: var(--header-height) !important;
-        position: relative;
-        z-index: 1;
-    }
-
-    /* Fix about container spacing */
-    .about-container {
-        padding: 1rem 0 !important;
-    }
-
-    /* Fix for mobile view */
-    @media (max-width: 768px) {
-        .about-page-main {
-            margin-top: 60px !important;
-            padding-top: 1rem !important;
-        }
-        
-        .page-header {
-            padding: 2rem 0 1.5rem !important;
-            margin-top: 60px !important;
-        }
-        
-        .about-container {
-            padding: 0.5rem 0 !important;
-        }
-    }
-
     .about-container {
         padding: 2rem 0;
     }
@@ -253,45 +217,83 @@
         color: white;
     }
     
-    .about-cta {
-        background: var(--bg-light);
-        padding: 3rem 2rem;
-        border-radius: var(--radius);
-        text-align: center;
+    /* NEW CTA SECTION STYLES - SAME AS PRICING PAGE */
+    .cta-section {
+        background: white;
+        padding: 4rem 0;
     }
-    
-    .cta-title {
-        font-size: 2rem;
-        color: var(--primary);
-        margin-bottom: 1rem;
-        font-weight: 700;
-    }
-    
-    .cta-text {
-        font-size: 1.1rem;
-        color: var(--text-dark);
-        max-width: 700px;
-        margin: 0 auto 2rem;
-        line-height: 1.6;
-    }
-    
-    .cta-button {
-        background: linear-gradient(to right, var(--primary), var(--secondary));
+
+    .contact-cta {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        padding: 40px 30px;
+        border-radius: 10px;
         color: white;
-        padding: 1rem 2.5rem;
-        border-radius: var(--radius);
+        text-align: center;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .contact-cta h3 {
+        margin-bottom: 15px;
+        font-size: 28px;
+        color: white;
+    }
+    
+    .contact-cta p {
+        font-size: 18px;
+        margin-bottom: 20px;
+        opacity: 0.9;
+    }
+    
+    .contact-email {
+        font-size: 20px;
         font-weight: 600;
-        text-decoration: none;
+        margin: 20px 0;
+        display: block;
+        color: #ffffff;
+        text-decoration: underline;
+    }
+    
+    .trial-button {
         display: inline-block;
-        transition: var(--transition);
+        background: white;
+        color: #001F5B;
+        padding: 15px 40px;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 700;
+        transition: all 0.3s ease;
+        border: 2px solid white;
+        font-size: 18px;
+        margin-top: 15px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        cursor: pointer;
     }
     
-    .cta-button:hover {
-        background: linear-gradient(to right, var(--primary-dark), var(--secondary-dark));
-        transform: translateY(-2px);
-        box-shadow: var(--glow);
+    .trial-button:hover {
+        background: transparent;
+        color: #ffffff;
+        transform: translateY(-3px);
+        box-shadow: 0 6px 15px rgba(255,255,255,0.2);
+        border-color: #ffffff;
     }
-    
+
+    .trial-button:disabled {
+        background: #6c757d;
+        border-color: #6c757d;
+        color: white;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .trial-button:disabled:hover {
+        background: #6c757d;
+        color: white;
+        transform: none;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
+
     /* Responsive Design */
     @media (max-width: 1024px) {
         .values-grid,
@@ -319,11 +321,35 @@
         .stat-number {
             font-size: 2.5rem;
         }
+
+        .contact-cta {
+            padding: 30px 20px;
+        }
+        
+        .contact-cta h3 {
+            font-size: 24px;
+        }
+        
+        .contact-cta p {
+            font-size: 16px;
+        }
+        
+        .trial-button {
+            padding: 12px 30px;
+            font-size: 16px;
+        }
     }
 </style>
 @endpush
 
 @section('content')
+<!-- Hero Section - SAME AS PRICING PAGE -->
+<section class="pricing-hero" style="margin: 20px 0;">
+    <h1>हाम्रो बारेमा</h1>
+    <p>HostelHub नेपालको अग्रणी होस्टल व्यवस्थापन प्रणाली हो</p>
+    <p>हाम्रो कथा, हाम्रो टिम र हाम्रो लक्ष्यहरू</p>
+</section>
+
 <div class="about-container">
     <!-- Introduction Section -->
     <div class="about-intro">
@@ -443,12 +469,46 @@
         </div>
     </div>
 
-    <!-- CTA Section -->
-    <div class="about-cta">
-        <h2 class="cta-title">हामीसँग जडान गर्नुहोस्</h2>
-        <p class="cta-text">हामी सधैं नयाँ साझेदारहरू र ग्राहकहरूको लागि खुल्ला छौं। यदि तपाईंले आफ्नो होस्टलको व्यवस्थापन सजिलो बनाउन चाहनुहुन्छ भने, हामीलाई सम्पर्क गर्न नहिच्किचाउनुहोस्।</p>
-        <a href="{{ route('contact') }}" class="cta-button">सम्पर्क गर्नुहोस्</a>
-    </div>
+    <!-- UPDATED CTA SECTION - SAME DESIGN AS PRICING PAGE -->
+    <section class="faq-section">
+        <div class="faq-content">
+            <div class="contact-cta">
+                <h3>हामीलाई सम्पर्क गर्नुहोस्</h3>
+                <p>हामी तपाईंलाई सहयोग गर्न तत्पर छौं</p>
+                <a href="mailto:support@hostelhub.com" class="contact-email">support@hostelhub.com</a>
+                <div>
+                    @auth
+                        @php
+                            $organizationId = session('current_organization_id');
+                            $hasSubscription = false;
+                            
+                            if ($organizationId) {
+                                try {
+                                    $organization = \App\Models\Organization::with('subscription')->find($organizationId);
+                                    $hasSubscription = $organization->subscription ?? false;
+                                } catch (Exception $e) {
+                                    $hasSubscription = false;
+                                }
+                            }
+                        @endphp
+                        
+                        @if($hasSubscription)
+                            <button class="trial-button" disabled>
+                                तपाईंसँग पहिले नै सदस्यता छ
+                            </button>
+                        @else
+                            <form action="{{ route('subscription.start-trial') }}" method="POST" class="trial-form" style="display: inline;">
+                                @csrf
+                                <button type="submit" class="trial-button">७ दिन निःशुल्क परीक्षण सुरु गर्नुहोस्</button>
+                            </form>
+                        @endif
+                    @else
+                        <a href="{{ route('register.organization', ['plan' => 'starter']) }}" class="trial-button">७ दिन निःशुल्क परीक्षण सुरु गर्नुहोस्</a>
+                    @endauth
+                </div>
+            </div>
+        </div>
+    </section>
 </div>
 @endsection
 
@@ -478,6 +538,52 @@
             
             updateCount();
         });
+
+        // Handle trial form submission
+        const trialForm = document.querySelector('.trial-form');
+        if (trialForm) {
+            trialForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const button = this.querySelector('button[type="submit"]');
+                const originalText = button.textContent;
+                
+                // Show loading state
+                button.classList.add('loading');
+                button.disabled = true;
+                
+                try {
+                    const formData = new FormData(this);
+                    
+                    const response = await fetch(this.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        if (data.redirect) {
+                            window.location.href = data.redirect;
+                        } else {
+                            alert(data.message || 'निःशुल्क परीक्षण सफलतापूर्वक सुरु गरियो');
+                            window.location.reload();
+                        }
+                    } else {
+                        throw new Error(data.message || 'अज्ञात त्रुटि');
+                    }
+                } catch (error) {
+                    alert('त्रुटि: ' + error.message);
+                    button.classList.remove('loading');
+                    button.textContent = originalText;
+                    button.disabled = false;
+                }
+            });
+        }
     });
 </script>
 @endpush

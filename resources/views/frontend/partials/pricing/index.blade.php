@@ -6,10 +6,10 @@
     .pricing-hero {
         text-align: center;
         padding: 40px 20px;
-        background: linear-gradient(135deg, #1a3a8f 0%, #0d6efd 100%);
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
         margin: 20px 0;
         border-radius: 10px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
         color: white;
     }
     
@@ -17,6 +17,7 @@
         font-size: 36px;
         margin-bottom: 15px;
         text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+        color: white;
     }
     
     .pricing-hero p {
@@ -24,6 +25,7 @@
         max-width: 800px;
         margin: 0 auto;
         opacity: 0.9;
+        color: rgba(255, 255, 255, 0.9);
     }
     
     /* Pricing Section */
@@ -191,16 +193,18 @@
     }
     
     .contact-cta {
-        background: linear-gradient(135deg, #1a3a8f 0%, #0d6efd 100%);
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
         padding: 30px;
         border-radius: 10px;
         color: white;
         margin-top: 30px;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
     }
     
     .contact-cta h3 {
         margin-bottom: 15px;
         font-size: 24px;
+        color: white;
     }
     
     .contact-email {
@@ -214,14 +218,14 @@
     
     .trial-button {
         display: inline-block;
-        background: #0d6efd;
-        color: #ffffff;
+        background: white;
+        color: #001F5B;
         padding: 15px 40px;
         border-radius: 50px;
         text-decoration: none;
         font-weight: 700;
         transition: all 0.3s ease;
-        border: 2px solid #0d6efd;
+        border: 2px solid white;
         font-size: 18px;
         margin-top: 15px;
         box-shadow: 0 4px 10px rgba(0,0,0,0.15);
@@ -322,10 +326,18 @@
         .faq-section {
             padding: 25px 20px;
         }
+
+        .pricing-hero h1 {
+            font-size: 2rem;
+        }
+        
+        .pricing-hero p {
+            font-size: 1rem;
+        }
     }
 </style>
 
-<!-- Hero Section -->
+<!-- Hero Section - EXACT GALLERY CTA DESIGN -->
 <section class="pricing-hero">
     <h1>हाम्रा योजनाहरू</h1>
     <p>तपाईंको होस्टल व्यवस्थापन आवश्यकताअनुसार उपयुक्त योजना छान्नुहोस्</p>
@@ -518,6 +530,7 @@
             <p class="faq-answer">परीक्षण अवधि समाप्त भएपछि, तपाईंले छान्नुभएको योजनाअनुसार सेवा सञ्चालन गर्न सक्नुहुन्छ वा कुनै पनि अतिरिक्त लागत बिना रद्द गर्न सक्नुहुन्छ।</p>
         </div>
         
+        <!-- CTA Section - EXACT COPY FROM GALLERY PAGE -->
         <div class="contact-cta">
             <h3>हामीलाई सम्पर्क गर्नुहोस्</h3>
             <p>हामी तपाईंलाई सहयोग गर्न तत्पर छौं</p>

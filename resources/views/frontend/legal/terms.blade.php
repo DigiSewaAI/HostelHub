@@ -10,12 +10,23 @@
   color: #374151;
 ">
 
-  <!-- Page Header -->
-  <div style="text-align: center; margin-bottom: 3rem;">
-    <h1 style="font-size: 2.5rem; font-weight: 800; color: #1f2937; margin-bottom: 1rem;">
+  <!-- Page Header - EXACT GALLERY CTA DESIGN -->
+  <div style="
+    text-align: center;
+    margin-bottom: 3rem;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    padding: 2.5rem 1.5rem;
+    border-radius: 1rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+    max-width: 1000px;
+    margin-left: auto;
+    margin-right: auto;
+  ">
+    <h1 style="font-size: 2.5rem; font-weight: 800; color: white; margin-bottom: 1rem;">
       सेवा सर्तहरू
     </h1>
-    <p style="font-size: 1.125rem; color: #4b5563; max-width: 800px; margin: 0 auto;">
+    <p style="font-size: 1.125rem; color: rgba(255, 255, 255, 0.9); max-width: 800px; margin: 0 auto;">
       HostelHub को सेवाहरू प्रयोग गर्दा लागू हुने कानूनी सर्तहरू।
     </p>
   </div>
@@ -106,34 +117,69 @@
 
   </div>
 
-  <!-- CTA Section -->
-<div style="
-  text-align: center;
-  margin-top: 4rem;
-  background: linear-gradient(90deg, #0a3a6a, #001F5B, #0a3a6a);
-  color: white;
-  padding: 2.5rem 1.5rem;
-  border-radius: 1rem;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
-  max-width: 800px;
-  margin-left: auto;
-  margin-right: auto;
-">
-  <h2 style="font-size: 1.875rem; font-weight: bold; margin-bottom: 1rem;">
-    सुरक्षित र विश्वसनीय सेवा
-  </h2>
-  <p style="font-size: 1.25rem; margin-bottom: 2rem; opacity: 0.9;">
-    हामी तपाइँको व्यवसायलाई नियम र पारदर्शिताका आधारमा सहयोग गर्छौं।
-  </p>
-  <a href="/privacy" style="
+  <!-- CTA Section - EXACT COPY FROM GALLERY PAGE -->
+  <div style="
+    text-align: center;
+    margin-top: 4rem;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
     color: white;
-    text-decoration: underline;
-    font-weight: 500;
-    font-size: 1.1rem;
+    padding: 2.5rem 1.5rem;
+    border-radius: 1rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
   ">
-    गोपनीयता नीति हेर्नुहोस् →
-  </a>
-</div>
+    <h2 style="font-size: 1.875rem; font-weight: bold; margin-bottom: 1rem;">
+      सुरक्षित र विश्वसनीय सेवा
+    </h2>
+    <p style="font-size: 1.25rem; margin-bottom: 2rem; opacity: 0.9;">
+      हामी तपाइँको व्यवसायलाई नियम र पारदर्शिताका आधारमा सहयोग गर्छौं।
+    </p>
+    
+    <!-- Buttons -->
+    <div style="display: flex; flex-direction: column; gap: 1rem; align-items: center;">
+      <a href="/register" style="
+        background-color: white;
+        color: #001F5B;
+        font-weight: 600;
+        padding: 0.75rem 2rem;
+        border-radius: 0.5rem;
+        text-decoration: none;
+        min-width: 180px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+      " onmouseover="this.style.backgroundColor='#f3f4f6'; this.style.transform='translateY(-2px)';"
+         onmouseout="this.style.backgroundColor='white'; this.style.transform='none';">
+        निःशुल्क साइन अप
+      </a>
+      <a href="/privacy" style="
+        border: 2px solid white;
+        color: white;
+        font-weight: 600;
+        padding: 0.75rem 2rem;
+        border-radius: 0.5rem;
+        text-decoration: none;
+        min-width: 180px;
+        background-color: transparent;
+        transition: all 0.3s ease;
+      " onmouseover="this.style.backgroundColor='white'; this.style.color='#001F5B'; this.style.transform='translateY(-2px)';"
+         onmouseout="this.style.backgroundColor='transparent'; this.style.color='white'; this.style.transform='none';">
+        गोपनीयता नीति हेर्नुहोस्
+      </a>
+    </div>
+  </div>
 
 </div>
+
+<style>
+  /* Responsive adjustments */
+  @media (max-width: 640px) {
+    [style*="font-size: 2.5rem"] { font-size: 2rem !important; }
+    [style*="font-size: 1.875rem"] { font-size: 1.5rem !important; }
+    [style*="font-size: 1.25rem"] { font-size: 1.125rem !important; }
+    [style*="font-size: 1.125rem"] { font-size: 1rem !important; }
+    [style*="font-size: 1.5rem"] { font-size: 1.25rem !important; }
+  }
+</style>
 @endsection
