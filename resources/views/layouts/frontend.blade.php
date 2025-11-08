@@ -589,6 +589,32 @@
                 width: 30px !important;
             }
         }
+        /* 🚨 SMART GLOBAL FIX - Home page lai protect garera, aru sabai pages maa automatic fix */
+.main-content-global:not(.home-page-main) {
+    margin-top: var(--header-height) !important;
+    padding-top: 1rem !important;
+}
+
+/* Page header haru ko laagi (home page ko hero-section lai exclude garera) */
+.page-header:not(.home-hero) {
+    margin-top: var(--header-height) !important;
+    padding-top: 2rem !important;
+    position: relative;
+    z-index: 1;
+}
+
+/* Mobile fix */
+@media (max-width: 768px) {
+    .main-content-global:not(.home-page-main) {
+        margin-top: 60px !important;
+        padding-top: 0.5rem !important;
+    }
+    
+    .page-header:not(.home-hero) {
+        margin-top: 60px !important;
+        padding-top: 1.5rem !important;
+    }
+}
     </style>
 
     <!-- Stack for additional styles from child views -->
@@ -679,16 +705,11 @@
     @endif
 
     <!-- Main Content -->
-    <main id="main">
-        <!-- 🚨 CRITICAL CHANGE: Hero section outside content-container -->
-        @hasSection('hero-section')
-            @yield('hero-section')
-        @endif
-        
-        <div class="content-container">
-            @yield('content')
-        </div>
-    </main>
+    <main id="main" class="main-content-global @if(Request::route()->getName() == 'home')home-page-main @endif">
+    <div class="content-container">
+        @yield('content')
+    </div>
+</main>
 
 <!-- Footer -->
 <footer>

@@ -49,3 +49,18 @@ Route::prefix('student')->group(function () {
 if (app()->environment('local')) {
     require __DIR__ . '/dev.php';
 }
+
+// 🚨 EMERGENCY TEST ROUTE
+Route::get('/test-hero', function () {
+    return '
+    <!DOCTYPE html>
+    <html>
+    <head><title>Test Hero</title></head>
+    <body style="margin:0; padding:0;">
+        <div style="height:100vh; background:blue; color:white; display:flex; align-items:center; justify-content:center;">
+            <h1>🚨 HERO SECTION WORKING!</h1>
+        </div>
+    </body>
+    </html>
+    ';
+});

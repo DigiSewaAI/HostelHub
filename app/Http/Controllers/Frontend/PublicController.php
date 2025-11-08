@@ -78,9 +78,9 @@ class PublicController extends Controller
                 return Room::distinct()->pluck('type');
             });
 
-            // 7. Hero Slider Items (with caching) - ✅ UPDATED: Include hostel names
+            // 7. Hero Slider Items (with caching) - ✅ UPDATED: Include hostel names WITH FALLBACK
             $heroSliderItems = Cache::remember('home_hero_slider_items', 3600, function () {
-                return Gallery::with(['hostel', 'room.hostel'])
+                $items = Gallery::with(['hostel', 'room.hostel'])
                     ->where('is_active', true)
                     ->whereNotNull('file_path')
                     ->orderBy('is_featured', 'desc')
@@ -90,11 +90,33 @@ class PublicController extends Controller
                     ->map(function ($item) {
                         return $this->processGalleryItemForHome($item);
                     });
+
+                // 🚨 CRITICAL FIX: Add fallback if no items
+                if ($items->isEmpty()) {
+                    return collect([
+                        [
+                            'media_type' => 'image',
+                            'thumbnail_url' => 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&h=450&fit=crop',
+                            'title' => 'Comfortable Hostel Rooms',
+                            'hostel_name' => 'HostelHub',
+                            'description' => 'Modern and comfortable hostel accommodations'
+                        ],
+                        [
+                            'media_type' => 'image',
+                            'thumbnail_url' => 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&h=450&fit=crop',
+                            'title' => 'Modern Hostel Facilities',
+                            'hostel_name' => 'HostelHub',
+                            'description' => 'State-of-the-art facilities for students'
+                        ]
+                    ]);
+                }
+
+                return $items;
             });
 
-            // 8. Gallery Items (with caching) - ✅ UPDATED: Include hostel names
+            // 8. Gallery Items (with caching) - ✅ UPDATED: Include hostel names WITH FALLBACK
             $galleryItems = Cache::remember('home_gallery_items', 3600, function () {
-                return Gallery::with(['hostel', 'room.hostel'])
+                $items = Gallery::with(['hostel', 'room.hostel'])
                     ->where('is_active', true)
                     ->whereNotNull('file_path')
                     ->orderBy('created_at', 'desc')
@@ -103,25 +125,45 @@ class PublicController extends Controller
                     ->map(function ($item) {
                         return $this->processGalleryItemForHome($item);
                     });
+
+                // 🚨 CRITICAL FIX: Add fallback if no items
+                if ($items->isEmpty()) {
+                    return collect([
+                        [
+                            'media_type' => 'image',
+                            'thumbnail_url' => 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400&h=300&fit=crop',
+                            'title' => 'Study Room',
+                            'hostel_name' => 'HostelHub'
+                        ],
+                        [
+                            'media_type' => 'image',
+                            'thumbnail_url' => 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=400&h=300&fit=crop',
+                            'title' => 'Common Area',
+                            'hostel_name' => 'HostelHub'
+                        ]
+                    ]);
+                }
+
+                return $items;
             });
 
-            // 9. Upcoming Meals (Today + next 2 days)
+            // 9. Upcoming Meals (Today + next 2 days) - 🚨 TEMPORARILY COMMENTED OUT
             $meals = collect();
-            if (class_exists(Meal::class)) {
-                try {
-                    $meals = Meal::whereDate('date', '>=', now())
-                        ->where('status', 'published')
-                        ->orderBy('date')
-                        ->limit(3)
-                        ->get();
-                } catch (\Exception $e) {
-                    Log::warning('Meals status column not available: ' . $e->getMessage());
-                    $meals = Meal::whereDate('date', '>=', now())
-                        ->orderBy('date')
-                        ->limit(3)
-                        ->get();
-                }
-            }
+            // if (class_exists(Meal::class)) {
+            //     try {
+            //         $meals = Meal::whereDate('date', '>=', now())
+            //             ->where('status', 'published')
+            //             ->orderBy('date')
+            //             ->limit(3)
+            //             ->get();
+            //     } catch (\Exception $e) {
+            //         Log::warning('Meals status column not available: ' . $e->getMessage());
+            //         $meals = Meal::whereDate('date', '>=', now())
+            //             ->orderBy('date')
+            //             ->limit(3)
+            //             ->get();
+            //     }
+            // }
 
             // ✅ NEW: Featured Meal Menus for Homepage
             $featuredMealMenus = Cache::remember('home_featured_meal_menus', 3600, function () {
@@ -162,7 +204,15 @@ class PublicController extends Controller
                 'hostels' => collect(),
                 'testimonials' => collect(),
                 'roomTypes' => collect(),
-                'heroSliderItems' => collect(),
+                'heroSliderItems' => collect([
+                    [
+                        'media_type' => 'image',
+                        'thumbnail_url' => 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&h=450&fit=crop',
+                        'title' => 'Comfortable Hostel Rooms',
+                        'hostel_name' => 'HostelHub',
+                        'description' => 'Modern and comfortable hostel accommodations'
+                    ]
+                ]),
                 'galleryItems' => collect(),
                 'meals' => collect(),
                 'featuredMealMenus' => collect() // ✅ NEW: Empty collection on error
