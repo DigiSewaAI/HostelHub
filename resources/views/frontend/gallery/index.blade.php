@@ -7,6 +7,42 @@
 @push('styles')
 @vite(['resources/css/gallery.css'])
 <style>
+    /* 🚨 FIX FOR HEADER OVERLAP ON GALLERY PAGE */
+    .gallery-page-main {
+        margin-top: var(--header-height) !important;
+        padding-top: 2rem !important;
+    }
+
+    /* Ensure page header is visible */
+    .page-header {
+        padding: 3rem 0 2rem !important;
+        margin-top: var(--header-height) !important;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Fix gallery sections spacing */
+    .gallery-filters {
+        padding-top: 1rem !important;
+    }
+
+    .gallery-main {
+        padding-top: 0 !important;
+    }
+
+    /* Fix for mobile view */
+    @media (max-width: 768px) {
+        .gallery-page-main {
+            margin-top: 60px !important;
+            padding-top: 1rem !important;
+        }
+        
+        .page-header {
+            padding: 2rem 0 1.5rem !important;
+            margin-top: 60px !important;
+        }
+    }
+
     .hostel-badge {
         position: absolute;
         top: 10px;
