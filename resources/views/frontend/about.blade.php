@@ -6,8 +6,47 @@
 
 @push('styles')
 <style>
+    /* 🚨 CRITICAL: Reset any main content padding issues */
+    .about-page-main {
+        padding-top: 2rem !important;
+        margin-top: 0 !important;
+    }
+    
+    .about-content-wrapper {
+        padding: 0;
+        margin: 0;
+    }
+    
+    /* Pricing Hero Styles - EXACT COPY */
+    .pricing-hero {
+        text-align: center;
+        padding: 40px 20px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        margin: 20px 0;
+        border-radius: 10px;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+        color: white;
+    }
+    
+    .pricing-hero h1 {
+        font-size: 36px;
+        margin-bottom: 15px;
+        text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+        color: white;
+    }
+    
+    .pricing-hero p {
+        font-size: 18px;
+        max-width: 800px;
+        margin: 0 auto;
+        opacity: 0.9;
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    /* About Page Specific Styles */
     .about-container {
         padding: 2rem 0;
+        margin-top: 0;
     }
     
     .about-intro {
@@ -217,45 +256,81 @@
         color: white;
     }
     
-    /* NEW CTA SECTION STYLES - SAME AS PRICING PAGE */
-    .cta-section {
+    /* 🚨 UPDATED: EXACT PRICING PAGE FAQ & CTA SECTION */
+    .about-faq-section {
         background: white;
-        padding: 4rem 0;
+        padding: 60px 0;
+        margin: 0;
+        text-align: center;
     }
-
-    .contact-cta {
+    
+    .about-faq-content {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+    
+    .about-faq-title {
+        color: #1a3a8f;
+        margin-bottom: 40px;
+        font-size: 32px;
+        font-weight: 700;
+    }
+    
+    .about-faq-item {
+        margin-bottom: 30px;
+        padding-bottom: 30px;
+        border-bottom: 1px solid #eee;
+        text-align: left;
+    }
+    
+    .about-faq-question {
+        font-weight: 600;
+        color: #1a3a8f;
+        margin-bottom: 15px;
+        font-size: 20px;
+    }
+    
+    .about-faq-answer {
+        color: #666;
+        line-height: 1.6;
+        font-size: 16px;
+    }
+    
+    .about-contact-cta {
         background: linear-gradient(135deg, var(--primary), var(--secondary));
-        padding: 40px 30px;
-        border-radius: 10px;
+        padding: 50px 40px;
+        border-radius: 15px;
         color: white;
         text-align: center;
         box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
         max-width: 800px;
-        margin: 0 auto;
+        margin: 50px auto 0 auto;
     }
     
-    .contact-cta h3 {
-        margin-bottom: 15px;
-        font-size: 28px;
-        color: white;
-    }
-    
-    .contact-cta p {
-        font-size: 18px;
+    .about-contact-cta h3 {
         margin-bottom: 20px;
+        font-size: 32px;
+        color: white;
+        font-weight: 700;
+    }
+    
+    .about-contact-cta p {
+        font-size: 18px;
+        margin-bottom: 25px;
         opacity: 0.9;
     }
     
-    .contact-email {
-        font-size: 20px;
+    .about-contact-email {
+        font-size: 22px;
         font-weight: 600;
-        margin: 20px 0;
+        margin: 25px 0;
         display: block;
         color: #ffffff;
         text-decoration: underline;
     }
     
-    .trial-button {
+    .about-trial-button {
         display: inline-block;
         background: white;
         color: #001F5B;
@@ -271,7 +346,7 @@
         cursor: pointer;
     }
     
-    .trial-button:hover {
+    .about-trial-button:hover {
         background: transparent;
         color: #ffffff;
         transform: translateY(-3px);
@@ -279,7 +354,7 @@
         border-color: #ffffff;
     }
 
-    .trial-button:disabled {
+    .about-trial-button:disabled {
         background: #6c757d;
         border-color: #6c757d;
         color: white;
@@ -287,7 +362,7 @@
         transform: none;
     }
 
-    .trial-button:disabled:hover {
+    .about-trial-button:disabled:hover {
         background: #6c757d;
         color: white;
         transform: none;
@@ -322,160 +397,224 @@
             font-size: 2.5rem;
         }
 
-        .contact-cta {
-            padding: 30px 20px;
+        .about-faq-section {
+            padding: 40px 0;
         }
         
-        .contact-cta h3 {
-            font-size: 24px;
+        .about-contact-cta {
+            padding: 40px 25px;
+            margin: 40px auto 0 auto;
         }
         
-        .contact-cta p {
+        .about-contact-cta h3 {
+            font-size: 26px;
+        }
+        
+        .about-contact-cta p {
             font-size: 16px;
         }
         
-        .trial-button {
+        .about-trial-button {
             padding: 12px 30px;
             font-size: 16px;
+        }
+
+        .pricing-hero {
+            padding: 30px 15px;
+        }
+        
+        .pricing-hero h1 {
+            font-size: 28px;
+        }
+        
+        .pricing-hero p {
+            font-size: 16px;
+        }
+
+        .about-faq-title {
+            font-size: 26px;
+            margin-bottom: 30px;
+        }
+        
+        .about-faq-question {
+            font-size: 18px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .about-contact-cta {
+            padding: 30px 20px;
+            margin: 30px auto 0 auto;
+        }
+        
+        .about-contact-cta h3 {
+            font-size: 22px;
+        }
+        
+        .about-contact-email {
+            font-size: 18px;
+        }
+        
+        .pricing-hero {
+            padding: 25px 10px;
+        }
+        
+        .pricing-hero h1 {
+            font-size: 24px;
         }
     }
 </style>
 @endpush
 
 @section('content')
-<!-- Hero Section - SAME AS PRICING PAGE -->
-<section class="pricing-hero" style="margin: 20px 0;">
+<!-- Hero Section - EXACT SAME AS PRICING PAGE -->
+<section class="pricing-hero">
     <h1>हाम्रो बारेमा</h1>
     <p>HostelHub नेपालको अग्रणी होस्टल व्यवस्थापन प्रणाली हो</p>
     <p>हाम्रो कथा, हाम्रो टिम र हाम्रो लक्ष्यहरू</p>
 </section>
 
-<div class="about-container">
-    <!-- Introduction Section -->
-    <div class="about-intro">
-        <div class="intro-content">
-            <h2 class="intro-title">हाम्रो कथा</h2>
-            <div class="intro-text">
-                <p>HostelHub नेपालको अग्रणी होस्टल व्यवस्थापन प्रणाली हो जसले होस्टलहरूको दैनिक कार्यहरूलाई डिजिटल रूपमा रूपान्तरण गर्न मद्दत गर्दछ। हाम्रो उद्देश्य होस्टल व्यवस्थापनलाई सजिलो, द्रुत र विश्वसनीय बनाउनु हो।</p>
-                <p>हामी २०२५ मा सुरु भएको स्टार्टअप हौं र नेपालभरि २४ भन्दा बढी होस्टलहरू जडान भइसकेका छन्। हाम्रो टिममा प्राविधिक र व्यवसायिक क्षेत्रका अनुभवी विशेषज्ञहरू छन् जसको लक्ष्य नेपाली शिक्षा क्षेत्रमा सुधार ल्याउनु हो।</p>
+<div class="about-content-wrapper">
+    <div class="about-container">
+        <!-- Introduction Section -->
+        <div class="about-intro">
+            <div class="intro-content">
+                <h2 class="intro-title">हाम्रो कथा</h2>
+                <div class="intro-text">
+                    <p>HostelHub नेपालको अग्रणी होस्टल व्यवस्थापन प्रणाली हो जसले होस्टलहरूको दैनिक कार्यहरूलाई डिजिटल रूपमा रूपान्तरण गर्न मद्दत गर्दछ। हाम्रो उद्देश्य होस्टल व्यवस्थापनलाई सजिलो, द्रुत र विश्वसनीय बनाउनु हो।</p>
+                    <p>हामी २०२५ मा सुरु भएको स्टार्टअप हौं र नेपालभरि २४ भन्दा बढी होस्टलहरू जडान भइसकेका छन्। हाम्रो टिममा प्राविधिक र व्यवसायिक क्षेत्रका अनुभवी विशेषज्ञहरू छन् जसको लक्ष्य नेपाली शिक्षा क्षेत्रमा सुधार ल्याउनु हो।</p>
+                </div>
+            </div>
+            <div class="intro-image">
+                <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&q=80" alt="HostelHub Team" class="intro-img">
             </div>
         </div>
-        <div class="intro-image">
-            <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&q=80" alt="HostelHub Team" class="intro-img">
+
+        <!-- Vision / Mission / Values -->
+        <div class="values-grid">
+            <div class="value-card">
+                <div class="value-icon">
+                    <i class="fas fa-eye"></i>
+                </div>
+                <h3 class="value-title">हाम्रो दृष्टि</h3>
+                <p class="value-description">नेपालको प्रत्येक होस्टललाई उत्कृष्ट व्यवस्थापन प्रणाली प्रदान गर्ने र शिक्षा क्षेत्रमा डिजिटल रूपान्तरण ल्याउने।</p>
+            </div>
+            <div class="value-card">
+                <div class="value-icon">
+                    <i class="fas fa-bullseye"></i>
+                </div>
+                <h3 class="value-title">हाम्रो मिशन</h3>
+                <p class="value-description">होस्टल व्यवस्थापन प्रक्रियाहरूलाई सरल बनाएर प्रबन्धकहरूको समय बचत गर्ने र विद्यार्थीहरूलाई उत्कृष्ट सेवा प्रदान गर्ने।</p>
+            </div>
+            <div class="value-card">
+                <div class="value-icon">
+                    <i class="fas fa-heart"></i>
+                </div>
+                <h3 class="value-title">हाम्रो मूल्य</h3>
+                <p class="value-description">विश्वसनीयता, नवीनता र गुणस्तरलाई प्राथमिकता दिँदै ग्राहकहरूको आवश्यकतालाई केन्द्रमा राख्ने।</p>
+            </div>
+        </div>
+
+        <!-- Stats Section -->
+        <div class="stats-section">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number" data-count="24">0</div>
+                    <div class="stat-label">होस्टलहरू</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" data-count="5000">0</div>
+                    <div class="stat-label">विद्यार्थीहरू</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" data-count="15">0</div>
+                    <div class="stat-label">टिम सदस्यहरू</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" data-count="3">0</div>
+                    <div class="stat-label">वर्षहरू</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Team Section -->
+        <div class="team-section">
+            <h2 class="section-title">हाम्रो टिम</h2>
+            <p class="section-subtitle">हामी एक समर्पित टिम हौं जसले होस्टल व्यवस्थापनलाई नयाँ तहमा पुर्याउने लक्ष्य राखेका छौं</p>
+            
+            <div class="team-grid">
+                <div class="team-member">
+                    <div class="member-image">
+                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80" alt="रमेश श्रेष्ठ">
+                    </div>
+                    <h3 class="member-name">रमेश श्रेष्ठ</h3>
+                    <p class="member-role">संस्थापक & CEO</p>
+                    <div class="member-social">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                <div class="team-member">
+                    <div class="member-image">
+                        <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80" alt="सीता अधिकारी">
+                    </div>
+                    <h3 class="member-name">सीता अधिकारी</h3>
+                    <p class="member-role">प्राविधिक प्रमुख</p>
+                    <div class="member-social">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                <div class="team-member">
+                    <div class="member-image">
+                        <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80" alt="हरि गुरुङ">
+                    </div>
+                    <h3 class="member-name">हरि गुरुङ</h3>
+                    <p class="member-role">व्यवसायिक विकास</p>
+                    <div class="member-social">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                <div class="team-member">
+                    <div class="member-image">
+                        <img src="https://images.unsplash.com/photo-1567532939604-b6b5b0db1604?auto=format&fit=crop&q=80" alt="गीता शर्मा">
+                    </div>
+                    <h3 class="member-name">गीता शर्मा</h3>
+                    <p class="member-role">ग्राहक समर्थन</p>
+                    <div class="member-social">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Vision / Mission / Values -->
-    <div class="values-grid">
-        <div class="value-card">
-            <div class="value-icon">
-                <i class="fas fa-eye"></i>
+    <!-- 🚨 UPDATED CTA SECTION - EXACTLY LIKE PRICING PAGE (Outside container for proper spacing) -->
+    <section class="about-faq-section">
+        <div class="about-faq-content">
+            <h2 class="about-faq-title">अझै केही जिज्ञासा छन्? सहयोग चाहिन्छ?</h2>
+            
+            <div class="about-faq-item">
+                <div class="about-faq-question">हाम्रो सेवा कसरी सुरु गर्न सकिन्छ?</div>
+                <p class="about-faq-answer">तपाईं माथिको योजनाहरू मध्ये कुनै एक छान्नुहोस् र ७ दिने निःशुल्क परीक्षण सुरु गर्नुहोस्। कुनै क्रेडिट कार्ड आवश्यक छैन।</p>
             </div>
-            <h3 class="value-title">हाम्रो दृष्टि</h3>
-            <p class="value-description">नेपालको प्रत्येक होस्टललाई उत्कृष्ट व्यवस्थापन प्रणाली प्रदान गर्ने र शिक्षा क्षेत्रमा डिजिटल रूपान्तरण ल्याउने।</p>
-        </div>
-        <div class="value-card">
-            <div class="value-icon">
-                <i class="fas fa-bullseye"></i>
+            
+            <div class="about-faq-item">
+                <div class="about-faq-question">परीक्षण अवधि पछि के हुन्छ?</div>
+                <p class="about-faq-answer">परीक्षण अवधि समाप्त भएपछि, तपाईंले छान्नुभएको योजनाअनुसार सेवा सञ्चालन गर्न सक्नुहुन्छ वा कुनै पनि अतिरिक्त लागत बिना रद्द गर्न सक्नुहुन्छ।</p>
             </div>
-            <h3 class="value-title">हाम्रो मिशन</h3>
-            <p class="value-description">होस्टल व्यवस्थापन प्रक्रियाहरूलाई सरल बनाएर प्रबन्धकहरूको समय बचत गर्ने र विद्यार्थीहरूलाई उत्कृष्ट सेवा प्रदान गर्ने।</p>
-        </div>
-        <div class="value-card">
-            <div class="value-icon">
-                <i class="fas fa-heart"></i>
-            </div>
-            <h3 class="value-title">हाम्रो मूल्य</h3>
-            <p class="value-description">विश्वसनीयता, नवीनता र गुणस्तरलाई प्राथमिकता दिँदै ग्राहकहरूको आवश्यकतालाई केन्द्रमा राख्ने।</p>
-        </div>
-    </div>
-
-    <!-- Stats Section -->
-    <div class="stats-section">
-        <div class="stats-grid">
-            <div class="stat-item">
-                <div class="stat-number" data-count="24">0</div>
-                <div class="stat-label">होस्टलहरू</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number" data-count="5000">0</div>
-                <div class="stat-label">विद्यार्थीहरू</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number" data-count="15">0</div>
-                <div class="stat-label">टिम सदस्यहरू</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number" data-count="3">0</div>
-                <div class="stat-label">वर्षहरू</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Team Section -->
-    <div class="team-section">
-        <h2 class="section-title">हाम्रो टिम</h2>
-        <p class="section-subtitle">हामी एक समर्पित टिम हौं जसले होस्टल व्यवस्थापनलाई नयाँ तहमा पुर्याउने लक्ष्य राखेका छौं</p>
-        
-        <div class="team-grid">
-            <div class="team-member">
-                <div class="member-image">
-                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80" alt="रमेश श्रेष्ठ">
-                </div>
-                <h3 class="member-name">रमेश श्रेष्ठ</h3>
-                <p class="member-role">संस्थापक & CEO</p>
-                <div class="member-social">
-                    <a href="#"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#"><i class="fab fa-twitter"></i></a>
-                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                </div>
-            </div>
-            <div class="team-member">
-                <div class="member-image">
-                    <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80" alt="सीता अधिकारी">
-                </div>
-                <h3 class="member-name">सीता अधिकारी</h3>
-                <p class="member-role">प्राविधिक प्रमुख</p>
-                <div class="member-social">
-                    <a href="#"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#"><i class="fab fa-twitter"></i></a>
-                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                </div>
-            </div>
-            <div class="team-member">
-                <div class="member-image">
-                    <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80" alt="हरि गुरुङ">
-                </div>
-                <h3 class="member-name">हरि गुरुङ</h3>
-                <p class="member-role">व्यवसायिक विकास</p>
-                <div class="member-social">
-                    <a href="#"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#"><i class="fab fa-twitter"></i></a>
-                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                </div>
-            </div>
-            <div class="team-member">
-                <div class="member-image">
-                    <img src="https://images.unsplash.com/photo-1567532939604-b6b5b0db1604?auto=format&fit=crop&q=80" alt="गीता शर्मा">
-                </div>
-                <h3 class="member-name">गीता शर्मा</h3>
-                <p class="member-role">ग्राहक समर्थन</p>
-                <div class="member-social">
-                    <a href="#"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#"><i class="fab fa-twitter"></i></a>
-                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- UPDATED CTA SECTION - SAME DESIGN AS PRICING PAGE -->
-    <section class="faq-section">
-        <div class="faq-content">
-            <div class="contact-cta">
+            
+            <!-- CTA Section - EXACT COPY FROM PRICING PAGE -->
+            <div class="about-contact-cta">
                 <h3>हामीलाई सम्पर्क गर्नुहोस्</h3>
                 <p>हामी तपाईंलाई सहयोग गर्न तत्पर छौं</p>
-                <a href="mailto:support@hostelhub.com" class="contact-email">support@hostelhub.com</a>
+                <a href="mailto:support@hostelhub.com" class="about-contact-email">support@hostelhub.com</a>
                 <div>
                     @auth
                         @php
@@ -493,17 +632,17 @@
                         @endphp
                         
                         @if($hasSubscription)
-                            <button class="trial-button" disabled>
+                            <button class="about-trial-button" disabled>
                                 तपाईंसँग पहिले नै सदस्यता छ
                             </button>
                         @else
                             <form action="{{ route('subscription.start-trial') }}" method="POST" class="trial-form" style="display: inline;">
                                 @csrf
-                                <button type="submit" class="trial-button">७ दिन निःशुल्क परीक्षण सुरु गर्नुहोस्</button>
+                                <button type="submit" class="about-trial-button">७ दिन निःशुल्क परीक्षण सुरु गर्नुहोस्</button>
                             </form>
                         @endif
                     @else
-                        <a href="{{ route('register.organization', ['plan' => 'starter']) }}" class="trial-button">७ दिन निःशुल्क परीक्षण सुरु गर्नुहोस्</a>
+                        <a href="{{ route('register.organization', ['plan' => 'starter']) }}" class="about-trial-button">७ दिन निःशुल्क परीक्षण सुरु गर्नुहोस्</a>
                     @endauth
                 </div>
             </div>
