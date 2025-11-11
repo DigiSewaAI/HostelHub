@@ -219,138 +219,87 @@
         flex-wrap: wrap;
     }
     
-    /* 🚨 UPDATED: Gallery Categories - About page जस्तै design */
-    .gallery-categories {
+    /* 🚨 UPDATED: Combined Hero Section with Stats */
+    .hero-stats-section {
         background: linear-gradient(135deg, var(--primary), var(--secondary));
         color: white;
-        padding: 60px 0 80px;
+        padding: 60px 0 40px;
         margin-top: 0;
-        min-height: auto;
-        display: block;
     }
     
-    .main-description {
+    .hero-main-content {
         text-align: center;
-        margin: 0 auto 60px;
-        color: white !important; /* 🚨 WHITE COLOR - तपाईंले माग्नुभएजस्तै */
-        font-size: 2rem;
-        font-weight: 700;
-        line-height: 1.3;
-        max-width: 900px;
-        padding: 40px 20px 0;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    }
-    
-    .category-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 25px;
-        margin-top: 0;
-        align-items: stretch;
-    }
-    
-    .category-card {
-        background: rgba(255, 255, 255, 0.95);
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
-        transition: transform 0.3s, box-shadow 0.3s;
-        text-align: center;
-        padding: 30px 20px;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-    }
-    
-    .category-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-        background: rgba(255, 255, 255, 1);
-    }
-    
-    .category-icon {
-        font-size: 2.5rem;
-        margin-bottom: 20px;
-        color: var(--primary);
-    }
-    
-    .category-title {
-        font-size: 1.3rem;
-        margin-bottom: 12px;
-        color: var(--text-dark);
-        font-weight: 600;
-    }
-    
-    .category-count {
-        background: var(--primary);
-        color: white;
-        padding: 6px 15px;
-        border-radius: 20px;
-        font-size: 0.9rem;
-        font-weight: 600;
-        display: inline-block;
-        margin-top: 12px;
-    }
-    
-    /* Available Rooms Specific Styles - UPDATED */
-    .available-rooms-section {
-        padding: 80px 0 60px;
-        background: var(--bg-light);
-    }
-    
-    .availability-stats {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 30px;
-        border-radius: 15px;
         margin-bottom: 40px;
-        text-align: center;
     }
     
+    .hero-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        line-height: 1.3;
+    }
+    
+    .hero-subtitle {
+        font-size: 1.2rem;
+        opacity: 0.9;
+        max-width: 600px;
+        margin: 0 auto;
+        line-height: 1.6;
+    }
+    
+    /* 🚨 UPDATED: Stats Grid - Better spacing and design */
     .stats-grid {
         display: grid;
         grid-template-columns: repeat(5, 1fr);
         gap: 15px;
-        margin-top: 20px;
+        margin-top: 30px;
     }
     
     .stat-item {
-        background: rgba(255, 255, 255, 0.2);
-        padding: 20px;
-        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.15);
+        padding: 25px 15px;
+        border-radius: 12px;
         backdrop-filter: blur(10px);
-        transition: transform 0.3s;
+        transition: all 0.3s ease;
         text-align: center;
+        border: 1px solid rgba(255, 255, 255, 0.2);
     }
 
     .stat-item:hover {
-        transform: translateY(-3px);
+        transform: translateY(-5px);
+        background: rgba(255, 255, 255, 0.2);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
     }
     
     .stat-count {
-        font-size: 2rem;
+        font-size: 2.2rem;
         font-weight: bold;
         color: white;
         display: block;
-        margin-bottom: 5px;
+        margin-bottom: 8px;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     }
     
     .stat-label {
-        color: rgba(255,255,255,0.9);
-        font-size: 0.9rem;
+        color: rgba(255,255,255,0.95);
+        font-size: 1rem;
+        font-weight: 600;
         display: block;
         margin-bottom: 5px;
     }
 
     .stat-subtext {
         color: rgba(255,255,255,0.8);
-        font-size: 0.8rem;
+        font-size: 0.85rem;
         display: block;
-        margin-top: 5px;
+        margin-top: 8px;
+    }
+    
+    /* Available Rooms Specific Styles - UPDATED */
+    .available-rooms-section {
+        padding: 60px 0 40px;
+        background: var(--bg-light);
     }
     
     .room-type-badge {
@@ -578,13 +527,9 @@
     
     /* Responsive Design */
     @media (max-width: 1200px) {
-        .category-grid {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-        }
-
         .stats-grid {
             grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
         }
     }
     
@@ -598,36 +543,26 @@
             height: 240px;
         }
         
-        .category-grid {
-            grid-template-columns: 1fr;
-            gap: 20px;
-        }
-        
         .gallery-section {
             padding: 60px 0 40px;
         }
         
-        .gallery-categories {
-            padding: 40px 0 60px;
+        .hero-stats-section {
+            padding: 50px 0 30px;
+        }
+        
+        .hero-title {
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.1rem;
         }
         
         .view-more {
             flex-direction: column;
             align-items: center;
-        }
-        
-        .main-description {
-            font-size: 1.6rem;
-            margin-bottom: 40px;
-            padding: 20px 15px 0;
-        }
-        
-        .category-icon {
-            font-size: 2.2rem;
-        }
-        
-        .category-title {
-            font-size: 1.2rem;
         }
 
         .stats-grid {
@@ -635,7 +570,7 @@
         }
 
         .available-rooms-section {
-            padding: 60px 0 40px;
+            padding: 50px 0 30px;
         }
         
         /* CTA Responsive */
@@ -683,32 +618,24 @@
             font-size: 0.8rem;
         }
         
-        .main-description {
-            font-size: 1.4rem;
-            padding: 15px 10px 0;
+        .hero-title {
+            font-size: 1.8rem;
         }
         
-        .gallery-categories {
-            padding: 30px 0 40px;
+        .hero-subtitle {
+            font-size: 1rem;
         }
         
-        .category-card {
-            padding: 25px 15px;
-        }
-        
-        .category-icon {
-            font-size: 2rem;
+        .hero-stats-section {
+            padding: 40px 0 20px;
         }
 
         .stats-grid {
             grid-template-columns: 1fr;
+            gap: 12px;
         }
         
         .stat-item {
-            padding: 15px;
-        }
-        
-        .availability-stats {
             padding: 20px 15px;
         }
         
@@ -735,41 +662,33 @@
     }
 </style>
 
-<!-- 🚨 UPDATED: Gallery Categories - About page जस्तै design -->
-<section class="gallery-categories">
+<!-- 🚨 UPDATED: Combined Hero Section with Stats (Removed single card, integrated stats) -->
+<section class="hero-stats-section">
     <div class="container">
-        <div class="main-description nepali">
-            हाम्रो होस्टलको सुन्दर वातावरण र उत्कृष्ट सुविधाहरूको दृश्यात्मक अनुभव
+        <div class="hero-main-content">
+            <h1 class="hero-title nepali">🛏️ हाम्रो होस्टलमा उपलब्ध कोठाहरू</h1>
+            <p class="hero-subtitle nepali">
+                हाम्रो होस्टलमा उपलब्ध कोठाहरूको विवरण र तस्वीरहरू। तपाईंको रुचिको कोठा चयन गरी अहिलेै बुक गर्नुहोस्।
+            </p>
         </div>
         
-        <div class="category-grid">
-            <div class="category-card">
-                <div class="category-icon">🛏️</div>
-                <h3 class="category-title nepali">कोठाहरू</h3>
-                <p class="nepali">१, २, ३ र ४ सिटर कोठाहरू</p>
-                <span class="category-count nepali">{{ $categoryCounts['rooms'] }} फोटोहरू</span>
+        <!-- 🚨 UPDATED: Stats Grid with better design -->
+        <div class="stats-grid">
+            @foreach($nepaliRoomTypes as $englishType => $nepaliType)
+            <div class="stat-item">
+                <span class="stat-count">{{ $availableRoomCounts[$englishType] ?? 0 }}</span>
+                <span class="stat-label nepali">{{ $nepaliType }}</span>
+                @if(isset($availableRoomCounts[$englishType]) && $availableRoomCounts[$englishType] > 0)
+                    @php
+                        $roomsOfType = $hostel->rooms->where('type', $englishType);
+                        $totalAvailableBeds = $roomsOfType->sum('available_beds');
+                    @endphp
+                    <span class="stat-subtext nepali">({{ $totalAvailableBeds }} बेड खाली)</span>
+                @else
+                    <span class="stat-subtext nepali">(कुनै बेड खाली छैन)</span>
+                @endif
             </div>
-            
-            <div class="category-card">
-                <div class="category-icon">🍳</div>
-                <h3 class="category-title nepali">किचन</h3>
-                <p class="nepali">आधुनिक किचन सुविधा</p>
-                <span class="category-count nepali">{{ $categoryCounts['kitchen'] }} फोटोहरू</span>
-            </div>
-            
-            <div class="category-card">
-                <div class="category-icon">🚽</div>
-                <h3 class="category-title nepali">अन्य सुविधाहरू</h3>
-                <p class="nepali">अध्ययन क्षेत्र, शौचालय, र अन्य</p>
-                <span class="category-count nepali">{{ $categoryCounts['facilities'] }} फोटोहरू</span>
-            </div>
-            
-            <div class="category-card">
-                <div class="category-icon">🎬</div>
-                <h3 class="category-title nepali">भिडियो टुर</h3>
-                <p class="nepali">होस्टलको पूर्ण टुर</p>
-                <span class="category-count nepali">{{ $categoryCounts['video'] }} भिडियोहरू</span>
-            </div>
+            @endforeach
         </div>
     </div>
 </section>
@@ -777,30 +696,6 @@
 <!-- Available Rooms Section - UPDATED (SHOWS ALL ROOM IMAGES) -->
 <section class="available-rooms-section">
     <div class="container">
-        <!-- Availability Statistics -->
-        <div class="availability-stats">
-            <h2 class="nepali" style="color: white; margin-bottom: 10px;">कोठा उपलब्धता</h2>
-            <p class="nepali" style="color: rgba(255,255,255,0.9); margin-bottom: 30px;">
-                हाल उपलब्ध कोठाहरूको विवरण
-            </p>
-            
-            <div class="stats-grid">
-                @foreach($nepaliRoomTypes as $englishType => $nepaliType)
-                <div class="stat-item">
-                    <span class="stat-count">{{ $availableRoomCounts[$englishType] ?? 0 }}</span>
-                    <span class="stat-label nepali">{{ $nepaliType }}</span>
-                    @if(isset($availableRoomCounts[$englishType]) && $availableRoomCounts[$englishType] > 0)
-                        @php
-                            $roomsOfType = $hostel->rooms->where('type', $englishType);
-                            $totalAvailableBeds = $roomsOfType->sum('available_beds');
-                        @endphp
-                        <span class="stat-subtext nepali">({{ $totalAvailableBeds }} बेड खाली)</span>
-                    @endif
-                </div>
-                @endforeach
-            </div>
-        </div>
-
         @if($hasAvailableRooms)
             <h2 class="section-title nepali">हाम्रा कोठाहरू</h2>
             <p style="text-align: center; margin-bottom: 40px; color: var(--text-dark); opacity: 0.8; max-width: 700px; margin-left: auto; margin-right: auto;" class="nepali">

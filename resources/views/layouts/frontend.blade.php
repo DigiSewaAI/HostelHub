@@ -673,17 +673,7 @@
         </div>
     </header>
 
-    <!-- Page Header Section -->
-    @hasSection('page-header')
-        <section class="page-header">
-            <div class="container">
-                <h1 class="nepali">@yield('page-header')</h1>
-                @hasSection('page-description')
-                    <p class="nepali">@yield('page-description')</p>
-                @endif
-            </div>
-        </section>
-    @endif
+    
 
     <!-- Main Content -->
     <main id="main" class="main-content-global @if(Request::route()->getName() == 'home')home-page-main @else other-page-main @endif">
