@@ -25,22 +25,41 @@ class PublicContactController extends Controller
      */
     public function store(ContactRequest $request): RedirectResponse
     {
+        // Room booking को लागि subject automatically set गर्ने
+        $validatedData = $request->validated();
+
+        if ($request->has('room_type') && $request->has('hostel')) {
+            $validatedData['subject'] = "Room Booking Inquiry - " . $request->room_type . " Room at " . $request->hostel;
+        } else {
+            $validatedData['subject'] = "General Inquiry";
+        }
+
         // 1. Contact डाटाबेसमा सुरक्षित गर्ने
-        $contact = Contact::create($request->validated());
+        $contact = Contact::create($validatedData);
 
         // 2. एडमिनलाई इमेल पठाउने
         try {
             // config/mail.php मा परिभाषित admin_address प्रयोग गर्दै
             $adminEmail = config('mail.admin_address', 'info@hostelhub.com');
 
+            // 🚨 IMPORTANT: Contact object लाई array मा convert गर्ने
+            $contactData = [
+                'name' => $contact->name,
+                'email' => $contact->email,
+                'subject' => $contact->subject,
+                'message' => $contact->message,
+                'phone' => $contact->phone ?? 'उपलब्ध छैन',
+                'created_at' => $contact->created_at,
+            ];
+
+            // 🚨 CORRECT: Array पठाउने
             Mail::to($adminEmail)->send(
-                new ContactFormSubmitted($contact)
+                new ContactFormSubmitted($contactData)  // $contactData (array) पठाउने
             );
         } catch (\Exception $e) {
             Log::error('Contact form email failed to send: ' . $e->getMessage());
-            // Email नपठाउन सके पनि contact सुरक्षित हुन्छ
         }
 
-        return back()->with('success', 'धन्यवाद! हामी चाँडै सम्पर्क गर्छौं।');
+        return redirect()->back()->with('success', 'तपाईंको सन्देश सफलतापूर्वक पठाइयो! हामी चाँडै नै तपाईंसँग सम्पर्क गर्नेछौं।');
     }
 }

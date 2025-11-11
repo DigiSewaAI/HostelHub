@@ -29,9 +29,13 @@ class ContactFormSubmitted extends Mailable
      */
     public function envelope(): Envelope
     {
+        $subject = isset($this->data['subject'])
+            ? $this->data['subject'] . ' - ' . config('app.name')
+            : 'नयाँ सम्पर्क सन्देश - ' . config('app.name');
+
         return new Envelope(
             to: config('mail.admin_address'),
-            subject: 'नयाँ सम्पर्क सन्देश - ' . config('app.name'),
+            subject: $subject,
         );
     }
 
@@ -46,7 +50,8 @@ class ContactFormSubmitted extends Mailable
                 'name' => $this->data['name'],
                 'email' => $this->data['email'],
                 'phone' => $this->data['phone'] ?? 'उपलब्ध छैन',
-                'message' => $this->data['message']
+                'message' => $this->data['message'],
+                'subject' => $this->data['subject'] ?? 'General Inquiry'
             ]
         );
     }

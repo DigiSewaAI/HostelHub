@@ -307,6 +307,14 @@
                 <div class="font-medium text-teal-800 text-sm nepali">ग्यालरी</div>
             </a>
             
+            <!-- 🆕 CONTACT MESSAGES QUICK ACTION -->
+            <a href="{{ route('owner.contacts.index') }}" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-2xl text-center transition-colors no-underline group border border-blue-100">
+                <div class="text-blue-600 text-2xl mb-2 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-envelope"></i>
+                </div>
+                <div class="font-medium text-blue-800 text-sm">सम्पर्क सन्देश</div>
+            </a>
+            
             <a href="{{ route('owner.hostels.create') }}" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-2xl text-center transition-colors no-underline group border border-blue-100">
                 <div class="text-blue-600 text-2xl mb-2 group-hover:scale-110 transition-transform">
                     <i class="fas fa-plus"></i>
@@ -333,13 +341,6 @@
                     <i class="fas fa-money-bill-wave"></i>
                 </div>
                 <div class="font-medium text-purple-800 text-sm">भुक्तानीहरू</div>
-            </a>
-
-            <a href="{{ route('owner.circulars.create') }}" class="p-4 bg-indigo-50 hover:bg-indigo-100 rounded-2xl text-center transition-colors no-underline group border border-indigo-100">
-                <div class="text-indigo-600 text-2xl mb-2 group-hover:scale-110 transition-transform">
-                    <i class="fas fa-bullhorn"></i>
-                </div>
-                <div class="font-medium text-indigo-800 text-sm">सूचना थप्नुहोस्</div>
             </a>
         </div>
     </div>
@@ -447,6 +448,111 @@
             </div>
         </div>
     </div>
+
+    <!-- 🆕 CONTACT MESSAGES SECTION -->
+    <div class="bg-white rounded-2xl shadow-sm p-6 mt-6">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold text-gray-800">सम्पर्क सन्देशहरू</h2>
+            <div class="flex space-x-2">
+                <a href="{{ route('owner.contacts.index') }}" 
+                   class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl px-5 py-2 shadow-sm hover:shadow-md transition-all duration-200 no-underline">
+                    <i class="fas fa-envelope mr-2"></i>
+                    सबै सन्देशहरू
+                </a>
+            </div>
+        </div>
+
+        <!-- Contact Statistics -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="text-sm font-semibold text-blue-800">कुल सन्देशहरू</h3>
+                        <p class="text-2xl font-bold text-blue-600">{{ $totalContacts ?? 0 }}</p>
+                    </div>
+                    <div class="bg-blue-600 text-white p-3 rounded-xl">
+                        <i class="fas fa-envelope-open text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-red-50 p-4 rounded-2xl border border-red-100">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="text-sm font-semibold text-red-800">नपढिएका</h3>
+                        <p class="text-2xl font-bold text-red-600">{{ $unreadContacts ?? 0 }}</p>
+                    </div>
+                    <div class="bg-red-600 text-white p-3 rounded-xl">
+                        <i class="fas fa-envelope text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-green-50 p-4 rounded-2xl border border-green-100">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="text-sm font-semibold text-green-800">आजको सन्देश</h3>
+                        <p class="text-2xl font-bold text-green-600">{{ $todayContacts ?? 0 }}</p>
+                    </div>
+                    <div class="bg-green-600 text-white p-3 rounded-xl">
+                        <i class="fas fa-calendar-day text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Contacts -->
+        <div class="space-y-3">
+            @forelse($recentContacts ?? [] as $contact)
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-200 hover:bg-gray-100 transition-colors">
+                    <div class="flex items-center flex-1">
+                        <div class="bg-blue-100 p-2 rounded-lg mr-3">
+                            <i class="fas fa-user text-blue-600"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="font-medium text-gray-800 text-sm">{{ $contact->name }}</p>
+                                    <p class="text-xs text-gray-600">{{ $contact->email }}</p>
+                                    <p class="text-xs text-gray-600">{{ Str::limit($contact->subject, 40) }}</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-xs text-gray-500">{{ $contact->created_at->diffForHumans() }}</p>
+                                    @if(!$contact->is_read)
+                                        <span class="bg-red-100 text-red-600 px-2 py-1 rounded-full text-xs">नयाँ</span>
+                                    @endif
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">{{ Str::limit($contact->message, 60) }}</p>
+                        </div>
+                    </div>
+                    <div class="flex space-x-2 ml-4">
+                        <a href="{{ route('owner.contacts.show', $contact) }}" 
+                           class="text-blue-600 hover:text-blue-800 p-2 transition-colors" 
+                           title="हेर्नुहोस्">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        @if(!$contact->is_read)
+                            <form action="{{ route('owner.contacts.update-status', $contact) }}" method="POST" class="inline">
+                                @csrf
+                                @method('PATCH')
+                                <input type="hidden" name="status" value="read">
+                                <button type="submit" class="text-green-600 hover:text-green-800 p-2 transition-colors" title="पढियो चिन्ह लगाउनुहोस्">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                            </form>
+                        @endif
+                    </div>
+                </div>
+            @empty
+                <div class="text-center py-8">
+                    <i class="fas fa-envelope-open-text text-gray-400 text-4xl mb-3"></i>
+                    <p class="text-gray-500 text-sm">हाल कुनै सम्पर्क सन्देश छैन</p>
+                    <p class="text-gray-400 text-xs mt-1">नयाँ सन्देशहरू यहाँ देखिनेछन्</p>
+                </div>
+            @endforelse
+        </div>
+    </div>
 @endsection
 
 @section('scripts')
@@ -454,6 +560,29 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Add any interactive functionality here
     console.log('Owner dashboard loaded');
+
+    // Real-time contact notifications
+    function updateContactNotifications() {
+        fetch('{{ route("owner.dashboard.contact-counts") }}')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update badge counts if needed
+                    const unreadBadge = document.querySelector('.contact-unread-badge');
+                    if (unreadBadge && data.unreadCount > 0) {
+                        unreadBadge.textContent = data.unreadCount;
+                        unreadBadge.classList.remove('hidden');
+                    }
+                }
+            })
+            .catch(error => console.error('Error fetching contact counts:', error));
+    }
+
+    // Update every 30 seconds
+    setInterval(updateContactNotifications, 30000);
+
+    // Initial update
+    updateContactNotifications();
 });
 </script>
 @endsection

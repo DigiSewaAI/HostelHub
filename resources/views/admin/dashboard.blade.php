@@ -24,15 +24,46 @@
     @endisset
 
     <div class="space-y-4">
-        <!-- Notification Bell Bar -->
+        <!-- Contact Notifications Bar -->
         <div class="bg-white rounded-lg shadow-sm p-4 flex items-center justify-between">
             <div class="flex items-center">
                 <div class="bg-blue-100 p-3 rounded-full mr-4">
-                    <i class="fas fa-bell text-blue-600 text-xl"></i>
+                    <i class="fas fa-envelope text-blue-600 text-xl"></i>
                 </div>
                 <div>
-                    <h3 class="font-semibold">तपाईंसँग {{ $metrics['total_contacts'] }} सम्पर्क सूचनाहरू र {{ $totalCirculars ?? 0 }} सूचनाहरू छन्</h3>
-                    <p class="text-sm text-gray-600">हालसम्म {{ $metrics['total_contacts'] }} सूचनाहरू प्राप्त भएका छन्</p>
+                    <h3 class="font-semibold">
+                        तपाईंसँग 
+                        <span class="text-red-600">{{ $unreadContacts ?? 0 }}</span> नपढिएका सन्देशहरू 
+                        र जम्मा <span class="text-blue-600">{{ $totalContacts ?? 0 }}</span> सम्पर्क सूचनाहरू छन्
+                    </h3>
+                    <p class="text-sm text-gray-600">
+                        आज <span class="text-green-600">{{ $todayContacts ?? 0 }}</span> नयाँ सन्देशहरू प्राप्त भएका छन्
+                    </p>
+                </div>
+            </div>
+            <div class="flex space-x-2">
+                <a href="{{ route('admin.contacts.index') }}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center transition-colors">
+                    <i class="fas fa-eye mr-2"></i>
+                    सबै सन्देशहरू
+                </a>
+                @if(($unreadContacts ?? 0) > 0)
+                <a href="{{ route('admin.contacts.index', ['filter' => 'unread']) }}" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center transition-colors">
+                    <i class="fas fa-envelope mr-2"></i>
+                    नपढिएका ({{ $unreadContacts ?? 0 }})
+                </a>
+                @endif
+            </div>
+        </div>
+
+        <!-- Circular Notification Bell Bar -->
+        <div class="bg-white rounded-lg shadow-sm p-4 flex items-center justify-between">
+            <div class="flex items-center">
+                <div class="bg-indigo-100 p-3 rounded-full mr-4">
+                    <i class="fas fa-bell text-indigo-600 text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="font-semibold">तपाईंसँग {{ $totalCirculars ?? 0 }} सूचनाहरू छन्</h3>
+                    <p class="text-sm text-gray-600">हालसम्म {{ $totalCirculars ?? 0 }} सूचनाहरू प्राप्त भएका छन्</p>
                 </div>
             </div>
             <div class="flex space-x-2">
@@ -40,10 +71,62 @@
                     <i class="fas fa-bullhorn mr-2"></i>
                     सूचनाहरू हेर्नुहोस्
                 </a>
-                <a href="{{ route('admin.contacts.index') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center transition-colors">
-                    <i class="fas fa-eye mr-2"></i>
-                    सम्पर्क हेर्नुहोस्
+            </div>
+        </div>
+
+        <!-- Recent Contacts Section -->
+        <div class="bg-white rounded-lg shadow-sm p-4">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold text-gray-800">📨 हालका सम्पर्क सन्देशहरू</h2>
+                <a href="{{ route('admin.contacts.index') }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                    सबै हेर्नुहोस्
                 </a>
+            </div>
+            
+            <div class="space-y-3">
+                @forelse($recentContacts ?? [] as $contact)
+                <div class="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors {{ $contact->is_read ? 'bg-white' : 'bg-yellow-50 border-yellow-200' }}">
+                    <div class="flex items-center flex-1">
+                        <div class="{{ $contact->is_read ? 'bg-gray-100' : 'bg-yellow-100' }} p-2 rounded-lg mr-3">
+                            <i class="fas {{ $contact->is_read ? 'fa-envelope-open text-gray-600' : 'fa-envelope text-yellow-600' }}"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center justify-between">
+                                <p class="font-medium text-gray-800 text-sm">
+                                    {{ $contact->name }}
+                                    @if(!$contact->is_read)
+                                    <span class="bg-red-500 text-white text-xs px-2 py-1 rounded-full ml-2">नयाँ</span>
+                                    @endif
+                                </p>
+                                <span class="text-xs text-gray-500">{{ $contact->created_at->diffForHumans() }}</span>
+                            </div>
+                            <p class="text-sm text-gray-600 mt-1">{{ $contact->subject }}</p>
+                            <p class="text-xs text-gray-500 truncate">{{ \Illuminate\Support\Str::limit($contact->message, 60) }}</p>
+                        </div>
+                    </div>
+                    <div class="flex space-x-2 ml-4">
+                        <a href="{{ route('admin.contacts.show', $contact) }}" 
+                           class="text-blue-600 hover:text-blue-800 p-2 transition-colors" 
+                           title="हेर्नुहोस्">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        @if(!$contact->is_read)
+                        <form action="{{ route('admin.contacts.mark-read', $contact) }}" method="POST" class="inline">
+                            @csrf
+                            <button type="submit" class="text-green-600 hover:text-green-800 p-2 transition-colors" title="पढियो चिन्ह लगाउनुहोस्">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        </form>
+                        @endif
+                    </div>
+                </div>
+                @empty
+                <div class="text-center py-6">
+                    <i class="fas fa-inbox text-gray-400 text-4xl mb-3"></i>
+                    <h4 class="text-lg font-semibold text-gray-600">कुनै सम्पर्क सन्देश छैन</h4>
+                    <p class="text-gray-500">हाल कुनै सम्पर्क सन्देश प्राप्त भएको छैन</p>
+                </div>
+                @endforelse
             </div>
         </div>
 
@@ -97,19 +180,21 @@
                         <p class="text-sm text-gray-600 mt-2">कुल दर्ता भएका विद्यार्थीहरू</p>
                     </div>
                     
-                    <!-- Circulars Card -->
-                    <div class="stat-card bg-gradient-to-r from-indigo-50 to-indigo-100 border-l-4 border-indigo-500 p-4 rounded-lg shadow-sm card-hover">
+                    <!-- Contacts Card -->
+                    <div class="stat-card bg-gradient-to-r from-purple-50 to-purple-100 border-l-4 border-purple-500 p-4 rounded-lg shadow-sm card-hover">
                         <div class="flex justify-between items-start">
                             <div>
-                                <h3 class="text-lg font-bold text-gray-800">सूचनाहरू</h3>
-                                <p class="text-3xl font-bold mt-2 text-gray-900">{{ number_format($totalCirculars ?? 0) }}</p>
+                                <h3 class="text-lg font-bold text-gray-800">सम्पर्क सन्देश</h3>
+                                <p class="text-3xl font-bold mt-2 text-gray-900">{{ number_format($totalContacts ?? 0) }}</p>
                             </div>
-                            <div class="bg-indigo-500 text-white p-3 rounded-lg">
-                                <i class="fas fa-bullhorn text-xl"></i>
+                            <div class="bg-purple-500 text-white p-3 rounded-lg">
+                                <i class="fas fa-envelope text-xl"></i>
                             </div>
                         </div>
-                        <p class="text-sm text-gray-600 mt-2">कुल प्रकाशित सूचनाहरू</p>
-                        <a href="{{ route('admin.circulars.index') }}" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium mt-2 inline-block">
+                        <p class="text-sm text-gray-600 mt-2">
+                            <span class="text-red-600 font-medium">{{ $unreadContacts ?? 0 }}</span> नपढिएका
+                        </p>
+                        <a href="{{ route('admin.contacts.index') }}" class="text-xs text-purple-600 hover:text-purple-800 font-medium mt-2 inline-block">
                             सबै हेर्नुहोस् <i class="fas fa-arrow-circle-right ml-1"></i>
                         </a>
                     </div>
@@ -370,6 +455,45 @@
                     </div>
                 </div>
 
+                <!-- Quick Contact Actions -->
+                <div class="bg-white rounded-lg shadow-sm p-4">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">सम्पर्क कार्यहरू</h2>
+                    <div class="grid grid-cols-2 gap-3">
+                        <a href="{{ route('admin.contacts.index') }}" class="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg text-center transition-colors group border border-blue-100">
+                            <div class="text-blue-600 text-2xl mb-2 group-hover:scale-110 transition-transform">
+                                <i class="fas fa-inbox"></i>
+                            </div>
+                            <div class="font-medium text-blue-800">सबै सन्देशहरू</div>
+                        </a>
+                        
+                        <a href="{{ route('admin.contacts.index', ['filter' => 'unread']) }}" class="p-4 bg-red-50 hover:bg-red-100 rounded-lg text-center transition-colors group border border-red-100">
+                            <div class="text-red-600 text-2xl mb-2 group-hover:scale-110 transition-transform">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <div class="font-medium text-red-800">नपढिएका</div>
+                            @if(($unreadContacts ?? 0) > 0)
+                            <span class="absolute top-2 right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                                {{ $unreadContacts }}
+                            </span>
+                            @endif
+                        </a>
+                        
+                        <a href="{{ route('admin.contacts.index', ['filter' => 'today']) }}" class="p-4 bg-green-50 hover:bg-green-100 rounded-lg text-center transition-colors group border border-green-100">
+                            <div class="text-green-600 text-2xl mb-2 group-hover:scale-110 transition-transform">
+                                <i class="fas fa-calendar-day"></i>
+                            </div>
+                            <div class="font-medium text-green-800">आजका</div>
+                        </a>
+                        
+                        <a href="{{ route('admin.settings.index') }}#contact" class="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg text-center transition-colors group border border-purple-100">
+                            <div class="text-purple-600 text-2xl mb-2 group-hover:scale-110 transition-transform">
+                                <i class="fas fa-cog"></i>
+                            </div>
+                            <div class="font-medium text-purple-800">सेटिङहरू</div>
+                        </a>
+                    </div>
+                </div>
+
                 <!-- Quick Actions -->
                 <div class="bg-white rounded-lg shadow-sm p-4">
                     <h2 class="text-xl font-bold text-gray-800 mb-4">द्रुत कार्यहरू</h2>
@@ -467,6 +591,21 @@
                                 <i class="fas fa-check-circle text-xl"></i>
                             </div>
                         </div>
+
+                        <div class="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors">
+                            <div class="flex items-center">
+                                <div class="bg-purple-100 p-2 rounded-lg mr-3">
+                                    <i class="fas fa-envelope text-purple-600"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold">सम्पर्क प्रणाली</h4>
+                                    <p class="text-sm text-gray-600">{{ $totalContacts ?? 0 }} सन्देशहरू, {{ $unreadContacts ?? 0 }} नपढिएका</p>
+                                </div>
+                            </div>
+                            <div class="text-purple-600">
+                                <i class="fas fa-check-circle text-xl"></i>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -518,6 +657,10 @@ document.addEventListener('DOMContentLoaded', function() {
             loadingIndicator.classList.add('hidden');
         }, 500);
     }
+
+    // Initialize real-time notification polling
+    checkNewMessages();
+    setInterval(checkNewMessages, 30000);
 });
 
 // Add hover effects to cards
@@ -571,6 +714,38 @@ async function clearDashboardCache() {
     }
 }
 
+// Real-time notification polling for new messages
+async function checkNewMessages() {
+    try {
+        const response = await fetch('/admin/dashboard/contacts-count');
+        const data = await response.json();
+        
+        if (data.unreadCount > 0) {
+            // Update notification badge
+            const badge = document.getElementById('notification-badge');
+            if (badge) {
+                badge.textContent = data.unreadCount;
+                badge.classList.remove('hidden');
+            }
+            
+            // Show desktop notification if permission granted
+            if (data.unreadCount > 0 && Notification.permission === 'granted') {
+                new Notification('नयाँ सम्पर्क सन्देश', {
+                    body: `तपाईंसँग ${data.unreadCount} नयाँ सन्देशहरू छन्`,
+                    icon: '/images/logo.png'
+                });
+            }
+        }
+    } catch (error) {
+        console.error('Error checking messages:', error);
+    }
+}
+
+// Request notification permission
+if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+}
+
 // Notification function
 function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
@@ -609,6 +784,44 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+// Mark contact as read
+async function markContactAsRead(contactId) {
+    try {
+        const response = await fetch(`/admin/contacts/${contactId}/mark-read`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            }
+        });
+
+        if (response.ok) {
+            // Update UI
+            const contactElement = document.querySelector(`[data-contact-id="${contactId}"]`);
+            if (contactElement) {
+                contactElement.classList.remove('bg-yellow-50', 'border-yellow-200');
+                contactElement.classList.add('bg-white');
+                
+                const icon = contactElement.querySelector('.fa-envelope');
+                if (icon) {
+                    icon.classList.remove('fa-envelope', 'text-yellow-600');
+                    icon.classList.add('fa-envelope-open', 'text-gray-600');
+                }
+                
+                const badge = contactElement.querySelector('.bg-red-500');
+                if (badge) {
+                    badge.remove();
+                }
+            }
+            
+            showNotification('सन्देश पढियोको रूपमा चिन्ह लगाइयो', 'success');
+        }
+    } catch (error) {
+        console.error('Error marking contact as read:', error);
+        showNotification('त्रुटि भयो', 'error');
+    }
+}
 </script>
 
 <style>
@@ -634,6 +847,33 @@ document.addEventListener('DOMContentLoaded', function() {
     to { transform: rotate(360deg); }
 }
 
+/* Notification badge styles */
+.notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #ef4444;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Contact status styles */
+.contact-unread {
+    background: #fef3c7;
+    border-color: #f59e0b;
+}
+
+.contact-read {
+    background: white;
+    border-color: #e5e7eb;
+}
+
 /* Responsive improvements */
 @media (max-width: 640px) {
     .grid-cols-2 {
@@ -642,6 +882,17 @@ document.addEventListener('DOMContentLoaded', function() {
     
     .stat-card {
         padding: 1rem;
+    }
+    
+    .contact-notification-bar .flex {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .contact-notification-bar .flex.space-x-2 {
+        margin-top: 1rem;
+        width: 100%;
+        justify-content: space-between;
     }
 }
 
@@ -654,6 +905,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
     .bg-gradient-to-r {
         background: white !important;
+    }
+    
+    .notification-badge {
+        display: none !important;
     }
 }
 </style>

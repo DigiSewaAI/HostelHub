@@ -21,13 +21,81 @@
                 </a>
                 @endrole
             </div>
-            <p class="text-muted">
-                @role('admin')
-                यहाँ तपाईंले आएका सम्पर्क सन्देशहरू व्यवस्थापन गर्न सक्नुहुन्छ।
-                @else
-                यहाँ तपाईंले आफ्नो होस्टलका लागि आएका सम्पर्क सन्देशहरू हेर्न सक्नुहुन्छ।
-                @endrole
-            </p>
+        </div>
+    </div>
+
+    <!-- ✅ IMPROVED: Compact and Attractive Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-left-primary shadow-sm h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                कुल सन्देश
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $contacts->total() }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-envelope fa-2x text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-left-warning shadow-sm h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                नपढिएका
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $unreadCount ?? 0 }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-envelope-open fa-2x text-warning"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-left-success shadow-sm h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                आजका सन्देश
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $todayCount ?? 0 }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar-day fa-2x text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card border-left-info shadow-sm h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                जवाफ दिइयो
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ $repliedCount ?? 0 }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-reply fa-2x text-info"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -40,13 +108,52 @@
                             <i class="fas fa-list me-2"></i> सम्पर्क सूची
                         </h5>
 
-                        <!-- Search Form -->
-                        <form action="{{ route('admin.contacts.search') }}" method="GET" class="input-group" style="max-width: 300px;">
-                            <input type="text" name="search" class="form-control" placeholder="नाम, इमेल वा विषय खोज्नुहोस्..." value="{{ request('search') }}">
-                            <button class="btn btn-outline-primary" type="submit">
-                                <i class="fas fa-search"></i>
-                            </button>
-                        </form>
+                        <div class="d-flex align-items-center gap-3">
+                            <!-- Filter Buttons -->
+                            <div class="btn-group" role="group">
+                                @php
+                                    $currentFilter = request('filter', 'all');
+                                    $currentSearch = request('search');
+                                @endphp
+                                
+                                <a href="{{ route('admin.contacts.index', ['filter' => 'all']) }}" 
+                                   class="btn btn-outline-primary {{ $currentFilter == 'all' ? 'active' : '' }}">
+                                    सबै सन्देशहरू
+                                </a>
+                                <a href="{{ route('admin.contacts.index', ['filter' => 'unread']) }}" 
+                                   class="btn btn-outline-warning {{ $currentFilter == 'unread' ? 'active' : '' }}">
+                                    नपढिएका
+                                </a>
+                                <a href="{{ route('admin.contacts.index', ['filter' => 'today']) }}" 
+                                   class="btn btn-outline-success {{ $currentFilter == 'today' ? 'active' : '' }}">
+                                    आजका
+                                </a>
+                                <a href="{{ route('admin.contacts.index', ['filter' => 'read']) }}" 
+                                   class="btn btn-outline-secondary {{ $currentFilter == 'read' ? 'active' : '' }}">
+                                    पढिएका
+                                </a>
+                            </div>
+
+                            <!-- ✅ FIXED: Search Form with Visible Button -->
+                            <form action="{{ route('admin.contacts.index') }}" method="GET" class="d-flex" style="max-width: 350px;">
+                                <div class="input-group">
+                                    <input type="text" name="search" class="form-control border-primary" 
+                                           placeholder="नाम, इमेल, विषय वा सन्देश खोज्नुहोस्..." 
+                                           value="{{ request('search') }}">
+                                    @if(request()->has('filter'))
+                                        <input type="hidden" name="filter" value="{{ request('filter') }}">
+                                    @endif
+                                    <button class="btn btn-primary" type="submit">
+                                        <i class="fas fa-search"></i> खोज्नुहोस्
+                                    </button>
+                                    @if(request()->has('search') || request()->has('filter'))
+                                        <a href="{{ route('admin.contacts.index') }}" class="btn btn-outline-danger">
+                                            <i class="fas fa-times"></i>
+                                        </a>
+                                    @endif
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
 
@@ -54,6 +161,13 @@
                     @if(session('success'))
                         <div class="alert alert-success alert-dismissible fade show m-3" role="alert">
                             <i class="fas fa-check-circle me-2"></i> {{ session('success') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    @endif
+
+                    @if(session('error'))
+                        <div class="alert alert-danger alert-dismissible fade show m-3" role="alert">
+                            <i class="fas fa-exclamation-circle me-2"></i> {{ session('error') }}
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     @endif
@@ -66,57 +180,122 @@
                                     <th><i class="fas fa-user me-1"></i> नाम</th>
                                     <th><i class="fas fa-envelope me-1"></i> इमेल</th>
                                     <th><i class="fas fa-phone me-1"></i> फोन</th>
-                                    <th><i class="fas fa-tag me-1"></i> विषय</th>
+                                    <th><i class="fas fa-home me-1"></i> होस्टल/कोठा</th>
+                                    <th><i class="fas fa-comment me-1"></i> वास्तविक सन्देश</th>
                                     <th><i class="fas fa-info-circle me-1"></i> स्थिति</th>
                                     <th class="text-center" style="width: 15%;"><i class="fas fa-cogs me-1"></i> क्रियाहरू</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @forelse($contacts as $contact)
-                                <tr>
-                                    <td class="text-center fw-bold">{{ $loop->iteration }}</td>
-                                    <td>{{ $contact->name }}</td>
-                                    <td><a href="mailto:{{ $contact->email }}" class="text-decoration-none">{{ $contact->email }}</a></td>
-                                    <td>{{ $contact->phone ?? '—' }}</td>
-                                    <td>{{ Str::limit($contact->subject, 30) }}</td>
+                                <tr class="{{ !$contact->is_read ? 'table-warning' : '' }}">
+                                    <td class="text-center fw-bold">{{ ($contacts->currentPage() - 1) * $contacts->perPage() + $loop->iteration }}</td>
                                     <td>
-                                        @if($contact->status == 'नयाँ' || $contact->status == 'pending')
-                                            <span class="badge bg-warning text-dark">
-                                                {{ $contact->status == 'नयाँ' ? 'नयाँ' : 'प्रतीक्षामा' }}
-                                            </span>
-                                        @elseif($contact->status == 'पढियो' || $contact->status == 'read')
-                                            <span class="badge bg-info">
-                                                {{ $contact->status == 'पढियो' ? 'पढियो' : 'पढिएको' }}
-                                            </span>
-                                        @elseif($contact->status == 'जवाफ दिइयो' || $contact->status == 'replied')
-                                            <span class="badge bg-success">जवाफ दिइयो</span>
+                                        <div class="d-flex align-items-center">
+                                            {{ $contact->name }}
+                                            @if(!$contact->is_read)
+                                                <span class="badge bg-warning ms-2">नयाँ</span>
+                                            @endif
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <a href="mailto:{{ $contact->email }}" class="text-decoration-none">
+                                            {{ $contact->email }}
+                                        </a>
+                                    </td>
+                                    <td>{{ $contact->phone ?? '—' }}</td>
+                                    <td>
+                                        @if($contact->hostel || $contact->room)
+                                            <div class="small">
+                                                @if($contact->hostel)
+                                                    <div><strong>होस्टल:</strong> {{ $contact->hostel->name }}</div>
+                                                @endif
+                                                @if($contact->room)
+                                                    <div><strong>कोठा:</strong> {{ $contact->room->room_number }}</div>
+                                                @else
+                                                    <div class="text-muted"><small>कोठा नखुलिएको</small></div>
+                                                @endif
+                                            </div>
                                         @else
-                                            <span class="badge bg-secondary">{{ $contact->status }}</span>
+                                            <span class="text-muted">—</span>
                                         @endif
                                     </td>
+                                    <td>
+                                        <div class="message-container">
+                                            <strong class="d-block text-primary">{{ $contact->subject }}</strong>
+                                            <small class="text-muted">{{ Str::limit($contact->message, 50) }}</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex flex-column gap-1">
+                                            @if($contact->is_read)
+                                                <span class="badge bg-success">पढियो</span>
+                                            @else
+                                                <span class="badge bg-warning text-dark">नपढिएको</span>
+                                            @endif
+                                            
+                                            @if($contact->status == 'replied' || $contact->status == 'जवाफ दिइयो')
+                                                <span class="badge bg-info">जवाफ दिइयो</span>
+                                            @endif
+                                        </div>
+                                    </td>
                                     <td class="text-center">
-                                        <a href="{{ route('admin.contacts.show', $contact->id) }}" class="btn btn-info btn-sm me-1" title="सन्देश हेर्नुहोस्">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                        <a href="{{ route('admin.contacts.edit', $contact->id) }}" class="btn btn-primary btn-sm me-1" title="सम्पादन गर्नुहोस्">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <form action="{{ route('admin.contacts.destroy', $contact->id) }}" method="POST" class="d-inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-danger btn-sm" title="मेटाउनुहोस्"
-                                                onclick="return confirm('के तपाईं यो सम्पर्क सन्देश स्थायी रूपमा मेटाउन चाहनुहुन्छ?')">
-                                                <i class="fas fa-trash-alt"></i>
-                                            </button>
-                                        </form>
+                                        <div class="btn-group" role="group">
+                                            <a href="{{ route('admin.contacts.show', $contact->id) }}" 
+                                               class="btn btn-info btn-sm me-1" 
+                                               title="सन्देश हेर्नुहोस्">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            
+                                            @if(!$contact->is_read)
+                                                <form action="{{ route('admin.contacts.update-status', $contact->id) }}" method="POST" class="d-inline">
+                                                    @csrf
+                                                    <input type="hidden" name="status" value="read">
+                                                    <button type="submit" class="btn btn-success btn-sm me-1" title="पढियो चिन्ह लगाउनुहोस्">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                </form>
+                                            @else
+                                                <form action="{{ route('admin.contacts.update-status', $contact->id) }}" method="POST" class="d-inline">
+                                                    @csrf
+                                                    <input type="hidden" name="status" value="unread">
+                                                    <button type="submit" class="btn btn-warning btn-sm me-1" title="नपढिएको चिन्ह लगाउनुहोस्">
+                                                        <i class="fas fa-envelope"></i>
+                                                    </button>
+                                                </form>
+                                            @endif
+                                            
+                                            <a href="{{ route('admin.contacts.edit', $contact->id) }}" 
+                                               class="btn btn-primary btn-sm me-1" 
+                                               title="सम्पादन गर्नुहोस्">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            
+                                            <form action="{{ route('admin.contacts.destroy', $contact->id) }}" method="POST" class="d-inline">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-danger btn-sm" 
+                                                        title="मेटाउनुहोस्"
+                                                        onclick="return confirm('के तपाईं यो सम्पर्क सन्देश स्थायी रूपमा मेटाउन चाहनुहुन्छ?')">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="7" class="text-center py-5">
+                                    <td colspan="8" class="text-center py-5">
                                         <i class="fas fa-inbox fa-3x text-muted d-block mb-3"></i>
                                         <h5 class="text-muted">कुनै सम्पर्क सन्देश फेला परेन</h5>
-                                        <p class="text-muted">तपाईंले नयाँ सम्पर्क थप्न सक्नुहुन्छ वा खोजी गर्न सक्नुहुन्छ।</p>
+                                        <p class="text-muted">
+                                            @if(request()->has('search') || request()->has('filter'))
+                                                तपाईंको खोजी वा फिल्टरको लागि कुनै परिणाम फेला परेन। 
+                                                <a href="{{ route('admin.contacts.index') }}" class="text-primary">सबै सन्देशहरू हेर्नुहोस्</a>
+                                            @else
+                                                अहिलेसम्म कुनै सम्पर्क सन्देश आएको छैन।
+                                            @endif
+                                        </p>
                                     </td>
                                 </tr>
                                 @endforelse
@@ -126,8 +305,14 @@
 
                     <!-- Pagination -->
                     @if($contacts->hasPages())
-                        <div class="card-footer bg-white d-flex justify-content-center">
-                            {{ $contacts->links() }}
+                        <div class="card-footer bg-white d-flex justify-content-between align-items-center flex-wrap">
+                            <div class="text-muted">
+                                देखाइएको: <strong>{{ $contacts->firstItem() ?? 0 }}</strong> देखि <strong>{{ $contacts->lastItem() ?? 0 }}</strong> 
+                                को <strong>{{ $contacts->total() }}</strong> मध्ये
+                            </div>
+                            <div>
+                                {{ $contacts->withQueryString()->links() }}
+                            </div>
                         </div>
                     @endif
                 </div>
@@ -135,4 +320,141 @@
         </div>
     </div>
 </div>
+@endsection
+
+@section('styles')
+<style>
+.message-container {
+    max-width: 200px;
+}
+.table-warning {
+    background-color: #fff3cd !important;
+}
+
+/* ✅ IMPROVED: Better Card Styles */
+.card {
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1) !important;
+}
+
+.border-left-primary {
+    border-left: 4px solid #4e73df !important;
+}
+.border-left-warning {
+    border-left: 4px solid #f6c23e !important;
+}
+.border-left-success {
+    border-left: 4px solid #1cc88a !important;
+}
+.border-left-info {
+    border-left: 4px solid #36b9cc !important;
+}
+
+.text-xs {
+    font-size: 0.7rem;
+}
+.text-gray-800 {
+    color: #5a5c69 !important;
+}
+
+/* ✅ FIXED: Search Button Visibility */
+.btn-primary {
+    background-color: #4e73df;
+    border-color: #4e73df;
+    color: white !important;
+}
+
+.btn-primary:hover {
+    background-color: #2e59d9;
+    border-color: #2653d4;
+}
+
+/* ✅ NEW: Better table styling */
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: #495057;
+}
+</style>
+@endsection
+
+@section('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-dismiss alerts after 5 seconds
+    setTimeout(function() {
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(function(alert) {
+            const bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+        });
+    }, 5000);
+
+    // Confirm before deleting
+    const deleteForms = document.querySelectorAll('form[action*="destroy"]');
+    deleteForms.forEach(function(form) {
+        form.addEventListener('submit', function(e) {
+            if (!confirm('के तपाईं निश्चित हुनुहुन्छ कि तपाईं यो सम्पर्क सन्देश मेटाउन चाहनुहुन्छ?')) {
+                e.preventDefault();
+            }
+        });
+    });
+
+    // Quick status update with AJAX
+    const statusForms = document.querySelectorAll('form[action*="update-status"]');
+    statusForms.forEach(function(form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const submitButton = form.querySelector('button[type="submit"]');
+            const originalText = submitButton.innerHTML;
+            
+            // Show loading
+            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            submitButton.disabled = true;
+            
+            fetch(form.action, {
+                method: 'POST',
+                body: new FormData(form),
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('स्थिति अपडेट गर्न असफल: ' + data.message);
+                    submitButton.innerHTML = originalText;
+                    submitButton.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('त्रुटि भयो। पुनः प्रयास गर्नुहोस्।');
+                submitButton.innerHTML = originalText;
+                submitButton.disabled = false;
+            });
+        });
+    });
+
+    // Enhanced search functionality
+    const searchForm = document.querySelector('form[action*="contacts"]');
+    const searchInput = searchForm.querySelector('input[name="search"]');
+    
+    searchInput.addEventListener('input', function() {
+        if (this.value.length > 2) {
+            // Auto-search after 3 characters (optional)
+            // searchForm.submit();
+        }
+    });
+});
+</script>
 @endsection

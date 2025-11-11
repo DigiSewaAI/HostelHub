@@ -30,6 +30,9 @@ Route::middleware(['auth', 'hasOrganization', 'role:owner,hostel_manager'])
         // Owner dashboard
         Route::get('/dashboard', [DashboardController::class, 'ownerDashboard'])->name('dashboard');
 
+        // ✅ ADDED: Contact counts API route for real-time notifications
+        Route::get('/dashboard/contacts-count', [DashboardController::class, 'getContactCounts'])->name('dashboard.contact-counts');
+
         // Owner Settings Routes
         Route::get('/settings', [OwnerSettingsController::class, 'index'])->name('settings');
         Route::prefix('settings')->name('settings.')->group(function () {
@@ -179,6 +182,14 @@ Route::middleware(['auth', 'hasOrganization', 'role:owner,hostel_manager'])
         Route::resource('contacts', ContactController::class);
         Route::get('contacts/search', [ContactController::class, 'search'])->name('contacts.search');
         Route::post('contacts/bulk-delete', [ContactController::class, 'bulkDestroy'])->name('contacts.bulk-delete');
-        Route::post('contacts/{id}/update-status', [ContactController::class, 'updateStatus'])->name('contacts.update-status');
+
+        // ✅ FIXED: Contact update status route - CORRECT NAME AND PARAMETER
+        Route::post('contacts/{contact}/update-status', [ContactController::class, 'updateStatus'])->name('contacts.update-status');
+
         Route::get('contacts/export/csv', [ContactController::class, 'exportCSV'])->name('contacts.export-csv');
+
+        // ✅ FIXED: Missing Contact Routes for Owner Dashboard Features
+        Route::post('contacts/{contact}/mark-read', [ContactController::class, 'markAsRead'])->name('contacts.mark-read');
+        Route::post('contacts/{contact}/mark-unread', [ContactController::class, 'markAsUnread'])->name('contacts.mark-unread');
+        Route::post('contacts/bulk-action', [ContactController::class, 'bulkAction'])->name('contacts.bulk-action');
     });

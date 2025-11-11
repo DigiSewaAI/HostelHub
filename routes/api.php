@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\DashboardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -15,3 +16,8 @@ use Illuminate\Support\Facades\Route;
 | external integrations, etc.), routes can be added here.
 |
 */
+
+// ✅ NEW: API route for contact counts (for real-time notifications)
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/dashboard/contacts-count', [DashboardController::class, 'getContactCounts']);
+});
