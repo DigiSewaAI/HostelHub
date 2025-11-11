@@ -16,8 +16,8 @@
     $featuredGalleries = $galleries->where('is_featured', true)->where('is_active', true);
     $activeGalleries = $galleries->where('is_active', true);
     
-    // Get available rooms
-    $availableRooms = $hostel->rooms->whereIn('status', ['उपलब्ध', 'आंशिक उपलब्ध']) ?? collect();
+    // Get available rooms - FIXED: Use proper status filtering
+    $availableRooms = $hostel->rooms->whereIn('status', ['available', 'partially_available']) ?? collect();
     
     // Count items by category for stats
     $categoryCounts = [
@@ -34,7 +34,7 @@
             return in_array($gallery->category, ['1 seater', '2 seater', '3 seater', '4 seater', 'other']);
         });
     
-    // FIXED: Ensure all values are integers, not collections
+    // 🚨 FIXED: Calculate counts from actual available rooms data
     $availableRoomCounts = [
         '1 seater' => $availableRooms->where('type', '1 seater')->count(),
         '2 seater' => $availableRooms->where('type', '2 seater')->count(),
@@ -43,7 +43,7 @@
         'other' => $availableRooms->whereNotIn('type', ['1 seater', '2 seater', '3 seater', '4 seater'])->count()
     ];
 
-    // Calculate available beds for each room type
+    // 🚨 FIXED: Calculate available beds for each room type from actual data
     $availableBedsCounts = [
         '1 seater' => $availableRooms->where('type', '1 seater')->sum('available_beds'),
         '2 seater' => $availableRooms->where('type', '2 seater')->sum('available_beds'),
@@ -67,10 +67,7 @@
 @endphp
 
 <style>
-    /* 🚨 CRITICAL: Remove duplicate header protection */
-    .page-header {
-        display: none !important;
-    }
+    /* 🚨 REMOVED: Duplicate header protection - Header will show normally now */
     
     /* Gallery Specific Styles */
     .gallery-section {
@@ -223,7 +220,7 @@
     .hero-stats-section {
         background: linear-gradient(135deg, var(--primary), var(--secondary));
         color: white;
-        padding: 60px 0 40px;
+        padding: 100px 0 40px; /* Increased top padding for header */
         margin-top: 0;
     }
     
@@ -364,7 +361,7 @@
         color: white !important;
     }
     
-    /* Modal Styles */
+    /* 🚨 FIXED: Modal Styles - Compact and better layout */
     .gallery-modal {
         display: none;
         position: fixed;
@@ -377,21 +374,38 @@
         justify-content: center;
         align-items: center;
         padding: 20px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
     }
     
     .modal-content {
-        max-width: 90%;
-        max-height: 90%;
+        max-width: 800px;
+        max-height: 85vh; /* Reduced from 90vh to 85vh */
+        width: 90%;
         position: relative;
-        border-radius: var(--radius);
+        border-radius: 12px;
         overflow: hidden;
-        background: black;
+        background: white;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
     }
     
-    .modal-content img, .modal-content video {
+    .modal-image-container {
+        flex: 1;
+        background: #000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        max-height: 65vh; /* Increased image space */
+        min-height: 50vh;
+        overflow: hidden;
+    }
+    
+    .modal-image-container img {
         width: 100%;
-        height: auto;
-        display: block;
+        height: 100%;
+        object-fit: contain;
     }
     
     .close-modal {
@@ -410,6 +424,7 @@
         align-items: center;
         z-index: 10;
         transition: background 0.3s;
+        border: none;
     }
     
     .close-modal:hover {
@@ -417,19 +432,60 @@
     }
     
     .modal-caption {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: rgba(0, 0, 0, 0.8);
-        color: white;
-        padding: 20px;
-        transform: translateY(100%);
-        transition: transform 0.3s;
+        background: white;
+        color: #333;
+        padding: 20px; /* Reduced padding */
+        border-top: 1px solid #e5e7eb;
+        max-height: 30vh; /* Limit caption height */
+        overflow-y: auto; /* Scroll if content is too long */
     }
     
-    .modal-content:hover .modal-caption {
-        transform: translateY(0);
+    .modal-caption h3 {
+        color: var(--text-dark);
+        margin-bottom: 8px; /* Reduced margin */
+        font-size: 1.3rem; /* Slightly smaller */
+        font-weight: 600;
+    }
+    
+    .modal-caption p {
+        color: var(--text-dark);
+        margin-bottom: 12px; /* Reduced margin */
+        line-height: 1.4; /* Tighter line height */
+        font-size: 0.95rem; /* Slightly smaller font */
+    }
+    
+    .modal-room-details {
+        color: var(--text-dark);
+        margin-bottom: 15px; /* Reduced margin */
+        line-height: 1.5;
+        background: #f8f9fa;
+        padding: 12px; /* Reduced padding */
+        border-radius: 6px;
+        border-left: 4px solid var(--primary);
+        font-size: 0.9rem; /* Smaller font for details */
+    }
+    
+    .modal-book-button {
+        display: block;
+        width: 100%;
+        padding: 10px 20px; /* Slightly reduced padding */
+        background: var(--primary);
+        color: white;
+        text-align: center;
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: 600;
+        font-size: 0.95rem; /* Slightly smaller */
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+    
+    .modal-book-button:hover {
+        background: var(--secondary);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
     
     /* 🚨 UPDATED: CTA SECTION - EXACTLY LIKE ABOUT PAGE */
@@ -548,7 +604,7 @@
         }
         
         .hero-stats-section {
-            padding: 50px 0 30px;
+            padding: 80px 0 30px; /* Adjusted for mobile */
         }
         
         .hero-title {
@@ -571,6 +627,43 @@
 
         .available-rooms-section {
             padding: 50px 0 30px;
+        }
+        
+        /* Modal responsive - More compact on mobile */
+        .modal-content {
+            width: 95%;
+            max-height: 90vh; /* Slightly smaller on mobile */
+        }
+        
+        .modal-image-container {
+            max-height: 55vh; /* More space for image on mobile */
+        }
+        
+        .modal-caption {
+            padding: 15px; /* Even more compact on mobile */
+            max-height: 35vh; /* Allow more space for content on mobile */
+        }
+        
+        .modal-caption h3 {
+            font-size: 1.2rem;
+            margin-bottom: 6px;
+        }
+        
+        .modal-caption p {
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+        
+        .modal-room-details {
+            padding: 10px;
+            font-size: 0.85rem;
+            margin-bottom: 12px;
+        }
+        
+        .modal-book-button {
+            padding: 8px 16px;
+            font-size: 0.9rem;
         }
         
         /* CTA Responsive */
@@ -627,7 +720,7 @@
         }
         
         .hero-stats-section {
-            padding: 40px 0 20px;
+            padding: 70px 0 20px; /* Adjusted for small mobile */
         }
 
         .stats-grid {
@@ -637,6 +730,39 @@
         
         .stat-item {
             padding: 20px 15px;
+        }
+        
+        /* Modal mobile - Ultra compact */
+        .modal-content {
+            width: 98%;
+            max-height: 95vh;
+        }
+        
+        .modal-image-container {
+            max-height: 50vh;
+        }
+        
+        .modal-caption {
+            padding: 12px;
+            max-height: 45vh; /* More space for content on small screens */
+        }
+        
+        .modal-caption h3 {
+            font-size: 1.1rem;
+        }
+        
+        .modal-caption p {
+            font-size: 0.85rem;
+        }
+        
+        .modal-room-details {
+            font-size: 0.8rem;
+            padding: 8px;
+        }
+        
+        .modal-book-button {
+            padding: 8px 12px;
+            font-size: 0.85rem;
         }
         
         /* CTA Mobile */
@@ -678,12 +804,8 @@
             <div class="stat-item">
                 <span class="stat-count">{{ $availableRoomCounts[$englishType] ?? 0 }}</span>
                 <span class="stat-label nepali">{{ $nepaliType }}</span>
-                @if(isset($availableRoomCounts[$englishType]) && $availableRoomCounts[$englishType] > 0)
-                    @php
-                        $roomsOfType = $hostel->rooms->where('type', $englishType);
-                        $totalAvailableBeds = $roomsOfType->sum('available_beds');
-                    @endphp
-                    <span class="stat-subtext nepali">({{ $totalAvailableBeds }} बेड खाली)</span>
+                @if(isset($availableBedsCounts[$englishType]) && $availableBedsCounts[$englishType] > 0)
+                    <span class="stat-subtext nepali">({{ $availableBedsCounts[$englishType] }} बेड खाली)</span>
                 @else
                     <span class="stat-subtext nepali">(कुनै बेड खाली छैन)</span>
                 @endif
@@ -708,10 +830,7 @@
                     @php
                         $roomCategory = $gallery->category;
                         $availableCount = $availableRoomCounts[$roomCategory] ?? 0;
-                        
-                        // Find the room associated with this gallery
-                        $room = $hostel->rooms->where('type', $roomCategory)->first();
-                        $availableBeds = $room ? $room->available_beds : 0;
+                        $availableBeds = $availableBedsCounts[$roomCategory] ?? 0;
                     @endphp
                     
                     <div class="gallery-item">
@@ -822,16 +941,18 @@
     </section>
 </div>
 
-<!-- Room Detail Modal -->
+<!-- 🚨 FIXED: Room Detail Modal - Compact and better layout -->
 <div class="gallery-modal" id="roomModal">
     <div class="modal-content">
-        <span class="close-modal" onclick="closeModal()">&times;</span>
-        <img id="modalRoomImage" src="" alt="">
+        <button class="close-modal" onclick="closeModal()">&times;</button>
+        <div class="modal-image-container">
+            <img id="modalRoomImage" src="" alt="">
+        </div>
         <div class="modal-caption">
             <h3 id="modalRoomTitle" class="nepali"></h3>
             <p id="modalRoomDescription" class="nepali"></p>
-            <div id="modalRoomDetails" class="nepali" style="margin-top: 10px;"></div>
-            <a href="#" id="modalBookButton" class="btn btn-accent nepali" style="margin-top: 15px;">
+            <div id="modalRoomDetails" class="modal-room-details nepali"></div>
+            <a href="#" id="modalBookButton" class="modal-book-button nepali">
                 यो कोठा बुक गर्नुहोस्
             </a>
         </div>
@@ -839,69 +960,110 @@
 </div>
 
 <script>
-    // Room gallery data
+    // Room gallery data - FIXED: Proper JSON encoding for Nepali text
     const roomGalleryData = {
         @foreach($availableRoomGalleries as $gallery)
         '{{ $gallery->id }}': {
-            title: '{{ $gallery->title }}',
-            description: '{{ $gallery->description }}',
-            media_url: '{{ $gallery->media_url }}',
-            room_type: '{{ $gallery->category }}',
+            title: `{{ addslashes($gallery->title) }}`,
+            description: `{{ addslashes($gallery->description) }}`,
+            media_url: `{{ $gallery->media_url }}`,
+            room_type: `{{ $gallery->category }}`,
             available_count: {{ $availableRoomCounts[$gallery->category] ?? 0 }},
-            nepali_type: {
-                '1 seater': '१ सिटर',
-                '2 seater': '२ सिटर',
-                '3 seater': '३ सिटर', 
-                '4 seater': '४ सिटर',
-                'other': 'अन्य (५+ सिटर)'
-            }['{{ $gallery->category }}'] || '{{ $gallery->category }}'
-        },
+            available_beds: {{ $availableBedsCounts[$gallery->category] ?? 0 }},
+            nepali_type: `{{ $nepaliRoomTypes[$gallery->category] ?? $gallery->category }}`
+        }@if(!$loop->last),@endif
         @endforeach
     };
 
+    // FIXED: Modal open function with better error handling
     function openRoomModal(galleryId) {
-        const room = roomGalleryData[galleryId];
-        if (!room) return;
-
-        document.getElementById('roomModal').style.display = 'flex';
-        document.getElementById('modalRoomImage').src = room.media_url;
-        document.getElementById('modalRoomTitle').textContent = room.title;
-        document.getElementById('modalRoomDescription').textContent = room.description;
+        console.log('Opening modal for gallery ID:', galleryId); // Debug log
         
-        // Room details
+        const room = roomGalleryData[galleryId];
+        if (!room) {
+            console.error('Room data not found for ID:', galleryId);
+            return;
+        }
+
+        const modal = document.getElementById('roomModal');
+        const modalImage = document.getElementById('modalRoomImage');
+        const modalTitle = document.getElementById('modalRoomTitle');
+        const modalDescription = document.getElementById('modalRoomDescription');
+        const modalDetails = document.getElementById('modalRoomDetails');
+        const modalBookButton = document.getElementById('modalBookButton');
+
+        // Set modal content
+        modalImage.src = room.media_url;
+        modalImage.alt = room.title;
+        modalTitle.textContent = room.title;
+        modalDescription.textContent = room.description;
+        
+        // Room details with Nepali text
         const detailsHtml = `
             <strong>कोठाको प्रकार:</strong> ${room.nepali_type}<br>
-            <strong>उपलब्धता:</strong> ${room.available_count} कोठा उपलब्ध
+            <strong>उपलब्ध कोठा:</strong> ${room.available_count} वटा<br>
+            <strong>खाली बेड:</strong> ${room.available_beds} वटा
         `;
-        document.getElementById('modalRoomDetails').innerHTML = detailsHtml;
+        modalDetails.innerHTML = detailsHtml;
         
-        // Book button
-        document.getElementById('modalBookButton').href = 
-            "{{ route('contact') }}?room_type=" + room.room_type + "&hostel={{ $hostel->slug }}";
+        // Book button link
+        modalBookButton.href = "{{ route('contact') }}?room_type=" + room.room_type + "&hostel={{ $hostel->slug }}";
+
+        // Show modal with animation
+        modal.style.display = 'flex';
+        setTimeout(() => {
+            modal.style.opacity = '1';
+        }, 10);
+        
+        // Prevent body scroll when modal is open
+        document.body.style.overflow = 'hidden';
     }
     
+    // FIXED: Better modal close function
     function closeModal() {
-        document.getElementById('roomModal').style.display = 'none';
+        const modal = document.getElementById('roomModal');
+        modal.style.opacity = '0';
+        setTimeout(() => {
+            modal.style.display = 'none';
+            // Restore body scroll
+            document.body.style.overflow = 'auto';
+        }, 300);
     }
     
-    // Close modal when clicking outside the content
-    window.addEventListener('click', function(event) {
-        const roomModal = document.getElementById('roomModal');
+    // FIXED: Close modal when clicking outside the content
+    document.addEventListener('click', function(event) {
+        const modal = document.getElementById('roomModal');
+        const modalContent = document.querySelector('.modal-content');
         
-        if (event.target === roomModal) {
-            roomModal.style.display = 'none';
+        if (event.target === modal) {
+            closeModal();
         }
     });
     
-    // Close modal with Escape key
+    // FIXED: Close modal with Escape key
     document.addEventListener('keydown', function(event) {
         if (event.key === 'Escape') {
             closeModal();
         }
     });
 
-    // Simple gallery item hover effect
+    // FIXED: Add error handling for images
     document.addEventListener('DOMContentLoaded', function() {
+        // Handle broken images in gallery
+        const galleryImages = document.querySelectorAll('.gallery-item img');
+        galleryImages.forEach(img => {
+            img.addEventListener('error', function() {
+                this.src = '{{ asset("images/default-room.jpg") }}';
+            });
+        });
+
+        // Handle broken images in modal
+        const modalImage = document.getElementById('modalRoomImage');
+        modalImage.addEventListener('error', function() {
+            this.src = '{{ asset("images/default-room.jpg") }}';
+        });
+
+        // Simple gallery item hover effect
         const galleryItems = document.querySelectorAll('.gallery-item');
         
         galleryItems.forEach(item => {

@@ -68,7 +68,12 @@ class DashboardController extends Controller
                 $totalStudents = Student::count();
                 $totalRooms = Room::count();
                 $totalHostels = Hostel::count();
+
+                // ✅ FIXED: Contact Statistics - Remove hostel filtering for admin
                 $totalContacts = Contact::count();
+                $unreadContacts = Contact::where('is_read', false)->count();
+                $todayContacts = Contact::whereDate('created_at', today())->count();
+
                 $totalDocuments = StudentDocument::count();
                 $totalCirculars = Circular::count();
 
@@ -109,9 +114,10 @@ class DashboardController extends Controller
                     ->take(5)
                     ->get();
 
-                $recentContacts = Contact::select('id', 'name', 'message', 'created_at')
+                // ✅ FIXED: Recent contacts without hostel filtering
+                $recentContacts = Contact::select('id', 'name', 'email', 'subject', 'message', 'is_read', 'created_at')
                     ->latest('created_at')
-                    ->take(5)
+                    ->take(8)
                     ->get();
 
                 $recentHostels = Hostel::withCount('rooms')
@@ -139,6 +145,8 @@ class DashboardController extends Controller
                     'total_rooms' => $totalRooms,
                     'total_hostels' => $totalHostels,
                     'total_contacts' => $totalContacts,
+                    'unread_contacts' => $unreadContacts,
+                    'today_contacts' => $todayContacts,
                     'total_documents' => $totalDocuments,
                     'total_circulars' => $totalCirculars,
                     'room_occupancy' => $roomOccupancy,
@@ -159,12 +167,19 @@ class DashboardController extends Controller
                 ];
             });
 
-            // Pass circular data to view
+            // Pass all data to view
             $totalCirculars = $metrics['total_circulars'] ?? 0;
             $publishedCirculars = $metrics['published_circulars'] ?? 0;
             $urgentCirculars = $metrics['urgent_circulars'] ?? 0;
             $circularReadRate = $metrics['circular_read_rate'] ?? 0;
             $recentCirculars = $metrics['recent_circulars'] ?? collect();
+
+            // ✅ FIXED: Contact data for view
+            $totalContacts = $metrics['total_contacts'] ?? 0;
+            $unreadContacts = $metrics['unread_contacts'] ?? 0;
+            $todayContacts = $metrics['today_contacts'] ?? 0;
+            $recentContacts = $metrics['recent_contacts'] ?? collect();
+
             $recentActivities = $this->getRecentActivities($metrics);
 
             return view('admin.dashboard', compact(
@@ -174,7 +189,12 @@ class DashboardController extends Controller
                 'urgentCirculars',
                 'circularReadRate',
                 'recentCirculars',
-                'recentActivities'
+                'recentActivities',
+                // ✅ FIXED: Contact variables
+                'totalContacts',
+                'unreadContacts',
+                'todayContacts',
+                'recentContacts'
             ));
         } catch (\Exception $e) {
             // Log error details for debugging
@@ -194,6 +214,8 @@ class DashboardController extends Controller
                     'total_rooms' => 0,
                     'total_hostels' => 0,
                     'total_contacts' => 0,
+                    'unread_contacts' => 0,
+                    'today_contacts' => 0,
                     'total_documents' => 0,
                     'total_circulars' => 0,
                     'room_occupancy' => 0,
@@ -217,6 +239,11 @@ class DashboardController extends Controller
                 'circularReadRate' => 0,
                 'recentCirculars' => collect(),
                 'recentActivities' => collect(),
+                // ✅ FIXED: Contact variables with defaults
+                'totalContacts' => 0,
+                'unreadContacts' => 0,
+                'todayContacts' => 0,
+                'recentContacts' => collect(),
                 'error' => 'ड्यासबोर्ड डाटा लोड गर्न सकिएन। कृपया पछि प्रयास गर्नुहोस् वा समर्थन सम्पर्क गर्नुहोस्।'
             ]);
         }
@@ -345,11 +372,6 @@ class DashboardController extends Controller
     public function ownerDashboard()
     {
         try {
-            // ✅ CRITICAL FIX: Remove duplicate role check - route middleware handles this
-            // if (!auth()->user()->hasRole('hostel_manager')) {
-            //     abort(403, 'तपाईंसँग यो पृष्ठमा पहुँच गर्ने अनुमति छैन');
-            // }
-
             // Get the authenticated user
             $user = auth()->user();
 
@@ -384,6 +406,14 @@ class DashboardController extends Controller
                     'todayCirculars' => 0,
                     'circularReadRate' => 0,
                     'studentEngagement' => 0,
+                    // ✅ FIXED: Contact Statistics - Remove hostel filtering
+                    'totalContacts' => Contact::count(),
+                    'unreadContacts' => Contact::where('is_read', false)->count(),
+                    'todayContacts' => Contact::whereDate('created_at', today())->count(),
+                    'recentContacts' => Contact::select('id', 'name', 'email', 'subject', 'message', 'is_read', 'created_at')
+                        ->latest('created_at')
+                        ->take(6)
+                        ->get(),
                 ]);
             }
 
@@ -428,6 +458,15 @@ class DashboardController extends Controller
                 ->count();
             $circularReadRate = $this->calculateOrganizationReadRate($organization->id);
             $studentEngagement = $this->calculateStudentEngagement($organization->id);
+
+            // ✅ FIXED: Contact Statistics for Owner Dashboard - Remove hostel filtering
+            $totalContacts = Contact::count();
+            $unreadContacts = Contact::where('is_read', false)->count();
+            $todayContacts = Contact::whereDate('created_at', today())->count();
+            $recentContacts = Contact::select('id', 'name', 'email', 'subject', 'message', 'is_read', 'created_at')
+                ->latest('created_at')
+                ->take(6)
+                ->get();
 
             // Financial calculations
             $totalMonthlyRevenue = $hostels->sum('monthly_rent');
@@ -479,7 +518,12 @@ class DashboardController extends Controller
                 // ✅ NEW: Circular Engagement Stats
                 'todayCirculars',
                 'circularReadRate',
-                'studentEngagement'
+                'studentEngagement',
+                // ✅ FIXED: Contact Statistics
+                'totalContacts',
+                'unreadContacts',
+                'todayContacts',
+                'recentContacts'
             ));
         } catch (\Exception $e) {
             Log::error('होस्टेल मालिक ड्यासबोर्ड त्रुटि: ' . $e->getMessage(), [
@@ -512,6 +556,14 @@ class DashboardController extends Controller
                 'todayCirculars' => 0,
                 'circularReadRate' => 0,
                 'studentEngagement' => 0,
+                // ✅ FIXED: Contact Statistics
+                'totalContacts' => Contact::count(),
+                'unreadContacts' => Contact::where('is_read', false)->count(),
+                'todayContacts' => Contact::whereDate('created_at', today())->count(),
+                'recentContacts' => Contact::select('id', 'name', 'email', 'subject', 'message', 'is_read', 'created_at')
+                    ->latest('created_at')
+                    ->take(6)
+                    ->get(),
             ]);
         }
     }
@@ -685,6 +737,9 @@ class DashboardController extends Controller
             $newRooms = Room::whereBetween('created_at', [$startDate, $endDate])->count();
             $newHostels = Hostel::whereBetween('created_at', [$startDate, $endDate])->count();
 
+            // ✅ NEW: Contact statistics for date range
+            $newContacts = Contact::whereBetween('created_at', [$startDate, $endDate])->count();
+
             // Room occupancy trend data with optimized query
             $occupancyTrend = Room::select(
                 DB::raw('DATE(created_at) as date'),
@@ -714,14 +769,26 @@ class DashboardController extends Controller
                 ->orderBy('date')
                 ->get();
 
+            // ✅ NEW: Contact trend data
+            $contactTrend = Contact::select(
+                DB::raw('DATE(created_at) as date'),
+                DB::raw('COUNT(*) as count')
+            )
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->groupBy('date')
+                ->orderBy('date')
+                ->get();
+
             return response()->json([
                 'success' => true,
                 'data' => [
                     'new_students' => $newStudents,
                     'new_rooms' => $newRooms,
                     'new_hostels' => $newHostels,
+                    'new_contacts' => $newContacts,
                     'occupancy_trend' => $occupancyTrend,
                     'student_trend' => $studentTrend,
+                    'contact_trend' => $contactTrend,
                 ]
             ]);
         } catch (\Exception $e) {
@@ -756,6 +823,72 @@ class DashboardController extends Controller
                 'success' => false,
                 'message' => 'क्यास मेटाउन असफल भयो'
             ], 500);
+        }
+    }
+
+    /**
+     * ✅ FIXED: Get contact counts for real-time notifications - Remove hostel filtering
+     */
+    public function getContactCounts()
+    {
+        try {
+            $user = auth()->user();
+
+            // For admin and owner, show all contacts without hostel filtering
+            if ($user->hasRole('admin') || $user->hasRole('hostel_manager')) {
+                $unreadCount = Contact::where('is_read', false)->count();
+                $todayCount = Contact::whereDate('created_at', today())->count();
+            }
+            // For other roles, show 0
+            else {
+                $unreadCount = 0;
+                $todayCount = 0;
+            }
+
+            return response()->json([
+                'success' => true,
+                'unreadCount' => $unreadCount,
+                'todayCount' => $todayCount
+            ]);
+        } catch (\Exception $e) {
+            Log::error('सम्पर्क गणना प्राप्त गर्न असफल: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'unreadCount' => 0,
+                'todayCount' => 0
+            ]);
+        }
+    }
+
+    /**
+     * ✅ FIXED: Get filtered contacts for contact index page
+     */
+    public function getFilteredContacts(Request $request)
+    {
+        try {
+            $filter = $request->input('filter', 'all');
+
+            $query = Contact::query();
+
+            switch ($filter) {
+                case 'unread':
+                    $query->where('is_read', false);
+                    break;
+                case 'today':
+                    $query->whereDate('created_at', today());
+                    break;
+                case 'read':
+                    $query->where('is_read', true);
+                    break;
+                    // 'all' shows everything
+            }
+
+            $contacts = $query->latest()->paginate(10);
+
+            return view('admin.contacts.index', compact('contacts', 'filter'));
+        } catch (\Exception $e) {
+            Log::error('Contact filter error: ' . $e->getMessage());
+            return redirect()->route('admin.contacts.index')->with('error', 'Filter applied गर्न असफल');
         }
     }
 }

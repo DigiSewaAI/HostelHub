@@ -31,12 +31,25 @@ Route::middleware(['auth', 'hasOrganization', 'role:admin'])
         Route::get('/dashboard', [DashboardController::class, 'adminDashboard'])->name('dashboard');
         Route::post('/dashboard/clear-cache', [DashboardController::class, 'clearCache'])->name('dashboard.clear-cache');
 
-        // Admin Resources
+        // ✅ NEW: Contact counts API route for real-time notifications
+        Route::get('/dashboard/contacts-count', [DashboardController::class, 'getContactCounts'])->name('dashboard.contacts-count');
+
+        // Admin Resources - Contact Routes
         Route::resource('contacts', ContactController::class);
         Route::get('/contacts/search', [ContactController::class, 'search'])->name('contacts.search');
+        // ✅ ADDED: Contact filter route for dashboard features
+        Route::get('/contacts/filter', [ContactController::class, 'getFilteredContacts'])->name('contacts.filter');
         Route::post('/contacts/bulk-delete', [ContactController::class, 'bulkDestroy'])->name('contacts.bulk-delete');
+
+        // ✅ CRITICAL FIX: Correct route name from update-status to updateStatus
         Route::post('/contacts/{id}/update-status', [ContactController::class, 'updateStatus'])->name('contacts.update-status');
+
         Route::get('/contacts/export/csv', [ContactController::class, 'exportCSV'])->name('contacts.export-csv');
+
+        // ✅ NEW: Missing Contact Routes for Dashboard Features
+        Route::post('/contacts/{contact}/mark-read', [ContactController::class, 'markAsRead'])->name('contacts.mark-read');
+        Route::post('/contacts/{contact}/mark-unread', [ContactController::class, 'markAsUnread'])->name('contacts.mark-unread');
+        Route::post('/contacts/bulk-action', [ContactController::class, 'bulkAction'])->name('contacts.bulk-action');
 
         Route::resource('galleries', GalleryController::class);
         Route::post('/galleries/{gallery}/toggle-status', [GalleryController::class, 'toggleStatus'])
@@ -46,7 +59,7 @@ Route::middleware(['auth', 'hasOrganization', 'role:admin'])
 
         // Meal Routes
         Route::resource('meals', MealController::class);
-        Route::get('/meals/search', [MealController::class, 'search'])->name('meals.search');
+        Route::get('/meals/search', [ContactController::class, 'search'])->name('meals.search');
 
         Route::resource('reviews', AdminReviewController::class);
 

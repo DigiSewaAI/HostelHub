@@ -9,10 +9,14 @@
     <div class="contact-grid">
         {{-- Contact Form --}}
         <div class="contact-form-container">
+            {{-- ✅ FIXED: Auto-hide Success Message --}}
             @if(session('success'))
-                <div class="success-message">
+                <div id="successAlert" class="success-message alert-show">
                     <i class="fas fa-check-circle"></i>
                     {{ session('success') }}
+                    <button type="button" class="close-alert" onclick="hideAlert()">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
             @endif
 
@@ -27,11 +31,11 @@
                 </div>
             @endif
 
-            <form method="POST" action="{{ route('contact.store') }}" class="contact-form">
+            <form method="POST" action="{{ route('contact.store') }}" class="contact-form" id="contactForm">
                 @csrf
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="name" class="form-label">नाम</label>
+                        <label for="name" class="form-label">नाम *</label>
                         <input 
                             type="text" 
                             id="name"
@@ -39,11 +43,11 @@
                             value="{{ old('name') }}" 
                             required 
                             class="form-input"
-                            placeholder="तपाईंको नाम"
+                            placeholder="तपाईंको पूरा नाम"
                         >
                     </div>
                     <div class="form-group">
-                        <label for="email" class="form-label">इमेल</label>
+                        <label for="email" class="form-label">इमेल *</label>
                         <input 
                             type="email" 
                             id="email"
@@ -57,7 +61,32 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="message" class="form-label">सन्देश</label>
+                    <label for="phone" class="form-label">फोन नम्बर</label>
+                    <input 
+                        type="tel" 
+                        id="phone"
+                        name="phone" 
+                        value="{{ old('phone') }}" 
+                        class="form-input"
+                        placeholder="तपाईंको फोन नम्बर"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="subject" class="form-label">विषय *</label>
+                    <input 
+                        type="text" 
+                        id="subject"
+                        name="subject" 
+                        value="{{ old('subject') }}" 
+                        required 
+                        class="form-input"
+                        placeholder="सन्देशको विषय"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="message" class="form-label">सन्देश *</label>
                     <textarea 
                         id="message"
                         name="message" 
@@ -69,8 +98,8 @@
                 </div>
 
                 <div class="form-submit">
-                    <button type="submit" class="submit-button">
-                        <i class="fas fa-paper-plane"></i> पठाउनुहोस्
+                    <button type="submit" class="submit-button" id="submitBtn">
+                        <i class="fas fa-paper-plane"></i> सन्देश पठाउनुहोस्
                     </button>
                 </div>
             </form>
@@ -132,6 +161,7 @@
         padding: 2rem;
         border-radius: var(--radius);
         box-shadow: var(--shadow);
+        position: relative;
     }
     
     .form-row {
@@ -243,15 +273,49 @@
         margin: 0;
     }
     
+    /* ✅ FIXED: Success Message Styles */
     .success-message {
         background: #d4edda;
         color: #155724;
-        padding: 1rem;
+        padding: 1rem 1rem 1rem 3rem;
         border-radius: var(--radius);
         margin-bottom: 1.5rem;
         display: flex;
         align-items: center;
         gap: 0.5rem;
+        position: relative;
+        border-left: 4px solid #28a745;
+        animation: slideIn 0.5s ease-out;
+    }
+    
+    .success-message::before {
+        content: '✓';
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 1.2rem;
+        font-weight: bold;
+    }
+    
+    .close-alert {
+        background: none;
+        border: none;
+        color: #155724;
+        cursor: pointer;
+        padding: 0.25rem;
+        margin-left: auto;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.3s;
+    }
+    
+    .close-alert:hover {
+        background-color: rgba(0, 0, 0, 0.1);
     }
     
     .error-message {
@@ -260,11 +324,39 @@
         padding: 1rem;
         border-radius: var(--radius);
         margin-bottom: 1.5rem;
+        border-left: 4px solid #dc3545;
     }
     
     .error-message ul {
         margin: 0;
         padding-left: 1.5rem;
+    }
+    
+    /* Animations */
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes slideOut {
+        from {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        to {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+    }
+    
+    .alert-hide {
+        animation: slideOut 0.5s ease-in forwards;
     }
     
     /* Responsive Design */
@@ -289,4 +381,68 @@
         }
     }
 </style>
+
+<script>
+// ✅ FIXED: Auto-hide success message
+document.addEventListener('DOMContentLoaded', function() {
+    const successAlert = document.getElementById('successAlert');
+    
+    if (successAlert) {
+        // Auto hide after 5 seconds
+        setTimeout(() => {
+            hideAlert();
+        }, 5000);
+        
+        // Hide on close button click
+        const closeBtn = successAlert.querySelector('.close-alert');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', hideAlert);
+        }
+    }
+    
+    // Form submission handling
+    const contactForm = document.getElementById('contactForm');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    if (contactForm) {
+        contactForm.addEventListener('submit', function() {
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> पठाइदै...';
+            }
+        });
+    }
+});
+
+function hideAlert() {
+    const alert = document.getElementById('successAlert');
+    if (alert) {
+        alert.classList.add('alert-hide');
+        setTimeout(() => {
+            alert.remove();
+        }, 500);
+    }
+}
+
+{{-- public contact form मा यो hidden field थप्नुहोस् --}}
+@if(isset($room) && $room)
+    <input type="hidden" name="room_id" value="{{ $room->id }}">
+    <input type="hidden" name="hostel_id" value="{{ $room->hostel_id }}">
+@endif
+
+// Form validation
+function validateForm() {
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const subject = document.getElementById('subject').value.trim();
+    const message = document.getElementById('message').value.trim();
+    
+    if (!name || !email || !subject || !message) {
+        alert('कृपया सबै आवश्यक फिल्डहरू भर्नुहोस्');
+        return false;
+    }
+    
+    return true;
+}
+</script>
 @endsection
