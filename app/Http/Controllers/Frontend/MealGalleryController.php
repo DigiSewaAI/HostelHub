@@ -4,29 +4,46 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Models\MealMenu;
+use App\Models\Hostel;
 use Illuminate\Http\Request;
 
 class MealGalleryController extends Controller
 {
     public function index(Request $request)
     {
-        $search = $request->get('search');
-        $type = $request->get('type');
+        $query = MealMenu::with('hostel')
+            ->where('is_active', true);
 
-        $mealMenus = MealMenu::with('hostel')
-            ->where('is_active', true)
-            ->when($search, function ($query) use ($search) {
-                return $query->where('description', 'like', "%{$search}%")
-                    ->orWhereHas('hostel', function ($q) use ($search) {
-                        $q->where('name', 'like', "%{$search}%");
+        // Filter by meal type
+        if ($request->filled('type') && $request->type != 'all') {
+            $query->where('meal_type', $request->type);
+        }
+
+        // Filter by search
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('description', 'like', "%{$search}%")
+                    ->orWhereHas('hostel', function ($hostelQuery) use ($search) {
+                        $hostelQuery->where('name', 'like', "%{$search}%");
                     });
-            })
-            ->when($type && $type != 'all', function ($query) use ($type) {
-                return $query->where('meal_type', $type);
-            })
-            ->orderBy('created_at', 'desc')
+            });
+        }
+
+        $mealMenus = $query->latest()->get();
+
+        // ✅ FIXED: Get UNIQUE hostels with active meals
+        $hostelIdsWithMeals = MealMenu::where('is_active', true)
+            ->pluck('hostel_id')
+            ->unique()
+            ->toArray();
+
+        $featuredHostels = Hostel::whereIn('id', $hostelIdsWithMeals)
+            ->where('status', 'active')
+            ->where('is_published', true)
+            ->select('id', 'name', 'logo_path', 'address', 'city')
             ->get();
 
-        return view('frontend.pages.meal-gallery', compact('mealMenus', 'search', 'type'));
+        return view('frontend.pages.meal-gallery', compact('mealMenus', 'featuredHostels'));
     }
 }

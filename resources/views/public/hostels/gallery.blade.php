@@ -1,9 +1,9 @@
 @extends('layouts.frontend')
 
-@section('page-title', ($hostel->name ?? 'Sanctuary Girls Hostel') . ' - Premium Gallery | HostelHub')
+@section('page-title', ($hostel->name ?? 'Sanctuary Girls Hostel') . ' - Available Rooms | HostelHub')
 
-@section('page-header', ($hostel->name ?? 'Sanctuary Girls Hostel') . ' Premium Gallery')
-@section('page-description', 'हाम्रो होस्टलको विश्वस्तरीय सुविधाहरू, आधुनिक कोठाहरू, र रमाइलो विद्यार्थी जीवनको immersive experience')
+@section('page-header', ($hostel->name ?? 'Sanctuary Girls Hostel') . ' - Available Rooms')
+@section('page-description', 'हाम्रो होस्टलमा उपलब्ध कोठाहरूको विवरण र तस्वीरहरू। तपाईंको रुचिको कोठा चयन गरी अहिलेै बुक गर्नुहोस्।')
 
 @push('styles')
 @vite(['resources/css/gallery.css', 'resources/css/public-themes.css'])
@@ -27,11 +27,11 @@
         'video' => $activeGalleries->whereIn('media_type', ['local_video', 'external_video'])->count()
     ];
 
-    // For available rooms section - ONLY PHOTOS, NO VIDEOS
-    $filteredGalleries = $galleries->where('is_active', true)
-        ->where('media_type', 'photo') // Only photos, no videos
-        ->filter(function($gallery) use ($availableRooms) {
-            return in_array($gallery->category, ['1 seater', '2 seater', '3 seater', '4 seater']);
+    // 🚨 FIXED: Available rooms gallery - Include ALL room photos, not just filtered ones
+    $availableRoomGalleries = $activeGalleries
+        ->where('media_type', 'photo')
+        ->filter(function($gallery) {
+            return in_array($gallery->category, ['1 seater', '2 seater', '3 seater', '4 seater', 'other']);
         });
     
     // FIXED: Ensure all values are integers, not collections
@@ -61,15 +61,21 @@
         'other' => 'अन्य (५+ सिटर)'
     ];
     
-    // FIXED: Now all values are integers, so array_sum will work
+    // 🚨 FIXED: Updated condition to show available rooms section
     $totalAvailableRooms = array_sum($availableRoomCounts);
-    $hasAvailableRooms = $totalAvailableRooms > 0 && $filteredGalleries->count() > 0;
+    $hasAvailableRooms = $totalAvailableRooms > 0 || $availableRoomGalleries->count() > 0;
 @endphp
 
 <style>
+    /* 🚨 CRITICAL: Remove duplicate header protection */
+    .page-header {
+        display: none !important;
+    }
+    
     /* Gallery Specific Styles */
     .gallery-section {
         padding: 80px 0 60px;
+        margin-top: 0 !important;
     }
     
     .section-title {
@@ -213,9 +219,10 @@
         flex-wrap: wrap;
     }
     
-    /* Gallery Categories - Fixed Top Alignment */
+    /* 🚨 UPDATED: Gallery Categories - About page जस्तै design */
     .gallery-categories {
-        background: var(--bg-light);
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
         padding: 60px 0 80px;
         margin-top: 0;
         min-height: auto;
@@ -225,12 +232,13 @@
     .main-description {
         text-align: center;
         margin: 0 auto 60px;
-        color: var(--text-dark);
+        color: white !important; /* 🚨 WHITE COLOR - तपाईंले माग्नुभएजस्तै */
         font-size: 2rem;
         font-weight: 700;
         line-height: 1.3;
         max-width: 900px;
         padding: 40px 20px 0;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     }
     
     .category-grid {
@@ -242,10 +250,10 @@
     }
     
     .category-card {
-        background: white;
+        background: rgba(255, 255, 255, 0.95);
         border-radius: 12px;
         overflow: hidden;
-        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
         transition: transform 0.3s, box-shadow 0.3s;
         text-align: center;
         padding: 30px 20px;
@@ -254,11 +262,14 @@
         flex-direction: column;
         justify-content: center;
         align-items: center;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
     }
     
     .category-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        background: rgba(255, 255, 255, 1);
     }
     
     .category-icon {
@@ -377,7 +388,7 @@
         box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
     }
 
-    /* No Rooms Message Styles */
+    /* 🚨 FIXED: No Rooms Message Styles - Button color fixed */
     .no-rooms-message {
         text-align: center;
         padding: 80px 20px;
@@ -390,6 +401,18 @@
         font-size: 4rem;
         color: #6c757d;
         margin-bottom: 20px;
+    }
+    
+    /* 🚨 FIXED: Contact button color in no-rooms section */
+    .no-rooms-message .btn-outline {
+        border-color: var(--primary);
+        color: var(--primary) !important; /* Force blue color */
+        background: transparent;
+    }
+    
+    .no-rooms-message .btn-outline:hover {
+        background: var(--primary);
+        color: white !important;
     }
     
     /* Modal Styles */
@@ -460,6 +483,99 @@
         transform: translateY(0);
     }
     
+    /* 🚨 UPDATED: CTA SECTION - EXACTLY LIKE ABOUT PAGE */
+    .gallery-cta-wrapper {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        padding: 2rem 1.5rem 8rem 1.5rem;
+        margin-top: 4rem;
+        background: transparent !important;
+        position: relative;
+        z-index: 100;
+    }
+    
+    .gallery-cta-section {
+        text-align: center;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+        padding: 3rem 2rem;
+        border-radius: 1rem;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+        max-width: 800px;
+        width: 100%;
+        margin: 0 auto;
+        position: relative;
+        z-index: 101;
+    }
+    
+    .gallery-cta-section h2 {
+        font-size: 1.875rem;
+        font-weight: bold;
+        margin-bottom: 1rem;
+        color: white;
+    }
+    
+    .gallery-cta-section p {
+        font-size: 1.25rem;
+        margin-bottom: 2rem;
+        opacity: 0.9;
+    }
+    
+    .gallery-contact-email {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin: 20px 0;
+        display: block;
+        color: #ffffff;
+        text-decoration: underline;
+    }
+    
+    .gallery-trial-button {
+        background-color: white;
+        color: #001F5B;
+        font-weight: 600;
+        padding: 0.75rem 2rem;
+        border-radius: 0.5rem;
+        text-decoration: none;
+        min-width: 180px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        display: inline-block;
+        font-size: 1rem;
+        text-align: center;
+    }
+    
+    .gallery-trial-button:hover {
+        background-color: #f3f4f6;
+        transform: translateY(-2px);
+        color: #001F5B;
+    }
+    
+    .gallery-trial-button:disabled {
+        background: #6c757d;
+        color: white;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .gallery-trial-button:disabled:hover {
+        background: #6c757d;
+        color: white;
+        transform: none;
+    }
+
+    .gallery-cta-buttons-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        align-items: center;
+        margin-top: 1.5rem;
+        width: 100%;
+    }
+    
     /* Responsive Design */
     @media (max-width: 1200px) {
         .category-grid {
@@ -521,6 +637,32 @@
         .available-rooms-section {
             padding: 60px 0 40px;
         }
+        
+        /* CTA Responsive */
+        .gallery-cta-wrapper {
+            padding: 2rem 1rem 6rem 1rem;
+        }
+        
+        .gallery-cta-section {
+            padding: 2.5rem 1.5rem;
+        }
+        
+        .gallery-cta-section h2 {
+            font-size: 1.5rem;
+        }
+        
+        .gallery-cta-section p {
+            font-size: 1.125rem;
+        }
+        
+        .gallery-contact-email {
+            font-size: 1.1rem;
+        }
+        
+        .gallery-trial-button {
+            padding: 0.6rem 1.5rem;
+            font-size: 0.9rem;
+        }
     }
     
     @media (max-width: 480px) {
@@ -569,10 +711,31 @@
         .availability-stats {
             padding: 20px 15px;
         }
+        
+        /* CTA Mobile */
+        .gallery-cta-wrapper {
+            padding: 1.5rem 1rem 5rem 1rem;
+        }
+        
+        .gallery-cta-section {
+            padding: 2rem 1rem;
+        }
+        
+        .gallery-cta-section h2 {
+            font-size: 1.3rem;
+        }
+        
+        .gallery-cta-section p {
+            font-size: 1rem;
+        }
+        
+        .gallery-contact-email {
+            font-size: 1rem;
+        }
     }
 </style>
 
-<!-- Gallery Categories -->
+<!-- 🚨 UPDATED: Gallery Categories - About page जस्तै design -->
 <section class="gallery-categories">
     <div class="container">
         <div class="main-description nepali">
@@ -611,7 +774,7 @@
     </div>
 </section>
 
-<!-- Available Rooms Section - UPDATED (ONLY AVAILABLE ROOM IMAGES, NO VIDEOS) -->
+<!-- Available Rooms Section - UPDATED (SHOWS ALL ROOM IMAGES) -->
 <section class="available-rooms-section">
     <div class="container">
         <!-- Availability Statistics -->
@@ -639,14 +802,14 @@
         </div>
 
         @if($hasAvailableRooms)
-            <h2 class="section-title nepali">हाल उपलब्ध कोठाहरू</h2>
+            <h2 class="section-title nepali">हाम्रा कोठाहरू</h2>
             <p style="text-align: center; margin-bottom: 40px; color: var(--text-dark); opacity: 0.8; max-width: 700px; margin-left: auto; margin-right: auto;" class="nepali">
-                तल दिइएका कोठाहरू हाल उपलब्ध छन्। तपाईंको रुचिको कोठा चयन गरी अहिलेै बुक गर्नुहोस्।
+                तल दिइएका कोठाहरू हाम्रो होस्टलमा उपलब्ध छन्। तपाईंको रुचिको कोठा चयन गरी अहिलेै बुक गर्नुहोस्।
             </p>
             
-            <!-- Available Rooms Gallery - ONLY PHOTOS -->
+            <!-- Available Rooms Gallery - ALL ROOM PHOTOS -->
             <div class="gallery-grid">
-                @foreach($filteredGalleries as $gallery)
+                @foreach($availableRoomGalleries as $gallery)
                     @php
                         $roomCategory = $gallery->category;
                         $availableCount = $availableRoomCounts[$roomCategory] ?? 0;
@@ -667,10 +830,10 @@
                         
                         <!-- UPDATED: Available badge with bed count -->
                         <div class="available-badge nepali">
-                            @if($availableBeds > 0)
+                            @if($availableCount > 0 && $availableBeds > 0)
                                 {{ $availableBeds }} बेड खाली
                             @else
-                                पूर्ण व्यस्त
+                                उपलब्ध छ
                             @endif
                         </div>
                         
@@ -704,7 +867,7 @@
             </div>
             
         @else
-            <!-- No Available Rooms Message -->
+            <!-- 🚨 FIXED: No Available Rooms Message - Button color fixed -->
             <div class="no-rooms-message">
                 <div class="no-rooms-icon">🏠</div>
                 <h3 class="nepali" style="color: var(--text-dark); margin-bottom: 15px;">हाल कुनै कोठा उपलब्ध छैन</h3>
@@ -725,6 +888,45 @@
     </div>
 </section>
 
+<!-- 🚨 UPDATED: CTA SECTION - EXACTLY LIKE ABOUT PAGE -->
+<div class="gallery-cta-wrapper">
+    <section class="gallery-cta-section">
+        <h2 class="nepali">हामीलाई सम्पर्क गर्नुहोस्</h2>
+        <p class="nepali">हामी तपाईंलाई सहयोग गर्न तत्पर छौं</p>
+        <a href="mailto:support@hostelhub.com" class="gallery-contact-email nepali">support@hostelhub.com</a>
+        <div class="gallery-cta-buttons-container">
+            @auth
+                @php
+                    $organizationId = session('current_organization_id');
+                    $hasSubscription = false;
+                    
+                    if ($organizationId) {
+                        try {
+                            $organization = \App\Models\Organization::with('subscription')->find($organizationId);
+                            $hasSubscription = $organization->subscription ?? false;
+                        } catch (Exception $e) {
+                            $hasSubscription = false;
+                        }
+                    }
+                @endphp
+                
+                @if($hasSubscription)
+                    <button class="gallery-trial-button nepali" disabled>
+                        तपाईंसँग पहिले नै सदस्यता छ
+                    </button>
+                @else
+                    <form action="{{ route('subscription.start-trial') }}" method="POST" class="trial-form" style="display: inline;">
+                        @csrf
+                        <button type="submit" class="gallery-trial-button nepali">७ दिन निःशुल्क परीक्षण सुरु गर्नुहोस्</button>
+                    </form>
+                @endif
+            @else
+                <a href="{{ route('register.organization', ['plan' => 'starter']) }}" class="gallery-trial-button nepali">७ दिन निःशुल्क परीक्षण सुरु गर्नुहोस्</a>
+            @endauth
+        </div>
+    </section>
+</div>
+
 <!-- Room Detail Modal -->
 <div class="gallery-modal" id="roomModal">
     <div class="modal-content">
@@ -744,7 +946,7 @@
 <script>
     // Room gallery data
     const roomGalleryData = {
-        @foreach($filteredGalleries as $gallery)
+        @foreach($availableRoomGalleries as $gallery)
         '{{ $gallery->id }}': {
             title: '{{ $gallery->title }}',
             description: '{{ $gallery->description }}',
@@ -755,7 +957,8 @@
                 '1 seater': '१ सिटर',
                 '2 seater': '२ सिटर',
                 '3 seater': '३ सिटर', 
-                '4 seater': '४ सिटर'
+                '4 seater': '४ सिटर',
+                'other': 'अन्य (५+ सिटर)'
             }['{{ $gallery->category }}'] || '{{ $gallery->category }}'
         },
         @endforeach

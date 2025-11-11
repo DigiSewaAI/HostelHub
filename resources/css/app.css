@@ -1052,3 +1052,54 @@ html, body {
 * {
     box-sizing: border-box !important;
 }
+
+/* 🚨 CRITICAL FIX: Remove duplicate header and fix main content spacing */
+.fixed.top-0.left-0.right-0.z-50.bg-indigo-900 {
+    display: none !important;
+}
+
+/* 🚨 FIX: Main content proper spacing */
+main {
+    padding-top: 2rem !important;
+    margin-top: var(--header-height, 70px) !important;
+}
+
+/* 🚨 FIX: About page specific spacing */
+.about-page-main {
+    padding-top: 2rem !important;
+    margin-top: 0 !important;
+}
+
+/* 🚨 FIX: Ensure content doesn't hide behind header */
+.content-container {
+    padding-top: 1rem !important;
+}
+
+/* 🚨 CRITICAL FIX: Remove duplicate header and fix spacing */
+header.fixed.top-0.left-0.right-0.z-50.bg-indigo-900,
+.fixed.top-0.left-0.right-0.z-50.bg-indigo-900 {
+    display: none !important;
+}
+
+/* 🚨 FIX: Home page specific spacing */
+.home-page-main {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+}
+
+/* 🚨 FIX: Other pages spacing */
+.other-page-main {
+    padding-top: 2rem !important;
+    margin-top: var(--header-height, 70px) !important;
+}
+
+/* 🚨 FIX: Ensure content containers have proper spacing */
+.content-container {
+    padding-top: 0 !important;
+}
+
+/* 🚨 FIX: About page specific */
+.about-page-main {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+}

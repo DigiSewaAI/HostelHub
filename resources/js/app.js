@@ -1,4 +1,5 @@
 import './bootstrap';
+import './meal_share.js';
 
 // Alpine.js
 import Alpine from 'alpinejs';

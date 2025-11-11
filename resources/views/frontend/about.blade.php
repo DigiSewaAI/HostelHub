@@ -1,52 +1,62 @@
 @extends('layouts.frontend')
 
 @section('page-title', 'हाम्रो बारेमा - HostelHub')
-@section('page-header', 'हाम्रो बारेमा')
-@section('page-description', 'HostelHub नेपालको अग्रणी होस्टल व्यवस्थापन प्रणाली हो जसले होस्टलहरूको दैनिक कार्यहरूलाई डिजिटल रूपमा रूपान्तरण गर्न मद्दत गर्दछ।')
 
 @push('styles')
 <style>
-    /* 🚨 CRITICAL: Reset any main content padding issues */
+    /* 🚨 CRITICAL: About page specific fixes */
     .about-page-main {
-        padding-top: 2rem !important;
+        padding-top: 0 !important;
         margin-top: 0 !important;
     }
     
     .about-content-wrapper {
         padding: 0;
         margin: 0;
+        min-height: calc(100vh - 200px);
+        display: flex;
+        flex-direction: column;
     }
     
-    /* Pricing Hero Styles - EXACT COPY */
-    .pricing-hero {
+    /* Remove any duplicate header protection */
+    .page-header {
+        display: none !important;
+    }
+    
+    /* Updated Header Styles - EXACTLY LIKE PRIVACY PAGE */
+    .about-header {
         text-align: center;
-        padding: 40px 20px;
+        margin: 0 auto 3rem auto;
         background: linear-gradient(135deg, var(--primary), var(--secondary));
-        margin: 20px 0;
-        border-radius: 10px;
+        color: white;
+        padding: 2.5rem 1.5rem;
+        border-radius: 1rem;
         box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
-        color: white;
+        max-width: 1000px;
+        width: 90%;
     }
     
-    .pricing-hero h1 {
-        font-size: 36px;
-        margin-bottom: 15px;
-        text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+    .about-header h1 {
+        font-size: 2.5rem;
+        font-weight: 800;
         color: white;
+        margin-bottom: 1rem;
     }
     
-    .pricing-hero p {
-        font-size: 18px;
+    .about-header p {
+        font-size: 1.125rem;
+        color: rgba(255, 255, 255, 0.9);
         max-width: 800px;
         margin: 0 auto;
-        opacity: 0.9;
-        color: rgba(255, 255, 255, 0.9);
     }
 
     /* About Page Specific Styles */
     .about-container {
-        padding: 2rem 0;
-        margin-top: 0;
+        padding: 0 0 2rem 0;
+        margin: 0 auto;
+        max-width: 1200px;
+        width: 100%;
+        flex: 1;
     }
     
     .about-intro {
@@ -55,6 +65,7 @@
         gap: 3rem;
         margin-bottom: 4rem;
         align-items: center;
+        padding: 0 1.5rem;
     }
     
     .intro-title {
@@ -91,6 +102,7 @@
         grid-template-columns: repeat(3, 1fr);
         gap: 2rem;
         margin-bottom: 4rem;
+        padding: 0 1.5rem;
     }
     
     .value-card {
@@ -138,6 +150,9 @@
         padding: 3rem 0;
         margin-bottom: 4rem;
         border-radius: var(--radius);
+        max-width: 1200px;
+        margin: 0 auto 4rem auto;
+        width: calc(100% - 3rem);
     }
     
     .stats-grid {
@@ -145,6 +160,9 @@
         grid-template-columns: repeat(4, 1fr);
         gap: 2rem;
         text-align: center;
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 0 1.5rem;
     }
     
     .stat-item {
@@ -164,6 +182,10 @@
     
     .team-section {
         margin-bottom: 4rem;
+        padding: 0 1.5rem;
+        max-width: 1200px;
+        margin: 0 auto 4rem auto;
+        width: 100%;
     }
     
     .section-title {
@@ -256,107 +278,74 @@
         color: white;
     }
     
-    /* 🚨 UPDATED: EXACT PRICING PAGE FAQ & CTA SECTION */
-    .about-faq-section {
-        background: white;
-        padding: 60px 0;
-        margin: 0;
+    /* 🚨 COMPLETELY FIXED CTA SECTION - PROPERLY CENTERED WITH FOOTER SPACING */
+    .about-cta-wrapper {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        padding: 2rem 1.5rem 8rem 1.5rem; /* Large bottom padding for footer spacing */
+        margin-top: auto; /* Push to bottom of content */
+    }
+    
+    .about-cta-section {
         text-align: center;
-    }
-    
-    .about-faq-content {
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 0 20px;
-    }
-    
-    .about-faq-title {
-        color: #1a3a8f;
-        margin-bottom: 40px;
-        font-size: 32px;
-        font-weight: 700;
-    }
-    
-    .about-faq-item {
-        margin-bottom: 30px;
-        padding-bottom: 30px;
-        border-bottom: 1px solid #eee;
-        text-align: left;
-    }
-    
-    .about-faq-question {
-        font-weight: 600;
-        color: #1a3a8f;
-        margin-bottom: 15px;
-        font-size: 20px;
-    }
-    
-    .about-faq-answer {
-        color: #666;
-        line-height: 1.6;
-        font-size: 16px;
-    }
-    
-    .about-contact-cta {
         background: linear-gradient(135deg, var(--primary), var(--secondary));
-        padding: 50px 40px;
-        border-radius: 15px;
         color: white;
-        text-align: center;
+        padding: 3rem 2rem;
+        border-radius: 1rem;
         box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
         max-width: 800px;
-        margin: 50px auto 0 auto;
+        width: 100%;
+        margin: 0 auto;
     }
     
-    .about-contact-cta h3 {
-        margin-bottom: 20px;
-        font-size: 32px;
+    .about-cta-section h2 {
+        font-size: 1.875rem;
+        font-weight: bold;
+        margin-bottom: 1rem;
         color: white;
-        font-weight: 700;
     }
     
-    .about-contact-cta p {
-        font-size: 18px;
-        margin-bottom: 25px;
+    .about-cta-section p {
+        font-size: 1.25rem;
+        margin-bottom: 2rem;
         opacity: 0.9;
     }
     
     .about-contact-email {
-        font-size: 22px;
+        font-size: 1.3rem;
         font-weight: 600;
-        margin: 25px 0;
+        margin: 20px 0;
         display: block;
         color: #ffffff;
         text-decoration: underline;
     }
     
     .about-trial-button {
-        display: inline-block;
-        background: white;
+        background-color: white;
         color: #001F5B;
-        padding: 15px 40px;
-        border-radius: 50px;
+        font-weight: 600;
+        padding: 0.75rem 2rem;
+        border-radius: 0.5rem;
         text-decoration: none;
-        font-weight: 700;
+        min-width: 180px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         transition: all 0.3s ease;
-        border: 2px solid white;
-        font-size: 18px;
-        margin-top: 15px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        border: none;
         cursor: pointer;
+        display: inline-block;
+        font-size: 1rem;
+        text-align: center;
     }
     
     .about-trial-button:hover {
-        background: transparent;
-        color: #ffffff;
-        transform: translateY(-3px);
-        box-shadow: 0 6px 15px rgba(255,255,255,0.2);
-        border-color: #ffffff;
+        background-color: #f3f4f6;
+        transform: translateY(-2px);
+        color: #001F5B;
     }
-
+    
     .about-trial-button:disabled {
         background: #6c757d;
-        border-color: #6c757d;
         color: white;
         cursor: not-allowed;
         transform: none;
@@ -366,7 +355,15 @@
         background: #6c757d;
         color: white;
         transform: none;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
+
+    .cta-buttons-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        align-items: center;
+        margin-top: 1.5rem;
+        width: 100%;
     }
 
     /* Responsive Design */
@@ -375,6 +372,10 @@
         .stats-grid,
         .team-grid {
             grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .about-container {
+            max-width: 95%;
         }
     }
     
@@ -397,82 +398,103 @@
             font-size: 2.5rem;
         }
 
-        .about-faq-section {
-            padding: 40px 0;
+        .about-header {
+            padding: 2rem 1rem;
+            margin-bottom: 2rem;
+            width: calc(100% - 2rem);
         }
         
-        .about-contact-cta {
-            padding: 40px 25px;
-            margin: 40px auto 0 auto;
+        .about-header h1 {
+            font-size: 2rem;
         }
         
-        .about-contact-cta h3 {
-            font-size: 26px;
+        .about-header p {
+            font-size: 1rem;
+        }
+
+        .about-cta-wrapper {
+            padding: 2rem 1rem 6rem 1rem;
         }
         
-        .about-contact-cta p {
-            font-size: 16px;
+        .about-cta-section {
+            padding: 2.5rem 1.5rem;
+        }
+        
+        .about-cta-section h2 {
+            font-size: 1.5rem;
+        }
+        
+        .about-cta-section p {
+            font-size: 1.125rem;
+        }
+        
+        .about-contact-email {
+            font-size: 1.1rem;
         }
         
         .about-trial-button {
-            padding: 12px 30px;
-            font-size: 16px;
-        }
-
-        .pricing-hero {
-            padding: 30px 15px;
+            padding: 0.6rem 1.5rem;
+            font-size: 0.9rem;
         }
         
-        .pricing-hero h1 {
-            font-size: 28px;
-        }
-        
-        .pricing-hero p {
-            font-size: 16px;
-        }
-
-        .about-faq-title {
-            font-size: 26px;
-            margin-bottom: 30px;
-        }
-        
-        .about-faq-question {
-            font-size: 18px;
+        .about-intro,
+        .values-grid,
+        .team-section,
+        .stats-section {
+            padding-left: 1rem;
+            padding-right: 1rem;
         }
     }
 
     @media (max-width: 480px) {
-        .about-contact-cta {
-            padding: 30px 20px;
-            margin: 30px auto 0 auto;
+        .about-header h1 {
+            font-size: 1.75rem;
         }
         
-        .about-contact-cta h3 {
-            font-size: 22px;
+        .about-cta-wrapper {
+            padding: 1.5rem 1rem 5rem 1rem;
+        }
+        
+        .about-cta-section {
+            padding: 2rem 1rem;
+        }
+        
+        .about-cta-section h2 {
+            font-size: 1.3rem;
+        }
+        
+        .about-cta-section p {
+            font-size: 1rem;
         }
         
         .about-contact-email {
-            font-size: 18px;
+            font-size: 1rem;
         }
         
-        .pricing-hero {
-            padding: 25px 10px;
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            padding: 0 1rem;
         }
         
-        .pricing-hero h1 {
-            font-size: 24px;
+        .stat-number {
+            font-size: 2rem;
+        }
+        
+        .about-container {
+            padding-bottom: 1rem;
         }
     }
 </style>
 @endpush
 
 @section('content')
-<!-- Hero Section - EXACT SAME AS PRICING PAGE -->
-<section class="pricing-hero">
+<!-- Updated Hero Section - EXACT SAME AS PRIVACY PAGE -->
+<div class="about-header">
     <h1>हाम्रो बारेमा</h1>
     <p>HostelHub नेपालको अग्रणी होस्टल व्यवस्थापन प्रणाली हो</p>
     <p>हाम्रो कथा, हाम्रो टिम र हाम्रो लक्ष्यहरू</p>
-</section>
+</div>
 
 <div class="about-content-wrapper">
     <div class="about-container">
@@ -595,59 +617,44 @@
         </div>
     </div>
 
-    <!-- 🚨 UPDATED CTA SECTION - EXACTLY LIKE PRICING PAGE (Outside container for proper spacing) -->
-    <section class="about-faq-section">
-        <div class="about-faq-content">
-            <h2 class="about-faq-title">अझै केही जिज्ञासा छन्? सहयोग चाहिन्छ?</h2>
-            
-            <div class="about-faq-item">
-                <div class="about-faq-question">हाम्रो सेवा कसरी सुरु गर्न सकिन्छ?</div>
-                <p class="about-faq-answer">तपाईं माथिको योजनाहरू मध्ये कुनै एक छान्नुहोस् र ७ दिने निःशुल्क परीक्षण सुरु गर्नुहोस्। कुनै क्रेडिट कार्ड आवश्यक छैन।</p>
-            </div>
-            
-            <div class="about-faq-item">
-                <div class="about-faq-question">परीक्षण अवधि पछि के हुन्छ?</div>
-                <p class="about-faq-answer">परीक्षण अवधि समाप्त भएपछि, तपाईंले छान्नुभएको योजनाअनुसार सेवा सञ्चालन गर्न सक्नुहुन्छ वा कुनै पनि अतिरिक्त लागत बिना रद्द गर्न सक्नुहुन्छ।</p>
-            </div>
-            
-            <!-- CTA Section - EXACT COPY FROM PRICING PAGE -->
-            <div class="about-contact-cta">
-                <h3>हामीलाई सम्पर्क गर्नुहोस्</h3>
-                <p>हामी तपाईंलाई सहयोग गर्न तत्पर छौं</p>
-                <a href="mailto:support@hostelhub.com" class="about-contact-email">support@hostelhub.com</a>
-                <div>
-                    @auth
-                        @php
-                            $organizationId = session('current_organization_id');
-                            $hasSubscription = false;
-                            
-                            if ($organizationId) {
-                                try {
-                                    $organization = \App\Models\Organization::with('subscription')->find($organizationId);
-                                    $hasSubscription = $organization->subscription ?? false;
-                                } catch (Exception $e) {
-                                    $hasSubscription = false;
-                                }
-                            }
-                        @endphp
+    <!-- 🚨 COMPLETELY FIXED CTA SECTION - PROPERLY CENTERED WITH FOOTER SPACING -->
+    <div class="about-cta-wrapper">
+        <section class="about-cta-section">
+            <h2>हामीलाई सम्पर्क गर्नुहोस्</h2>
+            <p>हामी तपाईंलाई सहयोग गर्न तत्पर छौं</p>
+            <a href="mailto:support@hostelhub.com" class="about-contact-email">support@hostelhub.com</a>
+            <div class="cta-buttons-container">
+                @auth
+                    @php
+                        $organizationId = session('current_organization_id');
+                        $hasSubscription = false;
                         
-                        @if($hasSubscription)
-                            <button class="about-trial-button" disabled>
-                                तपाईंसँग पहिले नै सदस्यता छ
-                            </button>
-                        @else
-                            <form action="{{ route('subscription.start-trial') }}" method="POST" class="trial-form" style="display: inline;">
-                                @csrf
-                                <button type="submit" class="about-trial-button">७ दिन निःशुल्क परीक्षण सुरु गर्नुहोस्</button>
-                            </form>
-                        @endif
+                        if ($organizationId) {
+                            try {
+                                $organization = \App\Models\Organization::with('subscription')->find($organizationId);
+                                $hasSubscription = $organization->subscription ?? false;
+                            } catch (Exception $e) {
+                                $hasSubscription = false;
+                            }
+                        }
+                    @endphp
+                    
+                    @if($hasSubscription)
+                        <button class="about-trial-button" disabled>
+                            तपाईंसँग पहिले नै सदस्यता छ
+                        </button>
                     @else
-                        <a href="{{ route('register.organization', ['plan' => 'starter']) }}" class="about-trial-button">७ दिन निःशुल्क परीक्षण सुरु गर्नुहोस्</a>
-                    @endauth
-                </div>
+                        <form action="{{ route('subscription.start-trial') }}" method="POST" class="trial-form" style="display: inline;">
+                            @csrf
+                            <button type="submit" class="about-trial-button">७ दिन निःशुल्क परीक्षण सुरु गर्नुहोस्</button>
+                        </form>
+                    @endif
+                @else
+                    <a href="{{ route('register.organization', ['plan' => 'starter']) }}" class="about-trial-button">७ दिन निःशुल्क परीक्षण सुरु गर्नुहोस्</a>
+                @endauth
             </div>
-        </div>
-    </section>
+        </section>
+    </div>
 </div>
 @endsection
 
@@ -677,52 +684,6 @@
             
             updateCount();
         });
-
-        // Handle trial form submission
-        const trialForm = document.querySelector('.trial-form');
-        if (trialForm) {
-            trialForm.addEventListener('submit', async function(e) {
-                e.preventDefault();
-                
-                const button = this.querySelector('button[type="submit"]');
-                const originalText = button.textContent;
-                
-                // Show loading state
-                button.classList.add('loading');
-                button.disabled = true;
-                
-                try {
-                    const formData = new FormData(this);
-                    
-                    const response = await fetch(this.action, {
-                        method: 'POST',
-                        body: formData,
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'Accept': 'application/json'
-                        }
-                    });
-                    
-                    const data = await response.json();
-                    
-                    if (data.success) {
-                        if (data.redirect) {
-                            window.location.href = data.redirect;
-                        } else {
-                            alert(data.message || 'निःशुल्क परीक्षण सफलतापूर्वक सुरु गरियो');
-                            window.location.reload();
-                        }
-                    } else {
-                        throw new Error(data.message || 'अज्ञात त्रुटि');
-                    }
-                } catch (error) {
-                    alert('त्रुटि: ' + error.message);
-                    button.classList.remove('loading');
-                    button.textContent = originalText;
-                    button.disabled = false;
-                }
-            });
-        }
     });
 </script>
 @endpush
