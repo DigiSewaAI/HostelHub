@@ -10,12 +10,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- ✅ VITE ASSET LOADING - SIMPLIFIED & RELIABLE -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    <!-- ✅ MAIN LAYOUT STYLES - INLINE FOR 100% RELIABILITY -->
     <style>
-        /* CSS styles will be the same as in home.blade.php */
         :root {
             --primary: #1e3a8a;
             --primary-dark: #1e40af;
@@ -165,7 +162,7 @@
             height: 100%;
             min-width: 0;
         }
-        /* Logo styles - FIXED LOGO DISPLAY WITH BORDER */
+        /* Logo styles */
         .logo {
             display: flex;
             align-items: center;
@@ -194,7 +191,6 @@
             font-weight: bold;
             font-size: 18px;
             flex-shrink: 0;
-            /* ✅ ADDED SKY BLUE BORDER */
             border: 2px solid var(--secondary);
             padding: 4px;
         }
@@ -278,35 +274,47 @@
             opacity: 0.9;
         }
         
-        /* 🚨 CRITICAL FIX: Main Content Styles - REMOVED padding-top */
+        /* 🚨 CRITICAL FIX: Main Content Styles - HOME PAGE SPECIFIC */
         main {
             flex: 1;
-            padding-top: 0; /* ✅ This was pushing content down */
         }
+        
+        /* Home page should have no top padding/margin */
+        .home-page-main {
+            padding-top: 0 !important;
+            margin-top: 0 !important;
+        }
+        
+        /* Other pages should have proper spacing */
+        .other-page-main {
+            padding-top: 2rem !important;
+            margin-top: var(--header-height) !important;
+        }
+        
         .content-container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0 1.5rem; /* ✅ REMOVED padding-top: 2.5rem */
+            padding: 0 1.5rem;
         }
         
-        /* ✅ UPDATED FOOTER STYLES - COMPACT & BETTER SPACING */
+        /* Footer Styles */
         footer {
             background-color: var(--primary);
             color: var(--text-light);
-            padding: 1.5rem 0 0.5rem; /* ✅ REDUCED HEIGHT */
+            padding: 1.5rem 0 0.5rem;
         }
         
         .footer-grid {
             display: grid;
-            grid-template-columns: 2fr 1.5fr 1.5fr 1.5fr; /* ✅ BETTER COLUMN DISTRIBUTION */
+            grid-template-columns: 2fr 1.5fr 1.5fr 1.5fr;
             gap: 1.5rem;
             align-items: start;
-            margin-bottom: 0.8rem; /* ✅ REDUCED MARGIN */
+            margin-bottom: 0.8rem;
         }
         
         .footer-col h3 {
-            font-size: 1.2rem; /* ✅ SMALLER HEADINGS */
-            margin-bottom: 0.8rem; /* ✅ REDUCED SPACING */
+            font-size: 1.2rem;
+            margin-bottom: 0.8rem;
             position: relative;
             padding-bottom: 0.3rem;
             color: var(--text-light);
@@ -316,7 +324,7 @@
             position: absolute;
             bottom: 0;
             left: 0;
-            width: 40px; /* ✅ SMALLER UNDERLINE */
+            width: 40px;
             height: 2px;
             background: var(--secondary);
         }
@@ -326,7 +334,7 @@
             padding: 0;
         }
         .footer-links li {
-            margin-bottom: 0.4rem; /* ✅ TIGHTER SPACING */
+            margin-bottom: 0.4rem;
         }
         .footer-links a {
             color: rgba(249, 250, 251, 0.8);
@@ -334,7 +342,7 @@
             transition: var(--transition);
             display: flex;
             align-items: center;
-            font-size: 0.9rem; /* ✅ SMALLER FONT */
+            font-size: 0.9rem;
         }
         .footer-links a:hover {
             color: var(--secondary);
@@ -352,7 +360,7 @@
             padding: 0;
         }
         .contact-info li {
-            margin-bottom: 0.6rem; /* ✅ REDUCED SPACING */
+            margin-bottom: 0.6rem;
             display: flex;
             align-items: flex-start;
             gap: 10px;
@@ -368,16 +376,15 @@
             display: flex;
             align-items: center;
             gap: 0.8rem;
-            font-size: 1.4rem; /* ✅ SMALLER LOGO TEXT */
+            font-size: 1.4rem;
             font-weight: 700;
-            margin-bottom: 0.8rem; /* ✅ REDUCED SPACING */
+            margin-bottom: 0.8rem;
             color: var(--text-light);
             text-decoration: none;
         }
         
-        /* ✅ COMPACT FOOTER LOGO */
         .footer-logo img {
-            height: 45px !important; /* ✅ SMALLER LOGO */
+            height: 45px !important;
             width: 45px !important;
             object-fit: contain;
         }
@@ -396,28 +403,27 @@
         }
         
         .copyright {
-            margin-top: 1rem; /* ✅ REDUCED SPACING */
+            margin-top: 1rem;
             padding-top: 0.8rem;
             border-top: 1px solid rgba(249, 250, 251, 0.1);
-            font-size: 0.9rem; /* ✅ SMALLER FONT */
+            font-size: 0.9rem;
             color: rgba(249, 250, 251, 0.6);
             text-align: center;
             grid-column: 1 / -1;
         }
         
-        /* ✅ SOCIAL MEDIA MOVED TO RIGHT SIDE WITH BETTER SPACING */
         .social-links {
             display: flex;
             gap: 8px;
             margin-top: 1rem;
             flex-wrap: wrap;
-            justify-content: flex-start; /* ✅ ALIGN LEFT IN COLUMN */
+            justify-content: flex-start;
         }
         .social-links a {
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 32px; /* ✅ SMALLER ICONS */
+            width: 32px;
             height: 32px;
             background: rgba(255, 255, 255, 0.1);
             border-radius: 50%;
@@ -440,12 +446,12 @@
         }
         .newsletter-form input {
             flex: 1;
-            min-width: 180px; /* ✅ SMALLER INPUT */
-            padding: 0.6rem 0.8rem; /* ✅ COMPACT PADDING */
+            min-width: 180px;
+            padding: 0.6rem 0.8rem;
             border: none;
             border-radius: var(--radius);
             font-family: inherit;
-            font-size: 0.85rem; /* ✅ SMALLER FONT */
+            font-size: 0.85rem;
             background: rgba(255, 255, 255, 0.1);
             color: var(--text-light);
         }
@@ -457,11 +463,11 @@
             color: var(--text-light);
             border: none;
             border-radius: var(--radius);
-            padding: 0.6rem 0.9rem; /* ✅ COMPACT PADDING */
+            padding: 0.6rem 0.9rem;
             font-weight: 600;
             cursor: pointer;
             transition: var(--transition);
-            font-size: 0.85rem; /* ✅ SMALLER FONT */
+            font-size: 0.85rem;
             white-space: nowrap;
         }
         .newsletter-form button:hover {
@@ -474,7 +480,13 @@
             transition: all 0.3s ease-in-out;
         }
         
-        /* Responsive Design - UPDATED FOOTER */
+        /* 🚨 CRITICAL FIX: Remove any duplicate header */
+        header.fixed.top-0.left-0.right-0.z-50.bg-indigo-900,
+        .fixed.top-0.left-0.right-0.z-50.bg-indigo-900 {
+            display: none !important;
+        }
+
+        /* Responsive Design */
         @media (max-width: 1024px) {
             .footer-grid {
                 grid-template-columns: repeat(2, 1fr);
@@ -520,26 +532,25 @@
                 font-size: 1rem;
             }
             .content-container {
-                padding: 0 1.2rem; /* ✅ REMOVED padding-top for mobile too */
+                padding: 0 1.2rem;
             }
             
-            /* Footer mobile adjustments */
             .footer-grid {
                 grid-template-columns: 1fr;
                 gap: 1rem;
             }
             
             .footer-logo img {
-                height: 40px !important; /* ✅ Adjusted for mobile */
+                height: 40px !important;
                 width: 40px !important;
             }
             
             .contact-info li {
-                gap: 8px; /* ✅ Slightly less spacing on mobile */
+                gap: 8px;
             }
             
             .social-links {
-                justify-content: center; /* ✅ Center on mobile */
+                justify-content: center;
             }
         }
         @media (max-width: 480px) {
@@ -557,16 +568,16 @@
                 font-size: 1.6rem;
             }
             .content-container {
-                padding: 0 1rem; /* ✅ REMOVED padding-top for small mobile */
+                padding: 0 1rem;
             }
             
             .footer-logo img {
-                height: 35px !important; /* ✅ Further adjustment for small mobile */
+                height: 35px !important;
                 width: 35px !important;
             }
             
             footer {
-                padding: 1rem 0 0.3rem; /* ✅ EVEN MORE COMPACT ON MOBILE */
+                padding: 1rem 0 0.3rem;
             }
         }
         @media (max-width: 360px) {
@@ -585,112 +596,82 @@
             }
             
             .footer-logo img {
-                height: 30px !important; /* ✅ Final adjustment for very small screens */
+                height: 30px !important;
                 width: 30px !important;
             }
         }
-        /* 🚨 SMART GLOBAL FIX - Home page lai protect garera, aru sabai pages maa automatic fix */
-.main-content-global:not(.home-page-main) {
-    margin-top: var(--header-height) !important;
-    padding-top: 1rem !important;
-}
-
-/* Page header haru ko laagi (home page ko hero-section lai exclude garera) */
-.page-header:not(.home-hero) {
-    margin-top: var(--header-height) !important;
-    padding-top: 2rem !important;
-    position: relative;
-    z-index: 1;
-}
-
-/* Mobile fix */
-@media (max-width: 768px) {
-    .main-content-global:not(.home-page-main) {
-        margin-top: 60px !important;
-        padding-top: 0.5rem !important;
-    }
-    
-    .page-header:not(.home-hero) {
-        margin-top: 60px !important;
-        padding-top: 1.5rem !important;
-    }
-}
     </style>
 
-    <!-- Stack for additional styles from child views -->
     @stack('styles')
 </head>
 <body>
     <!-- Skip to content link for accessibility -->
     <a href="#main" class="skip-link nepali">सामग्रीमा जानुहोस्</a>
     
-    <!-- Fixed Header -->
-<header id="site-header">
-    <div class="header-inner">
-        <div class="container">
-            <div class="navbar">
-                <!-- Header Logo - FIXED WITH SKY BLUE BORDER -->
-                <a href="{{ route('home') }}" class="logo" style="margin-right: auto;">
-                    <!-- Real Logo Image with corrected styling and border -->
-                    <div class="logo-image">
-                        <img src="{{ asset('images/logo.png') }}" alt="HostelHub Logo" style="height: 50px; width: auto;" onerror="this.style.display='none'">
+    <!-- Fixed Header - ONLY ONE HEADER -->
+    <header id="site-header">
+        <div class="header-inner">
+            <div class="container">
+                <div class="navbar">
+                    <!-- Header Logo -->
+                    <a href="{{ route('home') }}" class="logo" style="margin-right: auto;">
+                        <div class="logo-image">
+                            <img src="{{ asset('images/logo.png') }}" alt="HostelHub Logo" style="height: 50px; width: auto;" onerror="this.style.display='none'">
+                        </div>
+                        <div class="logo-text">
+                            <h1>HostelHub</h1>
+                            <span class="nepali">होस्टल प्रबन्धन</span>
+                        </div>
+                    </a>
+                    
+                    <!-- Navigation Links with Auth Support -->
+                    <div class="nav-links" id="main-nav">
+                        <a href="{{ route('features') }}" class="nepali">सुविधाहरू</a>
+                        <a href="{{ route('how-it-works') }}" class="nepali">कसरी काम गर्छ</a>
+                        <a href="{{ route('gallery') }}" class="nepali">ग्यालरी</a>
+                        <a href="{{ route('pricing') }}" class="nepali">मूल्य</a>
+                        <a href="{{ route('testimonials') }}" class="nepali">प्रशंसापत्रहरू</a>
+                        <a href="{{ route('about') }}" class="nepali">हाम्रो बारेमा</a>
+                        <a href="{{ route('privacy') }}" class="nepali">गोप्यता नीति</a>
+                        <a href="{{ route('terms') }}" class="nepali">सेवा सर्तहरू</a>
                     </div>
-                    <div class="logo-text">
-                        <h1>HostelHub</h1>
-                        <span class="nepali">होस्टल प्रबन्धन</span>
-                    </div>
-                </a>
-                
-                <!-- Navigation Links with Auth Support -->
-                <div class="nav-links" id="main-nav">
-                    <a href="{{ route('features') }}" class="nepali">सुविधाहरू</a>
-                    <a href="{{ route('how-it-works') }}" class="nepali">कसरी काम गर्छ</a>
-                    <a href="{{ route('gallery') }}" class="nepali">ग्यालरी</a>
-                    <a href="{{ route('pricing') }}" class="nepali">मूल्य</a>
-                    <a href="{{ route('testimonials') }}" class="nepali">प्रशंसापत्रहरू</a>
-                    <a href="{{ route('about') }}" class="nepali">हाम्रो बारेमा</a>
-                    <a href="{{ route('privacy') }}" class="nepali">गोप्यता नीति</a>
-                    <a href="{{ route('terms') }}" class="nepali">सेवा सर्तहरू</a>
-                </div>
 
-                <!-- Header CTA with Auth Support - FIXED: Both buttons same size -->
-                <div class="header-cta" style="margin-left: 2rem;">
-                    @auth
-                        <!-- Dashboard Link for Authenticated Users -->
-                        @if(Auth::user()->hasRole('admin'))
-                            <a href="{{ route('admin.dashboard') }}" class="nepali dashboard-link" style="color: white !important; text-decoration: none; font-weight: 600; padding: 0.5rem 1.5rem; border: 2px solid white; border-radius: var(--radius); transition: var(--transition); margin-right: 0.8rem;">
-                                ड्यासबोर्ड
-                            </a>
-                        @elseif(Auth::user()->hasRole('owner') || Auth::user()->hasRole('hostel_manager'))
-                            <a href="{{ route('owner.dashboard') }}" class="nepali dashboard-link" style="color: white !important; text-decoration: none; font-weight: 600; padding: 0.5rem 1.5rem; border: 2px solid white; border-radius: var(--radius); transition: var(--transition); margin-right: 0.8rem;">
-                                ड्यासबोर्ड
-                            </a>
-                        @elseif(Auth::user()->hasRole('student'))
-                            <a href="{{ route('student.dashboard') }}" class="nepali dashboard-link" style="color: white !important; text-decoration: none; font-weight: 600; padding: 0.5rem 1.5rem; border: 2px solid white; border-radius: var(--radius); transition: var(--transition); margin-right: 0.8rem;">
-                                ड्यासबोर्ड
-                            </a>
-                        @endif
-                        
-                        <!-- Logout Button for Authenticated Users - FIXED: Same size as dashboard -->
-                        <form method="POST" action="{{ route('logout') }}" class="inline" style="margin: 0;">
-                            @csrf
-                            <button type="submit" class="nepali logout-btn" style="color: white !important; text-decoration: none; font-weight: 600; padding: 0.5rem 1.5rem; border: 2px solid white; border-radius: var(--radius); transition: var(--transition); background: transparent; cursor: pointer;">
-                                लगआउट
-                            </button>
-                        </form>
-                    @else
-                        <a href="{{ route('login') }}" class="btn btn-outline nepali">लगइन</a>
-                        <a href="{{ route('register') }}" class="btn btn-primary nepali">साइन अप</a>
-                    @endauth
+                    <!-- Header CTA with Auth Support -->
+                    <div class="header-cta" style="margin-left: 2rem;">
+                        @auth
+                            @if(Auth::user()->hasRole('admin'))
+                                <a href="{{ route('admin.dashboard') }}" class="nepali dashboard-link" style="color: white !important; text-decoration: none; font-weight: 600; padding: 0.5rem 1.5rem; border: 2px solid white; border-radius: var(--radius); transition: var(--transition); margin-right: 0.8rem;">
+                                    ड्यासबोर्ड
+                                </a>
+                            @elseif(Auth::user()->hasRole('owner') || Auth::user()->hasRole('hostel_manager'))
+                                <a href="{{ route('owner.dashboard') }}" class="nepali dashboard-link" style="color: white !important; text-decoration: none; font-weight: 600; padding: 0.5rem 1.5rem; border: 2px solid white; border-radius: var(--radius); transition: var(--transition); margin-right: 0.8rem;">
+                                    ड्यासबोर्ड
+                                </a>
+                            @elseif(Auth::user()->hasRole('student'))
+                                <a href="{{ route('student.dashboard') }}" class="nepali dashboard-link" style="color: white !important; text-decoration: none; font-weight: 600; padding: 0.5rem 1.5rem; border: 2px solid white; border-radius: var(--radius); transition: var(--transition); margin-right: 0.8rem;">
+                                    ड्यासबोर्ड
+                                </a>
+                            @endif
+                            
+                            <form method="POST" action="{{ route('logout') }}" class="inline" style="margin: 0;">
+                                @csrf
+                                <button type="submit" class="nepali logout-btn" style="color: white !important; text-decoration: none; font-weight: 600; padding: 0.5rem 1.5rem; border: 2px solid white; border-radius: var(--radius); transition: var(--transition); background: transparent; cursor: pointer;">
+                                    लगआउट
+                                </button>
+                            </form>
+                        @else
+                            <a href="{{ route('login') }}" class="btn btn-outline nepali">लगइन</a>
+                            <a href="{{ route('register') }}" class="btn btn-primary nepali">साइन अप</a>
+                        @endauth
+                    </div>
+                    
+                    <button class="mobile-menu-btn" aria-label="मेनु खोल्नुहोस्" aria-expanded="false" aria-controls="main-nav">
+                        <i class="fas fa-bars"></i>
+                    </button>
                 </div>
-                
-                <button class="mobile-menu-btn" aria-label="मेनु खोल्नुहोस्" aria-expanded="false" aria-controls="main-nav">
-                    <i class="fas fa-bars"></i>
-                </button>
             </div>
         </div>
-    </div>
-</header>
+    </header>
 
     <!-- Page Header Section -->
     @hasSection('page-header')
@@ -705,96 +686,93 @@
     @endif
 
     <!-- Main Content -->
-    <main id="main" class="main-content-global @if(Request::route()->getName() == 'home')home-page-main @endif">
-    <div class="content-container">
-        @yield('content')
-    </div>
-</main>
+    <main id="main" class="main-content-global @if(Request::route()->getName() == 'home')home-page-main @else other-page-main @endif">
+        <div class="content-container">
+            @yield('content')
+        </div>
+    </main>
 
-<!-- Footer -->
-<footer>
-    <div class="container">
-        <div class="footer-grid">
-            <div class="footer-col">
-                <!-- Footer Logo with corrected path -->
-                <a href="{{ route('home') }}" class="footer-logo">
-        <img src="{{ asset('images/logo.png') }}" alt="HostelHub Logo" 
-             style="height: 120px !important; width: 120px !important; object-fit: contain !important; margin: 1rem 0 !important; display: block !important;"
-             onerror="this.style.display='none'">
-        <span style="font-size: 2rem; display: block; margin-top: 1rem;">HostelHub</span>
-    </a>
-                <p class="nepali" style="color: rgba(249, 250, 251, 0.8); margin-top: 12px; line-height: 1.6;">
-                    नेपालको नम्बर १ होस्टल प्रबन्धन प्रणाली। हामी होस्टल व्यवस्थापनलाई सहज, दक्ष र विश्वसनीय बनाउँछौं।
-                </p>
-                <div class="social-links">
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <a href="{{ route('home') }}" class="footer-logo">
+                        <img src="{{ asset('images/logo.png') }}" alt="HostelHub Logo" 
+                             style="height: 120px !important; width: 120px !important; object-fit: contain !important; margin: 1rem 0 !important; display: block !important;"
+                             onerror="this.style.display='none'">
+                        <span style="font-size: 2rem; display: block; margin-top: 1rem;">HostelHub</span>
+                    </a>
+                    <p class="nepali" style="color: rgba(249, 250, 251, 0.8); margin-top: 12px; line-height: 1.6;">
+                        नेपालको नम्बर १ होस्टल प्रबन्धन प्रणाली। हामी होस्टल व्यवस्थापनलाई सहज, दक्ष र विश्वसनीय बनाउँछौं।
+                    </p>
+                    <div class="social-links">
                         <a href="https://www.facebook.com/HostelHubNepal" 
-   aria-label="फेसबुक" 
-   target="_blank" 
-   rel="noopener noreferrer">
-   <i class="fab fa-facebook-f"></i>
-</a>
-                    <a href="#" aria-label="ट्विटर"><i class="fab fa-twitter"></i></a>
-                    <a href="#" aria-label="इन्स्टाग्राम"><i class="fab fa-instagram"></i></a>
-                    <a href="#" aria-label="लिङ्क्डइन"><i class="fab fa-linkedin-in"></i></a>
+                           aria-label="फेसबुक" 
+                           target="_blank" 
+                           rel="noopener noreferrer">
+                           <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" aria-label="ट्विटर"><i class="fab fa-twitter"></i></a>
+                        <a href="#" aria-label="इन्स्टाग्राम"><i class="fab fa-instagram"></i></a>
+                        <a href="#" aria-label="लिङ्क्डइन"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                <div class="footer-col">
+                    <h3 class="nepali">तिब्र लिङ्कहरू</h3>
+                    <ul class="footer-links">
+                        <li><a href="{{ route('home') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">होम</span></a></li>
+                        <li><a href="{{ route('features') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">सुविधाहरू</span></a></li>
+                        <li><a href="{{ route('how-it-works') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">कसरी काम गर्छ</span></a></li>
+                        <li><a href="{{ route('gallery') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">ग्यालरी</span></a></li>
+                        <li><a href="{{ route('pricing') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">मूल्य</span></a></li>
+                        <li><a href="{{ route('testimonials') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">प्रशंसापत्रहरू</span></a></li>
+                        <li><a href="{{ route('about') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">हाम्रो बारेमा</span></a></li>
+                        <li><a href="{{ route('privacy') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">गोप्यता नीति</span></a></li>
+                        <li><a href="{{ route('terms') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">सेवा सर्तहरू</span></a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h3 class="nepali">सम्पर्क जानकारी</h3>
+                    <ul class="contact-info">
+                        <li>
+                            <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
+                            <div class="nepali">कमलपोखरी, काठमाडौं, नेपाल</div>
+                        </li>
+                        <li>
+                            <i class="fas fa-phone-alt" aria-hidden="true"></i>
+                            <div>+९७७ ९७६१७६२०३६</div>
+                        </li>
+                        <li>
+                            <i class="fas fa-envelope" aria-hidden="true"></i>
+                            <div>info@hostelhub.com</div>
+                        </li>
+                        <li>
+                            <i class="fas fa-clock" aria-hidden="true"></i>
+                            <div class="nepali">सोम-शुक्र: ९:०० बिहान - ५:०० बेलुका</div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h3 class="nepali">समाचारपत्र</h3>
+                    <p class="nepali" style="color: rgba(249, 250, 251, 0.8); margin-bottom: 12px; line-height: 1.6;">
+                        हाम्रो नवीनतम अपडेटहरू प्राप्त गर्न तपाईंको इमेल दर्ता गर्नुहोस्
+                    </p>
+                    <form class="newsletter-form" action="{{ route('newsletter.subscribe') }}" method="POST">
+                        @csrf
+                        <input type="email" name="email" placeholder="तपाईंको इमेल" required aria-label="इमेल ठेगाना">
+                        <input type="text" name="honeypot" style="display:none" aria-hidden="true">
+                        <button type="submit" class="nepali">दर्ता गर्नुहोस्</button>
+                    </form>
+                </div>
+                <div class="copyright">
+                    <p class="nepali">© 2025 HostelHub. सबै अधिकार सुरक्षित।</p>
                 </div>
             </div>
-            <div class="footer-col">
-                <h3 class="nepali">तिब्र लिङ्कहरू</h3>
-                <ul class="footer-links">
-                    <li><a href="{{ route('home') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">होम</span></a></li>
-                    <li><a href="{{ route('features') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">सुविधाहरू</span></a></li>
-                    <li><a href="{{ route('how-it-works') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">कसरी काम गर्छ</span></a></li>
-                    <li><a href="{{ route('gallery') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">ग्यालरी</span></a></li>
-                    <li><a href="{{ route('pricing') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">मूल्य</span></a></li>
-                    <li><a href="{{ route('testimonials') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">प्रशंसापत्रहरू</span></a></li>
-                    <li><a href="{{ route('about') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">हाम्रो बारेमा</span></a></li>
-                    <li><a href="{{ route('privacy') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">गोप्यता नीति</span></a></li>
-                    <li><a href="{{ route('terms') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">सेवा सर्तहरू</span></a></li>
-                </ul>
-            </div>
-            <div class="footer-col">
-                <h3 class="nepali">सम्पर्क जानकारी</h3>
-                <ul class="contact-info">
-                    <li>
-                        <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
-                        <div class="nepali">कमलपोखरी, काठमाडौं, नेपाल</div>
-                    </li>
-                    <li>
-                        <i class="fas fa-phone-alt" aria-hidden="true"></i>
-                        <div>+९७७ ९७६१७६२०३६</div>
-                    </li>
-                    <li>
-                        <i class="fas fa-envelope" aria-hidden="true"></i>
-                        <div>info@hostelhub.com</div>
-                    </li>
-                    <li>
-                        <i class="fas fa-clock" aria-hidden="true"></i>
-                        <div class="nepali">सोम-शुक्र: ९:०० बिहान - ५:०० बेलुका</div>
-                    </li>
-                </ul>
-            </div>
-            <div class="footer-col">
-                <h3 class="nepali">समाचारपत्र</h3>
-                <p class="nepali" style="color: rgba(249, 250, 251, 0.8); margin-bottom: 12px; line-height: 1.6;">
-                    हाम्रो नवीनतम अपडेटहरू प्राप्त गर्न तपाईंको इमेल दर्ता गर्नुहोस्
-                </p>
-                <form class="newsletter-form" action="{{ route('newsletter.subscribe') }}" method="POST">
-                    @csrf
-                    <input type="email" name="email" placeholder="तपाईंको इमेल" required aria-label="इमेल ठेगाना">
-                    <input type="text" name="honeypot" style="display:none" aria-hidden="true">
-                    <button type="submit" class="nepali">दर्ता गर्नुहोस्</button>
-                </form>
-            </div>
-            <div class="copyright">
-                <p class="nepali">© 2025 HostelHub. सबै अधिकार सुरक्षित।</p>
-            </div>
         </div>
-    </div>
-</footer>
+    </footer>
 
-    <!-- ✅ GUARANTEED JAVASCRIPT - MULTIPLE FALLBACKS -->
     <script>
-        // ✅ ESSENTIAL JAVASCRIPT - ALWAYS LOADS
         document.addEventListener('DOMContentLoaded', function() {
             // Header scroll behavior
             window.addEventListener('scroll', () => {
@@ -817,7 +795,6 @@
                     menuBtn.setAttribute('aria-expanded', !expanded);
                     navLinks.classList.toggle('show');
                     
-                    // Update icon
                     const icon = menuBtn.querySelector('i');
                     if (icon) {
                         if (!expanded) {
@@ -861,17 +838,9 @@
                     }
                 }
             });
-
-            console.log('✅ HostelHub UI loaded successfully');
-        });
-
-        // ✅ Fallback for any external JS failures
-        window.addEventListener('error', function(e) {
-            console.log('JavaScript fallback active - UI functional');
         });
     </script>
 
-    <!-- Stack for additional scripts from child views -->
     @stack('scripts')
 </body>
 </html>

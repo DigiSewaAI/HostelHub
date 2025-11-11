@@ -1,9 +1,9 @@
 @extends('layouts.frontend')
 
-@section('page-title', ($hostel->name ?? 'Sanctuary Girls Hostel') . ' - Full Gallery | HostelHub')
+@section('page-title', ($hostel->name ?? 'Sanctuary Girls Hostel') . ' - Complete Gallery | HostelHub')
 
-@section('page-header', ($hostel->name ?? 'Sanctuary Girls Hostel') . ' - Full Gallery')
-@section('page-description', 'हाम्रो होस्टलको सम्पूर्ण सुविधाहरू, कोठाहरू, र भिडियोहरूको दृश्यात्मक अनुभव')
+@section('page-header', ($hostel->name ?? 'Sanctuary Girls Hostel') . ' - Complete Gallery')
+@section('page-description', 'हाम्रो होस्टलको सम्पूर्ण सुविधाहरू, कोठाहरू, भिडियो टुर र खानाको मेनुको पूर्ण दृश्यात्मक अनुभव')
 
 @section('content')
 @php
@@ -31,9 +31,15 @@
 @endphp
 
 <style>
+    /* 🚨 CRITICAL: Remove duplicate header protection */
+    .page-header {
+        display: none !important;
+    }
+    
     /* Gallery Specific Styles */
     .gallery-section {
         padding: 80px 0 60px;
+        margin-top: 0 !important;
     }
     
     .section-title {
@@ -199,9 +205,10 @@
         flex-wrap: wrap;
     }
     
-    /* Gallery Categories - Fixed Top Alignment */
+    /* 🚨 UPDATED: Gallery Categories - About page जस्तै design */
     .gallery-categories {
-        background: var(--bg-light);
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
         padding: 60px 0 80px;
         margin-top: 0;
         min-height: auto;
@@ -211,12 +218,13 @@
     .main-description {
         text-align: center;
         margin: 0 auto 60px;
-        color: var(--text-dark);
+        color: white !important; /* 🚨 WHITE COLOR - तपाईंले माग्नुभएजस्तै */
         font-size: 2rem;
         font-weight: 700;
         line-height: 1.3;
         max-width: 900px;
         padding: 40px 20px 0;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     }
     
     .category-grid {
@@ -228,10 +236,10 @@
     }
     
     .category-card {
-        background: white;
+        background: rgba(255, 255, 255, 0.95);
         border-radius: 12px;
         overflow: hidden;
-        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
         transition: transform 0.3s, box-shadow 0.3s;
         text-align: center;
         padding: 30px 20px;
@@ -240,11 +248,14 @@
         flex-direction: column;
         justify-content: center;
         align-items: center;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
     }
     
     .category-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        background: rgba(255, 255, 255, 1);
     }
     
     .category-icon {
@@ -440,6 +451,99 @@
         display: block !important;
     }
     
+    /* 🚨 UPDATED: CTA SECTION - EXACTLY LIKE ABOUT PAGE */
+    .gallery-cta-wrapper {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        padding: 2rem 1.5rem 8rem 1.5rem;
+        margin-top: 4rem;
+        background: transparent !important;
+        position: relative;
+        z-index: 100;
+    }
+    
+    .gallery-cta-section {
+        text-align: center;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+        padding: 3rem 2rem;
+        border-radius: 1rem;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+        max-width: 800px;
+        width: 100%;
+        margin: 0 auto;
+        position: relative;
+        z-index: 101;
+    }
+    
+    .gallery-cta-section h2 {
+        font-size: 1.875rem;
+        font-weight: bold;
+        margin-bottom: 1rem;
+        color: white;
+    }
+    
+    .gallery-cta-section p {
+        font-size: 1.25rem;
+        margin-bottom: 2rem;
+        opacity: 0.9;
+    }
+    
+    .gallery-contact-email {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin: 20px 0;
+        display: block;
+        color: #ffffff;
+        text-decoration: underline;
+    }
+    
+    .gallery-trial-button {
+        background-color: white;
+        color: #001F5B;
+        font-weight: 600;
+        padding: 0.75rem 2rem;
+        border-radius: 0.5rem;
+        text-decoration: none;
+        min-width: 180px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        display: inline-block;
+        font-size: 1rem;
+        text-align: center;
+    }
+    
+    .gallery-trial-button:hover {
+        background-color: #f3f4f6;
+        transform: translateY(-2px);
+        color: #001F5B;
+    }
+    
+    .gallery-trial-button:disabled {
+        background: #6c757d;
+        color: white;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .gallery-trial-button:disabled:hover {
+        background: #6c757d;
+        color: white;
+        transform: none;
+    }
+
+    .gallery-cta-buttons-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        align-items: center;
+        margin-top: 1.5rem;
+        width: 100%;
+    }
+    
     /* Responsive Design */
     @media (max-width: 1200px) {
         .category-grid {
@@ -515,6 +619,32 @@
             grid-template-columns: 1fr;
             gap: 20px;
         }
+        
+        /* CTA Responsive */
+        .gallery-cta-wrapper {
+            padding: 2rem 1rem 6rem 1rem;
+        }
+        
+        .gallery-cta-section {
+            padding: 2.5rem 1.5rem;
+        }
+        
+        .gallery-cta-section h2 {
+            font-size: 1.5rem;
+        }
+        
+        .gallery-cta-section p {
+            font-size: 1.125rem;
+        }
+        
+        .gallery-contact-email {
+            font-size: 1.1rem;
+        }
+        
+        .gallery-trial-button {
+            padding: 0.6rem 1.5rem;
+            font-size: 0.9rem;
+        }
     }
     
     @media (max-width: 480px) {
@@ -559,10 +689,31 @@
         .meal-content h4 {
             font-size: 1.2rem;
         }
+        
+        /* CTA Mobile */
+        .gallery-cta-wrapper {
+            padding: 1.5rem 1rem 5rem 1rem;
+        }
+        
+        .gallery-cta-section {
+            padding: 2rem 1rem;
+        }
+        
+        .gallery-cta-section h2 {
+            font-size: 1.3rem;
+        }
+        
+        .gallery-cta-section p {
+            font-size: 1rem;
+        }
+        
+        .gallery-contact-email {
+            font-size: 1rem;
+        }
     }
 </style>
 
-<!-- Gallery Categories -->
+<!-- 🚨 UPDATED: Gallery Categories - About page जस्तै design -->
 <section class="gallery-categories">
     <div class="container">
         <div class="main-description nepali">
@@ -696,7 +847,6 @@
                             onclick="showMoreGallery()">
                         थप तस्बिर हेर्नुहोस्
                     </button>
-                    <a href="{{ route('contact') }}" class="btn btn-primary nepali">सम्पर्क गर्नुहोस्</a>
                 </div>
             @endif
         </div>
@@ -739,12 +889,6 @@
                     </div>
                 @endif
             </div>
-            
-            @if($activeGalleries->whereIn('media_type', ['local_video', 'external_video'])->count() > 0)
-                <div class="view-more">
-                    <a href="{{ route('contact') }}" class="btn btn-primary nepali">सम्पर्क गर्नुहोस्</a>
-                </div>
-            @endif
         </div>
         
         <!-- Meal Gallery Tab -->
@@ -809,12 +953,45 @@
                     </div>
                 @endif
             </div>
-            
-            @if(isset($mealMenus) && $mealMenus->count() > 0)
-                <div class="view-more">
-                    <a href="{{ route('contact') }}" class="btn btn-primary nepali">सम्पर्क गर्नुहोस्</a>
+        </div>
+        
+        <!-- 🚨 UPDATED: CTA SECTION - EXACTLY LIKE ABOUT PAGE -->
+        <div class="gallery-cta-wrapper">
+            <section class="gallery-cta-section">
+                <h2 class="nepali">हामीलाई सम्पर्क गर्नुहोस्</h2>
+                <p class="nepali">हामी तपाईंलाई सहयोग गर्न तत्पर छौं</p>
+                <a href="mailto:support@hostelhub.com" class="gallery-contact-email nepali">support@hostelhub.com</a>
+                <div class="gallery-cta-buttons-container">
+                    @auth
+                        @php
+                            $organizationId = session('current_organization_id');
+                            $hasSubscription = false;
+                            
+                            if ($organizationId) {
+                                try {
+                                    $organization = \App\Models\Organization::with('subscription')->find($organizationId);
+                                    $hasSubscription = $organization->subscription ?? false;
+                                } catch (Exception $e) {
+                                    $hasSubscription = false;
+                                }
+                            }
+                        @endphp
+                        
+                        @if($hasSubscription)
+                            <button class="gallery-trial-button nepali" disabled>
+                                तपाईंसँग पहिले नै सदस्यता छ
+                            </button>
+                        @else
+                            <form action="{{ route('subscription.start-trial') }}" method="POST" class="trial-form" style="display: inline;">
+                                @csrf
+                                <button type="submit" class="gallery-trial-button nepali">७ दिन निःशुल्क परीक्षण सुरु गर्नुहोस्</button>
+                            </form>
+                        @endif
+                    @else
+                        <a href="{{ route('register.organization', ['plan' => 'starter']) }}" class="gallery-trial-button nepali">७ दिन निःशुल्क परीक्षण सुरु गर्नुहोस्</a>
+                    @endauth
                 </div>
-            @endif
+            </section>
         </div>
     </div>
 </section>
