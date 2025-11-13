@@ -14,6 +14,7 @@ use App\Models\MealMenu;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class StudentController extends Controller
 {
@@ -36,12 +37,14 @@ class StudentController extends Controller
             $rooms = Room::where('hostel_id', auth()->user()->hostel_id)->get();
         }
 
-        // Search and filters (common for both roles)
+        // ✅ FIXED: SQL Injection prevention in search
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->whereHas('user', function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%");
+            $safeSearch = '%' . addcslashes($search, '%_') . '%'; // Escape wildcards
+
+            $query->whereHas('user', function ($q) use ($safeSearch) {
+                $q->where('name', 'like', $safeSearch)
+                    ->orWhere('email', 'like', $safeSearch);
             });
         }
 
@@ -74,6 +77,17 @@ class StudentController extends Controller
      */
     public function create()
     {
+        // ✅ FIXED: Authorization check for hostel managers
+        if (auth()->user()->hasRole('hostel_manager')) {
+            if (!auth()->user()->hostel_id) {
+                Log::warning('Hostel manager tried to create student but hostel_id is not set', [
+                    'user_id' => auth()->id(),
+                    'user_name' => auth()->user()->name
+                ]);
+                abort(403, 'तपाईंसँग विद्यार्थी सिर्जना गर्ने अनुमति छैन। पहिले होस्टेल सेटअप गर्नुहोस्।');
+            }
+        }
+
         if (auth()->user()->hasRole('admin')) {
             $hostels = Hostel::all();
             $rooms = Room::where('status', 'available')->with('hostel')->get();
@@ -128,38 +142,21 @@ class StudentController extends Controller
     /**
      * Store a newly created student in storage.
      */
-    public function store(Request $request)
+    public function store(StoreStudentRequest $request) // ✅ FIXED: Use Form Request for validation
     {
-        // Role-based validation and data handling
+        // ✅ FIXED: Mass Assignment protection - use validated data only
+        $validatedData = $request->validated();
+
+        // Role-based data handling
         if (auth()->user()->hasRole('admin')) {
-            $validatedData = $request->validate((new StoreStudentRequest)->rules());
+            // Admin side processing
         } else {
-            // 🔥 CRITICAL SAFETY CHECK: Ensure owner has hostel_id set
+            // Owner side processing
             $userHostelId = auth()->user()->hostel_id;
             if (!$userHostelId) {
                 return redirect()->route('owner.hostels.index')
                     ->with('error', 'कृपया पहिले आफ्नो होस्टेल सेटअप गर्नुहोस्। होस्टेल बिना विद्यार्थी दर्ता गर्न सकिँदैन।');
             }
-
-            $validatedData = $request->validate([
-                'user_id' => 'nullable|integer|min:0', // ✅ FIXED: Allow 0 as valid value
-                'name' => 'required|string|max:255',
-                'email' => 'nullable|email',
-                'phone' => 'required|string|max:15',
-                'college_id' => 'required',
-                'other_college' => 'nullable|string|max:255',
-                'dob' => 'nullable|date',
-                'gender' => 'nullable|in:male,female,other',
-                'guardian_name' => 'required|string|max:255',
-                'guardian_contact' => 'required|string|max:15',
-                'guardian_relation' => 'required|string|max:100',
-                'room_id' => 'nullable|exists:rooms,id',
-                'admission_date' => 'required|date',
-                'status' => 'required|in:pending,approved,active,inactive',
-                'payment_status' => 'required|in:pending,paid,unpaid',
-                'address' => 'required|string|max:500',
-                'guardian_address' => 'required|string|max:500',
-            ]);
 
             try {
                 // ✅ FIXED: Handle user_id - convert 0 to NULL to avoid foreign key constraint
@@ -171,16 +168,15 @@ class StudentController extends Controller
                 // ✅ FIXED: CORRECTED - Handle college selection properly
                 if ($request->college_id == 'others' && $request->filled('other_college')) {
                     $validatedData['college'] = $request->other_college;
-                    $validatedData['college_id'] = null; // "others" भएकोले college_id null गर्नुहोस्
+                    $validatedData['college_id'] = null;
                 } else {
                     $validatedData['college_id'] = $request->college_id;
                     $college = College::find($request->college_id);
-                    $validatedData['college'] = $college->name ?? 'Unknown College'; // Regular college को नाम पनि राख्नुहोस्
+                    $validatedData['college'] = $college->name ?? 'Unknown College';
                 }
 
                 // Remove temporary field only
                 unset($validatedData['other_college']);
-                // ❌ college_id लाई unset नगर्नुहोस् - यो टेबलमा चाहिन्छ
 
                 // ✅ FIXED: Add organization_id for owner
                 $validatedData['organization_id'] = auth()->user()->organization_id;
@@ -198,6 +194,11 @@ class StudentController extends Controller
                     $validatedData['hostel_id'] = $userHostelId;
                 }
 
+                // ✅ FIXED: File upload security for admin (if applicable)
+                if (auth()->user()->hasRole('admin') && $request->hasFile('image')) {
+                    $validatedData['image'] = $request->file('image')->store('students', 'public');
+                }
+
                 // ✅ Create new student safely
                 $student = Student::create($validatedData);
 
@@ -212,16 +213,10 @@ class StudentController extends Controller
                 return redirect()->route('owner.students.index')
                     ->with('success', 'विद्यार्थी सफलतापूर्वक दर्ता गरियो!');
             } catch (\Exception $e) {
-                // ✅ FIXED: Error handle गर्नुहोस्
                 Log::error('Student creation error: ' . $e->getMessage());
                 return back()->withInput()
                     ->with('error', 'विद्यार्थी दर्ता गर्दा त्रुटि भयो: ' . $e->getMessage());
             }
-        }
-
-        // Handle image upload (for admin only)
-        if (auth()->user()->hasRole('admin') && $request->hasFile('image')) {
-            $validatedData['image'] = $request->file('image')->store('students', 'public');
         }
 
         // Admin side student creation
@@ -244,6 +239,11 @@ class StudentController extends Controller
 
             // ✅ FIXED: Add missing field student_id for admin side too
             $validatedData['student_id'] = null;
+
+            // ✅ FIXED: File upload security for admin
+            if (auth()->user()->hasRole('admin') && $request->hasFile('image')) {
+                $validatedData['image'] = $request->file('image')->store('students', 'public');
+            }
 
             $student = Student::create($validatedData);
 
@@ -269,12 +269,17 @@ class StudentController extends Controller
      */
     public function show(Student $student)
     {
-        // Authorization
+        // ✅ FIXED: Enhanced authorization check
         if (auth()->user()->hasRole('hostel_manager')) {
             $room = $student->room;
             if (!$room || $room->hostel_id != auth()->user()->hostel_id) {
                 abort(403, 'तपाईंसँग यो विद्यार्थी हेर्ने अनुमति छैन');
             }
+        }
+
+        // Additional authorization for owners
+        if (auth()->user()->hasRole('owner') && $student->hostel_id != auth()->user()->hostel_id) {
+            abort(403, 'तपाईंसँग यो विद्यार्थी हेर्ने अनुमति छैन');
         }
 
         // ✅ FIXED: Remove 'meals' relationship to avoid SQL error
@@ -292,12 +297,17 @@ class StudentController extends Controller
      */
     public function edit(Student $student)
     {
-        // Authorization
+        // ✅ FIXED: Enhanced authorization check
         if (auth()->user()->hasRole('hostel_manager')) {
             $room = $student->room;
             if (!$room || $room->hostel_id != auth()->user()->hostel_id) {
                 abort(403, 'तपाईंसँग यो विद्यार्थी सम्पादन गर्ने अनुमति छैन');
             }
+        }
+
+        // Additional authorization for owners
+        if (auth()->user()->hasRole('owner') && $student->hostel_id != auth()->user()->hostel_id) {
+            abort(403, 'तपाईंसँग यो विद्यार्थी सम्पादन गर्ने अनुमति छैन');
         }
 
         if (auth()->user()->hasRole('admin')) {
@@ -353,9 +363,9 @@ class StudentController extends Controller
     /**
      * Update the specified student in storage.
      */
-    public function update(Request $request, Student $student)
+    public function update(UpdateStudentRequest $request, Student $student) // ✅ FIXED: Use Form Request
     {
-        // Authorization
+        // ✅ FIXED: Enhanced authorization check
         if (auth()->user()->hasRole('hostel_manager')) {
             $room = $student->room;
             if (!$room || $room->hostel_id != auth()->user()->hostel_id) {
@@ -363,36 +373,24 @@ class StudentController extends Controller
             }
         }
 
-        // Role-based validation
+        // Additional authorization for owners
+        if (auth()->user()->hasRole('owner') && $student->hostel_id != auth()->user()->hostel_id) {
+            abort(403, 'तपाईंसँग यो विद्यार्थी सम्पादन गर्ने अनुमति छैन');
+        }
+
+        // ✅ FIXED: Mass Assignment protection - use validated data only
+        $validatedData = $request->validated();
+
+        // Role-based processing
         if (auth()->user()->hasRole('admin')) {
-            $validatedData = $request->validate((new UpdateStudentRequest)->rules());
+            // Admin side update
         } else {
-            // 🔥 CRITICAL SAFETY CHECK: Ensure owner has hostel_id set
+            // Owner side update
             $userHostelId = auth()->user()->hostel_id;
             if (!$userHostelId) {
                 return redirect()->route('owner.hostels.index')
                     ->with('error', 'कृपया पहिले आफ्नो होस्टेल सेटअप गर्नुहोस्।');
             }
-
-            $validatedData = $request->validate([
-                'user_id' => 'nullable|integer|min:0', // ✅ FIXED: Allow 0 as valid value
-                'name' => 'required|string|max:255',
-                'email' => 'nullable|email',
-                'phone' => 'required|string|max:15',
-                'college_id' => 'required',
-                'other_college' => 'nullable|string|max:255',
-                'dob' => 'nullable|date',
-                'gender' => 'nullable|in:male,female,other',
-                'guardian_name' => 'required|string|max:255',
-                'guardian_contact' => 'required|string|max:15',
-                'guardian_relation' => 'required|string|max:100',
-                'room_id' => 'nullable|exists:rooms,id',
-                'admission_date' => 'required|date',
-                'status' => 'required|in:pending,approved,active,inactive',
-                'payment_status' => 'required|in:pending,paid,unpaid',
-                'address' => 'required|string|max:500',
-                'guardian_address' => 'required|string|max:500',
-            ]);
 
             try {
                 // ✅ FIXED: Handle user_id - convert 0 to NULL to avoid foreign key constraint
@@ -478,8 +476,13 @@ class StudentController extends Controller
             // Remove temporary field
             unset($validatedData['other_college']);
 
-            // Handle image upload (for admin only)
+            // ✅ FIXED: File upload security for admin
             if (auth()->user()->hasRole('admin') && $request->hasFile('image')) {
+                // Validate file type and size
+                $request->validate([
+                    'image' => 'image|mimes:jpeg,png,jpg,gif|max:2048'
+                ]);
+
                 if ($student->image) {
                     Storage::disk('public')->delete($student->image);
                 }
@@ -526,12 +529,17 @@ class StudentController extends Controller
      */
     public function destroy(Student $student)
     {
-        // Authorization
+        // ✅ FIXED: Enhanced authorization check
         if (auth()->user()->hasRole('hostel_manager')) {
             $room = $student->room;
             if (!$room || $room->hostel_id != auth()->user()->hostel_id) {
                 abort(403, 'तपाईंसँग यो विद्यार्थी हटाउने अनुमति छैन');
             }
+        }
+
+        // Additional authorization for owners
+        if (auth()->user()->hasRole('owner') && $student->hostel_id != auth()->user()->hostel_id) {
+            abort(403, 'तपाईंसँग यो विद्यार्थी हटाउने अनुमति छैन');
         }
 
         // Delete image (for admin only)
@@ -576,12 +584,14 @@ class StudentController extends Controller
             })->with(['user', 'room.hostel']);
         }
 
-        // Apply filters if any
+        // ✅ FIXED: SQL Injection prevention in search
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->whereHas('user', function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%");
+            $safeSearch = '%' . addcslashes($search, '%_') . '%';
+
+            $query->whereHas('user', function ($q) use ($safeSearch) {
+                $q->where('name', 'like', $safeSearch)
+                    ->orWhere('email', 'like', $safeSearch);
             });
         }
 
@@ -636,11 +646,14 @@ class StudentController extends Controller
             })->with(['user', 'room.hostel']);
         }
 
+        // ✅ FIXED: SQL Injection prevention in search
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->whereHas('user', function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%");
+            $safeSearch = '%' . addcslashes($search, '%_') . '%';
+
+            $query->whereHas('user', function ($q) use ($safeSearch) {
+                $q->where('name', 'like', $safeSearch)
+                    ->orWhere('email', 'like', $safeSearch);
             });
         }
 
@@ -658,6 +671,11 @@ class StudentController extends Controller
      */
     public function studentDashboard()
     {
+        // ✅ FIXED: Authorization - only students can access their own dashboard
+        if (!auth()->user()->hasRole('student')) {
+            abort(403, 'तपाईंसँग यो पृष्ठ हेर्ने अनुमति छैन');
+        }
+
         $user = auth()->user();
         $student = Student::where('user_id', $user->id)->first();
 
@@ -680,6 +698,11 @@ class StudentController extends Controller
      */
     public function profile()
     {
+        // ✅ FIXED: Authorization - only students can access their own profile
+        if (!auth()->user()->hasRole('student')) {
+            abort(403, 'तपाईंसँग यो पृष्ठ हेर्ने अनुमति छैन');
+        }
+
         $user = auth()->user();
         $student = Student::where('user_id', $user->id)->first();
 
@@ -695,6 +718,11 @@ class StudentController extends Controller
      */
     public function updateProfile(Request $request)
     {
+        // ✅ FIXED: Authorization - only students can update their own profile
+        if (!auth()->user()->hasRole('student')) {
+            abort(403, 'तपाईंसँग यो कार्य गर्ने अनुमति छैन');
+        }
+
         $user = auth()->user();
         $student = Student::where('user_id', $user->id)->first();
 
@@ -722,6 +750,11 @@ class StudentController extends Controller
      */
     public function payments()
     {
+        // ✅ FIXED: Authorization - only students can access their own payments
+        if (!auth()->user()->hasRole('student')) {
+            abort(403, 'तपाईंसँग यो पृष्ठ हेर्ने अनुमति छैन');
+        }
+
         $user = auth()->user();
         $student = Student::where('user_id', $user->id)->first();
 
@@ -739,6 +772,11 @@ class StudentController extends Controller
      */
     public function mealMenus()
     {
+        // ✅ FIXED: Authorization - only students can access meal menus
+        if (!auth()->user()->hasRole('student')) {
+            abort(403, 'तपाईंसँग यो पृष्ठ हेर्ने अनुमति छैन');
+        }
+
         $user = auth()->user();
         $student = Student::where('user_id', $user->id)->first();
 
@@ -756,6 +794,11 @@ class StudentController extends Controller
      */
     public function showMealMenu(MealMenu $mealMenu)
     {
+        // ✅ FIXED: Authorization - only students can access their hostel's meal menus
+        if (!auth()->user()->hasRole('student')) {
+            abort(403, 'तपाईंसँग यो पृष्ठ हेर्ने अनुमति छैन');
+        }
+
         $user = auth()->user();
         $student = Student::where('user_id', $user->id)->first();
 

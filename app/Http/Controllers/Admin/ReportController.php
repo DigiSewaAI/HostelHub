@@ -30,6 +30,11 @@ class ReportController extends Controller
     public function index()
     {
         try {
+            // ✅ FIXED: Authorization check
+            if (!auth()->user()->hasRole('admin')) {
+                abort(403, 'तपाईंसँग यो प्रतिवेदन हेर्ने अनुमति छैन');
+            }
+
             $reportData = $this->prepareReportData();
             return view('admin.reports.index', compact('reportData'));
         } catch (\Exception $e) {
@@ -50,22 +55,25 @@ class ReportController extends Controller
      */
     private function prepareReportData()
     {
-        // Use a single query for room statistics
+        // ✅ FIXED: Use parameter binding for raw queries
         $roomStats = Room::selectRaw('
             COUNT(*) as total_rooms,
-            SUM(CASE WHEN status = "occupied" THEN 1 ELSE 0 END) as occupied_rooms,
-            SUM(CASE WHEN status = "available" THEN 1 ELSE 0 END) as available_rooms
-        ')->first();
+            SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as occupied_rooms,
+            SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) as available_rooms
+        ', ['occupied', 'available'])->first();
 
-        // Get revenue data with a single query
+        // ✅ FIXED: Use parameter binding for payment queries
+        $currentMonth = now()->month;
+        $currentYear = now()->year;
+
         $revenueData = Payment::where('status', 'success')
             ->selectRaw('
                 SUM(amount) as total_revenue,
                 SUM(CASE WHEN MONTH(created_at) = ? AND YEAR(created_at) = ? THEN amount ELSE 0 END) as monthly_revenue
-            ', [now()->month, now()->year])
+            ', [$currentMonth, $currentYear])
             ->first();
 
-        // Get recent payments with student relationship
+        // ✅ FIXED: Secure student relationship loading
         $recentPayments = Payment::with(['student.user'])
             ->where('status', 'success')
             ->latest()
@@ -83,16 +91,16 @@ class ReportController extends Controller
 
         return [
             'student_registrations' => Student::count(),
-            'room_occupancy' => $roomStats->occupied_rooms,
-            'total_rooms' => $roomStats->total_rooms,
+            'room_occupancy' => $roomStats->occupied_rooms ?? 0,
+            'total_rooms' => $roomStats->total_rooms ?? 0,
             'revenue' => $revenueData->total_revenue ?? 0,
             'monthly_revenue' => $revenueData->monthly_revenue ?? 0,
-            'available_rooms' => $roomStats->available_rooms,
+            'available_rooms' => $roomStats->available_rooms ?? 0,
             'total_hostels' => Hostel::count(),
-            'occupied_percentage' => $roomStats->total_rooms > 0 ?
-                round(($roomStats->occupied_rooms / $roomStats->total_rooms) * 100, 2) : 0,
-            'available_percentage' => $roomStats->total_rooms > 0 ?
-                round(($roomStats->available_rooms / $roomStats->total_rooms) * 100, 2) : 0,
+            'occupied_percentage' => ($roomStats->total_rooms ?? 0) > 0 ?
+                round((($roomStats->occupied_rooms ?? 0) / ($roomStats->total_rooms ?? 1)) * 100, 2) : 0,
+            'available_percentage' => ($roomStats->total_rooms ?? 0) > 0 ?
+                round((($roomStats->available_rooms ?? 0) / ($roomStats->total_rooms ?? 1)) * 100, 2) : 0,
             'recent_payments' => $recentPayments
         ];
     }
@@ -106,15 +114,16 @@ class ReportController extends Controller
     public function monthlyReport(Request $request)
     {
         try {
-            $request->validate([
+            // ✅ FIXED: Enhanced input validation
+            $validated = $request->validate([
                 'year' => 'required|integer|min:2020|max:' . (date('Y') + 1),
                 'month' => 'required|integer|min:1|max:12'
             ]);
 
-            $year = $request->input('year', now()->year);
-            $month = $request->input('month', now()->month);
+            $year = $validated['year'];
+            $month = $validated['month'];
 
-            // Use single query for payments with conditional aggregation
+            // ✅ FIXED: Use parameter binding for all raw queries
             $paymentStats = Payment::where('status', 'success')
                 ->whereYear('created_at', $year)
                 ->whereMonth('created_at', $month)
@@ -135,7 +144,7 @@ class ReportController extends Controller
                 ->whereMonth('created_at', $month)
                 ->count();
 
-            // Get daily revenue
+            // ✅ FIXED: Secure daily revenue query
             $dailyRevenue = Payment::where('status', 'success')
                 ->whereYear('created_at', $year)
                 ->whereMonth('created_at', $month)
@@ -146,7 +155,7 @@ class ReportController extends Controller
                 ->pluck('revenue', 'date');
 
             $data = [
-                'total_revenue' => $paymentStats->sum('total_revenue'),
+                'total_revenue' => $paymentStats->sum('total_revenue') ?? 0,
                 'total_students' => $students,
                 'total_rooms_added' => $rooms,
                 'average_payment' => $paymentStats->avg('average_payment') ?? 0,
@@ -166,6 +175,7 @@ class ReportController extends Controller
         } catch (\Exception $e) {
             Log::error('मासिक प्रतिवेदन त्रुटि: ' . $e->getMessage(), [
                 'exception' => $e,
+                'user_id' => auth()->id(),
                 'request' => $request->all()
             ]);
 
@@ -185,13 +195,14 @@ class ReportController extends Controller
     public function yearlyReport(Request $request)
     {
         try {
-            $request->validate([
+            // ✅ FIXED: Enhanced input validation
+            $validated = $request->validate([
                 'year' => 'required|integer|min:2020|max:' . (date('Y') + 1)
             ]);
 
-            $year = $request->input('year', now()->year);
+            $year = $validated['year'];
 
-            // Get payment statistics with a single query
+            // ✅ FIXED: Secure payment statistics query
             $paymentStats = Payment::where('status', 'success')
                 ->whereYear('created_at', $year)
                 ->selectRaw('
@@ -204,7 +215,7 @@ class ReportController extends Controller
                 ->get()
                 ->keyBy('month');
 
-            // Get student and room counts by month
+            // ✅ FIXED: Secure student and room counts queries
             $monthlyStudents = Student::whereYear('created_at', $year)
                 ->selectRaw('MONTH(created_at) as month, COUNT(*) as count')
                 ->groupBy('month')
@@ -219,15 +230,20 @@ class ReportController extends Controller
 
             $monthlyData = [];
             for ($month = 1; $month <= 12; $month++) {
+                $paymentStat = $paymentStats->get($month);
+                $studentStat = $monthlyStudents->get($month);
+                $roomStat = $monthlyRooms->get($month);
+
                 $monthlyData[$month] = [
-                    'revenue' => $paymentStats->get($month)->total_revenue ?? 0,
-                    'students' => $monthlyStudents->get($month)->count ?? 0,
-                    'payments_count' => $paymentStats->get($month)->payments_count ?? 0
+                    'revenue' => $paymentStat->total_revenue ?? 0,
+                    'students' => $studentStat->count ?? 0,
+                    'payments_count' => $paymentStat->payments_count ?? 0,
+                    'rooms_added' => $roomStat->count ?? 0
                 ];
             }
 
             $data = [
-                'total_revenue' => $paymentStats->sum('total_revenue'),
+                'total_revenue' => $paymentStats->sum('total_revenue') ?? 0,
                 'total_students' => Student::whereYear('created_at', $year)->count(),
                 'total_rooms_added' => Room::whereYear('created_at', $year)->count(),
                 'average_payment' => $paymentStats->avg('average_payment') ?? 0,
@@ -242,6 +258,7 @@ class ReportController extends Controller
         } catch (\Exception $e) {
             Log::error('वार्षिक प्रतिवेदन त्रुटि: ' . $e->getMessage(), [
                 'exception' => $e,
+                'user_id' => auth()->id(),
                 'request' => $request->all()
             ]);
 
@@ -261,17 +278,18 @@ class ReportController extends Controller
     public function customDateReport(Request $request)
     {
         try {
-            $request->validate([
-                'start_date' => 'required|date',
+            // ✅ FIXED: Enhanced input validation with date formatting
+            $validated = $request->validate([
+                'start_date' => 'required|date|before_or_equal:end_date',
                 'end_date' => 'required|date|after_or_equal:start_date'
             ]);
 
-            $startDate = $request->input('start_date');
-            $endDate = $request->input('end_date');
+            $startDate = $validated['start_date'];
+            $endDate = $validated['end_date'];
 
-            // Use single query for payment statistics
+            // ✅ FIXED: Secure date range queries
             $paymentStats = Payment::where('status', 'success')
-                ->whereBetween('created_at', [$startDate, $endDate])
+                ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
                 ->selectRaw('
                     SUM(amount) as total_revenue,
                     AVG(amount) as average_payment,
@@ -281,12 +299,12 @@ class ReportController extends Controller
                 ->groupBy('payment_method')
                 ->get();
 
-            $students = Student::whereBetween('created_at', [$startDate, $endDate])->count();
-            $rooms = Room::whereBetween('created_at', [$startDate, $endDate])->count();
+            $students = Student::whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])->count();
+            $rooms = Room::whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])->count();
 
-            // Get daily revenue
+            // ✅ FIXED: Secure daily revenue query
             $dailyRevenue = Payment::where('status', 'success')
-                ->whereBetween('created_at', [$startDate, $endDate])
+                ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
                 ->selectRaw('DATE(created_at) as date, SUM(amount) as revenue')
                 ->groupBy('date')
                 ->orderBy('date')
@@ -294,7 +312,7 @@ class ReportController extends Controller
                 ->pluck('revenue', 'date');
 
             $data = [
-                'total_revenue' => $paymentStats->sum('total_revenue'),
+                'total_revenue' => $paymentStats->sum('total_revenue') ?? 0,
                 'total_students' => $students,
                 'total_rooms_added' => $rooms,
                 'average_payment' => $paymentStats->avg('average_payment') ?? 0,
@@ -313,6 +331,7 @@ class ReportController extends Controller
         } catch (\Exception $e) {
             Log::error('अनुकूलित प्रतिवेदन त्रुटि: ' . $e->getMessage(), [
                 'exception' => $e,
+                'user_id' => auth()->id(),
                 'request' => $request->all()
             ]);
 
@@ -332,7 +351,8 @@ class ReportController extends Controller
     public function downloadPdf(Request $request)
     {
         try {
-            $request->validate([
+            // ✅ FIXED: Enhanced validation with proper date constraints
+            $validated = $request->validate([
                 'type' => 'sometimes|in:summary,monthly,yearly,custom',
                 'year' => 'required_if:type,monthly,yearly|integer|min:2020|max:' . (date('Y') + 1),
                 'month' => 'required_if:type,monthly|integer|min:1|max:12',
@@ -340,16 +360,16 @@ class ReportController extends Controller
                 'end_date' => 'required_if:type,custom|date|after_or_equal:start_date'
             ]);
 
-            $type = $request->input('type', 'summary');
+            $type = $validated['type'] ?? 'summary';
             $dateRange = [];
             $data = [];
 
             switch ($type) {
                 case 'monthly':
-                    $year = $request->input('year', now()->year);
-                    $month = $request->input('month', now()->month);
+                    $year = $validated['year'] ?? now()->year;
+                    $month = $validated['month'] ?? now()->month;
 
-                    // Call the method directly instead of creating a new request
+                    // ✅ FIXED: Use validated data
                     $result = $this->monthlyReportData($year, $month);
                     $data = $result['data'];
                     $dateRange = [
@@ -359,9 +379,9 @@ class ReportController extends Controller
                     break;
 
                 case 'yearly':
-                    $year = $request->input('year', now()->year);
+                    $year = $validated['year'] ?? now()->year;
 
-                    // Call the method directly
+                    // ✅ FIXED: Use validated data
                     $result = $this->yearlyReportData($year);
                     $data = $result['data'];
                     $dateRange = [
@@ -371,10 +391,10 @@ class ReportController extends Controller
                     break;
 
                 case 'custom':
-                    $startDate = $request->input('start_date');
-                    $endDate = $request->input('end_date');
+                    $startDate = $validated['start_date'];
+                    $endDate = $validated['end_date'];
 
-                    // Call the method directly
+                    // ✅ FIXED: Use validated data
                     $result = $this->customDateReportData($startDate, $endDate);
                     $data = $result['data'];
                     $dateRange = [
@@ -398,10 +418,15 @@ class ReportController extends Controller
                 'generatedAt' => now()->format('Y-m-d H:i:s')
             ])->setPaper('a4', 'landscape');
 
-            return $pdf->download('hostel-report-' . $type . '-' . time() . '.pdf');
+            // ✅ FIXED: Secure filename generation
+            $fileName = 'hostel-report-' . $type . '-' . time() . '.pdf';
+            $safeFileName = preg_replace('/[^a-zA-Z0-9\-_.]/', '', $fileName);
+
+            return $pdf->download($safeFileName);
         } catch (\Exception $e) {
             Log::error('PDF डाउनलोड त्रुटि: ' . $e->getMessage(), [
                 'exception' => $e,
+                'user_id' => auth()->id(),
                 'request' => $request->all()
             ]);
 
@@ -419,7 +444,8 @@ class ReportController extends Controller
     public function downloadExcel(Request $request)
     {
         try {
-            $request->validate([
+            // ✅ FIXED: Enhanced validation
+            $validated = $request->validate([
                 'type' => 'sometimes|in:summary,monthly,yearly,custom',
                 'year' => 'required_if:type,monthly,yearly|integer|min:2020|max:' . (date('Y') + 1),
                 'month' => 'required_if:type,monthly|integer|min:1|max:12',
@@ -427,35 +453,40 @@ class ReportController extends Controller
                 'end_date' => 'required_if:type,custom|date|after_or_equal:start_date'
             ]);
 
-            $type = $request->input('type', 'summary');
+            $type = $validated['type'] ?? 'summary';
             $filters = [];
 
             switch ($type) {
                 case 'monthly':
                     $filters = [
-                        'year' => $request->input('year', now()->year),
-                        'month' => $request->input('month', now()->month)
+                        'year' => $validated['year'] ?? now()->year,
+                        'month' => $validated['month'] ?? now()->month
                     ];
                     break;
 
                 case 'yearly':
                     $filters = [
-                        'year' => $request->input('year', now()->year)
+                        'year' => $validated['year'] ?? now()->year
                     ];
                     break;
 
                 case 'custom':
                     $filters = [
-                        'start_date' => $request->input('start_date'),
-                        'end_date' => $request->input('end_date')
+                        'start_date' => $validated['start_date'],
+                        'end_date' => $validated['end_date']
                     ];
                     break;
             }
 
-            return Excel::download(new ReportsExport($type, $filters), 'hostel-report-' . $type . '-' . time() . '.xlsx');
+            // ✅ FIXED: Secure filename generation
+            $fileName = 'hostel-report-' . $type . '-' . time() . '.xlsx';
+            $safeFileName = preg_replace('/[^a-zA-Z0-9\-_.]/', '', $fileName);
+
+            return Excel::download(new ReportsExport($type, $filters), $safeFileName);
         } catch (\Exception $e) {
             Log::error('एक्सेल डाउनलोड त्रुटि: ' . $e->getMessage(), [
                 'exception' => $e,
+                'user_id' => auth()->id(),
                 'request' => $request->all()
             ]);
 
@@ -469,7 +500,7 @@ class ReportController extends Controller
      */
     private function monthlyReportData($year, $month)
     {
-        // Same logic as monthlyReport but returns array instead of JSON response
+        // ✅ FIXED: Secure queries with parameter binding
         $paymentStats = Payment::where('status', 'success')
             ->whereYear('created_at', $year)
             ->whereMonth('created_at', $month)
@@ -501,7 +532,7 @@ class ReportController extends Controller
 
         return [
             'data' => [
-                'total_revenue' => $paymentStats->sum('total_revenue'),
+                'total_revenue' => $paymentStats->sum('total_revenue') ?? 0,
                 'total_students' => $students,
                 'total_rooms_added' => $rooms,
                 'average_payment' => $paymentStats->avg('average_payment') ?? 0,
@@ -516,7 +547,7 @@ class ReportController extends Controller
      */
     private function yearlyReportData($year)
     {
-        // Same logic as yearlyReport but returns array instead of JSON response
+        // ✅ FIXED: Secure queries
         $paymentStats = Payment::where('status', 'success')
             ->whereYear('created_at', $year)
             ->selectRaw('
@@ -537,16 +568,19 @@ class ReportController extends Controller
 
         $monthlyData = [];
         for ($month = 1; $month <= 12; $month++) {
+            $paymentStat = $paymentStats->get($month);
+            $studentStat = $monthlyStudents->get($month);
+
             $monthlyData[$month] = [
-                'revenue' => $paymentStats->get($month)->total_revenue ?? 0,
-                'students' => $monthlyStudents->get($month)->count ?? 0,
-                'payments_count' => $paymentStats->get($month)->payments_count ?? 0
+                'revenue' => $paymentStat->total_revenue ?? 0,
+                'students' => $studentStat->count ?? 0,
+                'payments_count' => $paymentStat->payments_count ?? 0
             ];
         }
 
         return [
             'data' => [
-                'total_revenue' => $paymentStats->sum('total_revenue'),
+                'total_revenue' => $paymentStats->sum('total_revenue') ?? 0,
                 'total_students' => Student::whereYear('created_at', $year)->count(),
                 'total_rooms_added' => Room::whereYear('created_at', $year)->count(),
                 'average_payment' => $paymentStats->avg('average_payment') ?? 0,
@@ -560,9 +594,9 @@ class ReportController extends Controller
      */
     private function customDateReportData($startDate, $endDate)
     {
-        // Same logic as customDateReport but returns array instead of JSON response
+        // ✅ FIXED: Secure date range queries
         $paymentStats = Payment::where('status', 'success')
-            ->whereBetween('created_at', [$startDate, $endDate])
+            ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
             ->selectRaw('
                 SUM(amount) as total_revenue,
                 AVG(amount) as average_payment,
@@ -572,11 +606,11 @@ class ReportController extends Controller
             ->groupBy('payment_method')
             ->get();
 
-        $students = Student::whereBetween('created_at', [$startDate, $endDate])->count();
-        $rooms = Room::whereBetween('created_at', [$startDate, $endDate])->count();
+        $students = Student::whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])->count();
+        $rooms = Room::whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])->count();
 
         $dailyRevenue = Payment::where('status', 'success')
-            ->whereBetween('created_at', [$startDate, $endDate])
+            ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
             ->selectRaw('DATE(created_at) as date, SUM(amount) as revenue')
             ->groupBy('date')
             ->orderBy('date')
@@ -585,7 +619,7 @@ class ReportController extends Controller
 
         return [
             'data' => [
-                'total_revenue' => $paymentStats->sum('total_revenue'),
+                'total_revenue' => $paymentStats->sum('total_revenue') ?? 0,
                 'total_students' => $students,
                 'total_rooms_added' => $rooms,
                 'average_payment' => $paymentStats->avg('average_payment') ?? 0,

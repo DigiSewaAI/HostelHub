@@ -26,6 +26,25 @@ class MealMenu extends Model
         'is_active' => 'boolean'
     ];
 
+    /**
+     * Validation rules for MealMenu model
+     */
+    public static function validationRules($id = null): array
+    {
+        return [
+            'hostel_id' => 'required|exists:hostels,id',
+            'meal_type' => 'required|in:breakfast,lunch,dinner,snack',
+            'day_of_week' => 'required|in:sunday,monday,tuesday,wednesday,thursday,friday,saturday',
+            'items' => 'required|array',
+            'items.breakfast' => 'nullable|string|max:500',
+            'items.lunch' => 'nullable|string|max:500',
+            'items.dinner' => 'nullable|string|max:500',
+            'image' => 'nullable|string|max:500',
+            'description' => 'nullable|string|max:1000',
+            'is_active' => 'boolean'
+        ];
+    }
+
     public function hostel(): BelongsTo
     {
         return $this->belongsTo(Hostel::class);
@@ -53,6 +72,25 @@ class MealMenu extends Model
     public function scopeForMealType(Builder $query, string $mealType): Builder
     {
         return $query->where('meal_type', $mealType);
+    }
+
+    /**
+     * Scope for hostel meal menus
+     */
+    public function scopeForHostel($query, $hostelId)
+    {
+        return $query->where('hostel_id', $hostelId);
+    }
+
+    /**
+     * Scope for user access control
+     */
+    public function scopeForUser($query, $userId)
+    {
+        return $query->whereHas('hostel', function ($q) use ($userId) {
+            $q->where('owner_id', $userId)
+                ->orWhere('manager_id', $userId);
+        });
     }
 
     /**
@@ -101,5 +139,13 @@ class MealMenu extends Model
         }
 
         return $this->items ?? 'उपलब्ध छैन';
+    }
+
+    /**
+     * Check if user can modify this meal menu
+     */
+    public function canBeModifiedBy($user): bool
+    {
+        return $this->hostel && $this->hostel->canBeModifiedBy($user);
     }
 }

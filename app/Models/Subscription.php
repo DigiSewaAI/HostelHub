@@ -44,6 +44,29 @@ class Subscription extends Model
         'booking_limit' => 'integer'
     ];
 
+    /**
+     * Validation rules for Subscription model
+     */
+    public static function validationRules($id = null): array
+    {
+        return [
+            'organization_id' => 'required|exists:organizations,id',
+            'user_id' => 'required|exists:users,id',
+            'plan_id' => 'required|exists:plans,id',
+            'status' => 'required|in:active,trialing,expired,canceled',
+            'expires_at' => 'required|date|after:today',
+            'trial_ends_at' => 'nullable|date|after:today',
+            'notes' => 'nullable|string|max:1000',
+            'hostel_count' => 'integer|min:0',
+            'extra_hostels' => 'integer|min:0',
+            'hostel_limit' => 'integer|min:1',
+            'room_per_hostel_limit' => 'integer|min:1',
+            'total_room_limit' => 'integer|min:1',
+            'student_limit' => 'integer|min:1',
+            'booking_limit' => 'integer|min:1'
+        ];
+    }
+
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class, 'organization_id');
@@ -57,6 +80,51 @@ class Subscription extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Scope for active subscriptions
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('status', self::STATUS_ACTIVE)
+            ->where('expires_at', '>', now());
+    }
+
+    /**
+     * Scope for trial subscriptions
+     */
+    public function scopeTrial($query)
+    {
+        return $query->where('status', self::STATUS_TRIALING)
+            ->where('trial_ends_at', '>', now());
+    }
+
+    /**
+     * Scope for expired subscriptions
+     */
+    public function scopeExpired($query)
+    {
+        return $query->where(function ($q) {
+            $q->where('status', self::STATUS_EXPIRED)
+                ->orWhere('expires_at', '<=', now());
+        });
+    }
+
+    /**
+     * Scope for organization subscriptions
+     */
+    public function scopeForOrganization($query, $organizationId)
+    {
+        return $query->where('organization_id', $organizationId);
+    }
+
+    /**
+     * Scope for user subscriptions
+     */
+    public function scopeForUser($query, $userId)
+    {
+        return $query->where('user_id', $userId);
     }
 
     /**
@@ -188,5 +256,51 @@ class Subscription extends Model
     public function owner()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    /**
+     * Check if user can modify this subscription
+     */
+    public function canBeModifiedBy($user): bool
+    {
+        return $this->user_id === $user->id ||
+            $this->organization->canBeModifiedBy($user) ||
+            $user->isAdmin();
+    }
+
+    /**
+     * Get subscription statistics
+     */
+    public function getStatisticsAttribute(): array
+    {
+        return [
+            'hostels_used' => $this->hostel_count ?? 0,
+            'hostels_remaining' => $this->getRemainingHostelSlots(),
+            'days_remaining' => $this->getDaysRemaining(),
+            'is_active' => $this->isActive(),
+            'is_trial' => $this->isOnTrial(),
+            'is_expired' => $this->isExpired(),
+        ];
+    }
+
+    /**
+     * Activate subscription
+     */
+    public function activate(): bool
+    {
+        return $this->update([
+            'status' => self::STATUS_ACTIVE,
+            'expires_at' => now()->addYear()
+        ]);
+    }
+
+    /**
+     * Cancel subscription
+     */
+    public function cancel(): bool
+    {
+        return $this->update([
+            'status' => self::STATUS_CANCELED
+        ]);
     }
 }

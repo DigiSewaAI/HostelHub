@@ -7,7 +7,8 @@ use App\Http\Controllers\{
     Frontend\PublicController,
     Student\StudentReviewController,
     BookingController,
-    Student\CircularController as StudentCircularController
+    Student\CircularController as StudentCircularController,
+    Admin\DocumentController
 };
 
 /*|--------------------------------------------------------------------------
@@ -15,9 +16,8 @@ use App\Http\Controllers\{
 |--------------------------------------------------------------------------
 */
 
-// ✅ REMOVE the prefix from here - prefix is now in web.php
 Route::middleware(['auth', 'role:student'])
-    ->name('student.')  // ✅ KEEP only the name prefix
+    ->name('student.')
     ->group(function () {
         // Student Dashboard
         Route::get('/dashboard', [StudentController::class, 'dashboard'])->name('dashboard');
@@ -70,6 +70,18 @@ Route::middleware(['auth', 'role:student'])
         Route::get('/circulars/{circular}', [StudentCircularController::class, 'show'])->name('circulars.show');
         Route::post('/circulars/{circular}/mark-read', [StudentCircularController::class, 'markAsRead'])->name('circulars.mark-read');
 
+        // ✅ PERMANENT FIX: Complete Student Document Management Routes
+        Route::prefix('documents')->name('documents.')->group(function () {
+            Route::get('/', [DocumentController::class, 'index'])->name('index');
+            Route::get('/create', [DocumentController::class, 'create'])->name('create');
+            Route::post('/', [DocumentController::class, 'store'])->name('store');
+            Route::get('/search', [DocumentController::class, 'search'])->name('search');
+            Route::get('/{document}', [DocumentController::class, 'show'])->name('show');
+            Route::get('/{document}/edit', [DocumentController::class, 'edit'])->name('edit');
+            Route::put('/{document}', [DocumentController::class, 'update'])->name('update');
+            Route::get('/{document}/download', [DocumentController::class, 'download'])->name('download');
+            Route::delete('/{document}', [DocumentController::class, 'destroy'])->name('destroy');
+        });
 
         // Additional student routes
         Route::get('/gallery', [StudentController::class, 'gallery'])->name('gallery');

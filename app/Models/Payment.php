@@ -63,6 +63,35 @@ class Payment extends Model
     ];
 
     /**
+     * Validation rules for payment
+     */
+    public static function validationRules($id = null): array
+    {
+        return [
+            'organization_id' => 'required|exists:organizations,id',
+            'user_id' => 'required|exists:users,id',
+            'student_id' => 'nullable|exists:students,id',
+            'hostel_id' => 'nullable|exists:hostels,id',
+            'room_id' => 'nullable|exists:rooms,id',
+            'booking_id' => 'nullable|exists:bookings,id',
+            'subscription_id' => 'nullable|exists:subscriptions,id',
+            'amount' => 'required|numeric|min:0',
+            'payment_date' => 'required|date',
+            'due_date' => 'nullable|date|after:payment_date',
+            'payment_method' => 'required|in:cash,khalti,esewa,bank_transfer,credit_card',
+            'purpose' => 'required|in:booking,subscription,extra_hostel,meal,other',
+            'transaction_id' => 'nullable|string|max:255|unique:payments,transaction_id,' . $id,
+            'status' => 'required|in:pending,completed,failed,refunded,cancelled',
+            'remarks' => 'nullable|string|max:500',
+            'created_by' => 'nullable|exists:users,id',
+            'updated_by' => 'nullable|exists:users,id',
+            'verified_by' => 'nullable|exists:users,id',
+            'verified_at' => 'nullable|date',
+            'metadata' => 'nullable|array'
+        ];
+    }
+
+    /**
      * Boot the model
      */
     protected static function boot()
@@ -90,64 +119,104 @@ class Payment extends Model
         });
     }
 
+    /**
+     * Scope for user-specific payments
+     */
+    public function scopeForUser($query, $userId)
+    {
+        return $query->where('user_id', $userId);
+    }
+
+    /**
+     * Scope for organization-specific payments
+     */
+    public function scopeForOrganization($query, $organizationId)
+    {
+        return $query->where('organization_id', $organizationId);
+    }
+
+    /**
+     * Scope for hostel-specific payments
+     */
+    public function scopeForHostel($query, $hostelId)
+    {
+        return $query->where('hostel_id', $hostelId);
+    }
+
+    /**
+     * Scope for student-specific payments
+     */
+    public function scopeForStudent($query, $studentId)
+    {
+        return $query->where('student_id', $studentId);
+    }
+
+    /**
+     * Scope for creator-specific payments
+     */
+    public function scopeForCreator($query, $userId)
+    {
+        return $query->where('created_by', $userId);
+    }
+
     // ✅ ORGANIZATION RELATIONSHIP
     public function organization(): BelongsTo
     {
-        return $this->belongsTo(Organization::class);
+        return $this->belongsTo(Organization::class)->withDefault();
     }
 
     // ✅ USER RELATIONSHIP (User who made the payment)
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class)->withDefault();
     }
 
     // ✅ STUDENT RELATIONSHIP
     public function student(): BelongsTo
     {
-        return $this->belongsTo(Student::class);
+        return $this->belongsTo(Student::class)->withDefault();
     }
 
     // ✅ HOSTEL RELATIONSHIP
     public function hostel(): BelongsTo
     {
-        return $this->belongsTo(Hostel::class);
+        return $this->belongsTo(Hostel::class)->withDefault();
     }
 
     // ✅ ROOM RELATIONSHIP
     public function room(): BelongsTo
     {
-        return $this->belongsTo(Room::class);
+        return $this->belongsTo(Room::class)->withDefault();
     }
 
     // ✅ BOOKING RELATIONSHIP
     public function booking(): BelongsTo
     {
-        return $this->belongsTo(Booking::class);
+        return $this->belongsTo(Booking::class)->withDefault();
     }
 
     // ✅ SUBSCRIPTION RELATIONSHIP
     public function subscription(): BelongsTo
     {
-        return $this->belongsTo(Subscription::class);
+        return $this->belongsTo(Subscription::class)->withDefault();
     }
 
     // ✅ CREATED BY RELATIONSHIP (ADDED)
     public function createdBy(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->belongsTo(User::class, 'created_by')->withDefault();
     }
 
     // ✅ UPDATED BY RELATIONSHIP (ADDED)
     public function updatedBy(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'updated_by');
+        return $this->belongsTo(User::class, 'updated_by')->withDefault();
     }
 
     // ✅ VERIFIED BY RELATIONSHIP
     public function verifiedBy(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'verified_by');
+        return $this->belongsTo(User::class, 'verified_by')->withDefault();
     }
 
     // ✅ SCOPE QUERIES
@@ -164,16 +233,6 @@ class Payment extends Model
     public function scopeFailed($query)
     {
         return $query->where('status', self::STATUS_FAILED);
-    }
-
-    public function scopeForOrganization($query, $organizationId)
-    {
-        return $query->where('organization_id', $organizationId);
-    }
-
-    public function scopeForUser($query, $userId)
-    {
-        return $query->where('user_id', $userId);
     }
 
     public function scopeForBooking($query, $bookingId)
@@ -295,7 +354,6 @@ class Payment extends Model
         return $this->due_date->diffInDays(now());
     }
 
-
     /**
      * Get receipt number
      */
@@ -347,9 +405,6 @@ class Payment extends Model
 
     /**
      * ✅ ADDED: Static method to get payment method text
-     */
-    /**
-     * Get payment method text in Nepali (static version for export)
      */
     public static function getPaymentMethodTextStatic($method): string
     {

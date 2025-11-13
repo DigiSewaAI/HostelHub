@@ -11,6 +11,7 @@ use App\Http\Requests\StoreRoomRequest;
 use App\Http\Requests\UpdateRoomRequest;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class RoomController extends Controller
 {
@@ -99,10 +100,15 @@ class RoomController extends Controller
     {
         $user = auth()->user();
 
+        // ✅ SECURITY FIX: Authorization check at the beginning
+        if (!$user->hasAnyRole(['admin', 'hostel_manager', 'owner'])) {
+            abort(403, 'तपाईंसँग यो कार्य गर्ने अनुमति छैन');
+        }
+
         DB::beginTransaction();
 
         try {
-            // ✅ FIXED: Unified validation rules for both admin and owner
+            // ✅ SECURITY FIX: Use validated data only (mass assignment protection)
             $validatedData = $request->validate([
                 'hostel_id' => 'required|exists:hostels,id',
                 'room_number' => 'required|string|max:50|unique:rooms,room_number,NULL,id,hostel_id,' . $request->hostel_id,
@@ -144,16 +150,19 @@ class RoomController extends Controller
                 }
             }
 
-            // Handle image upload
+            // ✅ SECURITY FIX: Enhanced file upload security
             if ($request->hasFile('image')) {
-                $imagePath = $request->file('image')->store('room_images', 'public');
+                $image = $request->file('image');
+                $originalName = $image->getClientOriginalName();
+                $safeName = preg_replace('/[^a-zA-Z0-9\-\._]/', '', $originalName);
+                $imagePath = $image->storeAs('room_images', time() . '_' . $safeName, 'public');
                 $validatedData['image'] = $imagePath;
             }
 
             // ✅ FIXED: Auto-set gallery category based on room type
             $validatedData['gallery_category'] = $this->getGalleryCategoryFromType($validatedData['type']);
 
-            // Create room using validated data
+            // ✅ SECURITY FIX: Create room using ONLY validated data (mass assignment protection)
             $room = Room::create($validatedData);
 
             // Update hostel room counts
@@ -247,12 +256,17 @@ class RoomController extends Controller
     {
         $user = auth()->user();
 
+        // ✅ SECURITY FIX: Authorization check at the beginning
+        if (!$user->hasAnyRole(['admin', 'hostel_manager', 'owner'])) {
+            abort(403, 'तपाईंसँग यो कार्य गर्ने अनुमति छैन');
+        }
+
         DB::beginTransaction();
 
         try {
             $oldHostelId = $room->hostel_id;
 
-            // ✅ FIXED: Unified validation rules
+            // ✅ SECURITY FIX: Use validated data only (mass assignment protection)
             $validatedData = $request->validate([
                 'hostel_id' => 'required|exists:hostels,id',
                 'room_number' => 'required|string|max:50|unique:rooms,room_number,' . $room->id . ',id,hostel_id,' . $request->hostel_id,
@@ -297,21 +311,25 @@ class RoomController extends Controller
                 }
             }
 
-            // Handle image upload
+            // ✅ SECURITY FIX: Enhanced file upload security
             if ($request->hasFile('image')) {
                 // Delete old image if exists
                 if ($room->image) {
                     Storage::disk('public')->delete($room->image);
                 }
 
-                // Save new image
-                $imagePath = $request->file('image')->store('room_images', 'public');
+                // Save new image with secure naming
+                $image = $request->file('image');
+                $originalName = $image->getClientOriginalName();
+                $safeName = preg_replace('/[^a-zA-Z0-9\-\._]/', '', $originalName);
+                $imagePath = $image->storeAs('room_images', time() . '_' . $safeName, 'public');
                 $validatedData['image'] = $imagePath;
             }
 
             // ✅ FIXED: Auto-set gallery category based on room type
             $validatedData['gallery_category'] = $this->getGalleryCategoryFromType($validatedData['type']);
 
+            // ✅ SECURITY FIX: Update room using ONLY validated data (mass assignment protection)
             $room->update($validatedData);
 
             // Update hostel room counts
@@ -343,6 +361,11 @@ class RoomController extends Controller
     public function destroy(Room $room)
     {
         $user = auth()->user();
+
+        // ✅ SECURITY FIX: Authorization check at the beginning
+        if (!$user->hasAnyRole(['admin', 'hostel_manager', 'owner'])) {
+            abort(403, 'तपाईंसँग यो कार्य गर्ने अनुमति छैन');
+        }
 
         DB::beginTransaction();
 
@@ -462,13 +485,16 @@ class RoomController extends Controller
 
         $query = $request->input('search');
 
+        // ✅ SECURITY FIX: SQL Injection prevention in search
+        $safeQuery = '%' . addcslashes($query, '%_') . '%';
+
         if ($user->hasRole('admin')) {
-            $rooms = Room::where('room_number', 'like', "%$query%")
-                ->orWhere('type', 'like', "%$query%")
-                ->orWhere('status', 'like', "%$query%")
-                ->orWhereHas('hostel', function ($q) use ($query) {
-                    $q->where('name', 'like', "%$query%")
-                        ->orWhere('address', 'like', "%$query%");
+            $rooms = Room::where('room_number', 'like', $safeQuery)
+                ->orWhere('type', 'like', $safeQuery)
+                ->orWhere('status', 'like', $safeQuery)
+                ->orWhereHas('hostel', function ($q) use ($safeQuery) {
+                    $q->where('name', 'like', $safeQuery)
+                        ->orWhere('address', 'like', $safeQuery);
                 })
                 ->with('hostel')
                 ->latest()
@@ -485,10 +511,10 @@ class RoomController extends Controller
 
             $hostelIds = $organization->hostels->pluck('id');
             $rooms = Room::whereIn('hostel_id', $hostelIds)
-                ->where(function ($q) use ($query) {
-                    $q->where('room_number', 'like', "%$query%")
-                        ->orWhere('type', 'like', "%$query%")
-                        ->orWhere('status', 'like', "%$query%");
+                ->where(function ($q) use ($safeQuery) {
+                    $q->where('room_number', 'like', $safeQuery)
+                        ->orWhere('type', 'like', $safeQuery)
+                        ->orWhere('status', 'like', $safeQuery);
                 })
                 ->with('hostel')
                 ->latest()
@@ -497,12 +523,12 @@ class RoomController extends Controller
             return view('owner.rooms.index', compact('rooms'));
         } elseif ($user->hasRole('student')) {
             $rooms = Room::where('status', 'available')
-                ->where(function ($q) use ($query) {
-                    $q->where('room_number', 'like', "%$query%")
-                        ->orWhere('type', 'like', "%$query%")
-                        ->orWhereHas('hostel', function ($q2) use ($query) {
-                            $q2->where('name', 'like', "%$query%")
-                                ->orWhere('address', 'like', "%$query%");
+                ->where(function ($q) use ($safeQuery) {
+                    $q->where('room_number', 'like', $safeQuery)
+                        ->orWhere('type', 'like', $safeQuery)
+                        ->orWhereHas('hostel', function ($q2) use ($safeQuery) {
+                            $q2->where('name', 'like', $safeQuery)
+                                ->orWhere('address', 'like', $safeQuery);
                         });
                 })
                 ->with('hostel')
@@ -521,6 +547,11 @@ class RoomController extends Controller
     public function changeStatus(Request $request, Room $room)
     {
         $user = auth()->user();
+
+        // ✅ SECURITY FIX: Authorization check at the beginning
+        if (!$user->hasAnyRole(['admin', 'hostel_manager', 'owner'])) {
+            abort(403, 'तपाईंसँग यो कार्य गर्ने अनुमति छैन');
+        }
 
         DB::beginTransaction();
 

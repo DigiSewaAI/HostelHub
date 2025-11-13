@@ -22,21 +22,51 @@ class CircularRecipient extends Model
         'is_read' => 'boolean',
     ];
 
+    /**
+     * Validation rules for circular recipient
+     */
+    public static function validationRules($id = null): array
+    {
+        return [
+            'circular_id' => 'required|exists:circulars,id',
+            'user_id' => 'required|exists:users,id',
+            'user_type' => 'required|in:student,manager,admin,user',
+            'is_read' => 'boolean',
+            'read_at' => 'nullable|date'
+        ];
+    }
+
     // Relationships
     public function circular()
     {
-        return $this->belongsTo(Circular::class);
+        return $this->belongsTo(Circular::class)->withDefault();
     }
 
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class)->withDefault();
     }
 
     public function student()
     {
         return $this->belongsTo(Student::class, 'user_id', 'user_id')
-            ->where('user_type', 'student');
+            ->where('user_type', 'student')->withDefault();
+    }
+
+    /**
+     * Scope for user-specific recipients
+     */
+    public function scopeForUser($query, $userId)
+    {
+        return $query->where('user_id', $userId);
+    }
+
+    /**
+     * Scope for circular-specific recipients
+     */
+    public function scopeForCircular($query, $circularId)
+    {
+        return $query->where('circular_id', $circularId);
     }
 
     // Scope for read/unread

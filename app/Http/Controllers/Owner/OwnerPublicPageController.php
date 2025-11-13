@@ -7,12 +7,57 @@ use Illuminate\Http\Request;
 use App\Models\Hostel;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth; // ✅ ADDED
 
 class OwnerPublicPageController extends Controller
 {
+    // ✅ ENHANCED: Owner authorization for public page management
+    private function authorizePublicPageAccess(?Hostel $hostel = null): bool
+    {
+        $user = Auth::user();
+
+        if ($user->hasRole('student')) {
+            abort(403, 'तपाईंसँग सार्वजनिक पृष्ठ व्यवस्थापन गर्ने अनुमति छैन');
+        }
+
+        if ($user->hasRole('hostel_manager')) {
+            if (!$user->hostel_id) {
+                abort(403, 'तपाईंसँग कुनै होस्टल सम्बन्धित छैन');
+            }
+
+            if ($hostel && $hostel->id != $user->hostel_id) {
+                abort(403, 'तपाईंसँग यो होस्टलको सार्वजनिक पृष्ठ व्यवस्थापन गर्ने अनुमति छैन');
+            }
+        }
+
+        return true;
+    }
+
+    // ✅ ENHANCED: Helper method to get authorized hostel
+    private function getAuthorizedHostel()
+    {
+        $user = Auth::user();
+
+        // ✅ ENHANCED: Authorization check
+        $this->authorizePublicPageAccess();
+
+        $hostel = $user->hostels()->first();
+
+        if (!$hostel) {
+            abort(403, 'तपाईंसँग कुनै होस्टल छैन। पहिले होस्टल सिर्जना गर्नुहोस्।');
+        }
+
+        return $hostel;
+    }
+
     public function edit()
     {
-        $hostel = auth()->user()->hostels()->first();
+        $user = Auth::user();
+
+        // ✅ ENHANCED: Authorization check
+        $this->authorizePublicPageAccess();
+
+        $hostel = $user->hostels()->first();
 
         if (!$hostel) {
             return redirect()->route('owner.dashboard')
@@ -24,7 +69,12 @@ class OwnerPublicPageController extends Controller
 
     public function updateAndPreview(Request $request)
     {
-        $hostel = auth()->user()->hostels()->first();
+        $user = Auth::user();
+
+        // ✅ ENHANCED: Authorization check
+        $this->authorizePublicPageAccess();
+
+        $hostel = $user->hostels()->first();
 
         if (!$hostel) {
             return back()->with('error', 'होस्टल फेला परेन।');
@@ -93,6 +143,8 @@ class OwnerPublicPageController extends Controller
 
     public function preview($slug)
     {
+        $user = Auth::user();
+
         $hostel = Hostel::where('slug', $slug)
             ->withCount([
                 'reviews as approved_reviews_count' => function ($query) {
@@ -106,6 +158,9 @@ class OwnerPublicPageController extends Controller
                 }
             ], 'rating')
             ->firstOrFail();
+
+        // ✅ ENHANCED: Authorization check - ensure user owns this hostel
+        $this->authorizePublicPageAccess($hostel);
 
         // Get paginated approved reviews
         $reviews = $hostel->reviews()
@@ -136,7 +191,12 @@ class OwnerPublicPageController extends Controller
 
     public function publish(Request $request)
     {
-        $hostel = auth()->user()->hostels()->first();
+        $user = Auth::user();
+
+        // ✅ ENHANCED: Authorization check
+        $this->authorizePublicPageAccess();
+
+        $hostel = $user->hostels()->first();
 
         if (!$hostel) {
             return back()->with('error', 'होस्टल फेला परेन।');
@@ -173,7 +233,12 @@ class OwnerPublicPageController extends Controller
 
     public function unpublish(Request $request)
     {
-        $hostel = auth()->user()->hostels()->first();
+        $user = Auth::user();
+
+        // ✅ ENHANCED: Authorization check
+        $this->authorizePublicPageAccess();
+
+        $hostel = $user->hostels()->first();
 
         if (!$hostel) {
             return back()->with('error', 'होस्टल फेला परेन।');
@@ -183,6 +248,99 @@ class OwnerPublicPageController extends Controller
         $hostel->save();
 
         return back()->with('success', 'तपाईंको होस्टल पृष्ठ अप्रकाशित गरियो।');
+    }
+
+    // ✅ ADDED: New method to get public page statistics
+    public function getStatistics()
+    {
+        $user = Auth::user();
+
+        // ✅ ENHANCED: Authorization check
+        $this->authorizePublicPageAccess();
+
+        $hostel = $user->hostels()->first();
+
+        if (!$hostel) {
+            return response()->json(['error' => 'होस्टल फेला परेन'], 404);
+        }
+
+        $totalViews = $hostel->page_views ?? 0;
+        $publishedStatus = $hostel->is_published ? 'प्रकाशित' : 'अप्रकाशित';
+        $lastPublished = $hostel->published_at ? $hostel->published_at->format('Y-m-d H:i') : 'कहिल्यै प्रकाशित भएको छैन';
+
+        return response()->json([
+            'total_views' => $totalViews,
+            'published_status' => $publishedStatus,
+            'last_published' => $lastPublished,
+            'has_logo' => !empty($hostel->logo_path),
+            'has_description' => !empty($hostel->description),
+            'social_links_count' => $this->countSocialLinks($hostel)
+        ]);
+    }
+
+    // ✅ ADDED: Helper method to count social links
+    private function countSocialLinks(Hostel $hostel)
+    {
+        $count = 0;
+        $socialFields = [
+            'facebook_url',
+            'instagram_url',
+            'twitter_url',
+            'tiktok_url',
+            'whatsapp_number',
+            'youtube_url',
+            'linkedin_url'
+        ];
+
+        foreach ($socialFields as $field) {
+            if (!empty($hostel->$field)) {
+                $count++;
+            }
+        }
+
+        return $count;
+    }
+
+    // ✅ ADDED: Method to reset public page settings
+    public function resetSettings(Request $request)
+    {
+        $user = Auth::user();
+
+        // ✅ ENHANCED: Authorization check
+        $this->authorizePublicPageAccess();
+
+        $hostel = $user->hostels()->first();
+
+        if (!$hostel) {
+            return back()->with('error', 'होस्टल फेला परेन।');
+        }
+
+        $request->validate([
+            'confirm_reset' => 'required|boolean'
+        ]);
+
+        if ($request->confirm_reset) {
+            // Reset to default settings
+            $hostel->theme = 'modern';
+            $hostel->theme_color = null;
+            $hostel->description = null;
+            $hostel->draft_data = null;
+
+            // Reset social media
+            $hostel->facebook_url = null;
+            $hostel->instagram_url = null;
+            $hostel->twitter_url = null;
+            $hostel->tiktok_url = null;
+            $hostel->whatsapp_number = null;
+            $hostel->youtube_url = null;
+            $hostel->linkedin_url = null;
+
+            $hostel->save();
+
+            return back()->with('success', 'सार्वजनिक पृष्ठ सेटिङहरू सफलतापूर्वक रिसेट गरियो!');
+        }
+
+        return back()->with('error', 'रिसेट गर्न पुष्टि गर्नुहोस्।');
     }
 
     /**

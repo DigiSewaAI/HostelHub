@@ -53,6 +53,33 @@ class User extends Authenticatable
         'trial_ends_at' => 'datetime'
     ];
 
+    /**
+     * Validation rules for User model
+     */
+    public static function validationRules($id = null): array
+    {
+        return [
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email,' . $id,
+            'password' => 'nullable|string|min:8|confirmed',
+            'phone' => 'required|string|max:20',
+            'address' => 'nullable|string|max:500',
+            'email_notifications' => 'boolean',
+            'sms_notifications' => 'boolean',
+            'booking_alerts' => 'boolean',
+            'payment_alerts' => 'boolean',
+            'role_id' => 'nullable|integer|exists:roles,id',
+            'student_id' => 'nullable|exists:students,id',
+            'payment_verified' => 'boolean',
+            'stripe_id' => 'nullable|string|max:255',
+            'pm_type' => 'nullable|string|max:50',
+            'pm_last_four' => 'nullable|string|max:4',
+            'trial_ends_at' => 'nullable|date',
+            'organization_id' => 'nullable|exists:organizations,id',
+            'hostel_id' => 'nullable|exists:hostels,id'
+        ];
+    }
+
     // ✅ FIXED: Organization relationship with null safety
     public function organization(): BelongsTo
     {
@@ -165,6 +192,55 @@ class User extends Authenticatable
     public function circularRecipients(): HasMany
     {
         return $this->hasMany(CircularRecipient::class);
+    }
+
+    /**
+     * Scope for admin users
+     */
+    public function scopeAdmins($query)
+    {
+        return $query->where('role_id', 1)->orWhereHas('roles', function ($q) {
+            $q->where('name', 'admin');
+        });
+    }
+
+    /**
+     * Scope for hostel managers
+     */
+    public function scopeHostelManagers($query)
+    {
+        return $query->where('role_id', 2)->orWhereHas('roles', function ($q) {
+            $q->where('name', 'hostel_manager');
+        });
+    }
+
+    /**
+     * Scope for students
+     */
+    public function scopeStudents($query)
+    {
+        return $query->where('role_id', 3)->orWhereHas('roles', function ($q) {
+            $q->where('name', 'student');
+        });
+    }
+
+    /**
+     * Scope for organization users
+     */
+    public function scopeForOrganization($query, $organizationId)
+    {
+        return $query->where('organization_id', $organizationId)
+            ->orWhereHas('organizations', function ($q) use ($organizationId) {
+                $q->where('organization_id', $organizationId);
+            });
+    }
+
+    /**
+     * Scope for active users
+     */
+    public function scopeActive($query)
+    {
+        return $query->whereNotNull('email_verified_at');
     }
 
     /**
@@ -291,5 +367,78 @@ class User extends Authenticatable
     public function receivesPaymentAlerts(): bool
     {
         return $this->payment_alerts ?? true;
+    }
+
+    /**
+     * Get user statistics
+     */
+    public function getStatisticsAttribute(): array
+    {
+        return [
+            'hostels_count' => $this->hostels()->count(),
+            'bookings_count' => $this->bookings()->count(),
+            'approved_bookings_count' => $this->approvedBookings()->count(),
+            'subscriptions_count' => $this->subscriptions()->count(),
+        ];
+    }
+
+    /**
+     * Check if user can be modified by another user
+     */
+    public function canBeModifiedBy($user): bool
+    {
+        // Users can modify themselves
+        if ($this->id === $user->id) {
+            return true;
+        }
+
+        // Admins can modify any user
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        // Organization owners can modify users in their organization
+        if ($this->organization_id && $this->organization_id === $user->organization_id) {
+            return $user->organization->isOwnedBy($user);
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if user can be deleted
+     */
+    public function getCanBeDeletedAttribute(): bool
+    {
+        return $this->hostels()->count() === 0 &&
+            $this->bookings()->count() === 0 &&
+            $this->approvedBookings()->count() === 0 &&
+            $this->subscriptions()->count() === 0;
+    }
+
+    /**
+     * Get user's primary role
+     */
+    public function getPrimaryRoleAttribute(): string
+    {
+        if ($this->isAdmin()) return 'admin';
+        if ($this->isHostelManager()) return 'hostel_manager';
+        if ($this->isStudent()) return 'student';
+        return 'user';
+    }
+
+    /**
+     * Get user's primary role in Nepali
+     */
+    public function getPrimaryRoleNepaliAttribute(): string
+    {
+        $roles = [
+            'admin' => 'प्रशासक',
+            'hostel_manager' => 'होस्टेल प्रबन्धक',
+            'student' => 'विद्यार्थी',
+            'user' => 'प्रयोगकर्ता'
+        ];
+
+        return $roles[$this->primary_role] ?? $this->primary_role;
     }
 }

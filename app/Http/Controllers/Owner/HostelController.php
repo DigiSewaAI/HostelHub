@@ -15,6 +15,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth; // ✅ ADDED
 
 class HostelController extends Controller
 {
@@ -25,6 +26,44 @@ class HostelController extends Controller
         $this->planLimitService = $planLimitService;
     }
 
+    // ✅ ENHANCED: Stronger owner authorization
+    private function authorizeHostelAccess(Hostel $hostel = null)
+    {
+        $user = Auth::user();
+
+        if ($user->hasRole('hostel_manager')) {
+            $organizationId = session('current_organization_id');
+
+            if (!$organizationId) {
+                abort(403, 'कृपया पहिले संस्था चयन गर्नुहोस्');
+            }
+
+            // Check if user belongs to this organization
+            $userOrganization = $user->organizations()->first();
+            if (!$userOrganization || $userOrganization->id != $organizationId) {
+                abort(403, 'तपाईंसँग यो संस्थाको डाटा एक्सेस गर्ने अनुमति छैन');
+            }
+
+            // Check specific hostel access
+            if ($hostel && $hostel->organization_id != $organizationId) {
+                abort(403, 'तपाईंसँग यो होस्टल एक्सेस गर्ने अनुमति छैन');
+            }
+
+            // Ensure user has a hostel assigned
+            if (!$user->hostel_id && $hostel) {
+                $user->hostel_id = $hostel->id;
+                $user->save();
+            }
+        }
+
+        // ✅ ADDED: Student role restriction - students cannot access hostel management
+        if ($user->hasRole('student')) {
+            abort(403, 'तपाईंसँग होस्टल व्यवस्थापन गर्ने अनुमति छैन');
+        }
+
+        return true;
+    }
+
     public function index()
     {
         $organizationId = session('current_organization_id');
@@ -32,6 +71,12 @@ class HostelController extends Controller
         if (!$organizationId) {
             return redirect()->route('register.organization')
                 ->with('error', 'कृपया पहिले संस्था दर्ता गर्नुहोस् वा संस्था चयन गर्नुहोस्');
+        }
+
+        // ✅ ENHANCED: Owner authorization
+        $user = Auth::user();
+        if ($user->hasRole('hostel_manager')) {
+            $this->authorizeHostelAccess();
         }
 
         $organization = Organization::find($organizationId);
@@ -66,6 +111,12 @@ class HostelController extends Controller
         if (!$organizationId) {
             return redirect()->route('register.organization')
                 ->with('error', 'कृपया पहिले संस्था दर्ता गर्नुहोस्');
+        }
+
+        // ✅ ENHANCED: Owner authorization
+        $user = Auth::user();
+        if ($user->hasRole('hostel_manager')) {
+            $this->authorizeHostelAccess();
         }
 
         $organization = Organization::find($organizationId);
@@ -111,6 +162,12 @@ class HostelController extends Controller
         if (!$organizationId) {
             return redirect()->route('register.organization')
                 ->with('error', 'कृपया पहिले संस्था दर्ता गर्नुहोस्');
+        }
+
+        // ✅ ENHANCED: Owner authorization
+        $user = Auth::user();
+        if ($user->hasRole('hostel_manager')) {
+            $this->authorizeHostelAccess();
         }
 
         $organization = Organization::find($organizationId);
@@ -204,7 +261,7 @@ class HostelController extends Controller
     }
 
     /**
-     * ✅ FIXED: Enhanced show method with proper data loading
+     * ✅ FIXED: Enhanced show method with proper data loading and security
      */
     public function show(Hostel $hostel)
     {
@@ -213,6 +270,12 @@ class HostelController extends Controller
             'hostel_name' => $hostel->name,
             'user_id' => auth()->id()
         ]);
+
+        // ✅ ENHANCED: Stronger owner authorization
+        $user = Auth::user();
+        if ($user->hasRole('hostel_manager')) {
+            $this->authorizeHostelAccess($hostel);
+        }
 
         $organizationId = session('current_organization_id');
 
@@ -285,6 +348,12 @@ class HostelController extends Controller
             'current_security_deposit' => $hostel->security_deposit
         ]);
 
+        // ✅ ENHANCED: Owner authorization
+        $user = Auth::user();
+        if ($user->hasRole('hostel_manager')) {
+            $this->authorizeHostelAccess($hostel);
+        }
+
         // ✅ CRITICAL: Force set session organization
         session(['current_organization_id' => $hostel->organization_id]);
 
@@ -322,7 +391,7 @@ class HostelController extends Controller
     }
 
     /**
-     * ✅ FIXED: Enhanced update method with better validation and logging
+     * ✅ FIXED: Enhanced update method with better validation, logging, and security
      */
     public function update(Request $request, Hostel $hostel)
     {
@@ -337,6 +406,12 @@ class HostelController extends Controller
             'image_received' => $request->hasFile('image'),
             'all_input' => $request->except(['_token', '_method']) // Exclude token for cleaner log
         ]);
+
+        // ✅ ENHANCED: Owner authorization
+        $user = Auth::user();
+        if ($user->hasRole('hostel_manager')) {
+            $this->authorizeHostelAccess($hostel);
+        }
 
         // ✅ Force session
         session(['current_organization_id' => $hostel->organization_id]);
@@ -438,6 +513,12 @@ class HostelController extends Controller
             abort(403, 'तपाईंसँग यो होस्टल हटाउने अनुमति छैन');
         }
 
+        // ✅ ENHANCED: Owner authorization
+        $user = Auth::user();
+        if ($user->hasRole('hostel_manager')) {
+            $this->authorizeHostelAccess($hostel);
+        }
+
         DB::beginTransaction();
 
         try {
@@ -470,6 +551,63 @@ class HostelController extends Controller
     }
 
     /**
+     * Toggle hostel status (active/inactive)
+     */
+    public function toggleStatus(Hostel $hostel)
+    {
+        $organizationId = session('current_organization_id');
+
+        if (!$organizationId || $hostel->organization_id != $organizationId) {
+            abort(403, 'तपाईंसँग यो होस्टलको स्थिति परिवर्तन गर्ने अनुमति छैन');
+        }
+
+        // ✅ ENHANCED: Owner authorization
+        $user = Auth::user();
+        if ($user->hasRole('hostel_manager')) {
+            $this->authorizeHostelAccess($hostel);
+        }
+
+        $newStatus = $hostel->status == 'active' ? 'inactive' : 'active';
+        $hostel->update(['status' => $newStatus]);
+
+        $statusText = $newStatus == 'active' ? 'सक्रिय' : 'निष्क्रिय';
+
+        return back()->with('success', "होस्टल {$statusText} गरियो।");
+    }
+
+    /**
+     * Get hostel statistics for dashboard
+     */
+    public function getStatistics()
+    {
+        $organizationId = session('current_organization_id');
+
+        if (!$organizationId) {
+            return response()->json(['error' => 'संस्था भेटिएन'], 404);
+        }
+
+        // ✅ ENHANCED: Owner authorization
+        $user = Auth::user();
+        if ($user->hasRole('hostel_manager')) {
+            $this->authorizeHostelAccess();
+        }
+
+        $organization = Organization::find($organizationId);
+        $totalHostels = $organization->hostels()->count();
+        $activeHostels = $organization->hostels()->where('status', 'active')->count();
+        $totalRooms = $organization->rooms()->count();
+        $occupiedRooms = $organization->rooms()->where('is_available', false)->count();
+
+        return response()->json([
+            'total_hostels' => $totalHostels,
+            'active_hostels' => $activeHostels,
+            'total_rooms' => $totalRooms,
+            'occupied_rooms' => $occupiedRooms,
+            'vacant_rooms' => $totalRooms - $occupiedRooms
+        ]);
+    }
+
+    /**
      * Generate unique slug for hostel
      */
     private function generateUniqueSlug($name, $organizationId, $excludeId = null)
@@ -498,50 +636,5 @@ class HostelController extends Controller
         }
 
         return $slug;
-    }
-
-    /**
-     * Toggle hostel status (active/inactive)
-     */
-    public function toggleStatus(Hostel $hostel)
-    {
-        $organizationId = session('current_organization_id');
-
-        if (!$organizationId || $hostel->organization_id != $organizationId) {
-            abort(403, 'तपाईंसँग यो होस्टलको स्थिति परिवर्तन गर्ने अनुमति छैन');
-        }
-
-        $newStatus = $hostel->status == 'active' ? 'inactive' : 'active';
-        $hostel->update(['status' => $newStatus]);
-
-        $statusText = $newStatus == 'active' ? 'सक्रिय' : 'निष्क्रिय';
-
-        return back()->with('success', "होस्टल {$statusText} गरियो।");
-    }
-
-    /**
-     * Get hostel statistics for dashboard
-     */
-    public function getStatistics()
-    {
-        $organizationId = session('current_organization_id');
-
-        if (!$organizationId) {
-            return response()->json(['error' => 'संस्था भेटिएन'], 404);
-        }
-
-        $organization = Organization::find($organizationId);
-        $totalHostels = $organization->hostels()->count();
-        $activeHostels = $organization->hostels()->where('status', 'active')->count();
-        $totalRooms = $organization->rooms()->count();
-        $occupiedRooms = $organization->rooms()->where('is_available', false)->count();
-
-        return response()->json([
-            'total_hostels' => $totalHostels,
-            'active_hostels' => $activeHostels,
-            'total_rooms' => $totalRooms,
-            'occupied_rooms' => $occupiedRooms,
-            'vacant_rooms' => $totalRooms - $occupiedRooms
-        ]);
     }
 }

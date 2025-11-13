@@ -11,11 +11,11 @@ use App\Http\Controllers\{
     Owner\MealMenuController as OwnerMealMenuController,
     Admin\DashboardController,
     ProfileController,
-    DocumentController,
     Admin\PaymentController,
     Admin\RoomController,
     Admin\StudentController,
-    Admin\ContactController
+    Admin\ContactController,
+    Admin\DocumentController
 };
 
 /*|--------------------------------------------------------------------------
@@ -86,8 +86,6 @@ Route::middleware(['auth', 'hasOrganization', 'role:owner,hostel_manager'])
             Route::get('/{payment}/proof', [PaymentController::class, 'viewProof'])->name('proof');
 
             // ✅ FIXED: Bill and Receipt Routes - CORRECTLY DEFINED
-            //Route::get('/{id}/bill', [PaymentController::class, 'generateBill'])->name('bill');
-            //Route::get('/{id}/receipt', [PaymentController::class, 'generateReceipt'])->name('receipt');
             Route::get('/student/search', [PaymentController::class, 'studentSearchForInvoice'])->name('student.search');
 
             // Regular payment management routes
@@ -115,13 +113,15 @@ Route::middleware(['auth', 'hasOrganization', 'role:owner,hostel_manager'])
         Route::get('/circulars/{circular}/analytics', [OwnerCircularController::class, 'analytics'])->name('circulars.analytics.single');
         Route::post('/circulars/{circular}/mark-read', [OwnerCircularController::class, 'markAsRead'])->name('circulars.mark-read');
 
-        // Owner Document Management Routes
+        // ✅ PERMANENT FIX: Document Management Routes for Owner
         Route::prefix('documents')->name('documents.')->group(function () {
             Route::get('/', [DocumentController::class, 'index'])->name('index');
             Route::get('/create', [DocumentController::class, 'create'])->name('create');
             Route::post('/', [DocumentController::class, 'store'])->name('store');
             Route::get('/search', [DocumentController::class, 'search'])->name('search');
             Route::get('/{document}', [DocumentController::class, 'show'])->name('show');
+            Route::get('/{document}/edit', [DocumentController::class, 'edit'])->name('edit');
+            Route::put('/{document}', [DocumentController::class, 'update'])->name('update');
             Route::get('/{document}/download', [DocumentController::class, 'download'])->name('download');
             Route::delete('/{document}', [DocumentController::class, 'destroy'])->name('destroy');
         });

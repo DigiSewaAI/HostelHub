@@ -58,6 +58,27 @@ class Circular extends Model
         'archived' => 'संग्रहित'
     ];
 
+    /**
+     * Validation rules for circular
+     */
+    public static function validationRules($id = null): array
+    {
+        return [
+            'organization_id' => 'required|exists:organizations,id',
+            'created_by' => 'required|exists:users,id',
+            'hostel_id' => 'nullable|exists:hostels,id',
+            'title' => 'required|string|max:255',
+            'content' => 'required|string',
+            'priority' => 'required|in:urgent,normal,info',
+            'status' => 'required|in:draft,published,archived',
+            'audience_type' => 'required|in:all_students,all_managers,all_users,organization_students,organization_managers,organization_users,specific_hostel,specific_students',
+            'scheduled_at' => 'nullable|date',
+            'published_at' => 'nullable|date',
+            'expires_at' => 'nullable|date|after:scheduled_at',
+            'target_audience' => 'nullable|array'
+        ];
+    }
+
     // Multi-tenant scope
     public function scopeForOrganization(Builder $query, $organizationId)
     {
@@ -83,20 +104,39 @@ class Circular extends Model
         });
     }
 
+    /**
+     * Scope for user-specific circulars
+     */
+    public function scopeForUser($query, $userId)
+    {
+        return $query->where('created_by', $userId)
+            ->orWhereHas('recipients', function ($q) use ($userId) {
+                $q->where('user_id', $userId);
+            });
+    }
+
+    /**
+     * Scope for creator-specific circulars
+     */
+    public function scopeForCreator($query, $userId)
+    {
+        return $query->where('created_by', $userId);
+    }
+
     // Relationships
     public function organization()
     {
-        return $this->belongsTo(Organization::class);
+        return $this->belongsTo(Organization::class)->withDefault();
     }
 
     public function creator()
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->belongsTo(User::class, 'created_by')->withDefault();
     }
 
     public function hostel()
     {
-        return $this->belongsTo(Hostel::class);
+        return $this->belongsTo(Hostel::class)->withDefault();
     }
 
     public function recipients()

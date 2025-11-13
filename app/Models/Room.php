@@ -40,6 +40,27 @@ class Room extends Model
     protected $appends = ['image_url', 'has_image', 'display_status'];
 
     /**
+     * Validation rules for room
+     */
+    public static function validationRules($id = null): array
+    {
+        return [
+            'hostel_id' => 'required|exists:hostels,id',
+            'room_number' => 'required|string|max:50|unique:rooms,room_number,' . $id . ',id,hostel_id,' . request()->input('hostel_id'),
+            'type' => 'required|in:1 seater,2 seater,3 seater,4 seater,साझा कोठा',
+            'gallery_category' => 'nullable|string|max:255',
+            'capacity' => 'required|integer|min:1',
+            'current_occupancy' => 'integer|min:0',
+            'available_beds' => 'integer|min:0',
+            'price' => 'required|numeric|min:0',
+            'status' => 'required|in:available,partially_available,occupied,maintenance',
+            'image' => 'nullable|string|max:255',
+            'description' => 'nullable|string|max:1000',
+            'floor' => 'nullable|string|max:50'
+        ];
+    }
+
+    /**
      * ✅ FIXED: Boot method with type-capacity auto-sync and normalized status handling
      */
     protected static function boot()
@@ -103,6 +124,32 @@ class Room extends Model
     }
 
     /**
+     * Scope for hostel-specific rooms
+     */
+    public function scopeForHostel($query, $hostelId)
+    {
+        return $query->where('hostel_id', $hostelId);
+    }
+
+    /**
+     * Scope for organization-specific rooms
+     */
+    public function scopeForOrganization($query, $organizationId)
+    {
+        return $query->whereHas('hostel', function ($q) use ($organizationId) {
+            $q->where('organization_id', $organizationId);
+        });
+    }
+
+    /**
+     * Scope for specific room type
+     */
+    public function scopeByType($query, $type)
+    {
+        return $query->where('type', $type);
+    }
+
+    /**
      * ✅ NEW: Unified status mapping for consistent display
      */
     public static function statusOptions()
@@ -126,7 +173,7 @@ class Room extends Model
 
     public function hostel(): BelongsTo
     {
-        return $this->belongsTo(Hostel::class);
+        return $this->belongsTo(Hostel::class)->withDefault();
     }
 
     public function students(): HasMany
@@ -176,6 +223,7 @@ class Room extends Model
     }
 
     /**
+     * ✅ FIXED: REMOVED DUPLICATE scopeAvailable METHOD - KEEPING THIS ONE
      * Scope a query to only include available rooms.
      */
     public function scopeAvailable(Builder $query): Builder

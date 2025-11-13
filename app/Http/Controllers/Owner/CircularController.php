@@ -6,10 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\Circular;
 use App\Models\Hostel;
 use App\Models\Student;
+use App\Models\CircularRecipient; // ✅ ADDED missing import
 use App\Http\Requests\StoreCircularRequest;
 use App\Services\CircularService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth; // ✅ ADDED for security
 
 class CircularController extends Controller
 {
@@ -20,11 +22,40 @@ class CircularController extends Controller
         $this->circularService = $circularService;
     }
 
+    // ✅ ADDED: Owner authorization helper method
+    private function authorizeOwnerAccess($organizationId = null)
+    {
+        $user = Auth::user();
+
+        if ($user->hasRole('hostel_manager')) {
+            if ($organizationId) {
+                $userOrganization = $user->organizations()->first();
+                if (!$userOrganization || $userOrganization->id != $organizationId) {
+                    abort(403, 'तपाईंसँग यो संस्थाको डाटा एक्सेस गर्ने अनुमति छैन');
+                }
+            }
+
+            // Additional hostel-based authorization
+            if (!$user->hostel_id) {
+                abort(403, 'तपाईंसँग कुनै होस्टल सम्बन्धित छैन');
+            }
+        }
+
+        return true;
+    }
+
     public function index(Request $request)
     {
         $user = auth()->user();
+
+        // ✅ ENHANCED: Owner authorization
+        if ($user->hasRole('hostel_manager')) {
+            $this->authorizeOwnerAccess();
+        }
+
         $organization = $user->organizations()->first();
 
+        // ✅ ENHANCED: Data scoping for owners
         $query = Circular::with(['organization', 'creator'])
             ->where('organization_id', $organization->id);
 
@@ -46,6 +77,12 @@ class CircularController extends Controller
     public function create()
     {
         $user = auth()->user();
+
+        // ✅ ENHANCED: Owner authorization
+        if ($user->hasRole('hostel_manager')) {
+            $this->authorizeOwnerAccess();
+        }
+
         $organization = $user->organizations()->first();
 
         $hostels = $organization->hostels;
@@ -56,6 +93,13 @@ class CircularController extends Controller
 
     public function store(StoreCircularRequest $request)
     {
+        $user = auth()->user();
+
+        // ✅ ENHANCED: Owner authorization
+        if ($user->hasRole('hostel_manager')) {
+            $this->authorizeOwnerAccess();
+        }
+
         DB::transaction(function () use ($request) {
             $user = auth()->user();
             $organization = $user->organizations()->first();
@@ -89,7 +133,14 @@ class CircularController extends Controller
 
     public function show(Circular $circular)
     {
-        $this->circularService->authorizeView($circular, auth()->user());
+        $user = auth()->user();
+
+        // ✅ ENHANCED: Owner authorization
+        if ($user->hasRole('hostel_manager')) {
+            $this->authorizeOwnerAccess($circular->organization_id);
+        }
+
+        $this->circularService->authorizeView($circular, $user);
 
         $circular->load(['organization', 'creator', 'recipients.user']);
         $readStats = $this->circularService->getReadStats($circular);
@@ -99,9 +150,15 @@ class CircularController extends Controller
 
     public function edit(Circular $circular)
     {
-        $this->circularService->authorizeEdit($circular, auth()->user());
-
         $user = auth()->user();
+
+        // ✅ ENHANCED: Owner authorization
+        if ($user->hasRole('hostel_manager')) {
+            $this->authorizeOwnerAccess($circular->organization_id);
+        }
+
+        $this->circularService->authorizeEdit($circular, $user);
+
         $organization = $user->organizations()->first();
 
         $hostels = $organization->hostels;
@@ -112,7 +169,14 @@ class CircularController extends Controller
 
     public function update(StoreCircularRequest $request, Circular $circular)
     {
-        $this->circularService->authorizeEdit($circular, auth()->user());
+        $user = auth()->user();
+
+        // ✅ ENHANCED: Owner authorization
+        if ($user->hasRole('hostel_manager')) {
+            $this->authorizeOwnerAccess($circular->organization_id);
+        }
+
+        $this->circularService->authorizeEdit($circular, $user);
 
         $circular->update($request->validated());
 
@@ -122,7 +186,14 @@ class CircularController extends Controller
 
     public function destroy(Circular $circular)
     {
-        $this->circularService->authorizeEdit($circular, auth()->user());
+        $user = auth()->user();
+
+        // ✅ ENHANCED: Owner authorization
+        if ($user->hasRole('hostel_manager')) {
+            $this->authorizeOwnerAccess($circular->organization_id);
+        }
+
+        $this->circularService->authorizeEdit($circular, $user);
 
         $circular->delete();
 
@@ -132,7 +203,14 @@ class CircularController extends Controller
 
     public function publish(Circular $circular)
     {
-        $this->circularService->authorizeEdit($circular, auth()->user());
+        $user = auth()->user();
+
+        // ✅ ENHANCED: Owner authorization
+        if ($user->hasRole('hostel_manager')) {
+            $this->authorizeOwnerAccess($circular->organization_id);
+        }
+
+        $this->circularService->authorizeEdit($circular, $user);
 
         $circular->markAsPublished();
 
@@ -143,9 +221,14 @@ class CircularController extends Controller
     {
         $user = auth()->user();
 
+        // ✅ ENHANCED: Owner authorization
+        if ($user->hasRole('hostel_manager')) {
+            $this->authorizeOwnerAccess();
+        }
+
         if ($circular) {
             // Single circular analytics
-            $this->circularService->authorizeView($circular, auth()->user());
+            $this->circularService->authorizeView($circular, $user);
             $stats = $this->circularService->getCircularAnalytics($circular);
             return view('owner.circulars.analytics-single', compact('circular', 'stats'));
         } else {
@@ -158,6 +241,14 @@ class CircularController extends Controller
     public function markAsRead(Circular $circular)
     {
         $user = auth()->user();
+
+        // ✅ ENHANCED: Student authorization - students can only mark their own circulars as read
+        if ($user->hasRole('student')) {
+            $student = Student::where('user_id', $user->id)->first();
+            if (!$student) {
+                return response()->json(['success' => false, 'message' => 'विद्यार्थी रेकर्ड फेला परेन'], 403);
+            }
+        }
 
         $recipient = CircularRecipient::where('circular_id', $circular->id)
             ->where('user_id', $user->id)

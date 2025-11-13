@@ -7,6 +7,9 @@ use App\Models\Hostel;
 use App\Models\MealMenu;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 
 class MealMenuController extends Controller
 {
@@ -15,7 +18,7 @@ class MealMenuController extends Controller
      */
     private function getDataByRole()
     {
-        $user = auth()->user();
+        $user = Auth::user();
 
         if ($user->hasRole('admin')) {
             // Admin can see all meal menus
@@ -43,10 +46,17 @@ class MealMenuController extends Controller
      */
     public function index()
     {
+        // ✅ FIXED: Authorization check for all roles
+        $user = Auth::user();
+
+        if (!$user->hasAnyRole(['admin', 'hostel_manager', 'student'])) {
+            abort(403, 'तपाईंसँग खानाको योजना हेर्ने अनुमति छैन');
+        }
+
         $mealMenus = $this->getDataByRole();
 
         // Return appropriate view based on role
-        if (auth()->user()->hasRole('student')) {
+        if ($user->hasRole('student')) {
             return view('student.meal-menus.index', compact('mealMenus'));
         }
 
@@ -58,9 +68,17 @@ class MealMenuController extends Controller
      */
     public function create()
     {
-        // Only admin and owner can create meal menus
-        if (auth()->user()->hasRole('student')) {
-            abort(403, 'Unauthorized action.');
+        // ✅ FIXED: Enhanced authorization check
+        $user = Auth::user();
+
+        if ($user->hasRole('student')) {
+            abort(403, 'तपाईंसँग खानाको योजना सिर्जना गर्ने अनुमति छैन');
+        }
+
+        // Additional check for hostel managers
+        if ($user->hasRole('hostel_manager') && !$user->hostel_id) {
+            return redirect()->route('owner.hostels.index')
+                ->with('error', 'कृपया पहिले आफ्नो होस्टेल सेटअप गर्नुहोस्।');
         }
 
         $hostels = Hostel::all();
@@ -68,8 +86,14 @@ class MealMenuController extends Controller
         $mealTypes = ['breakfast', 'lunch', 'dinner'];
 
         // If user is owner, only show their hostel
-        if (auth()->user()->hasRole('hostel_manager')) {
-            $hostels = Hostel::where('id', auth()->user()->hostel_id)->get();
+        if ($user->hasRole('hostel_manager')) {
+            $hostels = Hostel::where('id', $user->hostel_id)->get();
+
+            // ✅ FIXED: Safety check if no hostel found
+            if ($hostels->isEmpty()) {
+                return redirect()->route('owner.hostels.index')
+                    ->with('error', 'कृपया पहिले आफ्नो होस्टेल सेटअप गर्नुहोस्।');
+            }
         }
 
         return view('admin.meal-menus.create', compact('hostels', 'days', 'mealTypes'));
@@ -80,38 +104,84 @@ class MealMenuController extends Controller
      */
     public function store(Request $request)
     {
-        // Only admin and owner can store meal menus
-        if (auth()->user()->hasRole('student')) {
-            abort(403, 'Unauthorized action.');
+        // ✅ FIXED: Enhanced authorization check
+        $user = Auth::user();
+
+        if ($user->hasRole('student')) {
+            abort(403, 'तपाईंसँग खानाको योजना सिर्जना गर्ने अनुमति छैन');
         }
 
-        $request->validate([
-            'hostel_id' => 'required|exists:hostels,id',
+        // ✅ FIXED: Enhanced validation with proper rules
+        $validatedData = $request->validate([
+            'hostel_id' => [
+                'required',
+                'exists:hostels,id',
+                function ($attribute, $value, $fail) use ($user) {
+                    // ✅ FIXED: Hostel managers can only create for their own hostel
+                    if ($user->hasRole('hostel_manager') && $value != $user->hostel_id) {
+                        $fail('तपाईंले आफ्नो होस्टेलको लागि मात्र योजना सिर्जना गर्न सक्नुहुन्छ।');
+                    }
+                }
+            ],
             'meal_type' => 'required|in:breakfast,lunch,dinner',
-            'day_of_week' => 'required|string',
-            'items' => 'required|array',
-            'items.*' => 'required|string',
-            'image' => 'nullable|image|max:2048',
-            'description' => 'nullable|string',
-            'is_active' => 'boolean'
+            'day_of_week' => [
+                'required',
+                'string',
+                Rule::in(['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'])
+            ],
+            'items' => 'required|array|min:1|max:20', // ✅ FIXED: Limit array size
+            'items.*' => 'required|string|max:500', // ✅ FIXED: Limit item length
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120', // ✅ FIXED: Strict file validation
+            'description' => 'nullable|string|max:1000',
+            'is_active' => 'sometimes|boolean'
         ]);
 
-        // If user is owner, ensure they can only create for their hostel
-        if (auth()->user()->hasRole('hostel_manager')) {
-            $request->merge(['hostel_id' => auth()->user()->hostel_id]);
+        try {
+            // ✅ FIXED: If user is owner, ensure they can only create for their hostel
+            if ($user->hasRole('hostel_manager')) {
+                $validatedData['hostel_id'] = $user->hostel_id;
+            }
+
+            $data = [
+                'hostel_id' => $validatedData['hostel_id'],
+                'meal_type' => $validatedData['meal_type'],
+                'day_of_week' => $validatedData['day_of_week'],
+                'items' => $validatedData['items'],
+                'description' => $validatedData['description'] ?? null,
+                'is_active' => $request->boolean('is_active', true)
+            ];
+
+            // ✅ FIXED: Secure file upload with proper error handling
+            if ($request->hasFile('image')) {
+                $data['image'] = $request->file('image')->store('meals', 'public');
+
+                // ✅ FIXED: Verify file was stored successfully
+                if (!$data['image']) {
+                    throw new \Exception('फाइल अपलोड गर्दा त्रुटि भयो');
+                }
+            }
+
+            $mealMenu = MealMenu::create($data);
+
+            // ✅ FIXED: Log the creation
+            Log::info('Meal menu created successfully', [
+                'meal_menu_id' => $mealMenu->id,
+                'user_id' => $user->id,
+                'hostel_id' => $validatedData['hostel_id']
+            ]);
+
+            return redirect()->route('meal-menus.index')
+                ->with('success', 'खानाको योजना सफलतापूर्वक थपियो!');
+        } catch (\Exception $e) {
+            // ✅ FIXED: Proper error handling
+            Log::error('Meal menu creation failed: ' . $e->getMessage(), [
+                'user_id' => $user->id,
+                'hostel_id' => $request->hostel_id
+            ]);
+
+            return back()->withInput()
+                ->with('error', 'खानाको योजना सिर्जना गर्दा त्रुटि भयो: ' . $e->getMessage());
         }
-
-        $data = $request->only(['hostel_id', 'meal_type', 'day_of_week', 'items', 'description']);
-        $data['is_active'] = $request->has('is_active');
-
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('meals', 'public');
-        }
-
-        MealMenu::create($data);
-
-        return redirect()->route('meal-menus.index')
-            ->with('success', 'खानाको योजना सफलतापूर्वक थपियो!');
     }
 
     /**
@@ -119,10 +189,20 @@ class MealMenuController extends Controller
      */
     public function show(MealMenu $mealMenu)
     {
-        // Check if user has permission to view this meal menu
-        $this->checkOwnership($mealMenu);
+        // ✅ FIXED: Enhanced authorization with proper error handling
+        try {
+            $this->checkOwnership($mealMenu);
+        } catch (\Exception $e) {
+            abort(403, $e->getMessage());
+        }
 
-        if (auth()->user()->hasRole('student')) {
+        // ✅ FIXED: Additional check for students - only active menus
+        $user = Auth::user();
+        if ($user->hasRole('student') && !$mealMenu->is_active) {
+            abort(403, 'यो खानाको योजना हाल उपलब्ध छैन');
+        }
+
+        if ($user->hasRole('student')) {
             return view('student.meal-menus.show', compact('mealMenu'));
         }
 
@@ -134,21 +214,27 @@ class MealMenuController extends Controller
      */
     public function edit(MealMenu $mealMenu)
     {
-        // Only admin and owner can edit meal menus
-        if (auth()->user()->hasRole('student')) {
-            abort(403, 'Unauthorized action.');
+        // ✅ FIXED: Enhanced authorization check
+        $user = Auth::user();
+
+        if ($user->hasRole('student')) {
+            abort(403, 'तपाईंसँग खानाको योजना सम्पादन गर्ने अनुमति छैन');
         }
 
-        // Check if user has permission to edit this meal menu
-        $this->checkOwnership($mealMenu);
+        // ✅ FIXED: Enhanced authorization with proper error handling
+        try {
+            $this->checkOwnership($mealMenu);
+        } catch (\Exception $e) {
+            abort(403, $e->getMessage());
+        }
 
         $hostels = Hostel::all();
         $days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
         $mealTypes = ['breakfast', 'lunch', 'dinner'];
 
         // If user is owner, only show their hostel
-        if (auth()->user()->hasRole('hostel_manager')) {
-            $hostels = Hostel::where('id', auth()->user()->hostel_id)->get();
+        if ($user->hasRole('hostel_manager')) {
+            $hostels = Hostel::where('id', $user->hostel_id)->get();
         }
 
         return view('admin.meal-menus.edit', compact('mealMenu', 'hostels', 'days', 'mealTypes'));
@@ -159,44 +245,99 @@ class MealMenuController extends Controller
      */
     public function update(Request $request, MealMenu $mealMenu)
     {
-        // Only admin and owner can update meal menus
-        if (auth()->user()->hasRole('student')) {
-            abort(403, 'Unauthorized action.');
+        // ✅ FIXED: Enhanced authorization check
+        $user = Auth::user();
+
+        if ($user->hasRole('student')) {
+            abort(403, 'तपाईंसँग खानाको योजना अपडेट गर्ने अनुमति छैन');
         }
 
-        // Check if user has permission to update this meal menu
-        $this->checkOwnership($mealMenu);
+        // ✅ FIXED: Enhanced authorization with proper error handling
+        try {
+            $this->checkOwnership($mealMenu);
+        } catch (\Exception $e) {
+            abort(403, $e->getMessage());
+        }
 
-        $request->validate([
-            'hostel_id' => 'required|exists:hostels,id',
+        // ✅ FIXED: Enhanced validation with proper rules
+        $validatedData = $request->validate([
+            'hostel_id' => [
+                'required',
+                'exists:hostels,id',
+                function ($attribute, $value, $fail) use ($user, $mealMenu) {
+                    // ✅ FIXED: Hostel managers can only update their own hostel's menus
+                    if ($user->hasRole('hostel_manager') && $value != $user->hostel_id) {
+                        $fail('तपाईंले आफ्नो होस्टेलको लागि मात्र योजना सम्पादन गर्न सक्नुहुन्छ।');
+                    }
+
+                    // Additional check to prevent changing hostel ownership
+                    if ($mealMenu->hostel_id != $value) {
+                        $fail('होस्टेल परिवर्तन गर्न अनुमति छैन।');
+                    }
+                }
+            ],
             'meal_type' => 'required|in:breakfast,lunch,dinner',
-            'day_of_week' => 'required|string',
-            'items' => 'required|array',
-            'items.*' => 'required|string',
-            'image' => 'nullable|image|max:2048',
-            'description' => 'nullable|string',
-            'is_active' => 'boolean'
+            'day_of_week' => [
+                'required',
+                'string',
+                Rule::in(['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'])
+            ],
+            'items' => 'required|array|min:1|max:20',
+            'items.*' => 'required|string|max:500',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+            'description' => 'nullable|string|max:1000',
+            'is_active' => 'sometimes|boolean'
         ]);
 
-        // If user is owner, ensure they can only update for their hostel
-        if (auth()->user()->hasRole('hostel_manager')) {
-            $request->merge(['hostel_id' => auth()->user()->hostel_id]);
-        }
-
-        $data = $request->only(['hostel_id', 'meal_type', 'day_of_week', 'items', 'description']);
-        $data['is_active'] = $request->has('is_active');
-
-        if ($request->hasFile('image')) {
-            if ($mealMenu->image) {
-                Storage::disk('public')->delete($mealMenu->image);
+        try {
+            // ✅ FIXED: If user is owner, ensure they can only update for their hostel
+            if ($user->hasRole('hostel_manager')) {
+                $validatedData['hostel_id'] = $user->hostel_id;
             }
-            $data['image'] = $request->file('image')->store('meals', 'public');
+
+            $data = [
+                'hostel_id' => $validatedData['hostel_id'],
+                'meal_type' => $validatedData['meal_type'],
+                'day_of_week' => $validatedData['day_of_week'],
+                'items' => $validatedData['items'],
+                'description' => $validatedData['description'] ?? null,
+                'is_active' => $request->boolean('is_active', $mealMenu->is_active)
+            ];
+
+            // ✅ FIXED: Secure file upload with proper cleanup
+            if ($request->hasFile('image')) {
+                // Store new image first
+                $newImagePath = $request->file('image')->store('meals', 'public');
+
+                if ($newImagePath) {
+                    $data['image'] = $newImagePath;
+
+                    // Delete old image after successful upload
+                    if ($mealMenu->image) {
+                        Storage::disk('public')->delete($mealMenu->image);
+                    }
+                }
+            }
+
+            $mealMenu->update($data);
+
+            // ✅ FIXED: Log the update
+            Log::info('Meal menu updated successfully', [
+                'meal_menu_id' => $mealMenu->id,
+                'user_id' => $user->id
+            ]);
+
+            return redirect()->route('meal-menus.index')
+                ->with('success', 'खानाको योजना सफलतापूर्वक अपडेट गरियो!');
+        } catch (\Exception $e) {
+            Log::error('Meal menu update failed: ' . $e->getMessage(), [
+                'meal_menu_id' => $mealMenu->id,
+                'user_id' => $user->id
+            ]);
+
+            return back()->withInput()
+                ->with('error', 'खानाको योजना अपडेट गर्दा त्रुटि भयो: ' . $e->getMessage());
         }
-
-        $mealMenu->update($data);
-
-        return redirect()->route('meal-menus.index')
-            ->with('success', 'खानाको योजना सफलतापूर्वक अपडेट गरियो!');
     }
 
     /**
@@ -204,21 +345,47 @@ class MealMenuController extends Controller
      */
     public function destroy(MealMenu $mealMenu)
     {
-        // Only admin and owner can delete meal menus
-        if (auth()->user()->hasRole('student')) {
-            abort(403, 'Unauthorized action.');
+        // ✅ FIXED: Enhanced authorization check
+        $user = Auth::user();
+
+        if ($user->hasRole('student')) {
+            abort(403, 'तपाईंसँग खानाको योजना मेटाउने अनुमति छैन');
         }
 
-        // Check if user has permission to delete this meal menu
-        $this->checkOwnership($mealMenu);
-
-        if ($mealMenu->image) {
-            Storage::disk('public')->delete($mealMenu->image);
+        // ✅ FIXED: Enhanced authorization with proper error handling
+        try {
+            $this->checkOwnership($mealMenu);
+        } catch (\Exception $e) {
+            abort(403, $e->getMessage());
         }
-        $mealMenu->delete();
 
-        return redirect()->route('meal-menus.index')
-            ->with('success', 'खानाको योजना हटाइयो।');
+        try {
+            $mealMenuId = $mealMenu->id;
+            $imagePath = $mealMenu->image;
+
+            $mealMenu->delete();
+
+            // ✅ FIXED: Delete image after successful deletion
+            if ($imagePath) {
+                Storage::disk('public')->delete($imagePath);
+            }
+
+            // ✅ FIXED: Log the deletion
+            Log::info('Meal menu deleted successfully', [
+                'meal_menu_id' => $mealMenuId,
+                'user_id' => $user->id
+            ]);
+
+            return redirect()->route('meal-menus.index')
+                ->with('success', 'खानाको योजना हटाइयो।');
+        } catch (\Exception $e) {
+            Log::error('Meal menu deletion failed: ' . $e->getMessage(), [
+                'meal_menu_id' => $mealMenu->id,
+                'user_id' => $user->id
+            ]);
+
+            return back()->with('error', 'खानाको योजना हटाउँदा त्रुटि भयो: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -226,7 +393,7 @@ class MealMenuController extends Controller
      */
     private function checkOwnership(MealMenu $mealMenu)
     {
-        $user = auth()->user();
+        $user = Auth::user();
 
         // Admin can access all meal menus
         if ($user->hasRole('admin')) {
@@ -235,8 +402,13 @@ class MealMenuController extends Controller
 
         // Owner and Student can only access their hostel's meal menus
         if ($user->hasRole('hostel_manager') || $user->hasRole('student')) {
+            // ✅ FIXED: Enhanced check for hostel managers without hostel_id
+            if (!$user->hostel_id) {
+                throw new \Exception('तपाईंको होस्टेल सेटअप गरिएको छैन। कृपया प्रशासकसँग सम्पर्क गर्नुहोस्।');
+            }
+
             if ($mealMenu->hostel_id != $user->hostel_id) {
-                abort(403, 'तपाईंसँग यो मेनु एक्सेस गर्ने अनुमति छैन');
+                throw new \Exception('तपाईंसँग यो मेनु एक्सेस गर्ने अनुमति छैन');
             }
         }
 

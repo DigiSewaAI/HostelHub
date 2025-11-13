@@ -1,5 +1,3 @@
-<?php 
-
 @extends('layouts.admin')
 
 @section('title', 'सबै सूचनाहरू')

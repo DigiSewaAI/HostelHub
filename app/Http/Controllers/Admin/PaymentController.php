@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use App\Models\Payment;
 use App\Models\Student;
 use App\Models\Hostel;
@@ -393,20 +394,23 @@ class PaymentController extends Controller
     }
 
     /**
-     * Search payments
+     * Search payments - SECURITY FIXED: SQL Injection Prevention
      */
     public function search(Request $request)
     {
         $user = Auth::user();
         $search = $request->input('search');
 
+        // SECURITY FIX: Prevent SQL Injection in search
+        $safeSearch = '%' . addcslashes($search, '%_') . '%';
+
         $payments = $this->getDataByRole()
-            ->where(function ($query) use ($search) {
-                $query->where('amount', 'like', "%{$search}%")
-                    ->orWhere('payment_method', 'like', "%{$search}%")
-                    ->orWhere('status', 'like', "%{$search}%")
-                    ->orWhereHas('student', function ($q) use ($search) {
-                        $q->where('name', 'like', "%{$search}%");
+            ->where(function ($query) use ($safeSearch) {
+                $query->where('amount', 'like', $safeSearch)
+                    ->orWhere('payment_method', 'like', $safeSearch)
+                    ->orWhere('status', 'like', $safeSearch)
+                    ->orWhereHas('student', function ($q) use ($safeSearch) {
+                        $q->where('name', 'like', $safeSearch);
                     });
             })
             ->paginate(10);
@@ -837,6 +841,9 @@ class PaymentController extends Controller
      */
     public function viewProof(Payment $payment)
     {
+        // SECURITY FIX: Check permission before viewing proof
+        $this->checkPaymentPermission($payment);
+
         if ($payment->payment_method !== 'bank_transfer') {
             abort(404);
         }
@@ -904,7 +911,7 @@ class PaymentController extends Controller
     }
 
     /**
-     * Store bank transfer payment
+     * Store bank transfer payment - SECURITY FIXED: File Upload Security
      */
     public function storeBankTransfer(Request $request)
     {
@@ -917,6 +924,17 @@ class PaymentController extends Controller
             DB::beginTransaction();
 
             $user = Auth::user();
+
+            // SECURITY FIX: Additional file validation
+            if ($request->hasFile('screenshot')) {
+                $file = $request->file('screenshot');
+                $allowedMimes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
+
+                if (!in_array($file->getMimeType(), $allowedMimes)) {
+                    throw new \Exception('अमान्य फाइल प्रकार');
+                }
+            }
+
             $screenshotPath = $request->file('screenshot')->store('payment-proofs', 'public');
 
             $payment = Payment::create([
@@ -987,11 +1005,8 @@ class PaymentController extends Controller
                 return redirect()->back()->with('error', 'Payment not found');
             }
 
-            // Simple permission check
-            $user = Auth::user();
-            if ($user->hasRole('student') && $payment->student_id != $user->id) {
-                abort(403, 'Unauthorized');
-            }
+            // SECURITY FIX: Enhanced permission check
+            $this->checkPaymentPermission($payment);
 
             $data = [
                 'payment' => $payment,
@@ -1022,11 +1037,8 @@ class PaymentController extends Controller
                 return redirect()->back()->with('error', 'Payment not found');
             }
 
-            // Simple permission check
-            $user = Auth::user();
-            if ($user->hasRole('student') && $payment->student_id != $user->id) {
-                abort(403, 'Unauthorized');
-            }
+            // SECURITY FIX: Enhanced permission check
+            $this->checkPaymentPermission($payment);
 
             $data = [
                 'payment' => $payment,
@@ -1071,7 +1083,7 @@ class PaymentController extends Controller
     // =================================================================
 
     /**
-     * Student search for invoice generation
+     * Student search for invoice generation - SECURITY FIXED: SQL Injection Prevention
      */
     public function studentSearchForInvoice(Request $request)
     {
@@ -1087,16 +1099,19 @@ class PaymentController extends Controller
             return redirect()->route('owner.payments.report')->with('error', 'कृपया खोज्ने शब्द लेख्नुहोस्।');
         }
 
+        // SECURITY FIX: Prevent SQL Injection in search
+        $safeQuery = '%' . addcslashes($query, '%_') . '%';
+
         // Get current user's hostel IDs
         $hostelIds = Hostel::where('owner_id', $user->id)
             ->orWhere('manager_id', $user->id)
             ->pluck('id')
             ->toArray();
 
-        $students = Student::where(function ($q) use ($query) {
-            $q->where('name', 'like', "%{$query}%")
-                ->orWhere('email', 'like', "%{$query}%")
-                ->orWhere('student_id', 'like', "%{$query}%");
+        $students = Student::where(function ($q) use ($safeQuery) {
+            $q->where('name', 'like', $safeQuery)
+                ->orWhere('email', 'like', $safeQuery)
+                ->orWhere('student_id', 'like', $safeQuery);
         })
             ->whereIn('hostel_id', $hostelIds)
             ->with(['payments' => function ($p) {
@@ -1109,7 +1124,7 @@ class PaymentController extends Controller
     }
 
     /**
-     * Upload hostel logo
+     * Upload hostel logo - SECURITY FIXED: File Upload Security
      */
     public function uploadHostelLogo(Request $request, $hostelId)
     {
@@ -1132,6 +1147,16 @@ class PaymentController extends Controller
         ]);
 
         try {
+            // SECURITY FIX: Additional file validation
+            if ($request->hasFile('logo')) {
+                $file = $request->file('logo');
+                $allowedMimes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'];
+
+                if (!in_array($file->getMimeType(), $allowedMimes)) {
+                    return redirect()->back()->with('error', 'अमान्य फाइल प्रकार');
+                }
+            }
+
             // Delete old logo if exists
             if ($hostel->logo_path && Storage::disk('public')->exists($hostel->logo_path)) {
                 Storage::disk('public')->delete($hostel->logo_path);

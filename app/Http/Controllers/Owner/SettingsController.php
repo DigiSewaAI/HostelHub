@@ -12,11 +12,29 @@ use Illuminate\Validation\Rule;
 class SettingsController extends Controller
 {
     /**
+     * Constructor - Apply owner authorization checks
+     */
+    public function __construct()
+    {
+        $this->middleware(function ($request, $next) {
+            // Check if user has owner role
+            if (!Auth::user()->hasRole('hostel_manager')) {
+                abort(403, 'तपाईंसँग यो पृष्ठ एक्सेस गर्ने अनुमति छैन');
+            }
+            return $next($request);
+        });
+    }
+
+    /**
      * Show the owner settings page
      */
     public function index()
     {
         $user = Auth::user();
+
+        // Verify user is owner before proceeding
+        $this->checkOwnerAccess($user->id);
+
         $organization = $user->organizations()->first();
 
         return view('owner.settings.index', compact('user', 'organization'));
@@ -28,6 +46,10 @@ class SettingsController extends Controller
     public function updateGeneral(Request $request)
     {
         $user = Auth::user();
+
+        // Verify user is owner before proceeding
+        $this->checkOwnerAccess($user->id);
+
         $organization = $user->organizations()->first();
 
         $request->validate([
@@ -44,8 +66,13 @@ class SettingsController extends Controller
             'phone' => $request->phone,
         ]);
 
-        // Update organization
+        // Update organization - with owner verification
         if ($organization) {
+            // Additional check to ensure owner owns this organization
+            if (!$user->organizations()->where('id', $organization->id)->exists()) {
+                abort(403, 'तपाईंसँग यो संस्था सम्पादन गर्ने अनुमति छैन');
+            }
+
             $organization->update([
                 'name' => $request->organization_name,
             ]);
@@ -69,9 +96,18 @@ class SettingsController extends Controller
         ]);
 
         $user = Auth::user();
+
+        // Verify user is owner before proceeding
+        $this->checkOwnerAccess($user->id);
+
         $organization = $user->organizations()->first();
 
         if ($organization) {
+            // Additional ownership verification
+            if (!$user->organizations()->where('id', $organization->id)->exists()) {
+                abort(403, 'तपाईंसँग यो संस्था सम्पादन गर्ने अनुमति छैन');
+            }
+
             // Organizations table को settings column मा payment settings store गर्ने
             $settings = $organization->settings ?? [];
 
@@ -106,6 +142,9 @@ class SettingsController extends Controller
 
         $user = Auth::user();
 
+        // Verify user is owner before proceeding
+        $this->checkOwnerAccess($user->id);
+
         $user->update([
             'email_notifications' => $request->boolean('email_notifications'),
             'sms_notifications' => $request->boolean('sms_notifications'),
@@ -128,6 +167,9 @@ class SettingsController extends Controller
         ]);
 
         $user = Auth::user();
+
+        // Verify user is owner before proceeding
+        $this->checkOwnerAccess($user->id);
 
         $user->update([
             'password' => Hash::make($request->new_password),
@@ -153,5 +195,31 @@ class SettingsController extends Controller
         }
 
         return $organization->settings['payment'];
+    }
+
+    /**
+     * OWNER AUTHORIZATION STRENGTHENING
+     * Check if user has owner access
+     */
+    private function checkOwnerAccess($userId)
+    {
+        $user = Auth::user();
+
+        // Check if user has owner role and is accessing their own data
+        if (!$user->hasRole('hostel_manager') || $user->id != $userId) {
+            abort(403, 'तपाईंसँग यो होस्टल एक्सेस गर्ने अनुमति छैन');
+        }
+        return true;
+    }
+
+    /**
+     * OWNER DATA SCOPING
+     * Scope queries for owner-specific data
+     */
+    private function scopeForOwner($query, $ownerId)
+    {
+        return $query->whereHas('hostel', function ($q) use ($ownerId) {
+            $q->where('owner_id', $ownerId);
+        });
     }
 }

@@ -15,12 +15,40 @@ use Illuminate\Support\Str;
 
 class GalleryController extends Controller
 {
+    // ✅ ENHANCED: Owner gallery authorization
+    private function authorizeGalleryAccess(Gallery $gallery = null)
+    {
+        $user = Auth::user();
+
+        if ($user->hasRole('hostel_manager')) {
+            if (!$user->hostel_id) {
+                abort(403, 'तपाईंसँग कुनै होस्टल सम्बन्धित छैन');
+            }
+
+            if ($gallery && $gallery->hostel_id != $user->hostel_id) {
+                abort(403, 'तपाईंसँग यो ग्यालरी एक्सेस गर्ने अनुमति छैन');
+            }
+        }
+
+        // Students cannot access gallery management
+        if ($user->hasRole('student') && in_array(request()->route()->getActionMethod(), ['create', 'store', 'edit', 'update', 'destroy'])) {
+            abort(403, 'तपाईंसँग ग्यालरी व्यवस्थापन गर्ने अनुमति छैन');
+        }
+
+        return true;
+    }
+
     /**
      * Display a listing of gallery items.
      */
     public function index()
     {
-        $hostel = Auth::user()->hostel;
+        $user = Auth::user();
+
+        // ✅ ENHANCED: Authorization
+        $this->authorizeGalleryAccess();
+
+        $hostel = $user->hostel;
 
         // ✅ FIXED: Updated categories to match unified room types
         $categories = [
@@ -56,7 +84,16 @@ class GalleryController extends Controller
      */
     public function create()
     {
-        $hostel = Auth::user()->hostel;
+        $user = Auth::user();
+
+        // ✅ ENHANCED: Authorization - only owners can create
+        if ($user->hasRole('student')) {
+            abort(403, 'तपाईंसँग ग्यालरी सिर्जना गर्ने अनुमति छैन');
+        }
+
+        $this->authorizeGalleryAccess();
+
+        $hostel = $user->hostel;
 
         // ✅ FIXED: Updated categories to match unified room types
         $categories = [
@@ -86,7 +123,16 @@ class GalleryController extends Controller
      */
     public function store(Request $request)
     {
-        $hostel = Auth::user()->hostel;
+        $user = Auth::user();
+
+        // ✅ ENHANCED: Authorization - only owners can store
+        if ($user->hasRole('student')) {
+            abort(403, 'तपाईंसँग ग्यालरी सिर्जना गर्ने अनुमति छैन');
+        }
+
+        $this->authorizeGalleryAccess();
+
+        $hostel = $user->hostel;
 
         // ✅ FIXED: Updated validation to include room_id and unified categories
         $validated = $request->validate([
@@ -186,12 +232,17 @@ class GalleryController extends Controller
      */
     public function show(Gallery $gallery)
     {
-        // Check authorization
-        if ($gallery->hostel_id !== Auth::user()->hostel->id) {
-            abort(403, 'तपाईंसँग यो ग्यालरी हेर्ने अनुमति छैन');
+        $user = Auth::user();
+
+        // ✅ ENHANCED: Authorization
+        $this->authorizeGalleryAccess($gallery);
+
+        // Additional check for students - they can only view active galleries
+        if ($user->hasRole('student') && !$gallery->is_active) {
+            abort(403, 'यो ग्यालरी हाल उपलब्ध छैन');
         }
 
-        $hostel = Auth::user()->hostel;
+        $hostel = $user->hostel;
         return view('owner.galleries.show', compact('gallery', 'hostel'));
     }
 
@@ -200,11 +251,16 @@ class GalleryController extends Controller
      */
     public function edit(Gallery $gallery)
     {
-        if ($gallery->hostel_id !== Auth::user()->hostel->id) {
-            abort(403, 'तपाईंसँग यो ग्यालरी सम्पादन गर्ने अनुमति छैन');
+        $user = Auth::user();
+
+        // ✅ ENHANCED: Authorization - only owners can edit
+        if ($user->hasRole('student')) {
+            abort(403, 'तपाईंसँग ग्यालरी सम्पादन गर्ने अनुमति छैन');
         }
 
-        $hostel = Auth::user()->hostel;
+        $this->authorizeGalleryAccess($gallery);
+
+        $hostel = $user->hostel;
 
         // ✅ FIXED: Updated categories to match unified room types
         $categories = [
@@ -234,9 +290,14 @@ class GalleryController extends Controller
      */
     public function update(Request $request, Gallery $gallery)
     {
-        if ($gallery->hostel_id !== Auth::user()->hostel->id) {
-            abort(403, 'तपाईंसँग यो ग्यालरी अपडेट गर्ने अनुमति छैन');
+        $user = Auth::user();
+
+        // ✅ ENHANCED: Authorization - only owners can update
+        if ($user->hasRole('student')) {
+            abort(403, 'तपाईंसँग ग्यालरी अपडेट गर्ने अनुमति छैन');
         }
+
+        $this->authorizeGalleryAccess($gallery);
 
         // ✅ FIXED: Updated validation to include room_id and unified categories
         $validated = $request->validate([
@@ -337,9 +398,14 @@ class GalleryController extends Controller
      */
     public function destroy(Gallery $gallery)
     {
-        if ($gallery->hostel_id !== Auth::user()->hostel->id) {
-            abort(403, 'तपाईंसँग यो ग्यालरी हटाउने अनुमति छैन');
+        $user = Auth::user();
+
+        // ✅ ENHANCED: Authorization - only owners can delete
+        if ($user->hasRole('student')) {
+            abort(403, 'तपाईंसँग ग्यालरी हटाउने अनुमति छैन');
         }
+
+        $this->authorizeGalleryAccess($gallery);
 
         // Delete associated file
         if ($gallery->file_path && Storage::disk('public')->exists($gallery->file_path)) {
@@ -365,9 +431,14 @@ class GalleryController extends Controller
      */
     public function toggleFeatured(Gallery $gallery)
     {
-        if ($gallery->hostel_id !== Auth::user()->hostel->id) {
-            abort(403, 'तपाईंसँग यो ग्यालरी अपडेट गर्ने अनुमति छैन');
+        $user = Auth::user();
+
+        // ✅ ENHANCED: Authorization - only owners can toggle featured
+        if ($user->hasRole('student')) {
+            abort(403, 'तपाईंसँग ग्यालरी फिचर्ड गर्ने अनुमति छैन');
         }
+
+        $this->authorizeGalleryAccess($gallery);
 
         $gallery->update(['is_featured' => !$gallery->is_featured]);
 
@@ -384,9 +455,14 @@ class GalleryController extends Controller
      */
     public function toggleActive(Gallery $gallery)
     {
-        if ($gallery->hostel_id !== Auth::user()->hostel->id) {
-            abort(403, 'तपाईंसँग यो ग्यालरी अपडेट गर्ने अनुमति छैन');
+        $user = Auth::user();
+
+        // ✅ ENHANCED: Authorization - only owners can toggle active status
+        if ($user->hasRole('student')) {
+            abort(403, 'तपाईंसँग ग्यालरी स्टेटस परिवर्तन गर्ने अनुमति छैन');
         }
+
+        $this->authorizeGalleryAccess($gallery);
 
         $gallery->update(['is_active' => !$gallery->is_active]);
 
@@ -429,6 +505,11 @@ class GalleryController extends Controller
 
     public function mealGallery()
     {
+        $user = Auth::user();
+
+        // ✅ ENHANCED: Authorization
+        $this->authorizeGalleryAccess();
+
         $organizationId = session('current_organization_id');
 
         $mealMenus = MealMenu::whereHas('hostel', function ($query) use ($organizationId) {
@@ -497,9 +578,10 @@ class GalleryController extends Controller
      */
     public function getVideoUrl(Gallery $gallery)
     {
-        if ($gallery->hostel_id !== Auth::user()->hostel->id) {
-            abort(403);
-        }
+        $user = Auth::user();
+
+        // ✅ ENHANCED: Authorization
+        $this->authorizeGalleryAccess($gallery);
 
         if ($gallery->media_type === 'local_video' && $gallery->file_path) {
             return response()->json([

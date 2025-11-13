@@ -33,6 +33,72 @@ class Plan extends Model
         'price_year' => 'decimal:2'
     ];
 
+    /**
+     * Validation rules for plan
+     */
+    public static function validationRules($id = null): array
+    {
+        return [
+            'name' => 'required|string|max:255|unique:plans,name,' . $id,
+            'slug' => 'required|string|max:255|unique:plans,slug,' . $id,
+            'price_month' => 'required|numeric|min:0',
+            'price_year' => 'required|numeric|min:0',
+            'max_students' => 'required|integer|min:0',
+            'max_hostels' => 'required|integer|min:0',
+            'max_rooms' => 'required|integer|min:0',
+            'features' => 'nullable|array',
+            'is_active' => 'boolean',
+            'sort_order' => 'nullable|integer|min:0',
+            'description' => 'nullable|string|max:500',
+            'stripe_price_id' => 'nullable|string|max:255',
+            'stripe_product_id' => 'nullable|string|max:255'
+        ];
+    }
+
+    /**
+     * Scope for active plans
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    /**
+     * Scope for organization-specific plans
+     */
+    public function scopeForOrganization($query, $organizationId)
+    {
+        return $query->whereHas('subscriptions', function ($q) use ($organizationId) {
+            $q->where('organization_id', $organizationId);
+        });
+    }
+
+    /**
+     * Scope for user-specific plans
+     */
+    public function scopeForUser($query, $userId)
+    {
+        return $query->whereHas('subscriptions', function ($q) use ($userId) {
+            $q->where('user_id', $userId);
+        });
+    }
+
+    /**
+     * Scope by slug
+     */
+    public function scopeBySlug($query, $slug)
+    {
+        return $query->where('slug', $slug);
+    }
+
+    /**
+     * Get recommended plans (excluding starter)
+     */
+    public function scopeRecommended($query)
+    {
+        return $query->where('slug', '!=', 'starter')->active();
+    }
+
     public function subscriptions(): HasMany
     {
         return $this->hasMany(Subscription::class);
@@ -161,30 +227,6 @@ class Plan extends Model
         }
 
         return 'रु. ' . number_format($this->price_month) . '/महिना';
-    }
-
-    /**
-     * Scope active plans
-     */
-    public function scopeActive($query)
-    {
-        return $query->where('is_active', true);
-    }
-
-    /**
-     * Scope by slug
-     */
-    public function scopeBySlug($query, $slug)
-    {
-        return $query->where('slug', $slug);
-    }
-
-    /**
-     * Get recommended plans (excluding starter)
-     */
-    public function scopeRecommended($query)
-    {
-        return $query->where('slug', '!=', 'starter')->active();
     }
 
     /**

@@ -90,7 +90,10 @@ class SettingsController extends Controller
                     ->withInput();
             }
 
-            Setting::create($request->all());
+            // ✅ SECURITY FIX: Use only validated data instead of request->all()
+            $validatedData = $validator->validated();
+
+            Setting::create($validatedData);
 
             // Clear settings cache
             Cache::forget('settings_all');
@@ -180,7 +183,10 @@ class SettingsController extends Controller
                     ->withInput();
             }
 
-            $setting->update($request->all());
+            // ✅ SECURITY FIX: Use only validated data instead of request->all()
+            $validatedData = $validator->validated();
+
+            $setting->update($validatedData);
 
             // Clear settings cache
             Cache::forget('settings_all');
@@ -247,11 +253,51 @@ class SettingsController extends Controller
 
             $settings = $request->except('_token');
 
+            // ✅ SECURITY FIX: Define allowed settings for bulk update to prevent mass assignment
+            $allowedSettings = [
+                'site_name',
+                'site_title',
+                'site_description',
+                'site_keywords',
+                'contact_email',
+                'contact_phone',
+                'contact_address',
+                'smtp_host',
+                'smtp_port',
+                'smtp_username',
+                'smtp_password',
+                'payment_gateway',
+                'currency',
+                'timezone',
+                'date_format',
+                'items_per_page',
+                'maintenance_mode',
+                'registration_enabled',
+                'facebook_url',
+                'twitter_url',
+                'instagram_url',
+                'youtube_url',
+                'meta_title',
+                'meta_description',
+                'logo_path',
+                'favicon_path',
+                'default_language',
+                'email_verification',
+                'auto_approve_bookings'
+            ];
+
             foreach ($settings as $key => $value) {
-                // Only update existing settings, don't create new ones
-                $setting = Setting::where('key', $key)->first();
-                if ($setting) {
-                    $setting->update(['value' => $value]);
+                // ✅ SECURITY FIX: Only update allowed settings that exist
+                if (in_array($key, $allowedSettings)) {
+                    $setting = Setting::where('key', $key)->first();
+                    if ($setting && !$setting->is_system) {
+                        $setting->update(['value' => $value]);
+                    }
+                } else {
+                    Log::warning('Attempted bulk update of disallowed setting: ' . $key, [
+                        'user_id' => auth()->id(),
+                        'ip' => $request->ip()
+                    ]);
                 }
             }
 
