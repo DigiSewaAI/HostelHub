@@ -1,5 +1,3 @@
-<?php
-
 @extends('layouts.owner')
 
 @section('title', 'सूचना सम्पादन गर्नुहोस्')

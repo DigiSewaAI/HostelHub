@@ -1,4 +1,4 @@
-@extends('layouts.owner')
+@extends('layouts.admin')
 
 @section('title', 'नयाँ कागजात थप्नुहोस्')
 
@@ -8,10 +8,11 @@
         <div class="col-12">
             <div class="page-title-box d-flex align-items-center justify-content-between">
                 <h4 class="mb-0">नयाँ कागजात थप्नुहोस्</h4>
+
                 <div class="page-title-right">
                     <ol class="breadcrumb m-0">
-                        <li class="breadcrumb-item"><a href="{{ route('owner.dashboard') }}">ड्यासबोर्ड</a></li>
-                        <li class="breadcrumb-item"><a href="{{ route('owner.documents.index') }}">कागजातहरू</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">ड्यासबोर्ड</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('admin.documents.index') }}">कागजातहरू</a></li>
                         <li class="breadcrumb-item active">नयाँ कागजात</li>
                     </ol>
                 </div>
@@ -23,24 +24,11 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-body">
-                    <!-- Error Messages -->
-                    @if($errors->any())
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            <strong>तपाईंको फारममा त्रुटिहरू छन्:</strong>
-                            <ul class="mb-0 mt-2">
-                                @foreach($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    @endif
-
-                    <form action="{{ route('owner.documents.store') }}" method="POST" enctype="multipart/form-data" id="documentForm">
+                    <form action="{{ route('admin.documents.store') }}" method="POST" enctype="multipart/form-data">
                         @csrf
 
                         <div class="row mb-3">
+                            <!-- Student Selection -->
                             <div class="col-md-6">
                                 <label for="student_id" class="form-label">विद्यार्थी *</label>
                                 <select name="student_id" id="student_id" class="form-select @error('student_id') is-invalid @enderror" required>
@@ -56,6 +44,7 @@
                                 @enderror
                             </div>
                             
+                            <!-- Document Type -->
                             <div class="col-md-6">
                                 <label for="document_type" class="form-label">कागजातको प्रकार *</label>
                                 <select name="document_type" id="document_type" class="form-select @error('document_type') is-invalid @enderror" required>
@@ -75,6 +64,7 @@
                         </div>
 
                         <div class="row mb-3">
+                            <!-- Document Title -->
                             <div class="col-md-6">
                                 <label for="title" class="form-label">कागजातको शीर्षक *</label>
                                 <input type="text" name="title" id="title" class="form-control @error('title') is-invalid @enderror" 
@@ -84,6 +74,7 @@
                                 @enderror
                             </div>
                             
+                            <!-- Document Number -->
                             <div class="col-md-6">
                                 <label for="document_number" class="form-label">कागजात नम्बर</label>
                                 <input type="text" name="document_number" id="document_number" class="form-control @error('document_number') is-invalid @enderror" 
@@ -95,15 +86,17 @@
                         </div>
 
                         <div class="row mb-3">
+                            <!-- Issue Date -->
                             <div class="col-md-6">
                                 <label for="issue_date" class="form-label">जारी मिति *</label>
                                 <input type="date" name="issue_date" id="issue_date" class="form-control @error('issue_date') is-invalid @enderror" 
-                                       value="{{ old('issue_date', date('Y-m-d')) }}" required>
+                                       value="{{ old('issue_date') }}" required>
                                 @error('issue_date')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
                             
+                            <!-- Expiry Date -->
                             <div class="col-md-6">
                                 <label for="expiry_date" class="form-label">समाप्ति मिति</label>
                                 <input type="date" name="expiry_date" id="expiry_date" class="form-control @error('expiry_date') is-invalid @enderror" 
@@ -115,6 +108,7 @@
                         </div>
 
                         <div class="row mb-3">
+                            <!-- Description -->
                             <div class="col-12">
                                 <label for="description" class="form-label">विवरण</label>
                                 <textarea name="description" id="description" class="form-control @error('description') is-invalid @enderror" 
@@ -126,6 +120,7 @@
                         </div>
 
                         <div class="row mb-3">
+                            <!-- File Upload -->
                             <div class="col-12">
                                 <label for="file_path" class="form-label">कागजात फाइल *</label>
                                 <input type="file" name="file_path" id="file_path" class="form-control @error('file_path') is-invalid @enderror" 
@@ -140,6 +135,7 @@
                         </div>
 
                         <div class="row mb-3">
+                            <!-- Status -->
                             <div class="col-md-6">
                                 <label for="status" class="form-label">स्थिति</label>
                                 <select name="status" id="status" class="form-select @error('status') is-invalid @enderror">
@@ -155,10 +151,10 @@
 
                         <div class="row">
                             <div class="col-12">
-                                <button type="submit" class="btn btn-primary" id="submitBtn">
+                                <button type="submit" class="btn btn-primary">
                                     <i class="fas fa-save me-1"></i> कागजात सेभ गर्नुहोस्
                                 </button>
-                                <a href="{{ route('owner.documents.index') }}" class="btn btn-secondary">
+                                <a href="{{ route('admin.documents.index') }}" class="btn btn-secondary">
                                     <i class="fas fa-times me-1"></i> रद्द गर्नुहोस्
                                 </a>
                             </div>
@@ -174,6 +170,10 @@
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Set today's date as default for issue date
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('issue_date').value = today;
+
         // Auto-generate document number if empty
         document.getElementById('document_number').addEventListener('blur', function() {
             if (!this.value) {
@@ -181,22 +181,6 @@
                 const timestamp = Date.now().toString().slice(-6);
                 this.value = `${prefix}${timestamp}`;
             }
-        });
-
-        // Form submission handler
-        document.getElementById('documentForm').addEventListener('submit', function(e) {
-            const submitBtn = document.getElementById('submitBtn');
-            const fileInput = document.getElementById('file_path');
-            
-            // Check if file is selected
-            if (!fileInput.files.length) {
-                alert('कृपया कागजात फाइल छनौट गर्नुहोस्');
-                e.preventDefault();
-                return;
-            }
-            
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> सेभ हुँदैछ...';
         });
     });
 </script>

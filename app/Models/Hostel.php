@@ -55,6 +55,46 @@ class Hostel extends Model
     ];
 
     /**
+     * Validation rules for Hostel model
+     */
+    public static function validationRules($id = null): array
+    {
+        return [
+            'name' => 'required|string|max:255|unique:hostels,name,' . $id,
+            'slug' => 'nullable|string|max:255|unique:hostels,slug,' . $id,
+            'address' => 'required|string|max:500',
+            'city' => 'required|string|max:100',
+            'contact_person' => 'required|string|max:100',
+            'contact_phone' => 'required|string|max:20',
+            'contact_email' => 'required|email|max:100',
+            'description' => 'nullable|string|max:2000',
+            'total_rooms' => 'required|integer|min:0',
+            'available_rooms' => 'required|integer|min:0',
+            'status' => 'required|in:active,inactive,maintenance',
+            'facilities' => 'nullable|array',
+            'owner_id' => 'required|exists:users,id',
+            'manager_id' => 'nullable|exists:users,id',
+            'organization_id' => 'nullable|exists:organizations,id',
+            'monthly_rent' => 'nullable|numeric|min:0',
+            'security_deposit' => 'nullable|numeric|min:0',
+            'image' => 'nullable|string|max:500',
+            'is_published' => 'boolean',
+            'published_at' => 'nullable|date',
+            'logo_path' => 'nullable|string|max:500',
+            'theme_color' => 'nullable|string|max:7',
+            'draft_data' => 'nullable|array',
+            'facebook_url' => 'nullable|url|max:500',
+            'instagram_url' => 'nullable|url|max:500',
+            'twitter_url' => 'nullable|url|max:500',
+            'tiktok_url' => 'nullable|url|max:500',
+            'whatsapp_number' => 'nullable|string|max:20',
+            'youtube_url' => 'nullable|url|max:500',
+            'linkedin_url' => 'nullable|url|max:500',
+            'show_hostelhub_branding' => 'boolean'
+        ];
+    }
+
+    /**
      * Boot method for model events
      */
     protected static function boot()
@@ -197,6 +237,19 @@ class Hostel extends Model
     {
         return $query->where('is_published', true)
             ->whereNotNull('published_at');
+    }
+
+    // ✅ Scope for user's hostels (owner or manager)
+    public function scopeForUser($query, $userId)
+    {
+        return $query->where('owner_id', $userId)
+            ->orWhere('manager_id', $userId);
+    }
+
+    // ✅ Scope for organization hostels
+    public function scopeForOrganization($query, $organizationId)
+    {
+        return $query->where('organization_id', $organizationId);
     }
 
     // ✅ Calculate occupancy rate
@@ -489,5 +542,15 @@ class Hostel extends Model
                     'count' => $this->rooms()->where('type', $type)->whereHas('galleries')->count()
                 ];
             });
+    }
+
+    /**
+     * Check if user can modify this hostel
+     */
+    public function canBeModifiedBy($user): bool
+    {
+        return $user->id === $this->owner_id ||
+            $user->id === $this->manager_id ||
+            ($this->organization && $this->organization->users()->where('user_id', $user->id)->exists());
     }
 }

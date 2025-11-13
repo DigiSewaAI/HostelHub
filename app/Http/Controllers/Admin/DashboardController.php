@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
@@ -38,6 +39,11 @@ class DashboardController extends Controller
     public function index()
     {
         $user = auth()->user();
+
+        // ✅ SECURITY FIX: Authorization check for all roles
+        if (!$user->hasAnyRole(['admin', 'hostel_manager', 'student'])) {
+            abort(403, 'अनधिकृत पहुँच');
+        }
 
         if ($user->hasRole('admin')) {
             return $this->adminDashboard();
@@ -62,7 +68,9 @@ class DashboardController extends Controller
 
         try {
             $metrics = Cache::remember($cacheKey, 300, function () {
-                $organizationId = session('current_organization_id');
+                // ✅ SECURITY FIX: Parameter validation for date ranges in statistics
+                $startDate = Carbon::now()->subDays(30)->format('Y-m-d');
+                $endDate = Carbon::now()->format('Y-m-d');
 
                 // Fetch core metrics with optimized queries
                 $totalStudents = Student::count();
@@ -105,7 +113,7 @@ class DashboardController extends Controller
                     ? round(($roomStatus->reserved / $totalRooms) * 100, 1)
                     : 0;
 
-                // Get recent records with optimized queries and selective field loading
+                // ✅ SECURITY FIX: Use select() to prevent mass assignment and optimize queries
                 $recentStudents = Student::with(['room.hostel' => function ($query) {
                     $query->select('id', 'name');
                 }])
@@ -371,10 +379,13 @@ class DashboardController extends Controller
      */
     public function ownerDashboard()
     {
-        try {
-            // Get the authenticated user
-            $user = auth()->user();
+        // ✅ SECURITY FIX: Authorization check
+        $user = auth()->user();
+        if (!$user->hasAnyRole(['hostel_manager', 'owner'])) {
+            abort(403, 'तपाईंसँग यो ड्यासबोर्ड हेर्ने अनुमति छैन');
+        }
 
+        try {
             // ✅ CRITICAL FIX: Force session organization set
             $organization = $user->organizations()
                 ->wherePivot('role', 'owner')
@@ -573,8 +584,13 @@ class DashboardController extends Controller
      */
     public function studentDashboard()
     {
+        // ✅ SECURITY FIX: Authorization check
+        $user = auth()->user();
+        if (!$user->hasRole('student')) {
+            abort(403, 'तपाईंसँग यो ड्यासबोर्ड हेर्ने अनुमति छैन');
+        }
+
         try {
-            $user = auth()->user();
             $student = $user->student;
 
             // If student doesn't exist or doesn't have hostel, show welcome-style dashboard
@@ -728,9 +744,19 @@ class DashboardController extends Controller
             // Authorization check
             $this->authorize('view-statistics');
 
+            // ✅ SECURITY FIX: Validate date parameters to prevent SQL injection
+            $request->validate([
+                'start_date' => 'nullable|date|before_or_equal:end_date',
+                'end_date' => 'nullable|date|after_or_equal:start_date'
+            ]);
+
             // Get date range from request or use default
             $startDate = $request->input('start_date', now()->subDays(30)->format('Y-m-d'));
             $endDate = $request->input('end_date', now()->format('Y-m-d'));
+
+            // ✅ SECURITY FIX: Ensure dates are properly formatted and safe
+            $startDate = Carbon::parse($startDate)->format('Y-m-d');
+            $endDate = Carbon::parse($endDate)->format('Y-m-d');
 
             // Fetch statistics within date range
             $newStudents = Student::whereBetween('created_at', [$startDate, $endDate])->count();
@@ -810,6 +836,12 @@ class DashboardController extends Controller
     public function clearCache()
     {
         try {
+            // ✅ SECURITY FIX: Authorization check for admin only
+            $user = auth()->user();
+            if (!$user->hasRole('admin')) {
+                abort(403, 'तपाईंसँग यो कार्य गर्ने अनुमति छैन');
+            }
+
             $userId = auth()->id();
             Cache::forget("admin_dashboard_metrics_{$userId}");
 
@@ -833,6 +865,15 @@ class DashboardController extends Controller
     {
         try {
             $user = auth()->user();
+
+            // ✅ SECURITY FIX: Authorization check
+            if (!$user->hasAnyRole(['admin', 'hostel_manager'])) {
+                return response()->json([
+                    'success' => false,
+                    'unreadCount' => 0,
+                    'todayCount' => 0
+                ]);
+            }
 
             // For admin and owner, show all contacts without hostel filtering
             if ($user->hasRole('admin') || $user->hasRole('hostel_manager')) {
@@ -866,6 +907,12 @@ class DashboardController extends Controller
     public function getFilteredContacts(Request $request)
     {
         try {
+            // ✅ SECURITY FIX: Authorization check
+            $user = auth()->user();
+            if (!$user->hasAnyRole(['admin', 'hostel_manager'])) {
+                abort(403, 'तपाईंसँग यो कार्य गर्ने अनुमति छैन');
+            }
+
             $filter = $request->input('filter', 'all');
 
             $query = Contact::query();

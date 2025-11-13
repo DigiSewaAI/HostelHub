@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Process;
 
 class GalleryController extends Controller
 {
@@ -101,14 +102,14 @@ class GalleryController extends Controller
     {
         $this->authorize('create', Gallery::class);
 
-        // Updated validation rules with all categories
+        // Updated validation rules with all categories - SECURITY FIX: Reduced max file size
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'media_type' => 'required|in:photo,external_video,local_video',
             'external_link' => 'required_if:media_type,external_video|nullable|url',
             'media' => 'required_if:media_type,photo,local_video|array|min:1',
-            'media.*' => 'required_if:media_type,photo,local_video|file|mimes:jpeg,png,jpg,gif,mp4,mov,avi,wmv|max:102400',
+            'media.*' => 'required_if:media_type,photo,local_video|file|mimes:jpeg,png,jpg,gif,mp4,mov,avi,wmv|max:51200', // SECURITY FIX: Reduced from 102400 to 51200 (50MB)
             'category' => [
                 'required',
                 Rule::in(['video', '1 seater', '2 seater', '3 seater', '4 seater', 'common', 'bathroom', 'kitchen', 'living room', 'study room', 'event'])
@@ -118,7 +119,7 @@ class GalleryController extends Controller
         ], [
             'media.required_if' => 'कृपया कम्तिमा एक फाइल अपलोड गर्नुहोस्।',
             'media.*.mimes' => 'फाइलको प्रकार अमान्य। जेपीइजी, पिएनजी, जिआइएफ, एमपी४, एमओभी, एभीआई, डब्ल्यूएमभी मात्र स्वीकार्य छन्।',
-            'media.*.max' => 'फाइल साइज १०० एमबी भन्दा कम हुनुपर्छ।'
+            'media.*.max' => 'फाइल साइज ५० एमबी भन्दा कम हुनुपर्छ।' // SECURITY FIX: Updated message
         ]);
 
         // Convert status to is_active
@@ -150,6 +151,9 @@ class GalleryController extends Controller
         } else {
             // Handle multiple file uploads
             foreach ($request->file('media') as $file) {
+                // SECURITY FIX: Additional file type validation
+                $this->validateFileType($file);
+
                 $mediaData = $validated;
 
                 // Determine media type based on file MIME type
@@ -248,14 +252,14 @@ class GalleryController extends Controller
             abort(403, 'तपाईंसँग यो ग्यालरी अपडेट गर्ने अनुमति छैन');
         }
 
-        // Updated validation rules with all categories
+        // Updated validation rules with all categories - SECURITY FIX: Reduced max file size
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'media_type' => 'required|in:photo,external_video,local_video',
             'external_link' => 'required_if:media_type,external_video|nullable|url',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
-            'local_video' => 'nullable|file|mimes:mp4,mov,avi|max:102400',
+            'local_video' => 'nullable|file|mimes:mp4,mov,avi|max:51200', // SECURITY FIX: Reduced from 102400 to 51200 (50MB)
             'category' => [
                 'required',
                 Rule::in(['video', '1 seater', '2 seater', '3 seater', '4 seater', 'common', 'bathroom', 'kitchen', 'living room', 'study room', 'event'])
@@ -263,6 +267,14 @@ class GalleryController extends Controller
             'status' => 'required|in:active,inactive',
             'hostel_id' => 'sometimes|required_if:role,admin|exists:hostels,id'
         ]);
+
+        // SECURITY FIX: Additional file validation for uploaded files
+        if ($request->hasFile('image')) {
+            $this->validateFileType($request->file('image'));
+        }
+        if ($request->hasFile('local_video')) {
+            $this->validateFileType($request->file('local_video'));
+        }
 
         // Convert status to is_active
         $validated['is_active'] = $validated['status'] === 'active';
@@ -447,7 +459,7 @@ class GalleryController extends Controller
     }
 
     /**
-     * Generate thumbnail for video using FFmpeg
+     * Generate thumbnail for video using FFmpeg - SECURITY FIX: Command injection protection
      */
     private function generateVideoThumbnail($videoPath)
     {
@@ -469,24 +481,63 @@ class GalleryController extends Controller
             mkdir($thumbnailDir, 0777, true);
         }
 
-        // Generate thumbnail using FFmpeg (capture at 2 seconds)
-        // Use quotes to handle paths with spaces
-        $cmd = "ffmpeg -i \"{$videoFullPath}\" -ss 00:00:02 -vframes 1 -q:v 2 \"{$thumbnailFullPath}\" 2>&1";
-        $output = shell_exec($cmd);
+        // SECURITY FIX: Use Laravel Process facade instead of shell_exec to prevent command injection
+        try {
+            $process = Process::run([
+                'ffmpeg',
+                '-i',
+                $videoFullPath,
+                '-ss',
+                '00:00:02',
+                '-vframes',
+                '1',
+                '-q:v',
+                '2',
+                $thumbnailFullPath
+            ]);
 
-        // Check if thumbnail was generated successfully
-        if (file_exists($thumbnailFullPath)) {
-            return $thumbnailPath;
+            // Check if thumbnail was generated successfully
+            if (file_exists($thumbnailFullPath)) {
+                return $thumbnailPath;
+            }
+
+            // Log error for debugging
+            Log::error("FFmpeg thumbnail generation failed", [
+                'video_path' => $videoFullPath,
+                'process_output' => $process->output(),
+                'process_error' => $process->errorOutput(),
+                'process_exit_code' => $process->exitCode()
+            ]);
+        } catch (\Exception $e) {
+            Log::error("FFmpeg process exception", [
+                'video_path' => $videoFullPath,
+                'exception' => $e->getMessage()
+            ]);
         }
-
-        // Log error for debugging
-        Log::error("FFmpeg thumbnail generation failed", [
-            'video_path' => $videoFullPath,
-            'command' => $cmd,
-            'output' => $output
-        ]);
 
         // Fallback to default thumbnail if FFmpeg fails
         return 'images/video-default.jpg';
+    }
+
+    /**
+     * SECURITY FIX: Additional file type validation
+     */
+    private function validateFileType($file)
+    {
+        $allowedMimes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'video/mp4', 'video/mov', 'video/avi', 'video/wmv'];
+
+        if (!in_array($file->getMimeType(), $allowedMimes)) {
+            throw new \Exception('अमान्य फाइल प्रकार');
+        }
+
+        // Additional security check: verify file extension matches MIME type
+        $allowedExtensions = ['jpeg', 'jpg', 'png', 'gif', 'mp4', 'mov', 'avi', 'wmv'];
+        $extension = $file->getClientOriginalExtension();
+
+        if (!in_array(strtolower($extension), $allowedExtensions)) {
+            throw new \Exception('अमान्य फाइल एक्सटेन्सन');
+        }
+
+        return true;
     }
 }

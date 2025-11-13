@@ -1,5 +1,3 @@
-<?php
-
 @extends('layouts.owner')
 
 @section('title', 'नयाँ सूचना सिर्जना गर्नुहोस्')
@@ -159,7 +157,9 @@ document.addEventListener('DOMContentLoaded', function() {
             specificLabel.textContent = 'विद्यार्थीहरू चयन गर्नुहोस्';
             
             @foreach($students as $student)
-                targetAudience.innerHTML += `<option value="{{ $student->user_id }}">{{ $student->user->name }} ({{ $student->user->email }})</option>`;
+            @if($student->user)
+                targetAudience.innerHTML += `<option value="{{ $student->user_id }}">{{ $student->user->name }} ({{ $student->user->email ?? 'N/A' }})</option>`;
+            @endif
             @endforeach
         }
     }

@@ -13,11 +13,21 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class HostelController extends Controller
 {
+    /**
+     * Display a listing of hostels.
+     */
     public function index()
     {
+        // ✅ SECURITY FIX: Authorization check
+        $user = auth()->user();
+        if (!$user->hasRole('admin')) {
+            abort(403, 'तपाईंसँग यो सूची हेर्ने अनुमति छैन');
+        }
+
         $hostels = Hostel::with(['owner', 'organization', 'organization.currentSubscription.plan'])
             ->withCount(['rooms', 'students'])
             ->latest()
@@ -48,8 +58,17 @@ class HostelController extends Controller
         ));
     }
 
+    /**
+     * Show the form for creating a new hostel.
+     */
     public function create()
     {
+        // ✅ SECURITY FIX: Authorization check
+        $user = auth()->user();
+        if (!$user->hasRole('admin')) {
+            abort(403, 'तपाईंसँग यो सिर्जना गर्ने अनुमति छैन');
+        }
+
         $organizations = Organization::with('currentSubscription')->get();
         // FIX: Use Spatie roles instead of role column
         $managers = User::role('hostel_manager')->get();
@@ -57,8 +76,17 @@ class HostelController extends Controller
         return view('admin.hostels.create', compact('managers', 'organizations'));
     }
 
+    /**
+     * Store a newly created hostel in storage.
+     */
     public function store(StoreHostelRequest $request)
     {
+        // ✅ SECURITY FIX: Authorization check
+        $user = auth()->user();
+        if (!$user->hasRole('admin')) {
+            abort(403, 'तपाईंसँग यो सिर्जना गर्ने अनुमति छैन');
+        }
+
         DB::beginTransaction();
 
         try {
@@ -100,9 +128,13 @@ class HostelController extends Controller
                 $validated['facilities'] = null;
             }
 
-            // Handle image upload
+            // ✅ SECURITY FIX: Enhanced file upload security
             if ($request->hasFile('image')) {
-                $validated['image'] = $request->file('image')->store('hostels', 'public');
+                $image = $request->file('image');
+                $originalName = $image->getClientOriginalName();
+                $safeName = preg_replace('/[^a-zA-Z0-9\-\._]/', '', $originalName);
+                $imagePath = $image->storeAs('hostels', time() . '_' . $safeName, 'public');
+                $validated['image'] = $imagePath;
             }
 
             // Set default status if not provided
@@ -122,8 +154,17 @@ class HostelController extends Controller
         }
     }
 
+    /**
+     * Display the specified hostel.
+     */
     public function show(Hostel $hostel)
     {
+        // ✅ SECURITY FIX: Authorization check
+        $user = auth()->user();
+        if (!$user->hasRole('admin')) {
+            abort(403, 'तपाईंसँग यो हेर्ने अनुमति छैन');
+        }
+
         $hostel->load([
             'owner',
             'organization',
@@ -147,8 +188,17 @@ class HostelController extends Controller
         ));
     }
 
+    /**
+     * Show the form for editing the specified hostel.
+     */
     public function edit(Hostel $hostel)
     {
+        // ✅ SECURITY FIX: Authorization check
+        $user = auth()->user();
+        if (!$user->hasRole('admin')) {
+            abort(403, 'तपाईंसँग यो सम्पादन गर्ने अनुमति छैन');
+        }
+
         $organizations = Organization::with('currentSubscription')->get();
         // FIX: Use Spatie roles instead of role column
         $managers = User::role('hostel_manager')->get();
@@ -158,8 +208,17 @@ class HostelController extends Controller
         return view('admin.hostels.edit', compact('hostel', 'managers', 'organizations'));
     }
 
+    /**
+     * Update the specified hostel in storage.
+     */
     public function update(UpdateHostelRequest $request, Hostel $hostel)
     {
+        // ✅ SECURITY FIX: Authorization check
+        $user = auth()->user();
+        if (!$user->hasRole('admin')) {
+            abort(403, 'तपाईंसँग यो अद्यावधिक गर्ने अनुमति छैन');
+        }
+
         DB::beginTransaction();
 
         try {
@@ -190,13 +249,19 @@ class HostelController extends Controller
                 $validated['image'] = null;
             }
 
-            // Handle image upload
+            // ✅ SECURITY FIX: Enhanced file upload security
             if ($request->hasFile('image')) {
                 // Delete old image if exists
                 if ($hostel->image) {
                     Storage::disk('public')->delete($hostel->image);
                 }
-                $validated['image'] = $request->file('image')->store('hostels', 'public');
+
+                // Save new image with secure naming
+                $image = $request->file('image');
+                $originalName = $image->getClientOriginalName();
+                $safeName = preg_replace('/[^a-zA-Z0-9\-\._]/', '', $originalName);
+                $imagePath = $image->storeAs('hostels', time() . '_' . $safeName, 'public');
+                $validated['image'] = $imagePath;
             }
 
             // Update slug if name changed
@@ -216,8 +281,17 @@ class HostelController extends Controller
         }
     }
 
+    /**
+     * Remove the specified hostel from storage.
+     */
     public function destroy(Hostel $hostel)
     {
+        // ✅ SECURITY FIX: Authorization check
+        $user = auth()->user();
+        if (!$user->hasRole('admin')) {
+            abort(403, 'तपाईंसँग यो मेटाउने अनुमति छैन');
+        }
+
         DB::beginTransaction();
 
         try {
@@ -250,8 +324,17 @@ class HostelController extends Controller
         }
     }
 
+    /**
+     * Update hostel room availability.
+     */
     public function updateAvailability(Request $request, Hostel $hostel)
     {
+        // ✅ SECURITY FIX: Authorization check
+        $user = auth()->user();
+        if (!$user->hasRole('admin')) {
+            abort(403, 'तपाईंसँग यो अद्यावधिक गर्ने अनुमति छैन');
+        }
+
         $request->validate([
             'available_rooms' => 'required|integer|min:0|max:' . $hostel->total_rooms
         ]);
@@ -266,6 +349,12 @@ class HostelController extends Controller
      */
     public function toggleStatus(Hostel $hostel)
     {
+        // ✅ SECURITY FIX: Authorization check
+        $user = auth()->user();
+        if (!$user->hasRole('admin')) {
+            abort(403, 'तपाईंसँग यो स्थिति परिवर्तन गर्ने अनुमति छैन');
+        }
+
         $newStatus = $hostel->status == 'active' ? 'inactive' : 'active';
         $hostel->update(['status' => $newStatus]);
 
@@ -326,6 +415,12 @@ class HostelController extends Controller
      */
     public function fixExistingHostelNames()
     {
+        // ✅ SECURITY FIX: Authorization check
+        $user = auth()->user();
+        if (!$user->hasRole('admin')) {
+            abort(403, 'तपाईंसँग यो कार्य गर्ने अनुमति छैन');
+        }
+
         DB::beginTransaction();
 
         try {
@@ -364,6 +459,12 @@ class HostelController extends Controller
      */
     public function byOrganization(Organization $organization)
     {
+        // ✅ SECURITY FIX: Authorization check
+        $user = auth()->user();
+        if (!$user->hasRole('admin')) {
+            abort(403, 'तपाईंसँग यो हेर्ने अनुमति छैन');
+        }
+
         $hostels = Hostel::where('organization_id', $organization->id)
             ->with(['owner', 'organization.currentSubscription.plan'])
             ->withCount(['rooms', 'students'])
@@ -378,6 +479,12 @@ class HostelController extends Controller
      */
     public function statistics()
     {
+        // ✅ SECURITY FIX: Authorization check
+        $user = auth()->user();
+        if (!$user->hasRole('admin')) {
+            abort(403, 'तपाईंसँग यो तथ्याङ्क हेर्ने अनुमति छैन');
+        }
+
         $totalHostels = Hostel::count();
         $activeHostels = Hostel::where('status', 'active')->count();
         $inactiveHostels = Hostel::where('status', 'inactive')->count();
@@ -407,6 +514,12 @@ class HostelController extends Controller
      */
     public function bulkAction(Request $request)
     {
+        // ✅ SECURITY FIX: Authorization check
+        $user = auth()->user();
+        if (!$user->hasRole('admin')) {
+            abort(403, 'तपाईंसँग यो कार्य गर्ने अनुमति छैन');
+        }
+
         $request->validate([
             'action' => 'required|in:activate,deactivate,delete',
             'hostel_ids' => 'required|array',
@@ -461,5 +574,54 @@ class HostelController extends Controller
             DB::rollBack();
             return back()->with('error', 'बल्क एक्सन गर्दा त्रुटि: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * ✅ NEW: Search hostels functionality with security fixes
+     */
+    public function search(Request $request)
+    {
+        // ✅ SECURITY FIX: Authorization check
+        $user = auth()->user();
+        if (!$user->hasRole('admin')) {
+            abort(403, 'तपाईंसँग यो खोज गर्ने अनुमति छैन');
+        }
+
+        $request->validate([
+            'search' => 'required|string|min:2'
+        ], [
+            'search.required' => 'खोज शब्द आवश्यक छ',
+            'search.min' => 'खोज शब्द कम्तिमा २ अक्षरको हुनुपर्छ'
+        ]);
+
+        $query = $request->input('search');
+
+        // ✅ SECURITY FIX: SQL Injection prevention in search
+        $safeQuery = '%' . addcslashes($query, '%_') . '%';
+
+        $hostels = Hostel::where('name', 'like', $safeQuery)
+            ->orWhere('address', 'like', $safeQuery)
+            ->orWhere('slug', 'like', $safeQuery)
+            ->orWhereHas('owner', function ($q) use ($safeQuery) {
+                $q->where('name', 'like', $safeQuery);
+            })
+            ->orWhereHas('organization', function ($q) use ($safeQuery) {
+                $q->where('name', 'like', $safeQuery);
+            })
+            ->with(['owner', 'organization', 'organization.currentSubscription.plan'])
+            ->withCount(['rooms', 'students'])
+            ->latest()
+            ->paginate(10);
+
+        $totalHostels = Hostel::count();
+        $activeHostels = Hostel::where('status', 'active')->count();
+        $organizationsWithHostels = Organization::has('hostels')->count();
+
+        return view('admin.hostels.index', compact(
+            'hostels',
+            'totalHostels',
+            'activeHostels',
+            'organizationsWithHostels'
+        ));
     }
 }

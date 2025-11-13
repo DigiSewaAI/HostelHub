@@ -70,6 +70,30 @@ class Review extends Model
     ];
 
     /**
+     * Validation rules for review
+     */
+    public static function validationRules($id = null): array
+    {
+        return [
+            'name' => 'required|string|max:255',
+            'position' => 'nullable|string|max:255',
+            'content' => 'required|string|max:1000',
+            'initials' => 'nullable|string|max:10',
+            'image' => 'nullable|string|max:255',
+            'type' => 'required|in:testimonial,review,feedback',
+            'status' => 'required|in:pending,approved,rejected,active,inactive',
+            'rating' => 'required|integer|min:1|max:5',
+            'user_id' => 'nullable|exists:users,id',
+            'hostel_id' => 'nullable|exists:hostels,id',
+            'student_id' => 'nullable|exists:students,id',
+            'comment' => 'nullable|string|max:1000',
+            'reply' => 'nullable|string|max:1000',
+            'reply_date' => 'nullable|date',
+            'is_approved' => 'boolean'
+        ];
+    }
+
+    /**
      * Boot method for model events
      */
     protected static function boot()
@@ -98,6 +122,40 @@ class Review extends Model
             if ($review->image && Storage::disk('public')->exists($review->image)) {
                 Storage::disk('public')->delete($review->image);
             }
+        });
+    }
+
+    /**
+     * Scope for user-specific reviews
+     */
+    public function scopeForUser($query, $userId)
+    {
+        return $query->where('user_id', $userId);
+    }
+
+    /**
+     * Scope for student-specific reviews
+     */
+    public function scopeForStudent($query, $studentId)
+    {
+        return $query->where('student_id', $studentId);
+    }
+
+    /**
+     * Scope for hostel-specific reviews
+     */
+    public function scopeForHostel($query, $hostelId)
+    {
+        return $query->where('hostel_id', $hostelId);
+    }
+
+    /**
+     * Scope for organization-specific reviews
+     */
+    public function scopeForOrganization($query, $organizationId)
+    {
+        return $query->whereHas('hostel', function($q) use ($organizationId) {
+            $q->where('organization_id', $organizationId);
         });
     }
 
@@ -188,7 +246,7 @@ class Review extends Model
      */
     public function student()
     {
-        return $this->belongsTo(Student::class);
+        return $this->belongsTo(Student::class)->withDefault();
     }
 
     /**
@@ -196,7 +254,7 @@ class Review extends Model
      */
     public function hostel()
     {
-        return $this->belongsTo(Hostel::class);
+        return $this->belongsTo(Hostel::class)->withDefault();
     }
 
     /**
@@ -204,7 +262,7 @@ class Review extends Model
      */
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class)->withDefault();
     }
 
     /**

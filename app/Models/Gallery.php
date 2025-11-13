@@ -35,6 +35,28 @@ class Gallery extends Model
     protected $appends = ['thumbnail_url', 'media_url', 'is_video', 'is_youtube_video', 'youtube_embed_url', 'category_nepali', 'media_type_nepali'];
 
     /**
+     * Validation rules for Gallery model
+     */
+    public static function validationRules($id = null): array
+    {
+        return [
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string|max:1000',
+            'category' => 'required|string|max:100',
+            'media_type' => 'required|in:photo,local_video,external_video',
+            'file_path' => 'nullable|string|max:500',
+            'thumbnail' => 'nullable|string|max:500',
+            'external_link' => 'nullable|url|max:500',
+            'is_featured' => 'boolean',
+            'is_active' => 'boolean',
+            'user_id' => 'required|exists:users,id',
+            'hostel_id' => 'nullable|exists:hostels,id',
+            'room_id' => 'nullable|exists:rooms,id',
+            'hostel_name' => 'nullable|string|max:255'
+        ];
+    }
+
+    /**
      * ✅ ENHANCED: Room relationship with proper constraints
      */
     public function room(): BelongsTo
@@ -95,6 +117,38 @@ class Gallery extends Model
                 $gallery->room->update(['gallery_category' => $gallery->category]);
             }
         });
+    }
+
+    /**
+     * Scope for active galleries
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    /**
+     * Scope for featured galleries
+     */
+    public function scopeFeatured($query)
+    {
+        return $query->where('is_featured', true)->where('is_active', true);
+    }
+
+    /**
+     * Scope for user's galleries
+     */
+    public function scopeForUser($query, $userId)
+    {
+        return $query->where('user_id', $userId);
+    }
+
+    /**
+     * Scope for hostel galleries
+     */
+    public function scopeForHostel($query, $hostelId)
+    {
+        return $query->where('hostel_id', $hostelId);
     }
 
     /**
@@ -269,5 +323,16 @@ class Gallery extends Model
         } else {
             return $size . ' bytes';
         }
+    }
+
+    /**
+     * Check if user can modify this gallery
+     */
+    public function canBeModifiedBy($user): bool
+    {
+        // User owns the gallery or is admin/manager of the hostel
+        return $user->id === $this->user_id ||
+            ($this->hostel && $this->hostel->manager_id === $user->id) ||
+            ($this->hostel && $this->hostel->owner_id === $user->id);
     }
 }

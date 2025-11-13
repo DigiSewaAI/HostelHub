@@ -22,11 +22,29 @@ class Contact extends Model
     ];
 
     /**
+     * Validation rules for contact
+     */
+    public static function validationRules($id = null): array
+    {
+        return [
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'phone' => 'nullable|string|max:20',
+            'subject' => 'required|string|max:255',
+            'message' => 'required|string|max:1000',
+            'hostel_id' => 'nullable|exists:hostels,id',
+            'room_id' => 'nullable|exists:rooms,id',
+            'is_read' => 'boolean',
+            'status' => 'in:unread,read,replied'
+        ];
+    }
+
+    /**
      * Get the hostel associated with the contact.
      */
     public function hostel()
     {
-        return $this->belongsTo(Hostel::class);
+        return $this->belongsTo(Hostel::class)->withDefault();
     }
 
     /**
@@ -34,7 +52,25 @@ class Contact extends Model
      */
     public function room()
     {
-        return $this->belongsTo(Room::class);
+        return $this->belongsTo(Room::class)->withDefault();
+    }
+
+    /**
+     * Scope for user-specific contacts
+     */
+    public function scopeForHostel($query, $hostelId)
+    {
+        return $query->where('hostel_id', $hostelId);
+    }
+
+    /**
+     * Scope for organization-specific contacts
+     */
+    public function scopeForOrganization($query, $organizationId)
+    {
+        return $query->whereHas('hostel', function ($q) use ($organizationId) {
+            $q->where('organization_id', $organizationId);
+        });
     }
 
     /**

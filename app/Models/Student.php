@@ -56,6 +56,36 @@ class Student extends Model
     ];
 
     /**
+     * Validation rules for Student model
+     */
+    public static function validationRules($id = null): array
+    {
+        return [
+            'student_id' => 'required|string|max:100|unique:students,student_id,' . $id,
+            'user_id' => 'nullable|exists:users,id',
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:students,email,' . $id,
+            'phone' => 'required|string|max:20',
+            'address' => 'required|string|max:500',
+            'guardian_name' => 'required|string|max:255',
+            'guardian_contact' => 'required|string|max:20',
+            'guardian_relation' => 'required|string|max:100',
+            'guardian_address' => 'nullable|string|max:500',
+            'dob' => 'required|date|before:today',
+            'gender' => 'required|in:male,female,other',
+            'payment_status' => 'required|in:pending,paid,unpaid',
+            'status' => 'required|in:pending,approved,active,inactive',
+            'admission_date' => 'required|date',
+            'college_id' => 'nullable|exists:colleges,id',
+            'college' => 'nullable|string|max:255',
+            'room_id' => 'nullable|exists:rooms,id',
+            'hostel_id' => 'required|exists:hostels,id',
+            'organization_id' => 'required|exists:organizations,id',
+            'image' => 'nullable|string|max:500'
+        ];
+    }
+
+    /**
      * Get the college that this student belongs to.
      */
     public function college(): BelongsTo
@@ -144,6 +174,45 @@ class Student extends Model
     }
 
     /**
+     * Scope for organization students
+     */
+    public function scopeForOrganization($query, $organizationId)
+    {
+        return $query->where('organization_id', $organizationId);
+    }
+
+    /**
+     * Scope for hostel students
+     */
+    public function scopeForHostel($query, $hostelId)
+    {
+        return $query->where('hostel_id', $hostelId);
+    }
+
+    /**
+     * Scope for room students
+     */
+    public function scopeForRoom($query, $roomId)
+    {
+        return $query->where('room_id', $roomId);
+    }
+
+    /**
+     * Scope for user access control
+     */
+    public function scopeForUser($query, $userId)
+    {
+        return $query->whereHas('hostel', function ($q) use ($userId) {
+            $q->where('owner_id', $userId)
+                ->orWhere('manager_id', $userId);
+        })->orWhereHas('organization', function ($q) use ($userId) {
+            $q->whereHas('users', function ($q2) use ($userId) {
+                $q2->where('user_id', $userId);
+            });
+        });
+    }
+
+    /**
      * Accessor for image URL.
      */
     public function getImageUrlAttribute()
@@ -204,5 +273,39 @@ class Student extends Model
     public function getAgeAttribute(): ?int
     {
         return $this->dob ? $this->dob->age : null;
+    }
+
+    /**
+     * Check if student can be modified by user
+     */
+    public function canBeModifiedBy($user): bool
+    {
+        return $this->hostel->canBeModifiedBy($user) ||
+            $this->organization->canBeModifiedBy($user) ||
+            ($this->user_id && $this->user_id === $user->id);
+    }
+
+    /**
+     * Get student statistics
+     */
+    public function getStatisticsAttribute(): array
+    {
+        return [
+            'total_meals' => $this->meals()->count(),
+            'total_payments' => $this->payments()->count(),
+            'total_bookings' => $this->bookings()->count(),
+            'total_reviews' => $this->reviews()->count(),
+        ];
+    }
+
+    /**
+     * Check if student can be deleted
+     */
+    public function getCanBeDeletedAttribute(): bool
+    {
+        return $this->meals()->count() === 0 &&
+            $this->payments()->count() === 0 &&
+            $this->bookings()->count() === 0 &&
+            $this->reviews()->count() === 0;
     }
 }

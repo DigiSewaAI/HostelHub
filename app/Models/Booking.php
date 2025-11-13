@@ -32,9 +32,9 @@ class Booking extends Model
         'amount',
         'payment_status',
         'notes',
-        'approved_by', // ✅ नयाँ field थपियो
-        'approved_at', // ✅ नयाँ field थपियो
-        'rejection_reason' // ✅ नयाँ field थपियो
+        'approved_by',
+        'approved_at',
+        'rejection_reason'
     ];
 
     /**
@@ -47,15 +47,37 @@ class Booking extends Model
         'check_in_date' => 'datetime',
         'check_out_date' => 'datetime',
         'amount' => 'decimal:2',
-        'approved_at' => 'datetime' // ✅ नयाँ cast थपियो
+        'approved_at' => 'datetime'
     ];
+
+    /**
+     * Validation rules for booking
+     */
+    public static function validationRules($id = null): array
+    {
+        return [
+            'user_id' => 'required|exists:users,id',
+            'room_id' => 'required|exists:rooms,id',
+            'hostel_id' => 'required|exists:hostels,id',
+            'booking_date' => 'required|date',
+            'check_in_date' => 'required|date|after:today',
+            'check_out_date' => 'required|date|after:check_in_date',
+            'status' => 'required|in:pending,approved,rejected,cancelled,completed',
+            'amount' => 'required|numeric|min:0',
+            'payment_status' => 'required|in:pending,paid,failed,refunded',
+            'notes' => 'nullable|string|max:500',
+            'approved_by' => 'nullable|exists:users,id',
+            'approved_at' => 'nullable|date',
+            'rejection_reason' => 'nullable|string|max:255'
+        ];
+    }
 
     /**
      * Get the room that owns the booking.
      */
     public function room(): BelongsTo
     {
-        return $this->belongsTo(Room::class);
+        return $this->belongsTo(Room::class)->withDefault();
     }
 
     /**
@@ -63,7 +85,7 @@ class Booking extends Model
      */
     public function hostel(): BelongsTo
     {
-        return $this->belongsTo(Hostel::class);
+        return $this->belongsTo(Hostel::class)->withDefault();
     }
 
     /**
@@ -71,7 +93,7 @@ class Booking extends Model
      */
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class)->withDefault();
     }
 
     /**
@@ -79,7 +101,33 @@ class Booking extends Model
      */
     public function approvedBy(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'approved_by');
+        return $this->belongsTo(User::class, 'approved_by')->withDefault();
+    }
+
+    /**
+     * Scope for user-specific bookings
+     */
+    public function scopeForUser($query, $userId)
+    {
+        return $query->where('user_id', $userId);
+    }
+
+    /**
+     * Scope for hostel-specific bookings
+     */
+    public function scopeForHostel($query, $hostelId)
+    {
+        return $query->where('hostel_id', $hostelId);
+    }
+
+    /**
+     * Scope for organization-specific bookings
+     */
+    public function scopeForOrganization($query, $organizationId)
+    {
+        return $query->whereHas('hostel', function ($q) use ($organizationId) {
+            $q->where('organization_id', $organizationId);
+        });
     }
 
     /**

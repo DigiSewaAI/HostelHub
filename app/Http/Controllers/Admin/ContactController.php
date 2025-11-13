@@ -8,6 +8,8 @@ use App\Models\Hostel;
 use App\Models\Room;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 
 class ContactController extends Controller
 {
@@ -33,6 +35,23 @@ class ContactController extends Controller
 
         $query = $this->getDataByRole()->with(['hostel', 'room']);
 
+        // ✅ SECURITY FIX: Use parameter binding for search
+        if ($search) {
+            $safeSearch = '%' . addcslashes($search, '%_') . '%';
+            $query->where(function ($q) use ($safeSearch) {
+                $q->where('name', 'like', $safeSearch)
+                    ->orWhere('email', 'like', $safeSearch)
+                    ->orWhere('subject', 'like', $safeSearch)
+                    ->orWhere('message', 'like', $safeSearch)
+                    ->orWhereHas('room', function ($q) use ($safeSearch) {
+                        $q->where('room_number', 'like', $safeSearch);
+                    })
+                    ->orWhereHas('hostel', function ($q) use ($safeSearch) {
+                        $q->where('name', 'like', $safeSearch);
+                    });
+            });
+        }
+
         // ✅ Apply filters
         switch ($filter) {
             case 'unread':
@@ -44,22 +63,6 @@ class ContactController extends Controller
             case 'read':
                 $query->where('is_read', true);
                 break;
-        }
-
-        // ✅ Apply search
-        if ($search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%$search%")
-                    ->orWhere('email', 'like', "%$search%")
-                    ->orWhere('subject', 'like', "%$search%")
-                    ->orWhere('message', 'like', "%$search%")
-                    ->orWhereHas('room', function ($q) use ($search) {
-                        $q->where('room_number', 'like', "%$search%");
-                    })
-                    ->orWhereHas('hostel', function ($q) use ($search) {
-                        $q->where('name', 'like', "%$search%");
-                    });
-            });
         }
 
         $contacts = $query->latest()->paginate(10);
@@ -105,23 +108,26 @@ class ContactController extends Controller
             'message.required' => 'सन्देश अनिवार्य छ।',
         ]);
 
+        // ✅ SECURITY FIX: Use only validated data
+        $validated = $request->only(['name', 'email', 'phone', 'subject', 'message', 'hostel_id', 'room_id']);
+
         $contactData = [
-            'name' => $request->name,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'subject' => $request->subject,
-            'message' => $request->message,
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'phone' => $validated['phone'],
+            'subject' => $validated['subject'],
+            'message' => $validated['message'],
             'status' => 'नयाँ',
             'is_read' => false,
         ];
 
         // ✅ FIXED: Always add hostel_id and room_id if provided
-        if ($request->has('hostel_id') && $request->hostel_id) {
-            $contactData['hostel_id'] = $request->hostel_id;
+        if (!empty($validated['hostel_id'])) {
+            $contactData['hostel_id'] = $validated['hostel_id'];
         }
 
-        if ($request->has('room_id') && $request->room_id) {
-            $contactData['room_id'] = $request->room_id;
+        if (!empty($validated['room_id'])) {
+            $contactData['room_id'] = $validated['room_id'];
         }
 
         // ✅ FIXED: Add hostel_id for owners automatically
@@ -142,6 +148,12 @@ class ContactController extends Controller
     public function show($id)
     {
         $contact = $this->getDataByRole()->with(['hostel', 'room'])->findOrFail($id);
+
+        // ✅ SECURITY FIX: Explicit ownership verification
+        if (Auth::user()->hasRole('owner') && $contact->hostel_id !== Auth::user()->hostel_id) {
+            abort(403, 'तपाईंसँग यो सन्देश हेर्ने अनुमति छैन');
+        }
+
         return view('admin.contacts.show', compact('contact'));
     }
 
@@ -151,6 +163,12 @@ class ContactController extends Controller
     public function edit($id)
     {
         $contact = $this->getDataByRole()->with(['hostel', 'room'])->findOrFail($id);
+
+        // ✅ SECURITY FIX: Explicit ownership verification
+        if (Auth::user()->hasRole('owner') && $contact->hostel_id !== Auth::user()->hostel_id) {
+            abort(403, 'तपाईंसँग यो सन्देश सम्पादन गर्ने अनुमति छैन');
+        }
+
         $hostels = Hostel::all();
         $rooms = Room::all();
 
@@ -163,6 +181,11 @@ class ContactController extends Controller
     public function update(Request $request, $id)
     {
         $contact = $this->getDataByRole()->findOrFail($id);
+
+        // ✅ SECURITY FIX: Explicit ownership verification
+        if (Auth::user()->hasRole('owner') && $contact->hostel_id !== Auth::user()->hostel_id) {
+            abort(403, 'तपाईंसँग यो सन्देश अपडेट गर्ने अनुमति छैन');
+        }
 
         // Owners can only update status
         if (Auth::user()->hasRole('owner')) {
@@ -194,27 +217,30 @@ class ContactController extends Controller
             'message.required' => 'सन्देश अनिवार्य छ।',
         ]);
 
+        // ✅ SECURITY FIX: Use only validated data
+        $validated = $request->only(['name', 'email', 'phone', 'subject', 'message', 'hostel_id', 'room_id', 'status']);
+
         $updateData = [
-            'name' => $request->name,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'subject' => $request->subject,
-            'message' => $request->message,
-            'status' => $request->status,
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'phone' => $validated['phone'],
+            'subject' => $validated['subject'],
+            'message' => $validated['message'],
+            'status' => $validated['status'],
         ];
 
         // ✅ FIXED: Always update hostel_id and room_id if provided
-        if ($request->has('hostel_id')) {
-            $updateData['hostel_id'] = $request->hostel_id;
+        if (!empty($validated['hostel_id'])) {
+            $updateData['hostel_id'] = $validated['hostel_id'];
         }
-        if ($request->has('room_id')) {
-            $updateData['room_id'] = $request->room_id;
+        if (!empty($validated['room_id'])) {
+            $updateData['room_id'] = $validated['room_id'];
         }
 
         // Update is_read based on status
-        if ($request->status == 'read' || $request->status == 'पढियो') {
+        if ($validated['status'] == 'read' || $validated['status'] == 'पढियो') {
             $updateData['is_read'] = true;
-        } elseif ($request->status == 'नयाँ' || $request->status == 'pending') {
+        } elseif ($validated['status'] == 'नयाँ' || $validated['status'] == 'pending') {
             $updateData['is_read'] = false;
         }
 
@@ -235,6 +261,11 @@ class ContactController extends Controller
             ]);
 
             $contact = $this->getDataByRole()->findOrFail($id);
+
+            // ✅ SECURITY FIX: Explicit ownership verification
+            if (Auth::user()->hasRole('owner') && $contact->hostel_id !== Auth::user()->hostel_id) {
+                abort(403, 'तपाईंसँग यो सन्देश अपडेट गर्ने अनुमति छैन');
+            }
 
             if ($request->status == 'read') {
                 $contact->update([
@@ -276,6 +307,12 @@ class ContactController extends Controller
     public function destroy($id)
     {
         $contact = $this->getDataByRole()->findOrFail($id);
+
+        // ✅ SECURITY FIX: Explicit ownership verification
+        if (Auth::user()->hasRole('owner') && $contact->hostel_id !== Auth::user()->hostel_id) {
+            abort(403, 'तपाईंसँग यो सन्देश हटाउने अनुमति छैन');
+        }
+
         $contact->delete();
 
         return redirect()->route('admin.contacts.index')
@@ -294,13 +331,16 @@ class ContactController extends Controller
                 ->with('error', 'कुनै सम्पर्क जानकारी चयन गरिएन!');
         }
 
+        // ✅ SECURITY FIX: Validate IDs are integers
+        $validIds = array_filter($ids, 'is_numeric');
+
         // For owners, only allow deleting their hostel's contacts
         if (Auth::user()->hasRole('owner')) {
             Contact::where('hostel_id', Auth::user()->hostel_id)
-                ->whereIn('id', $ids)
+                ->whereIn('id', $validIds)
                 ->delete();
         } else {
-            Contact::whereIn('id', $ids)->delete();
+            Contact::whereIn('id', $validIds)->delete();
         }
 
         return redirect()->route('admin.contacts.index')
@@ -314,18 +354,21 @@ class ContactController extends Controller
     {
         $query = $request->input('search');
 
+        // ✅ SECURITY FIX: Use parameter binding for search
+        $safeQuery = '%' . addcslashes($query, '%_') . '%';
+
         $searchQuery = $this->getDataByRole()
             ->with(['hostel', 'room'])
-            ->where(function ($q) use ($query) {
-                $q->where('name', 'like', "%$query%")
-                    ->orWhere('email', 'like', "%$query%")
-                    ->orWhere('subject', 'like', "%$query%")
-                    ->orWhere('message', 'like', "%$query%")
-                    ->orWhereHas('room', function ($q) use ($query) {
-                        $q->where('room_number', 'like', "%$query%");
+            ->where(function ($q) use ($safeQuery) {
+                $q->where('name', 'like', $safeQuery)
+                    ->orWhere('email', 'like', $safeQuery)
+                    ->orWhere('subject', 'like', $safeQuery)
+                    ->orWhere('message', 'like', $safeQuery)
+                    ->orWhereHas('room', function ($q) use ($safeQuery) {
+                        $q->where('room_number', 'like', $safeQuery);
                     })
-                    ->orWhereHas('hostel', function ($q) use ($query) {
-                        $q->where('name', 'like', "%$query%");
+                    ->orWhereHas('hostel', function ($q) use ($safeQuery) {
+                        $q->where('name', 'like', $safeQuery);
                     });
             });
 
@@ -424,6 +467,11 @@ class ContactController extends Controller
     public function markAsRead(Contact $contact)
     {
         try {
+            // ✅ SECURITY FIX: Explicit ownership verification
+            if (Auth::user()->hasRole('owner') && $contact->hostel_id !== Auth::user()->hostel_id) {
+                abort(403, 'तपाईंसँग यो सन्देश अपडेट गर्ने अनुमति छैन');
+            }
+
             $contact->update([
                 'is_read' => true,
                 'status' => 'read'
@@ -441,6 +489,11 @@ class ContactController extends Controller
     public function markAsUnread(Contact $contact)
     {
         try {
+            // ✅ SECURITY FIX: Explicit ownership verification
+            if (Auth::user()->hasRole('owner') && $contact->hostel_id !== Auth::user()->hostel_id) {
+                abort(403, 'तपाईंसँग यो सन्देश अपडेट गर्ने अनुमति छैन');
+            }
+
             $contact->update([
                 'is_read' => false,
                 'status' => 'unread'
@@ -464,18 +517,42 @@ class ContactController extends Controller
             return redirect()->back()->with('error', 'कुनै सम्पर्क चयन गरिएन!');
         }
 
+        // ✅ SECURITY FIX: Validate IDs are integers
+        $validIds = array_filter($ids, 'is_numeric');
+
         try {
             switch ($action) {
                 case 'mark-read':
-                    Contact::whereIn('id', $ids)->update(['is_read' => true, 'status' => 'read']);
+                    // For owners, only update their hostel's contacts
+                    if (Auth::user()->hasRole('owner')) {
+                        Contact::where('hostel_id', Auth::user()->hostel_id)
+                            ->whereIn('id', $validIds)
+                            ->update(['is_read' => true, 'status' => 'read']);
+                    } else {
+                        Contact::whereIn('id', $validIds)->update(['is_read' => true, 'status' => 'read']);
+                    }
                     $message = 'चयन गरिएका सन्देशहरू पढिएको चिन्ह लगाइयो';
                     break;
                 case 'mark-unread':
-                    Contact::whereIn('id', $ids)->update(['is_read' => false, 'status' => 'unread']);
+                    // For owners, only update their hostel's contacts
+                    if (Auth::user()->hasRole('owner')) {
+                        Contact::where('hostel_id', Auth::user()->hostel_id)
+                            ->whereIn('id', $validIds)
+                            ->update(['is_read' => false, 'status' => 'unread']);
+                    } else {
+                        Contact::whereIn('id', $validIds)->update(['is_read' => false, 'status' => 'unread']);
+                    }
                     $message = 'चयन गरिएका सन्देशहरू नपढिएको चिन्ह लगाइयो';
                     break;
                 case 'delete':
-                    Contact::whereIn('id', $ids)->delete();
+                    // For owners, only delete their hostel's contacts
+                    if (Auth::user()->hasRole('owner')) {
+                        Contact::where('hostel_id', Auth::user()->hostel_id)
+                            ->whereIn('id', $validIds)
+                            ->delete();
+                    } else {
+                        Contact::whereIn('id', $validIds)->delete();
+                    }
                     $message = 'चयन गरिएका सन्देशहरू मेटाइयो';
                     break;
                 default:
