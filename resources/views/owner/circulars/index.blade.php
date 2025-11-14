@@ -121,11 +121,11 @@
                                         </td>
                                         <td>
                                             @if($circular->priority == 'urgent')
-                                                <span class="badge badge-danger">जरुरी</span>
+                                                <span class="badge badge-danger" style="font-size: 0.85em; padding: 0.4em 0.6em;">जरुरी</span>
                                             @elseif($circular->priority == 'normal')
-                                                <span class="badge badge-primary">सामान्य</span>
+                                                <span class="badge badge-primary" style="font-size: 0.85em; padding: 0.4em 0.6em;">सामान्य</span>
                                             @else
-                                                <span class="badge badge-info">जानकारी</span>
+                                                <span class="badge badge-info text-white" style="font-size: 0.85em; padding: 0.4em 0.6em; background-color: #17a2b8 !important;">जानकारी</span>
                                             @endif
                                         </td>
                                         <td>
@@ -133,11 +133,11 @@
                                         </td>
                                         <td>
                                             @if($circular->status == 'published')
-                                                <span class="badge badge-success">प्रकाशित</span>
+                                                <span class="badge badge-success text-white" style="font-size: 0.85em; padding: 0.4em 0.6em; background-color: #28a745 !important;">प्रकाशित</span>
                                             @elseif($circular->status == 'draft')
-                                                <span class="badge badge-warning">मस्यौदा</span>
+                                                <span class="badge badge-warning text-dark" style="font-size: 0.85em; padding: 0.4em 0.6em;">मस्यौदा</span>
                                             @else
-                                                <span class="badge badge-secondary">संग्रहित</span>
+                                                <span class="badge badge-secondary" style="font-size: 0.85em; padding: 0.4em 0.6em;">संग्रहित</span>
                                             @endif
                                         </td>
                                         <td>

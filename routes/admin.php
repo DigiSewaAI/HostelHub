@@ -59,7 +59,8 @@ Route::middleware(['auth', 'hasOrganization', 'role:admin'])
 
         // Meal Routes
         Route::resource('meals', MealController::class);
-        Route::get('/meals/search', [ContactController::class, 'search'])->name('meals.search');
+        // ✅ FIXED: Corrected meal search route to use MealController instead of ContactController
+        Route::get('/meals/search', [MealController::class, 'search'])->name('meals.search');
 
         Route::resource('reviews', AdminReviewController::class);
 
@@ -97,13 +98,41 @@ Route::middleware(['auth', 'hasOrganization', 'role:admin'])
         // Direct settings route for compatibility
         Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
 
-        // Circular Routes
-        Route::resource('circulars', AdminCircularController::class);
-        Route::post('/circulars/{circular}/publish', [AdminCircularController::class, 'publish'])->name('circulars.publish');
-        Route::get('/circulars/analytics', [AdminCircularController::class, 'analytics'])->name('circulars.analytics');
-        Route::get('/circulars/{circular}/analytics', [AdminCircularController::class, 'analytics'])->name('circulars.analytics.single');
-        Route::post('/circulars/{circular}/mark-read', [AdminCircularController::class, 'markAsRead'])->name('circulars.mark-read');
-        Route::get('/circulars/templates', [AdminCircularController::class, 'templates'])->name('circulars.templates');
+        // ✅ FIXED: Admin Circular Routes with enhanced functionality
+        Route::prefix('circulars')->name('circulars.')->group(function () {
+            Route::get('/', [AdminCircularController::class, 'index'])->name('index');
+            Route::get('/create', [AdminCircularController::class, 'create'])->name('create');
+            Route::post('/', [AdminCircularController::class, 'store'])->name('store');
+            Route::get('/{circular}', [AdminCircularController::class, 'show'])->name('show');
+            Route::get('/{circular}/edit', [AdminCircularController::class, 'edit'])->name('edit');
+            Route::put('/{circular}', [AdminCircularController::class, 'update'])->name('update');
+            Route::delete('/{circular}', [AdminCircularController::class, 'destroy'])->name('destroy');
+
+            // Circular publishing and analytics
+            Route::post('/{circular}/publish', [AdminCircularController::class, 'publish'])->name('publish');
+            Route::get('/analytics', [AdminCircularController::class, 'analytics'])->name('analytics');
+            Route::get('/{circular}/analytics', [AdminCircularController::class, 'singleAnalytics'])->name('analytics.single');
+            Route::post('/{circular}/mark-read', [AdminCircularController::class, 'markAsRead'])->name('mark-read');
+
+            // ✅ ADDED: Enhanced circular functionality for admin
+            Route::get('/{circular}/recipients', [AdminCircularController::class, 'recipients'])->name('recipients');
+            Route::post('/{circular}/resend', [AdminCircularController::class, 'resend'])->name('resend');
+            Route::post('/{circular}/duplicate', [AdminCircularController::class, 'duplicate'])->name('duplicate');
+
+            // Template management
+            Route::get('/templates', [AdminCircularController::class, 'templates'])->name('templates');
+            Route::post('/templates', [AdminCircularController::class, 'storeTemplate'])->name('templates.store');
+            Route::delete('/templates/{template}', [AdminCircularController::class, 'destroyTemplate'])->name('templates.destroy');
+
+            // ✅ ADDED: Global circular sending capability for admin
+            Route::get('/global/create', [AdminCircularController::class, 'createGlobal'])->name('global.create');
+            Route::post('/global/send', [AdminCircularController::class, 'sendGlobal'])->name('global.send');
+
+            // ✅ ADDED: Circular categories and priority management
+            Route::get('/categories', [AdminCircularController::class, 'categories'])->name('categories');
+            Route::post('/categories', [AdminCircularController::class, 'storeCategory'])->name('categories.store');
+            Route::delete('/categories/{category}', [AdminCircularController::class, 'destroyCategory'])->name('categories.destroy');
+        });
 
         // Payment Routes Structure
         Route::prefix('payments')->name('payments.')->group(function () {

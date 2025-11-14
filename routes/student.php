@@ -65,10 +65,22 @@ Route::middleware(['auth', 'role:student'])
         // Student profile update
         Route::patch('/profile/update', [StudentController::class, 'updateProfile'])->name('profile.update');
 
-        // Student Circular Routes
-        Route::get('/circulars', [StudentCircularController::class, 'index'])->name('circulars.index');
-        Route::get('/circulars/{circular}', [StudentCircularController::class, 'show'])->name('circulars.show');
-        Route::post('/circulars/{circular}/mark-read', [StudentCircularController::class, 'markAsRead'])->name('circulars.mark-read');
+        // ✅ FIXED: Student Circular Routes with enhanced functionality
+        Route::prefix('circulars')->name('circulars.')->group(function () {
+            Route::get('/', [StudentCircularController::class, 'index'])->name('index');
+            Route::get('/{circular}', [StudentCircularController::class, 'show'])->name('show');
+            Route::post('/{circular}/mark-read', [StudentCircularController::class, 'markAsRead'])->name('mark-read');
+
+            // ✅ ADDED: New student circular routes for better functionality
+            Route::get('/{circular}/download', [StudentCircularController::class, 'download'])->name('download');
+            Route::get('/unread/count', [StudentCircularController::class, 'unreadCount'])->name('unread.count');
+            Route::post('/bulk-mark-read', [StudentCircularController::class, 'bulkMarkAsRead'])->name('bulk-mark-read');
+
+            // ✅ ADDED: Circular filtering and search routes
+            Route::get('/filter/priority/{priority}', [StudentCircularController::class, 'filterByPriority'])->name('filter.priority');
+            Route::get('/search', [StudentCircularController::class, 'search'])->name('search');
+            Route::get('/category/{category}', [StudentCircularController::class, 'filterByCategory'])->name('filter.category');
+        });
 
         // ✅ PERMANENT FIX: Complete Student Document Management Routes
         Route::prefix('documents')->name('documents.')->group(function () {
@@ -88,4 +100,8 @@ Route::middleware(['auth', 'role:student'])
         Route::get('/events', [StudentController::class, 'events'])->name('events');
         Route::get('/notifications', [StudentController::class, 'notifications'])->name('notifications');
         Route::post('/maintenance-request', [StudentController::class, 'submitMaintenance'])->name('maintenance.submit');
+
+        // ✅ ADDED: Real-time notification routes for circulars
+        Route::get('/circulars/notifications/latest', [StudentCircularController::class, 'getLatestCirculars'])->name('circulars.notifications.latest');
+        Route::post('/circulars/notifications/mark-all-read', [StudentCircularController::class, 'markAllAsRead'])->name('circulars.notifications.mark-all-read');
     });

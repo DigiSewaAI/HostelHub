@@ -15,7 +15,7 @@
                         <i class="fas fa-bullhorn mr-2"></i>{{ $circular->title }}
                     </h3>
                     <div class="card-tools">
-                        <span class="badge badge-light">{{ $circular->priority_nepali }}</span>
+                        <span class="badge badge-light" style="font-size: 0.85em; padding: 0.4em 0.6em;">{{ $circular->priority_nepali }}</span>
                     </div>
                 </div>
 
@@ -85,11 +85,11 @@
                     <div class="mb-3">
                         <strong>स्थिति:</strong>
                         @if($circular->status == 'published')
-                            <span class="badge badge-success">प्रकाशित</span>
+                            <span class="badge badge-success text-white" style="font-size: 0.85em; padding: 0.4em 0.6em; background-color: #28a745 !important;">प्रकाशित</span>
                         @elseif($circular->status == 'draft')
-                            <span class="badge badge-warning">मस्यौदा</span>
+                            <span class="badge badge-warning text-dark" style="font-size: 0.85em; padding: 0.4em 0.6em;">मस्यौदा</span>
                         @else
-                            <span class="badge badge-secondary">संग्रहित</span>
+                            <span class="badge badge-secondary" style="font-size: 0.85em; padding: 0.4em 0.6em;">संग्रहित</span>
                         @endif
                     </div>
 
