@@ -29,9 +29,9 @@ class CircularPolicy
         }
 
         // Hostel manager can view circulars from their organization
-        if ($user->hasRole('hostel_manager')) {
+        if ($user->hasRole('hostel_manager') || $user->hasRole('owner')) {
             $organization = $user->organizations()->first();
-            return $circular->organization_id === $organization->id;
+            return $organization && $circular->organization_id === $organization->id;
         }
 
         // Student can only view circulars sent to them
@@ -47,7 +47,7 @@ class CircularPolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasAnyRole(['admin', 'hostel_manager']);
+        return $user->hasAnyRole(['admin', 'hostel_manager', 'owner']);
     }
 
     /**
@@ -60,10 +60,11 @@ class CircularPolicy
             return true;
         }
 
-        // Hostel manager can only update their own circulars in their organization
-        if ($user->hasRole('hostel_manager')) {
+        // Hostel manager/owner can only update their own circulars in their organization
+        if ($user->hasRole('hostel_manager') || $user->hasRole('owner')) {
             $organization = $user->organizations()->first();
-            return $circular->organization_id === $organization->id &&
+            return $organization &&
+                $circular->organization_id === $organization->id &&
                 $circular->created_by === $user->id;
         }
 
@@ -80,10 +81,11 @@ class CircularPolicy
             return true;
         }
 
-        // Hostel manager can only delete their own circulars in their organization
-        if ($user->hasRole('hostel_manager')) {
+        // Hostel manager/owner can only delete their own circulars in their organization
+        if ($user->hasRole('hostel_manager') || $user->hasRole('owner')) {
             $organization = $user->organizations()->first();
-            return $circular->organization_id === $organization->id &&
+            return $organization &&
+                $circular->organization_id === $organization->id &&
                 $circular->created_by === $user->id;
         }
 
@@ -104,7 +106,7 @@ class CircularPolicy
     public function viewAnalytics(User $user, Circular $circular): bool
     {
         return $this->view($user, $circular) &&
-            ($user->hasRole('admin') || $user->hasRole('hostel_manager'));
+            ($user->hasRole('admin') || $user->hasRole('hostel_manager') || $user->hasRole('owner'));
     }
 
     /**
@@ -113,5 +115,14 @@ class CircularPolicy
     public function manageTemplates(User $user): bool
     {
         return $user->hasRole('admin');
+    }
+
+    // ✅ ADDED: New method for student to mark circular as read
+    public function markAsRead(User $user, Circular $circular): bool
+    {
+        if ($user->hasRole('student')) {
+            return $circular->recipients()->where('user_id', $user->id)->exists();
+        }
+        return false;
     }
 }

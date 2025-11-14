@@ -18,27 +18,39 @@ Route::post('/login', [LoginController::class, 'login']);
 Route::get('/register', [RegisterController::class, 'showUserRegistrationForm'])->name('register');
 
 /*|--------------------------------------------------------------------------
-| Load Modular Route Files
+| Load Modular Route Files - FIXED ORDER with Proper Middleware
 |--------------------------------------------------------------------------
 */
 require __DIR__ . '/public.php';
 require __DIR__ . '/auth.php';
 require __DIR__ . '/shared.php';
 
-// ✅ Admin routes - Add prefix HERE instead of in admin.php
-Route::prefix('admin')->group(function () {
-    require __DIR__ . '/admin.php';
-});
+// ✅ FIXED: Admin routes with proper middleware order
+Route::prefix('admin')
+    ->middleware(['auth', 'hasOrganization', 'role:admin'])
+    ->group(function () {
+        require __DIR__ . '/admin.php';
+    });
 
-// ✅ Owner routes - Add prefix HERE instead of in owner.php
-Route::prefix('owner')->group(function () {
-    require __DIR__ . '/owner.php';
-});
+// ✅ FIXED: Owner routes with proper middleware order
+Route::prefix('owner')
+    ->middleware(['auth', 'hasOrganization', 'role:owner,hostel_manager'])
+    ->group(function () {
+        require __DIR__ . '/owner.php';
 
-// ✅ Student routes - Add prefix HERE instead of in student.php
-Route::prefix('student')->group(function () {
-    require __DIR__ . '/student.php';
-});
+        // ✅ ADDED: Form reset route for circular form
+        Route::post('/clear-form-flag', function () {
+            session()->forget(['clear_form', 'success']);
+            return response()->json(['success' => true]);
+        })->name('owner.clear.form.flag');
+    });
+
+// ✅ FIXED: Student routes with proper middleware order
+Route::prefix('student')
+    ->middleware(['auth', 'role:student'])
+    ->group(function () {
+        require __DIR__ . '/student.php';
+    });
 
 /*|--------------------------------------------------------------------------
 | Development Routes (Conditionally Loaded)
@@ -147,6 +159,60 @@ Route::middleware(['auth'])->group(function () {
 
         return '';
     });
+
+    // ✅ ADDED: Circular System Debug Routes
+    Route::get('/debug-circular-system', function () {
+        $user = Auth::user();
+
+        echo "<h3>Circular System Debug</h3>";
+        echo "User: " . $user->name . " (ID: " . $user->id . ")<br>";
+        echo "Roles: " . $user->getRoleNames()->implode(', ') . "<br><br>";
+
+        // Test circular access
+        $circulars = \App\Models\Circular::with(['organization', 'recipients'])->get();
+
+        echo "<h4>All Circulars in System:</h4>";
+        foreach ($circulars as $circular) {
+            echo "Circular ID: " . $circular->id . " | ";
+            echo "Title: " . $circular->title . " | ";
+            echo "Organization: " . ($circular->organization->name ?? 'N/A') . " | ";
+            echo "Recipients: " . $circular->recipients->count() . "<br>";
+        }
+
+        echo "<h4>User's Organization:</h4>";
+        $organization = $user->organizations()->first();
+        if ($organization) {
+            echo "Organization ID: " . $organization->id . " - " . $organization->name . "<br>";
+
+            echo "<h4>Circulars in User's Organization:</h4>";
+            $orgCirculars = \App\Models\Circular::where('organization_id', $organization->id)->get();
+            foreach ($orgCirculars as $circular) {
+                echo "Circular ID: " . $circular->id . " - " . $circular->title . "<br>";
+            }
+        }
+
+        return '';
+    });
+
+    // ✅ ADDED: Circular Permission Debug Route
+    Route::get('/debug-circular-permissions', function () {
+        $user = Auth::user();
+
+        echo "<h3>Circular Permissions Debug</h3>";
+        echo "User: " . $user->name . "<br>";
+        echo "Roles: " . $user->getRoleNames()->implode(', ') . "<br><br>";
+
+        // Test Gates
+        echo "<h4>Gate Permissions:</h4>";
+        echo "access_circulars: " . (Gate::allows('access_circulars') ? 'YES' : 'NO') . "<br>";
+        echo "create_circulars: " . (Gate::allows('create_circulars') ? 'YES' : 'NO') . "<br>";
+        echo "edit_circulars: " . (Gate::allows('edit_circulars') ? 'YES' : 'NO') . "<br>";
+        echo "delete_circulars: " . (Gate::allows('delete_circulars') ? 'YES' : 'NO') . "<br>";
+        echo "publish_circulars: " . (Gate::allows('publish_circulars') ? 'YES' : 'NO') . "<br>";
+        echo "view_circulars_analytics: " . (Gate::allows('view_circulars_analytics') ? 'YES' : 'NO') . "<br>";
+
+        return '';
+    });
 });
 
 // Temporary test route for document upload
@@ -198,6 +264,36 @@ Route::get('/test-document-fix', function () {
                 }
             });
         </script>
+    </body>
+    </html>
+    ';
+});
+
+// ✅ ADDED: Circular Test Route
+Route::get('/test-circular-fix', function () {
+    return '
+    <!DOCTYPE html>
+    <html>
+    <head><title>Test Circular System</title></head>
+    <body style="padding:20px;">
+        <h2>Test Circular System Fix</h2>
+        
+        <div style="margin:20px 0; padding:15px; border:1px solid #ccc;">
+            <h3>Owner Circular Routes Test:</h3>
+            <a href="' . route('owner.circulars.index') . '" style="display:inline-block; padding:10px; background:green; color:white; margin:5px;">Owner Circulars</a>
+            <a href="' . route('owner.circulars.create') . '" style="display:inline-block; padding:10px; background:blue; color:white; margin:5px;">Create Circular</a>
+        </div>
+        
+        <div style="margin:20px 0; padding:15px; border:1px solid #ccc;">
+            <h3>Student Circular Routes Test:</h3>
+            <a href="' . route('student.circulars.index') . '" style="display:inline-block; padding:10px; background:green; color:white; margin:5px;">Student Circulars</a>
+        </div>
+        
+        <div style="margin:20px 0; padding:15px; border:1px solid #ccc;">
+            <h3>Debug Routes:</h3>
+            <a href="/debug-circular-system" style="display:inline-block; padding:10px; background:orange; color:white; margin:5px;">Circular System Debug</a>
+            <a href="/debug-circular-permissions" style="display:inline-block; padding:10px; background:orange; color:white; margin:5px;">Circular Permissions Debug</a>
+        </div>
     </body>
     </html>
     ';

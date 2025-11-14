@@ -329,6 +329,43 @@
             margin-bottom: 1rem;
             display: none;
         }
+
+        /* ✅ ADDED: Circular specific styles */
+        .circular-item {
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        
+        .circular-item.unread {
+            background: #f0f9ff;
+            border-left: 4px solid #3b82f6;
+        }
+        
+        .circular-item.read {
+            background: #f8fafc;
+            opacity: 0.8;
+        }
+        
+        .border-left-urgent {
+            border-left: 4px solid #ef4444 !important;
+        }
+        
+        .border-left-high {
+            border-left: 4px solid #f59e0b !important;
+        }
+        
+        .border-left-normal {
+            border-left: 4px solid #10b981 !important;
+        }
+        
+        .circular-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
     </style>
     
     <!-- Page-specific CSS -->
@@ -788,6 +825,227 @@
                     document.body.removeChild(overlay);
                 }
             }
+        });
+    </script>
+
+    <!-- ✅ ADDED: Enhanced form reset and circular functionality JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // ✅ FIXED: Enhanced form reset functionality for circular creation
+            @if(session('clear_form'))
+                // Clear all form inputs
+                const forms = document.querySelectorAll('form');
+                forms.forEach(form => {
+                    form.reset();
+                });
+                
+                // Clear specific circular form fields
+                const circularTitle = document.querySelector('input[name="title"]');
+                const circularContent = document.querySelector('textarea[name="content"]');
+                const targetAudience = document.querySelector('select[name="target_audience[]"]');
+                
+                if (circularTitle) circularTitle.value = '';
+                if (circularContent) circularContent.value = '';
+                if (targetAudience) {
+                    targetAudience.selectedIndex = -1;
+                    // Trigger change event for any dependent fields
+                    targetAudience.dispatchEvent(new Event('change'));
+                }
+                
+                // Clear any file inputs
+                const fileInputs = document.querySelectorAll('input[type="file"]');
+                fileInputs.forEach(input => {
+                    input.value = '';
+                });
+                
+                console.log('Form reset completed for circular creation');
+            @endif
+
+            // ✅ FIXED: AJAX form submission handling for circulars
+            $(document).on('submit', 'form[data-ajax-form="true"]', function(e) {
+                e.preventDefault();
+                
+                const form = $(this);
+                const submitBtn = form.find('button[type="submit"]');
+                const originalText = submitBtn.html();
+                
+                // Show loading state
+                submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> प्रक्रिया हुदैछ...');
+                
+                $.ajax({
+                    url: form.attr('action'),
+                    method: form.attr('method'),
+                    data: new FormData(this),
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        if (response.success) {
+                            // Show success message
+                            showAlert('सफलता', response.message, 'success');
+                            
+                            // Reset form if needed
+                            if (response.clear_form) {
+                                form[0].reset();
+                            }
+                            
+                            // Redirect if specified
+                            if (response.redirect) {
+                                setTimeout(() => {
+                                    window.location.href = response.redirect;
+                                }, 1500);
+                            }
+                        }
+                    },
+                    error: function(xhr) {
+                        let errorMessage = 'अनुरोध असफल भयो';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage = xhr.responseJSON.message;
+                        }
+                        showAlert('त्रुटि', errorMessage, 'error');
+                    },
+                    complete: function() {
+                        submitBtn.prop('disabled', false).html(originalText);
+                    }
+                });
+            });
+
+            // Helper function to show alerts
+            function showAlert(title, message, type) {
+                const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+                const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+                
+                const alertHtml = `
+                    <div class="alert ${alertClass} alert-dismissible fade show mb-4 rounded-xl" role="alert">
+                        <div class="d-flex align-items-center">
+                            <i class="fas ${icon} me-2"></i>
+                            <strong class="nepali">${title}:</strong> ${message}
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                `;
+                
+                // Prepend alert to main content
+                $('#main-content').prepend(alertHtml);
+                
+                // Auto remove after 5 seconds
+                setTimeout(() => {
+                    $('.alert').alert('close');
+                }, 5000);
+            }
+
+            // ✅ FIXED: Real-time circular notifications
+            function checkNewCirculars() {
+                $.ajax({
+                    url: '{{ route("owner.circulars.index") }}?check_new=true',
+                    method: 'GET',
+                    success: function(response) {
+                        if (response.new_circulars && response.new_circulars > 0) {
+                            // Update notification badge
+                            const badge = $('.notification-dot');
+                            if (badge.length) {
+                                badge.text(response.new_circulars);
+                                badge.show();
+                            }
+                            
+                            // Show notification
+                            if (response.new_circulars === 1) {
+                                showAlert('नयाँ सूचना', 'तपाईंसँग १ नयाँ सूचना छ', 'info');
+                            } else {
+                                showAlert('नयाँ सूचनाहरू', `तपाईंसँग ${response.new_circulars} नयाँ सूचनाहरू छन्`, 'info');
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Check for new circulars every 30 seconds
+            setInterval(checkNewCirculars, 30000);
+
+            // ✅ ADDED: Circular publish functionality
+            $(document).on('click', '.publish-circular-btn', function() {
+                const circularId = $(this).data('circular-id');
+                const button = $(this);
+                
+                if (!confirm('के तपाईं यो सूचना प्रकाशित गर्न चाहनुहुन्छ?')) {
+                    return;
+                }
+                
+                button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> प्रकाशन हुदैछ...');
+                
+                $.ajax({
+                    url: `{{ route('owner.circulars.publish', ':circularId') }}`.replace(':circularId', circularId),
+                    method: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            showAlert('सफलता', response.message, 'success');
+                            button.replaceWith('<span class="badge bg-success">प्रकाशित</span>');
+                            
+                            // Reload the page after 2 seconds to reflect changes
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 2000);
+                        }
+                    },
+                    error: function(xhr) {
+                        let errorMessage = 'प्रकाशन असफल भयो';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage = xhr.responseJSON.message;
+                        }
+                        showAlert('त्रुटि', errorMessage, 'error');
+                        button.prop('disabled', false).html('<i class="fas fa-paper-plane"></i> प्रकाशन गर्नुहोस्');
+                    }
+                });
+            });
+
+            // ✅ ADDED: Circular delete confirmation
+            $(document).on('click', '.delete-circular-btn', function(e) {
+                e.preventDefault();
+                
+                const form = $(this).closest('form');
+                const circularTitle = $(this).data('circular-title') || 'यो सूचना';
+                
+                if (confirm(`के तपाईं ${circularTitle} लाई मेट्न चाहनुहुन्छ? यो कार्य पूर्ववत गर्न सकिँदैन।`)) {
+                    form.submit();
+                }
+            });
+
+            // ✅ ADDED: Bulk actions for circulars
+            $(document).on('change', '.circular-bulk-select', function() {
+                const checkedCount = $('.circular-bulk-select:checked').length;
+                const bulkActions = $('.circular-bulk-actions');
+                
+                if (checkedCount > 0) {
+                    bulkActions.fadeIn();
+                    $('.bulk-action-count').text(checkedCount);
+                } else {
+                    bulkActions.fadeOut();
+                }
+            });
+
+            $(document).on('click', '.bulk-select-all', function() {
+                $('.circular-bulk-select').prop('checked', this.checked);
+                $('.circular-bulk-select').trigger('change');
+            });
+
+            // ✅ ADDED: Circular analytics chart initialization
+            function initializeCircularAnalytics() {
+                const analyticsChart = document.getElementById('circularAnalyticsChart');
+                
+                if (analyticsChart) {
+                    // Initialize chart here (you can use Chart.js or any other library)
+                    console.log('Initializing circular analytics chart...');
+                    
+                    // Example chart initialization (replace with actual implementation)
+                    const ctx = analyticsChart.getContext('2d');
+                    // Add your chart initialization code here
+                }
+            }
+
+            // Initialize analytics when DOM is ready
+            initializeCircularAnalytics();
         });
     </script>
     

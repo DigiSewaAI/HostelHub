@@ -37,7 +37,7 @@ class StudentController extends Controller
         return view('students.my', compact('students'));
     }
 
-    // PERMANENT FIX: Dashboard method with BOTH variables to prevent any errors
+    // PERMANENT FIX: Dashboard method with COMPLETELY FIXED circular queries
     public function dashboard()
     {
         try {
@@ -67,52 +67,98 @@ class StudentController extends Controller
                 ->latest()
                 ->first();
 
-            // ✅ FIXED: Add payment status based on last payment
-            $paymentStatus = 'Unpaid'; // Default status
+            $paymentStatus = 'Unpaid';
             if ($lastPayment) {
-                if (isset($lastPayment->status)) {
-                    $paymentStatus = $lastPayment->status == 'paid' ? 'Paid' : 'Unpaid';
-                } else {
-                    $paymentStatus = $lastPayment->amount > 0 ? 'Paid' : 'Unpaid';
-                }
+                $paymentStatus = $lastPayment->status == 'paid' ? 'Paid' : 'Unpaid';
             }
 
-            // ✅ FIXED: Add all variables that the view expects
-            $notifications = collect();
-            $upcomingEvents = collect();
-
-            // ✅ PERMANENT FIX: Circular data with BOTH variable names
+            // ✅ COMPLETELY FIXED: Circular Data Logic
             $unreadCirculars = 0;
             $recentStudentCirculars = collect();
             $urgentCirculars = collect();
             $importantCirculars = collect();
 
-            // Check if Circular models exist
+            // ✅ CRITICAL FIX: Proper circular query for student with better error handling
             if (class_exists('App\Models\Circular') && class_exists('App\Models\CircularRecipient')) {
-                $unreadCirculars = CircularRecipient::where('user_id', $user->id)
-                    ->where('is_read', false)
-                    ->count();
 
-                $recentStudentCirculars = Circular::whereHas('recipients', function ($q) use ($user) {
-                    $q->where('user_id', $user->id);
-                })
-                    ->with(['creator', 'organization', 'recipients'])
-                    ->latest()
-                    ->take(5)
-                    ->get();
+                try {
+                    // Get user ID for recipient lookup
+                    $userId = $user->id;
 
-                $urgentCirculars = Circular::whereHas('recipients', function ($q) use ($user) {
-                    $q->where('user_id', $user->id);
-                })
-                    ->where('priority', 'urgent')
-                    ->with(['creator', 'organization'])
-                    ->latest()
-                    ->take(3)
-                    ->get();
+                    // Get circular IDs where student is recipient
+                    $circularIds = CircularRecipient::where('user_id', $userId)
+                        ->pluck('circular_id');
 
-                // ✅ PERMANENT FIX: Set both variables to same data
-                $importantCirculars = $urgentCirculars;
+                    if ($circularIds->count() > 0) {
+                        // Unread count - FIXED query
+                        $unreadCirculars = CircularRecipient::where('user_id', $userId)
+                            ->where('is_read', false)
+                            ->count();
+
+                        // Recent circulars - FIXED query with proper scopes
+                        $recentStudentCirculars = Circular::whereIn('id', $circularIds)
+                            ->where('status', 'published')
+                            ->where(function ($query) {
+                                $query->whereNull('published_at')
+                                    ->orWhere('published_at', '<=', now());
+                            })
+                            ->where(function ($query) {
+                                $query->whereNull('expires_at')
+                                    ->orWhere('expires_at', '>', now());
+                            })
+                            ->with(['creator', 'organization'])
+                            ->latest()
+                            ->take(5)
+                            ->get();
+
+                        // Urgent circulars - FIXED query
+                        $urgentCirculars = Circular::whereIn('id', $circularIds)
+                            ->where('status', 'published')
+                            ->where('priority', 'urgent')
+                            ->where(function ($query) {
+                                $query->whereNull('published_at')
+                                    ->orWhere('published_at', '<=', now());
+                            })
+                            ->where(function ($query) {
+                                $query->whereNull('expires_at')
+                                    ->orWhere('expires_at', '>', now());
+                            })
+                            ->with(['creator', 'organization'])
+                            ->latest()
+                            ->take(3)
+                            ->get();
+
+                        $importantCirculars = $urgentCirculars;
+                    } else {
+                        // No circulars found for this student
+                        $unreadCirculars = 0;
+                        $recentStudentCirculars = collect();
+                        $urgentCirculars = collect();
+                        $importantCirculars = collect();
+                    }
+                } catch (\Exception $e) {
+                    \Log::error('Circular data fetching error in student dashboard: ' . $e->getMessage(), [
+                        'user_id' => $user->id,
+                        'student_id' => $student->id
+                    ]);
+
+                    // Set default empty values on error
+                    $unreadCirculars = 0;
+                    $recentStudentCirculars = collect();
+                    $urgentCirculars = collect();
+                    $importantCirculars = collect();
+                }
+            } else {
+                // Circular models don't exist
+                $unreadCirculars = 0;
+                $recentStudentCirculars = collect();
+                $urgentCirculars = collect();
+                $importantCirculars = collect();
             }
+
+            // Other data
+            $notifications = collect();
+            $upcomingEvents = collect();
 
             return view('student.dashboard', compact(
                 'student',
@@ -124,17 +170,17 @@ class StudentController extends Controller
                 'upcomingEvents',
                 'lastPayment',
                 'paymentStatus',
-                // ✅ PERMANENT FIX: Pass BOTH variables to view
                 'unreadCirculars',
                 'recentStudentCirculars',
                 'urgentCirculars',
                 'importantCirculars'
             ));
         } catch (\Exception $e) {
-            Log::error('विद्यार्थी ड्यासबोर्ड त्रुटि: ' . $e->getMessage(), [
+            \Log::error('Student dashboard error: ' . $e->getMessage(), [
                 'user_id' => auth()->id(),
                 'student_id' => $student->id ?? null
             ]);
+
             return view('student.welcome')->with('error', 'डाटा लोड गर्न असफल भयो');
         }
     }
@@ -303,6 +349,80 @@ class StudentController extends Controller
             return redirect()->back()->with('success', 'मर्मतको अनुरोध सफलतापूर्वक पेश गरियो');
         } else {
             return redirect()->back()->with('error', 'मर्मत सेवा अहिले उपलब्ध छैन');
+        }
+    }
+
+    // ✅ NEWLY ADDED: Method to view circulars for students
+    public function circulars()
+    {
+        $user = Auth::user();
+        $student = $user->student;
+
+        if (!$student) {
+            return redirect()->route('student.dashboard')->with('error', 'विद्यार्थी प्रोफाइल फेला परेन');
+        }
+
+        // Check if circular models exist
+        if (!class_exists('App\Models\Circular') || !class_exists('App\Models\CircularRecipient')) {
+            return redirect()->route('student.dashboard')->with('error', 'सर्कुलर सेवा अहिले उपलब्ध छैन');
+        }
+
+        try {
+            // Get circular IDs where student is recipient
+            $circularIds = CircularRecipient::where('user_id', $user->id)
+                ->pluck('circular_id');
+
+            $circulars = collect();
+
+            if ($circularIds->count() > 0) {
+                $circulars = Circular::whereIn('id', $circularIds)
+                    ->where('status', 'published')
+                    ->where(function ($query) {
+                        $query->whereNull('published_at')
+                            ->orWhere('published_at', '<=', now());
+                    })
+                    ->where(function ($query) {
+                        $query->whereNull('expires_at')
+                            ->orWhere('expires_at', '>', now());
+                    })
+                    ->with(['creator', 'organization'])
+                    ->latest()
+                    ->paginate(10);
+            }
+
+            return view('student.circulars', compact('circulars', 'student'));
+        } catch (\Exception $e) {
+            \Log::error('Student circulars list error: ' . $e->getMessage(), [
+                'user_id' => $user->id
+            ]);
+
+            return redirect()->route('student.dashboard')->with('error', 'सर्कुलरहरू लोड गर्न असफल भयो');
+        }
+    }
+
+    // ✅ NEWLY ADDED: Method to mark circular as read
+    public function markCircularAsRead($circularId)
+    {
+        try {
+            $user = Auth::user();
+
+            $recipient = CircularRecipient::where('user_id', $user->id)
+                ->where('circular_id', $circularId)
+                ->first();
+
+            if ($recipient && !$recipient->is_read) {
+                $recipient->update([
+                    'is_read' => true,
+                    'read_at' => now()
+                ]);
+
+                return response()->json(['success' => true, 'message' => 'सर्कुलर पढिएको रूपमा चिन्हित गरियो']);
+            }
+
+            return response()->json(['success' => false, 'message' => 'सर्कुलर फेला परेन वा पहिले नै पढिसकियो']);
+        } catch (\Exception $e) {
+            \Log::error('Mark circular as read error: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'अपरेसन असफल भयो'], 500);
         }
     }
 }

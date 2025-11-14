@@ -12,7 +12,7 @@ use App\Models\{
     Review,
     Room,
     Student,
-    Circular  // ✅ ADDED: Circular Model
+    Circular
 };
 use App\Policies\{
     ContactPolicy,
@@ -24,7 +24,7 @@ use App\Policies\{
     ReviewPolicy,
     RoomPolicy,
     StudentPolicy,
-    CircularPolicy  // ✅ ADDED: Circular Policy
+    CircularPolicy
 };
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Gate;
@@ -46,7 +46,7 @@ class AuthServiceProvider extends ServiceProvider
         Meal::class => MealPolicy::class,
         Organization::class => OrganizationPolicy::class,
         Hostel::class => HostelPolicy::class,
-        Circular::class => CircularPolicy::class, // ✅ ADDED: Circular Policy
+        Circular::class => CircularPolicy::class,
     ];
 
     /**
@@ -56,9 +56,12 @@ class AuthServiceProvider extends ServiceProvider
     {
         $this->registerPolicies();
 
-        // ✅ Admin लाई सबै काम गर्न दिने (यो महत्वपूर्ण छ)
+        // ✅ FIXED: Admin bypass - ensure this works for circulars
         Gate::before(function ($user, $ability) {
-            return $user->hasRole('admin') ? true : null;
+            if ($user->hasRole('admin')) {
+                return true;
+            }
+            return null;
         });
 
         // ✅ Hostel Manager लाई आफ्नो होस्टलसँग सम्बन्धित काम गर्न दिने
@@ -93,34 +96,38 @@ class AuthServiceProvider extends ServiceProvider
             return $user->hasRole('student') && $user->id === $student->user_id;
         });
 
-        // ✅ Circulars लाई access गर्ने क्षमता
+        // ✅ FIXED: Circular-specific gates with proper role checks
         Gate::define('access_circulars', function ($user) {
-            return $user->can('circulars_access');
+            return $user->hasAnyRole(['admin', 'hostel_manager', 'owner', 'student']);
         });
 
-        // ✅ Circulars सिर्जना गर्ने क्षमता
         Gate::define('create_circulars', function ($user) {
-            return $user->can('circulars_create');
+            return $user->hasAnyRole(['admin', 'hostel_manager', 'owner']);
         });
 
-        // ✅ Circulars सम्पादन गर्ने क्षमता
         Gate::define('edit_circulars', function ($user) {
-            return $user->can('circulars_edit');
+            return $user->hasAnyRole(['admin', 'hostel_manager', 'owner']);
         });
 
-        // ✅ Circulars मेट्ने क्षमता
         Gate::define('delete_circulars', function ($user) {
-            return $user->can('circulars_delete');
+            return $user->hasAnyRole(['admin', 'hostel_manager', 'owner']);
         });
 
-        // ✅ Circulars विश्लेषण हेर्ने क्षमता
         Gate::define('view_circulars_analytics', function ($user) {
-            return $user->can('circulars_analytics');
+            return $user->hasAnyRole(['admin', 'hostel_manager', 'owner']);
         });
 
-        // ✅ Global circulars पठाउने क्षमता (Admin मात्र)
         Gate::define('send_global_circulars', function ($user) {
             return $user->hasRole('admin');
+        });
+
+        // ✅ ADDED: Specific circular operation gates
+        Gate::define('publish_circulars', function ($user) {
+            return $user->hasAnyRole(['admin', 'hostel_manager', 'owner']);
+        });
+
+        Gate::define('view_circular_recipients', function ($user) {
+            return $user->hasAnyRole(['admin', 'hostel_manager', 'owner']);
         });
 
         // ✅ Payments लाई access गर्ने क्षमता

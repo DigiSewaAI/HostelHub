@@ -13,7 +13,7 @@
                     </h3>
                 </div>
 
-                <form action="{{ route('owner.circulars.store') }}" method="POST">
+                <form action="{{ route('owner.circulars.store') }}" method="POST" id="circularForm">
                     @csrf
                     
                     <div class="card-body">
@@ -132,12 +132,12 @@
 
 @push('scripts')
 <script>
-// Same JavaScript as admin create form for dynamic audience selection
 document.addEventListener('DOMContentLoaded', function() {
     const audienceType = document.getElementById('audience_type');
     const specificSection = document.getElementById('specific_audience_section');
     const targetAudience = document.getElementById('target_audience');
     const specificLabel = document.getElementById('specific_audience_label');
+    const circularForm = document.getElementById('circularForm');
 
     function loadSpecificAudienceOptions() {
         const selectedAudience = audienceType.value;
@@ -149,7 +149,7 @@ document.addEventListener('DOMContentLoaded', function() {
             specificLabel.textContent = 'होस्टेलहरू चयन गर्नुहोस्';
             
             @foreach($hostels as $hostel)
-                targetAudience.innerHTML += `<option value="{{ $hostel->id }}">{{ $hostel->name }}</option>`;
+                targetAudience.innerHTML += `<option value="{{ $hostel->id }}" {{ (old('target_audience') && in_array($hostel->id, old('target_audience'))) ? 'selected' : '' }}>{{ $hostel->name }}</option>`;
             @endforeach
             
         } else if (selectedAudience === 'specific_students') {
@@ -158,14 +158,84 @@ document.addEventListener('DOMContentLoaded', function() {
             
             @foreach($students as $student)
             @if($student->user)
-                targetAudience.innerHTML += `<option value="{{ $student->user_id }}">{{ $student->user->name }} ({{ $student->user->email ?? 'N/A' }})</option>`;
+                targetAudience.innerHTML += `<option value="{{ $student->user_id }}" {{ (old('target_audience') && in_array($student->user_id, old('target_audience'))) ? 'selected' : '' }}>{{ $student->user->name }} ({{ $student->user->email ?? 'N/A' }})</option>`;
             @endif
             @endforeach
         }
     }
 
-    audienceType.addEventListener('change', loadSpecificAudienceOptions);
+    // ✅ FIXED: PROPER FORM RESET AFTER SUCCESSFUL SUBMISSION
+    @if(session('success') && session('clear_form'))
+        // Clear all form fields completely
+        circularForm.reset();
+        
+        // Reset dynamic audience selection
+        loadSpecificAudienceOptions();
+        
+        // Show success message
+        Toast.fire({
+            icon: 'success',
+            title: '{{ session('success') }}'
+        });
+        
+        // ✅ FIXED: Clear session flags via AJAX to prevent form reset on page refresh
+        fetch('{{ route("owner.clear.form.flag") }}', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({})
+        }).then(response => response.json())
+          .then(data => {
+              console.log('Form flags cleared successfully');
+          })
+          .catch(error => {
+              console.error('Error clearing form flags:', error);
+          });
+    @endif
+
+    // Initialize audience selection on page load
     loadSpecificAudienceOptions();
+    
+    // Add event listener for audience type change
+    audienceType.addEventListener('change', loadSpecificAudienceOptions);
+
+    // Enhanced form submission feedback
+    circularForm.addEventListener('submit', function() {
+        const submitButton = this.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>सुरक्षित गर्दै...';
+    });
+
+    // Auto-set initial values for better UX
+    @if(!old('audience_type'))
+        audienceType.value = 'organization_students';
+    @endif
+    
+    @if(!old('priority'))
+        document.getElementById('priority').value = 'normal';
+    @endif
 });
+
+// ✅ FIXED: Show success message only when not clearing form
+@if(session('success') && !session('clear_form'))
+    document.addEventListener('DOMContentLoaded', function() {
+        Toast.fire({
+            icon: 'success',
+            title: '{{ session('success') }}'
+        });
+    });
+@endif
+
+// Show error message if there are form errors
+@if($errors->any())
+    document.addEventListener('DOMContentLoaded', function() {
+        Toast.fire({
+            icon: 'error',
+            title: 'केही त्रुटिहरू छन्। कृपया फर्म जाँच गर्नुहोस्।'
+        });
+    });
+@endif
 </script>
 @endpush

@@ -195,6 +195,130 @@ class User extends Authenticatable
     }
 
     /**
+     * 🔥 NEW: Get circulars where user is recipient
+     */
+    public function circulars()
+    {
+        return $this->belongsToMany(Circular::class, 'circular_recipients', 'user_id', 'circular_id')
+            ->withPivot('is_read', 'read_at')
+            ->withTimestamps();
+    }
+
+    /**
+     * 🔥 NEW: Get unread circulars count
+     */
+    public function getUnreadCircularsCountAttribute()
+    {
+        return $this->circularRecipients()->where('is_read', false)->count();
+    }
+
+    /**
+     * 🔥 NEW: Get read circulars count
+     */
+    public function getReadCircularsCountAttribute()
+    {
+        return $this->circularRecipients()->where('is_read', true)->count();
+    }
+
+    /**
+     * 🔥 NEW: Get total circulars count
+     */
+    public function getTotalCircularsCountAttribute()
+    {
+        return $this->circularRecipients()->count();
+    }
+
+    /**
+     * 🔥 NEW: Get recent circulars for user
+     */
+    public function getRecentCirculars($limit = 5)
+    {
+        return $this->circulars()
+            ->where('status', 'published')
+            ->where(function ($query) {
+                $query->whereNull('published_at')
+                    ->orWhere('published_at', '<=', now());
+            })
+            ->where(function ($query) {
+                $query->whereNull('expires_at')
+                    ->orWhere('expires_at', '>', now());
+            })
+            ->with(['creator', 'organization'])
+            ->latest()
+            ->take($limit)
+            ->get();
+    }
+
+    /**
+     * 🔥 NEW: Get urgent circulars for user
+     */
+    public function getUrgentCirculars($limit = 3)
+    {
+        return $this->circulars()
+            ->where('status', 'published')
+            ->where('priority', 'urgent')
+            ->where(function ($query) {
+                $query->whereNull('published_at')
+                    ->orWhere('published_at', '<=', now());
+            })
+            ->where(function ($query) {
+                $query->whereNull('expires_at')
+                    ->orWhere('expires_at', '>', now());
+            })
+            ->with(['creator', 'organization'])
+            ->latest()
+            ->take($limit)
+            ->get();
+    }
+
+    /**
+     * 🔥 NEW: Mark all circulars as read for user
+     */
+    public function markAllCircularsAsRead()
+    {
+        return $this->circularRecipients()
+            ->where('is_read', false)
+            ->update([
+                'is_read' => true,
+                'read_at' => now()
+            ]);
+    }
+
+    /**
+     * 🔥 NEW: Mark specific circular as read
+     */
+    public function markCircularAsRead($circularId)
+    {
+        return $this->circularRecipients()
+            ->where('circular_id', $circularId)
+            ->where('is_read', false)
+            ->update([
+                'is_read' => true,
+                'read_at' => now()
+            ]);
+    }
+
+    /**
+     * 🔥 NEW: Check if user has unread circulars
+     */
+    public function hasUnreadCirculars(): bool
+    {
+        return $this->unread_circulars_count > 0;
+    }
+
+    /**
+     * 🔥 NEW: Get circular read status
+     */
+    public function getCircularReadStatus($circularId): bool
+    {
+        $recipient = $this->circularRecipients()
+            ->where('circular_id', $circularId)
+            ->first();
+
+        return $recipient ? $recipient->is_read : false;
+    }
+
+    /**
      * Scope for admin users
      */
     public function scopeAdmins($query)
@@ -379,6 +503,8 @@ class User extends Authenticatable
             'bookings_count' => $this->bookings()->count(),
             'approved_bookings_count' => $this->approvedBookings()->count(),
             'subscriptions_count' => $this->subscriptions()->count(),
+            'circulars_count' => $this->total_circulars_count,
+            'unread_circulars_count' => $this->unread_circulars_count,
         ];
     }
 
@@ -440,5 +566,26 @@ class User extends Authenticatable
         ];
 
         return $roles[$this->primary_role] ?? $this->primary_role;
+    }
+
+    /**
+     * 🔥 NEW: Check if user can receive circulars
+     */
+    public function canReceiveCirculars(): bool
+    {
+        // All active users with verified email can receive circulars
+        return !is_null($this->email_verified_at) && $this->hasRole(['student', 'hostel_manager', 'admin']);
+    }
+
+    /**
+     * 🔥 NEW: Get circular notification preferences
+     */
+    public function getCircularNotificationPreferences(): array
+    {
+        return [
+            'email' => $this->receivesEmailNotifications(),
+            'sms' => $this->receivesSmsNotifications(),
+            'in_app' => true, // Always true for circulars
+        ];
     }
 }

@@ -298,6 +298,48 @@
         .hover-sidebar-item:hover {
             background-color: rgba(255, 255, 255, 0.15) !important;
         }
+
+        /* ✅ ADDED: Circular specific styles for student */
+        .circular-item {
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        
+        .circular-item.unread {
+            background: #f0f9ff;
+            border-left: 4px solid #3b82f6;
+        }
+        
+        .circular-item.read {
+            background: #f8fafc;
+            opacity: 0.8;
+        }
+        
+        .border-left-urgent {
+            border-left: 4px solid #ef4444 !important;
+        }
+        
+        .border-left-high {
+            border-left: 4px solid #f59e0b !important;
+        }
+        
+        .border-left-normal {
+            border-left: 4px solid #10b981 !important;
+        }
+        
+        .circular-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        /* ✅ ADDED: Alert styles for circular notifications */
+        .alert-nepali {
+            font-family: 'Noto Sans Devanagari', sans-serif;
+        }
     </style>
     
     <!-- Page-specific CSS -->
@@ -717,6 +759,225 @@
                     document.body.removeChild(overlay);
                 }
             }
+        });
+    </script>
+
+    <!-- ✅ ADDED: Student circular functionality JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // ✅ FIXED: Student circular real-time updates
+            function updateStudentCirculars() {
+                $.ajax({
+                    url: '{{ route("student.dashboard") }}?circulars_only=true',
+                    method: 'GET',
+                    success: function(response) {
+                        if (response.circulars) {
+                            updateCircularList(response.circulars);
+                        }
+                    }
+                });
+            }
+
+            function updateCircularList(circulars) {
+                const container = $('#circulars-container');
+                if (!container.length) return;
+
+                let html = '';
+                
+                if (circulars.length > 0) {
+                    circulars.forEach(circular => {
+                        const isRead = circular.is_read || false;
+                        const priorityClass = circular.priority === 'urgent' ? 'border-left-urgent' : 
+                                           circular.priority === 'high' ? 'border-left-high' : 'border-left-normal';
+                        
+                        html += `
+                            <div class="circular-item ${isRead ? 'read' : 'unread'} ${priorityClass}">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1 ${isRead ? 'text-muted' : 'font-weight-bold'}">
+                                            ${circular.title}
+                                            ${!isRead ? '<span class="badge bg-danger ms-2">नयाँ</span>' : ''}
+                                        </h6>
+                                        <p class="text-muted small mb-1">${circular.content_preview}</p>
+                                        <div class="d-flex align-items-center">
+                                            <small class="text-muted me-2">
+                                                <i class="fas fa-clock"></i> ${circular.created_at}
+                                            </small>
+                                            <span class="badge bg-${circular.priority === 'urgent' ? 'danger' : circular.priority === 'high' ? 'warning' : 'info'} me-2">
+                                                ${circular.priority_text}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="circular-actions">
+                                        <a href="${circular.view_url}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        ${!isRead ? `
+                                        <button class="btn btn-sm btn-outline-success mark-read-btn" data-circular-id="${circular.id}">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    html = `
+                        <div class="text-center py-4">
+                            <i class="fas fa-bullhorn text-muted fa-3x mb-3"></i>
+                            <p class="text-muted">हाल कुनै सूचना उपलब्ध छैन</p>
+                        </div>
+                    `;
+                }
+                
+                container.html(html);
+                attachCircularEventHandlers();
+            }
+
+            function attachCircularEventHandlers() {
+                // Mark as read functionality
+                $('.mark-read-btn').on('click', function() {
+                    const circularId = $(this).data('circular-id');
+                    const button = $(this);
+                    
+                    $.ajax({
+                        url: "{{ route('student.circulars.mark-read', ':circularId') }}".replace(':circularId', circularId),
+                        method: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}'
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                button.closest('.circular-item').removeClass('unread').addClass('read');
+                                button.remove();
+                                updateUnreadCount();
+                            }
+                        }
+                    });
+                });
+            }
+
+            function updateUnreadCount() {
+                $.ajax({
+                    url: '{{ route("student.dashboard") }}?unread_count=true',
+                    method: 'GET',
+                    success: function(response) {
+                        if (response.unread_count !== undefined) {
+                            const badge = $('.notification-dot');
+                            if (response.unread_count > 0) {
+                                badge.text(response.unread_count);
+                                badge.show();
+                            } else {
+                                badge.hide();
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Initialize circular updates if on dashboard or circulars page
+            if (window.location.pathname.includes('dashboard') || window.location.pathname.includes('circulars')) {
+                updateStudentCirculars();
+                setInterval(updateStudentCirculars, 60000); // Update every minute
+            }
+
+            // ✅ ADDED: Real-time circular notifications for students
+            function checkNewCirculars() {
+                $.ajax({
+                    url: '{{ route("student.circulars.index") }}?check_new=true',
+                    method: 'GET',
+                    success: function(response) {
+                        if (response.new_circulars && response.new_circulars > 0) {
+                            // Update notification badge
+                            const badge = $('.notification-dot');
+                            if (badge.length) {
+                                badge.text(response.new_circulars);
+                                badge.show();
+                            }
+                            
+                            // Show notification
+                            if (response.new_circulars === 1) {
+                                showStudentAlert('नयाँ सूचना', 'तपाईंसँग १ नयाँ सूचना छ', 'info');
+                            } else {
+                                showStudentAlert('नयाँ सूचनाहरू', `तपाईंसँग ${response.new_circulars} नयाँ सूचनाहरू छन्`, 'info');
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Helper function to show alerts for students
+            function showStudentAlert(title, message, type) {
+                const alertClass = type === 'success' ? 'alert-success' : 
+                                 type === 'error' ? 'alert-danger' : 'alert-info';
+                const icon = type === 'success' ? 'fa-check-circle' : 
+                            type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
+                
+                const alertHtml = `
+                    <div class="alert ${alertClass} alert-dismissible fade show mb-4 rounded-xl alert-nepali" role="alert">
+                        <div class="d-flex align-items-center">
+                            <i class="fas ${icon} me-2"></i>
+                            <strong>${title}:</strong> ${message}
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                `;
+                
+                // Prepend alert to main content
+                $('#main-content').prepend(alertHtml);
+                
+                // Auto remove after 5 seconds
+                setTimeout(() => {
+                    $('.alert').alert('close');
+                }, 5000);
+            }
+
+            // Check for new circulars every 30 seconds
+            setInterval(checkNewCirculars, 30000);
+
+            // ✅ ADDED: Bulk mark as read functionality
+            $(document).on('click', '.bulk-mark-read-btn', function() {
+                const selectedCirculars = $('.circular-bulk-select:checked');
+                const circularIds = selectedCirculars.map(function() {
+                    return $(this).val();
+                }).get();
+
+                if (circularIds.length === 0) {
+                    showStudentAlert('चेतावनी', 'कुनै सूचना चयन गरिएको छैन', 'error');
+                    return;
+                }
+
+                $.ajax({
+                    url: '{{ route("student.circulars.bulk-mark-read") }}',
+                    method: 'POST',
+                    data: {
+                        circular_ids: circularIds,
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            showStudentAlert('सफलता', response.message, 'success');
+                            // Update the UI
+                            selectedCirculars.each(function() {
+                                const circularItem = $(this).closest('.circular-item');
+                                circularItem.removeClass('unread').addClass('read');
+                                circularItem.find('.mark-read-btn').remove();
+                            });
+                            updateUnreadCount();
+                        }
+                    },
+                    error: function(xhr) {
+                        showStudentAlert('त्रुटि', 'अनुरोध असफल भयो', 'error');
+                    }
+                });
+            });
+
+            // ✅ ADDED: Select all functionality for circulars
+            $(document).on('change', '.select-all-circulars', function() {
+                const isChecked = $(this).prop('checked');
+                $('.circular-bulk-select').prop('checked', isChecked);
+            });
         });
     </script>
     

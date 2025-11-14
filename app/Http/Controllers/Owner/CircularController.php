@@ -6,12 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\Circular;
 use App\Models\Hostel;
 use App\Models\Student;
-use App\Models\CircularRecipient; // ✅ ADDED missing import
+use App\Models\CircularRecipient;
 use App\Http\Requests\StoreCircularRequest;
 use App\Services\CircularService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth; // ✅ ADDED for security
+use Illuminate\Support\Facades\Auth;
 
 class CircularController extends Controller
 {
@@ -22,7 +22,7 @@ class CircularController extends Controller
         $this->circularService = $circularService;
     }
 
-    // ✅ ADDED: Owner authorization helper method
+    // ✅ FIXED: Owner authorization helper method
     private function authorizeOwnerAccess($organizationId = null)
     {
         $user = Auth::user();
@@ -100,35 +100,65 @@ class CircularController extends Controller
             $this->authorizeOwnerAccess();
         }
 
-        DB::transaction(function () use ($request) {
-            $user = auth()->user();
-            $organization = $user->organizations()->first();
-            $data = $request->validated();
+        try {
+            DB::transaction(function () use ($request, $user) {
+                $organization = $user->organizations()->first();
 
-            $data['organization_id'] = $organization->id;
-            $data['created_by'] = $user->id;
+                if (!$organization) {
+                    throw new \Exception('Organization not found');
+                }
 
-            // Create circular
-            $circular = Circular::create($data);
+                $data = $request->validated();
+                $data['organization_id'] = $organization->id;
+                $data['created_by'] = $user->id;
 
-            // Create recipients
-            $this->circularService->createRecipients(
-                $circular,
-                $data['audience_type'],
-                $data['target_audience'] ?? null
-            );
+                // ✅ CRITICAL FIX: Proper status and publishing logic
+                if ($request->has('scheduled_at') && $request->scheduled_at > now()) {
+                    $data['status'] = 'draft'; // Schedule for later
+                } else {
+                    $data['status'] = 'published';
+                    $data['published_at'] = now(); // ✅ CRITICAL: Set published_at timestamp
+                }
 
-            // Auto-publish if not scheduled
-            if (!$circular->scheduled_at) {
-                $circular->markAsPublished();
-            }
-        });
+                // Create circular
+                $circular = Circular::create($data);
 
-        $message = $request->has('scheduled_at')
-            ? 'सूचना सफलतापूर्वक सिर्जना गरियो र तोकिएको समयमा प्रकाशित हुनेछ'
-            : 'सूचना सफलतापूर्वक प्रकाशित गरियो';
+                // ✅ FIXED: Create recipients with proper parameters
+                $this->circularService->createRecipients(
+                    $circular,
+                    $data['audience_type'],
+                    $data['target_audience'] ?? [],
+                    $organization->id
+                );
 
-        return redirect()->route('owner.circulars.index')->with('success', $message);
+                // ✅ ENHANCED LOG for debugging
+                \Log::info('Circular created successfully', [
+                    'circular_id' => $circular->id,
+                    'audience_type' => $data['audience_type'],
+                    'organization_id' => $organization->id,
+                    'status' => $circular->status,
+                    'published_at' => $circular->published_at
+                ]);
+            });
+
+            $message = $request->has('scheduled_at') && $request->scheduled_at > now()
+                ? 'सूचना सफलतापूर्वक सिर्जना गरियो र तोकिएको समयमा प्रकाशित हुनेछ'
+                : 'सूचना सफलतापूर्वक प्रकाशित गरियो';
+
+            // ✅ FIXED: Proper form clearing with session flag
+            return redirect()->route('owner.circulars.index')
+                ->with('success', $message)
+                ->with('clear_form', true); // Flag for JavaScript form reset
+
+        } catch (\Exception $e) {
+            \Log::error('Circular creation failed: ' . $e->getMessage(), [
+                'input_data' => $request->except('password') // Don't log sensitive data
+            ]);
+
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'सूचना सिर्जना गर्दा त्रुटि भयो: ' . $e->getMessage());
+        }
     }
 
     public function show(Circular $circular)
@@ -178,7 +208,21 @@ class CircularController extends Controller
 
         $this->circularService->authorizeEdit($circular, $user);
 
-        $circular->update($request->validated());
+        $data = $request->validated();
+
+        // ✅ FIXED: Update publishing logic during edit
+        if ($request->has('scheduled_at') && $request->scheduled_at > now()) {
+            $data['status'] = 'draft';
+            $data['published_at'] = null; // Reset published_at if scheduled for future
+        } else {
+            $data['status'] = 'published';
+            // Only set published_at if it's not already set
+            if (!$circular->published_at) {
+                $data['published_at'] = now();
+            }
+        }
+
+        $circular->update($data);
 
         return redirect()->route('owner.circulars.show', $circular)
             ->with('success', 'सूचना सफलतापूर्वक अद्यावधिक गरियो');
@@ -212,12 +256,17 @@ class CircularController extends Controller
 
         $this->circularService->authorizeEdit($circular, $user);
 
-        $circular->markAsPublished();
+        // ✅ FIXED: Ensure published_at is set when manually publishing
+        $circular->update([
+            'status' => 'published',
+            'published_at' => now()
+        ]);
 
         return back()->with('success', 'सूचना सफलतापूर्वक प्रकाशित गरियो');
     }
 
-    public function analytics(Circular $circular = null)
+    // ✅ FIXED: General analytics for all circulars (without parameter)
+    public function analytics()
     {
         $user = auth()->user();
 
@@ -226,16 +275,63 @@ class CircularController extends Controller
             $this->authorizeOwnerAccess();
         }
 
-        if ($circular) {
-            // Single circular analytics
-            $this->circularService->authorizeView($circular, $user);
-            $stats = $this->circularService->getCircularAnalytics($circular);
-            return view('owner.circulars.analytics-single', compact('circular', 'stats'));
-        } else {
-            // General analytics
-            $stats = $this->circularService->getOrganizationAnalytics($user);
-            return view('owner.circulars.analytics', compact('stats'));
+        $organization = $user->organizations()->first();
+
+        $stats = [
+            'total_circulars' => Circular::where('organization_id', $organization->id)->count(),
+            'published_circulars' => Circular::where('organization_id', $organization->id)
+                ->where('status', 'published')->count(),
+            'student_count' => $organization->students()->count(),
+            'total_read' => CircularRecipient::whereHas('circular', function ($query) use ($organization) {
+                $query->where('organization_id', $organization->id);
+            })->where('is_read', true)->count(),
+            'total_recipients' => CircularRecipient::whereHas('circular', function ($query) use ($organization) {
+                $query->where('organization_id', $organization->id);
+            })->count(),
+            'urgent_count' => Circular::where('organization_id', $organization->id)
+                ->where('priority', 'urgent')->count(),
+            'normal_count' => Circular::where('organization_id', $organization->id)
+                ->where('priority', 'normal')->count(),
+            'info_count' => Circular::where('organization_id', $organization->id)
+                ->where('priority', 'info')->count(),
+        ];
+
+        $recentCirculars = Circular::with('recipients')
+            ->where('organization_id', $organization->id)
+            ->where('status', 'published')
+            ->orderBy('published_at', 'desc')
+            ->take(10)
+            ->get();
+
+        return view('owner.circulars.analytics', compact('stats', 'recentCirculars'));
+    }
+
+    // ✅ FIXED: Single circular analytics (with parameter)
+    public function analyticsSingle(Circular $circular)
+    {
+        $user = auth()->user();
+
+        // ✅ ENHANCED: Owner authorization
+        if ($user->hasRole('hostel_manager')) {
+            $this->authorizeOwnerAccess($circular->organization_id);
         }
+
+        $this->circularService->authorizeView($circular, $user);
+
+        $stats = [
+            'total_recipients' => $circular->recipients()->count(),
+            'total_read' => $circular->recipients()->where('is_read', true)->count(),
+            'by_user_type' => $circular->recipients()
+                ->select('user_type')
+                ->selectRaw('COUNT(*) as total')
+                ->selectRaw('SUM(is_read) as read_count')
+                ->groupBy('user_type')
+                ->get(),
+            'engagement_rate' => $circular->recipients()->count() > 0 ?
+                round(($circular->recipients()->where('is_read', true)->count() / $circular->recipients()->count()) * 100, 1) : 0
+        ];
+
+        return view('owner.circulars.analytics-single', compact('circular', 'stats'));
     }
 
     public function markAsRead(Circular $circular)
@@ -259,5 +355,19 @@ class CircularController extends Controller
         }
 
         return response()->json(['success' => true]);
+    }
+
+    // ✅ ADDED: Template management method (if needed for your routes)
+    public function templates()
+    {
+        $user = auth()->user();
+
+        // ✅ ENHANCED: Owner authorization
+        if ($user->hasRole('hostel_manager')) {
+            $this->authorizeOwnerAccess();
+        }
+
+        // Add your template logic here
+        return view('owner.circulars.templates');
     }
 }

@@ -166,6 +166,21 @@ class Student extends Model
     }
 
     /**
+     * ✅ ADDED: Get circulars for this student
+     */
+    public function circulars()
+    {
+        return $this->hasManyThrough(
+            Circular::class,
+            CircularRecipient::class,
+            'user_id', // Foreign key on circular_recipients table
+            'id', // Foreign key on circulars table
+            'user_id', // Local key on students table
+            'circular_id' // Local key on circular_recipients table
+        );
+    }
+
+    /**
      * Scope to get only active students.
      */
     public function scopeActive($query)
@@ -249,6 +264,16 @@ class Student extends Model
         ];
 
         return $paymentStatusMap[$this->payment_status] ?? $this->payment_status;
+    }
+
+    /**
+     * ✅ ADDED: Get unread circulars count
+     */
+    public function getUnreadCircularsCountAttribute()
+    {
+        return $this->user->circularRecipients()
+            ->where('is_read', false)
+            ->count();
     }
 
     /**

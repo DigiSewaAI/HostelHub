@@ -106,12 +106,32 @@ Route::middleware(['auth', 'hasOrganization', 'role:owner,hostel_manager'])
         // Hostel Logo Upload Route
         Route::post('/hostels/{hostel}/logo/upload', [PaymentController::class, 'uploadHostelLogo'])->name('hostels.logo.upload');
 
-        // Owner Circular Routes
-        Route::resource('circulars', OwnerCircularController::class);
-        Route::post('/circulars/{circular}/publish', [OwnerCircularController::class, 'publish'])->name('circulars.publish');
-        Route::get('/circulars/analytics', [OwnerCircularController::class, 'analytics'])->name('circulars.analytics');
-        Route::get('/circulars/{circular}/analytics', [OwnerCircularController::class, 'analytics'])->name('circulars.analytics.single');
-        Route::post('/circulars/{circular}/mark-read', [OwnerCircularController::class, 'markAsRead'])->name('circulars.mark-read');
+        // ✅ FIXED: COMPLETE Owner Circular Routes with ALL methods - CORRECTED ANALYTICS ROUTES ORDER
+        Route::prefix('circulars')->name('circulars.')->group(function () {
+            Route::get('/', [OwnerCircularController::class, 'index'])->name('index');
+            Route::get('/create', [OwnerCircularController::class, 'create'])->name('create');
+            Route::post('/', [OwnerCircularController::class, 'store'])->name('store');
+
+            // ✅ CRITICAL FIX: Analytics routes must come BEFORE the {circular} parameter routes
+            Route::get('/analytics', [OwnerCircularController::class, 'analytics'])->name('analytics');
+
+            // Individual circular routes
+            Route::get('/{circular}', [OwnerCircularController::class, 'show'])->name('show');
+            Route::get('/{circular}/edit', [OwnerCircularController::class, 'edit'])->name('edit');
+            Route::put('/{circular}', [OwnerCircularController::class, 'update'])->name('update');
+            Route::delete('/{circular}', [OwnerCircularController::class, 'destroy'])->name('destroy');
+
+            // Circular publishing and analytics
+            Route::post('/{circular}/publish', [OwnerCircularController::class, 'publish'])->name('publish');
+
+            // Single circular analytics
+            Route::get('/{circular}/analytics', [OwnerCircularController::class, 'analyticsSingle'])->name('analytics.single');
+
+            Route::post('/{circular}/mark-read', [OwnerCircularController::class, 'markAsRead'])->name('mark-read');
+
+            // Template management
+            Route::get('/templates', [OwnerCircularController::class, 'templates'])->name('templates');
+        });
 
         // ✅ PERMANENT FIX: Document Management Routes for Owner
         Route::prefix('documents')->name('documents.')->group(function () {

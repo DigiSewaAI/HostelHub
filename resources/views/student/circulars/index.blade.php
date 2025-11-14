@@ -1,5 +1,3 @@
-<?php
-
 @extends('layouts.student')
 
 @section('title', 'मेरा सूचनाहरू')

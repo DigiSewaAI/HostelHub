@@ -40,6 +40,19 @@ class StoreCircularRequest extends FormRequest
         return $rules;
     }
 
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            if ($this->audience_type === 'specific_students' && empty($this->target_audience)) {
+                $validator->errors()->add('target_audience', 'कृपया कम्तीमा एक विद्यार्थी चयन गर्नुहोस्');
+            }
+
+            if ($this->audience_type === 'specific_hostel' && empty($this->target_audience)) {
+                $validator->errors()->add('target_audience', 'कृपया कम्तीमा एक होस्टल चयन गर्नुहोस्');
+            }
+        });
+    }
+
     public function messages()
     {
         return [
