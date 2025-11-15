@@ -19,6 +19,9 @@
                 <div class="mt-4 bg-indigo-50 text-indigo-700 px-4 py-2 rounded-full inline-block">
                     ७ दिन निःशुल्क परीक्षण | कुनै पनि क्रेडिट कार्ड आवश्यक छैन
                 </div>
+                <div class="mt-3 bg-yellow-50 text-yellow-700 px-4 py-2 rounded-lg text-sm">
+                    <strong>नोट:</strong> दर्ता पश्चात प्रशासकद्वारा स्वीकृतिपछि मात्र तपाईंले आफ्नो ड्यासबोर्डमा पहुँच गर्न सक्नुहुन्छ
+                </div>
             </div>
             
             <!-- Validation Errors -->
@@ -72,6 +75,40 @@
                         value="{{ old('email') }}" autocomplete="email"
                         placeholder="example@gmail.com">
                     @error('email')
+                        <p class="error-message">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <!-- New Required Fields: Phone, PAN, Address -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">फोन नम्बर *</label>
+                        <input type="text" id="phone" name="phone" required
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            value="{{ old('phone') }}" autocomplete="tel"
+                            placeholder="९८००००००००">
+                        @error('phone')
+                            <p class="error-message">{{ $message }}</p>
+                        @enderror
+                    </div>
+                    <div>
+                        <label for="pan_no" class="block text-sm font-medium text-gray-700 mb-1">PAN नम्बर (वैकल्पिक)</label>
+                        <input type="text" id="pan_no" name="pan_no"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            value="{{ old('pan_no') }}"
+                            placeholder="१२३४५६७८९">
+                        @error('pan_no')
+                            <p class="error-message">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <label for="address" class="block text-sm font-medium text-gray-700 mb-1">ठेगाना *</label>
+                    <textarea id="address" name="address" required rows="3"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder="तपाईंको पूरा ठेगाना">{{ old('address') }}</textarea>
+                    @error('address')
                         <p class="error-message">{{ $message }}</p>
                     @enderror
                 </div>
@@ -159,7 +196,7 @@
                 
                 <button type="submit" 
                     class="w-full bg-indigo-600 text-white py-4 px-6 rounded-lg font-semibold text-lg hover:bg-indigo-700 transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200">
-                    {{ $plan->name ?? 'योजना' }} सुरु गर्नुहोस्
+                    स्वीकृतिको लागि दर्ता गर्नुहोस्
                 </button>
             </form>
             
@@ -198,6 +235,15 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('पासवर्ड कम्तिमा ८ वर्णको हुनुपर्छ।');
             return false;
         }
+
+        // Validate phone number (Nepali format)
+        const phone = document.getElementById('phone').value;
+        const phoneRegex = /^[9][6-8]\d{8}$/;
+        if (!phoneRegex.test(phone.replace(/\D/g, ''))) {
+            e.preventDefault();
+            alert('कृपया मान्य नेपाली फोन नम्बर प्रविष्ट गर्नुहोस् (९८०००००००० को रूपमा)');
+            return false;
+        }
     });
     
     // Real-time password match check
@@ -216,6 +262,16 @@ document.addEventListener('DOMContentLoaded', function() {
     
     passwordInput.addEventListener('input', checkPasswordMatch);
     confirmPasswordInput.addEventListener('input', checkPasswordMatch);
+
+    // Phone number formatting
+    const phoneInput = document.getElementById('phone');
+    phoneInput.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length > 10) {
+            value = value.substring(0, 10);
+        }
+        e.target.value = value;
+    });
 });
 </script>
 @endsection

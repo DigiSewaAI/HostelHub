@@ -117,16 +117,17 @@
                                 <div class="d-flex w-100 justify-content-between">
                                     <h5 class="mb-1">
                                         @if($circular->priority == 'urgent')
-                                            <span class="badge badge-danger mr-2">जरुरी</span>
+                                            <span class="badge badge-danger mr-2" style="font-size: 0.9em; padding: 0.5em 0.8em;">जरुरी</span>
                                         @elseif($circular->priority == 'normal')
-                                            <span class="badge badge-primary mr-2">सामान्य</span>
+                                            <span class="badge badge-primary mr-2" style="font-size: 0.9em; padding: 0.5em 0.8em;">सामान्य</span>
                                         @else
-                                            <span class="badge badge-info mr-2">जानकारी</span>
+                                            <span class="badge badge-dark mr-2" style="font-size: 0.9em; padding: 0.5em 0.8em; background-color: #6c757d !important;">जानकारी</span>
                                         @endif
+                                        
                                         {{ $circular->title }}
                                         
                                         @if(!$isRead)
-                                            <span class="badge badge-warning ml-2">नयाँ</span>
+                                            <span class="badge badge-warning ml-2" style="font-size: 0.8em; padding: 0.4em 0.7em;">नयाँ</span>
                                         @endif
                                     </h5>
                                     <small>
@@ -147,11 +148,11 @@
                                     </small>
                                     <small>
                                         @if($isRead)
-                                            <span class="badge badge-success">
+                                            <span class="badge badge-success" style="font-size: 0.8em; padding: 0.4em 0.7em; background-color: #28a745 !important;">
                                                 <i class="fas fa-check mr-1"></i>पढिसक्नुभएको
                                             </span>
                                         @else
-                                            <span class="badge badge-warning">
+                                            <span class="badge badge-secondary" style="font-size: 0.8em; padding: 0.4em 0.7em; background-color: #6c757d !important;">
                                                 <i class="fas fa-envelope mr-1"></i>नपढेको
                                             </span>
                                         @endif
@@ -176,4 +177,16 @@
         </div>
     </div>
 </div>
+
+<style>
+/* Additional CSS to ensure badge visibility */
+.badge {
+    font-weight: 600;
+    color: white !important;
+}
+
+.list-group-item .badge {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+</style>
 @endsection
