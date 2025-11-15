@@ -24,6 +24,36 @@
     @endisset
 
     <div class="space-y-4">
+        <!-- Organization Registration Requests Bar -->
+        <div class="bg-white rounded-lg shadow-sm p-4 flex items-center justify-between">
+            <div class="flex items-center">
+                <div class="bg-orange-100 p-3 rounded-full mr-4">
+                    <i class="fas fa-building text-orange-600 text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="font-semibold">
+                        तपाईंसँग 
+                        <span class="text-red-600">{{ $pendingOrganizationRequests ?? 0 }}</span> पेन्डिङ संस्था दर्ता अनुरोधहरू छन्
+                    </h3>
+                    <p class="text-sm text-gray-600">
+                        आज <span class="text-green-600">{{ $todayOrganizationRequests ?? 0 }}</span> नयाँ अनुरोधहरू प्राप्त भएका छन्
+                    </p>
+                </div>
+            </div>
+            <div class="flex space-x-2">
+                <a href="{{ route('admin.organization-requests.index') }}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center transition-colors">
+                    <i class="fas fa-eye mr-2"></i>
+                    सबै अनुरोधहरू
+                </a>
+                @if(($pendingOrganizationRequests ?? 0) > 0)
+                <a href="{{ route('admin.organization-requests.index') }}" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center transition-colors">
+                    <i class="fas fa-clock mr-2"></i>
+                    पेन्डिङ ({{ $pendingOrganizationRequests ?? 0 }})
+                </a>
+                @endif
+            </div>
+        </div>
+
         <!-- Contact Notifications Bar -->
         <div class="bg-white rounded-lg shadow-sm p-4 flex items-center justify-between">
             <div class="flex items-center">
@@ -200,6 +230,65 @@
                     </div>
                 </div>
 
+                <!-- Organization Request Statistics -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <!-- Pending Requests Card -->
+                    <div class="stat-card bg-gradient-to-r from-orange-50 to-orange-100 border-l-4 border-orange-500 p-4 rounded-lg shadow-sm card-hover">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="text-lg font-bold text-gray-800">पेन्डिङ अनुरोध</h3>
+                                <p class="text-3xl font-bold mt-2 text-gray-900">{{ number_format($pendingOrganizationRequests ?? 0) }}</p>
+                            </div>
+                            <div class="bg-orange-500 text-white p-3 rounded-lg">
+                                <i class="fas fa-clock text-xl"></i>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-600 mt-2">स्वीकृतिको लागि पर्खिरहेका</p>
+                    </div>
+                    
+                    <!-- Approved Requests -->
+                    <div class="stat-card bg-gradient-to-r from-green-50 to-green-100 border-l-4 border-green-500 p-4 rounded-lg shadow-sm card-hover">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="text-lg font-bold text-gray-800">स्वीकृत अनुरोध</h3>
+                                <p class="text-3xl font-bold mt-2 text-gray-900">{{ number_format($approvedOrganizationRequests ?? 0) }}</p>
+                            </div>
+                            <div class="bg-green-500 text-white p-3 rounded-lg">
+                                <i class="fas fa-check-circle text-xl"></i>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-600 mt-2">स्वीकृत भएका अनुरोधहरू</p>
+                    </div>
+                    
+                    <!-- Rejected Requests -->
+                    <div class="stat-card bg-gradient-to-r from-red-50 to-red-100 border-l-4 border-red-500 p-4 rounded-lg shadow-sm card-hover">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="text-lg font-bold text-gray-800">अस्वीकृत अनुरोध</h3>
+                                <p class="text-3xl font-bold mt-2 text-gray-900">{{ number_format($rejectedOrganizationRequests ?? 0) }}</p>
+                            </div>
+                            <div class="bg-red-500 text-white p-3 rounded-lg">
+                                <i class="fas fa-times-circle text-xl"></i>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-600 mt-2">अस्वीकृत भएका अनुरोधहरू</p>
+                    </div>
+                    
+                    <!-- Total Requests -->
+                    <div class="stat-card bg-gradient-to-r from-blue-50 to-blue-100 border-l-4 border-blue-500 p-4 rounded-lg shadow-sm card-hover">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="text-lg font-bold text-gray-800">कुल अनुरोध</h3>
+                                <p class="text-3xl font-bold mt-2 text-gray-900">{{ number_format($totalOrganizationRequests ?? 0) }}</p>
+                            </div>
+                            <div class="bg-blue-500 text-white p-3 rounded-lg">
+                                <i class="fas fa-building text-xl"></i>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-600 mt-2">जम्मा संस्था दर्ता अनुरोध</p>
+                    </div>
+                </div>
+
                 <!-- Circular Statistics -->
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <!-- Total Circulars Card -->
@@ -291,7 +380,7 @@
                     <div class="relative">
                         <!-- Timeline style activities -->
                         <div class="border-l-2 border-gray-200 ml-4 pb-4">
-                            @if($metrics['recent_students']->isEmpty() && $metrics['recent_contacts']->isEmpty() && $metrics['recent_hostels']->isEmpty() && $metrics['recent_documents']->isEmpty() && empty($recentCirculars))
+                            @if($metrics['recent_students']->isEmpty() && $metrics['recent_contacts']->isEmpty() && $metrics['recent_hostels']->isEmpty() && $metrics['recent_documents']->isEmpty() && empty($recentCirculars) && empty($recentOrganizationRequests))
                             <!-- Empty State -->
                             <div class="text-center py-6">
                                 <i class="fas fa-inbox text-gray-400 text-5xl mb-4"></i>
@@ -302,6 +391,29 @@
                                 </a>
                             </div>
                             @else
+                            <!-- Recent Organization Requests -->
+                            @foreach($recentOrganizationRequests ?? [] as $request)
+                            <div class="flex items-start mb-4">
+                                <div class="bg-orange-500 rounded-full p-2 -ml-3 mt-1 relative">
+                                    <i class="fas fa-building text-white text-sm"></i>
+                                </div>
+                                <div class="ml-4 flex-1">
+                                    <h4 class="font-semibold text-gray-800">नयाँ संस्था दर्ता अनुरोध</h4>
+                                    <p class="text-sm text-gray-600 mt-1">
+                                        {{ $request->organization_name }} - {{ $request->manager_full_name }}
+                                    </p>
+                                    <div class="flex items-center mt-2">
+                                        <span class="text-xs text-gray-500 bg-gray-100 py-1 px-2 rounded-full">
+                                            <i class="far fa-clock mr-1"></i> {{ $request->created_at->diffForHumans() }}
+                                        </span>
+                                        <span class="text-xs text-orange-600 bg-orange-100 py-1 px-2 rounded-full ml-2">
+                                            पेन्डिङ
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            @endforeach
+                            
                             <!-- Recent Circulars -->
                             @foreach($recentCirculars ?? [] as $circular)
                             <div class="flex items-start mb-4">
@@ -405,12 +517,12 @@
                         </div>
 
                         <!-- Activity Count -->
-                        @if(!$metrics['recent_students']->isEmpty() || !$metrics['recent_contacts']->isEmpty() || !$metrics['recent_hostels']->isEmpty() || !$metrics['recent_documents']->isEmpty() || !empty($recentCirculars))
+                        @if(!$metrics['recent_students']->isEmpty() || !$metrics['recent_contacts']->isEmpty() || !$metrics['recent_hostels']->isEmpty() || !$metrics['recent_documents']->isEmpty() || !empty($recentCirculars) || !empty($recentOrganizationRequests))
                         <div class="mt-4">
                             <p class="text-sm text-gray-600">
                                 देखाइएको: 
                                 <span class="font-medium">
-                                    {{ $metrics['recent_students']->count() + $metrics['recent_contacts']->count() + $metrics['recent_hostels']->count() + $metrics['recent_documents']->count() + count($recentCirculars ?? []) }}
+                                    {{ $metrics['recent_students']->count() + $metrics['recent_contacts']->count() + $metrics['recent_hostels']->count() + $metrics['recent_documents']->count() + count($recentCirculars ?? []) + count($recentOrganizationRequests ?? []) }}
                                 </span> गतिविधिहरू
                             </p>
                         </div>
@@ -421,6 +533,39 @@
 
             <!-- Right Column - Quick Actions -->
             <div class="space-y-4">
+                <!-- Organization Request Actions -->
+                <div class="bg-white rounded-lg shadow-sm p-4">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">📋 संस्था दर्ता अनुरोधहरू</h2>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-2xl font-bold text-orange-600">{{ $pendingOrganizationRequests ?? 0 }}</p>
+                            <p class="text-sm text-gray-600">पेन्डिङ अनुरोधहरू</p>
+                        </div>
+                        <a href="{{ route('admin.organization-requests.index') }}" class="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg text-sm">
+                            सबै हेर्नुहोस्
+                        </a>
+                    </div>
+                    <div class="mt-4 grid grid-cols-2 gap-2">
+                        <a href="{{ route('admin.organization-requests.index') }}" class="p-3 bg-orange-50 hover:bg-orange-100 rounded-lg text-center transition-colors group border border-orange-100">
+                            <div class="text-orange-600 text-xl mb-1 group-hover:scale-110 transition-transform">
+                                <i class="fas fa-list"></i>
+                            </div>
+                            <div class="font-medium text-orange-800 text-sm">सबै अनुरोधहरू</div>
+                        </a>
+                        <a href="{{ route('admin.organization-requests.index') }}" class="p-3 bg-red-50 hover:bg-red-100 rounded-lg text-center transition-colors group border border-red-100">
+                            <div class="text-red-600 text-xl mb-1 group-hover:scale-110 transition-transform">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="font-medium text-red-800 text-sm">पेन्डिङ</div>
+                            @if(($pendingOrganizationRequests ?? 0) > 0)
+                            <span class="absolute top-2 right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                                {{ $pendingOrganizationRequests }}
+                            </span>
+                            @endif
+                        </a>
+                    </div>
+                </div>
+
                 <!-- Quick Circular Actions -->
                 <div class="bg-white rounded-lg shadow-sm p-4">
                     <h2 class="text-xl font-bold text-gray-800 mb-4">सूचना कार्यहरू</h2>
@@ -603,6 +748,21 @@
                                 </div>
                             </div>
                             <div class="text-purple-600">
+                                <i class="fas fa-check-circle text-xl"></i>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors">
+                            <div class="flex items-center">
+                                <div class="bg-orange-100 p-2 rounded-lg mr-3">
+                                    <i class="fas fa-building text-orange-600"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold">संस्था दर्ता प्रणाली</h4>
+                                    <p class="text-sm text-gray-600">{{ $pendingOrganizationRequests ?? 0 }} पेन्डिङ अनुरोधहरू</p>
+                                </div>
+                            </div>
+                            <div class="text-orange-600">
                                 <i class="fas fa-check-circle text-xl"></i>
                             </div>
                         </div>

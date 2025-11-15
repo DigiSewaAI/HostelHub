@@ -241,46 +241,49 @@
             font-family: 'Noto Sans Devanagari', sans-serif !important;
         }
         
-        /* Reduced header height by 20% */
+        /* ✅ FIXED: Proper header height and logo sizing */
         .header-content {
-            padding-top: 0.75rem !important;
-            padding-bottom: 0.75rem !important;
+            padding-top: 0.5rem !important;
+            padding-bottom: 0.5rem !important;
+            min-height: 60px !important;
         }
         
         .navbar-brand {
-            font-size: 1.1rem !important;
+            font-size: 1rem !important;
         }
         
         .notification-button, .dark-mode-toggle {
-            padding: 0.4rem !important;
+            padding: 0.35rem !important;
         }
         
         .user-dropdown .btn {
-            padding: 0.4rem 0.75rem !important;
+            padding: 0.35rem 0.65rem !important;
+            font-size: 0.875rem !important;
         }
         
-        /* Logo Styles -->
+        /* ✅ FIXED: Logo Styles - Proper sizing */
         .logo-container {
             display: flex !important;
             align-items: center !important;
             text-decoration: none !important;
+            padding: 0.25rem 0 !important;
         }
         
         .logo-img {
-            height: 40px !important;
+            height: 32px !important; /* Reduced from 40px */
             width: auto !important;
             object-fit: contain !important;
         }
         
         .logo-text {
-            margin-left: 10px !important;
+            margin-left: 8px !important;
             color: white !important;
-            font-weight: bold !important;
-            font-size: 18px !important;
+            font-weight: 600 !important;
+            font-size: 16px !important; /* Reduced from 18px */
         }
         
         .mobile-logo {
-            height: 32px !important;
+            height: 28px !important; /* Reduced from 32px */
             width: auto !important;
         }
         
@@ -447,6 +450,21 @@
             .max-w-7xl.mx-auto {
                 padding: 0 0.5rem !important;
             }
+            
+            /* ✅ FIXED: Mobile header adjustments */
+            .header-content {
+                padding-top: 0.4rem !important;
+                padding-bottom: 0.4rem !important;
+                min-height: 55px !important;
+            }
+            
+            .mobile-logo {
+                height: 24px !important;
+            }
+            
+            .navbar-brand span {
+                font-size: 0.9rem !important;
+            }
         }
 
         /* 🔥 VITE FALLBACK STYLES - Critical for when Vite fails */
@@ -461,6 +479,15 @@
         
         .no-vite .vite-asset {
             display: none;
+        }
+        
+        /* ✅ ADDED: User name styling for better fit */
+        .user-name {
+            font-size: 0.875rem !important;
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
     </style>
     
@@ -614,7 +641,7 @@
                         <!-- Brand with Logo -->
                         <a href="{{ url('/admin/dashboard') }}" class="navbar-brand text-white flex items-center">
                             <img src="{{ asset('images/logo.png') }}" alt="HostelHub Logo" class="mobile-logo mr-2" onerror="this.src='{{ asset('build/assets/logo.png') }}'">
-                            <span class="hidden md:inline">होस्टलहब - प्रशासक प्यानल</span>
+                            <span class="hidden md:inline text-sm">होस्टलहब - प्रशासक प्यानल</span>
                         </a>
                     </div>
                     
@@ -683,11 +710,11 @@
                         
                         <!-- User Dropdown -->
                         <div class="flex items-center space-x-2 user-dropdown">
-                            <span class="text-white nepali" x-show="!sidebarCollapsed || window.innerWidth >= 1024">पराशर रेग्मी</span>
+                            <span class="text-white nepali user-name" x-show="!sidebarCollapsed || window.innerWidth >= 1024">पराशर रेग्मी</span>
                             <div class="relative" x-data="{ userDropdownOpen: false }">
                                 <button @click="userDropdownOpen = !userDropdownOpen" class="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-3 py-2 rounded-lg flex items-center space-x-2 transition-all">
                                     <i class="fas fa-user-circle"></i>
-                                    <span class="nepali">प्रशासक</span>
+                                    <span class="nepali text-sm">प्रशासक</span>
                                     <i class="fas fa-chevron-down text-xs"></i>
                                 </button>
                                 
@@ -1121,7 +1148,7 @@
                 button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> प्रकाशन हुदैछ...');
                 
                 $.ajax({
-                    url: `{{ route('admin.circulars.publish', '') }}/${circularId}`,
+                    url: "{{ route('admin.circulars.publish', ['circular' => 'CIRCULAR_ID_PLACEHOLDER']) }}".replace('CIRCULAR_ID_PLACEHOLDER', circularId),
                     method: 'POST',
                     data: {
                         _token: '{{ csrf_token() }}'

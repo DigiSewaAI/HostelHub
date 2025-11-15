@@ -13,6 +13,7 @@ use App\Models\Organization;
 use App\Models\StudentDocument;
 use App\Models\Circular;
 use App\Models\CircularRecipient;
+use App\Models\OrganizationRequest;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Log;
@@ -91,6 +92,17 @@ class DashboardController extends Controller
                 $totalRecipients = CircularRecipient::count();
                 $readCirculars = CircularRecipient::where('is_read', true)->count();
                 $circularReadRate = $totalRecipients > 0 ? round(($readCirculars / $totalRecipients) * 100, 1) : 0;
+
+                // ✅ ADDED: Organization Request Statistics
+                $pendingOrganizationRequests = OrganizationRequest::where('status', 'pending')->count();
+                $approvedOrganizationRequests = OrganizationRequest::where('status', 'approved')->count();
+                $rejectedOrganizationRequests = OrganizationRequest::where('status', 'rejected')->count();
+                $totalOrganizationRequests = OrganizationRequest::count();
+                $todayOrganizationRequests = OrganizationRequest::whereDate('created_at', today())->count();
+                $recentOrganizationRequests = OrganizationRequest::with('user')
+                    ->latest()
+                    ->take(5)
+                    ->get();
 
                 // Batch room status queries for efficiency with null safety
                 $roomStatus = Room::selectRaw('
@@ -172,6 +184,13 @@ class DashboardController extends Controller
                     'published_circulars' => $publishedCirculars,
                     'urgent_circulars' => $urgentCirculars,
                     'circular_read_rate' => $circularReadRate,
+                    // ✅ ADDED: Organization Request Statistics
+                    'pending_organization_requests' => $pendingOrganizationRequests,
+                    'approved_organization_requests' => $approvedOrganizationRequests,
+                    'rejected_organization_requests' => $rejectedOrganizationRequests,
+                    'total_organization_requests' => $totalOrganizationRequests,
+                    'today_organization_requests' => $todayOrganizationRequests,
+                    'recent_organization_requests' => $recentOrganizationRequests,
                 ];
             });
 
@@ -188,6 +207,14 @@ class DashboardController extends Controller
             $todayContacts = $metrics['today_contacts'] ?? 0;
             $recentContacts = $metrics['recent_contacts'] ?? collect();
 
+            // ✅ ADDED: Organization Request data for view
+            $pendingOrganizationRequests = $metrics['pending_organization_requests'] ?? 0;
+            $approvedOrganizationRequests = $metrics['approved_organization_requests'] ?? 0;
+            $rejectedOrganizationRequests = $metrics['rejected_organization_requests'] ?? 0;
+            $totalOrganizationRequests = $metrics['total_organization_requests'] ?? 0;
+            $todayOrganizationRequests = $metrics['today_organization_requests'] ?? 0;
+            $recentOrganizationRequests = $metrics['recent_organization_requests'] ?? collect();
+
             $recentActivities = $this->getRecentActivities($metrics);
 
             return view('admin.dashboard', compact(
@@ -202,7 +229,14 @@ class DashboardController extends Controller
                 'totalContacts',
                 'unreadContacts',
                 'todayContacts',
-                'recentContacts'
+                'recentContacts',
+                // ✅ ADDED: Organization Request Variables
+                'pendingOrganizationRequests',
+                'approvedOrganizationRequests',
+                'rejectedOrganizationRequests',
+                'totalOrganizationRequests',
+                'todayOrganizationRequests',
+                'recentOrganizationRequests'
             ));
         } catch (\Exception $e) {
             // Log error details for debugging
@@ -240,6 +274,13 @@ class DashboardController extends Controller
                     'published_circulars' => 0,
                     'urgent_circulars' => 0,
                     'circular_read_rate' => 0,
+                    // ✅ ADDED: Organization Request Statistics with defaults
+                    'pending_organization_requests' => 0,
+                    'approved_organization_requests' => 0,
+                    'rejected_organization_requests' => 0,
+                    'total_organization_requests' => 0,
+                    'today_organization_requests' => 0,
+                    'recent_organization_requests' => collect(),
                 ],
                 'totalCirculars' => 0,
                 'publishedCirculars' => 0,
@@ -252,6 +293,13 @@ class DashboardController extends Controller
                 'unreadContacts' => 0,
                 'todayContacts' => 0,
                 'recentContacts' => collect(),
+                // ✅ ADDED: Organization Request Variables with defaults
+                'pendingOrganizationRequests' => 0,
+                'approvedOrganizationRequests' => 0,
+                'rejectedOrganizationRequests' => 0,
+                'totalOrganizationRequests' => 0,
+                'todayOrganizationRequests' => 0,
+                'recentOrganizationRequests' => collect(),
                 'error' => 'ड्यासबोर्ड डाटा लोड गर्न सकिएन। कृपया पछि प्रयास गर्नुहोस् वा समर्थन सम्पर्क गर्नुहोस्।'
             ]);
         }
@@ -368,6 +416,18 @@ class DashboardController extends Controller
                 'time' => $document->created_at->diffForHumans(),
                 'icon' => 'file-upload',
                 'color' => 'purple'
+            ]);
+        }
+
+        // ✅ ADDED: Recent organization requests
+        foreach ($metrics['recent_organization_requests'] ?? [] as $request) {
+            $activities->push([
+                'type' => 'organization_request',
+                'title' => 'नयाँ संस्था दर्ता अनुरोध',
+                'description' => $request->organization_name . ' (' . (optional($request->user)->name ?? 'अज्ञात प्रयोगकर्ता') . ')',
+                'time' => $request->created_at->diffForHumans(),
+                'icon' => 'building',
+                'color' => 'green'
             ]);
         }
 
@@ -766,6 +826,9 @@ class DashboardController extends Controller
             // ✅ NEW: Contact statistics for date range
             $newContacts = Contact::whereBetween('created_at', [$startDate, $endDate])->count();
 
+            // ✅ ADDED: Organization Request statistics for date range
+            $newOrganizationRequests = OrganizationRequest::whereBetween('created_at', [$startDate, $endDate])->count();
+
             // Room occupancy trend data with optimized query
             $occupancyTrend = Room::select(
                 DB::raw('DATE(created_at) as date'),
@@ -805,6 +868,16 @@ class DashboardController extends Controller
                 ->orderBy('date')
                 ->get();
 
+            // ✅ ADDED: Organization Request trend data
+            $organizationRequestTrend = OrganizationRequest::select(
+                DB::raw('DATE(created_at) as date'),
+                DB::raw('COUNT(*) as count')
+            )
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->groupBy('date')
+                ->orderBy('date')
+                ->get();
+
             return response()->json([
                 'success' => true,
                 'data' => [
@@ -812,9 +885,11 @@ class DashboardController extends Controller
                     'new_rooms' => $newRooms,
                     'new_hostels' => $newHostels,
                     'new_contacts' => $newContacts,
+                    'new_organization_requests' => $newOrganizationRequests,
                     'occupancy_trend' => $occupancyTrend,
                     'student_trend' => $studentTrend,
                     'contact_trend' => $contactTrend,
+                    'organization_request_trend' => $organizationRequestTrend,
                 ]
             ]);
         } catch (\Exception $e) {
@@ -936,6 +1011,41 @@ class DashboardController extends Controller
         } catch (\Exception $e) {
             Log::error('Contact filter error: ' . $e->getMessage());
             return redirect()->route('admin.contacts.index')->with('error', 'Filter applied गर्न असफल');
+        }
+    }
+
+    /**
+     * ✅ ADDED: Get organization request counts for real-time notifications
+     */
+    public function getOrganizationRequestCounts()
+    {
+        try {
+            $user = auth()->user();
+
+            // ✅ SECURITY FIX: Authorization check - admin only
+            if (!$user->hasRole('admin')) {
+                return response()->json([
+                    'success' => false,
+                    'pendingCount' => 0,
+                    'todayCount' => 0
+                ]);
+            }
+
+            $pendingCount = OrganizationRequest::where('status', 'pending')->count();
+            $todayCount = OrganizationRequest::whereDate('created_at', today())->count();
+
+            return response()->json([
+                'success' => true,
+                'pendingCount' => $pendingCount,
+                'todayCount' => $todayCount
+            ]);
+        } catch (\Exception $e) {
+            Log::error('संस्था अनुरोध गणना प्राप्त गर्न असफल: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'pendingCount' => 0,
+                'todayCount' => 0
+            ]);
         }
     }
 }

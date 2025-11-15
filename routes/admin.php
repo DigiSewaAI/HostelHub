@@ -13,7 +13,8 @@ use App\Http\Controllers\Admin\{
     StudentController,
     SettingsController,
     PaymentController as AdminPaymentController,
-    CircularController as AdminCircularController
+    CircularController as AdminCircularController,
+    OrganizationRequestController
 };
 use App\Http\Controllers\DocumentController;
 
@@ -33,6 +34,14 @@ Route::middleware(['auth', 'hasOrganization', 'role:admin'])
 
         // ✅ NEW: Contact counts API route for real-time notifications
         Route::get('/dashboard/contacts-count', [DashboardController::class, 'getContactCounts'])->name('dashboard.contacts-count');
+
+        // ✅ NEW: Organization Request Management Routes
+        Route::prefix('organization-requests')->name('organization-requests.')->group(function () {
+            Route::get('/', [OrganizationRequestController::class, 'index'])->name('index');
+            Route::get('/{organizationRequest}', [OrganizationRequestController::class, 'show'])->name('show');
+            Route::post('/{organizationRequest}/approve', [OrganizationRequestController::class, 'approve'])->name('approve');
+            Route::post('/{organizationRequest}/reject', [OrganizationRequestController::class, 'reject'])->name('reject');
+        });
 
         // Admin Resources - Contact Routes
         Route::resource('contacts', ContactController::class);
@@ -126,7 +135,7 @@ Route::middleware(['auth', 'hasOrganization', 'role:admin'])
 
             // ✅ ADDED: Global circular sending capability for admin
             Route::get('/global/create', [AdminCircularController::class, 'createGlobal'])->name('global.create');
-            Route::post('/global/send', [AdminCircularController::class, 'sendGlobal'])->name('global.send');
+            Route::post('/global/send', [AdminCircularController::class, 'sendGlobal'])->name('send-global');
 
             // ✅ ADDED: Circular categories and priority management
             Route::get('/categories', [AdminCircularController::class, 'categories'])->name('categories');
