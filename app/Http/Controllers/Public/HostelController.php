@@ -12,6 +12,7 @@ class HostelController extends Controller
     public function show($slug)
     {
         $hostel = Hostel::where('slug', $slug)
+            ->where('is_published', true)
             ->with(['galleries' => function ($query) {
                 $query->where('is_active', true)
                     ->orderBy('is_featured', 'desc')

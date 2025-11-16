@@ -143,7 +143,6 @@ main.home-page-main {
     border-radius: 8px;
 }
 
-
 /* 🚨 HERO FULL WIDTH FIX */
 .hero {
     min-height: 100vh !important;
@@ -186,6 +185,330 @@ main.home-page-main {
     margin: 0 auto !important;
     width: 100% !important;
     max-width: 1200px !important;
+}
+
+/* ==================== COMPACT SEARCH WIDGET STYLES ==================== */
+
+.compact-search-widget {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border-radius: 16px;
+    box-shadow: 0 15px 35px -12px rgba(0, 0, 0, 0.2), 
+                0 0 0 1px rgba(14, 165, 233, 0.1);
+    padding: 1.8rem;
+    margin: -5rem auto 2rem !important; /* Reduced from -7rem to -5rem */
+    position: relative;
+    z-index: 100;
+    width: 92%;
+    max-width: 800px; /* Reduced from 1200px to 800px */
+    border: 1px solid rgba(14, 165, 233, 0.15);
+    backdrop-filter: blur(10px);
+    transform: translateY(0);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.compact-search-widget:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3), 
+                0 0 0 1px rgba(14, 165, 233, 0.2);
+}
+
+.compact-widget-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    color: var(--primary);
+    width: 100%;
+    position: relative;
+    padding-bottom: 0.8rem;
+}
+
+.compact-widget-title::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(to right, var(--primary), var(--secondary));
+    border-radius: 2px;
+}
+
+/* Compact Form Grid Layout */
+.compact-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    width: 100%;
+    margin-bottom: 1.2rem;
+}
+
+.compact-form-group {
+    margin-bottom: 0;
+    position: relative;
+}
+
+.compact-form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: var(--primary);
+    font-size: 0.9rem;
+    transition: var(--transition);
+}
+
+/* Input with Icon */
+.compact-form-group .input-with-icon {
+    position: relative;
+}
+
+.compact-form-group .input-with-icon i {
+    position: absolute;
+    left: 0.8rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--primary);
+    font-size: 1rem;
+    z-index: 2;
+    transition: var(--transition);
+}
+
+.compact-form-control {
+    width: 100%;
+    padding: 0.8rem 0.8rem 0.8rem 2.5rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    background: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    font-family: 'Noto Sans Devanagari', 'Inter', sans-serif;
+    height: 48px;
+}
+
+.compact-form-control:focus {
+    outline: none;
+    border-color: var(--secondary);
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15), 
+                0 4px 12px rgba(14, 165, 233, 0.1);
+    background: #ffffff;
+    transform: translateY(-2px);
+}
+
+.compact-form-control:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Search Button */
+.compact-search-button {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: center;
+    margin-top: 0.5rem;
+}
+
+.compact-search-btn {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 1rem 2rem;
+    font-weight: 700;
+    font-size: 1rem;
+    box-shadow: 0 6px 20px rgba(14, 165, 233, 0.3);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 200px;
+    justify-content: center;
+}
+
+.compact-search-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 25px rgba(14, 165, 233, 0.4);
+    background: linear-gradient(135deg, var(--primary-dark), var(--secondary-dark));
+}
+
+.compact-search-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: 0.5s;
+}
+
+.compact-search-btn:hover::before {
+    left: 100%;
+}
+
+/* Quick Info Badges */
+.compact-quick-info {
+    display: flex;
+    justify-content: center;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(14, 165, 233, 0.1);
+}
+
+.quick-badge {
+    background: rgba(14, 165, 233, 0.1);
+    color: var(--primary);
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border: 1px solid rgba(14, 165, 233, 0.2);
+    transition: all 0.3s ease;
+}
+
+.quick-badge:hover {
+    background: rgba(14, 165, 233, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(14, 165, 233, 0.15);
+}
+
+/* ==================== RESPONSIVE DESIGN ==================== */
+
+/* Tablet */
+@media (max-width: 768px) {
+    .compact-search-widget {
+        margin: -4rem auto 1.5rem !important;
+        padding: 1.5rem;
+        width: 95%;
+        border-radius: 14px;
+    }
+    
+    .compact-form-grid {
+        grid-template-columns: 1fr;
+        gap: 0.8rem;
+    }
+    
+    .compact-widget-title {
+        font-size: 1.2rem;
+        margin-bottom: 1.2rem;
+    }
+    
+    .compact-form-control {
+        padding: 0.7rem 0.7rem 0.7rem 2.3rem;
+        height: 44px;
+        font-size: 0.9rem;
+    }
+    
+    .compact-form-group .input-with-icon i {
+        left: 0.7rem;
+        font-size: 0.9rem;
+    }
+    
+    .compact-search-btn {
+        padding: 0.9rem 1.5rem;
+        font-size: 0.95rem;
+        min-width: 180px;
+    }
+    
+    .compact-quick-info {
+        gap: 0.6rem;
+    }
+    
+    .quick-badge {
+        font-size: 0.75rem;
+        padding: 0.3rem 0.6rem;
+    }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+    .compact-search-widget {
+        margin: -3rem auto 1rem !important;
+        padding: 1.2rem;
+        border-radius: 12px;
+    }
+    
+    .compact-widget-title {
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .compact-form-control {
+        padding: 0.6rem 0.6rem 0.6rem 2.2rem;
+        height: 42px;
+        font-size: 0.85rem;
+    }
+    
+    .compact-form-group .input-with-icon i {
+        left: 0.6rem;
+        font-size: 0.85rem;
+    }
+    
+    .compact-search-btn {
+        padding: 0.8rem 1.2rem;
+        font-size: 0.9rem;
+        min-width: 160px;
+        gap: 0.4rem;
+    }
+    
+    .compact-quick-info {
+        gap: 0.4rem;
+        padding-top: 0.8rem;
+    }
+    
+    .quick-badge {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.5rem;
+    }
+}
+
+/* Small Mobile */
+@media (max-width: 360px) {
+    .compact-search-widget {
+        margin: -2.5rem auto 0.8rem !important;
+        padding: 1rem;
+    }
+    
+    .compact-widget-title {
+        font-size: 1rem;
+    }
+    
+    .compact-form-grid {
+        gap: 0.6rem;
+    }
+    
+    .compact-search-btn {
+        padding: 0.7rem 1rem;
+        font-size: 0.85rem;
+        min-width: 140px;
+    }
+    
+    .compact-quick-info {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.3rem;
+    }
+}
+
+/* Animation */
+@keyframes compactSlideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.compact-search-widget {
+    animation: compactSlideInUp 0.6s ease-out;
 }
 </style>
 @endpush
@@ -268,44 +591,71 @@ main.home-page-main {
     </div>
 </section>
 
-<!-- Search Widget -->
+<!-- COMPACT SEARCH WIDGET - UPDATED VERSION -->
 <div class="container">
-    <div class="search-widget">
-        <h3 class="widget-title nepali">कोठा खोजी / रिजर्भ गर्नुहोस्</h3>
-        <form class="widget-form" id="booking-form" action="{{ route('search') }}" method="GET">
-            @csrf
-            <div class="form-group">
-                <label class="nepali" for="city">स्थान / City</label>
-                <select class="form-control" name="city" id="city" required aria-required="true">
-                    <option value="">स्थान चयन गर्नुहोस्</option>
-                    @foreach($cities as $city)
-                        <option value="{{ $city }}">{{ $city }}</option>
-                    @endforeach
-                </select>
-                <div class="error-message nepali">स्थान चयन गर्नुहोस्</div>
+    <div class="compact-search-widget">
+        <h3 class="compact-widget-title nepali">🔍 कोठा खोजी / रिजर्भ गर्नुहोस्</h3>
+        <form class="compact-widget-form" id="booking-form" action="{{ route('search') }}" method="GET">
+            
+            <div class="compact-form-grid">
+                <div class="compact-form-group">
+                    <label class="nepali" for="city">📍 स्थान</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <select class="compact-form-control" name="city" id="city" required aria-required="true">
+                            <option value="">स्थान छान्नुहोस्</option>
+                            @foreach($cities as $city)
+                                <option value="{{ $city }}">{{ $city }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="compact-form-group">
+                    <label class="nepali" for="hostel_id">🏠 होस्टल</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-building"></i>
+                        <select class="compact-form-control" name="hostel_id" id="hostel_id">
+                            <option value="">सबै होस्टल</option>
+                            @foreach($hostels as $hostel)
+                                <option value="{{ $hostel->id }}">{{ $hostel->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="compact-form-group">
+                    <label class="nepali" for="check_in">📅 चेक-इन</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-calendar-alt"></i>
+                        <input type="date" class="compact-form-control" name="check_in" id="check_in" required 
+                               aria-required="true" min="{{ date('Y-m-d') }}">
+                    </div>
+                </div>
+                
+                <div class="compact-form-group">
+                    <label class="nepali" for="check_out">📅 चेक-आउट</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-calendar-check"></i>
+                        <input type="date" class="compact-form-control" name="check_out" id="check_out" required 
+                               aria-required="true" min="{{ date('Y-m-d', strtotime('+1 day')) }}">
+                    </div>
+                </div>
+                
+                <div class="compact-search-button">
+                    <button type="submit" class="compact-search-btn nepali">
+                        <i class="fas fa-search"></i>
+                        कोठा खोज्नुहोस्
+                    </button>
+                </div>
             </div>
-            <div class="form-group">
-                <label class="nepali" for="hostel_id">होस्टल / Hostel</label>
-                <select class="form-control" name="hostel_id" id="hostel_id">
-                    <option value="">सबै होस्टल</option>
-                    @foreach($hostels as $hostel)
-                        <option value="{{ $hostel->id }}">{{ $hostel->name }}</option>
-                    @endforeach
-                </select>
-                <div class="error-message nepali">होस्टल चयन गर्नुहोस्</div>
-            </div>
-            <div class="form-group">
-                <label class="nepali" for="check_in">चेक-इन मिति</label>
-                <input type="date" class="form-control" name="check_in" id="check_in" required aria-required="true" min="{{ date('Y-m-d') }}">
-                <div class="error-message nepali">चेक-इन मिति आवश्यक छ</div>
-            </div>
-            <div class="form-group">
-                <label class="nepali" for="check_out">चेक-आउट मिति</label>
-                <input type="date" class="form-control" name="check_out" id="check_out" required aria-required="true" min="{{ date('Y-m-d', strtotime('+1 day')) }}">
-                <div class="error-message nepali">चेक-आउट मिति आवश्यक छ</div>
-            </div>
-            <div class="form-group">
-                <button type="submit" class="btn btn-primary nepali" style="width: 100%; margin-top: 0.85rem;">खोज्नुहोस्</button>
+            
+            <!-- Quick Info Badges -->
+            <div class="compact-quick-info">
+                <span class="quick-badge">🎓 विद्यार्थी-अनुकूल</span>
+                <span class="quick-badge">🔒 सुरक्षित बुकिंग</span>
+                <span class="quick-badge">💰 उचित मूल्य</span>
+                <span class="quick-badge">🏠 प्रमाणित होस्टल</span>
             </div>
         </form>
     </div>
@@ -324,7 +674,7 @@ main.home-page-main {
                         @if($item['media_type'] === 'image')
                             <img src="{{ $item['thumbnail_url'] }}" alt="{{ $item['title'] }}" loading="lazy" onerror="this.onerror=null;this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgZmlsbD0iI2YwZjlmZiI+PC9yZWN0Pjx0ZXh0IHg9IjQwMCIgeT0iMjI1IiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWtkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQi IGZpbGw9IiMxZjI5MzciPkltYWdlIFRodW1ibmFpbDwvdGV4dD48L3N2Zz4=';">
                         @else
-                            <img src="{{ $item['thumbnail_url'] }}" alt="{{ $item['title'] }}" loading="lazy" class="youtube-thumbnail" data-youtube-id="{{ $item['youtube_id'] ?? '' }}" onerror="this.onerror=null;this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgZmlsbD0iIzFlM2E4YSI+PC9yZWN0Pjx0ZXh0IHg9IjQwMCIgeT0iMjI1IiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWtkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IiNmZmYiPlZpZGVvIFRodW1ibmFpbDwvdGV4dD48L3N2Zz4=';">
+                            <img src="{{ $item['thumbnail_url'] }}" alt="{{ $item['title'] }}" loading="lazy" class="youtube-thumbnail" data-youtube-id="{{ $item['youtube_id'] ?? '' }}" onerror="this.onerror=null;this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgZmlsbD0iIzFlM2E4YSI+PC9yZWN0Pjx0ZXh0IHg9IjQwMCIgeT0iMjI5IiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWtkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IiNmZmYiPlZpZGVvIFRodW1ibmFpbDwvdGV4dD48L3N2Zz4=';">
                             <div class="video-overlay">
                                 <div class="video-play-icon">
                                     <i class="fas fa-play"></i>
@@ -686,6 +1036,49 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     } catch (e) {
         console.log('Swiper error:', e);
+    }
+
+    // 🚨 SEARCH FORM VALIDATION - ADDED FIX
+    const searchForm = document.getElementById('booking-form');
+    
+    if (searchForm) {
+        searchForm.addEventListener('submit', function(e) {
+            const city = document.getElementById('city').value;
+            const checkIn = document.getElementById('check_in').value;
+            const checkOut = document.getElementById('check_out').value;
+            
+            if (!city || !checkIn || !checkOut) {
+                e.preventDefault();
+                alert('कृपया सबै आवश्यक क्षेत्रहरू भर्नुहोस्।');
+                return false;
+            }
+            
+            // Validate dates
+            if (new Date(checkOut) <= new Date(checkIn)) {
+                e.preventDefault();
+                alert('चेक-आउट मिति चेक-इन मितिभन्दा पछि हुनुपर्छ।');
+                return false;
+            }
+        });
+    }
+    
+    // Dynamic hostel dropdown based on city
+    const citySelect = document.getElementById('city');
+    const hostelSelect = document.getElementById('hostel_id');
+    
+    if (citySelect && hostelSelect) {
+        citySelect.addEventListener('change', function() {
+            const city = this.value;
+            
+            // Reset hostel dropdown
+            hostelSelect.innerHTML = '<option value="">सबै होस्टल</option>';
+            
+            if (city) {
+                // You can add AJAX call here to load hostels for specific city
+                // For now, we'll just enable the dropdown
+                console.log('City selected:', city);
+            }
+        });
     }
 });
 </script>

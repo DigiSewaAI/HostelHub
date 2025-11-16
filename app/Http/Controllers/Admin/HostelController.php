@@ -20,22 +20,63 @@ class HostelController extends Controller
     /**
      * Display a listing of hostels.
      */
-    public function index()
+    public function index(Request $request)
     {
-        // ✅ SECURITY FIX: Authorization check
+        // ✅ SECURITY FIX: Authorization check - ADMIN ONLY
         $user = auth()->user();
         if (!$user->hasRole('admin')) {
             abort(403, 'तपाईंसँग यो सूची हेर्ने अनुमति छैन');
         }
 
-        $hostels = Hostel::with(['owner', 'organization', 'organization.currentSubscription.plan'])
-            ->withCount(['rooms', 'students'])
-            ->latest()
-            ->paginate(10);
+        // ✅ NEW: Advanced filtering with request parameters
+        $query = Hostel::with(['owner', 'organization', 'organization.currentSubscription.plan'])
+            ->withCount(['rooms', 'students']);
 
-        // FIX: Ensure counts are updated from relationships for display
+        // Search functionality
+        if ($request->has('search') && !empty($request->search)) {
+            $searchTerm = '%' . addcslashes($request->search, '%_') . '%';
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('name', 'like', $searchTerm)
+                    ->orWhere('address', 'like', $searchTerm)
+                    ->orWhere('city', 'like', $searchTerm)
+                    ->orWhere('contact_phone', 'like', $searchTerm)
+                    ->orWhereHas('owner', function ($q) use ($searchTerm) {
+                        $q->where('name', 'like', $searchTerm);
+                    })
+                    ->orWhereHas('organization', function ($q) use ($searchTerm) {
+                        $q->where('name', 'like', $searchTerm);
+                    });
+            });
+        }
+
+        // Status filter
+        if ($request->has('status') && !empty($request->status)) {
+            $query->where('status', $request->status);
+        }
+
+        // Publish status filter
+        if ($request->has('publish_status') && !empty($request->publish_status)) {
+            if ($request->publish_status === 'published') {
+                $query->where('is_published', true);
+            } else {
+                $query->where('is_published', false);
+            }
+        }
+
+        // Organization filter
+        if ($request->has('organization_id') && !empty($request->organization_id)) {
+            $query->where('organization_id', $request->organization_id);
+        }
+
+        // Sort functionality
+        $sortBy = $request->get('sort_by', 'created_at');
+        $sortOrder = $request->get('sort_order', 'desc');
+        $query->orderBy($sortBy, $sortOrder);
+
+        $hostels = $query->paginate(10)->withQueryString();
+
+        // ✅ FIX: Ensure counts are accurate
         foreach ($hostels as $hostel) {
-            // Use relationship counts if database columns are outdated
             if ($hostel->total_rooms == 0 && $hostel->rooms_count > 0) {
                 $hostel->total_rooms = $hostel->rooms_count;
             }
@@ -48,14 +89,121 @@ class HostelController extends Controller
         // Statistics for admin dashboard
         $totalHostels = Hostel::count();
         $activeHostels = Hostel::where('status', 'active')->count();
+        $publishedHostels = Hostel::where('is_published', true)->count();
         $organizationsWithHostels = Organization::has('hostels')->count();
+        $organizations = Organization::all(); // For filter dropdown
 
         return view('admin.hostels.index', compact(
             'hostels',
             'totalHostels',
             'activeHostels',
-            'organizationsWithHostels'
+            'publishedHostels',
+            'organizationsWithHostels',
+            'organizations',
+            'request'
         ));
+    }
+
+    // ✅ FIXED: Bulk operations method with proper response
+    public function bulkOperations(Request $request)
+    {
+        // ✅ SECURITY FIX: Authorization check
+        $user = auth()->user();
+        if (!$user->hasRole('admin')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'तपाईंसँग यो कार्य गर्ने अनुमति छैन'
+            ], 403);
+        }
+
+        $request->validate([
+            'action' => 'required|in:publish,unpublish,activate,deactivate,delete',
+            'hostel_ids' => 'required|array',
+            'hostel_ids.*' => 'exists:hostels,id'
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            $hostels = Hostel::whereIn('id', $request->hostel_ids)->get();
+            $successCount = 0;
+            $errors = [];
+
+            foreach ($hostels as $hostel) {
+                try {
+                    switch ($request->action) {
+                        case 'publish':
+                            if (!$hostel->is_published) {
+                                $hostel->update([
+                                    'is_published' => true,
+                                    'published_at' => now()
+                                ]);
+                                $successCount++;
+                            }
+                            break;
+
+                        case 'unpublish':
+                            if ($hostel->is_published) {
+                                $hostel->update(['is_published' => false]);
+                                $successCount++;
+                            }
+                            break;
+
+                        case 'activate':
+                            if ($hostel->status !== 'active') {
+                                $hostel->update(['status' => 'active']);
+                                $successCount++;
+                            }
+                            break;
+
+                        case 'deactivate':
+                            if ($hostel->status !== 'inactive') {
+                                $hostel->update(['status' => 'inactive']);
+                                $successCount++;
+                            }
+                            break;
+
+                        case 'delete':
+                            // Check if hostel can be deleted
+                            if ($hostel->rooms()->count() > 0 || $hostel->students()->count() > 0) {
+                                $errors[] = "होस्टल '{$hostel->name}' मेटाउन सकिँदैन किनभने यसको कोठा वा विद्यार्थीहरू छन्।";
+                                // ✅ FIXED: Replace 'continue' with 'continue 2' for PHP 8.3
+                                continue 2;
+                            }
+
+                            // Delete image if exists
+                            if ($hostel->image) {
+                                Storage::disk('public')->delete($hostel->image);
+                            }
+
+                            $hostel->delete();
+                            $successCount++;
+                            break;
+                    }
+                } catch (\Exception $e) {
+                    $errors[] = "होस्टल '{$hostel->name}' मा त्रुटि: " . $e->getMessage();
+                }
+            }
+
+            DB::commit();
+
+            $message = "{$successCount} होस्टल सफलतापूर्वक अद्यावधिक गरियो";
+            if (!empty($errors)) {
+                $message .= " (" . count($errors) . " त्रुटिहरू)";
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'errors' => $errors
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'बल्क अपरेसन असफल: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -574,6 +722,59 @@ class HostelController extends Controller
             DB::rollBack();
             return back()->with('error', 'बल्क एक्सन गर्दा त्रुटि: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Publish the specified hostel.
+     */
+    public function publish(Hostel $hostel)
+    {
+        // ✅ SECURITY FIX: Authorization check
+        $user = auth()->user();
+        if (!$user->hasRole('admin')) {
+            abort(403, 'तपाईंसँग यो प्रकाशन गर्ने अनुमति छैन');
+        }
+
+        DB::beginTransaction();
+
+        try {
+            // Generate slug if not exists
+            if (!$hostel->slug) {
+                $hostel->slug = $this->generateUniqueSlug($hostel->name, $hostel->id);
+            }
+
+            $hostel->update([
+                'is_published' => true,
+                'published_at' => now(),
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('admin.hostels.index')
+                ->with('success', 'होस्टल सफलतापूर्वक प्रकाशित गरियो');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'होस्टल प्रकाशन गर्दा त्रुटि: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Unpublish the specified hostel.
+     */
+    public function unpublish(Hostel $hostel)
+    {
+        // ✅ SECURITY FIX: Authorization check
+        $user = auth()->user();
+        if (!$user->hasRole('admin')) {
+            abort(403, 'तपाईंसँग यो अप्रकाशन गर्ने अनुमति छैन');
+        }
+
+        $hostel->update([
+            'is_published' => false,
+        ]);
+
+        return redirect()->route('admin.hostels.index')
+            ->with('success', 'होस्टल सफलतापूर्वक अप्रकाशित गरियो');
     }
 
     /**

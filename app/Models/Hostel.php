@@ -544,6 +544,21 @@ class Hostel extends Model
             });
     }
 
+
+    public function getThumbnailUrlAttribute()
+    {
+        $mainImage = $this->images->first();
+        if ($mainImage && $mainImage->thumbnail) {
+            return asset('storage/' . $mainImage->thumbnail);
+        }
+
+        if ($mainImage) {
+            return asset('storage/' . $mainImage->file_path);
+        }
+
+        return asset('images/hostel-placeholder.jpg');
+    }
+
     /**
      * Check if user can modify this hostel
      */

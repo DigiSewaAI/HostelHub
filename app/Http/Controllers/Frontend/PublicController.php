@@ -10,7 +10,7 @@ use App\Models\Room;
 use App\Models\Student;
 use App\Models\Review;
 use App\Models\Newsletter;
-use App\Models\MealMenu; // ✅ NEW: MealMenu model import
+use App\Models\MealMenu;
 use App\Services\ImageService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -38,7 +38,7 @@ class PublicController extends Controller
         try {
             // 1. Featured Rooms (Available rooms with at least one vacancy) - FIXED FOR POSTGRESQL
             $featuredRooms = Room::where('status', 'available')
-                ->with(['students']) // Load students relationship
+                ->with(['students'])
                 ->get()
                 ->filter(function ($room) {
                     return $room->students->count() < $room->capacity;
@@ -57,12 +57,19 @@ class PublicController extends Controller
 
             // 3. Cities List (with caching)
             $cities = Cache::remember('home_cities', 3600, function () {
-                return Hostel::distinct()->pluck('city');
+                return Hostel::where('is_published', true)
+                    ->whereNotNull('city')
+                    ->distinct()
+                    ->pluck('city')
+                    ->filter();
             });
 
-            // 4. Featured Hostels (with caching)
-            $hostels = Cache::remember('home_hostels', 3600, function () {
-                return Hostel::with('images')->take(4)->get();
+            // 4. Featured Hostels (with caching) - 🚨 FIXED: Remove take(4) to get ALL hostels
+            $hostels = Cache::remember('home_hostels_all', 3600, function () {
+                return Hostel::where('is_published', true)
+                    ->where('status', 'active')
+                    ->with('images')
+                    ->get(); // 🚨 REMOVED: ->take(4)
             });
 
             // 5. Recent Testimonials (with caching)
@@ -73,12 +80,12 @@ class PublicController extends Controller
                     ->get();
             });
 
-            // 6. Room Types (with caching) - UPDATED
+            // 6. Room Types (with caching)
             $roomTypes = Cache::remember('home_room_types', 3600, function () {
                 return Room::distinct()->pluck('type');
             });
 
-            // 7. Hero Slider Items (with caching) - ✅ UPDATED: Include hostel names WITH FALLBACK
+            // 7. Hero Slider Items (with caching)
             $heroSliderItems = Cache::remember('home_hero_slider_items', 3600, function () {
                 $items = Gallery::with(['hostel', 'room.hostel'])
                     ->where('is_active', true)
@@ -91,7 +98,6 @@ class PublicController extends Controller
                         return $this->processGalleryItemForHome($item);
                     });
 
-                // 🚨 CRITICAL FIX: Add fallback if no items
                 if ($items->isEmpty()) {
                     return collect([
                         [
@@ -114,7 +120,7 @@ class PublicController extends Controller
                 return $items;
             });
 
-            // 8. Gallery Items (with caching) - ✅ UPDATED: Include hostel names WITH FALLBACK
+            // 8. Gallery Items (with caching)
             $galleryItems = Cache::remember('home_gallery_items', 3600, function () {
                 $items = Gallery::with(['hostel', 'room.hostel'])
                     ->where('is_active', true)
@@ -126,7 +132,6 @@ class PublicController extends Controller
                         return $this->processGalleryItemForHome($item);
                     });
 
-                // 🚨 CRITICAL FIX: Add fallback if no items
                 if ($items->isEmpty()) {
                     return collect([
                         [
@@ -147,25 +152,10 @@ class PublicController extends Controller
                 return $items;
             });
 
-            // 9. Upcoming Meals (Today + next 2 days) - 🚨 TEMPORARILY COMMENTED OUT
+            // 9. Upcoming Meals (Temporarily commented out)
             $meals = collect();
-            // if (class_exists(Meal::class)) {
-            //     try {
-            //         $meals = Meal::whereDate('date', '>=', now())
-            //             ->where('status', 'published')
-            //             ->orderBy('date')
-            //             ->limit(3)
-            //             ->get();
-            //     } catch (\Exception $e) {
-            //         Log::warning('Meals status column not available: ' . $e->getMessage());
-            //         $meals = Meal::whereDate('date', '>=', now())
-            //             ->orderBy('date')
-            //             ->limit(3)
-            //             ->get();
-            //     }
-            // }
 
-            // ✅ NEW: Featured Meal Menus for Homepage
+            // 10. Featured Meal Menus
             $featuredMealMenus = Cache::remember('home_featured_meal_menus', 3600, function () {
                 return MealMenu::with('hostel')
                     ->where('is_active', true)
@@ -187,7 +177,7 @@ class PublicController extends Controller
                 'heroSliderItems',
                 'galleryItems',
                 'meals',
-                'featuredMealMenus' // ✅ NEW: Featured meal menus
+                'featuredMealMenus'
             ));
         } catch (\Exception $e) {
             Log::error('PublicController@home error: ' . $e->getMessage());
@@ -215,7 +205,7 @@ class PublicController extends Controller
                 ]),
                 'galleryItems' => collect(),
                 'meals' => collect(),
-                'featuredMealMenus' => collect() // ✅ NEW: Empty collection on error
+                'featuredMealMenus' => collect()
             ]);
         }
     }
@@ -235,9 +225,9 @@ class PublicController extends Controller
             'thumbnail_url' => '',
             'file_url' => '',
             'youtube_id' => null,
-            'hostel_name' => $item->hostel_name, // ✅ ADDED: Hostel name
+            'hostel_name' => $item->hostel_name,
             'hostel_id' => $item->hostel_id,
-            'is_room_image' => !is_null($item->room_id) // ✅ ADDED: Room image flag
+            'is_room_image' => !is_null($item->room_id)
         ];
 
         if ($item->media_type === 'photo') {
@@ -294,17 +284,115 @@ class PublicController extends Controller
     }
 
     /**
-     * Show only available rooms gallery - COMPLETELY FIXED COUNTS
+     * 🚨 UPDATED: FIXED search method with proper pagination and variable passing
+     */
+    public function search(Request $request)
+    {
+        try {
+            \Log::info("=== ENHANCED SEARCH REQUEST ===", $request->all());
+
+            // Validation
+            $request->validate([
+                'city' => 'required|string|min:2',
+                'hostel_id' => 'nullable|exists:hostels,id',
+                'check_in' => 'required|date',
+                'check_out' => 'required|date|after:check_in',
+                'min_price' => 'nullable|numeric|min:0',
+                'max_price' => 'nullable|numeric|min:0',
+                'room_type' => 'nullable|string',
+                'facilities' => 'nullable|array',
+                'sort_by' => 'nullable|in:price_low,price_high,rating,newest'
+            ]);
+
+            // Start with active published hostels
+            $query = Hostel::where('is_published', true)
+                ->where('status', 'active');
+
+            // Filter by city
+            if ($request->filled('city')) {
+                $query->where('city', 'like', '%' . $request->city . '%');
+            }
+
+            // Filter by specific hostel
+            if ($request->filled('hostel_id')) {
+                $query->where('id', $request->hostel_id);
+            }
+
+            // Price filter
+            if ($request->filled('min_price') || $request->filled('max_price')) {
+                $query->whereHas('rooms', function ($roomQuery) use ($request) {
+                    $roomQuery->where('status', 'available')
+                        ->where('available_beds', '>', 0);
+                    if ($request->filled('min_price')) {
+                        $roomQuery->where('price', '>=', $request->min_price);
+                    }
+                    if ($request->filled('max_price')) {
+                        $roomQuery->where('price', '<=', $request->max_price);
+                    }
+                });
+            }
+
+            // Enhanced eager loading
+            $hostels = $query->with([
+                'images' => function ($query) {
+                    $query->where('is_active', true)
+                        ->orderBy('is_featured', 'desc')
+                        ->orderBy('created_at', 'desc');
+                },
+                'facilities',
+                'reviews' => function ($query) {
+                    $query->where('is_published', true);
+                },
+                'rooms' => function ($roomQuery) use ($request) {
+                    $roomQuery->where('status', 'available')
+                        ->where('available_beds', '>', 0);
+                    if ($request->filled('room_type')) {
+                        $roomQuery->where('type', $request->room_type);
+                    }
+                }
+            ])
+                ->withCount(['rooms as available_rooms_count' => function ($roomQuery) {
+                    $roomQuery->where('status', 'available')
+                        ->where('available_beds', '>', 0);
+                }])
+                ->withAvg('reviews', 'rating')
+                ->paginate(12);
+
+            // Search filters for view
+            $searchFilters = [
+                'city' => $request->city,
+                'checkin' => $request->check_in,
+                'checkout' => $request->check_out,
+                'hostel_id' => $request->hostel_id,
+                'min_price' => $request->min_price,
+                'max_price' => $request->max_price,
+                'room_type' => $request->room_type,
+                'facilities' => $request->facilities,
+                'sort_by' => $request->sort_by
+            ];
+
+            \Log::info("Enhanced search results:", [
+                'total_hostels' => $hostels->total(),
+                'filters_applied' => $searchFilters
+            ]);
+
+            return view('frontend.search-results', compact('hostels', 'searchFilters'));
+        } catch (\Exception $e) {
+            \Log::error('Enhanced search error: ' . $e->getMessage());
+            return back()->with('error', 'खोजी प्रक्रिया असफल: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Show only available rooms gallery
      */
     public function hostelGallery($slug)
     {
         try {
             \Log::info("=== MAIN GALLERY DEBUG START ===", ['slug' => $slug]);
 
-            // Get hostel with available rooms and their images only
             $hostel = Hostel::where('slug', $slug)
                 ->with(['rooms' => function ($query) {
-                    // ✅ UPDATED: Only rooms that have available beds
                     $query->where('available_beds', '>', 0)
                         ->where('status', '!=', 'मर्मत सम्भार');
                 }])
@@ -314,7 +402,6 @@ class PublicController extends Controller
                 abort(404, 'होस्टल फेला परेन।');
             }
 
-            // ✅ UPDATED: Count available rooms by TYPE (not capacity)
             $availableRoomCounts = [
                 '1 seater' => $hostel->rooms->where('type', '1 seater')->count(),
                 '2 seater' => $hostel->rooms->where('type', '2 seater')->count(),
@@ -323,7 +410,6 @@ class PublicController extends Controller
                 'other' => $hostel->rooms->whereNotIn('type', ['1 seater', '2 seater', '3 seater', '4 seater'])->count(),
             ];
 
-            // ✅ NEW: Get meal menus for this hostel
             $mealMenus = MealMenu::where('hostel_id', $hostel->id)
                 ->where('is_active', true)
                 ->orderBy('day_of_week')
@@ -335,29 +421,17 @@ class PublicController extends Controller
                 'available_rooms_count' => $hostel->rooms->count(),
                 'available_room_counts' => $availableRoomCounts,
                 'meal_menus_count' => $mealMenus->count(),
-                'rooms_debug' => $hostel->rooms->map(function ($room) {
-                    return [
-                        'room_number' => $room->room_number,
-                        'type' => $room->type,
-                        'capacity' => $room->capacity,
-                        'current_occupancy' => $room->current_occupancy,
-                        'available_beds' => $room->available_beds,
-                        'status' => $room->status
-                    ];
-                })
             ]);
 
-            // ✅ UPDATED: Get galleries with hostel and room relationships
             $galleries = Gallery::with(['hostel', 'room'])
                 ->where('hostel_id', $hostel->id)
                 ->where('is_active', true)
-                ->where('media_type', 'photo') // Only photos, no videos
-                ->whereIn('category', ['1 seater', '2 seater', '3 seater', '4 seater', 'other']) // Only room categories
+                ->where('media_type', 'photo')
+                ->whereIn('category', ['1 seater', '2 seater', '3 seater', '4 seater', 'other'])
                 ->orderBy('is_featured', 'desc')
                 ->orderBy('created_at', 'desc')
                 ->get()
                 ->filter(function ($gallery) use ($availableRoomCounts) {
-                    // Only show galleries for room types that have available rooms
                     return ($availableRoomCounts[$gallery->category] ?? 0) > 0;
                 });
 
@@ -373,7 +447,7 @@ class PublicController extends Controller
                 'hostel',
                 'galleries',
                 'availableRoomCounts',
-                'mealMenus' // ✅ NEW: Pass meal menus to view
+                'mealMenus'
             ));
         } catch (\Exception $e) {
             \Log::error('Main gallery error: ' . $e->getMessage());
@@ -382,18 +456,17 @@ class PublicController extends Controller
     }
 
     /**
-     * Show full gallery with all images/videos - CLEANED & FIXED
+     * Show full gallery with all images/videos
      */
     public function hostelFullGallery($slug)
     {
         try {
             \Log::info("=== FULL GALLERY DEBUG START ===", ['slug' => $slug]);
 
-            // ✅ UPDATED: Include room relationship for room galleries
             $hostel = Hostel::where('slug', $slug)
                 ->with(['galleries' => function ($query) {
                     $query->where('is_active', true)
-                        ->with('room') // ✅ ADDED: Load room relationship
+                        ->with('room')
                         ->orderBy('is_featured', 'desc')
                         ->orderBy('created_at', 'desc');
                 }])
@@ -403,14 +476,12 @@ class PublicController extends Controller
                 abort(404, 'होस्टल फेला परेन।');
             }
 
-            // ✅ NEW: Get meal menus for this hostel
             $mealMenus = MealMenu::where('hostel_id', $hostel->id)
                 ->where('is_active', true)
                 ->orderBy('day_of_week')
                 ->orderBy('meal_type')
                 ->get();
 
-            // Count items by category for full gallery
             $activeGalleries = $hostel->galleries->where('is_active', true);
 
             $categoryCounts = [
@@ -418,7 +489,7 @@ class PublicController extends Controller
                 'kitchen' => $activeGalleries->where('category', 'kitchen')->count(),
                 'facilities' => $activeGalleries->whereIn('category', ['bathroom', 'common', 'living room', 'study room'])->count(),
                 'video' => $activeGalleries->whereIn('media_type', ['local_video', 'external_video'])->count(),
-                'meals' => $mealMenus->count() // ✅ NEW: Meal menus count
+                'meals' => $mealMenus->count()
             ];
 
             \Log::info("Full gallery data:", [
@@ -431,7 +502,7 @@ class PublicController extends Controller
             return view('public.hostels.full-gallery', compact(
                 'hostel',
                 'categoryCounts',
-                'mealMenus' // ✅ NEW: Pass meal menus to view
+                'mealMenus'
             ));
         } catch (\Exception $e) {
             \Log::error('Full gallery error: ' . $e->getMessage());
@@ -447,7 +518,6 @@ class PublicController extends Controller
         try {
             $hostel = Hostel::where('slug', $slug)->firstOrFail();
 
-            // ✅ UPDATED: Include room relationship and use hostel_name
             $galleries = $hostel->galleries()
                 ->with('room')
                 ->where('is_active', true)
@@ -470,9 +540,9 @@ class PublicController extends Controller
                         'is_youtube_video' => $item->is_youtube_video,
                         'youtube_embed_url' => $item->youtube_embed_url,
                         'category_nepali' => $item->category_nepali,
-                        'hostel_name' => $hostel->name, // ✅ ADDED: Hostel name
+                        'hostel_name' => $hostel->name,
                         'room_number' => $item->room ? $item->room->room_number : null,
-                        'is_room_image' => !is_null($item->room_id) // ✅ ADDED: Room image flag
+                        'is_room_image' => !is_null($item->room_id)
                     ];
                 });
 
@@ -481,31 +551,6 @@ class PublicController extends Controller
             \Log::error('Hostel gallery API error: ' . $e->getMessage());
             return response()->json(['error' => 'ग्यालरी डाटा लोड गर्न असफल'], 500);
         }
-    }
-
-    /**
-     * Handle search request
-     */
-    public function search(Request $request)
-    {
-        $request->validate([
-            'city' => 'required|string',
-            'hostel_id' => 'nullable|exists:hostels,id',
-            'check_in' => 'required|date',
-            'check_out' => 'required|date|after:check_in',
-        ]);
-
-        $rooms = Room::where('status', 'available')
-            ->whereHas('hostel', function ($query) use ($request) {
-                $query->where('city', $request->city)
-                    ->when($request->hostel_id, function ($q) use ($request) {
-                        return $q->where('id', $request->hostel_id);
-                    });
-            })
-            ->with('hostel')
-            ->get();
-
-        return view('frontend.search-results', compact('rooms'));
     }
 
     // Room search functionality
@@ -565,12 +610,10 @@ class PublicController extends Controller
             return redirect()->route('login')->with('error', 'Please login as a student to join a hostel.');
         }
 
-        // Check if student already has a hostel
         if ($user->student->hostel_id) {
             return back()->with('error', 'You are already assigned to a hostel.');
         }
 
-        // Assign student to hostel
         $user->student->update(['hostel_id' => $hostel->id]);
 
         return redirect()->route('student.dashboard')
@@ -638,7 +681,6 @@ class PublicController extends Controller
             'email' => 'required|email|unique:newsletters,email',
         ]);
 
-        // Store newsletter subscription
         Newsletter::create([
             'email' => $request->email,
         ]);
@@ -653,7 +695,6 @@ class PublicController extends Controller
     {
         $query = Hostel::where('is_published', true)->withCount('approvedReviews');
 
-        // Search functionality
         if ($request->has('search')) {
             $search = $request->get('search');
             $query->where(function ($q) use ($search) {
@@ -663,7 +704,6 @@ class PublicController extends Controller
             });
         }
 
-        // Filter by city
         if ($request->has('city')) {
             $query->where('city', $request->get('city'));
         }
@@ -683,33 +723,22 @@ class PublicController extends Controller
             ->where('slug', $slug)
             ->firstOrFail();
 
-        // Get reviews for the hostel
         $reviews = $hostel->approvedReviews()->with('student.user')->paginate(10);
-
-        // Calculate review statistics
         $reviewCount = $hostel->approvedReviews()->count();
         $avgRating = $hostel->approvedReviews()->avg('rating') ?? 0;
-
-        // Calculate student count
         $studentCount = $hostel->students()->where('status', 'active')->count();
 
-        // ✅ FIXED: Proper logo URL normalization
         $logo = $this->normalizeLogoUrl($hostel->logo_path);
-
-        // ✅ FIXED: Proper facilities parsing
         $facilities = $this->parseFacilities($hostel->facilities);
 
-        // ✅ NEW: Get room galleries for this hostel
         $roomGalleries = $hostel->publicRoomGalleries;
 
-        // ✅ NEW: Get meal menus for this hostel
         $mealMenus = MealMenu::where('hostel_id', $hostel->id)
             ->where('is_active', true)
             ->orderBy('day_of_week')
             ->orderBy('meal_type')
             ->get();
 
-        // Log for debugging
         \Log::info("Hostel Show - Slug: {$slug}", [
             'logo_path' => $hostel->logo_path,
             'logo_normalized' => $logo,
@@ -719,18 +748,13 @@ class PublicController extends Controller
             'meal_menus_count' => $mealMenus->count()
         ]);
 
-        // Determine theme (default = modern)
         $theme = $hostel->theme ?? 'modern';
-
-        // Construct view path dynamically
         $viewPath = "public.hostels.themes.$theme";
 
-        // Fallback if chosen theme file doesn't exist
         if (!view()->exists($viewPath)) {
             $viewPath = 'public.hostels.themes.modern';
         }
 
-        // Render themed view with all necessary data
         return view($viewPath, compact(
             'hostel',
             'reviews',
@@ -739,13 +763,13 @@ class PublicController extends Controller
             'studentCount',
             'logo',
             'facilities',
-            'roomGalleries', // ✅ ADDED: Room galleries for display
-            'mealMenus' // ✅ NEW: Meal menus for display
+            'roomGalleries',
+            'mealMenus'
         ));
     }
 
     /**
-     * ✅ FIXED: Better logo URL normalization
+     * Better logo URL normalization
      */
     private function normalizeLogoUrl($logoPath)
     {
@@ -753,30 +777,25 @@ class PublicController extends Controller
             return null;
         }
 
-        // If it's already a full URL, use it as is
         if (filter_var($logoPath, FILTER_VALIDATE_URL)) {
             return $logoPath;
         }
 
-        // If it starts with http but might not validate as URL
         if (str_starts_with($logoPath, 'http')) {
             return $logoPath;
         }
 
-        // Clean the path
         $cleanPath = ltrim($logoPath, '/');
 
-        // Check if file exists in storage
         if (\Storage::disk('public')->exists($cleanPath)) {
             return asset('storage/' . $cleanPath);
         }
 
-        // Fallback: try the original path
         return asset('storage/' . $cleanPath);
     }
 
     /**
-     * ✅ FIXED: Better facilities parsing with Unicode handling
+     * Better facilities parsing with Unicode handling
      */
     private function parseFacilities($facilitiesData)
     {
@@ -784,23 +803,18 @@ class PublicController extends Controller
             return [];
         }
 
-        // If it's already an array, return as is
         if (is_array($facilitiesData)) {
             return array_values(array_filter(array_map('trim', $facilitiesData)));
         }
 
-        // If it's a string, try to parse it
         if (is_string($facilitiesData)) {
-            // Try JSON decode first
             $decoded = json_decode($facilitiesData, true);
 
             if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-                // JSON decoded successfully
                 $flattened = [];
                 array_walk_recursive($decoded, function ($item) use (&$flattened) {
                     if (is_string($item) && !empty(trim($item))) {
                         $trimmed = trim($item);
-                        // Clean and decode Unicode
                         $cleaned = $this->cleanAndDecodeString($trimmed);
                         if (!empty($cleaned)) {
                             $flattened[] = $cleaned;
@@ -809,7 +823,6 @@ class PublicController extends Controller
                 });
                 return array_values(array_unique(array_filter($flattened)));
             } else {
-                // If not JSON, try different separators
                 $facilities = preg_split('/\r\n|\r|\n|,/', $facilitiesData);
                 $cleaned = array_map(function ($item) {
                     return $this->cleanAndDecodeString($item);
@@ -825,7 +838,7 @@ class PublicController extends Controller
     }
 
     /**
-     * ✅ NEW: Clean and decode string with Unicode support
+     * Clean and decode string with Unicode support
      */
     private function cleanAndDecodeString($string)
     {
@@ -836,7 +849,6 @@ class PublicController extends Controller
             return null;
         }
 
-        // Handle Unicode escape sequences
         if (preg_match('/\\\\u[0-9a-fA-F]{4}/', $trimmed)) {
             $decoded = json_decode('"' . str_replace('"', '\\"', $trimmed) . '"');
             if ($decoded !== null && json_last_error() === JSON_ERROR_NONE) {
@@ -852,7 +864,6 @@ class PublicController extends Controller
      */
     public function hostelPreview($slug)
     {
-        // For owner preview - allow viewing even if not published
         $hostel = Hostel::with([
             'images',
             'rooms',
@@ -862,14 +873,11 @@ class PublicController extends Controller
 
         $user = auth()->user();
 
-        // Allow preview for authenticated users with proper roles
         if ($user) {
-            // Admin can preview any hostel
             if ($user->hasRole('admin')) {
                 return $this->renderHostelPreview($hostel);
             }
 
-            // For owner and hostel_manager, check if the hostel belongs to their current organization
             if ($user->hasRole('owner') || $user->hasRole('hostel_manager')) {
                 $userOrganizationId = session('current_organization_id');
 
@@ -887,42 +895,29 @@ class PublicController extends Controller
      */
     private function renderHostelPreview($hostel)
     {
-        // Get reviews for the hostel
         $reviews = $hostel->approvedReviews()->with('student.user')->paginate(10);
-
-        // Calculate review statistics
         $reviewCount = $hostel->approvedReviews()->count();
         $avgRating = $hostel->approvedReviews()->avg('rating') ?? 0;
-
-        // Calculate student count
         $studentCount = $hostel->students()->where('status', 'active')->count();
 
-        // ✅ NORMALIZED: Use the same logo and facilities normalization
         $logo = $this->normalizeLogoUrl($hostel->logo);
         $facilities = $this->parseFacilities($hostel->facilities);
 
-        // ✅ NEW: Get room galleries for this hostel
         $roomGalleries = $hostel->publicRoomGalleries;
 
-        // ✅ NEW: Get meal menus for this hostel
         $mealMenus = MealMenu::where('hostel_id', $hostel->id)
             ->where('is_active', true)
             ->orderBy('day_of_week')
             ->orderBy('meal_type')
             ->get();
 
-        // Determine theme (default = modern)
         $theme = $hostel->theme ?? 'modern';
-
-        // Construct view path dynamically
         $viewPath = "public.hostels.themes.$theme";
 
-        // Fallback if chosen theme file doesn't exist
         if (!view()->exists($viewPath)) {
             $viewPath = "public.hostels.themes.modern";
         }
 
-        // Render themed view with preview flag
         return view($viewPath, compact(
             'hostel',
             'reviews',
@@ -931,12 +926,12 @@ class PublicController extends Controller
             'studentCount',
             'logo',
             'facilities',
-            'roomGalleries', // ✅ ADDED: Room galleries for display
-            'mealMenus' // ✅ NEW: Meal menus for display
+            'roomGalleries',
+            'mealMenus'
         ))->with('preview', true);
     }
 
-    // ✅ NEW: Gallery Integration Methods
+    // Gallery Integration Methods
 
     /**
      * Get featured gallery items for homepage WITH HOSTEL NAMES
@@ -1012,15 +1007,15 @@ class PublicController extends Controller
             'thumbnail_url' => $item->thumbnail_url,
             'external_link' => $item->external_link,
             'created_at' => $item->created_at->format('Y-m-d'),
-            'hostel_name' => $item->hostel_name, // ✅ ADDED: Hostel name
+            'hostel_name' => $item->hostel_name,
             'hostel_id' => $item->hostel_id,
             'room_number' => $item->room ? $item->room->room_number : null,
-            'is_room_image' => !is_null($item->room_id) // ✅ ADDED: Room image flag
+            'is_room_image' => !is_null($item->room_id)
         ];
     }
 
     /**
-     * ✅ NEW: Get available hostels for search
+     * Get available hostels for search
      */
     public function getAvailableHostels(Request $request)
     {
@@ -1044,7 +1039,7 @@ class PublicController extends Controller
     }
 
     /**
-     * ✅ NEW: Get room availability for specific hostel
+     * Get room availability for specific hostel
      */
     public function getHostelRoomAvailability($slug)
     {
@@ -1082,7 +1077,7 @@ class PublicController extends Controller
     }
 
     /**
-     * ✅ NEW: Quick search functionality
+     * Quick search functionality
      */
     public function quickSearch(Request $request)
     {
@@ -1093,7 +1088,6 @@ class PublicController extends Controller
         try {
             $query = $request->get('query');
 
-            // Search hostels
             $hostels = Hostel::where('is_published', true)
                 ->where(function ($q) use ($query) {
                     $q->where('name', 'like', "%{$query}%")
@@ -1114,7 +1108,6 @@ class PublicController extends Controller
                     ];
                 });
 
-            // Search available rooms
             $rooms = Room::where('status', 'available')
                 ->where('available_beds', '>', 0)
                 ->whereHas('hostel', function ($q) use ($query) {
@@ -1152,7 +1145,7 @@ class PublicController extends Controller
         }
     }
 
-    // ✅ NEW: Meal Gallery Methods
+    // Meal Gallery Methods
 
     /**
      * Show meal gallery page

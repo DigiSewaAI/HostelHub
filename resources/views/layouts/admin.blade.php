@@ -324,12 +324,15 @@
             }
         }
 
-        /* 🚨 EMERGENCY WHITE SPACE FIX - CRITICAL */
+        /* 🔥 CRITICAL LAYOUT FIXES - UPDATED */
         .main-content-spacing {
             margin-left: 16rem !important;
             width: calc(100vw - 16rem) !important;
             max-width: none !important;
             transition: margin-left 0.3s !important;
+            min-height: 100vh !important;
+            display: flex !important;
+            flex-direction: column !important;
         }
         
         .main-content-spacing.collapsed {
@@ -341,19 +344,24 @@
             max-width: none !important;
             width: 100% !important;
             margin: 0 !important;
-            padding: 0 1rem !important;
+            padding: 0 !important;
         }
 
         main#main-content {
+            flex: 1 !important;
             padding: 1rem !important;
             margin: 0 !important;
             width: 100% !important;
+            max-width: none !important;
+            overflow-x: hidden !important;
         }
 
         .bg-white.rounded-xl {
             border-radius: 0.5rem !important;
             margin: 0 !important;
             width: 100% !important;
+            min-height: auto !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
         }
 
         /* Fix main content container */
@@ -380,7 +388,8 @@
         .bg-white.dark\:bg-gray-700.rounded-xl {
             border-radius: 0.5rem !important;
             margin: 0 !important;
-            min-height: calc(100vh - 8rem) !important;
+            min-height: auto !important;
+            width: 100% !important;
         }
 
         /* ✅ ADDED: Circular specific styles for admin */
@@ -434,6 +443,124 @@
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
+        /* ✅ ADDED: Bulk Actions Specific Styles */
+        .bulk-actions-panel {
+            background: #f8f9fa !important;
+            padding: 1rem !important;
+            border-radius: 0.5rem !important;
+            border: 1px solid #e3e6f0 !important;
+            margin-bottom: 1rem !important;
+            transition: all 0.3s ease !important;
+        }
+        
+        .bulk-actions-panel.show {
+            display: flex !important;
+            align-items: center !important;
+            gap: 1rem !important;
+        }
+        
+        .bulk-select-all {
+            margin-right: 0.5rem !important;
+        }
+        
+        .hostel-checkbox {
+            margin-right: 0.5rem !important;
+        }
+
+        /* Fix table responsiveness */
+        .table-responsive {
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+        }
+
+        /* Ensure table doesn't break layout */
+        .dataTables_wrapper {
+            width: 100% !important;
+        }
+
+        /* Fix card body padding for tables */
+        .card-body {
+            padding: 1.5rem !important;
+            width: 100% !important;
+        }
+
+        /* Ensure proper spacing for bulk actions */
+        .bulk-actions {
+            background: #f8f9fa;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e3e6f0;
+        }
+
+        /* Fix button group spacing */
+        .btn-group {
+            flex-wrap: nowrap !important;
+        }
+
+        /* 🔥 FIX: Header spacing */
+        header.bg-gradient-primary {
+            position: relative !important;
+            z-index: 10 !important;
+        }
+
+        /* 🔥 FIX: Body and html height */
+        html, body {
+            height: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow-x: hidden !important;
+        }
+
+        /* 🔥 FIX: Card spacing */
+        .card {
+            margin-bottom: 1.5rem !important;
+        }
+
+        .card-body {
+            padding: 1.5rem !important;
+        }
+
+        /* 🔥 FIX: Statistics cards grid */
+        .row.mb-4 {
+            margin: 0 -0.75rem !important;
+        }
+
+        .row.mb-4 > [class*="col-"] {
+            padding: 0 0.75rem !important;
+            margin-bottom: 1rem !important;
+        }
+
+        /* 🔥 FIX: Bulk actions panel */
+        .bulk-actions {
+            background: #f8f9fa !important;
+            padding: 0.75rem !important;
+            border-radius: 0.5rem !important;
+            border: 1px solid #e3e6f0 !important;
+            margin-bottom: 1rem !important;
+        }
+
+        /* 🔥 FIX: Search form layout */
+        #searchForm .row {
+            margin: 0 -0.5rem !important;
+        }
+
+        #searchForm .row > [class*="col-"] {
+            padding: 0 0.5rem !important;
+        }
+
+        /* 🔥 FIX: Ensure content flows properly */
+        .flex-1.overflow-y-auto {
+            flex: 1 !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+
+        /* 🔥 FIX: Footer stays at bottom */
+        footer {
+            margin-top: auto !important;
+            background: white !important;
+        }
+
         /* Mobile fixes */
         @media (max-width: 1023px) {
             .sidebar-mobile {
@@ -465,6 +592,35 @@
             .navbar-brand span {
                 font-size: 0.9rem !important;
             }
+            
+            /* Mobile table fixes */
+            .table-responsive {
+                font-size: 0.875rem !important;
+            }
+            
+            .bulk-actions-panel {
+                flex-direction: column !important;
+                gap: 0.5rem !important;
+            }
+            
+            .btn-group {
+                flex-wrap: wrap !important;
+                gap: 0.25rem;
+            }
+            
+            .btn-group .btn {
+                margin-bottom: 0.25rem;
+            }
+
+            /* 🔥 FIX: Mobile responsiveness */
+            .main-content-spacing {
+                margin-left: 0 !important;
+                width: 100vw !important;
+            }
+            
+            #main-content {
+                padding: 0.5rem !important;
+            }
         }
 
         /* 🔥 VITE FALLBACK STYLES - Critical for when Vite fails */
@@ -488,6 +644,19 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+        }
+        
+        /* ✅ ADDED: Critical layout overflow fixes */
+        .overflow-fix {
+            overflow: visible !important;
+        }
+        
+        .min-w-full {
+            min-width: 100% !important;
+        }
+
+        .d-none {
+            display: none !important;
         }
     </style>
     
@@ -630,7 +799,7 @@
         </aside>
 
         <!-- Main Content -->
-        <div class="flex-1 flex flex-col overflow-hidden main-content-spacing transition-all duration-300" :class="{ 'collapsed': sidebarCollapsed }">
+        <div class="flex-1 flex flex-col overflow-auto main-content-spacing transition-all duration-300 overflow-fix" :class="{ 'collapsed': sidebarCollapsed }">
             <!-- Top Navigation -->
             <header class="bg-gradient-primary shadow-sm z-10">
                 <div class="flex items-center justify-between px-6 header-content">
@@ -748,59 +917,62 @@
             </header>
 
             <!-- Page Content -->
-            <main id="main-content" class="flex-1 overflow-y-auto p-4 md:p-6 bg-gray-50 dark:bg-gray-800">
-                <div class="max-w-7xl mx-auto">
-                    <!-- Page Header -->
-                    <div class="mb-6">
-                        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                            <div>
-                                <h1 class="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white mb-1 md:block">@yield('title')</h1>
-                                @if(View::hasSection('page-description'))
-                                    <p class="text-gray-600 dark:text-gray-300 text-sm">@yield('page-description')</p>
-                                @endif
-                            </div>
-                            <div>
-                                @yield('header-buttons')
+            <main id="main-content" class="flex-1 overflow-y-auto p-4 md:p-6 bg-gray-50 dark:bg-gray-800 overflow-fix">
+                <div class="h-full">
+                    <!-- Remove max-w-7xl and mx-auto to use full width -->
+                    <div class="w-full">
+                        <!-- Page Header -->
+                        <div class="mb-6">
+                            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                                <div>
+                                    <h1 class="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white mb-1 md:block">@yield('title')</h1>
+                                    @if(View::hasSection('page-description'))
+                                        <p class="text-gray-600 dark:text-gray-300 text-sm">@yield('page-description')</p>
+                                    @endif
+                                </div>
+                                <div>
+                                    @yield('header-buttons')
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Session Messages -->
-                    @if (session('success'))
-                        <div class="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg flex items-center dark:bg-green-900 dark:border-green-700 dark:text-green-300">
-                            <i class="fas fa-check-circle mr-2"></i>
-                            <span>{{ session('success') }}</span>
-                        </div>
-                    @endif
-                    
-                    @if (session('error'))
-                        <div class="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg flex items-center dark:bg-red-900 dark:border-red-700 dark:text-red-300">
-                            <i class="fas fa-exclamation-circle mr-2"></i>
-                            <span>{{ session('error') }}</span>
-                        </div>
-                    @endif
-                    
-                    @if ($errors->any())
-                        <div class="mb-6 p-4 bg-yellow-50 border border-yellow-200 text-yellow-700 rounded-lg dark:bg-yellow-900 dark:border-yellow-700 dark:text-yellow-300">
-                            <div class="flex items-center mb-2">
-                                <i class="fas fa-exclamation-triangle mr-2"></i>
-                                <strong class="font-medium">त्रुटिहरू पत्ता लाग्यो:</strong>
+                        <!-- Session Messages -->
+                        @if (session('success'))
+                            <div class="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg flex items-center dark:bg-green-900 dark:border-green-700 dark:text-green-300">
+                                <i class="fas fa-check-circle mr-2"></i>
+                                <span>{{ session('success') }}</span>
                             </div>
-                            <ul class="list-disc pl-5 space-y-1">
-                                @foreach ($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
-
-                    <!-- Page Content -->
-                    <div class="main-content bg-white dark:bg-gray-700 rounded-xl shadow-sm overflow-hidden">
-                        @hasSection('विस्तार')
-                            @yield('विस्तार')
-                        @else
-                            @yield('content')
                         @endif
+                        
+                        @if (session('error'))
+                            <div class="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg flex items-center dark:bg-red-900 dark:border-red-700 dark:text-red-300">
+                                <i class="fas fa-exclamation-circle mr-2"></i>
+                                <span>{{ session('error') }}</span>
+                            </div>
+                        @endif
+                        
+                        @if ($errors->any())
+                            <div class="mb-6 p-4 bg-yellow-50 border border-yellow-200 text-yellow-700 rounded-lg dark:bg-yellow-900 dark:border-yellow-700 dark:text-yellow-300">
+                                <div class="flex items-center mb-2">
+                                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                                    <strong class="font-medium">त्रुटिहरू पत्ता लाग्यो:</strong>
+                                </div>
+                                <ul class="list-disc pl-5 space-y-1">
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+
+                        <!-- Page Content -->
+                        <div class="main-content bg-white dark:bg-gray-700 rounded-xl shadow-sm overflow-hidden">
+                            @hasSection('विस्तार')
+                                @yield('विस्तार')
+                            @else
+                                @yield('content')
+                            @endif
+                        </div>
                     </div>
                 </div>
             </main>
@@ -1187,7 +1359,7 @@
                 }
             });
 
-            // ✅ ADDED: Bulk actions for circulars in admin
+            // ✅ FIXED: Bulk actions for circulars in admin - NO CONFLICT VERSION
             $(document).on('change', '.circular-bulk-select', function() {
                 const checkedCount = $('.circular-bulk-select:checked').length;
                 const bulkActions = $('.circular-bulk-actions');
@@ -1200,7 +1372,7 @@
                 }
             });
 
-            $(document).on('click', '.bulk-select-all', function() {
+            $(document).on('click', '.bulk-select-all-circulars', function() {
                 $('.circular-bulk-select').prop('checked', this.checked);
                 $('.circular-bulk-select').trigger('change');
             });
@@ -1254,6 +1426,130 @@
                     }
                 });
             });
+        });
+
+        // ✅ ADDED: Generic Bulk Actions JavaScript for Hostels and Other Modules
+        document.addEventListener('DOMContentLoaded', function() {
+            // Bulk selection functionality for hostels and other modules
+            const selectAll = document.getElementById('selectAll');
+            const itemCheckboxes = document.querySelectorAll('.item-checkbox, .hostel-checkbox');
+            const bulkActionsPanel = document.getElementById('bulkActionsPanel');
+            const bulkActionSelect = document.getElementById('bulkActionSelect');
+            const applyBulkAction = document.getElementById('applyBulkAction');
+            const cancelBulkAction = document.getElementById('cancelBulkAction');
+
+            // Select All functionality
+            if (selectAll) {
+                selectAll.addEventListener('change', function() {
+                    const isChecked = this.checked;
+                    itemCheckboxes.forEach(checkbox => {
+                        checkbox.checked = isChecked;
+                    });
+                    toggleBulkActionsPanel();
+                });
+            }
+
+            // Individual checkbox functionality
+            itemCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', toggleBulkActionsPanel);
+            });
+
+            // Toggle bulk actions panel
+            function toggleBulkActionsPanel() {
+                const checkedCount = document.querySelectorAll('.item-checkbox:checked, .hostel-checkbox:checked').length;
+                if (checkedCount > 0 && bulkActionsPanel) {
+                    bulkActionsPanel.classList.remove('d-none');
+                    bulkActionsPanel.classList.add('show');
+                    if (selectAll) {
+                        selectAll.checked = checkedCount === itemCheckboxes.length;
+                    }
+                } else if (bulkActionsPanel) {
+                    bulkActionsPanel.classList.add('d-none');
+                    bulkActionsPanel.classList.remove('show');
+                    if (selectAll) {
+                        selectAll.checked = false;
+                    }
+                }
+            }
+
+            // Apply bulk action - SIMPLIFIED VERSION
+            if (applyBulkAction) {
+                applyBulkAction.addEventListener('click', function() {
+                    const action = bulkActionSelect ? bulkActionSelect.value : '';
+                    if (!action) {
+                        alert('कृपया बल्क कार्य छान्नुहोस्');
+                        return;
+                    }
+
+                    const selectedIds = Array.from(document.querySelectorAll('.item-checkbox:checked, .hostel-checkbox:checked'))
+                        .map(checkbox => checkbox.value);
+
+                    if (selectedIds.length === 0) {
+                        alert('कुनै आइटम चयन गरिएको छैन');
+                        return;
+                    }
+
+                    // Simple confirmation
+                    if (!confirm(`के तपाइँ ${selectedIds.length} आइटमहरूमा यो कार्य गर्न चाहनुहुन्छ?`)) {
+                        return;
+                    }
+
+                    // Simple form submission
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    
+                    // Determine the appropriate URL based on current page
+                    const currentPath = window.location.pathname;
+                    if (currentPath.includes('hostels')) {
+                        form.action = '{{ route("admin.hostels.bulk-operations") }}';
+                    } else if (currentPath.includes('circulars')) {
+                        form.action = '{{ route("admin.circulars.bulk-operations") }}';
+                    } else if (currentPath.includes('students')) {
+                        form.action = '{{ route("admin.students.bulk-operations") }}';
+                    } else {
+                        form.action = '{{ route("admin.bulk-operations") }}';
+                    }
+                    
+                    const csrfToken = document.createElement('input');
+                    csrfToken.type = 'hidden';
+                    csrfToken.name = '_token';
+                    csrfToken.value = '{{ csrf_token() }}';
+                    form.appendChild(csrfToken);
+
+                    const actionInput = document.createElement('input');
+                    actionInput.type = 'hidden';
+                    actionInput.name = 'action';
+                    actionInput.value = action;
+                    form.appendChild(actionInput);
+
+                    selectedIds.forEach(id => {
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = 'item_ids[]';
+                        input.value = id;
+                        form.appendChild(input);
+                    });
+
+                    document.body.appendChild(form);
+                    form.submit();
+                });
+            }
+
+            // Cancel bulk action
+            if (cancelBulkAction) {
+                cancelBulkAction.addEventListener('click', function() {
+                    itemCheckboxes.forEach(checkbox => {
+                        checkbox.checked = false;
+                    });
+                    toggleBulkActionsPanel();
+                    if (bulkActionSelect) {
+                        bulkActionSelect.value = '';
+                    }
+                });
+            }
+
+            // Initialize bulk actions on page load
+            toggleBulkActionsPanel();
         });
     </script>
 </body>
