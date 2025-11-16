@@ -112,8 +112,12 @@
                     </div>
 
                     @if($colleges->isEmpty())
-                        <p class="text-sm text-red-500 mt-1">
-                            ❌ कुनै पनि कलेज भेटिएन। कृपया नयाँ कलेज थप्नुहोस्।
+                        <p class="text-sm text-yellow-600 mt-1">
+                            ⚠️ कुनै पनि कलेज भेटिएन। तपाईं "अन्य" छानेर नयाँ कलेज थप्न सक्नुहुन्छ।
+                        </p>
+                    @else
+                        <p class="text-sm text-green-600 mt-1">
+                            ✅ कुल {{ $colleges->count() }} वटा कलेजहरू उपलब्ध छन्
                         </p>
                     @endif
                     @error('college_id')
@@ -172,7 +176,7 @@
                     @enderror
                 </div>
 
-                {{-- ✅ FIXED: Guardian Phone Field --}}
+                {{-- Guardian Phone Field --}}
                 <div class="mb-4">
                     <label for="guardian_phone" class="block text-sm font-medium text-gray-700">अभिभावकको फोन *</label>
                     <input type="text" name="guardian_phone" value="{{ old('guardian_phone') }}" required 
@@ -334,7 +338,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // ✅ FIXED: Form submit भन्दा अगाडि final validation
+    // Form submit भन्दा अगाडि final validation
     const form = document.getElementById('studentForm');
     if (form) {
         form.addEventListener('submit', function(e) {
@@ -355,7 +359,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
 
-            // ✅ FIXED: College validation - check if "others" is selected and other_college is filled
+            // College validation - check if "others" is selected and other_college is filled
             const collegeSelect = document.getElementById('college_id');
             if (collegeSelect && collegeSelect.value === 'others') {
                 const otherCollege = document.querySelector('input[name="other_college"]');
@@ -385,7 +389,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
 
-            // ✅ FIXED: Guardian phone validation (using guardian_phone field)
+            // Guardian phone validation (using guardian_phone field)
             const guardianPhone = document.querySelector('input[name="guardian_phone"]');
             if (guardianPhone && guardianPhone.value) {
                 const phoneRegex = /^[0-9+\-\s()]{7,15}$/;
