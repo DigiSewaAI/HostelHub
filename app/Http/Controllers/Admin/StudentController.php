@@ -142,7 +142,7 @@ class StudentController extends Controller
     /**
      * Store a newly created student in storage.
      */
-    public function store(StoreStudentRequest $request) // ✅ FIXED: Use Form Request for validation
+    public function store(StoreStudentRequest $request)
     {
         // ✅ FIXED: Mass Assignment protection - use validated data only
         $validatedData = $request->validated();
@@ -150,6 +150,60 @@ class StudentController extends Controller
         // Role-based data handling
         if (auth()->user()->hasRole('admin')) {
             // Admin side processing
+            try {
+                // ✅ FIXED: Handle user_id for admin side - convert 0 to NULL
+                $validatedData['user_id'] = ($validatedData['user_id'] == 0) ? null : $validatedData['user_id'];
+
+                // ✅ FIXED: CORRECTED - Handle college selection properly for admin
+                if ($request->college_id == 'others' && $request->filled('other_college')) {
+                    // Create new college
+                    $college = College::create([
+                        'name' => $request->other_college,
+                        'location' => 'Unknown',
+                        'contact_email' => 'unknown@example.com'
+                    ]);
+
+                    $validatedData['college_id'] = $college->id;
+                    $validatedData['college'] = $college->name;
+                } else {
+                    // Use existing college
+                    $validatedData['college_id'] = $request->college_id;
+                    $college = College::find($request->college_id);
+                    $validatedData['college'] = $college->name ?? 'Unknown College';
+                }
+
+                // ✅ FIXED: Map guardian_phone to guardian_contact for database
+                $validatedData['guardian_contact'] = $request->guardian_phone;
+
+                // Remove temporary fields
+                unset($validatedData['other_college']);
+                unset($validatedData['guardian_phone']);
+
+                // ✅ FIXED: Add missing field student_id for admin side
+                $validatedData['student_id'] = null;
+
+                // ✅ FIXED: File upload security for admin
+                if ($request->hasFile('image')) {
+                    $validatedData['image'] = $request->file('image')->store('students', 'public');
+                }
+
+                $student = Student::create($validatedData);
+
+                // Update room status only if room is assigned and was available
+                if (isset($validatedData['room_id'])) {
+                    $room = Room::find($validatedData['room_id']);
+                    if ($room && $room->status == 'available') {
+                        $room->update(['status' => 'occupied']);
+                    }
+                }
+
+                return redirect()->route('admin.students.index')
+                    ->with('success', 'विद्यार्थी सफलतापूर्वक दर्ता गरियो');
+            } catch (\Exception $e) {
+                Log::error('Student creation error (admin): ' . $e->getMessage());
+                return back()->withInput()
+                    ->with('error', 'विद्यार्थी दर्ता गर्दा त्रुटि भयो: ' . $e->getMessage());
+            }
         } else {
             // Owner side processing
             $userHostelId = auth()->user()->hostel_id;
@@ -162,21 +216,33 @@ class StudentController extends Controller
                 // ✅ FIXED: Handle user_id - convert 0 to NULL to avoid foreign key constraint
                 $validatedData['user_id'] = ($validatedData['user_id'] == 0) ? null : $validatedData['user_id'];
 
-                // ✅ FIXED: Add missing field student_id (avoid SQL error)
-                $validatedData['student_id'] = null;
-
-                // ✅ FIXED: CORRECTED - Handle college selection properly
+                // ✅ FIXED: CORRECTED - Handle college selection properly for owner
                 if ($request->college_id == 'others' && $request->filled('other_college')) {
-                    $validatedData['college'] = $request->other_college;
-                    $validatedData['college_id'] = null;
+                    // Create new college
+                    $college = College::create([
+                        'name' => $request->other_college,
+                        'location' => 'Unknown',
+                        'contact_email' => 'unknown@example.com'
+                    ]);
+
+                    $validatedData['college_id'] = $college->id;
+                    $validatedData['college'] = $college->name;
                 } else {
+                    // Use existing college
                     $validatedData['college_id'] = $request->college_id;
                     $college = College::find($request->college_id);
                     $validatedData['college'] = $college->name ?? 'Unknown College';
                 }
 
-                // Remove temporary field only
+                // ✅ FIXED: Map guardian_phone to guardian_contact for database
+                $validatedData['guardian_contact'] = $request->guardian_phone;
+
+                // Remove temporary fields
                 unset($validatedData['other_college']);
+                unset($validatedData['guardian_phone']);
+
+                // ✅ FIXED: Add missing field student_id
+                $validatedData['student_id'] = null;
 
                 // ✅ FIXED: Add organization_id for owner
                 $validatedData['organization_id'] = auth()->user()->organization_id;
@@ -192,11 +258,6 @@ class StudentController extends Controller
                     }
                 } else {
                     $validatedData['hostel_id'] = $userHostelId;
-                }
-
-                // ✅ FIXED: File upload security for admin (if applicable)
-                if (auth()->user()->hasRole('admin') && $request->hasFile('image')) {
-                    $validatedData['image'] = $request->file('image')->store('students', 'public');
                 }
 
                 // ✅ Create new student safely
@@ -217,50 +278,6 @@ class StudentController extends Controller
                 return back()->withInput()
                     ->with('error', 'विद्यार्थी दर्ता गर्दा त्रुटि भयो: ' . $e->getMessage());
             }
-        }
-
-        // Admin side student creation
-        try {
-            // ✅ FIXED: Handle user_id for admin side too - convert 0 to NULL
-            $validatedData['user_id'] = ($validatedData['user_id'] == 0) ? null : $validatedData['user_id'];
-
-            // ✅ FIXED: CORRECTED - Handle college selection for admin side too
-            if ($request->college_id == 'others' && $request->filled('other_college')) {
-                $validatedData['college'] = $request->other_college;
-                $validatedData['college_id'] = null;
-            } else {
-                $validatedData['college_id'] = $request->college_id;
-                $college = College::find($request->college_id);
-                $validatedData['college'] = $college->name ?? 'Unknown College';
-            }
-
-            // Remove temporary field
-            unset($validatedData['other_college']);
-
-            // ✅ FIXED: Add missing field student_id for admin side too
-            $validatedData['student_id'] = null;
-
-            // ✅ FIXED: File upload security for admin
-            if (auth()->user()->hasRole('admin') && $request->hasFile('image')) {
-                $validatedData['image'] = $request->file('image')->store('students', 'public');
-            }
-
-            $student = Student::create($validatedData);
-
-            // Update room status only if room is assigned and was available
-            if (isset($validatedData['room_id'])) {
-                $room = Room::find($validatedData['room_id']);
-                if ($room && $room->status == 'available') {
-                    $room->update(['status' => 'occupied']);
-                }
-            }
-
-            return redirect()->route('admin.students.index')
-                ->with('success', 'विद्यार्थी सफलतापूर्वक दर्ता गरियो');
-        } catch (\Exception $e) {
-            Log::error('Student creation error (admin): ' . $e->getMessage());
-            return back()->withInput()
-                ->with('error', 'विद्यार्थी दर्ता गर्दा त्रुटि भयो: ' . $e->getMessage());
         }
     }
 
@@ -363,7 +380,7 @@ class StudentController extends Controller
     /**
      * Update the specified student in storage.
      */
-    public function update(UpdateStudentRequest $request, Student $student) // ✅ FIXED: Use Form Request
+    public function update(UpdateStudentRequest $request, Student $student)
     {
         // ✅ FIXED: Enhanced authorization check
         if (auth()->user()->hasRole('hostel_manager')) {
@@ -384,6 +401,81 @@ class StudentController extends Controller
         // Role-based processing
         if (auth()->user()->hasRole('admin')) {
             // Admin side update
+            try {
+                // ✅ FIXED: Handle user_id for admin side - convert 0 to NULL
+                $validatedData['user_id'] = ($validatedData['user_id'] == 0) ? null : $validatedData['user_id'];
+
+                // ✅ FIXED: CORRECTED - Handle college selection for admin side
+                if ($request->college_id == 'others' && $request->filled('other_college')) {
+                    // Create new college
+                    $college = College::create([
+                        'name' => $request->other_college,
+                        'location' => 'Unknown',
+                        'contact_email' => 'unknown@example.com'
+                    ]);
+
+                    $validatedData['college_id'] = $college->id;
+                    $validatedData['college'] = $college->name;
+                } else {
+                    // Use existing college
+                    $validatedData['college_id'] = $request->college_id;
+                    $college = College::find($request->college_id);
+                    $validatedData['college'] = $college->name ?? 'Unknown College';
+                }
+
+                // ✅ FIXED: Map guardian_phone to guardian_contact for database
+                $validatedData['guardian_contact'] = $request->guardian_phone;
+
+                // Remove temporary fields
+                unset($validatedData['other_college']);
+                unset($validatedData['guardian_phone']);
+
+                // ✅ FIXED: File upload security for admin
+                if ($request->hasFile('image')) {
+                    // Validate file type and size
+                    $request->validate([
+                        'image' => 'image|mimes:jpeg,png,jpg,gif|max:2048'
+                    ]);
+
+                    if ($student->image) {
+                        Storage::disk('public')->delete($student->image);
+                    }
+                    $validatedData['image'] = $request->file('image')->store('students', 'public');
+                }
+
+                // Handle room change for admin
+                if ($student->room_id != $validatedData['room_id']) {
+                    // Free the old room if it exists
+                    if ($student->room_id) {
+                        $oldRoom = Room::find($student->room_id);
+                        // Only mark as available if no other students are in this room
+                        $otherStudentsInRoom = Student::where('room_id', $student->room_id)
+                            ->where('id', '!=', $student->id)
+                            ->count();
+                        if ($otherStudentsInRoom == 0) {
+                            $oldRoom->update(['status' => 'available']);
+                        }
+                    }
+
+                    // Occupy the new room if assigned
+                    if ($validatedData['room_id']) {
+                        $newRoom = Room::find($validatedData['room_id']);
+                        $newRoom->update(['status' => 'occupied']);
+
+                        // Update hostel_id for admin
+                        $validatedData['hostel_id'] = $newRoom->hostel_id;
+                    }
+                }
+
+                $student->update($validatedData);
+
+                return redirect()->route('admin.students.index')
+                    ->with('success', 'विद्यार्थी विवरण सफलतापूर्वक अद्यावधिक गरियो');
+            } catch (\Exception $e) {
+                Log::error('Student update error (admin): ' . $e->getMessage());
+                return back()->withInput()
+                    ->with('error', 'विद्यार्थी अद्यावधिक गर्दा त्रुटि भयो: ' . $e->getMessage());
+            }
         } else {
             // Owner side update
             $userHostelId = auth()->user()->hostel_id;
@@ -396,18 +488,30 @@ class StudentController extends Controller
                 // ✅ FIXED: Handle user_id - convert 0 to NULL to avoid foreign key constraint
                 $validatedData['user_id'] = ($validatedData['user_id'] == 0) ? null : $validatedData['user_id'];
 
-                // ✅ FIXED: CORRECTED - Handle college selection properly
+                // ✅ FIXED: CORRECTED - Handle college selection properly for owner
                 if ($request->college_id == 'others' && $request->filled('other_college')) {
-                    $validatedData['college'] = $request->other_college;
-                    $validatedData['college_id'] = null;
+                    // Create new college
+                    $college = College::create([
+                        'name' => $request->other_college,
+                        'location' => 'Unknown',
+                        'contact_email' => 'unknown@example.com'
+                    ]);
+
+                    $validatedData['college_id'] = $college->id;
+                    $validatedData['college'] = $college->name;
                 } else {
+                    // Use existing college
                     $validatedData['college_id'] = $request->college_id;
                     $college = College::find($request->college_id);
                     $validatedData['college'] = $college->name ?? 'Unknown College';
                 }
 
-                // Remove temporary field only
+                // ✅ FIXED: Map guardian_phone to guardian_contact for database
+                $validatedData['guardian_contact'] = $request->guardian_phone;
+
+                // Remove temporary fields
                 unset($validatedData['other_college']);
+                unset($validatedData['guardian_phone']);
 
                 // ✅ FIXED: Add organization_id for owner
                 $validatedData['organization_id'] = auth()->user()->organization_id;
@@ -456,71 +560,6 @@ class StudentController extends Controller
                 return back()->withInput()
                     ->with('error', 'विद्यार्थी अद्यावधिक गर्दा त्रुटि भयो: ' . $e->getMessage());
             }
-        }
-
-        // Admin side update
-        try {
-            // ✅ FIXED: Handle user_id for admin side too - convert 0 to NULL
-            $validatedData['user_id'] = ($validatedData['user_id'] == 0) ? null : $validatedData['user_id'];
-
-            // ✅ FIXED: CORRECTED - Handle college selection for admin side too
-            if ($request->college_id == 'others' && $request->filled('other_college')) {
-                $validatedData['college'] = $request->other_college;
-                $validatedData['college_id'] = null;
-            } else {
-                $validatedData['college_id'] = $request->college_id;
-                $college = College::find($request->college_id);
-                $validatedData['college'] = $college->name ?? 'Unknown College';
-            }
-
-            // Remove temporary field
-            unset($validatedData['other_college']);
-
-            // ✅ FIXED: File upload security for admin
-            if (auth()->user()->hasRole('admin') && $request->hasFile('image')) {
-                // Validate file type and size
-                $request->validate([
-                    'image' => 'image|mimes:jpeg,png,jpg,gif|max:2048'
-                ]);
-
-                if ($student->image) {
-                    Storage::disk('public')->delete($student->image);
-                }
-                $validatedData['image'] = $request->file('image')->store('students', 'public');
-            }
-
-            // Handle room change for admin
-            if ($student->room_id != $validatedData['room_id']) {
-                // Free the old room if it exists
-                if ($student->room_id) {
-                    $oldRoom = Room::find($student->room_id);
-                    // Only mark as available if no other students are in this room
-                    $otherStudentsInRoom = Student::where('room_id', $student->room_id)
-                        ->where('id', '!=', $student->id)
-                        ->count();
-                    if ($otherStudentsInRoom == 0) {
-                        $oldRoom->update(['status' => 'available']);
-                    }
-                }
-
-                // Occupy the new room if assigned
-                if ($validatedData['room_id']) {
-                    $newRoom = Room::find($validatedData['room_id']);
-                    $newRoom->update(['status' => 'occupied']);
-
-                    // Update hostel_id for admin
-                    $validatedData['hostel_id'] = $newRoom->hostel_id;
-                }
-            }
-
-            $student->update($validatedData);
-
-            return redirect()->route('admin.students.index')
-                ->with('success', 'विद्यार्थी विवरण सफलतापूर्वक अद्यावधिक गरियो');
-        } catch (\Exception $e) {
-            Log::error('Student update error (admin): ' . $e->getMessage());
-            return back()->withInput()
-                ->with('error', 'विद्यार्थी अद्यावधिक गर्दा त्रुटि भयो: ' . $e->getMessage());
         }
     }
 

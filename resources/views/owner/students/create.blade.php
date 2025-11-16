@@ -49,7 +49,7 @@
                         नभए तलको form भरेर नयाँ विद्यार्थी दर्ता गर्नुहोस्।
                     </p>
                     <select name="user_id" id="user_id" class="mt-1 block w-full border rounded-lg px-3 py-2 focus:ring focus:ring-blue-300">
-    <option value="">-- नयाँ विद्यार्थी दर्ता गर्नुहोस् --</option>
+                        <option value="">-- नयाँ विद्यार्थी दर्ता गर्नुहोस् --</option>
                         @foreach($users as $user)
                             <option value="{{ $user->id }}" {{ old('user_id') == $user->id ? 'selected' : '' }}>
                                 {{ $user->name }} ({{ $user->email }})
@@ -101,6 +101,7 @@
                     
                     <!-- Hidden input for manual college entry -->
                     <div id="other_college_field" class="mt-2 {{ old('college_id') == 'others' ? '' : 'hidden' }}">
+                        <label for="other_college" class="block text-sm font-medium text-gray-700">कलेजको नाम *</label>
                         <input type="text" name="other_college" value="{{ old('other_college') }}" 
                                class="mt-1 block w-full border rounded-lg px-3 py-2 focus:ring focus:ring-blue-300" 
                                placeholder="कलेजको नाम लेख्नुहोस्"
@@ -171,14 +172,14 @@
                     @enderror
                 </div>
 
-                {{-- Guardian Contact --}}
+                {{-- ✅ FIXED: Guardian Phone Field --}}
                 <div class="mb-4">
-                    <label for="guardian_contact" class="block text-sm font-medium text-gray-700">अभिभावकको फोन *</label>
-                    <input type="text" name="guardian_contact" value="{{ old('guardian_contact') }}" required 
+                    <label for="guardian_phone" class="block text-sm font-medium text-gray-700">अभिभावकको फोन *</label>
+                    <input type="text" name="guardian_phone" value="{{ old('guardian_phone') }}" required 
                            maxlength="15"
                            class="mt-1 block w-full border rounded-lg px-3 py-2 focus:ring focus:ring-blue-300"
                            placeholder="98XXXXXXXX">
-                    @error('guardian_contact')
+                    @error('guardian_phone')
                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                     @enderror
                 </div>
@@ -354,7 +355,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
 
-            // College validation
+            // ✅ FIXED: College validation - check if "others" is selected and other_college is filled
             const collegeSelect = document.getElementById('college_id');
             if (collegeSelect && collegeSelect.value === 'others') {
                 const otherCollege = document.querySelector('input[name="other_college"]');
@@ -384,16 +385,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
 
-            // Guardian contact validation
-            const guardianContact = document.querySelector('input[name="guardian_contact"]');
-            if (guardianContact && guardianContact.value) {
+            // ✅ FIXED: Guardian phone validation (using guardian_phone field)
+            const guardianPhone = document.querySelector('input[name="guardian_phone"]');
+            if (guardianPhone && guardianPhone.value) {
                 const phoneRegex = /^[0-9+\-\s()]{7,15}$/;
-                if (!phoneRegex.test(guardianContact.value)) {
+                if (!phoneRegex.test(guardianPhone.value)) {
                     isValid = false;
                     if (!firstErrorField) {
-                        firstErrorField = guardianContact;
+                        firstErrorField = guardianPhone;
                     }
-                    guardianContact.classList.add('border-red-500');
+                    guardianPhone.classList.add('border-red-500');
                     alert('कृपया वैध अभिभावकको फोन नम्बर लेख्नुहोस्।');
                 }
             }
