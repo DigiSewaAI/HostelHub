@@ -11,9 +11,8 @@ class College extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'name',
-        'location',
-        'contact_email'
+        'name'
+        // Removed 'location' and 'contact_email' as they don't exist in database
     ];
 
     protected $table = 'colleges';
@@ -24,9 +23,8 @@ class College extends Model
     public static function validationRules($id = null): array
     {
         return [
-            'name' => 'required|string|max:255|unique:colleges,name,' . $id,
-            'location' => 'required|string|max:255',
-            'contact_email' => 'required|email|max:255|unique:colleges,contact_email,' . $id
+            'name' => 'required|string|max:255|unique:colleges,name,' . $id
+            // Removed location and contact_email validation as columns don't exist
         ];
     }
 
@@ -47,11 +45,11 @@ class College extends Model
     }
 
     /**
-     * Scope for searching colleges by name or location
+     * Scope for searching colleges by name
      */
     public function scopeSearch($query, $searchTerm)
     {
-        return $query->where('name', 'like', "%{$searchTerm}%")
-            ->orWhere('location', 'like', "%{$searchTerm}%");
+        return $query->where('name', 'like', "%{$searchTerm}%");
+        // Removed location search as column doesn't exist
     }
 }

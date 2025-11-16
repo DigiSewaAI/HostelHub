@@ -92,7 +92,12 @@ class StudentController extends Controller
             $hostels = Hostel::all();
             $rooms = Room::where('status', 'available')->with('hostel')->get();
             $users = User::whereDoesntHave('student')->get();
-            $colleges = College::all();
+
+            // ✅ FIXED: Get distinct colleges ordered by name to prevent duplicates in dropdown
+            $colleges = College::select('id', 'name')
+                ->distinct()
+                ->orderBy('name')
+                ->get();
 
             return view('admin.students.create', compact('hostels', 'rooms', 'users', 'colleges'));
         } else {
@@ -125,7 +130,11 @@ class StudentController extends Controller
                 ->whereDoesntHave('student')
                 ->get();
 
-            $colleges = College::all();
+            // ✅ FIXED: Get distinct colleges ordered by name to prevent duplicates in dropdown
+            $colleges = College::select('id', 'name')
+                ->distinct()
+                ->orderBy('name')
+                ->get();
 
             // 🔥 LOG FOR DEBUGGING
             Log::info('Student creation page loaded for owner', [
@@ -156,11 +165,9 @@ class StudentController extends Controller
 
                 // ✅ FIXED: CORRECTED - Handle college selection properly for admin
                 if ($request->college_id == 'others' && $request->filled('other_college')) {
-                    // Create new college
-                    $college = College::create([
-                        'name' => $request->other_college,
-                        'location' => 'Unknown',
-                        'contact_email' => 'unknown@example.com'
+                    // ✅ FIXED: Use firstOrCreate to prevent duplicate colleges
+                    $college = College::firstOrCreate([
+                        'name' => $request->other_college
                     ]);
 
                     $validatedData['college_id'] = $college->id;
@@ -218,11 +225,9 @@ class StudentController extends Controller
 
                 // ✅ FIXED: CORRECTED - Handle college selection properly for owner
                 if ($request->college_id == 'others' && $request->filled('other_college')) {
-                    // Create new college
-                    $college = College::create([
-                        'name' => $request->other_college,
-                        'location' => 'Unknown',
-                        'contact_email' => 'unknown@example.com'
+                    // ✅ FIXED: Use firstOrCreate to prevent duplicate colleges
+                    $college = College::firstOrCreate([
+                        'name' => $request->other_college
                     ]);
 
                     $validatedData['college_id'] = $college->id;
@@ -335,7 +340,12 @@ class StudentController extends Controller
                 ->with('hostel')
                 ->get();
             $users = User::all();
-            $colleges = College::all();
+
+            // ✅ FIXED: Get distinct colleges ordered by name to prevent duplicates in dropdown
+            $colleges = College::select('id', 'name')
+                ->distinct()
+                ->orderBy('name')
+                ->get();
 
             return view('admin.students.edit', compact('student', 'hostels', 'rooms', 'users', 'colleges'));
         } else {
@@ -362,6 +372,12 @@ class StudentController extends Controller
                 })
                 ->get();
 
+            // ✅ FIXED: Get distinct colleges ordered by name to prevent duplicates in dropdown
+            $colleges = College::select('id', 'name')
+                ->distinct()
+                ->orderBy('name')
+                ->get();
+
             // 🔥 LOG FOR DEBUGGING
             Log::info('Student edit page loaded for owner', [
                 'user_id' => auth()->id(),
@@ -370,8 +386,6 @@ class StudentController extends Controller
                 'users_count' => $users->count(),
                 'student_id' => $student->id
             ]);
-
-            $colleges = College::all();
 
             return view('owner.students.edit', compact('student', 'hostels', 'rooms', 'users', 'colleges'));
         }
@@ -407,11 +421,9 @@ class StudentController extends Controller
 
                 // ✅ FIXED: CORRECTED - Handle college selection for admin side
                 if ($request->college_id == 'others' && $request->filled('other_college')) {
-                    // Create new college
-                    $college = College::create([
-                        'name' => $request->other_college,
-                        'location' => 'Unknown',
-                        'contact_email' => 'unknown@example.com'
+                    // ✅ FIXED: Use firstOrCreate to prevent duplicate colleges
+                    $college = College::firstOrCreate([
+                        'name' => $request->other_college
                     ]);
 
                     $validatedData['college_id'] = $college->id;
@@ -490,11 +502,9 @@ class StudentController extends Controller
 
                 // ✅ FIXED: CORRECTED - Handle college selection properly for owner
                 if ($request->college_id == 'others' && $request->filled('other_college')) {
-                    // Create new college
-                    $college = College::create([
-                        'name' => $request->other_college,
-                        'location' => 'Unknown',
-                        'contact_email' => 'unknown@example.com'
+                    // ✅ FIXED: Use firstOrCreate to prevent duplicate colleges
+                    $college = College::firstOrCreate([
+                        'name' => $request->other_college
                     ]);
 
                     $validatedData['college_id'] = $college->id;
