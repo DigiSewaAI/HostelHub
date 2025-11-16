@@ -79,18 +79,33 @@ Route::middleware(['auth', 'hasOrganization', 'role:admin'])
         Route::post('/rooms/{room}/change-status', [RoomController::class, 'changeStatus'])->name('rooms.change-status');
         Route::get('/rooms/export/csv', [RoomController::class, 'exportCSV'])->name('rooms.export-csv');
 
+        // Student Routes
         Route::resource('students', StudentController::class);
         Route::get('/students/search', [StudentController::class, 'search'])->name('students.search');
         Route::get('/students/export/csv', [StudentController::class, 'exportCSV'])->name('students.export');
 
+        // ✅ CRITICAL FIX: Added missing bulk operations route for students
+        Route::post('/students/bulk-operations', [StudentController::class, 'bulkOperations'])->name('students.bulk-operations');
+
+        // ✅ UPDATED: Hostel Routes with publish/unpublish
         Route::resource('hostels', AdminHostelController::class);
         Route::get('hostels/{hostel}/availability', [AdminHostelController::class, 'showAvailability'])->name('hostels.availability');
         Route::put('hostels/{hostel}/availability', [AdminHostelController::class, 'updateAvailability'])->name('hostels.availability.update');
         Route::get('/hostels/search', [AdminHostelController::class, 'search'])->name('hostels.search');
 
+        // ✅ NEW: Admin Hostel Publish/Unpublish Routes
+        Route::post('/hostels/{hostel}/publish', [AdminHostelController::class, 'publish'])->name('hostels.publish');
+        Route::post('/hostels/{hostel}/unpublish', [AdminHostelController::class, 'unpublish'])->name('hostels.unpublish');
+
         // Routes for fixing hostel room counts
         Route::get('/hostels/fix-room-counts', [AdminHostelController::class, 'fixRoomCounts'])->name('hostels.fix-room-counts');
         Route::post('/hostels/update-all-counts', [AdminHostelController::class, 'updateAllRoomCounts'])->name('hostels.update-all-counts');
+
+        // ✅ NEW: Bulk operations route for hostels
+        Route::post('/hostels/bulk-operations', [AdminHostelController::class, 'bulkOperations'])->name('hostels.bulk-operations');
+
+        // ✅ NEW: Export route for hostels
+        Route::get('/hostels/export', [AdminHostelController::class, 'export'])->name('hostels.export');
 
         // Settings Routes
         Route::prefix('settings')->name('settings.')->group(function () {
@@ -127,6 +142,9 @@ Route::middleware(['auth', 'hasOrganization', 'role:admin'])
             Route::get('/{circular}/recipients', [AdminCircularController::class, 'recipients'])->name('recipients');
             Route::post('/{circular}/resend', [AdminCircularController::class, 'resend'])->name('resend');
             Route::post('/{circular}/duplicate', [AdminCircularController::class, 'duplicate'])->name('duplicate');
+
+            // ✅ CRITICAL FIX: Added missing bulk operations route for circulars
+            Route::post('/bulk-operations', [AdminCircularController::class, 'bulkOperations'])->name('bulk-operations');
 
             // Template management
             Route::get('/templates', [AdminCircularController::class, 'templates'])->name('templates');
@@ -197,4 +215,7 @@ Route::middleware(['auth', 'hasOrganization', 'role:admin'])
         // Meal Menus
         Route::resource('meal-menus', AdminMealMenuController::class)->only(['index', 'show']);
         Route::get('/meal-menus/search', [AdminMealMenuController::class, 'search'])->name('meal-menus.search');
+
+        // ✅ CRITICAL FIX: Added fallback bulk operations route for other resources
+        Route::post('/bulk-operations', [DashboardController::class, 'bulkOperations'])->name('bulk-operations');
     });

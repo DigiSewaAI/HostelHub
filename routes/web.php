@@ -17,6 +17,9 @@ Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
 Route::get('/register', [RegisterController::class, 'showUserRegistrationForm'])->name('register');
 
+// ✅ ADDED: Search route for hostel search functionality
+Route::get('/search', [App\Http\Controllers\Frontend\PublicController::class, 'search'])->name('search');
+
 /*|--------------------------------------------------------------------------
 | Load Modular Route Files - FIXED ORDER with Proper Middleware
 |--------------------------------------------------------------------------
