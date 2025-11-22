@@ -12,8 +12,7 @@ use Illuminate\Support\Facades\DB;
 
 /*|--------------------------------------------------------------------------
 | Global Dashboard Redirect (Role-based)
-|--------------------------------------------------------------------------
-*/
+|--------------------------------------------------------------------------*/
 
 Route::get('/dashboard', function () {
     $user = auth()->user();
@@ -44,9 +43,24 @@ Route::get('/dashboard', function () {
 })->middleware(['auth'])->name('dashboard');
 
 /*|--------------------------------------------------------------------------
+| Organization Selection Route - FIXED: Better logic for different user types
+|--------------------------------------------------------------------------*/
+Route::get('/organizations/select', function () {
+    $user = auth()->user();
+
+    if ($user->hasRole('student')) {
+        // For students, they don't need an organization - redirect back with message
+        return redirect()->back()->with('error', 'तपाईंलाई होस्टल बुक गर्न संस्था चयन गर्न आवश्यक छैन। सिधै बुक गर्नुहोस्।');
+    } else {
+        // For owners/admins, redirect to organization registration
+        return redirect()->route('register.organization')
+            ->with('info', 'कृपया पहिले संस्था दर्ता गर्नुहोस् वा संस्था चयन गर्नुहोस्।');
+    }
+})->middleware(['auth'])->name('organizations.select');
+
+/*|--------------------------------------------------------------------------
 | Unified Role-Based Routes (Protected Routes for Shared Features)
-|--------------------------------------------------------------------------
-*/
+|--------------------------------------------------------------------------*/
 Route::middleware(['auth', 'hasOrganization'])->group(function () {
 
     // Booking routes

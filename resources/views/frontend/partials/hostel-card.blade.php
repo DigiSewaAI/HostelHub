@@ -8,10 +8,10 @@
 @endphp
 
 <div class="group bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 relative">
-    <!-- Premium Badge -->
+    <!-- Premium Badge - FIXED: Golden yellow with black text -->
     @if($hostel->available_rooms_count > 5)
-    <div class="absolute top-4 right-4 z-10">
-        <span class="px-3 py-1 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white text-xs font-bold rounded-full nepali shadow-lg flex items-center">
+    <div class="absolute top-4 right-4 z-20">
+        <span class="px-3 py-1 bg-gradient-to-r from-yellow-400 to-yellow-500 text-black text-xs font-bold rounded-full shadow-lg flex items-center border border-yellow-300">
             <i class="fas fa-crown mr-1 text-xs"></i>
             PREMIUM
         </span>
@@ -112,7 +112,7 @@
             @endforeach
         </div>
 
-        <!-- Price & Action Section -->
+        <!-- Price & Action Section - FIXED: Button container and styles -->
         <div class="flex items-center justify-between pt-4 border-t border-gray-200">
             <div>
                 @if($minPrice > 0)
@@ -123,21 +123,22 @@
                 @endif
             </div>
             
-            <div class="flex space-x-3">
+            <!-- FIXED: Button container with proper spacing -->
+            <div class="flex flex-col space-y-2 ml-4">
                 <a href="{{ route('hostels.show', $hostel->slug) }}" 
-                   class="inline-flex items-center px-5 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-xl transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl nepali">
+                   class="inline-flex items-center justify-center px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-xl transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl nepali text-sm min-w-[120px]">
                     <i class="fas fa-eye mr-2"></i>
                     हेर्नुहोस्
                 </a>
                 @if($hostel->available_rooms_count > 0)
                 <a href="{{ route('hostel.book-room', $hostel->slug) }}?check_in={{ request('check_in') }}&check_out={{ request('check_out') }}" 
-                   class="inline-flex items-center px-5 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold rounded-xl transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl nepali">
+                   class="inline-flex items-center justify-center px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold rounded-xl transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl nepali text-sm min-w-[120px]">
                     <i class="fas fa-calendar-check mr-2"></i>
                     बुक गर्नुहोस्
                 </a>
                 @else
                 <button disabled
-                   class="inline-flex items-center px-5 py-3 bg-gray-400 text-white font-semibold rounded-xl cursor-not-allowed nepali">
+                   class="inline-flex items-center justify-center px-4 py-2 bg-gray-400 text-white font-semibold rounded-xl cursor-not-allowed nepali text-sm min-w-[120px]">
                     <i class="fas fa-times mr-2"></i>
                     उपलब्ध छैन
                 </button>
