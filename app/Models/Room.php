@@ -355,7 +355,7 @@ class Room extends Model
     }
 
     /**
-     * ✅ FIXED: Get Nepali room type with unified types
+     * Get Nepali room type
      */
     public function getNepaliTypeAttribute(): string
     {
@@ -365,9 +365,16 @@ class Room extends Model
             '3 seater' => 'तीन सिटर कोठा',
             '4 seater' => 'चार सिटर कोठा',
             'साझा कोठा' => 'साझा कोठा',
+            'single' => 'एक सिटर कोठा',
+            'double' => 'दुई सिटर कोठा',
+            'triple' => 'तीन सिटर कोठा',
+            'quad' => 'चार सिटर कोठा',
+            'shared' => 'साझा कोठा',
+            'other' => 'अन्य कोठा'
         ];
 
-        return $types[$this->type] ?? $this->type;
+        // Ensure we always return a string, never null
+        return $types[$this->type] ?? $this->type ?? 'अन्य कोठा';
     }
 
     /**

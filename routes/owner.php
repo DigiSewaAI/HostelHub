@@ -9,6 +9,7 @@ use App\Http\Controllers\{
     Owner\CircularController as OwnerCircularController,
     Owner\MealController as OwnerMealController,
     Owner\MealMenuController as OwnerMealMenuController,
+    Owner\BookingRequestController as OwnerBookingRequestController,
     Admin\DashboardController,
     ProfileController,
     Admin\PaymentController,
@@ -33,6 +34,9 @@ Route::middleware(['auth', 'hasOrganization', 'role:owner,hostel_manager'])
         // ✅ ADDED: Contact counts API route for real-time notifications
         Route::get('/dashboard/contacts-count', [DashboardController::class, 'getContactCounts'])->name('dashboard.contact-counts');
 
+        // ✅ ADDED: Booking request counts API route for real-time notifications
+        Route::get('/dashboard/booking-requests-count', [OwnerBookingRequestController::class, 'getCounts'])->name('dashboard.booking-requests-count');
+
         // Owner Settings Routes
         Route::get('/settings', [OwnerSettingsController::class, 'index'])->name('settings');
         Route::prefix('settings')->name('settings.')->group(function () {
@@ -46,6 +50,15 @@ Route::middleware(['auth', 'hasOrganization', 'role:owner,hostel_manager'])
         // Owner profile routes
         Route::get('/profile', [ProfileController::class, 'edit'])->name('profile');
         Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+
+        // ✅ ADDED: Complete Booking Request Management Routes
+        Route::prefix('booking-requests')->name('booking-requests.')->group(function () {
+            Route::get('/', [OwnerBookingRequestController::class, 'index'])->name('index');
+            Route::get('/{bookingRequest}', [OwnerBookingRequestController::class, 'show'])->name('show');
+            Route::post('/{bookingRequest}/approve', [OwnerBookingRequestController::class, 'approve'])->name('approve');
+            Route::post('/{bookingRequest}/reject', [OwnerBookingRequestController::class, 'reject'])->name('reject');
+            Route::get('/api/counts', [OwnerBookingRequestController::class, 'getCounts'])->name('counts');
+        });
 
         // Owner Public Page Management Routes
         Route::prefix('public-page')->name('public-page.')->group(function () {

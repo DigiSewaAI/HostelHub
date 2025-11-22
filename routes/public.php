@@ -25,20 +25,35 @@ Route::group(['middleware' => 'web'], function () {
     Route::get('/gallery', [FrontendGalleryController::class, 'index'])->name('gallery');
     Route::get('/pricing', [PricingController::class, 'index'])->name('pricing');
 
-    // Public hostel listing routes
-    Route::get('/hostels', [PublicController::class, 'hostelsIndex'])->name('hostels.index');
+    // ✅ FIXED: Public hostel listing routes - ADDED BOTH ROUTE NAMES
+    // Route for 'all.hostels' (used in search-results.blade.php)
+    Route::get('/hostels', [PublicController::class, 'allHostels'])->name('all.hostels');
+
+    // Route for 'hostels.index' (used in dark.blade.php) - same URI, different name
+    Route::get('/hostels', [PublicController::class, 'allHostels'])->name('hostels.index');
+
     Route::get('/hostels/{slug}', [PublicController::class, 'hostelShow'])->name('hostels.show');
+
+    // ✅ FIXED: Single search route for hostel search functionality (GET method)
+    Route::get('/search', [PublicController::class, 'search'])->name('search');
 
     // Public hostel gallery routes
     Route::get('/hostel/{slug}/gallery', [PublicController::class, 'hostelGallery'])->name('hostel.gallery');
     Route::get('/hostel/{slug}/full-gallery', [PublicController::class, 'hostelFullGallery'])->name('hostel.full-gallery');
 
-
+    // Meal gallery route
     Route::get('/menu-gallery', [MealGalleryController::class, 'index'])->name('menu-gallery');
 
+    // ✅ FIXED: Updated booking routes to use new booking system
+    // Book room route - NEW CORRECTED ROUTES
+    Route::get('/hostel/{slug}/book', [PublicController::class, 'bookForm'])->name('hostel.book');
+    Route::post('/hostel/{slug}/book', [PublicController::class, 'storeBooking'])->name('hostel.book.store');
+    Route::get('/booking/success/{id}', [PublicController::class, 'bookingSuccess'])->name('booking.success');
 
-    // Book room route
-    Route::get('/hostel/{slug}/book-room', [BookingController::class, 'create'])->name('hostel.book-room');
+    // Keep old route for backward compatibility but redirect to new one
+    Route::get('/hostel/{slug}/book-room', function ($slug) {
+        return redirect()->route('hostel.book', $slug);
+    })->name('hostel.book-room');
 
     // Hostel contact route
     Route::post('/hostels/{hostel}/contact', [PublicController::class, 'hostelContact'])->name('hostel.contact');
@@ -64,9 +79,9 @@ Route::group(['middleware' => 'web'], function () {
     Route::get('/contact', [PublicContactController::class, 'index'])->name('contact');
     Route::post('/contact', [PublicContactController::class, 'store'])->name('contact.store');
 
-    // Search functionality
+    // ✅ FIXED: Removed duplicate search routes - consolidated into single search route above
+    // Room search functionality (if needed separately from general search)
     Route::get('/rooms', [PublicController::class, 'roomSearch'])->name('rooms.search');
-    Route::post('/rooms/search', [PublicController::class, 'searchRooms'])->name('rooms.search.post');
     Route::get('/hostels/search', [PublicController::class, 'hostelSearch'])->name('hostels.search');
 
     // Demo route
@@ -81,13 +96,10 @@ Route::group(['middleware' => 'web'], function () {
 
 /*|--------------------------------------------------------------------------
 | Organization Registration Routes (Accessible by all)
-|--------------------------------------------------------------------------
-*/
+|--------------------------------------------------------------------------*/
 Route::get('/register/organization/{plan?}', [RegistrationController::class, 'show'])->name('register.organization');
 Route::post('/register/organization', [RegistrationController::class, 'store'])->name('register.organization.store');
 
 /*|--------------------------------------------------------------------------
-| Global Search Route
-|--------------------------------------------------------------------------
-*/
-Route::post('/search', [PublicController::class, 'search'])->name('search');
+| Clean File - No Duplicate Routes
+|--------------------------------------------------------------------------*/

@@ -529,7 +529,7 @@ main.home-page-main {
                 
                 <div class="hero-cta">
                     <a href="{{ route('demo') }}" class="btn btn-primary nepali">डेमो हेर्नुहोस्</a>
-                    <a href="#gallery" class="btn btn-outline nepali">खोजी सुरु गर्नुहोस्</a>
+                    <a href="{{ route('hostels.index') }}" class="btn btn-outline nepali">सबै होस्टल हेर्नुहोस्</a>
                 </div>
                 
                 <div class="hero-stats">
@@ -564,7 +564,7 @@ main.home-page-main {
                                     <img src="{{ $item['thumbnail_url'] }}" 
                                          alt="{{ $item['title'] }}" 
                                          loading="lazy"
-                                         onerror="this.onerror=null;this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgZmlsbD0iIzFlM2E4YSI+PC9yZWN0Pjx0ZXh0IHg9IjQwMCIgeT0iMjI1IiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWtkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IiNmZmYiPlZpZGVvIFRodW1ibmFpbDwvdGV4dD48L3N2Zz4=';">
+                                         onerror="this.onerror=null;this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgZmlsbD0iIzFlM2E4YSI+PC9yZWN0Pjx0ZXh0IHg9IjQwMCIgeT0iMjI1IiBkb21pbmFudC1iYXNlbGluZT0ibWtkZGxlIiB0ZXh0LWFuY2hvcj0ibWtkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IiNmZmYiPlZpZGVvIFRodW1ibmFpbDwvdGV4dD48L3N2Zz4=';">
                                 @endif
                             </div>
                             @endforeach
@@ -1038,7 +1038,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Swiper error:', e);
     }
 
-    // 🚨 SEARCH FORM VALIDATION - ADDED FIX
+    // 🚨 UPDATED: BETTER SEARCH FORM VALIDATION
     const searchForm = document.getElementById('booking-form');
     
     if (searchForm) {
@@ -1047,18 +1047,19 @@ document.addEventListener('DOMContentLoaded', function() {
             const checkIn = document.getElementById('check_in').value;
             const checkOut = document.getElementById('check_out').value;
             
-            if (!city || !checkIn || !checkOut) {
+            console.log('🔍 Form submission check:', { city, checkIn, checkOut });
+            
+            // 🚨 ONLY validate if city is empty, don't prevent for valid cases
+            if (!city) {
                 e.preventDefault();
-                alert('कृपया सबै आवश्यक क्षेत्रहरू भर्नुहोस्।');
+                alert('कृपया स्थान (शहर) छान्नुहोस्।');
                 return false;
             }
             
-            // Validate dates
-            if (new Date(checkOut) <= new Date(checkIn)) {
-                e.preventDefault();
-                alert('चेक-आउट मिति चेक-इन मितिभन्दा पछि हुनुपर्छ।');
-                return false;
-            }
+            // 🚨 REMOVED strict validation for dates to allow form submission
+            // Let the server handle date validation
+            
+            console.log('✅ Form validation passed - submitting to server');
         });
     }
     
@@ -1074,12 +1075,15 @@ document.addEventListener('DOMContentLoaded', function() {
             hostelSelect.innerHTML = '<option value="">सबै होस्टल</option>';
             
             if (city) {
-                // You can add AJAX call here to load hostels for specific city
-                // For now, we'll just enable the dropdown
                 console.log('City selected:', city);
+                // AJAX call can be added here later
             }
         });
     }
+
+    // 🚨 DEBUG: Check if routes are working
+    console.log('🔍 Search Route:', '{{ route("search") }}');
+    console.log('🏠 All Hostels Route:', '{{ route("hostels.index") }}');
 });
 </script>
 
