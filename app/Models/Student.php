@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Log;
 
 class Student extends Model
 {
@@ -54,6 +55,64 @@ class Student extends Model
         'status' => 'pending',
         'payment_status' => 'pending',
     ];
+
+    /**
+     * ✅ NEW: Create student record from approved booking
+     */
+    public static function createFromBooking($booking, $user)
+    {
+        try {
+            Log::info('Creating student record from booking', [
+                'booking_id' => $booking->id,
+                'user_id' => $user->id,
+                'user_email' => $user->email
+            ]);
+
+            // Generate unique student ID
+            $studentId = 'STU' . time() . rand(100, 999);
+
+            $studentData = [
+                'student_id' => $studentId,
+                'user_id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'phone' => $user->phone ?? 'Not provided',
+                'address' => $user->address ?? 'Not provided',
+                'guardian_name' => 'To be updated',
+                'guardian_contact' => 'To be updated',
+                'guardian_relation' => 'To be updated',
+                'guardian_address' => 'To be updated',
+                'dob' => now()->subYears(18), // Default 18 years old
+                'gender' => 'other',
+                'payment_status' => 'pending',
+                'status' => 'active',
+                'admission_date' => now(),
+                'hostel_id' => $booking->hostel_id,
+                'room_id' => $booking->room_id,
+                'organization_id' => $booking->hostel->organization_id ?? 1, // Default organization
+                'image' => null,
+            ];
+
+            // Create student record
+            $student = self::create($studentData);
+
+            Log::info('Successfully created student record from booking', [
+                'student_id' => $student->id,
+                'booking_id' => $booking->id,
+                'user_id' => $user->id
+            ]);
+
+            return $student;
+        } catch (\Exception $e) {
+            Log::error('Failed to create student record from booking', [
+                'booking_id' => $booking->id,
+                'user_id' => $user->id,
+                'error' => $e->getMessage()
+            ]);
+
+            throw $e;
+        }
+    }
 
     /**
      * Validation rules for Student model

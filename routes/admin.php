@@ -1,22 +1,21 @@
 <?php
 
-use App\Http\Controllers\Admin\{
-    ContactController,
-    DashboardController,
-    GalleryController,
-    HostelController as AdminHostelController,
-    MealController,
-    MealMenuController as AdminMealMenuController,
-    ReportController,
-    ReviewController as AdminReviewController,
-    RoomController,
-    StudentController,
-    SettingsController,
-    PaymentController as AdminPaymentController,
-    CircularController as AdminCircularController,
-    OrganizationRequestController
-};
-use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\Admin\ContactController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\GalleryController;
+use App\Http\Controllers\Admin\HostelController as AdminHostelController;
+use App\Http\Controllers\Admin\MealController;
+use App\Http\Controllers\Admin\MealMenuController as AdminMealMenuController;
+use App\Http\Controllers\Admin\ReportController;
+use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
+use App\Http\Controllers\Admin\RoomController;
+use App\Http\Controllers\Admin\StudentController;
+use App\Http\Controllers\Admin\SettingsController;
+use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
+use App\Http\Controllers\Admin\CircularController as AdminCircularController;
+use App\Http\Controllers\Admin\OrganizationRequestController;
+use App\Http\Controllers\Admin\DocumentController;
+
 
 /*|--------------------------------------------------------------------------
 | Admin Routes - ONLY for admin role

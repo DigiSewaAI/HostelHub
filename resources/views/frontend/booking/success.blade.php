@@ -12,42 +12,85 @@
         </div>
         
         <h1 class="success-title">धन्यवाद!</h1>
-        <p class="success-message">तपाईंको बुकिंग अनुरोध सफलतापूर्वक पेश गरियो</p>
+        <p class="success-message">
+            @if(isset($booking))
+                तपाईंको बुकिंग सफलतापूर्वक पेश गरियो
+            @elseif(isset($bookingRequest))
+                तपाईंको बुकिंग अनुरोध सफलतापूर्वक पेश गरियो
+            @endif
+        </p>
         
         <div class="booking-details">
             <div class="detail-card">
                 <h3 class="detail-title">बुकिंग विवरण</h3>
                 <div class="detail-list">
-                    <div class="detail-item">
-                        <span class="detail-label">अनुरोध नम्बर:</span>
-                        <span class="detail-value">#{{ str_pad($bookingRequest->id, 6, '0', STR_PAD_LEFT) }}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">होस्टल:</span>
-                        <span class="detail-value">{{ $bookingRequest->hostel->name }}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">नाम:</span>
-                        <span class="detail-value">{{ $bookingRequest->name }}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">फोन:</span>
-                        <span class="detail-value">{{ $bookingRequest->phone }}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">चेक-इन:</span>
-                        <span class="detail-value">{{ $bookingRequest->check_in_date->format('Y-m-d') }}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">कोठा प्रकार:</span>
-                        <span class="detail-value">{{ (new App\Models\Room())->getNepaliTypeAttribute($bookingRequest->room_type) }}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">स्थिति:</span>
-                        <span class="detail-value badge {{ $bookingRequest->status_badge_class }}">
-                            {{ $bookingRequest->status_nepali }}
-                        </span>
-                    </div>
+                    @if(isset($booking))
+                        <!-- NEW SYSTEM - Booking Model -->
+                        <div class="detail-item">
+                            <span class="detail-label">बुकिंग नम्बर:</span>
+                            <span class="detail-value">#{{ str_pad($booking->id, 6, '0', STR_PAD_LEFT) }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">होस्टल:</span>
+                            <span class="detail-value">{{ $booking->hostel->name ?? 'N/A' }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">नाम:</span>
+                            <span class="detail-value">
+                                {{ $booking->guest_name ?? ($booking->user->name ?? 'N/A') }}
+                            </span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">इमेल:</span>
+                            <span class="detail-value">{{ $booking->guest_email ?? ($booking->user->email ?? 'N/A') }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">फोन:</span>
+                            <span class="detail-value">{{ $booking->guest_phone ?? ($booking->user->phone ?? 'N/A') }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">चेक-इन:</span>
+                            <span class="detail-value">{{ $booking->check_in_date->format('Y-m-d') }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">स्थिति:</span>
+                            <span class="detail-value badge {{ $booking->status === 'pending' ? 'bg-warning' : 'bg-success' }}">
+                                {{ $booking->status === 'pending' ? 'पेन्डिङ' : 'स्वीकृत' }}
+                            </span>
+                        </div>
+                    @elseif(isset($bookingRequest))
+                        <!-- OLD SYSTEM - BookingRequest Model -->
+                        <div class="detail-item">
+                            <span class="detail-label">अनुरोध नम्बर:</span>
+                            <span class="detail-value">#{{ str_pad($bookingRequest->id, 6, '0', STR_PAD_LEFT) }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">होस्टल:</span>
+                            <span class="detail-value">{{ $bookingRequest->hostel->name }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">नाम:</span>
+                            <span class="detail-value">{{ $bookingRequest->name }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">फोन:</span>
+                            <span class="detail-value">{{ $bookingRequest->phone }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">चेक-इन:</span>
+                            <span class="detail-value">{{ $bookingRequest->check_in_date->format('Y-m-d') }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">कोठा प्रकार:</span>
+                            <span class="detail-value">{{ (new App\Models\Room())->getNepaliTypeAttribute($bookingRequest->room_type) }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">स्थिति:</span>
+                            <span class="detail-value badge {{ $bookingRequest->status_badge_class }}">
+                                {{ $bookingRequest->status_nepali }}
+                            </span>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>
@@ -80,9 +123,15 @@
         </div>
         
         <div class="action-buttons">
-            <a href="{{ route('hostels.show', $bookingRequest->hostel->slug) }}" class="btn btn-primary">
-                <i class="fas fa-arrow-left"></i> होस्टल पृष्ठमा फर्कनुहोस्
-            </a>
+            @if(isset($booking) && $booking->hostel)
+                <a href="{{ route('hostels.show', $booking->hostel->slug) }}" class="btn btn-primary">
+                    <i class="fas fa-arrow-left"></i> होस्टल पृष्ठमा फर्कनुहोस्
+                </a>
+            @elseif(isset($bookingRequest))
+                <a href="{{ route('hostels.show', $bookingRequest->hostel->slug) }}" class="btn btn-primary">
+                    <i class="fas fa-arrow-left"></i> होस्टल पृष्ठमा फर्कनुहोस्
+                </a>
+            @endif
             <a href="{{ route('home') }}" class="btn btn-secondary">
                 <i class="fas fa-home"></i> गृह पृष्ठमा जानुहोस्
             </a>
@@ -91,8 +140,13 @@
         <div class="contact-info">
             <h4 class="contact-title">तत्काल सम्पर्क आवश्यक छ?</h4>
             <p class="contact-details">
-                <i class="fas fa-phone"></i> {{ $bookingRequest->hostel->contact_phone }} | 
-                <i class="fas fa-envelope"></i> {{ $bookingRequest->hostel->contact_email }}
+                @if(isset($booking) && $booking->hostel)
+                    <i class="fas fa-phone"></i> {{ $booking->hostel->contact_phone ?? 'N/A' }} | 
+                    <i class="fas fa-envelope"></i> {{ $booking->hostel->contact_email ?? 'N/A' }}
+                @elseif(isset($bookingRequest))
+                    <i class="fas fa-phone"></i> {{ $bookingRequest->hostel->contact_phone }} | 
+                    <i class="fas fa-envelope"></i> {{ $bookingRequest->hostel->contact_email }}
+                @endif
             </p>
         </div>
     </div>
@@ -186,6 +240,11 @@
 .bg-warning {
     background: #fff3cd;
     color: #856404;
+}
+
+.bg-success {
+    background: #d1edff;
+    color: #0c5460;
 }
 
 .next-steps {

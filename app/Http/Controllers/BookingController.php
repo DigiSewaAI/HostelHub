@@ -8,46 +8,64 @@ use App\Models\Room;
 use App\Models\Organization;
 use App\Models\Subscription;
 use App\Models\Payment;
+use App\Models\Student;
+use App\Jobs\SendBookingEmail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class BookingController extends Controller
 {
     /**
-     * Store a new booking
+     * Store a new booking (Updated for guest bookings)
      */
     public function store(Request $request)
     {
-        $request->validate([
+        // ✅ Determine if it's a guest booking
+        $isGuest = !Auth::check() || $request->has('is_guest_booking');
+
+        // ✅ Validation rules for both guest and student
+        $validationRules = [
             'room_id' => 'required|exists:rooms,id',
             'check_in_date' => 'required|date|after:today',
             'check_out_date' => 'required|date|after:check_in_date',
             'notes' => 'nullable|string|max:500',
             'emergency_contact' => 'required|string|max:15'
-        ]);
+        ];
+
+        // ✅ Add guest fields validation if it's a guest booking
+        if ($isGuest) {
+            $validationRules['guest_name'] = 'required|string|max:255';
+            $validationRules['guest_email'] = 'required|email|max:255';
+            $validationRules['guest_phone'] = 'required|string|max:20';
+        }
+
+        $request->validate($validationRules);
 
         $room = Room::findOrFail($request->room_id);
         $hostel = $room->hostel;
         $organization = $hostel->organization;
         $subscription = $organization->currentSubscription();
 
-        // Check room availability
+        // ✅ Check room availability
         if (!$room->is_available) {
             return back()->with('error', 'यो कोठा अहिले उपलब्ध छैन।');
         }
 
-        // Check if student has active bookings limit
-        $student = Auth::user()->student;
-        $activeBookingsCount = Booking::where('student_id', $student->id)
-            ->whereIn('status', [Booking::STATUS_PENDING, Booking::STATUS_APPROVED])
-            ->count();
+        // ✅ For students: Check active bookings limit
+        if (Auth::check() && !$isGuest) {
+            $student = Auth::user()->student;
+            $activeBookingsCount = Booking::where('student_id', $student->id)
+                ->whereIn('status', [Booking::STATUS_PENDING, Booking::STATUS_APPROVED])
+                ->count();
 
-        if ($activeBookingsCount >= 3) {
-            return back()->with('error', 'तपाईंसँग ३ वटा सक्रिय बुकिंग छन्। नयाँ बुकिंग गर्न अगाडिको बुकिंग समाप्त हुनुपर्छ।');
+            if ($activeBookingsCount >= 3) {
+                return back()->with('error', 'तपाईंसँग ३ वटा सक्रिय बुकिंग छन्। नयाँ बुकिंग गर्न अगाडिको बुकिंग समाप्त हुनुपर्छ।');
+            }
         }
 
-        // Determine booking status based on subscription plan
+        // ✅ Determine booking status based on subscription plan
         $status = $subscription && $subscription->requiresManualBookingApproval()
             ? Booking::STATUS_PENDING
             : Booking::STATUS_APPROVED;
@@ -55,8 +73,7 @@ class BookingController extends Controller
         DB::beginTransaction();
 
         try {
-            $booking = Booking::create([
-                'student_id' => $student->id,
+            $bookingData = [
                 'room_id' => $request->room_id,
                 'hostel_id' => $hostel->id,
                 'organization_id' => $organization->id,
@@ -67,49 +84,90 @@ class BookingController extends Controller
                 'payment_status' => 'pending',
                 'notes' => $request->notes,
                 'emergency_contact' => $request->emergency_contact,
-            ]);
+                'booking_date' => now(),
+            ];
 
-            // Auto-approve for Pro and Enterprise plans
+            // ✅ Set user/student fields for authenticated users
+            if (Auth::check() && !$isGuest) {
+                $student = Auth::user()->student;
+                $bookingData['student_id'] = $student->id;
+                $bookingData['user_id'] = Auth::id();
+                $bookingData['email'] = Auth::user()->email;
+                $bookingData['is_guest_booking'] = false;
+            } else {
+                // ✅ Set guest fields for guest bookings
+                $bookingData['guest_name'] = $request->guest_name;
+                $bookingData['guest_email'] = $request->guest_email;
+                $bookingData['guest_phone'] = $request->guest_phone;
+                $bookingData['is_guest_booking'] = true;
+                $bookingData['email'] = $request->guest_email;
+            }
+
+            $booking = Booking::create($bookingData);
+
+            // ✅ Auto-approve for Pro and Enterprise plans
             if ($status === Booking::STATUS_APPROVED) {
                 $booking->update([
-                    'approved_by' => Auth::id(),
+                    'approved_by' => Auth::check() ? Auth::id() : null,
                     'approved_at' => now()
                 ]);
+
                 // Update room status
                 $room->update(['is_available' => false]);
-                $message = 'तपाईंको कोठा बुकिंग स्वतः स्वीकृत गरिएको छ।';
 
-                // 🔄 AUTOMATIC PAYMENT REDIRECT AFTER BOOKING
-                // Create pending payment record
-                $payment = Payment::create([
-                    'organization_id' => $organization->id,
-                    'user_id' => Auth::id(),
-                    'booking_id' => $booking->id,
-                    'amount' => $room->price,
-                    'payment_method' => 'pending',
-                    'purpose' => 'booking',
-                    'status' => 'pending',
-                    'payment_date' => now(),
-                    'metadata' => [
-                        'auto_created' => true,
-                        'booking_created_at' => now()->toISOString()
-                    ]
-                ]);
+                $message = $isGuest
+                    ? 'तपाईंको कोठा बुकिंग स्वतः स्वीकृत गरिएको छ। तपाईंलाई इमेल पठाइएको छ।'
+                    : 'तपाईंको कोठा बुकिंग स्वतः स्वीकृत गरिएको छ।';
 
-                // Redirect to payment checkout
-                return redirect()->route('payment.checkout', [
-                    'amount' => $room->price,
-                    'purpose' => 'booking',
-                    'booking_id' => $booking->id,
-                    'payment_id' => $payment->id
-                ])->with('success', 'बुकिंग सफल भयो! कृपया भुक्तानी पूरा गर्नुहोस्।');
+                // ✅ AUTOMATIC PAYMENT REDIRECT ONLY FOR STUDENTS
+                if (Auth::check() && !$isGuest) {
+                    $payment = Payment::create([
+                        'organization_id' => $organization->id,
+                        'user_id' => Auth::id(),
+                        'booking_id' => $booking->id,
+                        'amount' => $room->price,
+                        'payment_method' => 'pending',
+                        'purpose' => 'booking',
+                        'status' => 'pending',
+                        'payment_date' => now(),
+                        'metadata' => [
+                            'auto_created' => true,
+                            'booking_created_at' => now()->toISOString()
+                        ]
+                    ]);
+
+                    // Redirect to payment checkout for students
+                    return redirect()->route('payment.checkout', [
+                        'amount' => $room->price,
+                        'purpose' => 'booking',
+                        'booking_id' => $booking->id,
+                        'payment_id' => $payment->id
+                    ])->with('success', 'बुकिंग सफल भयो! कृपया भुक्तानी पूरा गर्नुहोस्।');
+                }
             } else {
-                $message = 'तपाईंको कोठा बुकिंग सफलतापूर्वक पेश गरिएको छ। म्यानेजरद्वारा स्वीकृतिपछि तपाईंलाई सूचित गरिनेछ।';
+                $message = $isGuest
+                    ? 'तपाईंको कोठा बुकिंग सफलतापूर्वक पेश गरिएको छ। म्यानेजरद्वारा स्वीकृतिपछि तपाईंलाई इमेलमा सूचित गरिनेछ।'
+                    : 'तपाईंको कोठा बुकिंग सफलतापूर्वक पेश गरिएको छ। म्यानेजरद्वारा स्वीकृतिपछि तपाईंलाई सूचित गरिनेछ।';
+            }
+
+            // ✅ SEND EMAIL NOTIFICATION FOR BOTH GUEST AND STUDENT
+            try {
+                dispatch(new SendBookingEmail($booking, $isGuest));
+            } catch (\Exception $e) {
+                Log::error('Email dispatch failed: ' . $e->getMessage());
             }
 
             DB::commit();
 
-            return redirect()->route('bookings.my')->with('success', $message);
+            // ✅ Redirect based on user type
+            if (Auth::check() && !$isGuest) {
+                return redirect()->route('bookings.my')->with('success', $message);
+            } else {
+                return redirect()->route('booking.success', $booking->id)
+                    ->with('success', $message)
+                    ->with('booking_id', $booking->id)
+                    ->with('guest_email', $request->guest_email);
+            }
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'बुकिंग सिर्जना गर्दा त्रुटि: ' . $e->getMessage());
@@ -117,7 +175,7 @@ class BookingController extends Controller
     }
 
     /**
-     * Approve a booking
+     * Approve a booking (Updated for guest conversion)
      */
     public function approve($id)
     {
@@ -154,9 +212,25 @@ class BookingController extends Controller
             // Update room status
             $booking->room()->update(['is_available' => false]);
 
+            // ✅ AUTO-CREATE STUDENT RECORD IF GUEST BOOKING HAS USER
+            if ($booking->is_guest_booking && $booking->user_id) {
+                try {
+                    $user = $booking->user;
+                    Student::createFromBooking($booking, $user);
+                } catch (\Exception $e) {
+                    Log::error('Student creation from booking failed: ' . $e->getMessage());
+                }
+            }
+
+            // ✅ SEND APPROVAL EMAIL
+            try {
+                dispatch(new SendBookingEmail($booking, $booking->is_guest_booking, 'approved'));
+            } catch (\Exception $e) {
+                Log::error('Approval email failed: ' . $e->getMessage());
+            }
+
             DB::commit();
 
-            // Send notification to student
             return back()->with('success', 'बुकिंग सफलतापूर्वक स्वीकृत गरियो।');
         } catch (\Exception $e) {
             DB::rollBack();
@@ -165,7 +239,7 @@ class BookingController extends Controller
     }
 
     /**
-     * Reject a booking
+     * Reject a booking (Updated for email notifications)
      */
     public function reject(Request $request, $id)
     {
@@ -199,9 +273,15 @@ class BookingController extends Controller
                 'rejection_reason' => $request->rejection_reason
             ]);
 
+            // ✅ SEND REJECTION EMAIL
+            try {
+                dispatch(new SendBookingEmail($booking, $booking->is_guest_booking, 'rejected'));
+            } catch (\Exception $e) {
+                Log::error('Rejection email failed: ' . $e->getMessage());
+            }
+
             DB::commit();
 
-            // Send notification to student
             return back()->with('success', 'बुकिंग सफलतापूर्वक अस्वीकृत गरियो।');
         } catch (\Exception $e) {
             DB::rollBack();
@@ -210,7 +290,7 @@ class BookingController extends Controller
     }
 
     /**
-     * Cancel a booking
+     * Cancel a booking (No changes needed)
      */
     public function cancel(Request $request, $id)
     {
@@ -260,12 +340,17 @@ class BookingController extends Controller
     }
 
     /**
-     * Show user's bookings
+     * Show user's bookings (Updated to include guest bookings)
      */
     public function myBookings()
     {
-        $student = Auth::user()->student;
-        $bookings = Booking::where('student_id', $student->id)
+        $user = Auth::user();
+
+        // ✅ Get both student bookings and guest bookings by email
+        $bookings = Booking::where(function ($query) use ($user) {
+            $query->where('student_id', $user->student->id)
+                ->orWhere('email', $user->email);
+        })
             ->with(['room', 'hostel', 'approvedBy'])
             ->latest()
             ->paginate(10);
@@ -274,7 +359,7 @@ class BookingController extends Controller
     }
 
     /**
-     * Show bookings pending approval
+     * Show bookings pending approval (Updated for guest bookings)
      */
     public function pendingApprovals()
     {
@@ -300,7 +385,7 @@ class BookingController extends Controller
     }
 
     /**
-     * Show booking creation form
+     * Show booking creation form (Updated for guest bookings)
      */
     public function create()
     {
@@ -316,20 +401,26 @@ class BookingController extends Controller
             ->with('hostel')
             ->get();
 
-        return view('bookings.create', compact('availableRooms', 'organization'));
+        $isGuest = !Auth::check();
+
+        return view('bookings.create', compact('availableRooms', 'organization', 'isGuest'));
     }
 
     /**
-     * Show single booking details
+     * Show single booking details (Updated for guest access)
      */
     public function show($id)
     {
         $booking = Booking::with(['room.hostel', 'student.user', 'approvedBy'])->findOrFail($id);
 
-        // Authorization check
+        // ✅ Authorization check - allow guest access by email
         $user = Auth::user();
-        if ($user->hasRole('student') && $booking->student_id != $user->student->id) {
-            abort(403, 'तपाईंले यो बुकिंग हेर्न पाउनुहुन्न।');
+        if ($user->hasRole('student')) {
+            $isUsersBooking = $booking->student_id == $user->student->id ||
+                $booking->email == $user->email;
+            if (!$isUsersBooking) {
+                abort(403, 'तपाईंले यो बुकिंग हेर्न पाउनुहुन्न।');
+            }
         }
 
         if ($user->hasRole('hostel_manager')) {
@@ -343,7 +434,7 @@ class BookingController extends Controller
     }
 
     /**
-     * Get bookings for specific hostel (Owner)
+     * Get bookings for specific hostel (Owner) - No changes needed
      */
     public function hostelBookings($hostelId)
     {
@@ -364,5 +455,51 @@ class BookingController extends Controller
             ->paginate(15);
 
         return view('owner.bookings.hostel', compact('bookings', 'hostel'));
+    }
+
+    /**
+     * ✅ NEW: Show guest booking success page
+     */
+    public function guestBookingSuccess($id)
+    {
+        $booking = Booking::findOrFail($id);
+        return view('bookings.guest-success', compact('booking'));
+    }
+
+    /**
+     * ✅ NEW: Convert guest booking to student booking
+     */
+    public function convertToStudentBooking($id)
+    {
+        $booking = Booking::findOrFail($id);
+        $user = Auth::user();
+
+        // Check if booking belongs to this user's email
+        if ($booking->guest_email !== $user->email) {
+            return back()->with('error', 'यो बुकिंग तपाईंको इमेलसँग मेल खाँदैन।');
+        }
+
+        DB::beginTransaction();
+        try {
+            // Convert guest booking to student booking
+            $booking->update([
+                'user_id' => $user->id,
+                'student_id' => $user->student->id,
+                'is_guest_booking' => false,
+                'email' => $user->email
+            ]);
+
+            // If booking is approved, create student record
+            if ($booking->status === Booking::STATUS_APPROVED) {
+                Student::createFromBooking($booking, $user);
+            }
+
+            DB::commit();
+            return redirect()->route('bookings.my')
+                ->with('success', 'बुकिंग सफलतापूर्वक तपाईंको खातामा जोडियो।');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'बुकिंग रूपान्तरण गर्दा त्रुटि: ' . $e->getMessage());
+        }
     }
 }

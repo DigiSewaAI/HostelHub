@@ -9,7 +9,8 @@ use App\Http\Controllers\{
     Frontend\ReviewController as FrontendReviewController,
     Owner\OwnerPublicPageController,
     BookingController,
-    RegistrationController
+    RegistrationController,
+    WelcomeController
 };
 
 /*|--------------------------------------------------------------------------
@@ -25,12 +26,9 @@ Route::group(['middleware' => 'web'], function () {
     Route::get('/gallery', [FrontendGalleryController::class, 'index'])->name('gallery');
     Route::get('/pricing', [PricingController::class, 'index'])->name('pricing');
 
-    // ✅ FIXED: Public hostel listing routes - ADDED BOTH ROUTE NAMES
-    // Route for 'all.hostels' (used in search-results.blade.php)
+    // ✅ FIXED: Hostel listing routes - SEPARATE ROUTES FOR DIFFERENT NAMES
     Route::get('/hostels', [PublicController::class, 'allHostels'])->name('all.hostels');
-
-    // Route for 'hostels.index' (used in dark.blade.php) - same URI, different name
-    Route::get('/hostels', [PublicController::class, 'allHostels'])->name('hostels.index');
+    Route::get('/hostels-list', [PublicController::class, 'allHostels'])->name('hostels.index');
 
     Route::get('/hostels/{slug}', [PublicController::class, 'hostelShow'])->name('hostels.show');
 
@@ -44,11 +42,19 @@ Route::group(['middleware' => 'web'], function () {
     // Meal gallery route
     Route::get('/menu-gallery', [MealGalleryController::class, 'index'])->name('menu-gallery');
 
-    // ✅ FIXED: Updated booking routes to use new booking system
-    // Book room route - NEW CORRECTED ROUTES
+    // ✅ FIXED: Booking routes for new booking system
+    // Guest booking routes - NEW SYSTEM
+    Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
+
+    // ✅ FIXED: Booking success route with controller method (NEW SYSTEM)
+    Route::get('/booking/success/{id}', [PublicController::class, 'bookingSuccess'])->name('booking.success');
+
+    // Old booking routes for backward compatibility
     Route::get('/hostel/{slug}/book', [PublicController::class, 'bookForm'])->name('hostel.book');
     Route::post('/hostel/{slug}/book', [PublicController::class, 'storeBooking'])->name('hostel.book.store');
-    Route::get('/booking/success/{id}', [PublicController::class, 'bookingSuccess'])->name('booking.success');
+
+    // ✅ CRITICAL FIX: Method name corrected from 'bookSuccess' to 'bookingSuccess'
+    Route::get('/booking-request/success/{bookingRequest}', [PublicController::class, 'bookingSuccess'])->name('hostel.book.success');
 
     // Keep old route for backward compatibility but redirect to new one
     Route::get('/hostel/{slug}/book-room', function ($slug) {
@@ -79,7 +85,6 @@ Route::group(['middleware' => 'web'], function () {
     Route::get('/contact', [PublicContactController::class, 'index'])->name('contact');
     Route::post('/contact', [PublicContactController::class, 'store'])->name('contact.store');
 
-    // ✅ FIXED: Removed duplicate search routes - consolidated into single search route above
     // Room search functionality (if needed separately from general search)
     Route::get('/rooms', [PublicController::class, 'roomSearch'])->name('rooms.search');
     Route::get('/hostels/search', [PublicController::class, 'hostelSearch'])->name('hostels.search');
