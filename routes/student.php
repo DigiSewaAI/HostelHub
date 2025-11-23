@@ -1,15 +1,13 @@
 <?php
 
-use App\Http\Controllers\{
-    StudentController,
-    PaymentController,
-    Admin\RoomController,
-    Frontend\PublicController,
-    Student\StudentReviewController,
-    BookingController,
-    Student\CircularController as StudentCircularController,
-    Admin\DocumentController
-};
+use App\Http\Controllers\StudentController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\Admin\RoomController;
+use App\Http\Controllers\Frontend\PublicController;
+use App\Http\Controllers\Student\StudentReviewController;
+use App\Http\Controllers\BookingController;
+use App\Http\Controllers\Student\CircularController as StudentCircularController;
+use App\Http\Controllers\Admin\DocumentController;
 
 /*|--------------------------------------------------------------------------
 | Student Routes - ONLY for student role

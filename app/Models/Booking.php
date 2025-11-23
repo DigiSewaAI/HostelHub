@@ -34,7 +34,13 @@ class Booking extends Model
         'notes',
         'approved_by',
         'approved_at',
-        'rejection_reason'
+        'rejection_reason',
+        // ✅ Guest booking fields
+        'guest_name',
+        'guest_email',
+        'guest_phone',
+        'is_guest_booking',
+        'email'
     ];
 
     /**
@@ -47,7 +53,9 @@ class Booking extends Model
         'check_in_date' => 'datetime',
         'check_out_date' => 'datetime',
         'amount' => 'decimal:2',
-        'approved_at' => 'datetime'
+        'approved_at' => 'datetime',
+        // ✅ Guest booking casts
+        'is_guest_booking' => 'boolean'
     ];
 
     /**
@@ -56,8 +64,8 @@ class Booking extends Model
     public static function validationRules($id = null): array
     {
         return [
-            'user_id' => 'required|exists:users,id',
-            'room_id' => 'required|exists:rooms,id',
+            'user_id' => 'sometimes|required|exists:users,id',
+            'room_id' => 'nullable|exists:rooms,id',
             'hostel_id' => 'required|exists:hostels,id',
             'booking_date' => 'required|date',
             'check_in_date' => 'required|date|after:today',
@@ -68,7 +76,13 @@ class Booking extends Model
             'notes' => 'nullable|string|max:500',
             'approved_by' => 'nullable|exists:users,id',
             'approved_at' => 'nullable|date',
-            'rejection_reason' => 'nullable|string|max:255'
+            'rejection_reason' => 'nullable|string|max:255',
+            // ✅ Guest booking validation
+            'guest_name' => 'nullable|required_if:is_guest_booking,true|string|max:255',
+            'guest_email' => 'nullable|required_if:is_guest_booking,true|email',
+            'guest_phone' => 'nullable|required_if:is_guest_booking,true|string|max:20',
+            'is_guest_booking' => 'sometimes|boolean',
+            'email' => 'nullable|email'
         ];
     }
 
@@ -277,7 +291,7 @@ class Booking extends Model
     {
         return $this->isPending() &&
             $this->check_in_date > now() &&
-            $this->room->is_available;
+            (!$this->room_id || $this->room->is_available);
     }
 
     /**
@@ -287,5 +301,78 @@ class Booking extends Model
     {
         return in_array($this->status, [self::STATUS_PENDING, self::STATUS_APPROVED]) &&
             $this->check_in_date > now()->addDays(1);
+    }
+
+    // ✅ NEW GUEST BOOKING METHODS
+
+    /**
+     * Check if booking is by guest
+     */
+    public function isGuestBooking(): bool
+    {
+        return (bool) $this->is_guest_booking && !$this->user_id;
+    }
+
+    /**
+     * Get customer email for the booking
+     */
+    public function getCustomerEmail(): ?string
+    {
+        if ($this->isGuestBooking()) {
+            return $this->guest_email;
+        }
+
+        return $this->email ?? ($this->user->email ?? null);
+    }
+
+    /**
+     * Get customer name for the booking
+     */
+    public function getCustomerName(): ?string
+    {
+        if ($this->isGuestBooking()) {
+            return $this->guest_name;
+        }
+
+        return $this->user->name ?? null;
+    }
+
+    /**
+     * Check if guest booking can be converted to student booking
+     */
+    public function canBeConvertedToStudent(): bool
+    {
+        return $this->isGuestBooking() &&
+            !empty($this->guest_email) &&
+            $this->isApproved();
+    }
+
+    /**
+     * Attach guest booking to user
+     */
+    public function attachToUser(User $user): bool
+    {
+        return $this->update([
+            'user_id' => $user->id,
+            'is_guest_booking' => false,
+            'email' => $user->email
+        ]);
+    }
+
+    /**
+     * Scope for guest bookings
+     */
+    public function scopeGuestBookings($query)
+    {
+        return $query->where('is_guest_booking', true);
+    }
+
+    /**
+     * Scope for guest bookings by email
+     */
+    public function scopeByGuestEmail($query, $email)
+    {
+        return $query->where('guest_email', $email)
+            ->where('is_guest_booking', true);
     }
 }

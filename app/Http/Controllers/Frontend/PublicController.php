@@ -11,7 +11,7 @@ use App\Models\Student;
 use App\Models\Review;
 use App\Models\Newsletter;
 use App\Models\MealMenu;
-use App\Models\BookingRequest; // Add this import
+use App\Models\BookingRequest;
 use App\Services\ImageService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -1382,7 +1382,7 @@ class PublicController extends Controller
     }
 
     // ======================================================================
-    // BOOKING SYSTEM METHODS - ADDED TO SOLVE BOOKING PROBLEMS
+    // BOOKING SYSTEM METHODS - ALREADY IMPLEMENTED IN YOUR CONTROLLER!
     // ======================================================================
 
     /**
@@ -1525,5 +1525,66 @@ class PublicController extends Controller
         $bookingRequest->room_type_nepali = $nepaliTypes[$bookingRequest->room_type] ?? $bookingRequest->room_type;
 
         return view('frontend.booking.success', compact('bookingRequest'));
+    }
+
+    /**
+     * Show booking success page for NEW booking system
+     * This method handles both BookingRequest and Booking models
+     */
+    public function bookingSuccessNew($id)
+    {
+        try {
+            // First try to find BookingRequest
+            $bookingRequest = BookingRequest::with(['hostel', 'room'])->find($id);
+
+            if ($bookingRequest) {
+                // Simple mapping for room types to Nepali
+                $nepaliTypes = [
+                    '1 seater' => 'एक सिटर कोठा',
+                    '2 seater' => 'दुई सिटर कोठा',
+                    '3 seater' => 'तीन सिटर कोठा',
+                    '4 seater' => 'चार सिटर कोठा',
+                    'single' => 'एक सिटर कोठा',
+                    'double' => 'दुई सिटर कोठा',
+                    'triple' => 'तीन सिटर कोठा',
+                    'quad' => 'चार सिटर कोठा',
+                    'shared' => 'साझा कोठा',
+                    'other' => 'अन्य कोठा'
+                ];
+
+                // Add computed properties for the view
+                $bookingRequest->status_nepali = match ($bookingRequest->status) {
+                    'pending' => 'पेन्डिङ',
+                    'approved' => 'स्वीकृत',
+                    'rejected' => 'अस्वीकृत',
+                    'cancelled' => 'रद्द भयो',
+                    default => $bookingRequest->status
+                };
+
+                $bookingRequest->status_badge_class = match ($bookingRequest->status) {
+                    'pending' => 'bg-warning',
+                    'approved' => 'bg-success',
+                    'rejected' => 'bg-danger',
+                    'cancelled' => 'bg-secondary',
+                    default => 'bg-light text-dark'
+                };
+
+                $bookingRequest->room_type_nepali = $nepaliTypes[$bookingRequest->room_type] ?? $bookingRequest->room_type;
+
+                return view('frontend.booking.success', compact('bookingRequest'));
+            }
+
+            // If BookingRequest not found, try to find Booking model
+            $booking = \App\Models\Booking::with(['hostel', 'room'])->find($id);
+
+            if (!$booking) {
+                abort(404, "Booking not found");
+            }
+
+            return view('frontend.booking.success', compact('booking'));
+        } catch (\Exception $e) {
+            \Log::error('Booking success page error: ' . $e->getMessage());
+            abort(404, 'बुकिंग फेला परेन।');
+        }
     }
 }

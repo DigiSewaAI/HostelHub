@@ -6,7 +6,8 @@ use App\Http\Controllers\{
     PaymentController,
     OnboardingController,
     ProfileController,
-    Frontend\PublicController
+    Frontend\PublicController,
+    WelcomeController // ✅ NEW: Add WelcomeController
 };
 use Illuminate\Support\Facades\DB;
 
@@ -59,15 +60,28 @@ Route::get('/organizations/select', function () {
 })->middleware(['auth'])->name('organizations.select');
 
 /*|--------------------------------------------------------------------------
+| ✅ NEW: Welcome and Booking Routes for Authenticated Users
+|--------------------------------------------------------------------------*/
+Route::middleware(['auth'])->group(function () {
+    // Welcome and guest booking conversion
+    Route::get('/welcome', [WelcomeController::class, 'showWelcome'])->name('user.welcome');
+    Route::post('/convert-booking/{id}', [WelcomeController::class, 'convertGuestBooking'])->name('user.convert-booking');
+
+    // Student booking management
+    Route::get('/my-bookings', [BookingController::class, 'index'])->name('bookings.index');
+});
+
+/*|--------------------------------------------------------------------------
 | Unified Role-Based Routes (Protected Routes for Shared Features)
 |--------------------------------------------------------------------------*/
 Route::middleware(['auth', 'hasOrganization'])->group(function () {
 
-    // Booking routes
-    Route::get('/my-bookings', [BookingController::class, 'myBookings'])->name('bookings.my');
-    Route::get('/bookings/pending', [BookingController::class, 'pendingApprovals'])->name('bookings.pending');
+    // ✅ UPDATED: Booking approval routes for owners
     Route::post('/bookings/{id}/approve', [BookingController::class, 'approve'])->name('bookings.approve');
     Route::post('/bookings/{id}/reject', [BookingController::class, 'reject'])->name('bookings.reject');
+
+    // Keep existing booking routes
+    Route::get('/bookings/pending', [BookingController::class, 'pendingApprovals'])->name('bookings.pending');
 
     // Subscription routes
     Route::get('/subscription/limits', [SubscriptionController::class, 'showLimits'])->name('subscription.limits');

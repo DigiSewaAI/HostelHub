@@ -1,23 +1,22 @@
 <?php
 
-use App\Http\Controllers\{
-    Owner\HostelController as OwnerHostelController,
-    Owner\ReviewController as OwnerReviewController,
-    Owner\OwnerPublicPageController,
-    Owner\GalleryController as OwnerGalleryController,
-    Owner\SettingsController as OwnerSettingsController,
-    Owner\CircularController as OwnerCircularController,
-    Owner\MealController as OwnerMealController,
-    Owner\MealMenuController as OwnerMealMenuController,
-    Owner\BookingRequestController as OwnerBookingRequestController,
-    Admin\DashboardController,
-    ProfileController,
-    Admin\PaymentController,
-    Admin\RoomController,
-    Admin\StudentController,
-    Admin\ContactController,
-    Admin\DocumentController
-};
+use App\Http\Controllers\Owner\HostelController as OwnerHostelController;
+use App\Http\Controllers\Owner\ReviewController as OwnerReviewController;
+use App\Http\Controllers\Owner\OwnerPublicPageController;
+use App\Http\Controllers\Owner\GalleryController as OwnerGalleryController;
+use App\Http\Controllers\Owner\SettingsController as OwnerSettingsController;
+use App\Http\Controllers\Owner\CircularController as OwnerCircularController;
+use App\Http\Controllers\Owner\MealController as OwnerMealController;
+use App\Http\Controllers\Owner\MealMenuController as OwnerMealMenuController;
+use App\Http\Controllers\Owner\BookingRequestController as OwnerBookingRequestController;
+
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Admin\PaymentController;
+use App\Http\Controllers\Admin\RoomController;
+use App\Http\Controllers\Admin\StudentController;
+use App\Http\Controllers\Admin\ContactController;
+use App\Http\Controllers\Admin\DocumentController;
 
 /*|--------------------------------------------------------------------------
 | Owner/Hostel Manager Routes - BOTH roles can access

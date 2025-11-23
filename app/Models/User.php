@@ -54,6 +54,84 @@ class User extends Authenticatable
     ];
 
     /**
+     * ✅ NEW: Boot method for auto-linking guest bookings
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::created(function ($user) {
+            try {
+                Log::info('Auto-linking guest bookings for new user', [
+                    'user_id' => $user->id,
+                    'user_email' => $user->email
+                ]);
+
+                // Find guest bookings with matching email
+                $guestBookings = Booking::where('guest_email', $user->email)
+                    ->where('is_guest_booking', true)
+                    ->whereNull('user_id')
+                    ->get();
+
+                Log::info('Found guest bookings to link', [
+                    'count' => $guestBookings->count(),
+                    'user_email' => $user->email
+                ]);
+
+                foreach ($guestBookings as $booking) {
+                    try {
+                        // Update booking to attach to user
+                        $booking->update([
+                            'user_id' => $user->id,
+                            'is_guest_booking' => false,
+                            'email' => $user->email
+                        ]);
+
+                        Log::info('Successfully linked guest booking to user', [
+                            'booking_id' => $booking->id,
+                            'user_id' => $user->id
+                        ]);
+
+                        // If booking is approved, create student record
+                        if ($booking->isApproved()) {
+                            try {
+                                Student::createFromBooking($booking, $user);
+                                Log::info('Successfully created student record from approved booking', [
+                                    'booking_id' => $booking->id,
+                                    'user_id' => $user->id
+                                ]);
+                            } catch (\Exception $e) {
+                                Log::error('Failed to create student record from booking', [
+                                    'booking_id' => $booking->id,
+                                    'user_id' => $user->id,
+                                    'error' => $e->getMessage()
+                                ]);
+                            }
+                        }
+                    } catch (\Exception $e) {
+                        Log::error('Failed to link guest booking', [
+                            'booking_id' => $booking->id,
+                            'user_id' => $user->id,
+                            'error' => $e->getMessage()
+                        ]);
+                    }
+                }
+
+                Log::info('Completed auto-linking guest bookings for user', [
+                    'user_id' => $user->id,
+                    'linked_count' => $guestBookings->count()
+                ]);
+            } catch (\Exception $e) {
+                Log::error('Auto-linking guest bookings failed', [
+                    'user_id' => $user->id,
+                    'user_email' => $user->email,
+                    'error' => $e->getMessage()
+                ]);
+            }
+        });
+    }
+
+    /**
      * Validation rules for User model
      */
     public static function validationRules($id = null): array
