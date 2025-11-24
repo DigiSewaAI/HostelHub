@@ -481,29 +481,39 @@
 }
 
 /* FIXED: Book button styling - ensure text is visible */
-a[href*="book-room"] {
+.book-button-fixed {
     background: linear-gradient(135deg, #059669, #047857) !important;
     color: white !important;
     border: none !important;
     font-weight: 600 !important;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
 
-a[href*="book-room"]:hover {
+.book-button-fixed:hover {
     background: linear-gradient(135deg, #047857, #065f46) !important;
     color: white !important;
+    transform: translateY(-1px) !important;
 }
 
 /* FIXED: View button styling */
-a[href*="hostels.show"] {
+.view-button-fixed {
     background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
     color: white !important;
     border: none !important;
     font-weight: 600 !important;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
 
-a[href*="hostels.show"]:hover {
+.view-button-fixed:hover {
     background: linear-gradient(135deg, #1d4ed8, #1e40af) !important;
     color: white !important;
+    transform: translateY(-1px) !important;
 }
 
 /* FIXED: Button container spacing */
@@ -529,9 +539,27 @@ button, a {
     font-weight: 600 !important;
 }
 
-/* FIXED: Button text visibility override */
+/* FIXED: Button text visibility override - UPDATED */
 .text-white {
     color: white !important;
+}
+
+/* FIXED: Force white text on all book and view buttons */
+a[href*="book-room"],
+a[href*="hostels.show"] {
+    color: white !important;
+    font-weight: 600 !important;
+}
+
+/* FIXED: Additional safety for button text */
+.inline-flex.items-center.justify-center.px-4.py-2 {
+    color: white !important;
+}
+
+/* FIXED: Ensure Nepali text is properly visible */
+.nepali.text-white {
+    color: white !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
 }
 </style>
 
@@ -549,17 +577,25 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Fix button text visibility
+    // FIXED: Apply button fixes dynamically
     const bookButtons = document.querySelectorAll('a[href*="book-room"]');
     bookButtons.forEach(button => {
+        button.classList.add('book-button-fixed');
         button.style.color = 'white';
         button.style.fontWeight = '600';
+        // Remove any conflicting classes that might cause white text
+        button.classList.remove('text-gray-500', 'text-gray-600', 'text-gray-700');
+        button.classList.add('text-white');
     });
 
     const viewButtons = document.querySelectorAll('a[href*="hostels.show"]');
     viewButtons.forEach(button => {
+        button.classList.add('view-button-fixed');
         button.style.color = 'white';
         button.style.fontWeight = '600';
+        // Remove any conflicting classes that might cause white text
+        button.classList.remove('text-gray-500', 'text-gray-600', 'text-gray-700');
+        button.classList.add('text-white');
     });
 
     // Auto-submit form on filter change
