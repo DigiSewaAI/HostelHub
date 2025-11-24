@@ -37,7 +37,7 @@ class Room extends Model
         'available_beds' => 'integer',
     ];
 
-    protected $appends = ['image_url', 'has_image', 'display_status'];
+    protected $appends = ['image_url', 'has_image', 'display_status', 'is_available'];
 
     /**
      * Validation rules for room
@@ -150,6 +150,33 @@ class Room extends Model
     }
 
     /**
+     * ✅ NEW: Scope for available rooms (for booking system)
+     */
+    public function scopeAvailableForBooking($query)
+    {
+        return $query->where('status', '!=', 'maintenance')
+            ->where('available_beds', '>', 0);
+    }
+
+    /**
+     * ✅ NEW: Scope for rooms available for specific dates
+     */
+    public function scopeAvailableForDates($query, $checkIn, $checkOut)
+    {
+        return $query->whereDoesntHave('bookings', function ($q) use ($checkIn, $checkOut) {
+            $q->whereIn('status', ['pending', 'approved'])
+                ->where(function ($bookingQuery) use ($checkIn, $checkOut) {
+                    $bookingQuery->whereBetween('check_in_date', [$checkIn, $checkOut])
+                        ->orWhereBetween('check_out_date', [$checkIn, $checkOut])
+                        ->orWhere(function ($subQuery) use ($checkIn, $checkOut) {
+                            $subQuery->where('check_in_date', '<=', $checkIn)
+                                ->where('check_out_date', '>=', $checkOut);
+                        });
+                });
+        });
+    }
+
+    /**
      * ✅ NEW: Unified status mapping for consistent display
      */
     public static function statusOptions()
@@ -169,6 +196,14 @@ class Room extends Model
     {
         $map = self::statusOptions();
         return $map[$this->status] ?? $this->status;
+    }
+
+    /**
+     * ✅ NEW: Check if room is available for booking
+     */
+    public function getIsAvailableAttribute(): bool
+    {
+        return $this->status !== 'maintenance' && $this->available_beds > 0;
     }
 
     public function hostel(): BelongsTo
@@ -207,6 +242,11 @@ class Room extends Model
      */
     public function isAvailableForDates($checkIn, $checkOut): bool
     {
+        // First check basic availability
+        if (!$this->is_available) {
+            return false;
+        }
+
         $conflictingBookings = $this->bookings()
             ->where(function ($query) use ($checkIn, $checkOut) {
                 $query->whereBetween('check_in_date', [$checkIn, $checkOut])
@@ -581,5 +621,48 @@ class Room extends Model
         ];
 
         return $categories[$this->gallery_category] ?? $this->gallery_category;
+    }
+
+    /**
+     * ✅ NEW: Get available rooms count for hostel (for booking system)
+     */
+    public static function getAvailableRoomsCount($hostelId): int
+    {
+        return self::where('hostel_id', $hostelId)
+            ->availableForBooking()
+            ->count();
+    }
+
+    /**
+     * ✅ NEW: Get rooms available for specific dates (for booking system)
+     */
+    public static function getRoomsForDates($hostelId, $checkIn = null, $checkOut = null)
+    {
+        $query = self::where('hostel_id', $hostelId)
+            ->availableForBooking();
+
+        if ($checkIn && $checkOut) {
+            $query->availableForDates($checkIn, $checkOut);
+        }
+
+        return $query->get();
+    }
+
+    /**
+     * ✅ NEW: Check if room can be booked (comprehensive check)
+     */
+    public function canBeBooked($checkIn = null, $checkOut = null): bool
+    {
+        // Basic availability check
+        if (!$this->is_available) {
+            return false;
+        }
+
+        // Date-specific availability check
+        if ($checkIn && $checkOut) {
+            return $this->isAvailableForDates($checkIn, $checkOut);
+        }
+
+        return true;
     }
 }

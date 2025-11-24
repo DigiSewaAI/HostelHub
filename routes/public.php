@@ -97,6 +97,23 @@ Route::group(['middleware' => 'web'], function () {
     // Newsletter subscription
     Route::post('/newsletter/subscribe', [PublicController::class, 'subscribeNewsletter'])
         ->name('newsletter.subscribe');
+
+    // ✅ NEW: API Routes for Dynamic Room Loading and Availability Checks
+    Route::get('/api/hostel/{slug}/rooms', [PublicController::class, 'getHostelRooms'])->name('api.hostel.rooms');
+
+    // ✅ NEW: Booking Controller API Routes for Room Availability
+    Route::get('/api/hostel/{hostel}/available-rooms', [BookingController::class, 'getAvailableRooms'])
+        ->name('hostel.available-rooms');
+    Route::get('/api/room/{room}/check-availability', [BookingController::class, 'checkRoomAvailability'])
+        ->name('room.check-availability');
+
+    // ✅ NEW: Guest booking success page route
+    Route::get('/booking/guest-success/{id}', [BookingController::class, 'guestBookingSuccess'])
+        ->name('booking.guest-success');
+
+    // ✅ NEW: Convert guest booking to student booking
+    Route::post('/booking/{id}/convert-to-student', [BookingController::class, 'convertToStudentBooking'])
+        ->name('booking.convert-to-student');
 });
 
 /*|--------------------------------------------------------------------------

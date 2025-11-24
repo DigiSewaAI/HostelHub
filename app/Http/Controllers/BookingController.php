@@ -48,9 +48,28 @@ class BookingController extends Controller
         $organization = $hostel->organization;
         $subscription = $organization->currentSubscription();
 
-        // ✅ Check room availability
-        if (!$room->is_available) {
-            return back()->with('error', 'यो कोठा अहिले उपलब्ध छैन।');
+        // ✅ Enhanced room availability check
+        if (!$room->is_available || $room->available_beds <= 0) {
+            return back()->withInput()->with('error', 'यो कोठा अहिले उपलब्ध छैन। कृपया अर्को कोठा छान्नुहोस्।');
+        }
+
+        // ✅ Check for booking conflicts if dates provided
+        if ($request->check_in_date && $request->check_out_date) {
+            $conflictingBookings = $room->bookings()
+                ->whereIn('status', [Booking::STATUS_PENDING, Booking::STATUS_APPROVED])
+                ->where(function ($query) use ($request) {
+                    $query->whereBetween('check_in_date', [$request->check_in_date, $request->check_out_date])
+                        ->orWhereBetween('check_out_date', [$request->check_in_date, $request->check_out_date])
+                        ->orWhere(function ($q) use ($request) {
+                            $q->where('check_in_date', '<=', $request->check_in_date)
+                                ->where('check_out_date', '>=', $request->check_out_date);
+                        });
+                })
+                ->count();
+
+            if ($conflictingBookings > 0) {
+                return back()->withInput()->with('error', 'यो कोठा उक्त मितिहरूमा पहिले नै बुक गरिएको छ। कृपया अर्को मिति वा कोठा छान्नुहोस्।');
+            }
         }
 
         // ✅ For students: Check active bookings limit
@@ -198,8 +217,8 @@ class BookingController extends Controller
                 }
             }
 
-            // Check room availability
-            if (!$booking->room->is_available) {
+            // Enhanced room availability check
+            if (!$booking->room->is_available || $booking->room->available_beds <= 0) {
                 return back()->with('error', 'यो कोठा अहिले उपलब्ध छैन।');
             }
 
@@ -500,6 +519,134 @@ class BookingController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'बुकिंग रूपान्तरण गर्दा त्रुटि: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * ✅ NEW: Get available rooms for specific dates
+     */
+    public function getAvailableRooms(Request $request, $hostelId)
+    {
+        try {
+            $hostel = Hostel::findOrFail($hostelId);
+
+            $checkIn = $request->get('check_in');
+            $checkOut = $request->get('check_out');
+
+            // Base query for available rooms
+            $roomsQuery = $hostel->rooms()
+                ->where('is_available', true)
+                ->where('available_beds', '>', 0);
+
+            // If dates provided, check room availability for those dates
+            if ($checkIn && $checkOut) {
+                $roomsQuery->whereDoesntHave('bookings', function ($q) use ($checkIn, $checkOut) {
+                    $q->whereIn('status', [Booking::STATUS_PENDING, Booking::STATUS_APPROVED])
+                        ->where(function ($bookingQuery) use ($checkIn, $checkOut) {
+                            $bookingQuery->whereBetween('check_in_date', [$checkIn, $checkOut])
+                                ->orWhereBetween('check_out_date', [$checkIn, $checkOut])
+                                ->orWhere(function ($subQuery) use ($checkIn, $checkOut) {
+                                    $subQuery->where('check_in_date', '<=', $checkIn)
+                                        ->where('check_out_date', '>=', $checkOut);
+                                });
+                        });
+                });
+            }
+
+            $rooms = $roomsQuery->get()->map(function ($room) {
+                return [
+                    'id' => $room->id,
+                    'room_number' => $room->room_number,
+                    'type' => $room->type,
+                    'nepali_type' => $room->nepali_type,
+                    'capacity' => $room->capacity,
+                    'available_beds' => $room->available_beds,
+                    'price' => $room->price,
+                    'formatted_price' => 'रु ' . number_format($room->price),
+                    'description' => $room->description,
+                    'label' => "{$room->nepali_type} - कोठा {$room->room_number} (उपलब्ध: {$room->available_beds}, रु {$room->price})"
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'rooms' => $rooms,
+                'hostel' => [
+                    'name' => $hostel->name,
+                    'id' => $hostel->id
+                ]
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Get available rooms error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'कोठा डाटा लोड गर्न असफल'
+            ], 500);
+        }
+    }
+
+    /**
+     * ✅ NEW: Check room availability for specific dates
+     */
+    public function checkRoomAvailability(Request $request, $roomId)
+    {
+        try {
+            $room = Room::findOrFail($roomId);
+
+            $checkIn = $request->get('check_in');
+            $checkOut = $request->get('check_out');
+
+            if (!$checkIn || !$checkOut) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'कृपया चेक-इन र चेक-आउट मिति प्रदान गर्नुहोस्'
+                ], 422);
+            }
+
+            // Check basic room availability
+            if (!$room->is_available || $room->available_beds <= 0) {
+                return response()->json([
+                    'success' => false,
+                    'available' => false,
+                    'message' => 'यो कोठा अहिले उपलब्ध छैन'
+                ]);
+            }
+
+            // Check for booking conflicts
+            $conflictingBookings = $room->bookings()
+                ->whereIn('status', [Booking::STATUS_PENDING, Booking::STATUS_APPROVED])
+                ->where(function ($query) use ($checkIn, $checkOut) {
+                    $query->whereBetween('check_in_date', [$checkIn, $checkOut])
+                        ->orWhereBetween('check_out_date', [$checkIn, $checkOut])
+                        ->orWhere(function ($q) use ($checkIn, $checkOut) {
+                            $q->where('check_in_date', '<=', $checkIn)
+                                ->where('check_out_date', '>=', $checkOut);
+                        });
+                })
+                ->count();
+
+            $isAvailable = $conflictingBookings === 0;
+
+            return response()->json([
+                'success' => true,
+                'available' => $isAvailable,
+                'message' => $isAvailable
+                    ? 'कोठा उपलब्ध छ'
+                    : 'यो कोठा उक्त मितिहरूमा पहिले नै बुक गरिएको छ',
+                'room' => [
+                    'id' => $room->id,
+                    'room_number' => $room->room_number,
+                    'type' => $room->nepali_type,
+                    'price' => $room->price,
+                    'formatted_price' => 'रु ' . number_format($room->price)
+                ]
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Check room availability error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'उपलब्धता जाँच गर्दा त्रुटि'
+            ], 500);
         }
     }
 }

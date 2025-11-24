@@ -5,11 +5,13 @@
     $avgRating = $hostel->reviews_avg_rating ?? 0;
     $reviewCount = $hostel->reviews->count();
     $minPrice = $hostel->rooms->min('price') ?? 0;
+    // ✅ FIXED: Use the correct available_rooms_count attribute
+    $availableRooms = $hostel->available_rooms_count ?? $hostel->rooms()->where('status', 'available')->count();
 @endphp
 
 <div class="group bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 relative">
     <!-- Premium Badge - FIXED: Golden yellow with black text -->
-    @if($hostel->available_rooms_count > 5)
+    @if($availableRooms > 5)
     <div class="absolute top-4 right-4 z-20">
         <span class="px-3 py-1 bg-gradient-to-r from-yellow-400 to-yellow-500 text-black text-xs font-bold rounded-full shadow-lg flex items-center border border-yellow-300">
             <i class="fas fa-crown mr-1 text-xs"></i>
@@ -40,10 +42,10 @@
         
         <!-- Availability Badge -->
         <div class="absolute bottom-3 left-3">
-            @if($hostel->available_rooms_count > 0)
+            @if($availableRooms > 0)
             <span class="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-sm font-bold rounded-full nepali shadow-lg flex items-center">
                 <i class="fas fa-key mr-2"></i>
-                {{ $hostel->available_rooms_count }} कोठा उपलब्ध
+                {{ $availableRooms }} कोठा उपलब्ध
             </span>
             @else
             <span class="px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white text-sm font-bold rounded-full nepali shadow-lg flex items-center">
@@ -130,12 +132,25 @@
                     <i class="fas fa-eye mr-2"></i>
                     हेर्नुहोस्
                 </a>
-                @if($hostel->available_rooms_count > 0)
-                <a href="{{ route('hostel.book-room', $hostel->slug) }}?check_in={{ request('check_in') }}&check_out={{ request('check_out') }}" 
-                   class="inline-flex items-center justify-center px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold rounded-xl transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl nepali text-sm min-w-[120px]">
-                    <i class="fas fa-calendar-check mr-2"></i>
-                    बुक गर्नुहोस्
-                </a>
+                
+                <!-- ✅ FIXED: Updated booking route and enhanced date parameter handling -->
+                @if($availableRooms > 0)
+                    @php
+                        $checkIn = request('check_in');
+                        $checkOut = request('check_out');
+                        $bookingUrl = route('hostel.book', $hostel->slug);
+                        
+                        // Add date parameters if they exist
+                        if ($checkIn && $checkOut) {
+                            $bookingUrl .= "?check_in={$checkIn}&check_out={$checkOut}";
+                        }
+                    @endphp
+                    
+                    <a href="{{ $bookingUrl }}" 
+                       class="inline-flex items-center justify-center px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold rounded-xl transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl nepali text-sm min-w-[120px]">
+                        <i class="fas fa-calendar-check mr-2"></i>
+                        बुक गर्नुहोस्
+                    </a>
                 @else
                 <button disabled
                    class="inline-flex items-center justify-center px-4 py-2 bg-gray-400 text-white font-semibold rounded-xl cursor-not-allowed nepali text-sm min-w-[120px]">
@@ -145,5 +160,100 @@
                 @endif
             </div>
         </div>
+
+        <!-- ✅ NEW: Date info display when dates are selected -->
+        @if(request('check_in') && request('check_out'))
+        <div class="mt-3 pt-3 border-t border-gray-100">
+            <div class="flex items-center text-xs text-green-600 nepali">
+                <i class="fas fa-calendar-day mr-2"></i>
+                <span>तोकिएको मिति: {{ request('check_in') }} देखि {{ request('check_out') }} सम्म</span>
+            </div>
+        </div>
+        @endif
     </div>
 </div>
+
+<!-- ✅ NEW: Add some custom styles for better date display -->
+<style>
+.nepali {
+    font-family: 'Preeti', 'Mangal', 'Arial', sans-serif;
+}
+
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Smooth transitions for all interactive elements */
+a, button {
+    transition: all 0.3s ease;
+}
+
+/* Enhanced hover effects */
+.group:hover .group-hover\:scale-110 {
+    transform: scale(1.05);
+}
+
+/* Ensure proper image rendering */
+img {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+    .flex.flex-col.space-y-2.ml-4 {
+        margin-left: 0.5rem;
+    }
+    
+    .min-w-\[120px\] {
+        min-width: 110px;
+    }
+}
+</style>
+
+<!-- ✅ NEW: Add JavaScript for enhanced functionality -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add click tracking for analytics
+    const bookingButtons = document.querySelectorAll('a[href*="book"]');
+    bookingButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            const hostelName = this.closest('.group').querySelector('h3').textContent;
+            console.log('Booking initiated for:', hostelName);
+            
+            // You can add analytics tracking here
+            // Example: gtag('event', 'booking_click', { hostel_name: hostelName });
+        });
+    });
+
+    // Enhanced error handling for images
+    const images = document.querySelectorAll('img');
+    images.forEach(img => {
+        img.addEventListener('error', function() {
+            this.src = '{{ asset('images/hostel-placeholder.jpg') }}';
+            this.alt = 'Image not available';
+        });
+    });
+
+    // Add loading state for buttons
+    const buttons = document.querySelectorAll('a, button');
+    buttons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            if (!this.disabled) {
+                const originalText = this.innerHTML;
+                this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> लोड हुँदै...';
+                this.disabled = true;
+                
+                // Revert after 3 seconds if still on same page
+                setTimeout(() => {
+                    this.innerHTML = originalText;
+                    this.disabled = false;
+                }, 3000);
+            }
+        });
+    });
+});
+</script>

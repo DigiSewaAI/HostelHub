@@ -1382,11 +1382,11 @@ class PublicController extends Controller
     }
 
     // ======================================================================
-    // BOOKING SYSTEM METHODS - ALREADY IMPLEMENTED IN YOUR CONTROLLER!
+    // ENHANCED BOOKING SYSTEM METHODS WITH DYNAMIC ROOM LOADING
     // ======================================================================
 
     /**
-     * Show booking form for specific hostel
+     * Show booking form for specific hostel with dynamic room data
      */
     public function bookForm($slug)
     {
@@ -1396,12 +1396,17 @@ class PublicController extends Controller
                 ->where('status', 'active')
                 ->firstOrFail();
 
-            $roomTypes = $hostel->rooms()
+            // Get dates from query parameters
+            $checkIn = request('check_in');
+            $checkOut = request('check_out');
+            $datesLocked = !empty($checkIn) && !empty($checkOut);
+
+            // Get available rooms initially (will be updated via AJAX if dates change)
+            $rooms = $hostel->rooms()
                 ->where('status', 'available')
                 ->where('available_beds', '>', 0)
-                ->distinct()
-                ->pluck('type')
-                ->map(function ($type) {
+                ->get()
+                ->map(function ($room) {
                     // Simple mapping for room types to Nepali
                     $nepaliTypes = [
                         '1 seater' => 'एक सिटर कोठा',
@@ -1417,12 +1422,32 @@ class PublicController extends Controller
                     ];
 
                     return [
-                        'value' => $type,
-                        'label' => $nepaliTypes[$type] ?? $type
+                        'id' => $room->id,
+                        'value' => $room->id,
+
+                        // FIXED LABEL (नेपाली नाम पहिले variable मा राखियो)
+                        'label' => ($nepaliTypes[$room->type] ?? $room->type)
+                            . " - कोठा {$room->room_number} (उपलब्ध: {$room->available_beds}, रु {$room->price})",
+
+                        'room_number' => $room->room_number,
+                        'type' => $room->type,
+
+                        // FIXED nepali_type
+                        'nepali_type' => ($nepaliTypes[$room->type] ?? $room->type),
+
+                        'available_beds' => $room->available_beds,
+                        'price' => $room->price,
+                        'capacity' => $room->capacity
                     ];
                 });
 
-            return view('frontend.booking.form', compact('hostel', 'roomTypes'));
+            return view('frontend.booking.form', compact(
+                'hostel',
+                'rooms',
+                'checkIn',
+                'checkOut',
+                'datesLocked'
+            ));
         } catch (\Exception $e) {
             \Log::error('Booking form error: ' . $e->getMessage());
             abort(404, 'होस्टल फेला परेन वा बुकिंगको लागि उपलब्ध छैन');
@@ -1430,7 +1455,86 @@ class PublicController extends Controller
     }
 
     /**
-     * Store booking request
+     * ✅ NEW: Get available rooms for hostel with date filtering
+     */
+    public function getHostelRooms(Request $request, $slug)
+    {
+        try {
+            $hostel = Hostel::where('slug', $slug)
+                ->where('is_published', true)
+                ->where('status', 'active')
+                ->firstOrFail();
+
+            $checkIn = $request->get('check_in');
+            $checkOut = $request->get('check_out');
+
+            // Base query for available rooms
+            $roomsQuery = $hostel->rooms()
+                ->where('status', 'available')
+                ->where('available_beds', '>', 0);
+
+            // If dates provided, check room availability for those dates
+            if ($checkIn && $checkOut) {
+                $roomsQuery->whereDoesntHave('bookingRequests', function ($q) use ($checkIn, $checkOut) {
+                    $q->whereIn('status', ['pending', 'approved'])
+                        ->where(function ($bookingQuery) use ($checkIn, $checkOut) {
+                            $bookingQuery->whereBetween('check_in_date', [$checkIn, $checkOut])
+                                ->orWhereBetween('check_out_date', [$checkIn, $checkOut])
+                                ->orWhere(function ($subQuery) use ($checkIn, $checkOut) {
+                                    $subQuery->where('check_in_date', '<=', $checkIn)
+                                        ->where('check_out_date', '>=', $checkOut);
+                                });
+                        });
+                });
+            }
+
+            $rooms = $roomsQuery->get()->map(function ($room) {
+                // Simple mapping for room types to Nepali
+                $nepaliTypes = [
+                    '1 seater' => 'एक सिटर कोठा',
+                    '2 seater' => 'दुई सिटर कोठा',
+                    '3 seater' => 'तीन सिटर कोठा',
+                    '4 seater' => 'चार सिटर कोठा',
+                    'single' => 'एक सिटर कोठा',
+                    'double' => 'दुई सिटर कोठा',
+                    'triple' => 'तीन सिटर कोठा',
+                    'quad' => 'चार सिटर कोठा',
+                    'shared' => 'साझा कोठा',
+                    'other' => 'अन्य कोठा'
+                ];
+
+                return [
+                    'id' => $room->id,
+                    'room_number' => $room->room_number,
+                    'type' => $room->type,
+                    'nepali_type' => $nepaliTypes[$room->type] ?? $room->type,
+                    'capacity' => $room->capacity,
+                    'available_beds' => $room->available_beds,
+                    'price' => $room->price,
+                    'formatted_price' => 'रु ' . number_format($room->price),
+                    'description' => $room->description
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'rooms' => $rooms,
+                'hostel' => [
+                    'name' => $hostel->name,
+                    'slug' => $hostel->slug
+                ]
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Get hostel rooms error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'कोठा डाटा लोड गर्न असफल'
+            ], 500);
+        }
+    }
+
+    /**
+     * Store booking request with enhanced validation
      */
     public function storeBooking(Request $request, $slug)
     {
@@ -1445,30 +1549,49 @@ class PublicController extends Controller
                 'phone' => 'required|string|max:15',
                 'email' => 'nullable|email|max:100',
                 'check_in_date' => 'required|date|after:today',
-                'room_type' => 'required|string',
+                'check_out_date' => 'required|date|after:check_in_date',
+                'room_id' => 'required|exists:rooms,id',
                 'message' => 'nullable|string|max:500'
             ]);
 
-            // Check room availability
-            $availableRoom = $hostel->rooms()
-                ->where('type', $validated['room_type'])
+            // Check if the room belongs to the hostel and is available
+            $room = Room::where('id', $validated['room_id'])
+                ->where('hostel_id', $hostel->id)
                 ->where('status', 'available')
                 ->where('available_beds', '>', 0)
                 ->first();
 
-            if (!$availableRoom) {
-                return back()->withInput()->with('error', 'यो प्रकारको कोठा अहिले उपलब्ध छैन');
+            if (!$room) {
+                return back()->withInput()->with('error', 'यो कोठा अहिले उपलब्ध छैन वा तपाईंले छान्नुभएको कोठा यस होस्टलमा छैन।');
+            }
+
+            // Check for booking conflicts for this room and dates
+            $conflictingBookings = BookingRequest::where('room_id', $room->id)
+                ->whereIn('status', ['pending', 'approved'])
+                ->where(function ($query) use ($validated) {
+                    $query->whereBetween('check_in_date', [$validated['check_in_date'], $validated['check_out_date']])
+                        ->orWhereBetween('check_out_date', [$validated['check_in_date'], $validated['check_out_date']])
+                        ->orWhere(function ($q) use ($validated) {
+                            $q->where('check_in_date', '<=', $validated['check_in_date'])
+                                ->where('check_out_date', '>=', $validated['check_out_date']);
+                        });
+                })
+                ->count();
+
+            if ($conflictingBookings > 0) {
+                return back()->withInput()->with('error', 'यो कोठा उक्त मितिहरूमा पहिले नै बुक गरिएको छ। कृपया अर्को मिति वा कोठा छान्नुहोस्।');
             }
 
             // Create booking request
             $bookingRequest = BookingRequest::create([
                 'hostel_id' => $hostel->id,
-                'room_id' => $availableRoom->id,
+                'room_id' => $room->id,
                 'name' => $validated['name'],
                 'phone' => $validated['phone'],
                 'email' => $validated['email'],
                 'check_in_date' => $validated['check_in_date'],
-                'room_type' => $validated['room_type'],
+                'check_out_date' => $validated['check_out_date'],
+                'room_type' => $room->type,
                 'message' => $validated['message'],
                 'status' => 'pending'
             ]);
