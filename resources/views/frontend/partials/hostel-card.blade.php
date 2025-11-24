@@ -127,8 +127,9 @@
             
             <!-- FIXED: Button container with proper spacing -->
             <div class="flex flex-col space-y-2 ml-4">
+                <!-- FIXED: View Button with white text -->
                 <a href="{{ route('hostels.show', $hostel->slug) }}" 
-                   class="inline-flex items-center justify-center px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-xl transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl nepali text-sm min-w-[120px]">
+                   class="inline-flex items-center justify-center px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold rounded-xl transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl nepali text-sm min-w-[120px] button-fixed view-button">
                     <i class="fas fa-eye mr-2"></i>
                     हेर्नुहोस्
                 </a>
@@ -146,8 +147,9 @@
                         }
                     @endphp
                     
+                    <!-- FIXED: Book Button with white text -->
                     <a href="{{ $bookingUrl }}" 
-                       class="inline-flex items-center justify-center px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold rounded-xl transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl nepali text-sm min-w-[120px]">
+                       class="inline-flex items-center justify-center px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold rounded-xl transition-all duration-300 transform hover:-translate-y-0.5 shadow-lg hover:shadow-xl nepali text-sm min-w-[120px] button-fixed book-button">
                         <i class="fas fa-calendar-check mr-2"></i>
                         बुक गर्नुहोस्
                     </a>
@@ -173,7 +175,7 @@
     </div>
 </div>
 
-<!-- ✅ NEW: Add some custom styles for better date display -->
+<!-- ✅ FIXED: Enhanced custom styles for button text visibility -->
 <style>
 .nepali {
     font-family: 'Preeti', 'Mangal', 'Arial', sans-serif;
@@ -202,6 +204,50 @@ img {
     image-rendering: crisp-edges;
 }
 
+/* ✅ FIXED: Button text visibility - FORCE WHITE TEXT */
+.button-fixed {
+    color: white !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    border: none !important;
+}
+
+/* ✅ FIXED: Specific styles for view button */
+.view-button {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+}
+
+.view-button:hover {
+    background: linear-gradient(135deg, #1d4ed8, #1e40af) !important;
+    color: white !important;
+    transform: translateY(-2px) !important;
+}
+
+/* ✅ FIXED: Specific styles for book button */
+.book-button {
+    background: linear-gradient(135deg, #059669, #047857) !important;
+}
+
+.book-button:hover {
+    background: linear-gradient(135deg, #047857, #065f46) !important;
+    color: white !important;
+    transform: translateY(-2px) !important;
+}
+
+/* ✅ FIXED: Remove any conflicting text color classes */
+.button-fixed.text-gray-500,
+.button-fixed.text-gray-600,
+.button-fixed.text-gray-700,
+.button-fixed.text-gray-800,
+.button-fixed.text-gray-900 {
+    color: white !important;
+}
+
+/* ✅ FIXED: Ensure Nepali text is properly visible in buttons */
+.button-fixed .nepali {
+    color: white !important;
+}
+
 /* Responsive adjustments */
 @media (max-width: 640px) {
     .flex.flex-col.space-y-2.ml-4 {
@@ -214,11 +260,31 @@ img {
 }
 </style>
 
-<!-- ✅ NEW: Add JavaScript for enhanced functionality -->
+<!-- ✅ FIXED: Enhanced JavaScript for button text visibility -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // ✅ FIXED: Force white text on all buttons
+    const viewButtons = document.querySelectorAll('.view-button');
+    const bookButtons = document.querySelectorAll('.book-button');
+    
+    viewButtons.forEach(button => {
+        button.style.color = 'white';
+        button.style.fontWeight = '600';
+        // Remove any conflicting classes
+        button.classList.remove('text-gray-500', 'text-gray-600', 'text-gray-700', 'text-gray-800', 'text-gray-900');
+        button.classList.add('text-white');
+    });
+    
+    bookButtons.forEach(button => {
+        button.style.color = 'white';
+        button.style.fontWeight = '600';
+        // Remove any conflicting classes
+        button.classList.remove('text-gray-500', 'text-gray-600', 'text-gray-700', 'text-gray-800', 'text-gray-900');
+        button.classList.add('text-white');
+    });
+
     // Add click tracking for analytics
-    const bookingButtons = document.querySelectorAll('a[href*="book"]');
+    const bookingButtons = document.querySelectorAll('.book-button');
     bookingButtons.forEach(button => {
         button.addEventListener('click', function(e) {
             const hostelName = this.closest('.group').querySelector('h3').textContent;
@@ -242,7 +308,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const buttons = document.querySelectorAll('a, button');
     buttons.forEach(btn => {
         btn.addEventListener('click', function() {
-            if (!this.disabled) {
+            if (!this.disabled && this.classList.contains('button-fixed')) {
                 const originalText = this.innerHTML;
                 this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> लोड हुँदै...';
                 this.disabled = true;
@@ -255,5 +321,15 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // ✅ FIXED: Additional safety - check every second for button text color
+    setInterval(() => {
+        document.querySelectorAll('.button-fixed').forEach(button => {
+            if (window.getComputedStyle(button).color !== 'rgb(255, 255, 255)') {
+                button.style.color = 'white';
+                button.style.setProperty('color', 'white', 'important');
+            }
+        });
+    }, 1000);
 });
 </script>
