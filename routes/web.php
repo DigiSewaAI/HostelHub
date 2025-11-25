@@ -4,11 +4,24 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
 use App\Http\Controllers\WelcomeController;
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\PricingController;
+use App\Http\Controllers\GalleryController;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\RegisterController;
 
 // Force HTTPS in production
 if (app()->environment('production')) {
     URL::forceScheme('https');
 }
+
+// ✅ NEW: Gallery booking route (same as home search booking)
+Route::get('/book/{slug}', [BookingController::class, 'createFromGallery'])->name('hostel.book.from.gallery');
+
+// ✅ FIXED: Add the missing booking store route for NEW booking system
+Route::post('/booking/store', [BookingController::class, 'store'])->name('booking.store');
+
+// ✅ FIXED: Add public guest success route (moved from auth middleware)
+Route::get('/booking/guest-success/{id}', [BookingController::class, 'guestBookingSuccess'])->name('booking.guest-success');
 
 // ✅ UPDATED: Test Email Routes with room_id fix
 Route::get('/test-email-system', function () {
@@ -158,8 +171,8 @@ Route::middleware(['auth'])->group(function () {
     // Booking statistics (API)
     Route::get('/booking/stats', [WelcomeController::class, 'getBookingStats'])->name('booking.stats');
 
-    // ✅ NEW: Guest booking success page
-    Route::get('/booking/guest-success/{id}', [BookingController::class, 'guestBookingSuccess'])->name('booking.guest.success');
+    // ✅ REMOVED: Guest booking success page moved to public routes above
+    // Route::get('/booking/guest-success/{id}', [BookingController::class, 'guestBookingSuccess'])->name('booking.guest.success');
 
     // ✅ NEW: Convert guest booking to student booking
     Route::post('/booking/convert/{id}', [BookingController::class, 'convertToStudentBooking'])->name('booking.convert.to-student');
@@ -510,6 +523,8 @@ Route::get('/test-booking-system', function () {
         <div style="margin:20px 0; padding:15px; border:1px solid #ccc;">
             <h3>Public Booking Routes:</h3>
             <a href="' . route('all.hostels') . '" style="display:inline-block; padding:10px; background:green; color:white; margin:5px;">View Hostels</a>
+            <a href="' . route('hostel.book.from.gallery', ['slug' => 'test-hostel']) . '" style="display:inline-block; padding:10px; background:green; color:white; margin:5px;">Gallery Booking</a>
+            <a href="' . route('booking.guest-success', ['id' => 1]) . '" style="display:inline-block; padding:10px; background:green; color:white; margin:5px;">Guest Success Page</a>
         </div>
         
         <div style="margin:20px 0; padding:15px; border:1px solid #ccc;">
@@ -531,6 +546,35 @@ Route::get('/test-booking-system', function () {
         <div style="margin:20px 0; padding:15px; border:1px solid #ccc;">
             <h3>Debug Routes:</h3>
             <a href="/debug-booking-system" style="display:inline-block; padding:10px; background:orange; color:white; margin:5px;">Booking System Debug</a>
+        </div>
+        
+        <div style="margin:20px 0; padding:15px; border:1px solid #ccc;">
+            <h3>New Booking Form Test:</h3>
+            <form action="' . route('booking.store') . '" method="POST" style="border:1px solid #ddd; padding:15px;">
+                ' . csrf_field() . '
+                <h4>Test Booking Form (NEW SYSTEM)</h4>
+                <div style="margin:10px 0;">
+                    <label>Room ID:</label>
+                    <input type="number" name="room_id" value="1" required>
+                </div>
+                <div style="margin:10px 0;">
+                    <label>Check-in Date:</label>
+                    <input type="date" name="check_in_date" value="' . date('Y-m-d') . '" required>
+                </div>
+                <div style="margin:10px 0;">
+                    <label>Guest Name:</label>
+                    <input type="text" name="guest_name" value="Test User" required>
+                </div>
+                <div style="margin:10px 0;">
+                    <label>Guest Email:</label>
+                    <input type="email" name="guest_email" value="test@example.com" required>
+                </div>
+                <div style="margin:10px 0;">
+                    <label>Guest Phone:</label>
+                    <input type="text" name="guest_phone" value="9800000000" required>
+                </div>
+                <button type="submit" style="padding:10px 20px; background:green; color:white; border:none;">Test Booking Store</button>
+            </form>
         </div>
     </body>
     </html>

@@ -82,6 +82,13 @@ class Room extends Model
                 $room->capacity = $typeCapacityMap[$room->type];
             }
 
+            // ✅ FIXED: Calculate current_occupancy based on APPROVED bookings only
+            $approvedBookingsCount = $room->bookings()
+                ->where('status', 'approved')
+                ->count();
+
+            $room->current_occupancy = $approvedBookingsCount;
+
             // Calculate available beds
             $room->available_beds = $room->capacity - $room->current_occupancy;
 
@@ -150,7 +157,7 @@ class Room extends Model
     }
 
     /**
-     * ✅ NEW: Scope for available rooms (for booking system)
+     * ✅ FIXED: Scope for available rooms (for booking system) - Only count APPROVED bookings
      */
     public function scopeAvailableForBooking($query)
     {
@@ -159,12 +166,12 @@ class Room extends Model
     }
 
     /**
-     * ✅ NEW: Scope for rooms available for specific dates
+     * ✅ FIXED: Scope for rooms available for specific dates - Only count APPROVED bookings
      */
     public function scopeAvailableForDates($query, $checkIn, $checkOut)
     {
         return $query->whereDoesntHave('bookings', function ($q) use ($checkIn, $checkOut) {
-            $q->whereIn('status', ['pending', 'approved'])
+            $q->where('status', 'approved') // ✅ ONLY approved bookings block availability
                 ->where(function ($bookingQuery) use ($checkIn, $checkOut) {
                     $bookingQuery->whereBetween('check_in_date', [$checkIn, $checkOut])
                         ->orWhereBetween('check_out_date', [$checkIn, $checkOut])
@@ -177,7 +184,7 @@ class Room extends Model
     }
 
     /**
-     * ✅ NEW: Unified status mapping for consistent display
+     * ✅ FIXED: Unified status mapping for consistent display
      */
     public static function statusOptions()
     {
@@ -190,7 +197,7 @@ class Room extends Model
     }
 
     /**
-     * ✅ NEW: Get status label in Nepali
+     * ✅ FIXED: Get status label in Nepali
      */
     public function getStatusLabelAttribute()
     {
@@ -199,7 +206,7 @@ class Room extends Model
     }
 
     /**
-     * ✅ NEW: Check if room is available for booking
+     * ✅ FIXED: Check if room is available for booking - Based on APPROVED bookings only
      */
     public function getIsAvailableAttribute(): bool
     {
@@ -238,7 +245,7 @@ class Room extends Model
     }
 
     /**
-     * Check if room is available for given dates
+     * ✅ FIXED: Check if room is available for given dates - Only count APPROVED bookings
      */
     public function isAvailableForDates($checkIn, $checkOut): bool
     {
@@ -248,6 +255,7 @@ class Room extends Model
         }
 
         $conflictingBookings = $this->bookings()
+            ->where('status', 'approved') // ✅ ONLY approved bookings block availability
             ->where(function ($query) use ($checkIn, $checkOut) {
                 $query->whereBetween('check_in_date', [$checkIn, $checkOut])
                     ->orWhereBetween('check_out_date', [$checkIn, $checkOut])
@@ -256,7 +264,6 @@ class Room extends Model
                             ->where('check_out_date', '>=', $checkOut);
                     });
             })
-            ->whereIn('status', ['pending', 'approved'])
             ->count();
 
         return $conflictingBookings === 0;
@@ -302,7 +309,7 @@ class Room extends Model
     }
 
     /**
-     * Get the current occupancy percentage for this specific room.
+     * ✅ FIXED: Get the current occupancy percentage for this specific room - Based on APPROVED bookings
      */
     public function getOccupancyAttribute(): float
     {
@@ -311,15 +318,18 @@ class Room extends Model
     }
 
     /**
-     * Get the current number of students in this room.
+     * ✅ FIXED: Get the current number of students in this room - Based on APPROVED bookings
      */
     public function getCurrentOccupancyAttribute(): int
     {
-        return $this->attributes['current_occupancy'] ?? $this->students()->count();
+        // Count only APPROVED bookings for occupancy
+        return $this->bookings()
+            ->where('status', 'approved')
+            ->count();
     }
 
     /**
-     * Get the available capacity for this room.
+     * ✅ FIXED: Get the available capacity for this room - Based on APPROVED bookings
      */
     public function getAvailableCapacityAttribute(): int
     {
@@ -328,7 +338,7 @@ class Room extends Model
     }
 
     /**
-     * Check if room has available space
+     * ✅ FIXED: Check if room has available space - Based on APPROVED bookings
      */
     public function getHasAvailableSpaceAttribute(): bool
     {
@@ -539,7 +549,7 @@ class Room extends Model
     }
 
     /**
-     * ✅ NEW: Helper method to validate if capacity matches room type
+     * ✅ FIXED: Helper method to validate if capacity matches room type
      */
     public function validateCapacityWithType(): bool
     {
@@ -565,7 +575,7 @@ class Room extends Model
     }
 
     /**
-     * ✅ NEW: Get capacity validation error message
+     * ✅ FIXED: Get capacity validation error message
      */
     public function getCapacityValidationError(): ?string
     {
@@ -602,7 +612,7 @@ class Room extends Model
     }
 
     /**
-     * ✅ NEW: Get gallery category in Nepali for display
+     * ✅ FIXED: Get gallery category in Nepali for display
      */
     public function getGalleryCategoryNepaliAttribute(): string
     {
@@ -624,7 +634,7 @@ class Room extends Model
     }
 
     /**
-     * ✅ NEW: Get available rooms count for hostel (for booking system)
+     * ✅ FIXED: Get available rooms count for hostel (for booking system) - Based on APPROVED bookings
      */
     public static function getAvailableRoomsCount($hostelId): int
     {
@@ -634,7 +644,7 @@ class Room extends Model
     }
 
     /**
-     * ✅ NEW: Get rooms available for specific dates (for booking system)
+     * ✅ FIXED: Get rooms available for specific dates (for booking system) - Only count APPROVED bookings
      */
     public static function getRoomsForDates($hostelId, $checkIn = null, $checkOut = null)
     {
@@ -649,12 +659,21 @@ class Room extends Model
     }
 
     /**
-     * ✅ NEW: Check if room can be booked (comprehensive check)
+     * ✅ FIXED: Check if room can be booked (comprehensive check) - Based on APPROVED bookings
      */
     public function canBeBooked($checkIn = null, $checkOut = null): bool
     {
         // Basic availability check
         if (!$this->is_available) {
+            return false;
+        }
+
+        // Check available capacity based on APPROVED bookings
+        $approvedBookingsCount = $this->bookings()
+            ->where('status', 'approved')
+            ->count();
+
+        if ($approvedBookingsCount >= $this->capacity) {
             return false;
         }
 

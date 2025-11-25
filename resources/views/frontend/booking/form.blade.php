@@ -27,24 +27,65 @@
             </div>
         @endif
 
-        <form method="POST" action="{{ route('hostel.book.store', $hostel->slug) }}" class="booking-form" id="bookingForm">
+        <!-- ✅ FIXED: Changed form action to NEW booking system -->
+        <form method="POST" action="{{ route('booking.store') }}" class="booking-form" id="bookingForm">
             @csrf
             
             <!-- Hidden fields for dates when locked -->
             @if($datesLocked)
                 <input type="hidden" name="check_in_date" value="{{ $checkIn }}">
-                <input type="hidden" name="check_out_date" value="{{ $checkOut }}">
+                @if($checkOut)
+                    <input type="hidden" name="check_out_date" value="{{ $checkOut }}">
+                @endif
             @endif
             
             <div class="form-section">
                 <h3 class="section-title">व्यक्तिगत जानकारी</h3>
                 
+                <!-- ✅ FIXED: Show DIFFERENT fields based on authentication -->
+                @if(!Auth::check())
+                <!-- GUEST FIELDS -->
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="name" class="form-label">पूरा नाम *</label>
-                        <input type="text" id="name" name="name" value="{{ old('name') }}" 
-                               class="form-control @error('name') is-invalid @enderror" 
+                        <label for="guest_name" class="form-label">पूरा नाम *</label>
+                        <input type="text" id="guest_name" name="guest_name" value="{{ old('guest_name') }}" 
+                               class="form-control @error('guest_name') is-invalid @enderror" 
                                placeholder="तपाईंको पूरा नाम" required>
+                        @error('guest_name')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="guest_phone" class="form-label">फोन नम्बर *</label>
+                        <input type="tel" id="guest_phone" name="guest_phone" value="{{ old('guest_phone') }}" 
+                               class="form-control @error('guest_phone') is-invalid @enderror" 
+                               placeholder="९८XXXXXXXX" required>
+                        @error('guest_phone')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="guest_email" class="form-label">इमेल ठेगाना *</label>
+                        <input type="email" id="guest_email" name="guest_email" value="{{ old('guest_email') }}" 
+                               class="form-control @error('guest_email') is-invalid @enderror" 
+                               placeholder="तपाईंको इमेल ठेगाना" required>
+                        @error('guest_email')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+                @else
+                <!-- AUTHENTICATED USER FIELDS -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="name" class="form-label">पूरा नाम</label>
+                        <input type="text" id="name" name="name" value="{{ old('name', Auth::user()->name) }}" 
+                               class="form-control @error('name') is-invalid @enderror" 
+                               placeholder="तपाईंको पूरा नाम">
                         @error('name')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -61,42 +102,64 @@
                     </div>
                 </div>
                 
-                <div class="form-group">
-                    <label for="email" class="form-label">इमेल ठेगाना</label>
-                    <input type="email" id="email" name="email" value="{{ old('email') }}" 
-                           class="form-control @error('email') is-invalid @enderror" 
-                           placeholder="तपाईंको इमेल ठेगाना">
-                    @error('email')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="email" class="form-label">इमेल ठेगाना</label>
+                        <input type="email" id="email" name="email" value="{{ old('email', Auth::user()->email) }}" 
+                               class="form-control @error('email') is-invalid @enderror" 
+                               placeholder="तपाईंको इमेल ठेगाना">
+                        @error('email')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
                 </div>
+                @endif
             </div>
 
             <div class="form-section">
                 <h3 class="section-title">बुकिंग जानकारी</h3>
                 
-                <!-- Dynamic Room Selection -->
-                <div class="form-group">
-                    <label for="room_id" class="form-label">कोठा छनौट गर्नुहोस् *</label>
-                    <select id="room_id" name="room_id" 
-                            class="form-control @error('room_id') is-invalid @enderror" required>
-                        <option value="">कोठा छान्नुहोस्</option>
-                        @foreach($rooms as $room)
-                            <option value="{{ $room['id'] }}" 
-                                data-price="{{ $room['price'] }}"
-                                data-available="{{ $room['available_beds'] }}"
-                                {{ old('room_id') == $room['id'] ? 'selected' : '' }}>
-                                {{ $room['label'] }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('room_id')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                    <small class="form-text text-muted" id="roomHelp">
-                        उपलब्ध कोठाहरू देखाइएको छ
-                    </small>
-                </div>
+                <!-- Room Selection - Show only if not from gallery -->
+                @if(!isset($selectedRoom) || !$selectedRoom)
+                    <div class="form-group">
+                        <label for="room_id" class="form-label">कोठा छनौट गर्नुहोस् *</label>
+                        <select id="room_id" name="room_id" 
+                                class="form-control @error('room_id') is-invalid @enderror" required>
+                            <option value="">कोठा छान्नुहोस्</option>
+                            @foreach($availableRooms as $room)
+                                <option value="{{ $room['id'] }}" 
+                                    data-price="{{ $room['price'] }}"
+                                    data-available="{{ $room['available_beds'] }}"
+                                    data-room-number="{{ $room['room_number'] }}"
+                                    data-type="{{ $room['nepali_type'] }}"
+                                    data-capacity="{{ $room['capacity'] }}"
+                                    {{ old('room_id') == $room['id'] ? 'selected' : '' }}>
+                                    {{ $room['label'] }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('room_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                        <small class="form-text text-muted" id="roomHelp">
+                            उपलब्ध कोठाहरू देखाइएको छ
+                        </small>
+                    </div>
+                @else
+                    <!-- Show selected room from gallery -->
+                    <div class="form-group">
+                        <label class="form-label">चयन गरिएको कोठा</label>
+                        <div class="selected-room-display">
+                            <div class="room-info">
+                                <h5>{{ $selectedRoom->nepali_type }} - कोठा {{ $selectedRoom->room_number }}</h5>
+                                <p><strong>मूल्य:</strong> रु {{ $selectedRoom->price }}</p>
+                                <p><strong>उपलब्ध ओठ:</strong> {{ $selectedRoom->available_beds }}</p>
+                                <p><strong>क्षमता:</strong> {{ $selectedRoom->capacity }}</p>
+                            </div>
+                            <input type="hidden" name="room_id" value="{{ $selectedRoom->id }}">
+                        </div>
+                    </div>
+                @endif
                 
                 <!-- Date Selection -->
                 <div class="form-row" id="dateSelection">
@@ -111,34 +174,42 @@
                         </div>
                         
                         <div class="form-group">
-                            <label class="form-label">चेक-आउट मिति *</label>
-                            <input type="text" class="form-control" value="{{ $checkOut }}" readonly>
-                            <small class="form-text text-info">
-                                <i class="fas fa-lock"></i> खोजीबाट तोकिएको मिति
-                            </small>
+                            <label class="form-label">चेक-आउट मिति</label>
+                            @if($checkOut)
+                                <input type="text" class="form-control" value="{{ $checkOut }}" readonly>
+                                <small class="form-text text-info">
+                                    <i class="fas fa-lock"></i> खोजीबाट तोकिएको मिति
+                                </small>
+                            @else
+                                <input type="text" class="form-control" value="N/A" readonly>
+                                <small class="form-text text-info">
+                                    <i class="fas fa-lock"></i> खोजीबाट तोकिएको (वैकल्पिक)
+                                </small>
+                            @endif
                         </div>
                     @else
                         <!-- Show editable date inputs -->
                         <div class="form-group">
                             <label for="check_in_date" class="form-label">चेक-इन मिति *</label>
                             <input type="date" id="check_in_date" name="check_in_date" 
-                                   value="{{ old('check_in_date') }}" 
+                                   value="{{ old('check_in_date', $checkIn) }}" 
                                    class="form-control @error('check_in_date') is-invalid @enderror" 
-                                   min="{{ date('Y-m-d', strtotime('+1 day')) }}" required>
+                                   min="{{ date('Y-m-d') }}" required> <!-- ✅ CHANGED: min to today -->
                             @error('check_in_date')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
                         
                         <div class="form-group">
-                            <label for="check_out_date" class="form-label">चेक-आउट मिति *</label>
+                            <label for="check_out_date" class="form-label">चेक-आउट मिति (वैकल्पिक)</label>
                             <input type="date" id="check_out_date" name="check_out_date" 
-                                   value="{{ old('check_out_date') }}" 
+                                   value="{{ old('check_out_date', $checkOut) }}" 
                                    class="form-control @error('check_out_date') is-invalid @enderror" 
-                                   min="{{ date('Y-m-d', strtotime('+2 days')) }}" required>
+                                   min="{{ date('Y-m-d', strtotime('+1 day')) }}"> <!-- ✅ CHANGED: min to tomorrow -->
                             @error('check_out_date')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
+                            <small class="form-text text-muted">छोड्नुहोस् यदि लामो समयको लागि बस्नुहुन्छ</small>
                         </div>
                     @endif
                 </div>
@@ -173,11 +244,11 @@
 
             <div class="form-section">
                 <div class="form-group">
-                    <label for="message" class="form-label">अतिरिक्त सन्देश (वैकल्पिक)</label>
-                    <textarea id="message" name="message" rows="4" 
-                              class="form-control @error('message') is-invalid @enderror" 
-                              placeholder="तपाईंको अतिरिक्त आवश्यकता वा सन्देश...">{{ old('message') }}</textarea>
-                    @error('message')
+                    <label for="notes" class="form-label">अतिरिक्त सन्देश (वैकल्पिक)</label>
+                    <textarea id="notes" name="notes" rows="4" 
+                              class="form-control @error('notes') is-invalid @enderror" 
+                              placeholder="तपाईंको अतिरिक्त आवश्यकता वा सन्देश...">{{ old('notes') }}</textarea>
+                    @error('notes')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
@@ -188,7 +259,7 @@
                     <i class="fas fa-paper-plane"></i> बुकिंग अनुरोध पेश गर्नुहोस्
                 </button>
                 
-                <a href="{{ route('hostels.show', $hostel->slug) }}" class="btn btn-secondary">
+                <a href="{{ url()->previous() }}" class="btn btn-secondary">
                     <i class="fas fa-arrow-left"></i> पछाडि जानुहोस्
                 </a>
             </div>
@@ -210,7 +281,7 @@
                 </p>
                 <div class="hostel-stats">
                     <div class="stat">
-                        <span class="stat-number">{{ $hostel->available_rooms ?? 0 }}</span>
+                        <span class="stat-number">{{ count($availableRooms) }}</span>
                         <span class="stat-label">उपलब्ध कोठा</span>
                     </div>
                 </div>
@@ -564,6 +635,25 @@
     font-weight: 500;
 }
 
+/* Selected Room Display */
+.selected-room-display {
+    background: #f8f9fa;
+    border: 2px solid #001F5B;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.room-info h5 {
+    color: #001F5B;
+    margin-bottom: 0.5rem;
+}
+
+.room-info p {
+    margin-bottom: 0.25rem;
+    color: #495057;
+}
+
 /* Loading Indicator */
 .loading-indicator {
     text-align: center;
@@ -596,6 +686,11 @@
     .form-row {
         grid-template-columns: 1fr;
     }
+    
+    .btn-secondary {
+        margin-left: 0;
+        margin-top: 1rem;
+    }
 }
 </style>
 
@@ -610,63 +705,109 @@ document.addEventListener('DOMContentLoaded', function() {
     const submitBtn = document.getElementById('submitBtn');
     const hostelSlug = '{{ $hostel->slug }}';
     const datesLocked = {{ $datesLocked ? 'true' : 'false' }};
+    const isGalleryBooking = {{ isset($selectedRoom) && $selectedRoom ? 'true' : 'false' }};
+    const isAuthenticated = {{ Auth::check() ? 'true' : 'false' }};
 
     // Room data cache
     let roomData = {};
 
-    // Initialize room data from initial options
-    Array.from(roomSelect.options).forEach(option => {
-        if (option.value) {
-            roomData[option.value] = {
-                room_number: option.text.match(/कोठा (\w+)/)?.[1] || '-',
-                type: option.getAttribute('data-type') || '-',
-                available_beds: option.getAttribute('data-available') || '0',
-                price: option.getAttribute('data-price') || '0'
-            };
-        }
-    });
+    // Initialize room data from initial options (only for non-gallery bookings)
+    if (roomSelect) {
+        Array.from(roomSelect.options).forEach(option => {
+            if (option.value) {
+                roomData[option.value] = {
+                    room_number: option.getAttribute('data-room-number') || '-',
+                    type: option.getAttribute('data-type') || '-',
+                    capacity: option.getAttribute('data-capacity') || '-',
+                    available_beds: option.getAttribute('data-available') || '0',
+                    price: option.getAttribute('data-price') || '0'
+                };
+            }
+        });
+    }
 
-    // Room selection handler
-    roomSelect.addEventListener('change', function() {
-        const selectedOption = this.options[this.selectedIndex];
-        const roomId = this.value;
-        
-        if (roomId && roomData[roomId]) {
-            const room = roomData[roomId];
-            document.getElementById('detailRoomNumber').textContent = room.room_number;
-            document.getElementById('detailRoomType').textContent = room.type;
-            document.getElementById('detailCapacity').textContent = room.capacity || '-';
-            document.getElementById('detailAvailableBeds').textContent = room.available_beds;
-            document.getElementById('detailPrice').textContent = 'रु ' + parseInt(room.price).toLocaleString('ne-NP');
-            roomDetails.style.display = 'block';
-        } else {
-            roomDetails.style.display = 'none';
-        }
-    });
+    // ✅ FIXED: For gallery booking, trigger room selection change to populate details
+    if (isGalleryBooking && roomSelect && roomSelect.value) {
+        roomSelect.dispatchEvent(new Event('change'));
+    }
 
-    // Date change handler (only if dates are not locked)
-    if (!datesLocked) {
+    // Room selection handler (only for non-gallery bookings)
+    if (roomSelect) {
+        roomSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const roomId = this.value;
+            
+            if (roomId && roomData[roomId]) {
+                const room = roomData[roomId];
+                document.getElementById('detailRoomNumber').textContent = room.room_number;
+                document.getElementById('detailRoomType').textContent = room.type;
+                document.getElementById('detailCapacity').textContent = room.capacity;
+                document.getElementById('detailAvailableBeds').textContent = room.available_beds;
+                document.getElementById('detailPrice').textContent = 'रु ' + parseInt(room.price).toLocaleString('ne-NP');
+                roomDetails.style.display = 'block';
+            } else {
+                roomDetails.style.display = 'none';
+            }
+        });
+    }
+
+    // Date change handler (only if dates are not locked and not gallery booking)
+    if (!datesLocked && !isGalleryBooking) {
         const dateInputs = [checkInDate, checkOutDate];
         dateInputs.forEach(input => {
             if (input) {
                 input.addEventListener('change', function() {
-                    // Wait for both dates to be filled
                     const checkIn = checkInDate?.value;
                     const checkOut = checkOutDate?.value;
                     
-                    if (checkIn && checkOut) {
+                    // ✅ FIXED: Update checkout min date when checkin changes
+                    if (checkIn && checkOutDate) {
+                        const nextDay = new Date(checkIn);
+                        nextDay.setDate(nextDay.getDate() + 1);
+                        checkOutDate.min = nextDay.toISOString().split('T')[0];
+                        
+                        // If current checkout is before new min, clear it
+                        if (checkOutDate.value && checkOutDate.value < checkOutDate.min) {
+                            checkOutDate.value = '';
+                        }
+                    }
+                    
+                    if (checkIn) {
                         loadRoomsForDates(checkIn, checkOut);
                     }
                 });
             }
         });
+
+        // ✅ FIXED: Set initial minimum dates - ALLOW TODAY
+        const today = new Date();
+        
+        if (checkInDate) {
+            checkInDate.min = today.toISOString().split('T')[0]; // ✅ CHANGED: Allow today
+        }
+        
+        if (checkOutDate && checkInDate && checkInDate.value) {
+            const nextDay = new Date(checkInDate.value);
+            nextDay.setDate(nextDay.getDate() + 1);
+            checkOutDate.min = nextDay.toISOString().split('T')[0];
+        } else if (checkOutDate) {
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            checkOutDate.min = tomorrow.toISOString().split('T')[0];
+        }
     }
 
-    // Load rooms for specific dates
+    // Load rooms for specific dates (check-out is optional)
     function loadRoomsForDates(checkIn, checkOut) {
         showLoading();
         
-        fetch(`/api/hostel/${hostelSlug}/rooms?check_in=${checkIn}&check_out=${checkOut}`)
+        // Build URL with optional check-out date
+        let url = `/api/hostel/${hostelSlug}/rooms?check_in=${checkIn}`;
+        if (checkOut) {
+            url += `&check_out=${checkOut}`;
+        }
+        
+        fetch(url)
             .then(response => response.json())
             .then(data => {
                 hideLoading();
@@ -676,12 +817,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     roomHelp.textContent = `${data.rooms.length} वटा कोठा उपलब्ध छन्`;
                 } else {
                     roomHelp.textContent = 'कोठा डाटा लोड गर्न असफल';
-                    showError('कोठा डाटा लोड गर्न असफल');
+                    const errorMessage = data.message || 'कोठा डाटा लोड गर्न असफल';
+                    showError(errorMessage);
                 }
             })
             .catch(error => {
                 hideLoading();
                 roomHelp.textContent = 'कोठा डाटा लोड गर्न असफल';
+                showError('नेटवर्क त्रुटि: कोठा डाटा लोड गर्न असफल');
                 console.error('Error loading rooms:', error);
             });
     }
@@ -706,10 +849,12 @@ document.addEventListener('DOMContentLoaded', function() {
         rooms.forEach(room => {
             const option = document.createElement('option');
             option.value = room.id;
-            option.textContent = `${room.nepali_type} - कोठा ${room.room_number} (उपलब्ध: ${room.available_beds}, रु ${room.price})`;
+            option.textContent = `${room.nepali_type} - कोठा ${room.room_number} (उपलब्ध: ${room->available_beds}, रु ${room->price})`;
             option.setAttribute('data-price', room.price);
             option.setAttribute('data-available', room.available_beds);
             option.setAttribute('data-type', room.nepali_type);
+            option.setAttribute('data-room-number', room.room_number);
+            option.setAttribute('data-capacity', room.capacity);
             roomSelect.appendChild(option);
             
             // Store room data
@@ -728,20 +873,21 @@ document.addEventListener('DOMContentLoaded', function() {
     // Loading functions
     function showLoading() {
         loadingIndicator.style.display = 'block';
-        roomSelect.disabled = true;
+        if (roomSelect) roomSelect.disabled = true;
         submitBtn.disabled = true;
     }
 
     function hideLoading() {
         loadingIndicator.style.display = 'none';
-        roomSelect.disabled = false;
+        if (roomSelect) roomSelect.disabled = false;
         submitBtn.disabled = false;
     }
 
     function showError(message) {
+        const safeMessage = message || 'अनअपेक्षित त्रुटि';
         const errorDiv = document.createElement('div');
         errorDiv.className = 'alert alert-danger';
-        errorDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
+        errorDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${safeMessage}`;
         document.querySelector('.booking-header').appendChild(errorDiv);
         
         setTimeout(() => {
@@ -749,41 +895,52 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 5000);
     }
 
-    // Form validation
+    // ✅ FIXED: Form validation for BOTH guest and authenticated users
     const form = document.getElementById('bookingForm');
     if (form) {
         form.addEventListener('submit', function(e) {
-            const phone = document.getElementById('phone').value;
-            const phoneRegex = /^[0-9+\-\s()]{10,15}$/;
+            let isValid = true;
+            let errorMessage = '';
             
-            if (!phoneRegex.test(phone)) {
-                e.preventDefault();
-                alert('कृपया मान्य फोन नम्बर प्रविष्ट गर्नुहोस्');
-                return false;
+            // Validate phone number based on user type
+            if (isAuthenticated) {
+                // Authenticated user - validate phone field
+                const phone = document.getElementById('phone').value;
+                const phoneRegex = /^[0-9+\-\s()]{10,15}$/;
+                
+                if (!phoneRegex.test(phone)) {
+                    isValid = false;
+                    errorMessage = 'कृपया मान्य फोन नम्बर प्रविष्ट गर्नुहोस्';
+                }
+            } else {
+                // Guest user - validate guest_phone field
+                const guestPhone = document.getElementById('guest_phone').value;
+                const phoneRegex = /^[0-9+\-\s()]{10,15}$/;
+                
+                if (!phoneRegex.test(guestPhone)) {
+                    isValid = false;
+                    errorMessage = 'कृपया मान्य फोन नम्बर प्रविष्ट गर्नुहोस्';
+                }
             }
             
-            // Validate room selection
-            if (!roomSelect.value) {
+            // Validate room selection (only for non-gallery bookings)
+            if (roomSelect && !roomSelect.value) {
+                isValid = false;
+                errorMessage = 'कृपया कोठा छान्नुहोस्';
+            }
+            
+            // Validate check-in date (only if dates are not locked)
+            if (!datesLocked && checkInDate && !checkInDate.value) {
+                isValid = false;
+                errorMessage = 'कृपया चेक-इन मिति छान्नुहोस्';
+            }
+            
+            if (!isValid) {
                 e.preventDefault();
-                alert('कृपया कोठा छान्नुहोस्');
+                alert(errorMessage);
                 return false;
             }
         });
-    }
-
-    // Set minimum dates
-    if (checkInDate) {
-        const today = new Date();
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        checkInDate.min = tomorrow.toISOString().split('T')[0];
-    }
-    
-    if (checkOutDate) {
-        const today = new Date();
-        const dayAfterTomorrow = new Date(today);
-        dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
-        checkOutDate.min = dayAfterTomorrow.toISOString().split('T')[0];
     }
 });
 </script>

@@ -40,7 +40,10 @@ class Booking extends Model
         'guest_email',
         'guest_phone',
         'is_guest_booking',
-        'email'
+        'email',
+        // ✅ New fields for emergency contact
+        'emergency_contact',
+        'organization_id'
     ];
 
     /**
@@ -63,13 +66,16 @@ class Booking extends Model
      */
     public static function validationRules($id = null): array
     {
+        $today = now()->format('Y-m-d'); // ✅ ADDED: Get today's date for validation
+
         return [
             'user_id' => 'sometimes|required|exists:users,id',
             'room_id' => 'nullable|exists:rooms,id',
             'hostel_id' => 'required|exists:hostels,id',
+            'organization_id' => 'nullable|exists:organizations,id',
             'booking_date' => 'required|date',
-            'check_in_date' => 'required|date|after:today',
-            'check_out_date' => 'required|date|after:check_in_date',
+            'check_in_date' => 'required|date|after_or_equal:' . $today, // ✅ CHANGED: after:today -> after_or_equal:today
+            'check_out_date' => 'nullable|date|after:check_in_date',
             'status' => 'required|in:pending,approved,rejected,cancelled,completed',
             'amount' => 'required|numeric|min:0',
             'payment_status' => 'required|in:pending,paid,failed,refunded',
@@ -82,7 +88,9 @@ class Booking extends Model
             'guest_email' => 'nullable|required_if:is_guest_booking,true|email',
             'guest_phone' => 'nullable|required_if:is_guest_booking,true|string|max:20',
             'is_guest_booking' => 'sometimes|boolean',
-            'email' => 'nullable|email'
+            'email' => 'nullable|email',
+            // ✅ Emergency contact field
+            'emergency_contact' => 'nullable|string|max:15'
         ];
     }
 
@@ -116,6 +124,14 @@ class Booking extends Model
     public function approvedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by')->withDefault();
+    }
+
+    /**
+     * Get the organization that owns the booking through hostel
+     */
+    public function organization(): BelongsTo
+    {
+        return $this->belongsTo(Organization::class)->withDefault();
     }
 
     /**
@@ -374,5 +390,37 @@ class Booking extends Model
     {
         return $query->where('guest_email', $email)
             ->where('is_guest_booking', true);
+    }
+
+    /**
+     * ✅ NEW: Check if booking has check-out date
+     */
+    public function hasCheckoutDate(): bool
+    {
+        return !is_null($this->check_out_date);
+    }
+
+    /**
+     * ✅ NEW: Get duration in days (if checkout date exists)
+     */
+    public function getDurationInDays(): ?int
+    {
+        if (!$this->hasCheckoutDate()) {
+            return null;
+        }
+
+        return $this->check_in_date->diffInDays($this->check_out_date);
+    }
+
+    /**
+     * ✅ NEW: Get displayable check-out date
+     */
+    public function getDisplayCheckoutDate(): string
+    {
+        if (!$this->hasCheckoutDate()) {
+            return 'N/A';
+        }
+
+        return $this->check_out_date->format('Y-m-d');
     }
 }
