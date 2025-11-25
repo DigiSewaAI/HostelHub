@@ -108,12 +108,55 @@
         </div>
     </div>
 
-    <!-- Booking Requests Table -->
-    <div class="card shadow">
+    <!-- ✅ NEW: Tabs Navigation -->
+    <div class="card shadow mb-4">
         <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">बुकिंग अनुरोध सूची</h6>
+            <ul class="nav nav-tabs card-header-tabs" id="bookingTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link {{ !request('status') || request('status') == 'all' ? 'active' : '' }}" 
+                       href="{{ route('owner.booking-requests.index', ['status' => 'all']) }}">
+                       <i class="fas fa-list me-1"></i> सबै ({{ $stats['total'] }})
+                    </a>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link {{ request('status') == 'pending' ? 'active' : '' }}" 
+                       href="{{ route('owner.booking-requests.index', ['status' => 'pending']) }}">
+                       <i class="fas fa-clock me-1"></i> पेन्डिङ ({{ $stats['pending'] }})
+                    </a>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link {{ request('status') == 'approved' ? 'active' : '' }}" 
+                       href="{{ route('owner.booking-requests.index', ['status' => 'approved']) }}">
+                       <i class="fas fa-check me-1"></i> स्वीकृत ({{ $stats['approved'] }})
+                    </a>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link {{ request('status') == 'rejected' ? 'active' : '' }}" 
+                       href="{{ route('owner.booking-requests.index', ['status' => 'rejected']) }}">
+                       <i class="fas fa-times me-1"></i> अस्वीकृत ({{ $stats['rejected'] }})
+                    </a>
+                </li>
+            </ul>
         </div>
+        
         <div class="card-body">
+            <!-- Current Status Badge -->
+            @if(request('status') && request('status') != 'all')
+            <div class="alert alert-info d-flex align-items-center mb-4">
+                <i class="fas fa-info-circle me-2"></i>
+                <span>
+                    @if(request('status') == 'pending')
+                        पेन्डिङ अनुरोधहरू देखाउँदैछु
+                    @elseif(request('status') == 'approved')
+                        स्वीकृत अनुरोधहरू देखाउँदैछु
+                    @elseif(request('status') == 'rejected')
+                        अस्वीकृत अनुरोधहरू देखाउँदैछु
+                    @endif
+                    - कुल {{ $allRequests->count() }} वटा
+                </span>
+            </div>
+            @endif
+
             @php
                 $allRequests = $allRequests ?? [];
             @endphp
@@ -201,25 +244,42 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <div class="btn-group btn-group-sm">
+                                    <div class="d-flex flex-column gap-1">
+                                        <!-- View Details Button - Always Available -->
                                         <a href="{{ route('owner.booking-requests.show', $request->id) }}" 
-                                           class="btn btn-outline-primary" title="हेर्नुहोस्">
-                                            <i class="fas fa-eye"></i>
+                                           class="btn btn-primary btn-sm d-flex align-items-center justify-content-center" 
+                                           style="min-width: 120px;">
+                                            <i class="fas fa-eye me-1"></i> विवरण हेर्नुहोस्
                                         </a>
                                         
+                                        <!-- Action Buttons Based on Status -->
                                         @if($request->status === 'pending')
-                                        <form action="{{ route('owner.booking-requests.approve', $request->id) }}" method="POST" class="d-inline">
-                                            @csrf
-                                            <button type="submit" class="btn btn-outline-success" title="स्वीकृत गर्नुहोस्">
-                                                <i class="fas fa-check"></i>
-                                            </button>
-                                        </form>
-                                        <form action="{{ route('owner.booking-requests.reject', $request->id) }}" method="POST" class="d-inline">
-                                            @csrf
-                                            <button type="submit" class="btn btn-outline-danger" title="अस्वीकृत गर्नुहोस्">
-                                                <i class="fas fa-times"></i>
-                                            </button>
-                                        </form>
+                                        <div class="d-flex gap-1">
+                                            <form action="{{ route('owner.booking-requests.approve', $request->id) }}" method="POST" class="flex-fill">
+                                                @csrf
+                                                <button type="submit" class="btn btn-success btn-sm w-100 d-flex align-items-center justify-content-center" 
+                                                        title="स्वीकृत गर्नुहोस्" onclick="return confirm('के तपाईं यो बुकिंग स्वीकृत गर्न चाहनुहुन्छ?')">
+                                                    <i class="fas fa-check me-1"></i> स्वीकृत
+                                                </button>
+                                            </form>
+                                            <form action="{{ route('owner.booking-requests.reject', $request->id) }}" method="POST" class="flex-fill">
+                                                @csrf
+                                                <button type="submit" class="btn btn-danger btn-sm w-100 d-flex align-items-center justify-content-center" 
+                                                        title="अस्वीकृत गर्नुहोस्" onclick="return confirm('के तपाईं यो बुकिंग अस्वीकृत गर्न चाहनुहुन्छ?')">
+                                                    <i class="fas fa-times me-1"></i> अस्वीकृत
+                                                </button>
+                                            </form>
+                                        </div>
+                                        @elseif($request->status === 'approved')
+                                        <span class="btn btn-outline-success btn-sm disabled w-100 d-flex align-items-center justify-content-center" 
+                                              title="स्वीकृत भइसकेको" style="min-width: 120px;">
+                                            <i class="fas fa-check-circle me-1"></i> स्वीकृत भयो
+                                        </span>
+                                        @elseif($request->status === 'rejected')
+                                        <span class="btn btn-outline-danger btn-sm disabled w-100 d-flex align-items-center justify-content-center" 
+                                              title="अस्वीकृत भइसकेको" style="min-width: 120px;">
+                                            <i class="fas fa-times-circle me-1"></i> अस्वीकृत भयो
+                                        </span>
                                         @endif
                                     </div>
                                 </td>
@@ -231,7 +291,17 @@
             @else
                 <div class="text-center py-5">
                     <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-                    <h5 class="text-muted">कुनै बुकिंग अनुरोध फेला परेन</h5>
+                    <h5 class="text-muted">
+                        @if(request('status') == 'pending')
+                            कुनै पेन्डिङ बुकिंग अनुरोध फेला परेन
+                        @elseif(request('status') == 'approved')
+                            कुनै स्वीकृत बुकिंग अनुरोध फेला परेन
+                        @elseif(request('status') == 'rejected')
+                            कुनै अस्वीकृत बुकिंग अनुरोध फेला परेन
+                        @else
+                            कुनै बुकिंग अनुरोध फेला परेन
+                        @endif
+                    </h5>
                     <p class="text-muted">नयाँ बुकिंग अनुरोधहरू यहाँ देखिनेछन्</p>
                 </div>
             @endif
@@ -250,5 +320,68 @@
 .btn-group-sm > .btn {
     padding: 0.25rem 0.5rem;
 }
+.nav-tabs .nav-link {
+    border: none;
+    color: #6c757d;
+    font-weight: 500;
+}
+.nav-tabs .nav-link.active {
+    color: #4e73df;
+    border-bottom: 3px solid #4e73df;
+    background: transparent;
+}
+.nav-tabs .nav-link:hover {
+    border-color: transparent;
+    color: #4e73df;
+}
+
+/* Improved button styles */
+.btn-sm {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    border-radius: 0.375rem;
+}
+
+/* Ensure buttons have consistent width */
+.action-buttons {
+    min-width: 140px;
+}
+
+/* Better table spacing */
+.table td {
+    vertical-align: middle;
+    padding: 0.75rem;
+}
+
+/* Make the action column wider */
+.table td:last-child {
+    min-width: 160px;
+}
+
+/* Improve button group spacing */
+.btn-group-vertical {
+    gap: 0.25rem;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+    .table td:last-child {
+        min-width: 140px;
+    }
+    
+    .btn-sm {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.8rem;
+    }
+}
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-refresh page every 30 seconds to show new requests
+    setTimeout(function() {
+        window.location.reload();
+    }, 30000);
+});
+</script>
 @endsection

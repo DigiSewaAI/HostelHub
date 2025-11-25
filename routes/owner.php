@@ -225,3 +225,6 @@ Route::middleware(['auth', 'hasOrganization', 'role:owner,hostel_manager'])
         Route::post('contacts/{contact}/mark-unread', [ContactController::class, 'markAsUnread'])->name('contacts.mark-unread');
         Route::post('contacts/bulk-action', [ContactController::class, 'bulkAction'])->name('contacts.bulk-action');
     });
+
+// Add this to the contact routes section
+Route::delete('contacts/{contact}', [ContactController::class, 'destroy'])->name('contacts.destroy');

@@ -24,14 +24,6 @@
             ->count();
             
         $totalPending = $pendingBookingsCount + $pendingBookingRequests;
-
-        // Recent booking requests
-        $recentBookingRequests = \App\Models\BookingRequest::with('hostel')
-            ->whereIn('hostel_id', $hostelIds)
-            ->where('status', 'pending')
-            ->latest()
-            ->limit(5)
-            ->get();
     @endphp
 
     <!-- Welcome Section -->
@@ -410,85 +402,7 @@
         </div>
     </div>
 
-    <!-- 🆕 RECENT BOOKING REQUESTS SECTION -->
-    <div class="bg-white rounded-2xl shadow-sm p-6 mb-6">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-xl font-bold text-gray-800">नयाँ बुकिंग अनुरोधहरू</h2>
-            <div class="flex space-x-2">
-                <a href="{{ route('owner.booking-requests.index') }}" 
-                   class="inline-flex items-center bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-xl px-5 py-2 shadow-sm hover:shadow-md transition-all duration-200 no-underline">
-                    <i class="fas fa-list mr-2"></i>
-                    सबै अनुरोधहरू
-                </a>
-            </div>
-        </div>
-
-        <!-- Recent Booking Requests -->
-        <div class="space-y-3">
-            @forelse($recentBookingRequests as $request)
-                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-200 hover:bg-gray-100 transition-colors">
-                    <div class="flex items-center flex-1">
-                        <div class="bg-orange-100 p-2 rounded-lg mr-3">
-                            <i class="fas fa-user text-orange-600"></i>
-                        </div>
-                        <div class="flex-1">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <p class="font-medium text-gray-800 text-sm">{{ $request->name }}</p>
-                                    <p class="text-xs text-gray-600">{{ $request->phone }}</p>
-                                    <p class="text-xs text-gray-600">{{ $request->hostel->name }}</p>
-                                </div>
-                                <div class="text-right">
-                                    <p class="text-xs text-gray-500">{{ $request->created_at->diffForHumans() }}</p>
-                                    <span class="bg-orange-100 text-orange-600 px-2 py-1 rounded-full text-xs">पेन्डिङ</span>
-                                </div>
-                            </div>
-                            <div class="flex justify-between items-center mt-1">
-                                <p class="text-xs text-gray-500">
-                                    कोठा: {{ (new App\Models\Room())->getNepaliTypeAttribute($request->room_type) }} | 
-                                    चेक-इन: {{ $request->check_in_date->format('Y-m-d') }}
-                                </p>
-                                @if($request->message)
-                                    <p class="text-xs text-gray-500">{{ Str::limit($request->message, 40) }}</p>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex space-x-2 ml-4">
-                        <a href="{{ route('owner.booking-requests.show', $request) }}" 
-                           class="text-blue-600 hover:text-blue-800 p-2 transition-colors" 
-                           title="हेर्नुहोस्">
-                            <i class="fas fa-eye"></i>
-                        </a>
-                        <form action="{{ route('owner.booking-requests.approve', $request) }}" method="POST" class="inline">
-                            @csrf
-                            <button type="submit" 
-                                    class="text-green-600 hover:text-green-800 p-2 transition-colors" 
-                                    title="स्वीकृत गर्नुहोस्"
-                                    onclick="return confirm('के तपाईं यो बुकिंग अनुरोध स्वीकृत गर्न चाहनुहुन्छ?')">
-                                <i class="fas fa-check"></i>
-                            </button>
-                        </form>
-                        <form action="{{ route('owner.booking-requests.reject', $request) }}" method="POST" class="inline">
-                            @csrf
-                            <button type="submit" 
-                                    class="text-red-600 hover:text-red-800 p-2 transition-colors" 
-                                    title="अस्वीकृत गर्नुहोस्"
-                                    onclick="return confirm('के तपाईं यो बुकिंग अनुरोध अस्वीकृत गर्न चाहनुहुन्छ?')">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            @empty
-                <div class="text-center py-8">
-                    <i class="fas fa-calendar-check text-gray-400 text-4xl mb-3"></i>
-                    <p class="text-gray-500 text-sm">हाल कुनै बुकिंग अनुरोध छैन</p>
-                    <p class="text-gray-400 text-xs mt-1">नयाँ बुकिंग अनुरोधहरू यहाँ देखिनेछन्</p>
-                </div>
-            @endforelse
-        </div>
-    </div>
+    <!-- 🚨 FIX 1: DUPLICATE BOOKING REQUEST SECTION REMOVED HERE -->
 
     <!-- Circulars & Documents Overview -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -595,109 +509,121 @@
     </div>
 
     <!-- 🆕 CONTACT MESSAGES SECTION -->
-    <div class="bg-white rounded-2xl shadow-sm p-6 mt-6">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-xl font-bold text-gray-800">सम्पर्क सन्देशहरू</h2>
-            <div class="flex space-x-2">
-                <a href="{{ route('owner.contacts.index') }}" 
-                   class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl px-5 py-2 shadow-sm hover:shadow-md transition-all duration-200 no-underline">
-                    <i class="fas fa-envelope mr-2"></i>
-                    सबै सन्देशहरू
-                </a>
-            </div>
-        </div>
-
-        <!-- Contact Statistics -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <h3 class="text-sm font-semibold text-blue-800">कुल सन्देशहरू</h3>
-                        <p class="text-2xl font-bold text-blue-600">{{ $totalContacts ?? 0 }}</p>
-                    </div>
-                    <div class="bg-blue-600 text-white p-3 rounded-xl">
-                        <i class="fas fa-envelope-open text-xl"></i>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-red-50 p-4 rounded-2xl border border-red-100">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <h3 class="text-sm font-semibold text-red-800">नपढिएका</h3>
-                        <p class="text-2xl font-bold text-red-600">{{ $unreadContacts ?? 0 }}</p>
-                    </div>
-                    <div class="bg-red-600 text-white p-3 rounded-xl">
-                        <i class="fas fa-envelope text-xl"></i>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-green-50 p-4 rounded-2xl border border-green-100">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <h3 class="text-sm font-semibold text-green-800">आजको सन्देश</h3>
-                        <p class="text-2xl font-bold text-green-600">{{ $todayContacts ?? 0 }}</p>
-                    </div>
-                    <div class="bg-green-600 text-white p-3 rounded-xl">
-                        <i class="fas fa-calendar-day text-xl"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Recent Contacts -->
-        <div class="space-y-3">
-            @forelse($recentContacts ?? [] as $contact)
-                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-200 hover:bg-gray-100 transition-colors">
-                    <div class="flex items-center flex-1">
-                        <div class="bg-blue-100 p-2 rounded-lg mr-3">
-                            <i class="fas fa-user text-blue-600"></i>
-                        </div>
-                        <div class="flex-1">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <p class="font-medium text-gray-800 text-sm">{{ $contact->name }}</p>
-                                    <p class="text-xs text-gray-600">{{ $contact->email }}</p>
-                                    <p class="text-xs text-gray-600">{{ Str::limit($contact->subject, 40) }}</p>
-                                </div>
-                                <div class="text-right">
-                                    <p class="text-xs text-gray-500">{{ $contact->created_at->diffForHumans() }}</p>
-                                    @if(!$contact->is_read)
-                                        <span class="bg-red-100 text-red-600 px-2 py-1 rounded-full text-xs">नयाँ</span>
-                                    @endif
-                                </div>
-                            </div>
-                            <p class="text-xs text-gray-500 mt-1">{{ Str::limit($contact->message, 60) }}</p>
-                        </div>
-                    </div>
-                    <div class="flex space-x-2 ml-4">
-                        <a href="{{ route('owner.contacts.show', $contact) }}" 
-                           class="text-blue-600 hover:text-blue-800 p-2 transition-colors" 
-                           title="हेर्नुहोस्">
-                            <i class="fas fa-eye"></i>
-                        </a>
-                        @if(!$contact->is_read)
-                            <form action="{{ route('owner.contacts.update-status', $contact) }}" method="POST" class="inline">
-                                @csrf
-                                @method('PATCH')
-                                <input type="hidden" name="status" value="read">
-                                <button type="submit" class="text-green-600 hover:text-green-800 p-2 transition-colors" title="पढियो चिन्ह लगाउनुहोस्">
-                                    <i class="fas fa-check"></i>
-                                </button>
-                            </form>
-                        @endif
-                    </div>
-                </div>
-            @empty
-                <div class="text-center py-8">
-                    <i class="fas fa-envelope-open-text text-gray-400 text-4xl mb-3"></i>
-                    <p class="text-gray-500 text-sm">हाल कुनै सम्पर्क सन्देश छैन</p>
-                    <p class="text-gray-400 text-xs mt-1">नयाँ सन्देशहरू यहाँ देखिनेछन्</p>
-                </div>
-            @endforelse
+<div class="bg-white rounded-2xl shadow-sm p-6 mt-6">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-bold text-gray-800">सम्पर्क सन्देशहरू</h2>
+        <div class="flex space-x-2">
+            <a href="{{ route('owner.contacts.index') }}" 
+               class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl px-5 py-2 shadow-sm hover:shadow-md transition-all duration-200 no-underline">
+                <i class="fas fa-envelope mr-2"></i>
+                सबै सन्देशहरू
+            </a>
         </div>
     </div>
+
+    <!-- Contact Statistics -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h3 class="text-sm font-semibold text-blue-800">कुल सन्देशहरू</h3>
+                    <p class="text-2xl font-bold text-blue-600">{{ $totalContacts ?? 0 }}</p>
+                </div>
+                <div class="bg-blue-600 text-white p-3 rounded-xl">
+                    <i class="fas fa-envelope-open text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-red-50 p-4 rounded-2xl border border-red-100">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h3 class="text-sm font-semibold text-red-800">नपढिएका</h3>
+                    <p class="text-2xl font-bold text-red-600">{{ $unreadContacts ?? 0 }}</p>
+                </div>
+                <div class="bg-red-600 text-white p-3 rounded-xl">
+                    <i class="fas fa-envelope text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-green-50 p-4 rounded-2xl border border-green-100">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h3 class="text-sm font-semibold text-green-800">आजको सन्देश</h3>
+                    <p class="text-2xl font-bold text-green-600">{{ $todayContacts ?? 0 }}</p>
+                </div>
+                <div class="bg-green-600 text-white p-3 rounded-xl">
+                    <i class="fas fa-calendar-day text-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Contacts -->
+    <div class="space-y-3">
+        @forelse($recentContacts ?? [] as $contact)
+            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-200 hover:bg-gray-100 transition-colors">
+                <div class="flex items-center flex-1">
+                    <div class="bg-blue-100 p-2 rounded-lg mr-3">
+                        <i class="fas fa-user text-blue-600"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="font-medium text-gray-800 text-sm">{{ $contact->name }}</p>
+                                <p class="text-xs text-gray-600">{{ $contact->email }}</p>
+                                <p class="text-xs text-gray-600">{{ Str::limit($contact->subject, 40) }}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-xs text-gray-500">{{ $contact->created_at->diffForHumans() }}</p>
+                                @if(!$contact->is_read)
+                                    <span class="bg-red-100 text-red-600 px-2 py-1 rounded-full text-xs">नयाँ</span>
+                                @endif
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">{{ Str::limit($contact->message, 60) }}</p>
+                    </div>
+                </div>
+                <div class="flex space-x-2 ml-4">
+                    <a href="{{ route('owner.contacts.show', $contact) }}" 
+                       class="text-blue-600 hover:text-blue-800 p-2 transition-colors" 
+                       title="हेर्नुहोस्">
+                        <i class="fas fa-eye"></i>
+                    </a>
+                    @if(!$contact->is_read)
+                        <form action="{{ route('owner.contacts.update-status', $contact) }}" method="POST" class="inline">
+                            @csrf
+                            @method('PATCH')
+                            <input type="hidden" name="status" value="read">
+                            <button type="submit" class="text-green-600 hover:text-green-800 p-2 transition-colors" title="पढियो चिन्ह लगाउनुहोस्">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        </form>
+                    @endif
+                    
+                    <!-- 🚨 FIX 2: DELETE BUTTON - WORKING FIX -->
+                    <form action="{{ url('/owner/contacts/' . $contact->id) }}" method="POST" class="inline">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" 
+                                class="text-red-600 hover:text-red-800 p-2 transition-colors" 
+                                title="मेटाउनुहोस्"
+                                onclick="return confirm('के तपाईं यो सन्देश मेटाउन निश्चित हुनुहुन्छ? यो कार्य पूर्ववत गर्न सकिँदैन।')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        @empty
+            <div class="text-center py-8">
+                <i class="fas fa-envelope-open-text text-gray-400 text-4xl mb-3"></i>
+                <p class="text-gray-500 text-sm">हाल कुनै सम्पर्क सन्देश छैन</p>
+                <p class="text-gray-400 text-xs mt-1">नयाँ सन्देशहरू यहाँ देखिनेछन्</p>
+            </div>
+        @endforelse
+    </div>
+</div>
 @endsection
 
 @section('scripts')

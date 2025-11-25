@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Auth;
 class BookingRequestController extends Controller
 {
     /**
-     * Display a listing of booking requests.
+     * Display a listing of booking requests - UPDATED WITH TABS
      */
     public function index(Request $request)
     {
@@ -24,24 +24,19 @@ class BookingRequestController extends Controller
             ->where('owner_id', $user->id)
             ->pluck('id');
 
-        // ✅ FIXED: Query both BookingRequest AND Booking models
+        // ✅ FIXED: Query both BookingRequest AND Booking models with status filtering
+        $status = $request->get('status', 'all');
+
         $bookingRequestsQuery = BookingRequest::with(['hostel', 'room'])
             ->whereIn('hostel_id', $hostelIds);
 
         $bookingsQuery = Booking::with(['hostel', 'room', 'user'])
-            ->whereIn('hostel_id', $hostelIds)
-            ->where('status', 'pending');
+            ->whereIn('hostel_id', $hostelIds);
 
         // Filter by status
-        if ($request->has('status') && $request->status) {
-            $bookingRequestsQuery->where('status', $request->status);
-            $bookingsQuery->where('status', $request->status);
-        }
-
-        // Filter by hostel
-        if ($request->has('hostel_id') && $request->hostel_id) {
-            $bookingRequestsQuery->where('hostel_id', $request->hostel_id);
-            $bookingsQuery->where('hostel_id', $request->hostel_id);
+        if ($status && $status !== 'all') {
+            $bookingRequestsQuery->where('status', $status);
+            $bookingsQuery->where('status', $status);
         }
 
         $bookingRequests = $bookingRequestsQuery->latest()->get();
@@ -54,17 +49,22 @@ class BookingRequestController extends Controller
             ->where('owner_id', $user->id)
             ->get();
 
+        // ✅ FIXED: Stats calculation for ALL statuses
+        $allRequestsUnfiltered = BookingRequest::whereIn('hostel_id', $hostelIds)->get()
+            ->merge(Booking::whereIn('hostel_id', $hostelIds)->get());
+
         $stats = [
-            'total' => $allRequests->count(),
-            'pending' => $allRequests->where('status', 'pending')->count(),
-            'approved' => $allRequests->where('status', 'approved')->count(),
-            'rejected' => $allRequests->where('status', 'rejected')->count(),
+            'total' => $allRequestsUnfiltered->count(),
+            'pending' => $allRequestsUnfiltered->where('status', 'pending')->count(),
+            'approved' => $allRequestsUnfiltered->where('status', 'approved')->count(),
+            'rejected' => $allRequestsUnfiltered->where('status', 'rejected')->count(),
         ];
 
         return view('owner.booking-requests.index', compact(
             'allRequests',
             'hostels',
-            'stats'
+            'stats',
+            'status'
         ));
     }
 

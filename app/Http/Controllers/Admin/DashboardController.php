@@ -530,10 +530,12 @@ class DashboardController extends Controller
             $circularReadRate = $this->calculateOrganizationReadRate($organization->id);
             $studentEngagement = $this->calculateStudentEngagement($organization->id);
 
-            // ✅ FIXED: Contact Statistics for Owner Dashboard - Remove hostel filtering
+            // ✅ FIXED: Contact Statistics for Owner Dashboard - CORRECT QUERY
             $totalContacts = Contact::count();
             $unreadContacts = Contact::where('is_read', false)->count();
             $todayContacts = Contact::whereDate('created_at', today())->count();
+
+            // ✅ CRITICAL FIX: Ensure recentContacts is properly defined
             $recentContacts = Contact::select('id', 'name', 'email', 'subject', 'message', 'is_read', 'created_at')
                 ->latest('created_at')
                 ->take(6)
@@ -590,17 +592,19 @@ class DashboardController extends Controller
                 'todayCirculars',
                 'circularReadRate',
                 'studentEngagement',
-                // ✅ FIXED: Contact Statistics
+                // ✅ FIXED: Contact Statistics - PROPERLY DEFINED
                 'totalContacts',
                 'unreadContacts',
                 'todayContacts',
-                'recentContacts'
+                'recentContacts'  // ✅ THIS IS THE KEY VARIABLE!
             ));
         } catch (\Exception $e) {
             Log::error('होस्टेल मालिक ड्यासबोर्ड त्रुटि: ' . $e->getMessage(), [
                 'user_id' => auth()->id(),
                 'organization_id' => $organization->id ?? null
             ]);
+
+            // ✅ FIXED: Ensure recentContacts is defined even in error case
             return view('owner.dashboard', [
                 'error' => 'डाटा लोड गर्न असफल भयो',
                 'hostel' => null,
@@ -627,7 +631,7 @@ class DashboardController extends Controller
                 'todayCirculars' => 0,
                 'circularReadRate' => 0,
                 'studentEngagement' => 0,
-                // ✅ FIXED: Contact Statistics
+                // ✅ FIXED: Contact Statistics with PROPER DATA
                 'totalContacts' => Contact::count(),
                 'unreadContacts' => Contact::where('is_read', false)->count(),
                 'todayContacts' => Contact::whereDate('created_at', today())->count(),
