@@ -18,8 +18,16 @@ class ContactController extends Controller
      */
     private function getDataByRole()
     {
-        if (Auth::user()->hasRole('owner')) {
-            return Contact::where('hostel_id', Auth::user()->hostel_id);
+        $user = Auth::user();
+
+        if ($user->hasRole('owner') || $user->hasRole('hostel_manager')) {
+            // For owners, get contacts from their organization's hostels
+            $organization = $user->organizations()->first();
+            if ($organization) {
+                $hostelIds = $organization->hostels()->pluck('id');
+                return Contact::whereIn('hostel_id', $hostelIds);
+            }
+            return Contact::where('id', 0); // No organization, return empty
         }
 
         return Contact::query();
@@ -131,15 +139,25 @@ class ContactController extends Controller
         }
 
         // ✅ FIXED: Add hostel_id for owners automatically
-        if (Auth::user()->hasRole('owner')) {
-            $contactData['hostel_id'] = Auth::user()->hostel_id;
+        $user = Auth::user();
+        if ($user->hasRole('owner') || $user->hasRole('hostel_manager')) {
+            $organization = $user->organizations()->first();
+            if ($organization) {
+                $hostel = $organization->hostels()->first();
+                if ($hostel) {
+                    $contactData['hostel_id'] = $hostel->id;
+                }
+            }
             $contactData['status'] = 'pending'; // Use English status for owners
         }
 
         Contact::create($contactData);
 
-        return redirect()->route('admin.contacts.index')
-            ->with('success', Auth::user()->hasRole('owner') ? 'सन्देश सफलतापूर्वक पठाइयो!' : 'सम्पर्क सफलतापूर्वक थपियो!');
+        // ✅ FIXED: Redirect based on user role
+        $route = ($user->hasRole('owner') || $user->hasRole('hostel_manager')) ? 'owner.contacts.index' : 'admin.contacts.index';
+
+        return redirect()->route($route)
+            ->with('success', ($user->hasRole('owner') || $user->hasRole('hostel_manager')) ? 'सन्देश सफलतापूर्वक पठाइयो!' : 'सम्पर्क सफलतापूर्वक थपियो!');
     }
 
     /**
@@ -150,7 +168,8 @@ class ContactController extends Controller
         $contact = $this->getDataByRole()->with(['hostel', 'room'])->findOrFail($id);
 
         // ✅ SECURITY FIX: Explicit ownership verification
-        if (Auth::user()->hasRole('owner') && $contact->hostel_id !== Auth::user()->hostel_id) {
+        $user = Auth::user();
+        if (($user->hasRole('owner') || $user->hasRole('hostel_manager')) && !$this->isUserContact($contact)) {
             abort(403, 'तपाईंसँग यो सन्देश हेर्ने अनुमति छैन');
         }
 
@@ -165,7 +184,8 @@ class ContactController extends Controller
         $contact = $this->getDataByRole()->with(['hostel', 'room'])->findOrFail($id);
 
         // ✅ SECURITY FIX: Explicit ownership verification
-        if (Auth::user()->hasRole('owner') && $contact->hostel_id !== Auth::user()->hostel_id) {
+        $user = Auth::user();
+        if (($user->hasRole('owner') || $user->hasRole('hostel_manager')) && !$this->isUserContact($contact)) {
             abort(403, 'तपाईंसँग यो सन्देश सम्पादन गर्ने अनुमति छैन');
         }
 
@@ -183,19 +203,22 @@ class ContactController extends Controller
         $contact = $this->getDataByRole()->findOrFail($id);
 
         // ✅ SECURITY FIX: Explicit ownership verification
-        if (Auth::user()->hasRole('owner') && $contact->hostel_id !== Auth::user()->hostel_id) {
+        $user = Auth::user();
+        if (($user->hasRole('owner') || $user->hasRole('hostel_manager')) && !$this->isUserContact($contact)) {
             abort(403, 'तपाईंसँग यो सन्देश अपडेट गर्ने अनुमति छैन');
         }
 
         // Owners can only update status
-        if (Auth::user()->hasRole('owner')) {
+        if ($user->hasRole('owner') || $user->hasRole('hostel_manager')) {
             $request->validate([
                 'status' => 'required|in:pending,read,replied',
             ]);
 
             $contact->update($request->only('status'));
 
-            return redirect()->route('admin.contacts.index')
+            $route = ($user->hasRole('owner') || $user->hasRole('hostel_manager')) ? 'owner.contacts.index' : 'admin.contacts.index';
+
+            return redirect()->route($route)
                 ->with('success', 'सन्देश स्थिति सफलतापूर्वक अद्यावधिक गरियो!');
         }
 
@@ -263,7 +286,8 @@ class ContactController extends Controller
             $contact = $this->getDataByRole()->findOrFail($id);
 
             // ✅ SECURITY FIX: Explicit ownership verification
-            if (Auth::user()->hasRole('owner') && $contact->hostel_id !== Auth::user()->hostel_id) {
+            $user = Auth::user();
+            if (($user->hasRole('owner') || $user->hasRole('hostel_manager')) && !$this->isUserContact($contact)) {
                 abort(403, 'तपाईंसँग यो सन्देश अपडेट गर्ने अनुमति छैन');
             }
 
@@ -306,17 +330,61 @@ class ContactController extends Controller
      */
     public function destroy($id)
     {
-        $contact = $this->getDataByRole()->findOrFail($id);
+        try {
+            $contact = $this->getDataByRole()->findOrFail($id);
 
-        // ✅ SECURITY FIX: Explicit ownership verification
-        if (Auth::user()->hasRole('owner') && $contact->hostel_id !== Auth::user()->hostel_id) {
-            abort(403, 'तपाईंसँग यो सन्देश हटाउने अनुमति छैन');
+            // ✅ SECURITY FIX: Explicit ownership verification
+            $user = Auth::user();
+            if (($user->hasRole('owner') || $user->hasRole('hostel_manager')) && !$this->isUserContact($contact)) {
+                abort(403, 'तपाईंसँग यो सन्देश हटाउने अनुमति छैन');
+            }
+
+            $contact->delete();
+
+            // ✅ FIXED: Redirect based on user role with proper success message
+            $route = ($user->hasRole('owner') || $user->hasRole('hostel_manager')) ? 'owner.contacts.index' : 'admin.contacts.index';
+            $message = ($user->hasRole('owner') || $user->hasRole('hostel_manager')) ? 'सन्देश सफलतापूर्वक मेटाइयो!' : 'सम्पर्क जानकारी सफलतापूर्वक मेटाइयो!';
+
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $message
+                ]);
+            }
+
+            return redirect()->route($route)->with('success', $message);
+        } catch (\Exception $e) {
+            Log::error('Contact deletion failed: ' . $e->getMessage());
+
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'सन्देश मेटाउन असफल भयो'
+                ], 500);
+            }
+
+            $route = (Auth::user()->hasRole('owner') || Auth::user()->hasRole('hostel_manager')) ? 'owner.contacts.index' : 'admin.contacts.index';
+            return redirect()->route($route)->with('error', 'सन्देश मेटाउन असफल भयो');
+        }
+    }
+
+    /**
+     * Check if contact belongs to user's organization
+     */
+    private function isUserContact($contact)
+    {
+        $user = Auth::user();
+
+        if ($user->hasRole('owner') || $user->hasRole('hostel_manager')) {
+            $organization = $user->organizations()->first();
+            if ($organization && $contact->hostel_id) {
+                $hostelIds = $organization->hostels()->pluck('id');
+                return $hostelIds->contains($contact->hostel_id);
+            }
+            return false;
         }
 
-        $contact->delete();
-
-        return redirect()->route('admin.contacts.index')
-            ->with('success', Auth::user()->hasRole('owner') ? 'सन्देश सफलतापूर्वक हटाइयो!' : 'सम्पर्क जानकारी सफलतापूर्वक मेटाइयो!');
+        return true; // Admin can access all contacts
     }
 
     /**
@@ -334,16 +402,24 @@ class ContactController extends Controller
         // ✅ SECURITY FIX: Validate IDs are integers
         $validIds = array_filter($ids, 'is_numeric');
 
-        // For owners, only allow deleting their hostel's contacts
-        if (Auth::user()->hasRole('owner')) {
-            Contact::where('hostel_id', Auth::user()->hostel_id)
-                ->whereIn('id', $validIds)
-                ->delete();
+        $user = Auth::user();
+
+        // For owners, only allow deleting their organization's contacts
+        if ($user->hasRole('owner') || $user->hasRole('hostel_manager')) {
+            $organization = $user->organizations()->first();
+            if ($organization) {
+                $hostelIds = $organization->hostels()->pluck('id');
+                Contact::whereIn('hostel_id', $hostelIds)
+                    ->whereIn('id', $validIds)
+                    ->delete();
+            }
         } else {
             Contact::whereIn('id', $validIds)->delete();
         }
 
-        return redirect()->route('admin.contacts.index')
+        $route = ($user->hasRole('owner') || $user->hasRole('hostel_manager')) ? 'owner.contacts.index' : 'admin.contacts.index';
+
+        return redirect()->route($route)
             ->with('success', 'चयन गरिएका सम्पर्क जानकारीहरू सफलतापूर्वक मेटाइयो!');
     }
 
@@ -468,7 +544,8 @@ class ContactController extends Controller
     {
         try {
             // ✅ SECURITY FIX: Explicit ownership verification
-            if (Auth::user()->hasRole('owner') && $contact->hostel_id !== Auth::user()->hostel_id) {
+            $user = Auth::user();
+            if (($user->hasRole('owner') || $user->hasRole('hostel_manager')) && !$this->isUserContact($contact)) {
                 abort(403, 'तपाईंसँग यो सन्देश अपडेट गर्ने अनुमति छैन');
             }
 
@@ -490,7 +567,8 @@ class ContactController extends Controller
     {
         try {
             // ✅ SECURITY FIX: Explicit ownership verification
-            if (Auth::user()->hasRole('owner') && $contact->hostel_id !== Auth::user()->hostel_id) {
+            $user = Auth::user();
+            if (($user->hasRole('owner') || $user->hasRole('hostel_manager')) && !$this->isUserContact($contact)) {
                 abort(403, 'तपाईंसँग यो सन्देश अपडेट गर्ने अनुमति छैन');
             }
 
@@ -521,35 +599,49 @@ class ContactController extends Controller
         $validIds = array_filter($ids, 'is_numeric');
 
         try {
+            $user = Auth::user();
+
             switch ($action) {
                 case 'mark-read':
-                    // For owners, only update their hostel's contacts
-                    if (Auth::user()->hasRole('owner')) {
-                        Contact::where('hostel_id', Auth::user()->hostel_id)
-                            ->whereIn('id', $validIds)
-                            ->update(['is_read' => true, 'status' => 'read']);
+                    // For owners, only update their organization's contacts
+                    if ($user->hasRole('owner') || $user->hasRole('hostel_manager')) {
+                        $organization = $user->organizations()->first();
+                        if ($organization) {
+                            $hostelIds = $organization->hostels()->pluck('id');
+                            Contact::whereIn('hostel_id', $hostelIds)
+                                ->whereIn('id', $validIds)
+                                ->update(['is_read' => true, 'status' => 'read']);
+                        }
                     } else {
                         Contact::whereIn('id', $validIds)->update(['is_read' => true, 'status' => 'read']);
                     }
                     $message = 'चयन गरिएका सन्देशहरू पढिएको चिन्ह लगाइयो';
                     break;
                 case 'mark-unread':
-                    // For owners, only update their hostel's contacts
-                    if (Auth::user()->hasRole('owner')) {
-                        Contact::where('hostel_id', Auth::user()->hostel_id)
-                            ->whereIn('id', $validIds)
-                            ->update(['is_read' => false, 'status' => 'unread']);
+                    // For owners, only update their organization's contacts
+                    if ($user->hasRole('owner') || $user->hasRole('hostel_manager')) {
+                        $organization = $user->organizations()->first();
+                        if ($organization) {
+                            $hostelIds = $organization->hostels()->pluck('id');
+                            Contact::whereIn('hostel_id', $hostelIds)
+                                ->whereIn('id', $validIds)
+                                ->update(['is_read' => false, 'status' => 'unread']);
+                        }
                     } else {
                         Contact::whereIn('id', $validIds)->update(['is_read' => false, 'status' => 'unread']);
                     }
                     $message = 'चयन गरिएका सन्देशहरू नपढिएको चिन्ह लगाइयो';
                     break;
                 case 'delete':
-                    // For owners, only delete their hostel's contacts
-                    if (Auth::user()->hasRole('owner')) {
-                        Contact::where('hostel_id', Auth::user()->hostel_id)
-                            ->whereIn('id', $validIds)
-                            ->delete();
+                    // For owners, only delete their organization's contacts
+                    if ($user->hasRole('owner') || $user->hasRole('hostel_manager')) {
+                        $organization = $user->organizations()->first();
+                        if ($organization) {
+                            $hostelIds = $organization->hostels()->pluck('id');
+                            Contact::whereIn('hostel_id', $hostelIds)
+                                ->whereIn('id', $validIds)
+                                ->delete();
+                        }
                     } else {
                         Contact::whereIn('id', $validIds)->delete();
                     }

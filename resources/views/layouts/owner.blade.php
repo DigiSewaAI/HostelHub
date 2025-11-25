@@ -1012,6 +1012,21 @@
                 }
             });
 
+            // ✅ ADDED: Contact message delete functionality
+            $(document).on('submit', 'form[action*="contacts"][method="DELETE"]', function(e) {
+                if (!confirm('के तपाईं यो सन्देश मेटाउन निश्चित हुनुहुन्छ? यो कार्य पूर्ववत गर्न सकिँदैन।')) {
+                    e.preventDefault();
+                    return false;
+                }
+                
+                // Show loading state
+                const button = $(this).find('button[type="submit"]');
+                const originalHtml = button.html();
+                button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> मेट्दै...');
+                
+                return true;
+            });
+
             // ✅ ADDED: Bulk actions for circulars
             $(document).on('change', '.circular-bulk-select', function() {
                 const checkedCount = $('.circular-bulk-select:checked').length;
