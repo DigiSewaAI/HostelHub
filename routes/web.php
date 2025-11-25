@@ -8,6 +8,8 @@ use App\Http\Controllers\PricingController;
 use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Frontend\PublicController;
+
 
 // Force HTTPS in production
 if (app()->environment('production')) {
@@ -22,6 +24,9 @@ Route::post('/booking/store', [BookingController::class, 'store'])->name('bookin
 
 // ✅ FIXED: Add public guest success route (moved from auth middleware)
 Route::get('/booking/guest-success/{id}', [BookingController::class, 'guestBookingSuccess'])->name('booking.guest-success');
+
+Route::get('/booking-success/{id}', [PublicController::class, 'bookingSuccess'])
+    ->name('frontend.booking.success');
 
 // ✅ UPDATED: Test Email Routes with room_id fix
 Route::get('/test-email-system', function () {

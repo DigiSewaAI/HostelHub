@@ -23,8 +23,10 @@ class Booking extends Model
      */
     protected $fillable = [
         'user_id',
+        'student_id', // ✅ ADDED: Ensure student_id is fillable
         'room_id',
         'hostel_id',
+        'organization_id', // ✅ ADDED: Ensure organization_id is fillable
         'booking_date',
         'check_in_date',
         'check_out_date',
@@ -70,6 +72,7 @@ class Booking extends Model
 
         return [
             'user_id' => 'sometimes|required|exists:users,id',
+            'student_id' => 'nullable|exists:students,id', // ✅ ADDED: student_id validation
             'room_id' => 'nullable|exists:rooms,id',
             'hostel_id' => 'required|exists:hostels,id',
             'organization_id' => 'nullable|exists:organizations,id',
@@ -119,6 +122,14 @@ class Booking extends Model
     }
 
     /**
+     * ✅ ADDED: Get the student that owns the booking.
+     */
+    public function student(): BelongsTo
+    {
+        return $this->belongsTo(Student::class)->withDefault();
+    }
+
+    /**
      * Get the user who approved the booking
      */
     public function approvedBy(): BelongsTo
@@ -157,6 +168,16 @@ class Booking extends Model
     {
         return $query->whereHas('hostel', function ($q) use ($organizationId) {
             $q->where('organization_id', $organizationId);
+        });
+    }
+
+    /**
+     * ✅ ADDED: Scope for owner-specific bookings
+     */
+    public function scopeForOwner($query, $ownerId)
+    {
+        return $query->whereHas('hostel', function ($q) use ($ownerId) {
+            $q->where('owner_id', $ownerId);
         });
     }
 
@@ -354,6 +375,18 @@ class Booking extends Model
     }
 
     /**
+     * ✅ ADDED: Get customer phone for the booking
+     */
+    public function getCustomerPhone(): ?string
+    {
+        if ($this->isGuestBooking()) {
+            return $this->guest_phone;
+        }
+
+        return $this->guest_phone ?? ($this->user->phone ?? null);
+    }
+
+    /**
      * Check if guest booking can be converted to student booking
      */
     public function canBeConvertedToStudent(): bool
@@ -370,6 +403,7 @@ class Booking extends Model
     {
         return $this->update([
             'user_id' => $user->id,
+            'student_id' => $user->student->id ?? null, // ✅ ADDED: Set student_id
             'is_guest_booking' => false,
             'email' => $user->email
         ]);
@@ -422,5 +456,70 @@ class Booking extends Model
         }
 
         return $this->check_out_date->format('Y-m-d');
+    }
+
+    /**
+     * ✅ ADDED: Get requester name for display in owner dashboard
+     */
+    public function getRequesterName(): string
+    {
+        if ($this->isGuestBooking()) {
+            return $this->guest_name . ' (Guest)';
+        }
+
+        return $this->user->name ?? 'N/A';
+    }
+
+    /**
+     * ✅ ADDED: Get requester email for display in owner dashboard
+     */
+    public function getRequesterEmail(): string
+    {
+        if ($this->isGuestBooking()) {
+            return $this->guest_email;
+        }
+
+        return $this->user->email ?? $this->email ?? 'N/A';
+    }
+
+    /**
+     * ✅ ADDED: Get requester phone for display in owner dashboard
+     */
+    public function getRequesterPhone(): string
+    {
+        if ($this->isGuestBooking()) {
+            return $this->guest_phone ?? 'N/A';
+        }
+
+        return $this->guest_phone ?? $this->user->phone ?? 'N/A';
+    }
+
+    /**
+     * ✅ ADDED: Scope to get bookings for owner with organization filtering
+     */
+    public function scopeForOwnerWithOrganization($query, $ownerId, $organizationId = null)
+    {
+        return $query->whereHas('hostel', function ($q) use ($ownerId, $organizationId) {
+            $q->where('owner_id', $ownerId);
+            if ($organizationId) {
+                $q->where('organization_id', $organizationId);
+            }
+        });
+    }
+
+    /**
+     * ✅ ADDED: Check if booking belongs to owner
+     */
+    public function belongsToOwner($ownerId): bool
+    {
+        return $this->hostel && $this->hostel->owner_id == $ownerId;
+    }
+
+    /**
+     * ✅ ADDED: Get booking type for display
+     */
+    public function getBookingType(): string
+    {
+        return $this->is_guest_booking ? 'Guest Booking' : 'Student Booking';
     }
 }

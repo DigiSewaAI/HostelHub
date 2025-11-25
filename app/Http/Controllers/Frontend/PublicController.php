@@ -1613,7 +1613,7 @@ class PublicController extends Controller
 
     /**
      * Store booking request with enhanced validation
-     * ✅ REMOVED: Emergency contact field from validation and storage
+     * ✅ FIXED: Now creates Booking model instead of BookingRequest with proper hostel_id
      */
     public function storeBooking(Request $request, $slug)
     {
@@ -1671,24 +1671,25 @@ class PublicController extends Controller
                 return back()->withInput()->with('error', 'यो कोठा उक्त मितिहरूमा पहिले नै बुक गरिएको छ। कृपया अर्को मिति वा कोठा छान्नुहोस्।');
             }
 
-            // ✅ UPDATED: Create booking request without emergency_contact
-            $bookingRequest = BookingRequest::create([
-                'hostel_id' => $hostel->id,
+            // ✅ CRITICAL FIX: Create Booking model instead of BookingRequest with proper hostel_id
+            $booking = Booking::create([
+                'hostel_id' => $hostel->id, // ✅ CRITICAL: Ensure hostel_id is saved
                 'room_id' => $room->id,
-                'name' => $validated['name'],
-                'phone' => $validated['phone'],
-                'email' => $validated['email'],
+                'guest_name' => $validated['name'],
+                'guest_phone' => $validated['phone'],
+                'guest_email' => $validated['email'],
                 'check_in_date' => $validated['check_in_date'],
                 'check_out_date' => $validated['check_out_date'],
-                'room_type' => $room->type,
-                'message' => $validated['message'],
-                'status' => 'pending'
-                // ❌ REMOVED: emergency_contact
+                'status' => Booking::STATUS_PENDING,
+                'amount' => $room->price,
+                'is_guest_booking' => true,
+                'booking_date' => now(),
+                'payment_status' => 'pending'
             ]);
 
             // TODO: Send notification to hostel owner
 
-            return redirect()->route('booking.success', $bookingRequest->id)
+            return redirect()->route('frontend.booking.success', $booking->id)
                 ->with('success', 'तपाईंको बुकिंग अनुरोध सफलतापूर्वक पेश गरियो। होस्टल प्रबन्धकले चाँडै नै तपाईंसँग सम्पर्क गर्नेछन्।');
         } catch (\Exception $e) {
             \Log::error('Store booking error: ' . $e->getMessage());
