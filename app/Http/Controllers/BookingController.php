@@ -9,7 +9,6 @@ use App\Models\Organization;
 use App\Models\Subscription;
 use App\Models\Payment;
 use App\Models\Student;
-use App\Jobs\SendBookingEmail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -18,45 +17,73 @@ use Illuminate\Support\Facades\Log;
 class BookingController extends Controller
 {
     /**
-     * Store a new booking (Updated for guest bookings)
+     * Store a new booking (Email dispatch COMPLETELY REMOVED)
      */
     public function store(Request $request)
     {
-        // ✅ Determine if it's a guest booking
-        $isGuest = !Auth::check() || $request->has('is_guest_booking');
+        // ✅ FIXED: Better guest detection
+        $isGuest = !Auth::check();
 
-        // ✅ Validation rules for both guest and student
+        // ✅ FIXED: Updated validation with after_or_equal
         $validationRules = [
             'room_id' => 'required|exists:rooms,id',
-            'check_in_date' => 'required|date|after:today',
-            'check_out_date' => 'required|date|after:check_in_date',
+            'check_in_date' => 'required|date|after_or_equal:today',
+            'check_out_date' => 'nullable|date|after:check_in_date',
             'notes' => 'nullable|string|max:500',
-            'emergency_contact' => 'required|string|max:15'
         ];
 
-        // ✅ Add guest fields validation if it's a guest booking
+        // ✅ FIXED: Add guest fields validation if it's a guest booking
         if ($isGuest) {
             $validationRules['guest_name'] = 'required|string|max:255';
             $validationRules['guest_email'] = 'required|email|max:255';
             $validationRules['guest_phone'] = 'required|string|max:20';
+        } else {
+            // ✅ FIXED: For authenticated users, use these fields from form
+            $validationRules['name'] = 'sometimes|string|max:255';
+            $validationRules['phone'] = 'sometimes|string|max:20';
+            $validationRules['email'] = 'sometimes|email|max:255';
         }
 
-        $request->validate($validationRules);
+        $validatedData = $request->validate($validationRules);
 
         $room = Room::findOrFail($request->room_id);
         $hostel = $room->hostel;
-        $organization = $hostel->organization;
-        $subscription = $organization->currentSubscription();
+        $organization = $room->hostel->organization;
 
-        // ✅ Enhanced room availability check
-        if (!$room->is_available || $room->available_beds <= 0) {
+        // ✅ FIXED: Get subscription correctly - use the relationship, not the method
+        $subscription = $organization ? $organization->currentSubscription : null;
+
+        Log::info('🔍 ROOM AVAILABILITY CHECK', [
+            'room_id' => $room->id,
+            'room_number' => $room->room_number,
+            'status' => $room->status,
+            'available_beds' => $room->available_beds,
+            'capacity' => $room->capacity,
+            'current_occupancy' => $room->current_occupancy
+        ]);
+
+        // ✅ FIXED: SIMPLIFIED availability check - Use the room's own available_beds
+        if ($room->available_beds <= 0) {
+            Log::warning('❌ Room not available - available_beds <= 0', [
+                'room_id' => $room->id,
+                'available_beds' => $room->available_beds
+            ]);
             return back()->withInput()->with('error', 'यो कोठा अहिले उपलब्ध छैन। कृपया अर्को कोठा छान्नुहोस्।');
         }
 
-        // ✅ Check for booking conflicts if dates provided
+        // ✅ FIXED: Check room status
+        if ($room->status !== 'उपलब्ध' && $room->status !== 'available') {
+            Log::warning('❌ Room status not available', [
+                'room_id' => $room->id,
+                'status' => $room->status
+            ]);
+            return back()->withInput()->with('error', 'यो कोठा अहिले उपलब्ध छैन। कृपया अर्को कोठा छान्नुहोस्।');
+        }
+
+        // ✅ FIXED: SIMPLIFIED booking conflicts check
         if ($request->check_in_date && $request->check_out_date) {
             $conflictingBookings = $room->bookings()
-                ->whereIn('status', [Booking::STATUS_PENDING, Booking::STATUS_APPROVED])
+                ->where('status', Booking::STATUS_APPROVED) // ✅ ONLY approved bookings matter
                 ->where(function ($query) use ($request) {
                     $query->whereBetween('check_in_date', [$request->check_in_date, $request->check_out_date])
                         ->orWhereBetween('check_out_date', [$request->check_in_date, $request->check_out_date])
@@ -68,11 +95,15 @@ class BookingController extends Controller
                 ->count();
 
             if ($conflictingBookings > 0) {
+                Log::warning('❌ Room has conflicting bookings', [
+                    'room_id' => $room->id,
+                    'conflicting_count' => $conflictingBookings
+                ]);
                 return back()->withInput()->with('error', 'यो कोठा उक्त मितिहरूमा पहिले नै बुक गरिएको छ। कृपया अर्को मिति वा कोठा छान्नुहोस्।');
             }
         }
 
-        // ✅ For students: Check active bookings limit
+        // ✅ FIXED: For students: Check active bookings limit
         if (Auth::check() && !$isGuest) {
             $student = Auth::user()->student;
             $activeBookingsCount = Booking::where('student_id', $student->id)
@@ -84,8 +115,8 @@ class BookingController extends Controller
             }
         }
 
-        // ✅ Determine booking status based on subscription plan
-        $status = $subscription && $subscription->requiresManualBookingApproval()
+        // ✅ FIXED: Determine booking status based on subscription plan
+        $status = $subscription && method_exists($subscription, 'requiresManualBookingApproval') && $subscription->requiresManualBookingApproval()
             ? Booking::STATUS_PENDING
             : Booking::STATUS_APPROVED;
 
@@ -95,26 +126,28 @@ class BookingController extends Controller
             $bookingData = [
                 'room_id' => $request->room_id,
                 'hostel_id' => $hostel->id,
-                'organization_id' => $organization->id,
+                'organization_id' => $organization ? $organization->id : null,
                 'check_in_date' => $request->check_in_date,
                 'check_out_date' => $request->check_out_date,
                 'status' => $status,
                 'amount' => $room->price,
                 'payment_status' => 'pending',
                 'notes' => $request->notes,
-                'emergency_contact' => $request->emergency_contact,
                 'booking_date' => now(),
             ];
 
-            // ✅ Set user/student fields for authenticated users
+            // ✅ FIXED: Set user/student fields for authenticated users with form data
             if (Auth::check() && !$isGuest) {
                 $student = Auth::user()->student;
                 $bookingData['student_id'] = $student->id;
                 $bookingData['user_id'] = Auth::id();
-                $bookingData['email'] = Auth::user()->email;
+                $bookingData['email'] = $request->email ?? Auth::user()->email;
                 $bookingData['is_guest_booking'] = false;
+                // ✅ FIXED: Store name and phone from form for authenticated users
+                $bookingData['guest_name'] = $request->name ?? Auth::user()->name;
+                $bookingData['guest_phone'] = $request->phone;
             } else {
-                // ✅ Set guest fields for guest bookings
+                // ✅ FIXED: Set guest fields for guest bookings
                 $bookingData['guest_name'] = $request->guest_name;
                 $bookingData['guest_email'] = $request->guest_email;
                 $bookingData['guest_phone'] = $request->guest_phone;
@@ -124,24 +157,34 @@ class BookingController extends Controller
 
             $booking = Booking::create($bookingData);
 
-            // ✅ Auto-approve for Pro and Enterprise plans
+            // ✅ FIXED: Auto-approve for Pro and Enterprise plans
             if ($status === Booking::STATUS_APPROVED) {
                 $booking->update([
                     'approved_by' => Auth::check() ? Auth::id() : null,
                     'approved_at' => now()
                 ]);
 
-                // Update room status
-                $room->update(['is_available' => false]);
+                // ✅ FIXED: Update room availability - ONLY if booking is approved
+                $room->available_beds = $room->available_beds - 1;
+                if ($room->available_beds <= 0) {
+                    $room->status = 'अनुपलब्ध';
+                }
+                $room->save();
+
+                Log::info('✅ Room availability updated after approval', [
+                    'room_id' => $room->id,
+                    'new_available_beds' => $room->available_beds,
+                    'new_status' => $room->status
+                ]);
 
                 $message = $isGuest
-                    ? 'तपाईंको कोठा बुकिंग स्वतः स्वीकृत गरिएको छ। तपाईंलाई इमेल पठाइएको छ।'
+                    ? 'तपाईंको कोठा बुकिंग स्वतः स्वीकृत गरिएको छ।'
                     : 'तपाईंको कोठा बुकिंग स्वतः स्वीकृत गरिएको छ।';
 
-                // ✅ AUTOMATIC PAYMENT REDIRECT ONLY FOR STUDENTS
+                // ✅ FIXED: AUTOMATIC PAYMENT REDIRECT ONLY FOR STUDENTS
                 if (Auth::check() && !$isGuest) {
                     $payment = Payment::create([
-                        'organization_id' => $organization->id,
+                        'organization_id' => $organization ? $organization->id : null,
                         'user_id' => Auth::id(),
                         'booking_id' => $booking->id,
                         'amount' => $room->price,
@@ -165,36 +208,98 @@ class BookingController extends Controller
                 }
             } else {
                 $message = $isGuest
-                    ? 'तपाईंको कोठा बुकिंग सफलतापूर्वक पेश गरिएको छ। म्यानेजरद्वारा स्वीकृतिपछि तपाईंलाई इमेलमा सूचित गरिनेछ।'
+                    ? 'तपाईंको कोठा बुकिंग सफलतापूर्वक पेश गरिएको छ। म्यानेजरद्वारा स्वीकृतिपछि तपाईंलाई सूचित गरिनेछ।'
                     : 'तपाईंको कोठा बुकिंग सफलतापूर्वक पेश गरिएको छ। म्यानेजरद्वारा स्वीकृतिपछि तपाईंलाई सूचित गरिनेछ।';
             }
 
-            // ✅ SEND EMAIL NOTIFICATION FOR BOTH GUEST AND STUDENT
-            try {
-                dispatch(new SendBookingEmail($booking, $isGuest));
-            } catch (\Exception $e) {
-                Log::error('Email dispatch failed: ' . $e->getMessage());
-            }
+            // ❌❌❌ COMPLETELY REMOVED: Email dispatch code
+            Log::info('✅ Booking created successfully without email. Booking ID: ' . $booking->id);
 
             DB::commit();
 
-            // ✅ Redirect based on user type
+            // ✅ FIXED: Redirect based on user type to NEW success route
             if (Auth::check() && !$isGuest) {
                 return redirect()->route('bookings.my')->with('success', $message);
             } else {
-                return redirect()->route('booking.success', $booking->id)
+                return redirect()->route('frontend.booking.success', $booking->id)
                     ->with('success', $message)
                     ->with('booking_id', $booking->id)
-                    ->with('guest_email', $request->guest_email);
+                    ->with('guest_email', $request->guest_email ?? $request->email);
             }
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'बुकिंग सिर्जना गर्दा त्रुटि: ' . $e->getMessage());
+            Log::error('❌ Booking store error: ' . $e->getMessage());
+            return back()->with('error', 'बुकिंग सिर्जना गर्दा त्रुटि भयो। कृपया पुनः प्रयास गर्नुहोस्।');
         }
     }
 
+    public function createFromGallery($slug)
+    {
+        $hostel = Hostel::where('slug', $slug)->where('is_published', true)->firstOrFail();
+        $organization = $hostel->organization;
+
+        // ✅ FIXED: CORRECTED room query - Only count APPROVED bookings for availability
+        $availableRooms = Room::where('hostel_id', $hostel->id)
+            ->where('status', 'उपलब्ध')
+            ->with('hostel')
+            ->get()
+            ->map(function ($room) {
+                // ✅ FIXED: Calculate actual available beds based on APPROVED bookings
+                $approvedBookingsCount = $room->bookings()
+                    ->where('status', Booking::STATUS_APPROVED)
+                    ->count();
+
+                $actualAvailableBeds = $room->capacity - $approvedBookingsCount;
+
+                return [
+                    'id' => $room->id,
+                    'room_number' => $room->room_number,
+                    'type' => $room->type,
+                    'nepali_type' => $room->nepali_type,
+                    'capacity' => $room->capacity,
+                    'available_beds' => $actualAvailableBeds, // ✅ Use calculated available beds
+                    'price' => $room->price,
+                    'label' => "{$room->nepali_type} - कोठा {$room->room_number} (उपलब्ध: {$actualAvailableBeds}, रु {$room->price})"
+                ];
+            })->filter(function ($room) {
+                // Only include rooms with available beds
+                return $room['available_beds'] > 0;
+            });
+
+        $isGuest = !Auth::check();
+        $selectedRoom = null;
+
+        // If room_id is provided in query, pre-fill it
+        if (request()->has('room_id')) {
+            $selectedRoom = Room::find(request('room_id'));
+            // ✅ FIXED: Calculate available beds for selected room too
+            if ($selectedRoom) {
+                $approvedBookingsCount = $selectedRoom->bookings()
+                    ->where('status', Booking::STATUS_APPROVED)
+                    ->count();
+                $selectedRoom->available_beds = $selectedRoom->capacity - $approvedBookingsCount;
+            }
+        }
+
+        // ✅ ADDED: Required variables for the form.blade.php
+        $datesLocked = false;
+        $checkIn = null;
+        $checkOut = null;
+
+        return view('frontend.booking.form', compact(
+            'availableRooms',
+            'organization',
+            'isGuest',
+            'hostel',
+            'selectedRoom',
+            'datesLocked',
+            'checkIn',
+            'checkOut'
+        ));
+    }
+
     /**
-     * Approve a booking (Updated for guest conversion)
+     * Approve a booking (Email dispatch COMPLETELY REMOVED)
      */
     public function approve($id)
     {
@@ -217,8 +322,14 @@ class BookingController extends Controller
                 }
             }
 
-            // Enhanced room availability check
-            if (!$booking->room->is_available || $booking->room->available_beds <= 0) {
+            // ✅ FIXED: CORRECTED availability check - Only count APPROVED bookings
+            $approvedBookingsCount = $booking->room->bookings()
+                ->where('status', Booking::STATUS_APPROVED)
+                ->count();
+
+            $actualAvailableBeds = $booking->room->capacity - $approvedBookingsCount;
+
+            if ($booking->room->status !== 'उपलब्ध' || $actualAvailableBeds <= 0) {
                 return back()->with('error', 'यो कोठा अहिले उपलब्ध छैन।');
             }
 
@@ -228,8 +339,20 @@ class BookingController extends Controller
                 'approved_at' => now()
             ]);
 
-            // Update room status
-            $booking->room()->update(['is_available' => false]);
+            // ✅ FIXED: CORRECTED room update - Only update status, not available_beds
+            $room = $booking->room;
+            $approvedBookingsCount = $room->bookings()
+                ->where('status', Booking::STATUS_APPROVED)
+                ->count();
+
+            $actualAvailableBeds = $room->capacity - $approvedBookingsCount;
+
+            if ($actualAvailableBeds <= 0) {
+                $room->status = 'अनुपलब्ध';
+            } else {
+                $room->status = 'उपलब्ध';
+            }
+            $room->save();
 
             // ✅ AUTO-CREATE STUDENT RECORD IF GUEST BOOKING HAS USER
             if ($booking->is_guest_booking && $booking->user_id) {
@@ -241,12 +364,8 @@ class BookingController extends Controller
                 }
             }
 
-            // ✅ SEND APPROVAL EMAIL
-            try {
-                dispatch(new SendBookingEmail($booking, $booking->is_guest_booking, 'approved'));
-            } catch (\Exception $e) {
-                Log::error('Approval email failed: ' . $e->getMessage());
-            }
+            // ❌❌❌ COMPLETELY REMOVED: Email dispatch code
+            Log::info('Booking approved without email. Booking ID: ' . $booking->id);
 
             DB::commit();
 
@@ -258,7 +377,7 @@ class BookingController extends Controller
     }
 
     /**
-     * Reject a booking (Updated for email notifications)
+     * Reject a booking (Email dispatch COMPLETELY REMOVED)
      */
     public function reject(Request $request, $id)
     {
@@ -292,12 +411,8 @@ class BookingController extends Controller
                 'rejection_reason' => $request->rejection_reason
             ]);
 
-            // ✅ SEND REJECTION EMAIL
-            try {
-                dispatch(new SendBookingEmail($booking, $booking->is_guest_booking, 'rejected'));
-            } catch (\Exception $e) {
-                Log::error('Rejection email failed: ' . $e->getMessage());
-            }
+            // ❌❌❌ COMPLETELY REMOVED: Email dispatch code
+            Log::info('Booking rejected without email. Booking ID: ' . $booking->id);
 
             DB::commit();
 
@@ -309,7 +424,7 @@ class BookingController extends Controller
     }
 
     /**
-     * Cancel a booking (No changes needed)
+     * Cancel a booking (Updated for room availability)
      */
     public function cancel(Request $request, $id)
     {
@@ -340,8 +455,20 @@ class BookingController extends Controller
                 'notes' => $request->reason ? 'रद्द गर्ने कारण: ' . $request->reason : $booking->notes
             ]);
 
-            // Make room available again
-            $booking->room()->update(['is_available' => true]);
+            // ✅ FIXED: CORRECTED room availability update - Recalculate based on approved bookings
+            $room = $booking->room;
+            $approvedBookingsCount = $room->bookings()
+                ->where('status', Booking::STATUS_APPROVED)
+                ->count();
+
+            $actualAvailableBeds = $room->capacity - $approvedBookingsCount;
+
+            if ($actualAvailableBeds > 0) {
+                $room->status = 'उपलब्ध';
+            } else {
+                $room->status = 'अनुपलब्ध';
+            }
+            $room->save();
 
             DB::commit();
 
@@ -415,10 +542,33 @@ class BookingController extends Controller
                 ->with('error', 'कृपया पहिले संस्था चयन गर्नुहोस्।');
         }
 
+        // ✅ FIXED: CORRECTED room query - Only count APPROVED bookings for availability
         $availableRooms = Room::where('organization_id', $organization->id)
-            ->where('is_available', true)
+            ->where('status', 'उपलब्ध')
             ->with('hostel')
-            ->get();
+            ->get()
+            ->map(function ($room) {
+                // Calculate actual available beds based on APPROVED bookings
+                $approvedBookingsCount = $room->bookings()
+                    ->where('status', Booking::STATUS_APPROVED)
+                    ->count();
+
+                $actualAvailableBeds = $room->capacity - $approvedBookingsCount;
+
+                return [
+                    'id' => $room->id,
+                    'room_number' => $room->room_number,
+                    'type' => $room->type,
+                    'nepali_type' => $room->nepali_type,
+                    'capacity' => $room->capacity,
+                    'available_beds' => $actualAvailableBeds, // ✅ Use calculated available beds
+                    'price' => $room->price,
+                    'label' => "{$room->nepali_type} - कोठा {$room->room_number} (उपलब्ध: {$actualAvailableBeds}, रु {$room->price})"
+                ];
+            })->filter(function ($room) {
+                // Only include rooms with available beds
+                return $room['available_beds'] > 0;
+            });
 
         $isGuest = !Auth::check();
 
@@ -482,7 +632,7 @@ class BookingController extends Controller
     public function guestBookingSuccess($id)
     {
         $booking = Booking::findOrFail($id);
-        return view('bookings.guest-success', compact('booking'));
+        return view('frontend.booking.success', compact('booking'));
     }
 
     /**
@@ -535,13 +685,12 @@ class BookingController extends Controller
 
             // Base query for available rooms
             $roomsQuery = $hostel->rooms()
-                ->where('is_available', true)
-                ->where('available_beds', '>', 0);
+                ->where('status', 'उपलब्ध');
 
             // If dates provided, check room availability for those dates
             if ($checkIn && $checkOut) {
                 $roomsQuery->whereDoesntHave('bookings', function ($q) use ($checkIn, $checkOut) {
-                    $q->whereIn('status', [Booking::STATUS_PENDING, Booking::STATUS_APPROVED])
+                    $q->where('status', Booking::STATUS_APPROVED) // ✅ ONLY approved bookings block availability
                         ->where(function ($bookingQuery) use ($checkIn, $checkOut) {
                             $bookingQuery->whereBetween('check_in_date', [$checkIn, $checkOut])
                                 ->orWhereBetween('check_out_date', [$checkIn, $checkOut])
@@ -554,18 +703,28 @@ class BookingController extends Controller
             }
 
             $rooms = $roomsQuery->get()->map(function ($room) {
+                // ✅ FIXED: Calculate actual available beds based on APPROVED bookings
+                $approvedBookingsCount = $room->bookings()
+                    ->where('status', Booking::STATUS_APPROVED)
+                    ->count();
+
+                $actualAvailableBeds = $room->capacity - $approvedBookingsCount;
+
                 return [
                     'id' => $room->id,
                     'room_number' => $room->room_number,
                     'type' => $room->type,
                     'nepali_type' => $room->nepali_type,
                     'capacity' => $room->capacity,
-                    'available_beds' => $room->available_beds,
+                    'available_beds' => $actualAvailableBeds, // ✅ Use calculated available beds
                     'price' => $room->price,
                     'formatted_price' => 'रु ' . number_format($room->price),
                     'description' => $room->description,
-                    'label' => "{$room->nepali_type} - कोठा {$room->room_number} (उपलब्ध: {$room->available_beds}, रु {$room->price})"
+                    'label' => "{$room->nepali_type} - कोठा {$room->room_number} (उपलब्ध: {$actualAvailableBeds}, रु {$room->price})"
                 ];
+            })->filter(function ($room) {
+                // Only include rooms with available beds
+                return $room['available_beds'] > 0;
             });
 
             return response()->json([
@@ -603,8 +762,14 @@ class BookingController extends Controller
                 ], 422);
             }
 
-            // Check basic room availability
-            if (!$room->is_available || $room->available_beds <= 0) {
+            // ✅ FIXED: CORRECTED availability check - Only count APPROVED bookings
+            $approvedBookingsCount = $room->bookings()
+                ->where('status', Booking::STATUS_APPROVED)
+                ->count();
+
+            $actualAvailableBeds = $room->capacity - $approvedBookingsCount;
+
+            if ($room->status !== 'उपलब्ध' || $actualAvailableBeds <= 0) {
                 return response()->json([
                     'success' => false,
                     'available' => false,
@@ -612,9 +777,9 @@ class BookingController extends Controller
                 ]);
             }
 
-            // Check for booking conflicts
+            // ✅ FIXED: Check for booking conflicts - Only count APPROVED bookings
             $conflictingBookings = $room->bookings()
-                ->whereIn('status', [Booking::STATUS_PENDING, Booking::STATUS_APPROVED])
+                ->where('status', Booking::STATUS_APPROVED) // ✅ ONLY approved bookings block availability
                 ->where(function ($query) use ($checkIn, $checkOut) {
                     $query->whereBetween('check_in_date', [$checkIn, $checkOut])
                         ->orWhereBetween('check_out_date', [$checkIn, $checkOut])

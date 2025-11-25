@@ -61,6 +61,15 @@
         'other' => 'अन्य (५+ सिटर)'
     ];
     
+    // 🚨 FIXED: Get first available room of each type for booking links
+    $availableRoomsByType = [];
+    foreach ($nepaliRoomTypes as $englishType => $nepaliType) {
+        $firstAvailableRoom = $availableRooms->where('type', $englishType)->first();
+        if ($firstAvailableRoom) {
+            $availableRoomsByType[$englishType] = $firstAvailableRoom->id;
+        }
+    }
+    
     // 🚨 FIXED: Updated condition to show available rooms section
     $totalAvailableRooms = array_sum($availableRoomCounts);
     $hasAvailableRooms = $totalAvailableRooms > 0 || $availableRoomGalleries->count() > 0;
@@ -831,6 +840,7 @@
                         $roomCategory = $gallery->category;
                         $availableCount = $availableRoomCounts[$roomCategory] ?? 0;
                         $availableBeds = $availableBedsCounts[$roomCategory] ?? 0;
+                        $roomId = $availableRoomsByType[$roomCategory] ?? null;
                     @endphp
                     
                     <div class="gallery-item">
@@ -851,10 +861,16 @@
                             @endif
                         </div>
                         
-                        <a href="{{ route('contact') }}?room_type={{ $roomCategory }}&hostel={{ $hostel->slug }}" 
-                           class="book-now-btn nepali">
-                            बुक गर्नुहोस्
-                        </a>
+                        <!-- 🚨 UPDATED: Book Now button using the new booking route -->
+                        @if($roomId)
+                            <a href="{{ route('hostel.book.from.gallery', ['slug' => $hostel->slug, 'room_id' => $roomId]) }}" class="book-now-btn nepali">
+                                बुक गर्नुहोस्
+                            </a>
+                        @else
+                            <a href="{{ route('hostel.book.from.gallery', ['slug' => $hostel->slug]) }}" class="book-now-btn nepali">
+                                बुक गर्नुहोस्
+                            </a>
+                        @endif
                         
                         <div class="gallery-overlay">
                             <h3 class="gallery-title nepali">{{ $gallery->title }}</h3>
@@ -875,7 +891,7 @@
                    style="border-color: var(--primary); color: var(--primary);">
                     पूरा ग्यालरी हेर्नुहोस्
                 </a>
-                <a href="{{ route('contact') }}?hostel={{ $hostel->slug }}" class="btn btn-primary nepali">
+                <a href="{{ route('hostel.book.from.gallery', ['slug' => $hostel->slug]) }}" class="btn btn-primary nepali">
                     अहिले बुक गर्नुहोस्
                 </a>
             </div>
@@ -952,6 +968,7 @@
             <h3 id="modalRoomTitle" class="nepali"></h3>
             <p id="modalRoomDescription" class="nepali"></p>
             <div id="modalRoomDetails" class="modal-room-details nepali"></div>
+            <!-- 🚨 UPDATED: Modal book button using the new booking route -->
             <a href="#" id="modalBookButton" class="modal-book-button nepali">
                 यो कोठा बुक गर्नुहोस्
             </a>
@@ -970,7 +987,8 @@
             room_type: `{{ $gallery->category }}`,
             available_count: {{ $availableRoomCounts[$gallery->category] ?? 0 }},
             available_beds: {{ $availableBedsCounts[$gallery->category] ?? 0 }},
-            nepali_type: `{{ $nepaliRoomTypes[$gallery->category] ?? $gallery->category }}`
+            nepali_type: `{{ $nepaliRoomTypes[$gallery->category] ?? $gallery->category }}`,
+            room_id: `{{ $availableRoomsByType[$gallery->category] ?? '' }}`
         }@if(!$loop->last),@endif
         @endforeach
     };
@@ -1006,8 +1024,12 @@
         `;
         modalDetails.innerHTML = detailsHtml;
         
-        // Book button link
-        modalBookButton.href = "{{ route('contact') }}?room_type=" + room.room_type + "&hostel={{ $hostel->slug }}";
+        // 🚨 UPDATED: Book button link using the new booking route
+        if (room.room_id) {
+            modalBookButton.href = "{{ route('hostel.book.from.gallery', ['slug' => $hostel->slug]) }}?room_id=" + room.room_id;
+        } else {
+            modalBookButton.href = "{{ route('hostel.book.from.gallery', ['slug' => $hostel->slug]) }}";
+        }
 
         // Show modal with animation
         modal.style.display = 'flex';

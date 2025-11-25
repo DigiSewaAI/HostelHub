@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Models\Booking;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -16,61 +17,64 @@ class SendBookingEmail implements ShouldQueue
 
     public $booking;
     public $isGuest;
-    public $status;
+    public $type;
 
     /**
      * Create a new job instance.
      */
-    public function __construct($booking, $isGuest = false, $status = null)
+    public function __construct(Booking $booking, $isGuest = false, $type = 'created')
     {
         $this->booking = $booking;
         $this->isGuest = $isGuest;
-        $this->status = $status;
+        $this->type = $type;
     }
 
     /**
      * Execute the job.
      */
-    public function handle()
+    public function handle(): void
     {
         try {
-            $email = $this->booking->getCustomerEmail();
+            $customerEmail = $this->booking->getCustomerEmail();
+            $customerName = $this->booking->getCustomerName();
 
-            if (!$email) {
-                Log::warning('No email found for booking', ['booking_id' => $this->booking->id]);
+            if (!$customerEmail) {
+                Log::error('SendBookingEmail: No customer email found for booking ID: ' . $this->booking->id);
                 return;
             }
 
-            Log::info('Sending booking email', [
-                'booking_id' => $this->booking->id,
-                'email' => $email,
-                'is_guest' => $this->isGuest,
-                'status' => $this->status
-            ]);
+            $data = [
+                'booking' => $this->booking,
+                'customerName' => $customerName,
+                'customerEmail' => $customerEmail,
+                'isGuest' => $this->isGuest,
+                'type' => $this->type,
+                'hostel' => $this->booking->hostel,
+                'room' => $this->booking->room,
+            ];
 
-            Mail::to($email)->send(new \App\Mail\BookingCreatedMail(
-                $this->booking,
-                $this->isGuest,
-                $this->status
-            ));
+            // ✅ FIXED: Remove any undefined array keys
+            if ($this->type === 'approved') {
+                $subject = 'तपाईंको बुकिंग स्वीकृत भयो';
+                $view = 'emails.bookings.approved';
+            } elseif ($this->type === 'rejected') {
+                $subject = 'तपाईंको बुकिंग अस्वीकृत भयो';
+                $view = 'emails.bookings.rejected';
+                // ✅ ADD: rejection reason to data
+                $data['rejectionReason'] = $this->booking->rejection_reason;
+            } else {
+                $subject = 'तपाईंको बुकिंग सफलतापूर्वक सिर्जना गरियो';
+                $view = 'emails.bookings.created';
+            }
 
-            Log::info('Booking email sent successfully', ['booking_id' => $this->booking->id]);
+            Mail::send($view, $data, function ($message) use ($customerEmail, $customerName, $subject) {
+                $message->to($customerEmail, $customerName)
+                    ->subject($subject);
+            });
+
+            Log::info('SendBookingEmail: Email sent successfully to ' . $customerEmail);
         } catch (\Exception $e) {
-            Log::error('Failed to send booking email', [
-                'booking_id' => $this->booking->id,
-                'error' => $e->getMessage()
-            ]);
+            Log::error('SendBookingEmail failed: ' . $e->getMessage());
         }
-    }
-
-    /**
-     * Handle a job failure.
-     */
-    public function failed(\Exception $exception)
-    {
-        Log::error('SendBookingEmail job failed', [
-            'booking_id' => $this->booking->id,
-            'error' => $exception->getMessage()
-        ]);
     }
 }

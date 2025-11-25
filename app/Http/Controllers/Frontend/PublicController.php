@@ -12,6 +12,7 @@ use App\Models\Review;
 use App\Models\Newsletter;
 use App\Models\MealMenu;
 use App\Models\BookingRequest;
+use App\Models\Booking; // ✅ ADDED: Import Booking model
 use App\Services\ImageService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -21,6 +22,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
 
 class PublicController extends Controller
 {
@@ -1386,7 +1388,7 @@ class PublicController extends Controller
     // ======================================================================
 
     /**
-     * Show booking form for specific hostel with dynamic room data
+     * ✅ FIXED: Show booking form for specific hostel with dynamic room data
      */
     public function bookForm($slug)
     {
@@ -1396,18 +1398,101 @@ class PublicController extends Controller
                 ->where('status', 'active')
                 ->firstOrFail();
 
-            // Get dates from query parameters
+            // ✅ FIXED: Better date handling from query parameters
             $checkIn = request('check_in');
             $checkOut = request('check_out');
             $datesLocked = !empty($checkIn) && !empty($checkOut);
 
-            // Get available rooms initially (will be updated via AJAX if dates change)
-            $rooms = $hostel->rooms()
-                ->where('status', 'available')
-                ->where('available_beds', '>', 0)
-                ->get()
-                ->map(function ($room) {
-                    // Simple mapping for room types to Nepali
+            // ✅ FIXED: Validate dates if provided from search
+            if ($datesLocked) {
+                $today = now()->format('Y-m-d');
+                // If check-in is today or in past, allow it but show warning
+                if ($checkIn < $today) {
+                    // Don't return error, just adjust to today
+                    $checkIn = $today;
+                }
+                if ($checkOut && $checkOut <= $checkIn) {
+                    // Don't return error, just clear checkout
+                    $checkOut = null;
+                }
+            }
+
+            // ✅ FIXED: Get available rooms for the hostel with date filtering
+            $roomsQuery = Room::where('hostel_id', $hostel->id)
+                ->where('status', 'available');
+
+            // ✅ FIXED: Calculate actual available beds based on APPROVED bookings only
+            $roomsQuery->withCount(['bookings as approved_bookings_count' => function ($query) {
+                $query->where('status', Booking::STATUS_APPROVED); // ✅ ONLY count approved bookings
+            }]);
+
+            // If dates provided, filter rooms by availability for those dates
+            if ($datesLocked && $checkIn) {
+                $roomsQuery->whereDoesntHave('bookings', function ($q) use ($checkIn, $checkOut) {
+                    $q->where('status', Booking::STATUS_APPROVED) // ✅ ONLY approved bookings block availability
+                        ->where(function ($bookingQuery) use ($checkIn, $checkOut) {
+                            $bookingQuery->whereBetween('check_in_date', [$checkIn, $checkOut])
+                                ->orWhereBetween('check_out_date', [$checkIn, $checkOut])
+                                ->orWhere(function ($subQuery) use ($checkIn, $checkOut) {
+                                    $subQuery->where('check_in_date', '<=', $checkIn)
+                                        ->where('check_out_date', '>=', $checkOut);
+                                });
+                        });
+                });
+            }
+
+            $availableRooms = $roomsQuery->get()->map(function ($room) {
+                // ✅ FIXED: CORRECT available beds calculation based on APPROVED bookings only
+                $actualAvailableBeds = $room->capacity - $room->approved_bookings_count;
+
+                // Simple mapping for room types to Nepali
+                $nepaliTypes = [
+                    '1 seater' => 'एक सिटर कोठा',
+                    '2 seater' => 'दुई सिटर कोठा',
+                    '3 seater' => 'तीन सिटर कोठा',
+                    '4 seater' => 'चार सिटर कोठा',
+                    'single' => 'एक सिटर कोठा',
+                    'double' => 'दुई सिटर कोठा',
+                    'triple' => 'तीन सिटर कोठा',
+                    'quad' => 'चार सिटर कोठा',
+                    'shared' => 'साझा कोठा',
+                    'other' => 'अन्य कोठा'
+                ];
+
+                return [
+                    'id' => $room->id,
+                    'value' => $room->id,
+                    'label' => ($nepaliTypes[$room->type] ?? $room->type)
+                        . " - कोठा {$room->room_number} (उपलब्ध: {$actualAvailableBeds}, रु {$room->price})",
+                    'room_number' => $room->room_number,
+                    'type' => $room->type,
+                    'nepali_type' => ($nepaliTypes[$room->type] ?? $room->type),
+                    'available_beds' => $actualAvailableBeds, // ✅ Use calculated available beds
+                    'price' => $room->price,
+                    'capacity' => $room->capacity
+                ];
+            })->filter(function ($room) {
+                return $room['available_beds'] > 0; // ✅ Only show rooms with actual available beds
+            });
+
+            // ✅ FIXED: Check if room_id is provided in query (for gallery booking)
+            $selectedRoom = null;
+            $roomId = request('room_id');
+            if ($roomId) {
+                $selectedRoom = Room::where('id', $roomId)
+                    ->where('hostel_id', $hostel->id)
+                    ->where('status', 'available')
+                    ->withCount(['bookings as approved_bookings_count' => function ($query) {
+                        $query->where('status', Booking::STATUS_APPROVED);
+                    }])
+                    ->first();
+
+                if ($selectedRoom) {
+                    // ✅ FIXED: CORRECT available beds calculation for selected room
+                    $actualAvailableBeds = $selectedRoom->capacity - $selectedRoom->approved_bookings_count;
+                    $selectedRoom->available_beds = $actualAvailableBeds;
+
+                    // Add nepali_type to selected room
                     $nepaliTypes = [
                         '1 seater' => 'एक सिटर कोठा',
                         '2 seater' => 'दुई सिटर कोठा',
@@ -1420,33 +1505,17 @@ class PublicController extends Controller
                         'shared' => 'साझा कोठा',
                         'other' => 'अन्य कोठा'
                     ];
-
-                    return [
-                        'id' => $room->id,
-                        'value' => $room->id,
-
-                        // FIXED LABEL (नेपाली नाम पहिले variable मा राखियो)
-                        'label' => ($nepaliTypes[$room->type] ?? $room->type)
-                            . " - कोठा {$room->room_number} (उपलब्ध: {$room->available_beds}, रु {$room->price})",
-
-                        'room_number' => $room->room_number,
-                        'type' => $room->type,
-
-                        // FIXED nepali_type
-                        'nepali_type' => ($nepaliTypes[$room->type] ?? $room->type),
-
-                        'available_beds' => $room->available_beds,
-                        'price' => $room->price,
-                        'capacity' => $room->capacity
-                    ];
-                });
+                    $selectedRoom->nepali_type = $nepaliTypes[$selectedRoom->type] ?? $selectedRoom->type;
+                }
+            }
 
             return view('frontend.booking.form', compact(
                 'hostel',
-                'rooms',
+                'availableRooms',
                 'checkIn',
                 'checkOut',
-                'datesLocked'
+                'datesLocked',
+                'selectedRoom'
             ));
         } catch (\Exception $e) {
             \Log::error('Booking form error: ' . $e->getMessage());
@@ -1455,7 +1524,7 @@ class PublicController extends Controller
     }
 
     /**
-     * ✅ NEW: Get available rooms for hostel with date filtering
+     * ✅ FIXED: Get available rooms for hostel with date filtering
      */
     public function getHostelRooms(Request $request, $slug)
     {
@@ -1470,13 +1539,17 @@ class PublicController extends Controller
 
             // Base query for available rooms
             $roomsQuery = $hostel->rooms()
-                ->where('status', 'available')
-                ->where('available_beds', '>', 0);
+                ->where('status', 'available');
+
+            // ✅ FIXED: Calculate actual available beds based on APPROVED bookings only
+            $roomsQuery->withCount(['bookings as approved_bookings_count' => function ($query) {
+                $query->where('status', Booking::STATUS_APPROVED); // ✅ ONLY count approved bookings
+            }]);
 
             // If dates provided, check room availability for those dates
             if ($checkIn && $checkOut) {
-                $roomsQuery->whereDoesntHave('bookingRequests', function ($q) use ($checkIn, $checkOut) {
-                    $q->whereIn('status', ['pending', 'approved'])
+                $roomsQuery->whereDoesntHave('bookings', function ($q) use ($checkIn, $checkOut) {
+                    $q->where('status', Booking::STATUS_APPROVED) // ✅ ONLY approved bookings block availability
                         ->where(function ($bookingQuery) use ($checkIn, $checkOut) {
                             $bookingQuery->whereBetween('check_in_date', [$checkIn, $checkOut])
                                 ->orWhereBetween('check_out_date', [$checkIn, $checkOut])
@@ -1489,6 +1562,9 @@ class PublicController extends Controller
             }
 
             $rooms = $roomsQuery->get()->map(function ($room) {
+                // ✅ FIXED: CORRECT available beds calculation based on APPROVED bookings only
+                $actualAvailableBeds = $room->capacity - $room->approved_bookings_count;
+
                 // Simple mapping for room types to Nepali
                 $nepaliTypes = [
                     '1 seater' => 'एक सिटर कोठा',
@@ -1509,11 +1585,13 @@ class PublicController extends Controller
                     'type' => $room->type,
                     'nepali_type' => $nepaliTypes[$room->type] ?? $room->type,
                     'capacity' => $room->capacity,
-                    'available_beds' => $room->available_beds,
+                    'available_beds' => $actualAvailableBeds, // ✅ Use calculated available beds
                     'price' => $room->price,
                     'formatted_price' => 'रु ' . number_format($room->price),
                     'description' => $room->description
                 ];
+            })->filter(function ($room) {
+                return $room['available_beds'] > 0; // ✅ Only return rooms with actual available beds
             });
 
             return response()->json([
@@ -1535,6 +1613,7 @@ class PublicController extends Controller
 
     /**
      * Store booking request with enhanced validation
+     * ✅ REMOVED: Emergency contact field from validation and storage
      */
     public function storeBooking(Request $request, $slug)
     {
@@ -1544,30 +1623,40 @@ class PublicController extends Controller
                 ->where('status', 'active')
                 ->firstOrFail();
 
+            // ✅ UPDATED: Remove emergency_contact from validation
             $validated = $request->validate([
                 'name' => 'required|string|max:100',
                 'phone' => 'required|string|max:15',
                 'email' => 'nullable|email|max:100',
-                'check_in_date' => 'required|date|after:today',
+                'check_in_date' => 'required|date|after_or_equal:today', // ✅ CHANGED: after_or_equal
                 'check_out_date' => 'required|date|after:check_in_date',
                 'room_id' => 'required|exists:rooms,id',
                 'message' => 'nullable|string|max:500'
+                // ❌ REMOVED: emergency_contact
             ]);
 
             // Check if the room belongs to the hostel and is available
             $room = Room::where('id', $validated['room_id'])
                 ->where('hostel_id', $hostel->id)
                 ->where('status', 'available')
-                ->where('available_beds', '>', 0)
+                ->withCount(['bookings as approved_bookings_count' => function ($query) {
+                    $query->where('status', Booking::STATUS_APPROVED); // ✅ ONLY count approved bookings
+                }])
                 ->first();
 
             if (!$room) {
                 return back()->withInput()->with('error', 'यो कोठा अहिले उपलब्ध छैन वा तपाईंले छान्नुभएको कोठा यस होस्टलमा छैन।');
             }
 
-            // Check for booking conflicts for this room and dates
-            $conflictingBookings = BookingRequest::where('room_id', $room->id)
-                ->whereIn('status', ['pending', 'approved'])
+            // ✅ FIXED: Check actual available beds based on APPROVED bookings only
+            $actualAvailableBeds = $room->capacity - $room->approved_bookings_count;
+            if ($actualAvailableBeds <= 0) {
+                return back()->withInput()->with('error', 'यो कोठा अहिले उपलब्ध छैन। कृपया अर्को कोठा छान्नुहोस्।');
+            }
+
+            // Check for booking conflicts for this room and dates - ONLY check approved bookings
+            $conflictingBookings = Booking::where('room_id', $room->id)
+                ->where('status', Booking::STATUS_APPROVED) // ✅ ONLY approved bookings block availability
                 ->where(function ($query) use ($validated) {
                     $query->whereBetween('check_in_date', [$validated['check_in_date'], $validated['check_out_date']])
                         ->orWhereBetween('check_out_date', [$validated['check_in_date'], $validated['check_out_date']])
@@ -1582,7 +1671,7 @@ class PublicController extends Controller
                 return back()->withInput()->with('error', 'यो कोठा उक्त मितिहरूमा पहिले नै बुक गरिएको छ। कृपया अर्को मिति वा कोठा छान्नुहोस्।');
             }
 
-            // Create booking request
+            // ✅ UPDATED: Create booking request without emergency_contact
             $bookingRequest = BookingRequest::create([
                 'hostel_id' => $hostel->id,
                 'room_id' => $room->id,
@@ -1594,6 +1683,7 @@ class PublicController extends Controller
                 'room_type' => $room->type,
                 'message' => $validated['message'],
                 'status' => 'pending'
+                // ❌ REMOVED: emergency_contact
             ]);
 
             // TODO: Send notification to hostel owner
@@ -1698,7 +1788,7 @@ class PublicController extends Controller
             }
 
             // If BookingRequest not found, try to find Booking model
-            $booking = \App\Models\Booking::with(['hostel', 'room'])->find($id);
+            $booking = Booking::with(['hostel', 'room'])->find($id);
 
             if (!$booking) {
                 abort(404, "Booking not found");

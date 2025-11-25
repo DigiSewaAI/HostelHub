@@ -52,12 +52,33 @@
                             <span class="detail-label">चेक-इन:</span>
                             <span class="detail-value">{{ $booking->check_in_date->format('Y-m-d') }}</span>
                         </div>
+                        <!-- 🚨 UPDATED: Check-out date with null handling -->
+                        <div class="detail-item">
+                            <span class="detail-label">चेक-आउट:</span>
+                            <span class="detail-value">
+                                {{ $booking->check_out_date ? $booking->check_out_date->format('Y-m-d') : 'N/A' }}
+                            </span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">रकम:</span>
+                            <span class="detail-value">रु {{ number_format($booking->amount, 2) }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">आपतकालीन सम्पर्क:</span>
+                            <span class="detail-value">{{ $booking->emergency_contact ?? 'N/A' }}</span>
+                        </div>
                         <div class="detail-item">
                             <span class="detail-label">स्थिति:</span>
                             <span class="detail-value badge {{ $booking->status === 'pending' ? 'bg-warning' : 'bg-success' }}">
                                 {{ $booking->status === 'pending' ? 'पेन्डिङ' : 'स्वीकृत' }}
                             </span>
                         </div>
+                        @if($booking->notes)
+                        <div class="detail-item">
+                            <span class="detail-label">नोटहरू:</span>
+                            <span class="detail-value">{{ $booking->notes }}</span>
+                        </div>
+                        @endif
                     @elseif(isset($bookingRequest))
                         <!-- OLD SYSTEM - BookingRequest Model -->
                         <div class="detail-item">
@@ -135,6 +156,11 @@
             <a href="{{ route('home') }}" class="btn btn-secondary">
                 <i class="fas fa-home"></i> गृह पृष्ठमा जानुहोस्
             </a>
+            @if(isset($booking))
+                <a href="{{ route('hostel.book.from.gallery', ['slug' => $booking->hostel->slug]) }}" class="btn btn-outline">
+                    <i class="fas fa-plus"></i> फेरी बुक गर्नुहोस्
+                </a>
+            @endif
         </div>
         
         <div class="contact-info">
@@ -332,6 +358,17 @@
 
 .btn-secondary:hover {
     background: #5a6268;
+}
+
+.btn-outline {
+    background: transparent;
+    color: #001F5B;
+    border: 2px solid #001F5B;
+}
+
+.btn-outline:hover {
+    background: #001F5B;
+    color: white;
 }
 
 .contact-info {
