@@ -4,12 +4,28 @@
 
 @section('content')
     @php
-        // FIX: Direct query for booking counts
+        // ✅ FIXED: Correct query for owner's booking counts
         $organizationId = session('current_organization_id');
-        $hostelIds = \App\Models\Hostel::where('organization_id', $organizationId)->pluck('id');
+        $ownerId = Auth::id();
+        
+        // Get hostels managed by this owner in current organization
+        $hostelIds = \App\Models\Hostel::where('organization_id', $organizationId)
+            ->where('owner_id', $ownerId)
+            ->pluck('id');
+
+        // Count pending bookings from Booking model (NEW SYSTEM)
+        $pendingBookingsCount = \App\Models\Booking::whereIn('hostel_id', $hostelIds)
+            ->where('status', 'pending')
+            ->count();
+            
+        // Count pending booking requests from BookingRequest model (OLD SYSTEM)  
         $pendingBookingRequests = \App\Models\BookingRequest::whereIn('hostel_id', $hostelIds)
             ->where('status', 'pending')
             ->count();
+            
+        $totalPending = $pendingBookingsCount + $pendingBookingRequests;
+
+        // Recent booking requests
         $recentBookingRequests = \App\Models\BookingRequest::with('hostel')
             ->whereIn('hostel_id', $hostelIds)
             ->where('status', 'pending')
@@ -133,15 +149,15 @@
             <div class="flex justify-between items-center">
                 <div>
                     <h3 class="text-sm font-semibold text-gray-600">बुकिंग अनुरोध</h3>
-                    <p class="text-2xl font-bold text-gray-800">{{ $pendingBookingRequests }}</p>
+                    <p class="text-2xl font-bold text-gray-800">{{ $totalPending }}</p>
                 </div>
                 <div class="bg-orange-100 p-3 rounded-xl">
                     <i class="fas fa-calendar-check text-orange-600 text-xl"></i>
                 </div>
             </div>
-            @if($pendingBookingRequests > 0)
+            @if($totalPending > 0)
                 <span class="absolute top-2 right-2 bg-red-500 text-white rounded-full text-xs w-6 h-6 flex items-center justify-center animate-pulse">
-                    {{ $pendingBookingRequests }}
+                    {{ $totalPending }}
                 </span>
             @endif
             <a href="{{ route('owner.booking-requests.index') }}" class="text-xs text-orange-600 hover:text-orange-800 font-medium mt-2 inline-block">
@@ -357,9 +373,9 @@
                     <i class="fas fa-calendar-check"></i>
                 </div>
                 <div class="font-medium text-orange-800 text-sm">बुकिंग अनुरोध</div>
-                @if($pendingBookingRequests > 0)
+                @if($totalPending > 0)
                     <span class="absolute top-2 right-2 bg-red-500 text-white rounded-full text-xs w-5 h-5 flex items-center justify-center animate-pulse">
-                        {{ $pendingBookingRequests }}
+                        {{ $totalPending }}
                     </span>
                 @endif
             </a>

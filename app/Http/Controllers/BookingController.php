@@ -125,7 +125,7 @@ class BookingController extends Controller
         try {
             $bookingData = [
                 'room_id' => $request->room_id,
-                'hostel_id' => $hostel->id,
+                'hostel_id' => $hostel->id, // ✅ CRITICAL FIX: Ensure hostel_id is always saved
                 'organization_id' => $organization ? $organization->id : null,
                 'check_in_date' => $request->check_in_date,
                 'check_out_date' => $request->check_out_date,
@@ -140,7 +140,7 @@ class BookingController extends Controller
             if (Auth::check() && !$isGuest) {
                 $student = Auth::user()->student;
                 $bookingData['student_id'] = $student->id;
-                $bookingData['user_id'] = Auth::id();
+                $bookingData['user_id'] = Auth::id(); // ✅ CRITICAL FIX: Ensure user_id is set
                 $bookingData['email'] = $request->email ?? Auth::user()->email;
                 $bookingData['is_guest_booking'] = false;
                 // ✅ FIXED: Store name and phone from form for authenticated users
@@ -519,7 +519,7 @@ class BookingController extends Controller
         } else if ($user->hasRole('hostel_manager')) {
             $hostelIds = Hostel::where('owner_id', $user->id)->pluck('id');
             $bookings = Booking::where('status', Booking::STATUS_PENDING)
-                ->whereIn('hostel_id', $hostelIds)
+                ->whereIn('hostel_id', $hostelIds) // ✅ CRITICAL FIX: Filter by owner's hostels
                 ->with(['room', 'hostel', 'user'])
                 ->latest()
                 ->paginate(10);
@@ -811,6 +811,62 @@ class BookingController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'उपलब्धता जाँच गर्दा त्रुटि'
+            ], 500);
+        }
+    }
+
+    /**
+     * ✅ NEW: Get pending booking requests for owner dashboard
+     * This method ensures that booking requests from public form are visible to owners
+     */
+    public function getOwnerPendingBookings()
+    {
+        $user = Auth::user();
+
+        if (!$user->hasRole('hostel_manager') && !$user->hasRole('admin')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'तपाईंसँग यो डाटा हेर्ने अनुमति छैन।'
+            ], 403);
+        }
+
+        try {
+            // Get hostels managed by this user
+            $hostelIds = Hostel::where('owner_id', $user->id)->pluck('id');
+
+            // Get pending bookings for these hostels
+            $pendingBookings = Booking::whereIn('hostel_id', $hostelIds)
+                ->where('status', Booking::STATUS_PENDING)
+                ->with(['room', 'hostel'])
+                ->latest()
+                ->get()
+                ->map(function ($booking) {
+                    return [
+                        'id' => $booking->id,
+                        'type' => 'booking',
+                        'guest_name' => $booking->guest_name,
+                        'guest_email' => $booking->guest_email,
+                        'guest_phone' => $booking->guest_phone,
+                        'hostel_name' => $booking->hostel->name,
+                        'room_number' => $booking->room ? $booking->room->room_number : 'N/A',
+                        'check_in_date' => $booking->check_in_date->format('Y-m-d'),
+                        'check_out_date' => $booking->check_out_date ? $booking->check_out_date->format('Y-m-d') : 'N/A',
+                        'amount' => $booking->amount,
+                        'created_at' => $booking->created_at->format('Y-m-d H:i'),
+                        'is_guest_booking' => $booking->is_guest_booking
+                    ];
+                });
+
+            return response()->json([
+                'success' => true,
+                'pending_bookings' => $pendingBookings,
+                'total_pending' => $pendingBookings->count()
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Get owner pending bookings error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'डाटा लोड गर्दा त्रुटि'
             ], 500);
         }
     }

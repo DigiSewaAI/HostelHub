@@ -17,12 +17,25 @@
     <div class="row mb-4">
         @php
             $organizationId = session('current_organization_id');
-            $hostelIds = \App\Models\Hostel::where('organization_id', $organizationId)->pluck('id');
+            $ownerId = Auth::id();
+            
+            // ✅ FIXED: Get hostels managed by this owner
+            $hostelIds = \App\Models\Hostel::where('organization_id', $organizationId)
+                ->where('owner_id', $ownerId)
+                ->pluck('id');
+            
+            // Count from both Booking and BookingRequest models
+            $bookingRequestsCount = \App\Models\BookingRequest::whereIn('hostel_id', $hostelIds)->count();
+            $bookingsCount = \App\Models\Booking::whereIn('hostel_id', $hostelIds)->count();
+            
             $stats = [
-                'total' => \App\Models\BookingRequest::whereIn('hostel_id', $hostelIds)->count(),
-                'pending' => \App\Models\BookingRequest::whereIn('hostel_id', $hostelIds)->where('status', 'pending')->count(),
-                'approved' => \App\Models\BookingRequest::whereIn('hostel_id', $hostelIds)->where('status', 'approved')->count(),
-                'rejected' => \App\Models\BookingRequest::whereIn('hostel_id', $hostelIds)->where('status', 'rejected')->count(),
+                'total' => $bookingRequestsCount + $bookingsCount,
+                'pending' => \App\Models\BookingRequest::whereIn('hostel_id', $hostelIds)->where('status', 'pending')->count() + 
+                           \App\Models\Booking::whereIn('hostel_id', $hostelIds)->where('status', \App\Models\Booking::STATUS_PENDING)->count(),
+                'approved' => \App\Models\BookingRequest::whereIn('hostel_id', $hostelIds)->where('status', 'approved')->count() + 
+                            \App\Models\Booking::whereIn('hostel_id', $hostelIds)->where('status', \App\Models\Booking::STATUS_APPROVED)->count(),
+                'rejected' => \App\Models\BookingRequest::whereIn('hostel_id', $hostelIds)->where('status', 'rejected')->count() + 
+                            \App\Models\Booking::whereIn('hostel_id', $hostelIds)->where('status', \App\Models\Booking::STATUS_REJECTED)->count(),
             ];
         @endphp
 
@@ -102,28 +115,21 @@
         </div>
         <div class="card-body">
             @php
-                $bookingRequests = \App\Models\BookingRequest::with(['hostel', 'room'])
-                    ->whereIn('hostel_id', $hostelIds)
-                    ->latest()
-                    ->paginate(15);
+                $allRequests = $allRequests ?? [];
             @endphp
 
-            @if($bookingRequests->isEmpty())
-                <div class="text-center py-5">
-                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-                    <h5 class="text-muted">कुनै बुकिंग अनुरोध फेला परेन</h5>
-                    <p class="text-muted">नयाँ बुकिंग अनुरोधहरू यहाँ देखिनेछन्</p>
-                </div>
-            @else
+            @if(count($allRequests) > 0)
                 <div class="table-responsive">
                     <table class="table table-bordered table-hover">
                         <thead class="table-light">
                             <tr>
                                 <th>#</th>
+                                <th>प्रकार</th>
                                 <th>अनुरोधकर्ता</th>
                                 <th>होस्टल</th>
-                                <th>कोठा प्रकार</th>
+                                <th>कोठा</th>
                                 <th>चेक-इन</th>
+                                <th>चेक-आउट</th>
                                 <th>फोन</th>
                                 <th>मिति</th>
                                 <th>स्थिति</th>
@@ -131,29 +137,56 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($bookingRequests as $request)
+                            @foreach($allRequests as $request)
                             <tr>
                                 <td>{{ $loop->iteration }}</td>
                                 <td>
-                                    <strong>{{ $request->name }}</strong>
-                                    @if($request->email)
-                                    <br><small class="text-muted">{{ $request->email }}</small>
+                                    @if($request instanceof \App\Models\Booking)
+                                        <span class="badge bg-info">बुकिंग</span>
+                                    @else
+                                        <span class="badge bg-secondary">अनुरोध</span>
                                     @endif
+                                </td>
+                                <td>
+                                    <strong>
+                                        @if($request instanceof \App\Models\Booking)
+                                            {{ $request->guest_name ?? $request->user->name ?? 'N/A' }}
+                                        @else
+                                            {{ $request->name }}
+                                        @endif
+                                    </strong>
+                                    <br>
+                                    <small class="text-muted">
+                                        @if($request instanceof \App\Models\Booking)
+                                            {{ $request->guest_email ?? $request->email ?? 'N/A' }}
+                                        @else
+                                            {{ $request->email ?? 'N/A' }}
+                                        @endif
+                                    </small>
                                 </td>
                                 <td>{{ $request->hostel->name }}</td>
                                 <td>
-                                    <span class="badge bg-info">
-                                        {{ (new \App\Models\Room())->getNepaliTypeAttribute($request->room_type) }}
-                                    </span>
+                                    @if($request->room)
+                                        {{ $request->room->room_number }}
+                                    @else
+                                        <span class="text-muted">N/A</span>
+                                    @endif
+                                </td>
+                                <td>{{ $request->check_in_date->format('Y-m-d') }}</td>
+                                <td>
+                                    @if($request->check_out_date)
+                                        {{ $request->check_out_date->format('Y-m-d') }}
+                                    @else
+                                        <span class="text-muted">N/A</span>
+                                    @endif
                                 </td>
                                 <td>
-                                    {{ $request->check_in_date->format('Y-m-d') }}
-                                    <br>
-                                    <small class="text-muted">
-                                        ({{ $request->check_in_date->diffForHumans() }})
-                                    </small>
+                                    @if($request instanceof \App\Models\Booking)
+                                        {{ $request->guest_phone ?? 'N/A' }}
+                                    @else
+                                        {{ $request->phone }}
+                                    @endif
                                 </td>
-                                <td>{{ $request->phone }}</td>
                                 <td>{{ $request->created_at->format('Y-m-d H:i') }}</td>
                                 <td>
                                     <span class="badge 
@@ -169,19 +202,19 @@
                                 </td>
                                 <td>
                                     <div class="btn-group btn-group-sm">
-                                        <a href="{{ route('owner.booking-requests.show', $request) }}" 
+                                        <a href="{{ route('owner.booking-requests.show', $request->id) }}" 
                                            class="btn btn-outline-primary" title="हेर्नुहोस्">
                                             <i class="fas fa-eye"></i>
                                         </a>
                                         
                                         @if($request->status === 'pending')
-                                        <form action="{{ route('owner.booking-requests.approve', $request) }}" method="POST" class="d-inline">
+                                        <form action="{{ route('owner.booking-requests.approve', $request->id) }}" method="POST" class="d-inline">
                                             @csrf
                                             <button type="submit" class="btn btn-outline-success" title="स्वीकृत गर्नुहोस्">
                                                 <i class="fas fa-check"></i>
                                             </button>
                                         </form>
-                                        <form action="{{ route('owner.booking-requests.reject', $request) }}" method="POST" class="d-inline">
+                                        <form action="{{ route('owner.booking-requests.reject', $request->id) }}" method="POST" class="d-inline">
                                             @csrf
                                             <button type="submit" class="btn btn-outline-danger" title="अस्वीकृत गर्नुहोस्">
                                                 <i class="fas fa-times"></i>
@@ -195,16 +228,11 @@
                         </tbody>
                     </table>
                 </div>
-
-                <!-- Pagination -->
-                <div class="d-flex justify-content-between align-items-center mt-3">
-                    <div class="text-muted">
-                        देखाइएको: {{ $bookingRequests->firstItem() }} - {{ $bookingRequests->lastItem() }} 
-                        of {{ $bookingRequests->total() }} अनुरोधहरू
-                    </div>
-                    <nav>
-                        {{ $bookingRequests->links() }}
-                    </nav>
+            @else
+                <div class="text-center py-5">
+                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">कुनै बुकिंग अनुरोध फेला परेन</h5>
+                    <p class="text-muted">नयाँ बुकिंग अनुरोधहरू यहाँ देखिनेछन्</p>
                 </div>
             @endif
         </div>

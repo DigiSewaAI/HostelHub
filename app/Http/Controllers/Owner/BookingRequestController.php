@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Owner;
 use App\Http\Controllers\Controller;
 use App\Models\BookingRequest;
 use App\Models\Hostel;
+use App\Models\Booking;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -18,47 +19,78 @@ class BookingRequestController extends Controller
         $user = Auth::user();
         $organizationId = session('current_organization_id');
 
-        // Get hostels managed by this user in current organization
+        // ✅ CRITICAL FIX: Get hostels managed by this user (owner) in current organization
         $hostelIds = Hostel::where('organization_id', $organizationId)
+            ->where('owner_id', $user->id)
             ->pluck('id');
 
-        $query = BookingRequest::with(['hostel', 'room'])
+        // ✅ FIXED: Query both BookingRequest AND Booking models
+        $bookingRequestsQuery = BookingRequest::with(['hostel', 'room'])
+            ->whereIn('hostel_id', $hostelIds);
+
+        $bookingsQuery = Booking::with(['hostel', 'room', 'user'])
             ->whereIn('hostel_id', $hostelIds)
-            ->latest();
+            ->where('status', 'pending');
 
         // Filter by status
         if ($request->has('status') && $request->status) {
-            $query->where('status', $request->status);
+            $bookingRequestsQuery->where('status', $request->status);
+            $bookingsQuery->where('status', $request->status);
         }
 
         // Filter by hostel
         if ($request->has('hostel_id') && $request->hostel_id) {
-            $query->where('hostel_id', $request->hostel_id);
+            $bookingRequestsQuery->where('hostel_id', $request->hostel_id);
+            $bookingsQuery->where('hostel_id', $request->hostel_id);
         }
 
-        $bookingRequests = $query->paginate(15);
-        $hostels = Hostel::where('organization_id', $organizationId)->get();
+        $bookingRequests = $bookingRequestsQuery->latest()->get();
+        $bookings = $bookingsQuery->latest()->get();
+
+        // Combine both types of requests
+        $allRequests = $bookingRequests->merge($bookings)->sortByDesc('created_at');
+
+        $hostels = Hostel::where('organization_id', $organizationId)
+            ->where('owner_id', $user->id)
+            ->get();
 
         $stats = [
-            'total' => BookingRequest::whereIn('hostel_id', $hostelIds)->count(),
-            'pending' => BookingRequest::whereIn('hostel_id', $hostelIds)->where('status', 'pending')->count(),
-            'approved' => BookingRequest::whereIn('hostel_id', $hostelIds)->where('status', 'approved')->count(),
-            'rejected' => BookingRequest::whereIn('hostel_id', $hostelIds)->where('status', 'rejected')->count(),
+            'total' => $allRequests->count(),
+            'pending' => $allRequests->where('status', 'pending')->count(),
+            'approved' => $allRequests->where('status', 'approved')->count(),
+            'rejected' => $allRequests->where('status', 'rejected')->count(),
         ];
 
         return view('owner.booking-requests.index', compact(
-            'bookingRequests',
+            'allRequests',
             'hostels',
             'stats'
         ));
     }
 
     /**
-     * Show specific booking request
+     * Show specific booking request - FIXED VERSION
      */
-    public function show(BookingRequest $bookingRequest)
+    public function show($id)
     {
-        $this->authorizeAccess($bookingRequest);
+        $user = Auth::user();
+        $organizationId = session('current_organization_id');
+
+        // ✅ CRITICAL FIX: Get hostels managed by this user
+        $hostelIds = Hostel::where('organization_id', $organizationId)
+            ->where('owner_id', $user->id)
+            ->pluck('id');
+
+        // ✅ FIXED: Find in both models WITH hostel filtering
+        $bookingRequest = BookingRequest::whereIn('hostel_id', $hostelIds)->find($id);
+
+        if (!$bookingRequest) {
+            $bookingRequest = Booking::whereIn('hostel_id', $hostelIds)->find($id);
+        }
+
+        if (!$bookingRequest) {
+            abort(404, 'बुकिंग अनुरोध फेला परेन वा तपाईंसँग यसलाई हेर्ने अनुमति छैन');
+        }
 
         $bookingRequest->load(['hostel', 'room']);
 
@@ -66,35 +98,83 @@ class BookingRequestController extends Controller
     }
 
     /**
-     * Approve booking request
+     * Approve booking request - FIXED VERSION
      */
-    public function approve(Request $request, BookingRequest $bookingRequest)
+    public function approve(Request $request, $id)
     {
-        $this->authorizeAccess($bookingRequest);
+        $user = Auth::user();
+        $organizationId = session('current_organization_id');
+
+        // ✅ CRITICAL FIX: Get hostels managed by this user
+        $hostelIds = Hostel::where('organization_id', $organizationId)
+            ->where('owner_id', $user->id)
+            ->pluck('id');
 
         $request->validate([
             'admin_notes' => 'nullable|string|max:500'
         ]);
 
+        // ✅ FIXED: Find in both models WITH hostel filtering
+        $bookingRequest = BookingRequest::whereIn('hostel_id', $hostelIds)->find($id);
+        $isBooking = false;
+
+        if (!$bookingRequest) {
+            $bookingRequest = Booking::whereIn('hostel_id', $hostelIds)->find($id);
+            $isBooking = true;
+        }
+
+        if (!$bookingRequest) {
+            abort(404, 'बुकिंग अनुरोध फेला परेन वा तपाईंसँग यसलाई स्वीकृत गर्ने अनुमति छैन');
+        }
+
         try {
-            $bookingRequest->approve($request->admin_notes);
+            if ($isBooking) {
+                // Handle Booking approval
+                $bookingRequest->update([
+                    'status' => 'approved',
+                    'approved_by' => $user->id,
+                    'approved_at' => now(),
+                    'admin_notes' => $request->admin_notes
+                ]);
 
-            // Update room occupancy if specific room is assigned
-            if ($bookingRequest->room_id) {
-                $room = $bookingRequest->room;
-                $room->current_occupancy += 1;
-                $room->available_beds = max(0, $room->capacity - $room->current_occupancy);
+                // Update room occupancy
+                if ($bookingRequest->room_id) {
+                    $room = $bookingRequest->room;
+                    $room->current_occupancy += 1;
+                    $room->available_beds = max(0, $room->capacity - $room->current_occupancy);
 
-                if ($room->current_occupancy >= $room->capacity) {
-                    $room->status = 'occupied';
-                } else {
-                    $room->status = 'partially_available';
+                    if ($room->current_occupancy >= $room->capacity) {
+                        $room->status = 'occupied';
+                    } else {
+                        $room->status = 'partially_available';
+                    }
+
+                    $room->save();
                 }
+            } else {
+                // Handle BookingRequest approval
+                $bookingRequest->update([
+                    'status' => 'approved',
+                    'admin_notes' => $request->admin_notes,
+                    'approved_at' => now(),
+                    'approved_by' => $user->id
+                ]);
 
-                $room->save();
+                // Update room occupancy if specific room is assigned
+                if ($bookingRequest->room_id) {
+                    $room = $bookingRequest->room;
+                    $room->current_occupancy += 1;
+                    $room->available_beds = max(0, $room->capacity - $room->current_occupancy);
+
+                    if ($room->current_occupancy >= $room->capacity) {
+                        $room->status = 'occupied';
+                    } else {
+                        $room->status = 'partially_available';
+                    }
+
+                    $room->save();
+                }
             }
-
-            // TODO: Send approval notification to guest
 
             return redirect()->route('owner.booking-requests.index')
                 ->with('success', 'बुकिंग अनुरोध सफलतापूर्वक स्वीकृत गरियो');
@@ -105,20 +185,53 @@ class BookingRequestController extends Controller
     }
 
     /**
-     * Reject booking request
+     * Reject booking request - FIXED VERSION
      */
-    public function reject(Request $request, BookingRequest $bookingRequest)
+    public function reject(Request $request, $id)
     {
-        $this->authorizeAccess($bookingRequest);
+        $user = Auth::user();
+        $organizationId = session('current_organization_id');
+
+        // ✅ CRITICAL FIX: Get hostels managed by this user
+        $hostelIds = Hostel::where('organization_id', $organizationId)
+            ->where('owner_id', $user->id)
+            ->pluck('id');
 
         $request->validate([
             'admin_notes' => 'required|string|max:500'
         ]);
 
-        try {
-            $bookingRequest->reject($request->admin_notes);
+        // ✅ FIXED: Find in both models WITH hostel filtering
+        $bookingRequest = BookingRequest::whereIn('hostel_id', $hostelIds)->find($id);
+        $isBooking = false;
 
-            // TODO: Send rejection notification to guest
+        if (!$bookingRequest) {
+            $bookingRequest = Booking::whereIn('hostel_id', $hostelIds)->find($id);
+            $isBooking = true;
+        }
+
+        if (!$bookingRequest) {
+            abort(404, 'बुकिंग अनुरोध फेला परेन वा तपाईंसँग यसलाई अस्वीकृत गर्ने अनुमति छैन');
+        }
+
+        try {
+            if ($isBooking) {
+                // Handle Booking rejection
+                $bookingRequest->update([
+                    'status' => 'rejected',
+                    'approved_by' => $user->id,
+                    'approved_at' => now(),
+                    'rejection_reason' => $request->admin_notes
+                ]);
+            } else {
+                // Handle BookingRequest rejection
+                $bookingRequest->update([
+                    'status' => 'rejected',
+                    'admin_notes' => $request->admin_notes,
+                    'rejected_at' => now(),
+                    'approved_by' => $user->id
+                ]);
+            }
 
             return redirect()->route('owner.booking-requests.index')
                 ->with('success', 'बुकिंग अनुरोध सफलतापूर्वक अस्वीकृत गरियो');
@@ -133,26 +246,23 @@ class BookingRequestController extends Controller
      */
     public function getCounts()
     {
+        $user = Auth::user();
         $organizationId = session('current_organization_id');
-        $hostelIds = Hostel::where('organization_id', $organizationId)->pluck('id');
+
+        $hostelIds = Hostel::where('organization_id', $organizationId)
+            ->where('owner_id', $user->id)
+            ->pluck('id');
+
+        $bookingRequestsCount = BookingRequest::whereIn('hostel_id', $hostelIds)
+            ->where('status', 'pending')
+            ->count();
+
+        $bookingsCount = Booking::whereIn('hostel_id', $hostelIds)
+            ->where('status', 'pending')
+            ->count();
 
         return [
-            'pending_count' => BookingRequest::whereIn('hostel_id', $hostelIds)
-                ->where('status', 'pending')
-                ->count()
+            'pending_count' => $bookingRequestsCount + $bookingsCount
         ];
-    }
-
-    /**
-     * Authorize access to booking request
-     */
-    private function authorizeAccess(BookingRequest $bookingRequest)
-    {
-        $organizationId = session('current_organization_id');
-        $hostelIds = Hostel::where('organization_id', $organizationId)->pluck('id');
-
-        if (!$hostelIds->contains($bookingRequest->hostel_id)) {
-            abort(403, 'तपाईंसँग यो बुकिंग अनुरोध हेर्ने अनुमति छैन');
-        }
     }
 }
