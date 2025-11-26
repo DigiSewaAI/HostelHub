@@ -34,6 +34,15 @@
                             <span class="detail-label">होस्टल:</span>
                             <span class="detail-value">{{ $booking->hostel->name ?? 'N/A' }}</span>
                         </div>
+                        <!-- 🚨 FIXED: Room details for gallery bookings -->
+                        @if($booking->room)
+                        <div class="detail-item">
+                            <span class="detail-label">कोठा:</span>
+                            <span class="detail-value">
+                                {{ $booking->room->nepali_type ?? $booking->room->type }} - कोठा {{ $booking->room->room_number }}
+                            </span>
+                        </div>
+                        @endif
                         <div class="detail-item">
                             <span class="detail-label">नाम:</span>
                             <span class="detail-value">
@@ -145,8 +154,13 @@
         
         <div class="action-buttons">
             @if(isset($booking) && $booking->hostel)
+                <!-- 🚨 FIXED: Use the correct hostel slug from booking -->
                 <a href="{{ route('hostels.show', $booking->hostel->slug) }}" class="btn btn-primary">
                     <i class="fas fa-arrow-left"></i> होस्टल पृष्ठमा फर्कनुहोस्
+                </a>
+                <!-- 🚨 FIXED: Gallery booking button with correct hostel -->
+                <a href="{{ route('hostel.book.from.gallery', ['slug' => $booking->hostel->slug]) }}" class="btn btn-outline">
+                    <i class="fas fa-plus"></i> फेरी बुक गर्नुहोस्
                 </a>
             @elseif(isset($bookingRequest))
                 <a href="{{ route('hostels.show', $bookingRequest->hostel->slug) }}" class="btn btn-primary">
@@ -156,11 +170,6 @@
             <a href="{{ route('home') }}" class="btn btn-secondary">
                 <i class="fas fa-home"></i> गृह पृष्ठमा जानुहोस्
             </a>
-            @if(isset($booking))
-                <a href="{{ route('hostel.book.from.gallery', ['slug' => $booking->hostel->slug]) }}" class="btn btn-outline">
-                    <i class="fas fa-plus"></i> फेरी बुक गर्नुहोस्
-                </a>
-            @endif
         </div>
         
         <div class="contact-info">

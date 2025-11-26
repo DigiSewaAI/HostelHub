@@ -861,13 +861,14 @@
                             @endif
                         </div>
                         
-                        <!-- 🚨 UPDATED: Book Now button using the new booking route -->
+                        <!-- 🚨 FIXED: Book Now button with CORRECT route -->
                         @if($roomId)
                             <a href="{{ route('hostel.book.from.gallery', ['slug' => $hostel->slug, 'room_id' => $roomId]) }}" class="book-now-btn nepali">
                                 बुक गर्नुहोस्
                             </a>
                         @else
-                            <a href="{{ route('hostel.book.from.gallery', ['slug' => $hostel->slug]) }}" class="book-now-btn nepali">
+                            <!-- 🚨 FIXED: Use ALL ROOMS booking when no specific room -->
+                            <a href="{{ route('hostel.book.all.rooms', ['slug' => $hostel->slug]) }}" class="book-now-btn nepali">
                                 बुक गर्नुहोस्
                             </a>
                         @endif
@@ -891,7 +892,8 @@
                    style="border-color: var(--primary); color: var(--primary);">
                     पूरा ग्यालरी हेर्नुहोस्
                 </a>
-                <a href="{{ route('hostel.book.from.gallery', ['slug' => $hostel->slug]) }}" class="btn btn-primary nepali">
+                <!-- 🚨 FIXED: Big booking button uses ALL ROOMS route -->
+                <a href="{{ route('hostel.book.all.rooms', ['slug' => $hostel->slug]) }}" class="btn btn-primary nepali">
                     अहिले बुक गर्नुहोस्
                 </a>
             </div>
@@ -968,7 +970,7 @@
             <h3 id="modalRoomTitle" class="nepali"></h3>
             <p id="modalRoomDescription" class="nepali"></p>
             <div id="modalRoomDetails" class="modal-room-details nepali"></div>
-            <!-- 🚨 UPDATED: Modal book button using the new booking route -->
+            <!-- 🚨 FIXED: Modal book button with CORRECT route -->
             <a href="#" id="modalBookButton" class="modal-book-button nepali">
                 यो कोठा बुक गर्नुहोस्
             </a>
@@ -1024,11 +1026,12 @@
         `;
         modalDetails.innerHTML = detailsHtml;
         
-        // 🚨 UPDATED: Book button link using the new booking route
+        // 🚨 FIXED: Book button link with CORRECT route
         if (room.room_id) {
-            modalBookButton.href = "{{ route('hostel.book.from.gallery', ['slug' => $hostel->slug]) }}?room_id=" + room.room_id;
+            modalBookButton.href = "{{ route('hostel.book.from.gallery', ['slug' => $hostel->slug, 'room_id' => '']) }}" + room.room_id;
         } else {
-            modalBookButton.href = "{{ route('hostel.book.from.gallery', ['slug' => $hostel->slug]) }}";
+            // 🚨 FIXED: Use ALL ROOMS booking when no specific room
+            modalBookButton.href = "{{ route('hostel.book.all.rooms', ['slug' => $hostel->slug]) }}";
         }
 
         // Show modal with animation

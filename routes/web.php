@@ -16,7 +16,10 @@ if (app()->environment('production')) {
     URL::forceScheme('https');
 }
 
-// ✅ NEW: Gallery booking route (same as home search booking)
+// ✅ NEW: Gallery booking route for ALL ROOMS (big button at bottom)
+Route::get('/book-all/{slug}', [BookingController::class, 'createFromGalleryAllRooms'])->name('hostel.book.all.rooms');
+
+// ✅ EXISTING: Gallery booking route for SPECIFIC ROOM (small buttons and modal)
 Route::get('/book/{slug}', [BookingController::class, 'createFromGallery'])->name('hostel.book.from.gallery');
 
 // ✅ FIXED: Add the missing booking store route for NEW booking system
@@ -528,7 +531,8 @@ Route::get('/test-booking-system', function () {
         <div style="margin:20px 0; padding:15px; border:1px solid #ccc;">
             <h3>Public Booking Routes:</h3>
             <a href="' . route('all.hostels') . '" style="display:inline-block; padding:10px; background:green; color:white; margin:5px;">View Hostels</a>
-            <a href="' . route('hostel.book.from.gallery', ['slug' => 'test-hostel']) . '" style="display:inline-block; padding:10px; background:green; color:white; margin:5px;">Gallery Booking</a>
+            <a href="' . route('hostel.book.from.gallery', ['slug' => 'test-hostel']) . '" style="display:inline-block; padding:10px; background:green; color:white; margin:5px;">Gallery Booking (Specific Room)</a>
+            <a href="' . route('hostel.book.all.rooms', ['slug' => 'test-hostel']) . '" style="display:inline-block; padding:10px; background:green; color:white; margin:5px;">Gallery Booking (All Rooms)</a>
             <a href="' . route('booking.guest-success', ['id' => 1]) . '" style="display:inline-block; padding:10px; background:green; color:white; margin:5px;">Guest Success Page</a>
         </div>
         
