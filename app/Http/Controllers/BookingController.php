@@ -17,6 +17,22 @@ use Illuminate\Support\Facades\Log;
 class BookingController extends Controller
 {
     /**
+     * ✅ FIXED: Add Nepali types array as class property
+     */
+    private $nepaliTypes = [
+        '1 seater' => 'एक सिटर कोठा',
+        '2 seater' => 'दुई सिटर कोठा',
+        '3 seater' => 'तीन सिटर कोठा',
+        '4 seater' => 'चार सिटर कोठा',
+        'single' => 'एक सिटर कोठा',
+        'double' => 'दुई सिटर कोठा',
+        'triple' => 'तीन सिटर कोठा',
+        'quad' => 'चार सिटर कोठा',
+        'shared' => 'साझा कोठा',
+        'other' => 'अन्य कोठा'
+    ];
+
+    /**
      * Store a new booking (Email dispatch COMPLETELY REMOVED)
      */
     public function store(Request $request)
@@ -217,7 +233,7 @@ class BookingController extends Controller
 
             DB::commit();
 
-            // ✅ FIXED: Redirect based on user type to NEW success route
+            // ✅ FIXED: Redirect based on user type to correct success route for gallery bookings
             if (Auth::check() && !$isGuest) {
                 return redirect()->route('bookings.my')->with('success', $message);
             } else {
@@ -233,69 +249,209 @@ class BookingController extends Controller
         }
     }
 
+    /**
+     * ✅ URGENT FIX: Create booking from gallery with better error handling
+     */
     public function createFromGallery($slug)
     {
-        $hostel = Hostel::where('slug', $slug)->where('is_published', true)->firstOrFail();
-        $organization = $hostel->organization;
+        try {
+            \Log::info("Gallery booking attempt", [
+                'slug' => $slug,
+                'room_id' => request('room_id'),
+                'full_url' => request()->fullUrl()
+            ]);
 
-        // ✅ FIXED: CORRECTED room query - Only count APPROVED bookings for availability
-        $availableRooms = Room::where('hostel_id', $hostel->id)
-            ->where('status', 'उपलब्ध')
-            ->with('hostel')
-            ->get()
-            ->map(function ($room) {
-                // ✅ FIXED: Calculate actual available beds based on APPROVED bookings
-                $approvedBookingsCount = $room->bookings()
-                    ->where('status', Booking::STATUS_APPROVED)
-                    ->count();
+            // Load hostel
+            $hostel = Hostel::where('slug', $slug)
+                ->where('is_published', true)
+                ->where('status', 'active')
+                ->firstOrFail();
 
-                $actualAvailableBeds = $room->capacity - $approvedBookingsCount;
+            $roomId = request('room_id');
+
+            \Log::info("Room ID received", ['room_id' => $roomId]);
+
+            // If no room_id provided, redirect to all rooms booking
+            if (!$roomId) {
+                \Log::warning('No room_id provided, redirecting to all rooms booking');
+                return redirect()->route('hostel.book.all.rooms', ['slug' => $slug]);
+            }
+
+            // Load the specific room
+            $selectedRoom = Room::where('id', $roomId)
+                ->where('hostel_id', $hostel->id)
+                ->first(); // Remove status check temporarily for debugging
+
+            \Log::info("Room query result", [
+                'room_found' => !is_null($selectedRoom),
+                'room_status' => $selectedRoom->status ?? 'N/A',
+                'room_hostel_id' => $selectedRoom->hostel_id ?? 'N/A'
+            ]);
+
+            if (!$selectedRoom) {
+                \Log::error('Room not found', ['room_id' => $roomId, 'hostel_id' => $hostel->id]);
+                return redirect()->route('hostel.book.all.rooms', ['slug' => $slug])
+                    ->with('error', 'यो कोठा फेला परेन। कृपया अर्को कोठा छान्नुहोस्।');
+            }
+
+            // Check if room is available
+            if ($selectedRoom->status !== 'available') {
+                \Log::warning('Room not available', ['room_id' => $roomId, 'status' => $selectedRoom->status]);
+                return redirect()->route('hostel.book.all.rooms', ['slug' => $slug])
+                    ->with('error', 'यो कोठा अहिले उपलब्ध छैन। कृपया अर्को कोठा छान्नुहोस्।');
+            }
+
+            // Calculate available beds
+            $approvedBookingsCount = $selectedRoom->bookings()
+                ->where('status', Booking::STATUS_APPROVED)
+                ->count();
+            $actualAvailableBeds = $selectedRoom->capacity - $approvedBookingsCount;
+
+            if ($actualAvailableBeds <= 0) {
+                \Log::warning('No available beds', ['room_id' => $roomId, 'available_beds' => $actualAvailableBeds]);
+                return redirect()->route('hostel.book.all.rooms', ['slug' => $slug])
+                    ->with('error', 'यो कोठामा कुनै खाली बेड छैन। कृपया अर्को कोठा छान्नुहोस्।');
+            }
+
+            // Prepare room data
+            $selectedRoom->available_beds = $actualAvailableBeds;
+            $selectedRoom->nepali_type = $this->nepaliTypes[$selectedRoom->type] ?? $selectedRoom->type;
+
+            // Create available rooms array with only the selected room
+            $availableRooms = [
+                [
+                    'id' => $selectedRoom->id,
+                    'value' => $selectedRoom->id,
+                    'label' => $selectedRoom->nepali_type . " - कोठा {$selectedRoom->room_number} (उपलब्ध: {$actualAvailableBeds}, रु {$selectedRoom->price})",
+                    'room_number' => $selectedRoom->room_number,
+                    'type' => $selectedRoom->type,
+                    'nepali_type' => $selectedRoom->nepali_type,
+                    'available_beds' => $actualAvailableBeds,
+                    'price' => $selectedRoom->price,
+                    'capacity' => $selectedRoom->capacity
+                ]
+            ];
+
+            // Handle dates
+            $checkIn = request('check_in');
+            $checkOut = request('check_out');
+            $datesLocked = !empty($checkIn) && !empty($checkOut);
+
+            if ($datesLocked) {
+                $today = now()->format('Y-m-d');
+                if ($checkIn < $today) {
+                    $checkIn = $today;
+                }
+                if ($checkOut && $checkOut <= $checkIn) {
+                    $checkOut = null;
+                }
+            }
+
+            \Log::info('Gallery booking form loaded successfully', [
+                'hostel' => $hostel->name,
+                'room' => $selectedRoom->room_number,
+                'available_beds' => $actualAvailableBeds
+            ]);
+
+            return view('frontend.booking.form', compact(
+                'hostel',
+                'availableRooms',
+                'checkIn',
+                'checkOut',
+                'datesLocked',
+                'selectedRoom'
+            ));
+        } catch (\Exception $e) {
+            \Log::error('Gallery booking error: ' . $e->getMessage());
+            return redirect()->route('hostel.book.all.rooms', ['slug' => $slug])
+                ->with('error', 'बुकिंग फारम लोड गर्दा त्रुटि भयो। कृपया पुनः प्रयास गर्नुहोस्।');
+        }
+    }
+
+    /**
+     * ✅ NEW: Create booking from gallery with ALL ROOMS (like homepage)
+     */
+    public function createFromGalleryAllRooms($slug)
+    {
+        try {
+            // Load hostel (same as before)
+            $hostel = Hostel::where('slug', $slug)
+                ->where('is_published', true)
+                ->where('status', 'active')
+                ->firstOrFail();
+
+            // Handle dates
+            $checkIn = request('check_in');
+            $checkOut = request('check_out');
+            $datesLocked = !empty($checkIn) && !empty($checkOut);
+
+            if ($datesLocked) {
+                $today = now()->format('Y-m-d');
+                if ($checkIn < $today) {
+                    $checkIn = $today;
+                }
+                if ($checkOut && $checkOut <= $checkIn) {
+                    $checkOut = null;
+                }
+            }
+
+            // ✅ CRITICAL DIFFERENCE: Load ALL available rooms (like homepage)
+            $roomsQuery = Room::where('hostel_id', $hostel->id)
+                ->where('status', 'available');
+
+            $roomsQuery->withCount(['bookings as approved_bookings_count' => function ($query) {
+                $query->where('status', Booking::STATUS_APPROVED);
+            }]);
+
+            // Date filtering
+            if ($datesLocked && $checkIn) {
+                $roomsQuery->whereDoesntHave('bookings', function ($q) use ($checkIn, $checkOut) {
+                    $q->where('status', Booking::STATUS_APPROVED)
+                        ->where(function ($bookingQuery) use ($checkIn, $checkOut) {
+                            $bookingQuery->whereBetween('check_in_date', [$checkIn, $checkOut])
+                                ->orWhereBetween('check_out_date', [$checkIn, $checkOut])
+                                ->orWhere(function ($subQuery) use ($checkIn, $checkOut) {
+                                    $subQuery->where('check_in_date', '<=', $checkIn)
+                                        ->where('check_out_date', '>=', $checkOut);
+                                });
+                        });
+                });
+            }
+
+            $availableRooms = $roomsQuery->get()->map(function ($room) {
+                $actualAvailableBeds = $room->capacity - $room->approved_bookings_count;
 
                 return [
                     'id' => $room->id,
+                    'value' => $room->id,
+                    'label' => ($this->nepaliTypes[$room->type] ?? $room->type)
+                        . " - कोठा {$room->room_number} (उपलब्ध: {$actualAvailableBeds}, रु {$room->price})",
                     'room_number' => $room->room_number,
                     'type' => $room->type,
-                    'nepali_type' => $room->nepali_type,
-                    'capacity' => $room->capacity,
-                    'available_beds' => $actualAvailableBeds, // ✅ Use calculated available beds
+                    'nepali_type' => ($this->nepaliTypes[$room->type] ?? $room->type),
+                    'available_beds' => $actualAvailableBeds,
                     'price' => $room->price,
-                    'label' => "{$room->nepali_type} - कोठा {$room->room_number} (उपलब्ध: {$actualAvailableBeds}, रु {$room->price})"
+                    'capacity' => $room->capacity
                 ];
             })->filter(function ($room) {
-                // Only include rooms with available beds
                 return $room['available_beds'] > 0;
             });
 
-        $isGuest = !Auth::check();
-        $selectedRoom = null;
+            // ✅ NO selected room - user will choose manually
+            $selectedRoom = null;
 
-        // If room_id is provided in query, pre-fill it
-        if (request()->has('room_id')) {
-            $selectedRoom = Room::find(request('room_id'));
-            // ✅ FIXED: Calculate available beds for selected room too
-            if ($selectedRoom) {
-                $approvedBookingsCount = $selectedRoom->bookings()
-                    ->where('status', Booking::STATUS_APPROVED)
-                    ->count();
-                $selectedRoom->available_beds = $selectedRoom->capacity - $approvedBookingsCount;
-            }
+            return view('frontend.booking.form', compact(
+                'hostel',
+                'availableRooms', // All rooms available
+                'checkIn',
+                'checkOut',
+                'datesLocked',
+                'selectedRoom' // null - no pre-selection
+            ));
+        } catch (\Exception $e) {
+            \Log::error('Gallery all rooms booking error: ' . $e->getMessage());
+            abort(404, 'होस्टल फेला परेन वा बुकिंगको लागि उपलब्ध छैन');
         }
-
-        // ✅ ADDED: Required variables for the form.blade.php
-        $datesLocked = false;
-        $checkIn = null;
-        $checkOut = null;
-
-        return view('frontend.booking.form', compact(
-            'availableRooms',
-            'organization',
-            'isGuest',
-            'hostel',
-            'selectedRoom',
-            'datesLocked',
-            'checkIn',
-            'checkOut'
-        ));
     }
 
     /**
