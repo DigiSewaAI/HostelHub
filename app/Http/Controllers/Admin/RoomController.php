@@ -182,6 +182,39 @@ class RoomController extends Controller
         }
     }
 
+    public function syncSingle(Room $room)
+    {
+        try {
+            // Calculate real occupancy
+            $currentOccupancy = $room->students()
+                ->whereIn('status', ['active', 'approved'])
+                ->count();
+
+            $availableBeds = $room->capacity - $currentOccupancy;
+
+            // Update room status based on actual data
+            if ($currentOccupancy == 0) {
+                $status = 'available';
+            } elseif ($currentOccupancy == $room->capacity) {
+                $status = 'occupied';
+            } else {
+                $status = 'partially_available';
+            }
+
+            // Update the room
+            $room->update([
+                'current_occupancy' => $currentOccupancy,
+                'available_beds' => $availableBeds,
+                'status' => $status,
+                'updated_at' => now()
+            ]);
+
+            return redirect()->back()->with('success', 'कोठा ' . $room->room_number . ' को डाटा सिंक सफल भयो!');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'सिंक असफल: ' . $e->getMessage());
+        }
+    }
+
     /**
      * Display the specified room.
      */

@@ -237,7 +237,8 @@ class BookingController extends Controller
             if (Auth::check() && !$isGuest) {
                 return redirect()->route('bookings.my')->with('success', $message);
             } else {
-                return redirect()->route('frontend.booking.success', $booking->id)
+                // ✅ CRITICAL FIX: Redirect to NEW booking success route
+                return redirect()->route('booking.success', $booking->id)
                     ->with('success', $message)
                     ->with('booking_id', $booking->id)
                     ->with('guest_email', $request->guest_email ?? $request->email);
@@ -248,95 +249,68 @@ class BookingController extends Controller
             return back()->with('error', 'बुकिंग सिर्जना गर्दा त्रुटि भयो। कृपया पुनः प्रयास गर्नुहोस्।');
         }
     }
-
     /**
-     * ✅ URGENT FIX: Create booking from gallery with better error handling
+     * ✅ FIXED: Create booking from gallery with proper room loading and variable passing
      */
     public function createFromGallery($slug)
     {
         try {
-            \Log::info("Gallery booking attempt", [
+            \Log::info("=== GALLERY BOOKING FIXED VERSION ===", [
                 'slug' => $slug,
                 'room_id' => request('room_id'),
                 'full_url' => request()->fullUrl()
             ]);
 
-            // Load hostel
+            // 1. Load Hostel by slug (defensive)
             $hostel = Hostel::where('slug', $slug)
                 ->where('is_published', true)
                 ->where('status', 'active')
                 ->firstOrFail();
 
+            // 2. Tenant/organization check
+            $organization = $hostel->organization;
+            if ($organization && method_exists($this, 'getCurrentOrganizationId')) {
+                $currentOrgId = $this->getCurrentOrganizationId();
+                if ($currentOrgId && $organization->id != $currentOrgId) {
+                    abort(403, 'तपाईंले यो होस्टलको बुकिंग गर्न पाउनुहुन्न।');
+                }
+            }
+
+            // 3. Read room id from query string
             $roomId = request('room_id');
-
-            \Log::info("Room ID received", ['room_id' => $roomId]);
-
-            // If no room_id provided, redirect to all rooms booking
             if (!$roomId) {
                 \Log::warning('No room_id provided, redirecting to all rooms booking');
-                return redirect()->route('hostel.book.all.rooms', ['slug' => $slug]);
-            }
-
-            // Load the specific room
-            $selectedRoom = Room::where('id', $roomId)
-                ->where('hostel_id', $hostel->id)
-                ->first(); // Remove status check temporarily for debugging
-
-            \Log::info("Room query result", [
-                'room_found' => !is_null($selectedRoom),
-                'room_status' => $selectedRoom->status ?? 'N/A',
-                'room_hostel_id' => $selectedRoom->hostel_id ?? 'N/A'
-            ]);
-
-            if (!$selectedRoom) {
-                \Log::error('Room not found', ['room_id' => $roomId, 'hostel_id' => $hostel->id]);
                 return redirect()->route('hostel.book.all.rooms', ['slug' => $slug])
-                    ->with('error', 'यो कोठा फेला परेन। कृपया अर्को कोठा छान्नुहोस्।');
+                    ->with('error', 'कृपया कोठा छान्नुहोस्।');
             }
 
-            // Check if room is available
-            if ($selectedRoom->status !== 'available') {
-                \Log::warning('Room not available', ['room_id' => $roomId, 'status' => $selectedRoom->status]);
+            // 4. Load Room scoped to hostel
+            $room = Room::where('id', $roomId)
+                ->where('hostel_id', $hostel->id)
+                ->firstOrFail();
+
+            // 5. Check room availability based on APPROVED bookings
+            $approvedBookingsCount = $room->bookings()
+                ->where('status', Booking::STATUS_APPROVED)
+                ->count();
+
+            $actualAvailableBeds = $room->capacity - $approvedBookingsCount;
+
+            if ($actualAvailableBeds <= 0) {
+                \Log::warning('Room not available - no available beds', [
+                    'room_id' => $roomId,
+                    'available_beds' => $actualAvailableBeds
+                ]);
                 return redirect()->route('hostel.book.all.rooms', ['slug' => $slug])
                     ->with('error', 'यो कोठा अहिले उपलब्ध छैन। कृपया अर्को कोठा छान्नुहोस्।');
             }
 
-            // Calculate available beds
-            $approvedBookingsCount = $selectedRoom->bookings()
-                ->where('status', Booking::STATUS_APPROVED)
-                ->count();
-            $actualAvailableBeds = $selectedRoom->capacity - $approvedBookingsCount;
-
-            if ($actualAvailableBeds <= 0) {
-                \Log::warning('No available beds', ['room_id' => $roomId, 'available_beds' => $actualAvailableBeds]);
-                return redirect()->route('hostel.book.all.rooms', ['slug' => $slug])
-                    ->with('error', 'यो कोठामा कुनै खाली बेड छैन। कृपया अर्को कोठा छान्नुहोस्।');
-            }
-
-            // Prepare room data
-            $selectedRoom->available_beds = $actualAvailableBeds;
-            $selectedRoom->nepali_type = $this->nepaliTypes[$selectedRoom->type] ?? $selectedRoom->type;
-
-            // Create available rooms array with only the selected room
-            $availableRooms = [
-                [
-                    'id' => $selectedRoom->id,
-                    'value' => $selectedRoom->id,
-                    'label' => $selectedRoom->nepali_type . " - कोठा {$selectedRoom->room_number} (उपलब्ध: {$actualAvailableBeds}, रु {$selectedRoom->price})",
-                    'room_number' => $selectedRoom->room_number,
-                    'type' => $selectedRoom->type,
-                    'nepali_type' => $selectedRoom->nepali_type,
-                    'available_beds' => $actualAvailableBeds,
-                    'price' => $selectedRoom->price,
-                    'capacity' => $selectedRoom->capacity
-                ]
-            ];
-
-            // Handle dates
+            // 6. Prepare variables for the view using EXACT names from PublicController
             $checkIn = request('check_in');
             $checkOut = request('check_out');
             $datesLocked = !empty($checkIn) && !empty($checkOut);
 
+            // Date validation as in PublicController
             if ($datesLocked) {
                 $today = now()->format('Y-m-d');
                 if ($checkIn < $today) {
@@ -347,12 +321,35 @@ class BookingController extends Controller
                 }
             }
 
-            \Log::info('Gallery booking form loaded successfully', [
+            // Prepare availableRooms exactly as in PublicController
+            $availableRooms = [
+                [
+                    'id' => $room->id,
+                    'value' => $room->id,
+                    'label' => ($this->nepaliTypes[$room->type] ?? $room->type)
+                        . " - कोठा {$room->room_number} (उपलब्ध: {$actualAvailableBeds}, रु {$room->price})",
+                    'room_number' => $room->room_number,
+                    'type' => $room->type,
+                    'nepali_type' => $this->nepaliTypes[$room->type] ?? $room->type,
+                    'available_beds' => $actualAvailableBeds,
+                    'price' => $room->price,
+                    'capacity' => $room->capacity
+                ]
+            ];
+
+            // Prepare selectedRoom as in PublicController
+            $selectedRoom = $room;
+            $selectedRoom->available_beds = $actualAvailableBeds;
+            $selectedRoom->nepali_type = $this->nepaliTypes[$room->type] ?? $room->type;
+
+            \Log::info('✅ Gallery booking form loaded successfully with fixed variables', [
                 'hostel' => $hostel->name,
                 'room' => $selectedRoom->room_number,
-                'available_beds' => $actualAvailableBeds
+                'available_beds' => $actualAvailableBeds,
+                'variables_passed' => ['hostel', 'availableRooms', 'checkIn', 'checkOut', 'datesLocked', 'selectedRoom']
             ]);
 
+            // 7. Return view using same blade with exact variable names
             return view('frontend.booking.form', compact(
                 'hostel',
                 'availableRooms',

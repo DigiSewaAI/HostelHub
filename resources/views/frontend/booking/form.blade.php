@@ -28,7 +28,7 @@
         @endif
 
         <!-- ✅ FIXED: Changed form action to NEW booking system -->
-        <form method="POST" action="{{ route('booking.store') }}" class="booking-form" id="bookingForm">
+                <form method="POST" action="{{ route('booking.store') }}" class="booking-form" id="bookingForm">
             @csrf
             
             <!-- Hidden fields for dates when locked -->
