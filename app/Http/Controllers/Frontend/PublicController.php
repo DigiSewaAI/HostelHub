@@ -535,7 +535,7 @@ class PublicController extends Controller
     }
 
     /**
-     * Show only available rooms gallery
+     * Show only available rooms gallery - FIXED: Individual room status with proper mapping
      */
     public function hostelGallery($slug)
     {
@@ -544,8 +544,7 @@ class PublicController extends Controller
 
             $hostel = Hostel::where('slug', $slug)
                 ->with(['rooms' => function ($query) {
-                    $query->where('available_beds', '>', 0)
-                        ->where('status', '!=', 'मर्मत सम्भार');
+                    $query->where('status', '!=', 'मर्मत सम्भार');
                 }])
                 ->first();
 
@@ -553,12 +552,53 @@ class PublicController extends Controller
                 abort(404, 'होस्टल फेला परेन।');
             }
 
+            // 🚨 FIXED: Calculate ACTUAL available beds for EACH room with proper student counting
+            $availableRooms = $hostel->rooms->map(function ($room) {
+                // Calculate current occupancy for this specific room
+                $currentOccupancy = $room->students()
+                    ->whereIn('status', ['active', 'approved'])
+                    ->count();
+
+                $room->actual_available_beds = $room->capacity - $currentOccupancy;
+                $room->current_occupancy = $currentOccupancy;
+
+                // 🚨 FIXED: Update room status based on actual occupancy
+                if ($currentOccupancy == 0) {
+                    $room->calculated_status = 'available';
+                } elseif ($currentOccupancy == $room->capacity) {
+                    $room->calculated_status = 'occupied';
+                } else {
+                    $room->calculated_status = 'partially_available';
+                }
+
+                return $room;
+            })->filter(function ($room) {
+                // Only show rooms that have available beds AND are not occupied
+                return $room->actual_available_beds > 0 && $room->calculated_status != 'occupied';
+            });
+
+            \Log::info("Available rooms after calculation:", [
+                'total_rooms' => $hostel->rooms->count(),
+                'available_rooms' => $availableRooms->count(),
+                'room_details' => $availableRooms->map(function ($room) {
+                    return [
+                        'room_number' => $room->room_number,
+                        'type' => $room->type,
+                        'capacity' => $room->capacity,
+                        'current_occupancy' => $room->current_occupancy,
+                        'available_beds' => $room->actual_available_beds,
+                        'status' => $room->calculated_status
+                    ];
+                })
+            ]);
+
+            // 🚨 FIXED: Calculate counts from ACTUAL available rooms
             $availableRoomCounts = [
-                '1 seater' => $hostel->rooms->where('type', '1 seater')->count(),
-                '2 seater' => $hostel->rooms->where('type', '2 seater')->count(),
-                '3 seater' => $hostel->rooms->where('type', '3 seater')->count(),
-                '4 seater' => $hostel->rooms->where('type', '4 seater')->count(),
-                'other' => $hostel->rooms->whereNotIn('type', ['1 seater', '2 seater', '3 seater', '4 seater'])->count(),
+                '1 seater' => $availableRooms->where('type', '1 seater')->count(),
+                '2 seater' => $availableRooms->where('type', '2 seater')->count(),
+                '3 seater' => $availableRooms->where('type', '3 seater')->count(),
+                '4 seater' => $availableRooms->where('type', '4 seater')->count(),
+                'other' => $availableRooms->whereNotIn('type', ['1 seater', '2 seater', '3 seater', '4 seater'])->count(),
             ];
 
             $mealMenus = MealMenu::where('hostel_id', $hostel->id)
@@ -567,36 +607,74 @@ class PublicController extends Controller
                 ->orderBy('meal_type')
                 ->get();
 
-            \Log::info("Fixed room counts by type:", [
-                'hostel_id' => $hostel->id,
-                'available_rooms_count' => $hostel->rooms->count(),
-                'available_room_counts' => $availableRoomCounts,
-                'meal_menus_count' => $mealMenus->count(),
-            ]);
-
+            // 🚨 FIXED: Get galleries and map them to ACTUAL available rooms
             $galleries = Gallery::with(['hostel', 'room'])
                 ->where('hostel_id', $hostel->id)
                 ->where('is_active', true)
                 ->where('media_type', 'photo')
-                ->whereIn('category', ['1 seater', '2 seater', '3 seater', '4 seater', 'other'])
+                ->whereIn('category', ['1 seater', '2 seater', '3 seater', '4 seater', 'other', 'साझा कोठा'])
                 ->orderBy('is_featured', 'desc')
                 ->orderBy('created_at', 'desc')
                 ->get()
-                ->filter(function ($gallery) use ($availableRoomCounts) {
-                    return ($availableRoomCounts[$gallery->category] ?? 0) > 0;
+                ->map(function ($gallery) use ($availableRooms) {
+                    // Find the ACTUAL available room that matches this gallery
+                    $matchingRoom = $availableRooms->first(function ($room) use ($gallery) {
+                        // Handle both English and Nepali room types
+                        $roomType = $room->type;
+                        $galleryCategory = $gallery->category;
+
+                        // Map Nepali room types to English for comparison
+                        $typeMapping = [
+                            'साझा कोठा' => 'other',
+                            '१ सिटर' => '1 seater',
+                            '२ सिटर' => '2 seater',
+                            '३ सिटर' => '3 seater',
+                            '४ सिटर' => '4 seater'
+                        ];
+
+                        $normalizedGalleryCategory = $typeMapping[$galleryCategory] ?? $galleryCategory;
+                        $normalizedRoomType = $typeMapping[$roomType] ?? $roomType;
+
+                        return $normalizedRoomType === $normalizedGalleryCategory;
+                    });
+
+                    if ($matchingRoom) {
+                        $gallery->mapped_room = $matchingRoom;
+                        $gallery->actual_available_beds = $matchingRoom->actual_available_beds;
+                        $gallery->room_number = $matchingRoom->room_number;
+                        $gallery->current_occupancy = $matchingRoom->current_occupancy;
+                        $gallery->capacity = $matchingRoom->capacity;
+                        $gallery->room_id = $matchingRoom->id;
+                    }
+
+                    return $gallery;
+                })
+                ->filter(function ($gallery) {
+                    // Only include galleries that have a mapped available room
+                    return !is_null($gallery->mapped_room);
                 });
 
-            \Log::info("Main gallery data:", [
+            \Log::info("Fixed gallery data:", [
                 'hostel_id' => $hostel->id,
-                'available_rooms_count' => $hostel->rooms->count(),
+                'available_rooms_count' => $availableRooms->count(),
                 'galleries_count' => $galleries->count(),
                 'available_room_counts' => $availableRoomCounts,
-                'meal_menus_count' => $mealMenus->count()
+                'gallery_mapping' => $galleries->map(function ($gallery) {
+                    return [
+                        'gallery_id' => $gallery->id,
+                        'gallery_title' => $gallery->title,
+                        'gallery_category' => $gallery->category,
+                        'mapped_room_number' => $gallery->room_number,
+                        'mapped_room_available_beds' => $gallery->actual_available_beds,
+                        'mapped_room_id' => $gallery->room_id
+                    ];
+                })
             ]);
 
             return view('public.hostels.gallery', compact(
                 'hostel',
                 'galleries',
+                'availableRooms',
                 'availableRoomCounts',
                 'mealMenus'
             ));
@@ -604,6 +682,35 @@ class PublicController extends Controller
             \Log::error('Main gallery error: ' . $e->getMessage());
             abort(404, 'ग्यालरी लोड गर्न असफल।');
         }
+    }
+
+    // Add this temporary debugging method to see what's happening
+    private function debugRoomOccupancy($hostelId)
+    {
+        $rooms = Room::where('hostel_id', $hostelId)->get();
+
+        $debugInfo = [];
+        foreach ($rooms as $room) {
+            $currentOccupancy = $room->students()
+                ->whereIn('status', ['active', 'approved'])
+                ->count();
+
+            $debugInfo[] = [
+                'room_id' => $room->id,
+                'room_number' => $room->room_number,
+                'type' => $room->type,
+                'capacity' => $room->capacity,
+                'current_occupancy' => $currentOccupancy,
+                'available_beds' => $room->capacity - $currentOccupancy,
+                'students' => $room->students()
+                    ->whereIn('status', ['active', 'approved'])
+                    ->pluck('name')
+                    ->toArray()
+            ];
+        }
+
+        \Log::info("ROOM OCCUPANCY DEBUG:", $debugInfo);
+        return $debugInfo;
     }
 
     /**
