@@ -574,3 +574,6 @@ Route::get('/test-booking-system', function () {
     ';
 });
 Route::post('/rooms/{room}/sync-single', [RoomController::class, 'syncSingle'])->name('owner.rooms.sync-single');
+
+// Temporary debug route to test
+Route::get('/test-gallery/{slug}', [App\Http\Controllers\Frontend\PublicController::class, 'hostelGallery'])->name('test.gallery');
