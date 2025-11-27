@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Gate; // ✅ ADDED: For policy registration
 use App\View\Components\AdminNavLink;
 use App\Models\StudentDocument; // ✅ ADDED: For policy registration
 use App\Policies\DocumentPolicy; // ✅ ADDED: For policy registration
+use App\Models\Student; // ✅ ADDED: For observer registration
+use App\Observers\StudentObserver; // ✅ ADDED: For observer registration
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -33,6 +35,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // ✅ ADDED: Register Student Observer for automatic room occupancy updates
+        Student::observe(StudentObserver::class);
+
         // ✅ ADDED: Register Document Policy
         Gate::policy(StudentDocument::class, DocumentPolicy::class);
 

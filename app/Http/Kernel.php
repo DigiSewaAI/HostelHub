@@ -163,4 +163,13 @@ class Kernel extends HttpKernel
         'localize' => \App\Http\Middleware\Localize::class,
         'security.headers' => \App\Http\Middleware\SecurityHeaders::class,
     ];
+
+    /**
+     * The Artisan commands provided by your application.
+     *
+     * @var array
+     */
+    protected $commands = [
+        \App\Console\Commands\SyncRoomsOccupancy::class,
+    ];
 }

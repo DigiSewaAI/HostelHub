@@ -10,26 +10,19 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Frontend\PublicController;
 
-
 // Force HTTPS in production
 if (app()->environment('production')) {
     URL::forceScheme('https');
 }
 
-// ✅ NEW: Gallery booking route for ALL ROOMS (big button at bottom)
+// ✅ FIXED: Gallery booking route for ALL ROOMS (big button at bottom)
 Route::get('/book-all/{slug}', [BookingController::class, 'createFromGalleryAllRooms'])->name('hostel.book.all.rooms');
 
-// ✅ EXISTING: Gallery booking route for SPECIFIC ROOM (small buttons and modal)
+// ✅ FIXED: Gallery booking route for SPECIFIC ROOM (small buttons and modal)
 Route::get('/book/{slug}', [BookingController::class, 'createFromGallery'])->name('hostel.book.from.gallery');
 
-// ✅ FIXED: Add the missing booking store route for NEW booking system
-Route::post('/booking/store', [BookingController::class, 'store'])->name('booking.store');
-
-// ✅ FIXED: Add public guest success route (moved from auth middleware)
-Route::get('/booking/guest-success/{id}', [BookingController::class, 'guestBookingSuccess'])->name('booking.guest-success');
-
-Route::get('/booking-success/{id}', [PublicController::class, 'bookingSuccess'])
-    ->name('frontend.booking.success');
+// ✅ FIXED: Main booking success route for BOTH systems
+Route::get('/booking-success/{id}', [PublicController::class, 'bookingSuccessNew'])->name('frontend.booking.success');
 
 // ✅ UPDATED: Test Email Routes with room_id fix
 Route::get('/test-email-system', function () {
@@ -148,9 +141,6 @@ Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
 Route::get('/register', [RegisterController::class, 'showUserRegistrationForm'])->name('register');
 
-// ✅ FIXED: Search route completely removed from here (moved to public.php)
-// No duplicate routes - search route is properly handled in public.php
-
 /*|--------------------------------------------------------------------------
 | Load Modular Route Files - FIXED ORDER with Proper Middleware
 |--------------------------------------------------------------------------
@@ -159,13 +149,13 @@ require __DIR__ . '/public.php';
 require __DIR__ . '/auth.php';
 require __DIR__ . '/shared.php';
 
-// ✅ UPDATED: Welcome and Student Registration Routes - COMPREHENSIVE UPDATE
+// ✅ FIXED: Welcome and Student Registration Routes - COMPREHENSIVE UPDATE
 Route::middleware(['auth'])->group(function () {
     // Welcome page with booking summary
     Route::get('/welcome', [WelcomeController::class, 'showWelcome'])->name('user.welcome');
 
-    // Convert guest booking to student booking
-    Route::post('/convert-booking/{bookingId}', [WelcomeController::class, 'convertGuestBooking'])->name('user.convert-booking');
+    // ✅ FIXED: Convert guest booking to student booking - UNIQUE NAME
+    Route::post('/convert-guest-booking/{bookingId}', [WelcomeController::class, 'convertGuestBooking'])->name('user.convert.guest.booking');
 
     // Complete student registration
     Route::post('/complete-student-registration', [WelcomeController::class, 'completeStudentRegistration'])->name('user.complete-registration');
@@ -178,12 +168,6 @@ Route::middleware(['auth'])->group(function () {
 
     // Booking statistics (API)
     Route::get('/booking/stats', [WelcomeController::class, 'getBookingStats'])->name('booking.stats');
-
-    // ✅ REMOVED: Guest booking success page moved to public routes above
-    // Route::get('/booking/guest-success/{id}', [BookingController::class, 'guestBookingSuccess'])->name('booking.guest.success');
-
-    // ✅ NEW: Convert guest booking to student booking
-    Route::post('/booking/convert/{id}', [BookingController::class, 'convertToStudentBooking'])->name('booking.convert.to-student');
 
     // ✅ NEW: User bookings management
     Route::get('/my-bookings', [BookingController::class, 'myBookings'])->name('bookings.my');
@@ -589,3 +573,4 @@ Route::get('/test-booking-system', function () {
     </html>
     ';
 });
+Route::post('/rooms/{room}/sync-single', [RoomController::class, 'syncSingle'])->name('owner.rooms.sync-single');

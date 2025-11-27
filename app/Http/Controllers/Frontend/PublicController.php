@@ -1614,6 +1614,7 @@ class PublicController extends Controller
     /**
      * Store booking request with enhanced validation
      * ✅ FIXED: Now creates Booking model instead of BookingRequest with proper hostel_id
+     * ✅ CRITICAL FIX: Redirect to NEW booking success route
      */
     public function storeBooking(Request $request, $slug)
     {
@@ -1689,7 +1690,8 @@ class PublicController extends Controller
 
             // TODO: Send notification to hostel owner
 
-            return redirect()->route('frontend.booking.success', $booking->id)
+            // ✅ CRITICAL FIX: Redirect to NEW booking success route
+            return redirect()->route('booking.success', $booking->id)
                 ->with('success', 'तपाईंको बुकिंग अनुरोध सफलतापूर्वक पेश गरियो। होस्टल प्रबन्धकले चाँडै नै तपाईंसँग सम्पर्क गर्नेछन्।');
         } catch (\Exception $e) {
             \Log::error('Store booking error: ' . $e->getMessage());
