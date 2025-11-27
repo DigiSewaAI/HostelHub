@@ -11,40 +11,20 @@
 
 @section('content')
 @php
-    // Get gallery items from database - NOW WITH PROPER ROOM MAPPING
-    $galleries = $galleries ?? collect();
-    
-    // 🚨 FIXED: Use the galleries that already have proper room mapping from controller
-    $availableRoomGalleries = $galleries->where('media_type', 'photo');
-    
-    // 🚨 FIXED: Use the ACTUAL available rooms passed from controller
-    $availableRooms = $availableRooms ?? collect();
+    // ✅ FIXED: Use ACTUAL rooms passed from controller
+    $rooms = $rooms ?? collect();
     
     // Count items by category for stats
     $categoryCounts = [
-        'rooms' => $availableRoomGalleries->whereIn('category', ['1 seater', '2 seater', '3 seater', '4 seater', 'other', 'साझा कोठा'])->count(),
+        'rooms' => $galleries->whereIn('category', ['1 seater', '2 seater', '3 seater', '4 seater', 'other', 'साझा कोठा'])->count(),
         'kitchen' => $galleries->where('category', 'kitchen')->count(),
         'facilities' => $galleries->whereIn('category', ['bathroom', 'common', 'living room', 'study room'])->count(),
         'video' => $galleries->whereIn('media_type', ['local_video', 'external_video'])->count()
     ];
 
-    // 🚨 FIXED: Calculate counts from ACTUAL available rooms data
-    $availableRoomCounts = [
-        '1 seater' => $availableRooms->where('type', '1 seater')->count(),
-        '2 seater' => $availableRooms->where('type', '2 seater')->count(),
-        '3 seater' => $availableRooms->where('type', '3 seater')->count(),
-        '4 seater' => $availableRooms->where('type', '4 seater')->count(),
-        'other' => $availableRooms->whereNotIn('type', ['1 seater', '2 seater', '3 seater', '4 seater'])->count(),
-    ];
-
-    // 🚨 FIXED: Calculate ACTUAL available beds for each room type
-    $availableBedsCounts = [
-        '1 seater' => $availableRooms->where('type', '1 seater')->sum('actual_available_beds'),
-        '2 seater' => $availableRooms->where('type', '2 seater')->sum('actual_available_beds'),
-        '3 seater' => $availableRooms->where('type', '3 seater')->sum('actual_available_beds'),
-        '4 seater' => $availableRooms->where('type', '4 seater')->sum('actual_available_beds'),
-        'other' => $availableRooms->whereNotIn('type', ['1 seater', '2 seater', '3 seater', '4 seater'])->sum('actual_available_beds'),
-    ];
+    // ✅ FIXED: Use ACTUAL room counts passed from controller
+    $availableRoomCounts = $availableRoomCounts ?? [];
+    $availableBedsCounts = $availableBedsCounts ?? [];
 
     // PERMANENT FIX: Nepali room types with proper mapping
     $nepaliRoomTypes = [
@@ -53,30 +33,27 @@
         '3 seater' => '३ सिटर',
         '4 seater' => '४ सिटर',
         'other' => 'साझा कोठा',
-        'साझा कोठा' => 'साझा कोठा'
+        'साझा कोठा' => 'साझा कोठा',
+        'single' => '१ सिटर',
+        'double' => '२ सिटर',
+        'triple' => '३ सिटर', 
+        'quad' => '४ सिटर',
+        'shared' => 'साझा कोठा'
     ];
     
-    // 🚨 FIXED: Updated condition to show available rooms section
-    $totalAvailableRooms = array_sum($availableRoomCounts);
-    $hasAvailableRooms = $totalAvailableRooms > 0 || $availableRoomGalleries->count() > 0;
+    // ✅ FIXED: Show available rooms section if ANY rooms exist
+    $hasRooms = $rooms->count() > 0;
 
-    // 🚨 FIXED: Create mapping of gallery to actual room data for display
-    $galleryRoomData = [];
-    foreach ($availableRoomGalleries as $gallery) {
-        // Use the room data that was already mapped in the controller
-        $galleryRoomData[$gallery->id] = [
-            'available_beds' => $gallery->actual_available_beds ?? 0,
-            'room_id' => $gallery->room_id ?? null,
-            'room_number' => $gallery->room_number ?? '',
-            'current_occupancy' => $gallery->current_occupancy ?? 0,
-            'capacity' => $gallery->capacity ?? 0
-        ];
+    // ✅ FIXED: Get room image URL helper
+    function getRoomImageUrl($room) {
+        if ($room->image && \Storage::disk('public')->exists($room->image)) {
+            return \Storage::disk('public')->url($room->image);
+        }
+        return asset('images/default-room.jpg');
     }
 @endphp
 
 <style>
-    /* 🚨 REMOVED: Duplicate header protection - Header will show normally now */
-    
     /* Gallery Specific Styles */
     .gallery-section {
         padding: 80px 0 60px;
@@ -340,6 +317,20 @@
         background: white;
         border-radius: 12px;
         box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    /* 🚨 FIXED: Room status badge colors */
+    .status-available {
+        background: #10b981 !important;
+    }
+    .status-occupied {
+        background: #ef4444 !important;
+    }
+    .status-partially_available {
+        background: #f59e0b !important;
+    }
+    .status-maintenance {
+        background: #6b7280 !important;
     }
 
     /* 🚨 FIXED: No Rooms Message Styles - Button color fixed */
@@ -796,7 +787,7 @@
     }
 </style>
 
-<!-- 🚨 UPDATED: Combined Hero Section with Stats (Removed single card, integrated stats) -->
+<!-- 🚨 UPDATED: Combined Hero Section with Stats -->
 <section class="hero-stats-section">
     <div class="container">
         <div class="hero-main-content">
@@ -806,7 +797,7 @@
             </p>
         </div>
         
-        <!-- 🚨 UPDATED: Stats Grid with better design -->
+        <!-- 🚨 UPDATED: Stats Grid with REAL data -->
         <div class="stats-grid">
             @foreach($nepaliRoomTypes as $englishType => $nepaliType)
             <div class="stat-item">
@@ -823,75 +814,87 @@
     </div>
 </section>
 
-<!-- Available Rooms Section - UPDATED (SHOWS ALL ROOM IMAGES) -->
+<!-- Available Rooms Section - ✅ FIXED: Shows ALL ROOMS with REAL data -->
 <section class="available-rooms-section">
     <div class="container">
-        @if($hasAvailableRooms)
+        @if($hasRooms)
             <h2 class="section-title nepali">हाम्रा कोठाहरू</h2>
             <p style="text-align: center; margin-bottom: 40px; color: var(--text-dark); opacity: 0.8; max-width: 700px; margin-left: auto; margin-right: auto;" class="nepali">
                 तल दिइएका कोठाहरू हाम्रो होस्टलमा उपलब्ध छन्। तपाईंको रुचिको कोठा चयन गरी अहिलेै बुक गर्नुहोस्।
             </p>
             
-            <!-- Available Rooms Gallery - INDIVIDUAL ROOM DATA -->
-<div class="gallery-grid">
-    @foreach($availableRoomGalleries as $gallery)
-        @php
-            $roomCategory = $gallery->category;
-            $roomData = $galleryRoomData[$gallery->id] ?? null;
-            $availableBeds = $roomData['available_beds'] ?? 0;
-            $roomId = $roomData['room_id'] ?? null;
-            $roomNumber = $roomData['room_number'] ?? '';
-            $currentOccupancy = $roomData['current_occupancy'] ?? 0;
-            $capacity = $roomData['capacity'] ?? 0;
-            
-            // 🚨 FIXED: Handle both English and Nepali room types
-            $displayRoomType = $nepaliRoomTypes[$roomCategory] ?? $roomCategory;
-        @endphp
-        
-        <div class="gallery-item">
-            <img src="{{ $gallery->thumbnail_url ?? $gallery->media_url }}" 
-                 alt="{{ $gallery->title }}" 
-                 onerror="this.src='{{ asset('images/default-room.jpg') }}'">
-            
-            <div class="room-type-badge nepali">
-                {{ $displayRoomType }}
+            <!-- ✅ FIXED: Room Gallery - DIRECT ROOM DATA FROM DATABASE -->
+            <div class="gallery-grid">
+                @foreach($rooms as $room)
+                    @php
+                        // ✅ FIXED: Use ACTUAL room data from database
+                        $availableBeds = $room->available_beds;
+                        $roomId = $room->id;
+                        $roomNumber = $room->room_number;
+                        $currentOccupancy = $room->current_occupancy;
+                        $capacity = $room->capacity;
+                        
+                        // ✅ FIXED: Handle both English and Nepali room types
+                        $displayRoomType = $nepaliRoomTypes[$room->type] ?? $room->type;
+                        
+                        // ✅ FIXED: Determine status badge class
+                        $statusClass = 'status-' . $room->status;
+                        $statusText = match($room->status) {
+                            'available' => 'उपलब्ध',
+                            'occupied' => 'व्यस्त', 
+                            'partially_available' => 'आंशिक उपलब्ध',
+                            'maintenance' => 'मर्मतमा',
+                            default => $room->status
+                        };
+                    @endphp
+                    
+                    <div class="gallery-item">
+                        <img src="{{ getRoomImageUrl($room) }}" 
+                             alt="कोठा {{ $room->room_number }}" 
+                             onerror="this.src='{{ asset('images/default-room.jpg') }}'">
+                        
+                        <div class="room-type-badge nepali">
+                            {{ $displayRoomType }}
+                        </div>
+                        
+                        <!-- ✅ FIXED: Show ACTUAL status and available beds -->
+                        <div class="available-badge nepali {{ $statusClass }}">
+                            @if($availableBeds > 0)
+                                {{ $availableBeds }} बेड खाली
+                            @else
+                                {{ $statusText }}
+                            @endif
+                        </div>
+                        
+                        <!-- ✅ FIXED: Book Now button with CORRECT room data -->
+                        @if($availableBeds > 0 && $room->status !== 'maintenance')
+                            <a href="{{ route('hostel.book.from.gallery', ['slug' => $hostel->slug, 'room_id' => $roomId]) }}" class="book-now-btn nepali">
+                                बुक गर्नुहोस्
+                            </a>
+                        @else
+                            <button class="book-now-btn nepali" style="background: #6c757d; cursor: not-allowed;" disabled>
+                                {{ $statusText }}
+                            </button>
+                        @endif
+                        
+                        <div class="gallery-overlay">
+                            <h3 class="gallery-title nepali">कोठा {{ $roomNumber }}</h3>
+                            <p class="nepali">प्रकार: {{ $displayRoomType }}</p>
+                            <p class="nepali" style="font-size: 0.9rem; margin-top: 5px;">
+                                कोठा: {{ $roomNumber }} | क्षमता: {{ $capacity }} | अहिले: {{ $currentOccupancy }} जना
+                            </p>
+                            <p class="nepali" style="font-size: 0.9rem; margin-top: 5px;">
+                                मूल्य: रु {{ number_format($room->price, 2) }}/महिना
+                            </p>
+                            <button class="btn btn-primary" 
+                                    style="margin-top: 12px; padding: 8px 16px; font-size: 0.9rem;" 
+                                    onclick="openRoomModal('{{ $room->id }}')">
+                                विस्तृत हेर्नुहोस्
+                            </button>
+                        </div>
+                    </div>
+                @endforeach
             </div>
-            
-            <!-- 🚨 FIXED: Show ACTUAL available beds for THIS specific room -->
-            <div class="available-badge nepali">
-                @if($availableBeds > 0)
-                    {{ $availableBeds }} बेड खाली
-                @else
-                    उपलब्ध छैन
-                @endif
-            </div>
-            
-            <!-- 🚨 FIXED: Book Now button with CORRECT room data -->
-            @if($roomId && $availableBeds > 0)
-                <a href="{{ route('hostel.book.from.gallery', ['slug' => $hostel->slug, 'room_id' => $roomId]) }}" class="book-now-btn nepali">
-                    बुक गर्नुहोस्
-                </a>
-            @else
-                <button class="book-now-btn nepali" style="background: #6c757d; cursor: not-allowed;" disabled>
-                    उपलब्ध छैन
-                </button>
-            @endif
-            
-            <div class="gallery-overlay">
-                <h3 class="gallery-title nepali">{{ $gallery->title }}</h3>
-                <p class="nepali">{{ $gallery->description }}</p>
-                <p class="nepali" style="font-size: 0.9rem; margin-top: 5px;">
-                    कोठा: {{ $roomNumber }} | क्षमता: {{ $capacity }} | अहिले: {{ $currentOccupancy }} जना
-                </p>
-                <button class="btn btn-primary" 
-                        style="margin-top: 12px; padding: 8px 16px; font-size: 0.9rem;" 
-                        onclick="openRoomModal('{{ $gallery->id }}')">
-                    विस्तृत हेर्नुहोस्
-                </button>
-            </div>
-        </div>
-    @endforeach
-</div>
             
             <!-- Navigation Buttons -->
             <div class="view-more">
@@ -906,7 +909,7 @@
             </div>
             
         @else
-            <!-- 🚨 FIXED: No Available Rooms Message - Button color fixed -->
+            <!-- No Rooms Message -->
             <div class="no-rooms-message">
                 <div class="no-rooms-icon">🏠</div>
                 <h3 class="nepali" style="color: var(--text-dark); margin-bottom: 15px;">हाल कुनै कोठा उपलब्ध छैन</h3>
@@ -966,7 +969,7 @@
     </section>
 </div>
 
-<!-- 🚨 FIXED: Room Detail Modal - Compact and better layout -->
+<!-- ✅ FIXED: Room Detail Modal - Uses ACTUAL room data -->
 <div class="gallery-modal" id="roomModal">
     <div class="modal-content">
         <button class="close-modal" onclick="closeModal()">&times;</button>
@@ -977,7 +980,7 @@
             <h3 id="modalRoomTitle" class="nepali"></h3>
             <p id="modalRoomDescription" class="nepali"></p>
             <div id="modalRoomDetails" class="modal-room-details nepali"></div>
-            <!-- 🚨 FIXED: Modal book button with CORRECT route -->
+            <!-- ✅ FIXED: Modal book button with CORRECT route -->
             <a href="#" id="modalBookButton" class="modal-book-button nepali">
                 यो कोठा बुक गर्नुहोस्
             </a>
@@ -986,32 +989,33 @@
 </div>
 
 <script>
-    // Room gallery data - FIXED: Use ACTUAL room data
-const roomGalleryData = {
-    @foreach($availableRoomGalleries as $gallery)
-    '{{ $gallery->id }}': {
-        title: `{{ addslashes($gallery->title) }}`,
-        description: `{{ addslashes($gallery->description) }}`,
-        media_url: `{{ $gallery->media_url }}`,
-        room_type: `{{ $gallery->category }}`,
-        available_count: {{ $galleryRoomData[$gallery->id]['available_beds'] ?? 0 }},
-        available_beds: {{ $galleryRoomData[$gallery->id]['available_beds'] ?? 0 }},
-        current_occupancy: {{ $galleryRoomData[$gallery->id]['current_occupancy'] ?? 0 }},
-        capacity: {{ $galleryRoomData[$gallery->id]['capacity'] ?? 0 }},
-        room_number: `{{ $galleryRoomData[$gallery->id]['room_number'] ?? '' }}`,
-        nepali_type: `{{ $nepaliRoomTypes[$gallery->category] ?? $gallery->category }}`,
-        room_id: `{{ $galleryRoomData[$gallery->id]['room_id'] ?? '' }}`
-    }@if(!$loop->last),@endif
-    @endforeach
-};
+    // ✅ FIXED: Room data from ACTUAL database records
+    const roomData = {
+        @foreach($rooms as $room)
+        '{{ $room->id }}': {
+            title: `कोठा {{ $room->room_number }}`,
+            description: `{{ $room->description ?? 'कोठा विवरण उपलब्ध छैन' }}`,
+            media_url: `{{ getRoomImageUrl($room) }}`,
+            room_type: `{{ $room->type }}`,
+            available_beds: {{ $room->available_beds }},
+            current_occupancy: {{ $room->current_occupancy }},
+            capacity: {{ $room->capacity }},
+            room_number: `{{ $room->room_number }}`,
+            price: {{ $room->price }},
+            status: `{{ $room->status }}`,
+            nepali_type: `{{ $nepaliRoomTypes[$room->type] ?? $room->type }}`,
+            room_id: `{{ $room->id }}`
+        }@if(!$loop->last),@endif
+        @endforeach
+    };
 
-    // FIXED: Modal open function with better error handling
-    function openRoomModal(galleryId) {
-        console.log('Opening modal for gallery ID:', galleryId); // Debug log
+    // ✅ FIXED: Modal open function with ACTUAL room data
+    function openRoomModal(roomId) {
+        console.log('Opening modal for room ID:', roomId);
         
-        const room = roomGalleryData[galleryId];
+        const room = roomData[roomId];
         if (!room) {
-            console.error('Room data not found for ID:', galleryId);
+            console.error('Room data not found for ID:', roomId);
             return;
         }
 
@@ -1028,22 +1032,16 @@ const roomGalleryData = {
         modalTitle.textContent = room.title;
         modalDescription.textContent = room.description;
         
-        // Room details with Nepali text - FIXED: Show individual room data
-const detailsHtml = `
-    <strong>कोठाको प्रकार:</strong> ${room.nepali_type}<br>
-    <strong>कोठा नम्बर:</strong> ${room.room_number}<br>
-    <strong>क्षमता:</strong> ${room.capacity} बेड<br>
-    <strong>अहिलेको बसोबास:</strong> ${room.current_occupancy} जना<br>
-    <strong>खाली बेड:</strong> ${room.available_beds} वटा
-`;
+        
         modalDetails.innerHTML = detailsHtml;
         
-        // 🚨 FIXED: Book button link with CORRECT route
-        if (room.room_id) {
+        // ✅ FIXED: Book button link with CORRECT route
+        if (room.available_beds > 0 && room.status !== 'maintenance') {
             modalBookButton.href = "{{ route('hostel.book.from.gallery', ['slug' => $hostel->slug, 'room_id' => '']) }}" + room.room_id;
+            modalBookButton.style.display = 'block';
+            modalBookButton.textContent = 'यो कोठा बुक गर्नुहोस्';
         } else {
-            // 🚨 FIXED: Use ALL ROOMS booking when no specific room
-            modalBookButton.href = "{{ route('hostel.book.all.rooms', ['slug' => $hostel->slug]) }}";
+            modalBookButton.style.display = 'none';
         }
 
         // Show modal with animation
@@ -1056,7 +1054,7 @@ const detailsHtml = `
         document.body.style.overflow = 'hidden';
     }
     
-    // FIXED: Better modal close function
+    // ✅ FIXED: Better modal close function
     function closeModal() {
         const modal = document.getElementById('roomModal');
         modal.style.opacity = '0';
@@ -1067,7 +1065,7 @@ const detailsHtml = `
         }, 300);
     }
     
-    // FIXED: Close modal when clicking outside the content
+    // ✅ FIXED: Close modal when clicking outside the content
     document.addEventListener('click', function(event) {
         const modal = document.getElementById('roomModal');
         const modalContent = document.querySelector('.modal-content');
@@ -1077,14 +1075,14 @@ const detailsHtml = `
         }
     });
     
-    // FIXED: Close modal with Escape key
+    // ✅ FIXED: Close modal with Escape key
     document.addEventListener('keydown', function(event) {
         if (event.key === 'Escape') {
             closeModal();
         }
     });
 
-    // FIXED: Add error handling for images
+    // ✅ FIXED: Add error handling for images
     document.addEventListener('DOMContentLoaded', function() {
         // Handle broken images in gallery
         const galleryImages = document.querySelectorAll('.gallery-item img');

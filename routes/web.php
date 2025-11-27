@@ -577,3 +577,20 @@ Route::post('/rooms/{room}/sync-single', [RoomController::class, 'syncSingle'])-
 
 // Temporary debug route to test
 Route::get('/test-gallery/{slug}', [App\Http\Controllers\Frontend\PublicController::class, 'hostelGallery'])->name('test.gallery');
+
+
+// In web.php
+Route::get('/debug-hostel/{slug}', function ($slug) {
+    $hostel = \App\Models\Hostel::where('slug', $slug)->first();
+    if (!$hostel) {
+        return "Hostel not found with slug: " . $slug;
+    }
+
+    $rooms = \App\Models\Room::where('hostel_id', $hostel->id)->get();
+
+    return [
+        'hostel' => $hostel->only(['id', 'name', 'slug']),
+        'room_count' => $rooms->count(),
+        'rooms' => $rooms->map->only(['id', 'room_number', 'type', 'available_beds'])
+    ];
+});
