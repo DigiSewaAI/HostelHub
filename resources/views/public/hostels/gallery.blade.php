@@ -886,9 +886,9 @@
                             <p class="nepali" style="font-size: 0.9rem; margin-top: 5px;">
                                 मूल्य: रु {{ number_format($room->price, 2) }}/महिना
                             </p>
-                            <button class="btn btn-primary" 
+                            <button class="btn btn-primary view-details-btn" 
                                     style="margin-top: 12px; padding: 8px 16px; font-size: 0.9rem;" 
-                                    onclick="openRoomModal('{{ $room->id }}')">
+                                    data-room-id="{{ $room->id }}">
                                 विस्तृत हेर्नुहोस्
                             </button>
                         </div>
@@ -1016,6 +1016,7 @@
         const room = roomData[roomId];
         if (!room) {
             console.error('Room data not found for ID:', roomId);
+            alert('Room data not found!');
             return;
         }
 
@@ -1026,16 +1027,29 @@
         const modalDetails = document.getElementById('modalRoomDetails');
         const modalBookButton = document.getElementById('modalBookButton');
 
+        // Debug log
+        console.log('Room data:', room);
+        console.log('Modal elements found:', {modal, modalImage, modalTitle, modalDescription, modalDetails, modalBookButton});
+
         // Set modal content
         modalImage.src = room.media_url;
         modalImage.alt = room.title;
         modalTitle.textContent = room.title;
         modalDescription.textContent = room.description;
         
-        
+        // Room details with Nepali text
+        const detailsHtml = `
+            <strong>कोठाको प्रकार:</strong> ${room.nepali_type}<br>
+            <strong>कोठा नम्बर:</strong> ${room.room_number}<br>
+            <strong>क्षमता:</strong> ${room.capacity} बेड<br>
+            <strong>अहिलेको बसोबास:</strong> ${room.current_occupancy} जना<br>
+            <strong>खाली बेड:</strong> ${room.available_beds} वटा<br>
+            <strong>मूल्य:</strong> रु ${room.price.toLocaleString()}/महिना<br>
+            <strong>स्थिति:</strong> ${room.available_beds > 0 ? 'उपलब्ध' : 'व्यस्त'}
+        `;
         modalDetails.innerHTML = detailsHtml;
         
-        // ✅ FIXED: Book button link with CORRECT route
+        // Book button logic
         if (room.available_beds > 0 && room.status !== 'maintenance') {
             modalBookButton.href = "{{ route('hostel.book.from.gallery', ['slug' => $hostel->slug, 'room_id' => '']) }}" + room.room_id;
             modalBookButton.style.display = 'block';
@@ -1060,16 +1074,13 @@
         modal.style.opacity = '0';
         setTimeout(() => {
             modal.style.display = 'none';
-            // Restore body scroll
             document.body.style.overflow = 'auto';
         }, 300);
     }
     
-    // ✅ FIXED: Close modal when clicking outside the content
+    // ✅ FIXED: Close modal when clicking outside
     document.addEventListener('click', function(event) {
         const modal = document.getElementById('roomModal');
-        const modalContent = document.querySelector('.modal-content');
-        
         if (event.target === modal) {
             closeModal();
         }
@@ -1084,7 +1095,7 @@
 
     // ✅ FIXED: Add error handling for images
     document.addEventListener('DOMContentLoaded', function() {
-        // Handle broken images in gallery
+        // Handle broken images
         const galleryImages = document.querySelectorAll('.gallery-item img');
         galleryImages.forEach(img => {
             img.addEventListener('error', function() {
@@ -1092,24 +1103,61 @@
             });
         });
 
-        // Handle broken images in modal
         const modalImage = document.getElementById('modalRoomImage');
         modalImage.addEventListener('error', function() {
             this.src = '{{ asset("images/default-room.jpg") }}';
         });
 
-        // Simple gallery item hover effect
-        const galleryItems = document.querySelectorAll('.gallery-item');
+        // Debug: Test if buttons are working
+        const buttons = document.querySelectorAll('.btn-primary');
+        console.log('Total buttons found:', buttons.length);
         
-        galleryItems.forEach(item => {
-            item.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateY(-8px)';
-            });
-            
-            item.addEventListener('mouseleave', function() {
-                this.style.transform = 'translateY(0)';
+        buttons.forEach((btn, index) => {
+            btn.addEventListener('click', function(e) {
+                console.log('Button clicked:', index, this.textContent);
             });
         });
+    });
+
+    // ✅ FIXED: Using data attributes for view details buttons
+    document.addEventListener('DOMContentLoaded', function() {
+        // Use event delegation for view details buttons
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('view-details-btn')) {
+                const roomId = e.target.getAttribute('data-room-id');
+                console.log('View details clicked for room:', roomId);
+                openRoomModal(roomId);
+            }
+        });
+
+        // Also add click handlers for existing buttons with onclick attributes
+        const viewDetailButtons = document.querySelectorAll('.gallery-item .btn-primary');
+        
+        viewDetailButtons.forEach(button => {
+            // Only add if it doesn't have the view-details-btn class
+            if (!button.classList.contains('view-details-btn')) {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // Try to extract room ID from onclick attribute
+                    const onclickAttr = this.getAttribute('onclick');
+                    const roomId = onclickAttr?.match(/'([^']+)'/)?.[1] || 
+                                   onclickAttr?.match(/"([^"]+)"/)?.[1];
+                    
+                    console.log('Legacy button clicked, roomId:', roomId);
+                    
+                    if (roomId) {
+                        openRoomModal(roomId);
+                    } else {
+                        console.error('Could not find room ID from button:', this);
+                        alert('Error: Could not load room details.');
+                    }
+                });
+            }
+        });
+        
+        console.log('View detail buttons initialized:', document.querySelectorAll('.view-details-btn').length);
     });
 </script>
 @endsection
