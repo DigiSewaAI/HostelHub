@@ -814,7 +814,7 @@
     </div>
 </section>
 
-<!-- Available Rooms Section - ✅ FIXED: Shows ALL ROOMS with REAL data -->
+<!-- Available Rooms Section - ✅ FIXED: Shows ALL ROOMS with CORRECT data -->
 <section class="available-rooms-section">
     <div class="container">
         @if($hasRooms)
@@ -823,78 +823,82 @@
                 तल दिइएका कोठाहरू हाम्रो होस्टलमा उपलब्ध छन्। तपाईंको रुचिको कोठा चयन गरी अहिलेै बुक गर्नुहोस्।
             </p>
             
-            <!-- ✅ FIXED: Room Gallery - DIRECT ROOM DATA FROM DATABASE -->
-            <div class="gallery-grid">
-                @foreach($rooms as $room)
-                    @php
-                        // ✅ FIXED: Use ACTUAL room data from database
-                        $availableBeds = $room->available_beds;
-                        $roomId = $room->id;
-                        $roomNumber = $room->room_number;
-                        $currentOccupancy = $room->current_occupancy;
-                        $capacity = $room->capacity;
-                        
-                        // ✅ FIXED: Handle both English and Nepali room types
-                        $displayRoomType = $nepaliRoomTypes[$room->type] ?? $room->type;
-                        
-                        // ✅ FIXED: Determine status badge class
-                        $statusClass = 'status-' . $room->status;
-                        $statusText = match($room->status) {
-                            'available' => 'उपलब्ध',
-                            'occupied' => 'व्यस्त', 
-                            'partially_available' => 'आंशिक उपलब्ध',
-                            'maintenance' => 'मर्मतमा',
-                            default => $room->status
-                        };
-                    @endphp
-                    
-                    <div class="gallery-item">
-                        <img src="{{ getRoomImageUrl($room) }}" 
-                             alt="कोठा {{ $room->room_number }}" 
-                             onerror="this.src='{{ asset('images/default-room.jpg') }}'">
-                        
-                        <div class="room-type-badge nepali">
-                            {{ $displayRoomType }}
-                        </div>
-                        
-                        <!-- ✅ FIXED: Show ACTUAL status and available beds -->
-                        <div class="available-badge nepali {{ $statusClass }}">
-                            @if($availableBeds > 0)
-                                {{ $availableBeds }} बेड खाली
-                            @else
-                                {{ $statusText }}
-                            @endif
-                        </div>
-                        
-                        <!-- ✅ FIXED: Book Now button with CORRECT room data -->
-                        @if($availableBeds > 0 && $room->status !== 'maintenance')
-                            <a href="{{ route('hostel.book.from.gallery', ['slug' => $hostel->slug, 'room_id' => $roomId]) }}" class="book-now-btn nepali">
-                                बुक गर्नुहोस्
-                            </a>
-                        @else
-                            <button class="book-now-btn nepali" style="background: #6c757d; cursor: not-allowed;" disabled>
-                                {{ $statusText }}
-                            </button>
-                        @endif
-                        
-                        <div class="gallery-overlay">
-                            <h3 class="gallery-title nepali">कोठा {{ $roomNumber }}</h3>
-                            <p class="nepali">प्रकार: {{ $displayRoomType }}</p>
-                            <p class="nepali" style="font-size: 0.9rem; margin-top: 5px;">
-                                कोठा: {{ $roomNumber }} | क्षमता: {{ $capacity }} | अहिले: {{ $currentOccupancy }} जना
-                            </p>
-                            <p class="nepali" style="font-size: 0.9rem; margin-top: 5px;">
-                                मूल्य: रु {{ number_format($room->price, 2) }}/महिना
-                            </p>
-                            <button class="btn btn-primary view-details-btn" 
-                                    style="margin-top: 12px; padding: 8px 16px; font-size: 0.9rem;" 
-                                    data-room-id="{{ $room->id }}">
-                                विस्तृत हेर्नुहोस्
-                            </button>
-                        </div>
-                    </div>
-                @endforeach
+            <!-- ✅ FIXED: Room Gallery with CORRECT status logic -->
+<div class="gallery-grid">
+    @foreach($rooms as $room)
+        @php
+            // Use room data as is from database
+            $availableBeds = $room->available_beds;
+            $roomId = $room->id;
+            $roomNumber = $room->room_number;
+            $currentOccupancy = $room->current_occupancy;
+            $capacity = $room->capacity;
+            
+            $displayRoomType = $nepaliRoomTypes[$room->type] ?? $room->type;
+            
+            // ✅ CORRECTED: Status logic based on ACTUAL occupancy
+            if ($room->status === 'maintenance') {
+                $statusClass = 'status-maintenance';
+                $statusText = 'मर्मतमा';
+                $showAvailableBeds = false;
+            } elseif ($currentOccupancy >= $capacity) {
+                $statusClass = 'status-occupied';
+                $statusText = 'व्यस्त';
+                $showAvailableBeds = false;
+            } elseif ($currentOccupancy > 0) {
+                $statusClass = 'status-partially_available';
+                $statusText = $availableBeds . ' बेड खाली';
+                $showAvailableBeds = true;
+            } else {
+                $statusClass = 'status-available';
+                $statusText = $availableBeds . ' बेड खाली';
+                $showAvailableBeds = true;
+            }
+        @endphp
+        
+        <div class="gallery-item">
+            <img src="{{ getRoomImageUrl($room) }}" 
+                 alt="कोठा {{ $room->room_number }}" 
+                 onerror="this.src='{{ asset('images/default-room.jpg') }}'">
+            
+            <div class="room-type-badge nepali">
+                {{ $displayRoomType }}
             </div>
+            
+            <!-- ✅ FIXED: Show CORRECT status -->
+            <div class="available-badge nepali {{ $statusClass }}">
+                {{ $statusText }}
+            </div>
+            
+            <!-- ✅ FIXED: Book Now button with CORRECT logic -->
+            @if($availableBeds > 0 && $room->status !== 'maintenance' && $currentOccupancy < $capacity)
+                <a href="{{ route('hostel.book.from.gallery', ['slug' => $hostel->slug, 'room_id' => $roomId]) }}" class="book-now-btn nepali">
+                    बुक गर्नुहोस्
+                </a>
+            @else
+                <button class="book-now-btn nepali" style="background: #6c757d; cursor: not-allowed;" disabled>
+                    {{ $statusText }}
+                </button>
+            @endif
+            
+            <div class="gallery-overlay">
+                <h3 class="gallery-title nepali">कोठा {{ $roomNumber }}</h3>
+                <p class="nepali">प्रकार: {{ $displayRoomType }}</p>
+                <p class="nepali" style="font-size: 0.9rem; margin-top: 5px;">
+                    कोठा: {{ $roomNumber }} | क्षमता: {{ $capacity }} | अहिले: {{ $currentOccupancy }} जना
+                </p>
+                <p class="nepali" style="font-size: 0.9rem; margin-top: 5px;">
+                    मूल्य: रु {{ number_format($room->price, 2) }}/महिना
+                </p>
+                <button class="btn btn-primary view-details-btn" 
+                        style="margin-top: 12px; padding: 8px 16px; font-size: 0.9rem;" 
+                        data-room-id="{{ $room->id }}">
+                    विस्तृत हेर्नुहोस्
+                </button>
+            </div>
+        </div>
+    @endforeach
+</div>
             
             <!-- Navigation Buttons -->
             <div class="view-more">
@@ -902,7 +906,6 @@
                    style="border-color: var(--primary); color: var(--primary);">
                     पूरा ग्यालरी हेर्नुहोस्
                 </a>
-                <!-- 🚨 FIXED: Big booking button uses ALL ROOMS route -->
                 <a href="{{ route('hostel.book.all.rooms', ['slug' => $hostel->slug]) }}" class="btn btn-primary nepali">
                     अहिले बुक गर्नुहोस्
                 </a>

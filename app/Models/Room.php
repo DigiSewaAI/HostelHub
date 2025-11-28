@@ -61,7 +61,7 @@ class Room extends Model
     }
 
     /**
-     * ✅ FIXED: Boot method with type-capacity auto-sync and normalized status handling
+     * ✅ FIXED: Boot method with CORRECT occupancy calculation based on ACTIVE STUDENTS only
      */
     protected static function boot()
     {
@@ -82,21 +82,21 @@ class Room extends Model
                 $room->capacity = $typeCapacityMap[$room->type];
             }
 
-            // ✅ FIXED: Calculate current_occupancy based on APPROVED bookings only
-            $approvedBookingsCount = $room->bookings()
-                ->where('status', 'approved')
+            // ✅ CRITICAL FIX: Calculate current_occupancy based on ACTIVE STUDENTS only
+            $activeStudentsCount = $room->students()
+                ->where('status', 'active') // Only ACTIVE students count as occupancy
                 ->count();
 
-            $room->current_occupancy = $approvedBookingsCount;
+            $room->current_occupancy = $activeStudentsCount;
 
-            // Calculate available beds
-            $room->available_beds = $room->capacity - $room->current_occupancy;
+            // ✅ CRITICAL FIX: Calculate available beds CORRECTLY
+            $room->available_beds = max(0, $room->capacity - $room->current_occupancy);
 
-            // ✅ FIXED: Auto-update status with normalized values (only if not maintenance)
+            // ✅ CRITICAL FIX: Auto-update status with CORRECT logic based on ACTUAL occupancy
             if ($room->status !== 'maintenance') {
                 if ($room->current_occupancy == 0) {
                     $room->status = 'available';
-                } elseif ($room->current_occupancy == $room->capacity) {
+                } elseif ($room->current_occupancy >= $room->capacity) {
                     $room->status = 'occupied';
                 } else {
                     $room->status = 'partially_available';
@@ -157,7 +157,7 @@ class Room extends Model
     }
 
     /**
-     * ✅ FIXED: Scope for available rooms (for booking system) - Only count APPROVED bookings
+     * ✅ FIXED: Scope for available rooms (for booking system) - Based on ACTUAL occupancy
      */
     public function scopeAvailableForBooking($query)
     {
@@ -166,7 +166,7 @@ class Room extends Model
     }
 
     /**
-     * ✅ FIXED: Scope for rooms available for specific dates - Only count APPROVED bookings
+     * ✅ FIXED: Scope for rooms available for specific dates - Based on APPROVED bookings for date conflicts
      */
     public function scopeAvailableForDates($query, $checkIn, $checkOut)
     {
@@ -206,7 +206,7 @@ class Room extends Model
     }
 
     /**
-     * ✅ FIXED: Check if room is available for booking - Based on APPROVED bookings only
+     * ✅ FIXED: Check if room is available for booking - Based on ACTUAL occupancy
      */
     public function getIsAvailableAttribute(): bool
     {
@@ -245,7 +245,7 @@ class Room extends Model
     }
 
     /**
-     * ✅ FIXED: Check if room is available for given dates - Only count APPROVED bookings
+     * ✅ FIXED: Check if room is available for given dates - Only count APPROVED bookings for date conflicts
      */
     public function isAvailableForDates($checkIn, $checkOut): bool
     {
@@ -309,7 +309,7 @@ class Room extends Model
     }
 
     /**
-     * ✅ FIXED: Get the current occupancy percentage for this specific room - Based on APPROVED bookings
+     * ✅ FIXED: Get the current occupancy percentage for this specific room - Based on ACTIVE STUDENTS
      */
     public function getOccupancyAttribute(): float
     {
@@ -318,18 +318,18 @@ class Room extends Model
     }
 
     /**
-     * ✅ FIXED: Get the current number of students in this room - Based on APPROVED bookings
+     * ✅ FIXED: Get the current number of students in this room - Based on ACTIVE STUDENTS
      */
     public function getCurrentOccupancyAttribute(): int
     {
-        // Count only APPROVED bookings for occupancy
-        return $this->bookings()
-            ->where('status', 'approved')
+        // Count only ACTIVE students for occupancy
+        return $this->students()
+            ->where('status', 'active')
             ->count();
     }
 
     /**
-     * ✅ FIXED: Get the available capacity for this room - Based on APPROVED bookings
+     * ✅ FIXED: Get the available capacity for this room - Based on ACTIVE STUDENTS
      */
     public function getAvailableCapacityAttribute(): int
     {
@@ -338,7 +338,7 @@ class Room extends Model
     }
 
     /**
-     * ✅ FIXED: Check if room has available space - Based on APPROVED bookings
+     * ✅ FIXED: Check if room has available space - Based on ACTIVE STUDENTS
      */
     public function getHasAvailableSpaceAttribute(): bool
     {
@@ -366,40 +366,46 @@ class Room extends Model
     }
 
     /**
-     * ✅ FIXED: Get display status with normalized logic
+     * ✅ FIXED: Get display status with CORRECT logic based on ACTUAL occupancy
      */
     public function getDisplayStatusAttribute(): array
     {
-        $status = $this->status; // Now using normalized English values
+        $status = $this->status;
         $available_beds = $this->available_beds;
+        $current_occupancy = $this->current_occupancy;
 
+        // ✅ CRITICAL FIX: Ensure consistency between status and actual data
         if ($status === 'maintenance') {
             return [
                 'status' => 'maintenance',
                 'text' => 'मर्मत सम्भार',
                 'class' => 'maintenance',
-                'available_beds' => 0
+                'available_beds' => 0,
+                'current_occupancy' => $current_occupancy
             ];
-        } elseif ($status === 'occupied') {
+        } elseif ($current_occupancy >= $this->capacity) {
             return [
                 'status' => 'occupied',
-                'text' => 'पूर्ण व्यस्त',
+                'text' => 'व्यस्त',
                 'class' => 'occupied',
-                'available_beds' => 0
+                'available_beds' => 0,
+                'current_occupancy' => $current_occupancy
             ];
-        } elseif ($status === 'partially_available') {
-            return [
-                'status' => 'partially_available',
-                'text' => 'आंशिक उपलब्ध (' . $available_beds . ' बेड खाली)',
-                'class' => 'partially-available',
-                'available_beds' => $available_beds
-            ];
-        } else { // available
+        } elseif ($current_occupancy == 0) {
             return [
                 'status' => 'available',
-                'text' => 'पूर्ण उपलब्ध (' . $available_beds . ' बेड)',
+                'text' => $available_beds . ' बेड खाली',
                 'class' => 'available',
-                'available_beds' => $available_beds
+                'available_beds' => $available_beds,
+                'current_occupancy' => $current_occupancy
+            ];
+        } else {
+            return [
+                'status' => 'partially_available',
+                'text' => $available_beds . ' बेड खाली',
+                'class' => 'partially-available',
+                'available_beds' => $available_beds,
+                'current_occupancy' => $current_occupancy
             ];
         }
     }
@@ -434,8 +440,9 @@ class Room extends Model
     {
         $statuses = [
             'available' => 'उपलब्ध',
-            'occupied' => 'अधिभृत',
+            'occupied' => 'व्यस्त',
             'maintenance' => 'मर्मतमा',
+            'partially_available' => 'आंशिक उपलब्ध',
             'उपलब्ध' => 'उपलब्ध',
             'व्यस्त' => 'व्यस्त',
             'मर्मत सम्भार' => 'मर्मत सम्भार',
@@ -501,7 +508,7 @@ class Room extends Model
             case '4 seater':
                 return '4 seater';
             case 'साझा कोठा':
-                return 'साझा कोठा'; // ✅ FIXED: Changed from '4 seater' to 'साझा कोठा'
+                return 'साझा कोठा';
             default:
                 // Fallback for old types
                 if ($this->capacity == 1) return '1 seater';
@@ -634,7 +641,7 @@ class Room extends Model
     }
 
     /**
-     * ✅ FIXED: Get available rooms count for hostel (for booking system) - Based on APPROVED bookings
+     * ✅ FIXED: Get available rooms count for hostel (for booking system) - Based on ACTUAL occupancy
      */
     public static function getAvailableRoomsCount($hostelId): int
     {
@@ -644,7 +651,7 @@ class Room extends Model
     }
 
     /**
-     * ✅ FIXED: Get rooms available for specific dates (for booking system) - Only count APPROVED bookings
+     * ✅ FIXED: Get rooms available for specific dates (for booking system) - Only count APPROVED bookings for date conflicts
      */
     public static function getRoomsForDates($hostelId, $checkIn = null, $checkOut = null)
     {
@@ -659,7 +666,7 @@ class Room extends Model
     }
 
     /**
-     * ✅ FIXED: Check if room can be booked (comprehensive check) - Based on APPROVED bookings
+     * ✅ FIXED: Check if room can be booked (comprehensive check) - Based on ACTUAL occupancy and date conflicts
      */
     public function canBeBooked($checkIn = null, $checkOut = null): bool
     {
@@ -668,12 +675,8 @@ class Room extends Model
             return false;
         }
 
-        // Check available capacity based on APPROVED bookings
-        $approvedBookingsCount = $this->bookings()
-            ->where('status', 'approved')
-            ->count();
-
-        if ($approvedBookingsCount >= $this->capacity) {
+        // Check available capacity based on ACTUAL occupancy
+        if ($this->available_beds <= 0) {
             return false;
         }
 
@@ -683,5 +686,50 @@ class Room extends Model
         }
 
         return true;
+    }
+
+    /**
+     * ✅ FIXED: Force sync all rooms occupancy data (with CORRECT calculation)
+     */
+    public static function syncAllRoomsOccupancy(): void
+    {
+        $rooms = self::all();
+        $updatedCount = 0;
+
+        foreach ($rooms as $room) {
+            try {
+                $activeStudentsCount = $room->students()
+                    ->where('status', 'active')
+                    ->count();
+
+                // ✅ CRITICAL FIX: Calculate available beds correctly
+                $availableBeds = max(0, $room->capacity - $activeStudentsCount);
+
+                // ✅ CRITICAL FIX: Determine correct status based on ACTUAL data
+                if ($room->status !== 'maintenance') {
+                    if ($activeStudentsCount == 0) {
+                        $status = 'available';
+                    } elseif ($activeStudentsCount >= $room->capacity) {
+                        $status = 'occupied';
+                    } else {
+                        $status = 'partially_available';
+                    }
+                } else {
+                    $status = 'maintenance';
+                }
+
+                $room->update([
+                    'current_occupancy' => $activeStudentsCount,
+                    'available_beds' => $availableBeds,
+                    'status' => $status
+                ]);
+
+                $updatedCount++;
+            } catch (\Exception $e) {
+                \Log::error("Failed to sync room {$room->id}: " . $e->getMessage());
+            }
+        }
+
+        \Log::info("Room occupancy sync completed. Updated: {$updatedCount} rooms");
     }
 }

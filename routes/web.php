@@ -594,3 +594,8 @@ Route::get('/debug-hostel/{slug}', function ($slug) {
         'rooms' => $rooms->map->only(['id', 'room_number', 'type', 'available_beds'])
     ];
 });
+// Add this temporary route to routes/web.php
+Route::get('/sync-rooms-occupancy', function () {
+    App\Models\Room::syncAllRoomsOccupancy();
+    return "Room occupancy sync completed! Check logs for details.";
+});
