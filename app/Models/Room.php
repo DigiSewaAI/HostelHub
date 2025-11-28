@@ -40,27 +40,6 @@ class Room extends Model
     protected $appends = ['image_url', 'has_image', 'display_status', 'is_available'];
 
     /**
-     * Validation rules for room
-     */
-    public static function validationRules($id = null): array
-    {
-        return [
-            'hostel_id' => 'required|exists:hostels,id',
-            'room_number' => 'required|string|max:50|unique:rooms,room_number,' . $id . ',id,hostel_id,' . request()->input('hostel_id'),
-            'type' => 'required|in:1 seater,2 seater,3 seater,4 seater,साझा कोठा',
-            'gallery_category' => 'nullable|string|max:255',
-            'capacity' => 'required|integer|min:1',
-            'current_occupancy' => 'integer|min:0',
-            'available_beds' => 'integer|min:0',
-            'price' => 'required|numeric|min:0',
-            'status' => 'required|in:available,partially_available,occupied,maintenance',
-            'image' => 'nullable|string|max:255',
-            'description' => 'nullable|string|max:1000',
-            'floor' => 'nullable|string|max:50'
-        ];
-    }
-
-    /**
      * ✅ FIXED: Boot method with CORRECT occupancy calculation based on ACTIVE STUDENTS only
      */
     protected static function boot()
@@ -346,19 +325,21 @@ class Room extends Model
     }
 
     /**
-     * Get the room image URL
+     * ✅ FIXED: Get the room image URL with PROPER fallback - TIMRO SYSTEM
      */
     public function getImageUrlAttribute(): string
     {
+        // ✅ STRICT FIX: Always check if image exists in storage
         if ($this->image && Storage::disk('public')->exists($this->image)) {
             return Storage::disk('public')->url($this->image);
         }
 
+        // ✅ FALLBACK: Use TIMRO no-image.png
         return asset('images/no-image.png');
     }
 
     /**
-     * Check if room has image
+     * ✅ FIXED: Check if room has image with PROPER storage check
      */
     public function getHasImageAttribute(): bool
     {
@@ -468,7 +449,8 @@ class Room extends Model
         // Delete existing room galleries
         $this->galleries()->delete();
 
-        if (!$this->image) {
+        // ✅ STRICT FIX: Only create gallery if image exists in storage
+        if (!$this->image || !Storage::disk('public')->exists($this->image)) {
             return;
         }
 
@@ -543,16 +525,16 @@ class Room extends Model
     }
 
     /**
-     * Get primary gallery image (room image or first gallery image)
+     * ✅ FIXED: Get primary gallery image with PROPER fallback
      */
     public function getPrimaryGalleryImageAttribute(): string
     {
-        if ($this->image) {
+        if ($this->has_image) {
             return $this->image_url;
         }
 
         $firstGallery = $this->galleries()->where('is_active', true)->first();
-        return $firstGallery ? $firstGallery->media_url : asset('images/no-image.png');
+        return $firstGallery ? $firstGallery->media_url : asset('images/default-room.jpg');
     }
 
     /**

@@ -44,6 +44,40 @@
             margin: 2rem auto;
             padding: 0 1rem;
         }
+        
+        /* ✅ ADDED: Room image section */
+        .room-image-section {
+            width: 100%;
+            height: 300px;
+            overflow: hidden;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            background: var(--light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .room-image-section img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .image-fallback {
+            width: 100%;
+            height: 100%;
+            background: var(--light);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray);
+        }
+        .image-fallback i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+        
         .room-detail {
             background: white;
             border-radius: 12px;
@@ -144,6 +178,9 @@
                 width: auto;
                 margin-bottom: 0.3rem;
             }
+            .room-image-section {
+                height: 200px;
+            }
         }
     </style>
 </head>
@@ -153,6 +190,20 @@
     </header>
 
     <div class="container">
+        <!-- ✅ ADDED: Room image section with fallback - TIMRO SYSTEM -->
+            <div class="room-image-section">
+                @if($room->has_image)
+                    <img src="{{ $room->image_url }}" 
+                        alt="कोठा {{ $room->room_number }}"
+                        onerror="this.onerror=null; this.src='{{ asset('images/no-image.png') }}';">
+                @else
+                    <div class="image-fallback">
+                        <i class="fas fa-bed"></i>
+                        <span>कोठा {{ $room->room_number }}</span>
+                    </div>
+                @endif
+            </div>
+
         <div class="room-detail">
             <div class="room-header">
                 <h2 class="room-number">कोठा नं. {{ $room->room_number }}</h2>

@@ -80,6 +80,41 @@
             color: white;
             border-color: var(--primary);
         }
+        
+        /* ✅ ADDED: Room image styles */
+        .room-image {
+            height: 200px;
+            overflow: hidden;
+            background: var(--light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .room-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+        .room-card:hover .room-image img {
+            transform: scale(1.05);
+        }
+        .image-fallback {
+            width: 100%;
+            height: 100%;
+            background: var(--light);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray);
+        }
+        .image-fallback i {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            opacity: 0.5;
+        }
+        
         .room-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -212,6 +247,21 @@
                     <h3 class="room-number">कोठा नं. {{ $room->room_number }}</h3>
                     <p class="room-price">रु {{ number_format($room->price, 2) }}/महिना</p>
                 </div>
+                
+                <!-- ✅ ADDED: Room image with fallback - TIMRO SYSTEM -->
+                    <div class="room-image">
+                        @if($room->has_image)
+                            <img src="{{ $room->image_url }}" 
+                                alt="कोठा {{ $room->room_number }}"
+                                onerror="this.onerror=null; this.src='{{ asset('images/no-image.png') }}';">
+                        @else
+                            <div class="image-fallback">
+                                <i class="fas fa-bed"></i>
+                                <span>कोठा {{ $room->room_number }}</span>
+                            </div>
+                        @endif
+                    </div>
+                
                 <div class="room-info">
                     <div class="room-type">
                         @if($room->type == 'single')
