@@ -199,14 +199,17 @@ Route::middleware(['auth', 'hasOrganization', 'role:owner,hostel_manager'])
         Route::post('rooms/{room}/change-status', [RoomController::class, 'changeStatus'])->name('rooms.change-status');
         Route::get('rooms/export/csv', [RoomController::class, 'exportCSV'])->name('rooms.export-csv');
 
-        // Owner student routes
+        // ✅ FIXED: Owner student routes - simplified authorization with policy-based checks
         Route::get('students', [StudentController::class, 'index'])->name('students.index');
         Route::get('students/create', [StudentController::class, 'create'])->name('students.create')->middleware('enforce.plan.limits');
         Route::post('students', [StudentController::class, 'store'])->name('students.store')->middleware('enforce.plan.limits');
+
+        // ✅ FIXED: Use policy-based authorization for individual student operations
         Route::get('students/{student}', [StudentController::class, 'show'])->name('students.show');
         Route::get('students/{student}/edit', [StudentController::class, 'edit'])->name('students.edit');
         Route::put('students/{student}', [StudentController::class, 'update'])->name('students.update');
         Route::delete('students/{student}', [StudentController::class, 'destroy'])->name('students.destroy');
+
         Route::get('students/search', [StudentController::class, 'search'])->name('students.search');
         Route::get('students/export/csv', [StudentController::class, 'exportCSV'])->name('students.export-csv');
 

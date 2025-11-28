@@ -25,30 +25,26 @@ class StoreStudentRequest extends FormRequest
     {
         return [
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:students,email|max:255', // ✅ specify column
+            'email' => 'required|email|unique:students,email|max:255',
             'phone' => 'required|string|max:15',
             'address' => 'required|string|max:500',
             'guardian_name' => 'required|string|max:255',
-            'guardian_phone' => 'required|string|max:15', // ✅ FIXED: Changed from guardian_contact
+            'guardian_phone' => 'required|string|max:15',
             'guardian_address' => 'required|string|max:500',
             'guardian_relation' => 'required|string|max:50',
-
-            'college_id' => 'required', // ✅ Changed from nullable to required
-            'other_college' => 'required_if:college_id,others|string|max:255|nullable', // ✅ Added for "Other" college option
-            'room_id' => 'nullable|exists:rooms,id',      // ✅ nullable: room later assign गर्न सकिन्छ
-            'hostel_id' => 'nullable|exists:hostels,id',  // ✅ optional, room बाट auto set हुन सक्छ
-
-            'dob' => 'nullable|date|before:today',       // ✅ valid date of birth
+            'college_id' => 'required',
+            'other_college' => 'required_if:college_id,others|string|max:255|nullable',
+            'room_id' => 'nullable|exists:rooms,id',
+            'hostel_id' => 'nullable|exists:hostels,id',
+            'dob' => 'nullable|date|before:today',
             'gender' => 'nullable|in:male,female,other',
             'admission_date' => 'required|date',
             'status' => 'required|in:pending,approved,active,inactive',
-            'payment_status' => 'required|in:pending,paid,unpaid', // ✅ Added 'unpaid' option
-            'user_id' => 'nullable|exists:users,id|unique:students,user_id', // ✅ if linking to user
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',    // 2MB max
-
-            // ✅ Additional fields if needed
+            'payment_status' => 'required|in:pending,paid,unpaid',
+            'user_id' => 'nullable|exists:users,id|unique:students,user_id',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'note' => 'nullable|string|max:1000',
-            'organization_id' => 'required|exists:organizations,id', // ✅ Added organization validation
+            'organization_id' => 'required|exists:organizations,id',
         ];
     }
 
@@ -64,11 +60,11 @@ class StoreStudentRequest extends FormRequest
             'phone.required' => 'फोन नम्बर आवश्यक छ।',
             'address.required' => 'ठेगाना आवश्यक छ।',
             'guardian_name.required' => 'अभिभावकको नाम आवश्यक छ।',
-            'guardian_phone.required' => 'अभिभावकको फोन नम्बर आवश्यक छ।', // ✅ FIXED: Added guardian phone message
+            'guardian_phone.required' => 'अभिभावकको फोन नम्बर आवश्यक छ।',
             'guardian_address.required' => 'अभिभावकको ठेगाना आवश्यक छ।',
             'guardian_relation.required' => 'अभिभावकसँगको नाता आवश्यक छ।',
             'college_id.required' => 'कृपया कलेज छान्नुहोस्।',
-            'other_college.required_if' => 'कृपया कलेजको नाम लेख्नुहोस्।', // ✅ Added for other college
+            'other_college.required_if' => 'कृपया कलेजको नाम लेख्नुहोस्।',
             'admission_date.required' => 'प्रवेश मिति आवश्यक छ।',
             'status.required' => 'स्थिति छान्नुहोस्।',
             'payment_status.required' => 'भुक्तानी स्थिति छान्नुहोस्।',
@@ -86,7 +82,6 @@ class StoreStudentRequest extends FormRequest
     {
         // ✅ Ensure college_id is properly handled when "others" is selected
         if ($this->college_id === 'others' && $this->filled('other_college')) {
-            // This will be handled in the controller to create new college
             $this->merge([
                 'college_selection' => 'others'
             ]);
@@ -108,7 +103,7 @@ class StoreStudentRequest extends FormRequest
             'phone' => 'फोन',
             'address' => 'ठेगाना',
             'guardian_name' => 'अभिभावकको नाम',
-            'guardian_phone' => 'अभिभावकको फोन', // ✅ FIXED: Added attribute
+            'guardian_phone' => 'अभिभावकको फोन',
             'guardian_address' => 'अभिभावकको ठेगाना',
             'guardian_relation' => 'अभिभावकसँगको नाता',
             'college_id' => 'कलेज',

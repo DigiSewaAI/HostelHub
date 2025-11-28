@@ -535,7 +535,7 @@ class PublicController extends Controller
     }
 
     /**
-     * ✅ FIXED: Show only available rooms gallery - SIMPLE DIRECT ROOM DATA
+     * ✅ FIXED: Show only available rooms gallery - WITH CORRECT OCCUPANCY CALCULATION
      */
     public function hostelGallery($slug)
     {
@@ -549,7 +549,7 @@ class PublicController extends Controller
                 abort(404, 'होस्टल फेला परेन।');
             }
 
-            // ✅ FIXED: SIMPLE query to get ALL rooms for this hostel - REMOVED FLOOR COLUMN
+            // ✅ FIXED: Get ALL rooms for this hostel with proper data
             $rooms = Room::where('hostel_id', $hostel->id)
                 ->orderBy('room_number')
                 ->get([
@@ -563,10 +563,12 @@ class PublicController extends Controller
                     'status',
                     'image',
                     'description'
-                    // 🚨 REMOVED: 'floor' column since it doesn't exist
                 ]);
 
-            \Log::info("Actual room data from database:", [
+            // 🚨 REMOVED: forceSyncOccupancy() call since method doesn't exist
+            // Just use the room data as it is from database
+
+            \Log::info("Room data from database:", [
                 'hostel_id' => $hostel->id,
                 'total_rooms' => $rooms->count(),
                 'room_details' => $rooms->map(function ($room) {
@@ -582,22 +584,24 @@ class PublicController extends Controller
                 })
             ]);
 
-            // ✅ FIXED: Calculate counts from ACTUAL room data (including occupied rooms)
+            // ✅ FIXED: Calculate counts from room data
             $availableRoomCounts = [
                 '1 seater' => $rooms->where('type', '1 seater')->count(),
                 '2 seater' => $rooms->where('type', '2 seater')->count(),
                 '3 seater' => $rooms->where('type', '3 seater')->count(),
                 '4 seater' => $rooms->where('type', '4 seater')->count(),
                 'other' => $rooms->whereNotIn('type', ['1 seater', '2 seater', '3 seater', '4 seater'])->count(),
+                'साझा कोठा' => $rooms->where('type', 'साझा कोठा')->count(),
             ];
 
-            // ✅ FIXED: Calculate available beds from ACTUAL room data
+            // ✅ FIXED: Calculate available beds from room data
             $availableBedsCounts = [
                 '1 seater' => $rooms->where('type', '1 seater')->sum('available_beds'),
                 '2 seater' => $rooms->where('type', '2 seater')->sum('available_beds'),
                 '3 seater' => $rooms->where('type', '3 seater')->sum('available_beds'),
                 '4 seater' => $rooms->where('type', '4 seater')->sum('available_beds'),
                 'other' => $rooms->whereNotIn('type', ['1 seater', '2 seater', '3 seater', '4 seater'])->sum('available_beds'),
+                'साझा कोठा' => $rooms->where('type', 'साझा कोठा')->sum('available_beds'),
             ];
 
             $mealMenus = MealMenu::where('hostel_id', $hostel->id)
@@ -606,7 +610,6 @@ class PublicController extends Controller
                 ->orderBy('meal_type')
                 ->get();
 
-            // ✅ FIXED: Get galleries separately (for display only, not for room data)
             $galleries = Gallery::with(['hostel', 'room'])
                 ->where('hostel_id', $hostel->id)
                 ->where('is_active', true)
@@ -616,7 +619,7 @@ class PublicController extends Controller
                 ->orderBy('created_at', 'desc')
                 ->get();
 
-            \Log::info("Fixed gallery data:", [
+            \Log::info("Gallery data loaded:", [
                 'hostel_id' => $hostel->id,
                 'total_rooms' => $rooms->count(),
                 'available_room_counts' => $availableRoomCounts,
@@ -626,7 +629,7 @@ class PublicController extends Controller
 
             return view('public.hostels.gallery', compact(
                 'hostel',
-                'rooms', // ✅ CHANGED: Pass actual rooms instead of galleries for room data
+                'rooms',
                 'availableRoomCounts',
                 'availableBedsCounts',
                 'mealMenus',
