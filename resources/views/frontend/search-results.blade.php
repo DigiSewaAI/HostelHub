@@ -165,39 +165,6 @@
                         </div>
                         @endif
                         
-                        <!-- TEMPORARY FIX: Comment out price range until we have proper room data -->
-                        <!-- 
-                        <div class="mb-6">
-                            <h4 class="font-semibold text-gray-800 mb-3 nepali">मूल्य दायरा (रु. प्रति महिना)</h4>
-                            <div class="space-y-3">
-                                <div class="flex gap-2">
-                                    <input type="number" name="min_price" 
-                                           value="{{ request('min_price') ?? ($searchFilters['min_price'] ?? '') }}"
-                                           placeholder="न्यूनतम" 
-                                           class="w-1/2 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                                    <input type="number" name="max_price" 
-                                           value="{{ request('max_price') ?? ($searchFilters['max_price'] ?? '') }}"
-                                           placeholder="अधिकतम" 
-                                           class="w-1/2 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                                </div>
-                                <div class="space-y-2">
-                                    <div class="flex items-center">
-                                        <input type="radio" id="price-budget" name="price_preset" value="budget" class="mr-3 text-blue-600 focus:ring-blue-500">
-                                        <label for="price-budget" class="text-gray-700 nepali text-sm">बजेट (रु. ५,००० - ८,०००)</label>
-                                    </div>
-                                    <div class="flex items-center">
-                                        <input type="radio" id="price-mid" name="price_preset" value="mid" class="mr-3 text-blue-600 focus:ring-blue-500">
-                                        <label for="price-mid" class="text-gray-700 nepali text-sm">मध्यम (रु. ८,००० - १२,०००)</label>
-                                    </div>
-                                    <div class="flex items-center">
-                                        <input type="radio" id="price-premium" name="price_preset" value="premium" class="mr-3 text-blue-600 focus:ring-blue-500">
-                                        <label for="price-premium" class="text-gray-700 nepali text-sm">प्रिमियम (रु. १२,०००+)</label>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        -->
-
                         <!-- Room Type Filter -->
                         <div class="mb-6">
                             <h4 class="font-semibold text-gray-800 mb-3 nepali">कोठाको प्रकार</h4>
@@ -244,37 +211,6 @@
                             </div>
                         </div>
 
-                        <!-- Amenities Filter -->
-                        <div class="mb-6">
-                            <h4 class="font-semibold text-gray-800 mb-3 nepali">सुविधाहरू</h4>
-                            <div class="space-y-2">
-                                <div class="flex items-center">
-                                    <input type="checkbox" id="wifi" name="amenities[]" value="wifi" 
-                                           {{ in_array('wifi', request('amenities', $searchFilters['amenities'] ?? [])) ? 'checked' : '' }}
-                                           class="mr-3 text-blue-600 focus:ring-blue-500 rounded">
-                                    <label for="wifi" class="text-gray-700 nepali text-sm">वाईफाई</label>
-                                </div>
-                                <div class="flex items-center">
-                                    <input type="checkbox" id="water" name="amenities[]" value="24/7 water" 
-                                           {{ in_array('24/7 water', request('amenities', $searchFilters['amenities'] ?? [])) ? 'checked' : '' }}
-                                           class="mr-3 text-blue-600 focus:ring-blue-500 rounded">
-                                    <label for="water" class="text-gray-700 nepali text-sm">२४/७ पानी</label>
-                                </div>
-                                <div class="flex items-center">
-                                    <input type="checkbox" id="security" name="amenities[]" value="security" 
-                                           {{ in_array('security', request('amenities', $searchFilters['amenities'] ?? [])) ? 'checked' : '' }}
-                                           class="mr-3 text-blue-600 focus:ring-blue-500 rounded">
-                                    <label for="security" class="text-gray-700 nepali text-sm">सुरक्षा गार्ड</label>
-                                </div>
-                                <div class="flex items-center">
-                                    <input type="checkbox" id="cctv" name="amenities[]" value="CCTV" 
-                                           {{ in_array('CCTV', request('amenities', $searchFilters['amenities'] ?? [])) ? 'checked' : '' }}
-                                           class="mr-3 text-blue-600 focus:ring-blue-500 rounded">
-                                    <label for="cctv" class="text-gray-700 nepali text-sm">CCTV</label>
-                                </div>
-                            </div>
-                        </div>
-
                         <!-- Hostel Type Filter -->
                         <div class="mb-6">
                             <h4 class="font-semibold text-gray-800 mb-3 nepali">होस्टल प्रकार</h4>
@@ -318,9 +254,9 @@
                            class="block w-full text-center bg-blue-50 border border-blue-200 text-blue-700 py-2 rounded-lg font-semibold hover:bg-blue-100 transition-colors nepali">
                             सबै होस्टल हेर्नुहोस्
                         </a>
-                        <a href="{{ route('home') }}#gallery" 
+                        <a href="{{ url('/gallery') }}" 
                            class="block w-full text-center bg-green-50 border border-green-200 text-green-700 py-2 rounded-lg font-semibold hover:bg-green-100 transition-colors nepali">
-                            ग्यालरी हेर्नुहोस्
+                            मुख्य ग्यालरी हेर्नुहोस्
                         </a>
                     </div>
                 </div>
@@ -344,17 +280,6 @@
                                 <option>नयाँ</option>
                             </select>
                         </div>
-                        <div class="flex items-center mt-3 sm:mt-0">
-                            <span class="text-gray-600 mr-3 nepali">दृश्य:</span>
-                            <div class="flex space-x-2">
-                                <button class="p-2 rounded-lg bg-blue-100 text-blue-600">
-                                    <i class="fas fa-th-large"></i>
-                                </button>
-                                <button class="p-2 rounded-lg text-gray-400 hover:bg-gray-100">
-                                    <i class="fas fa-list"></i>
-                                </button>
-                            </div>
-                        </div>
                     </div>
                 </div>
 
@@ -362,7 +287,144 @@
                 @if($hostels->count() > 0)
                 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-6 mb-8">
                     @foreach($hostels as $hostel)
-                        @include('frontend.partials.hostel-card', ['hostel' => $hostel])
+                        <!-- FINAL FIXED HOSTEL CARD - WITH COVER IMAGE BACKGROUND -->
+                        @php
+                            $mainImage = $hostel->images->first();
+                            $avgRating = $hostel->reviews_avg_rating ?? 0;
+                            $reviewCount = $hostel->reviews->count();
+                            $minPrice = $hostel->rooms->min('price') ?? 0;
+                            $availableRooms = $hostel->available_rooms_count ?? $hostel->rooms()->where('status', 'available')->count();
+                            
+                            // Get hostel image from owner panel - FIXED IMAGE VISIBILITY
+                            $hostelImage = $hostel->image ? asset('storage/' . $hostel->image) : ($mainImage ? asset('storage/' . $mainImage->file_path) : asset('images/hostel-placeholder.jpg'));
+                            
+                            // Use cover_image if available, otherwise fallback to existing image logic
+                            $coverImage = $hostel->cover_image ? asset('storage/' . $hostel->cover_image) : $hostelImage;
+                        @endphp
+
+                        <div class="group bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 relative min-h-[450px] flex flex-col">
+                            <!-- Top Section with Cover Image as Background -->
+                            <div class="h-48 relative overflow-hidden flex-shrink-0" style="background-image: url('{{ $coverImage }}'); background-size: cover; background-position: center;">
+                                <!-- Minimal Overlay for Better Text Readability -->
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                                
+                                <!-- Badges on Image -->
+                                <div class="absolute top-3 left-3 right-3 flex justify-between items-start">
+                                    <!-- Premium Badge -->
+                                    @if($availableRooms > 5)
+                                    <span class="px-3 py-1 bg-gradient-to-r from-yellow-400 to-yellow-500 text-black text-xs font-bold rounded-full shadow-lg flex items-center border border-yellow-300">
+                                        <i class="fas fa-crown mr-1 text-xs"></i>
+                                        PREMIUM
+                                    </span>
+                                    @else
+                                    <div></div>
+                                    @endif
+
+                                    <!-- Rating Badge -->
+                                    @if($avgRating > 0)
+                                    <span class="px-3 py-1 bg-black/70 text-white text-sm font-bold rounded-full flex items-center">
+                                        <i class="fas fa-star text-yellow-400 mr-1"></i>
+                                        {{ number_format($avgRating, 1) }}
+                                        <span class="text-xs opacity-80 ml-1">({{ $reviewCount }})</span>
+                                    </span>
+                                    @endif
+                                </div>
+
+                                <!-- Location Badge -->
+                                <div class="absolute bottom-3 left-3">
+                                    <span class="px-3 py-1 bg-white/90 text-gray-800 text-sm font-semibold rounded-full nepali shadow-lg flex items-center">
+                                        <i class="fas fa-map-marker-alt mr-2 text-blue-600 text-xs"></i>
+                                        {{ $hostel->city }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Bottom Content Section - Light Background with Dark Text -->
+                            <div class="p-4 flex flex-col flex-grow">
+                                <!-- Title and Description -->
+                                <div class="mb-3 flex-grow">
+                                    <h3 class="text-lg font-bold text-gray-900 nepali mb-2 leading-tight">
+                                        {{ $hostel->name }}
+                                    </h3>
+                                    
+                                    <p class="text-gray-600 text-sm nepali leading-relaxed line-clamp-3 mb-3">
+                                        {{ \Illuminate\Support\Str::limit($hostel->description, 100) }}
+                                    </p>
+                                </div>
+
+                                <!-- Availability and Price Section - FIXED AVAILABILITY BADGE VISIBILITY -->
+                                <div class="mb-4">
+                                    <!-- Availability Badge - IMPROVED VISIBILITY -->
+                                    <div class="mb-3">
+                                        @if($availableRooms > 0)
+                                        <span class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white text-sm font-bold rounded-lg nepali shadow-lg w-full justify-center">
+                                            <i class="fas fa-key mr-2 text-sm"></i>
+                                            {{ $availableRooms }} कोठा उपलब्ध
+                                        </span>
+                                        @else
+                                        <span class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white text-sm font-bold rounded-lg nepali shadow-lg w-full justify-center">
+                                            <i class="fas fa-times mr-2 text-sm"></i>
+                                            कोठा नभएको
+                                        </span>
+                                        @endif
+                                    </div>
+
+                                    <!-- Price -->
+                                    <div class="text-center">
+                                        @if($minPrice > 0)
+                                        <span class="text-xl font-bold text-gray-900 nepali">रु. {{ number_format($minPrice) }}</span>
+                                        <span class="text-gray-500 text-sm nepali block">सुरुवाती मूल्य</span>
+                                        @else
+                                        <span class="text-base font-semibold text-gray-500 nepali">मूल्य उपलब्ध छैन</span>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <!-- Three Button Layout - ALWAYS VISIBLE AT BOTTOM -->
+                                <div class="mt-auto pt-3 border-t border-gray-100">
+                                    <div class="grid grid-cols-3 gap-2">
+                                        <!-- विवरण हेर्नुहोस् Button -->
+                                        <a href="{{ route('hostels.show', $hostel->slug) }}" 
+                                           class="inline-flex items-center justify-center px-3 py-2 bg-blue-600 text-white font-semibold rounded-lg transition-all duration-300 hover:bg-blue-700 hover:shadow-lg nepali text-xs text-center">
+                                            <i class="fas fa-info-circle mr-1 text-xs"></i>
+                                            पृष्ठ हेर्नुहोस्
+                                        </a>
+
+                                        <!-- कोठा हेर्नुहोस् Button -->
+                                        <a href="{{ route('hostel.gallery', $hostel->slug) }}" 
+                                           class="inline-flex items-center justify-center px-3 py-2 bg-purple-600 text-white font-semibold rounded-lg transition-all duration-300 hover:bg-purple-700 hover:shadow-lg nepali text-xs text-center">
+                                            <i class="fas fa-images mr-1 text-xs"></i>
+                                            कोठाहरू
+                                        </a>
+
+                                        <!-- बुक गर्नुहोस् Button -->
+                                        @if($availableRooms > 0)
+                                            @php
+                                                $checkIn = request('check_in');
+                                                $checkOut = request('check_out');
+                                                $bookingUrl = route('hostel.book', $hostel->slug);
+                                                
+                                                if ($checkIn && $checkOut) {
+                                                    $bookingUrl .= "?check_in={$checkIn}&check_out={$checkOut}";
+                                                }
+                                            @endphp
+                                            
+                                            <a href="{{ $bookingUrl }}" 
+                                               class="inline-flex items-center justify-center px-3 py-2 bg-green-600 text-white font-semibold rounded-lg transition-all duration-300 hover:bg-green-700 hover:shadow-lg nepali text-xs text-center">
+                                                <i class="fas fa-calendar-check mr-1 text-xs"></i>
+                                                बुक गर्नुहोस्
+                                            </a>
+                                        @else
+                                        <button disabled
+                                           class="inline-flex items-center justify-center px-3 py-2 bg-gray-400 text-white font-semibold rounded-lg cursor-not-allowed nepali text-xs text-center">
+                                            <i class="fas fa-times mr-1 text-xs"></i>
+                                            नभएको
+                                        </button>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     @endforeach
                 </div>
 
@@ -413,9 +475,9 @@
     font-family: 'Preeti', 'Mangal', 'Arial', sans-serif;
 }
 
-.line-clamp-2 {
+.line-clamp-3 {
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
@@ -459,107 +521,53 @@
     background: linear-gradient(to bottom, #2563eb, #7c3aed);
 }
 
-/* FIXED: GOLDEN PREMIUM BADGE STYLING */
-.absolute.top-4.right-4.z-20 span {
-    background: linear-gradient(135deg, #FFD700, #FFA500) !important;
-    color: #000000 !important;
-    font-weight: 800 !important;
-    padding: 6px 12px !important;
-    border-radius: 20px !important;
-    font-size: 11px !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.5px !important;
-    border: 2px solid #FFD700 !important;
-    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.5) !important;
-    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.7) !important;
+/* Improved text readability */
+.text-gray-900 {
+    color: #1f2937 !important;
 }
 
-/* Crown icon color for premium badge */
-.absolute.top-4.right-4.z-20 span i {
-    color: #000000 !important;
-    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.7) !important;
+.text-gray-600 {
+    color: #4b5563 !important;
 }
 
-/* FIXED: Book button styling - ensure text is visible */
-.book-button-fixed {
-    background: linear-gradient(135deg, #059669, #047857) !important;
-    color: white !important;
-    border: none !important;
-    font-weight: 600 !important;
-    text-decoration: none !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
+/* Flexible card height */
+.min-h-\[450px\] {
+    min-height: 450px;
 }
 
-.book-button-fixed:hover {
-    background: linear-gradient(135deg, #047857, #065f46) !important;
-    color: white !important;
-    transform: translateY(-1px) !important;
+/* Ensure buttons are always visible */
+.mt-auto {
+    margin-top: auto;
 }
 
-/* FIXED: View button styling */
-.view-button-fixed {
-    background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
-    color: white !important;
-    border: none !important;
-    font-weight: 600 !important;
-    text-decoration: none !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
+.flex-grow {
+    flex-grow: 1;
 }
 
-.view-button-fixed:hover {
-    background: linear-gradient(135deg, #1d4ed8, #1e40af) !important;
-    color: white !important;
-    transform: translateY(-1px) !important;
+.flex-shrink-0 {
+    flex-shrink: 0;
 }
 
-/* FIXED: Button container spacing */
-.flex.space-y-2 > * {
-    margin-bottom: 8px;
+/* Improved availability badge styling */
+.bg-gradient-to-r.from-green-500.to-green-600 {
+    background: linear-gradient(135deg, #10b981, #059669) !important;
 }
 
-/* FIXED: Ensure all buttons have proper contrast */
-button, a {
-    color: inherit !important;
+.bg-gradient-to-r.from-red-500.to-red-600 {
+    background: linear-gradient(135deg, #ef4444, #dc2626) !important;
 }
 
-/* FIXED: Specific fix for the book now button text visibility */
-.bg-gradient-to-r.from-green-500.to-green-600,
-.bg-gradient-to-r.from-green-600.to-green-700 {
-    color: white !important;
-    font-weight: 600 !important;
+/* Sharp image rendering */
+.h-48 .absolute.inset-0 {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
 }
 
-.bg-gradient-to-r.from-blue-600.to-blue-700,
-.bg-gradient-to-r.from-blue-700.to-blue-800 {
-    color: white !important;
-    font-weight: 600 !important;
-}
-
-/* FIXED: Button text visibility override - UPDATED */
-.text-white {
-    color: white !important;
-}
-
-/* FIXED: Force white text on all book and view buttons */
-a[href*="book-room"],
-a[href*="hostels.show"] {
-    color: white !important;
-    font-weight: 600 !important;
-}
-
-/* FIXED: Additional safety for button text */
-.inline-flex.items-center.justify-center.px-4.py-2 {
-    color: white !important;
-}
-
-/* FIXED: Ensure Nepali text is properly visible */
-.nepali.text-white {
-    color: white !important;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+/* Better image loading and display */
+.bg-cover {
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
 }
 </style>
 
@@ -575,27 +583,6 @@ document.addEventListener('DOMContentLoaded', function() {
         card.addEventListener('mouseleave', function() {
             this.style.transform = 'translateY(0)';
         });
-    });
-
-    // FIXED: Apply button fixes dynamically
-    const bookButtons = document.querySelectorAll('a[href*="book-room"]');
-    bookButtons.forEach(button => {
-        button.classList.add('book-button-fixed');
-        button.style.color = 'white';
-        button.style.fontWeight = '600';
-        // Remove any conflicting classes that might cause white text
-        button.classList.remove('text-gray-500', 'text-gray-600', 'text-gray-700');
-        button.classList.add('text-white');
-    });
-
-    const viewButtons = document.querySelectorAll('a[href*="hostels.show"]');
-    viewButtons.forEach(button => {
-        button.classList.add('view-button-fixed');
-        button.style.color = 'white';
-        button.style.fontWeight = '600';
-        // Remove any conflicting classes that might cause white text
-        button.classList.remove('text-gray-500', 'text-gray-600', 'text-gray-700');
-        button.classList.add('text-white');
     });
 
     // Auto-submit form on filter change
