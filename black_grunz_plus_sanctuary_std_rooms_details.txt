@@ -1,0 +1,71 @@
+मुख्य सामग्रीमा जानुहोस्
+HostelHub Logo
+होस्टलहब
+
+ड्यासबोर्ड
+खानाको योजना
+ग्यालरी
+कोठाहरू
+विद्यार्थीहरू
+भुक्तानी
+समीक्षाहरू
+होस्टल
+कागजात व्यवस्थापन
+सार्वजनिक पृष्ठ
+सूचनाहरू
+
+लगआउट
+HostelHub Logo
+होस्टलहब - मालिक प्यानल
+मालिक
+
+कोठा व्यवस्थापन
+कोठाहरूको सूची
+खोज्नुहोस्...
+क्रम संख्या	फोटो		होस्टल			कोठा नम्बर	प्रकार	ग्यालरी श्रेणी	क्षमता	मूल्य	स्थिति	
+1	Room Image	Black Grunz Boys Hostel	1009	एकल कोठा	१ सिटर कोठा	1	रु. 18,000	उपलब्ध		
+2	Room Image	Black Grunz Boys Hostel	1008	साझा कोठा	४ सिटर कोठा	4	रु. 13,000	आंशिक उपलब्ध (3 बेड खाली)  
+3	Room Image	Black Grunz Boys Hostel	1007	साझा कोठा	४ सिटर कोठा	4	रु. 13,000	उपलब्ध		
+4	Room Image	Black Grunz Boys Hostel	1006	साझा कोठा	४ सिटर कोठा	4	रु. 13,000	उपलब्ध		
+5	Room Image	Black Grunz Boys Hostel	1005	साझा कोठा	साझा कोठा	5	रु. 12,000	उपलब्ध	
+6	Room Image	Black Grunz Boys Hostel	1004	साझा कोठा	४ सिटर कोठा	4	रु. 13,000	उपलब्ध			
+7	Room Image	Black Grunz Boys Hostel	1003	साझा कोठा	४ सिटर कोठा	4	रु. 13,000	उपलब्ध		
+8	Room Image	Black Grunz Boys Hostel	1002	तीन कोठा	३ सिटर कोठा	3	रु. 14,000	उपलब्ध 		
+9	Room Image	Black Grunz Boys Hostel	1001	दोहोरो कोठा	२ सिटर कोठा	2	रु. 16,000	आंशिक उपलब्ध (1 बेड खाली)	
+10	Room Image	Black Grunz Boys Hostel	1000A	एकल कोठा	१ सिटर कोठा	1	रु. 18,000	व्यस्त 	
+
+
+
+क्रम संख्या	फोटो		होस्टल			कोठा नम्बर	प्रकार	ग्यालरी श्रेणी	क्षमता	मूल्य	स्थिति
+1	Room Image	Sanctuary Girls Hostel	223	दोहोरो कोठा	२ सिटर कोठा	2	रु. 14,000	उपलब्ध	
+2	Room Image	Sanctuary Girls Hostel	222	साझा कोठा	साझा कोठा	6	रु. 8,000	उपलब्ध	
+3	Room Image	Sanctuary Girls Hostel	221	साझा कोठा	साझा कोठा	5	रु. 9,000	उपलब्ध	
+4	Room Image	Sanctuary Girls Hostel	219	साझा कोठा	४ सिटर कोठा	4	रु. 10,000	उपलब्ध	
+5	Room Image	Sanctuary Girls Hostel	220	तीन कोठा	३ सिटर कोठा	3	रु. 10,000	उपलब्ध	
+6	Room Image	Sanctuary Girls Hostel	218	shared	४ सिटर कोठा	4	रु. 10,000	उपलब्ध	
+7	Room Image	Sanctuary Girls Hostel	217	shared	३ सिटर कोठा	3	रु. 11,000	उपलब्ध	
+8	Room Image	Sanctuary Girls Hostel	216	shared	४ सिटर कोठा	4	रु. 10,000	उपलब्ध	
+9	Room Image	Sanctuary Girls Hostel	215	shared	४ सिटर कोठा	4	रु. 10,000	उपलब्ध	
+10	Room Image	Sanctuary Girls Hostel	214	एकल कोठा	१ सिटर कोठा	1	रु. 15,000	उपलब्ध	
+11	Room Image	Sanctuary Girls Hostel	213	साझा कोठा	४ सिटर कोठा	4	रु. 9,000	उपलब्ध	
+12	Room Image	Sanctuary Girls Hostel	212	साझा कोठा	४ सिटर कोठा	4	रु. 10,000	उपलब्ध	
+13	Room Image	Sanctuary Girls Hostel	211	साझा कोठा	४ सिटर कोठा	4	रु. 10,000	उपलब्ध	
+14	Room Image	Sanctuary Girls Hostel	210	साझा कोठा	४ सिटर कोठा	4	रु. 10,000	उपलब्ध	
+15	No Image		Sanctuary Girls Hostel	209	दोहोरो कोठा	२ सिटर कोठा	2	रु. 14,000	उपलब्ध	
+16	Room Image	Sanctuary Girls Hostel	208	एकल कोठा	१ सिटर कोठा	1	रु. 15,000	उपलब्ध	
+17	Room Image	Sanctuary Girls Hostel	207	साझा कोठा	४ सिटर कोठा	4	रु. 10,000	उपलब्ध	
+18	Room Image	Sanctuary Girls Hostel	206	साझा कोठा	४ सिटर कोठा	4	रु. 10,000	उपलब्ध	
+19	No Image		Sanctuary Girls Hostel	205	साझा कोठा	४ सिटर कोठा	4	रु. 10,000	आंशिक उपलब्ध (3 बेड खाली)	
+20	Room Image	Sanctuary Girls Hostel	204	एकल कोठा	१ सिटर कोठा	1	रु. 15,000	उपलब्ध	
+21	No Image		Sanctuary Girls Hostel	203	साझा कोठा	४ सिटर कोठा	4	रु. 10,000	आंशिक उपलब्ध (3 बेड खाली)	
+22	No Image		Sanctuary Girls Hostel	202	साझा कोठा	४ सिटर कोठा	4	रु. 13,000	उपलब्ध	
+23	No Image		Sanctuary Girls Hostel	201	दोहोरो कोठा	२ सिटर कोठा	2	रु. 14,000	उपलब्ध	
+24	No Image		Sanctuary Girls Hostel	200	एकल कोठा	१ सिटर कोठा	1	रु. 15,000	व्यस्त	
+
+Total Students Detals of Sanctuary Girls Hostel
+ID	Name		Email			Phone		College								Room	Hostel			Status	Payment Status	Admission Date
+7	Kalpana Tamang	kalpanatamang@gmail.com	9801223430	à¤ªà¥à¤²à¤šà¥‹à¤• à¤ªà¥à¤°à¤¾à¤µà¤¿à¤§à¤¿à¤• à¤•à¥à¤¯à¤¾à¤®à¥à¤ªà¤¸	203	Sanctuary Girls Hostel	active	paid		10/13/2025
+8	Sapana Shrestha	sapanashrestha@gmail.com	980657855		à¤ªà¥à¤²à¤šà¥‹à¤• à¤ªà¥à¤°à¤¾à¤µà¤¿à¤§à¤¿à¤• à¤•à¥à¤¯à¤¾à¤®à¥à¤ªà¤¸	205	Sanctuary Girls Hostel	active	paid		10/17/2025
+9	Heena Karki	heenakarki@gmail.com	980546732		à¤•à¤¾à¤ à¤®à¤¾à¤£à¥à¤¡à¥Œ à¤µà¤¿à¤¶à¥à¤µà¤µà¤¿à¤¦à¥à¤¯à¤¾à¤²à¤¯	205	Sanctuary Girls Hostel	active	paid		10/17/2025
+10	Rashmi Budhathoki	rashmi@gmail.com		980123266		à¤®à¤¹à¥‡à¤¨à¥à¤¦à¥à¤° à¤¸à¤‚à¤¸à¥à¤•à¥ƒà¤¤ à¤•à¥à¤¯à¤¾à¤®à¥à¤ªà¤¸		200	Sanctuary Girls Hostel	active	paid		11/2/2025
+11	Kritika Pandey	kritika@gmail.com		9805640115	à¤¤à¥à¤°à¤¿à¤­à¥à¤µà¤¨ à¤µà¤¿à¤¶à¥à¤µà¤µà¤¿à¤¦à¥à¤¯à¤¾à¤²à¤¯		205	Sanctuary Girls Hostel	active	paid		11/16/2025

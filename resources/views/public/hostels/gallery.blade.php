@@ -14,6 +14,22 @@
     // ✅ FIXED: Use ACTUAL rooms passed from controller
     $rooms = $rooms ?? collect();
     
+    // ✅ FIXED: Dynamic counting from actual rooms
+    $availableRoomCounts = [];
+    $availableBedsCounts = [];
+
+    foreach ($rooms as $room) {
+        $type = $room->type;
+        
+        if (!isset($availableRoomCounts[$type])) {
+            $availableRoomCounts[$type] = 0;
+            $availableBedsCounts[$type] = 0;
+        }
+        
+        $availableRoomCounts[$type]++;
+        $availableBedsCounts[$type] += $room->available_beds;
+    }
+
     // Count items by category for stats
     $categoryCounts = [
         'rooms' => $galleries->whereIn('category', ['1 seater', '2 seater', '3 seater', '4 seater', 'other', 'साझा कोठा'])->count(),
@@ -21,10 +37,6 @@
         'facilities' => $galleries->whereIn('category', ['bathroom', 'common', 'living room', 'study room'])->count(),
         'video' => $galleries->whereIn('media_type', ['local_video', 'external_video'])->count()
     ];
-
-    // ✅ FIXED: Use ACTUAL room counts passed from controller
-    $availableRoomCounts = $availableRoomCounts ?? [];
-    $availableBedsCounts = $availableBedsCounts ?? [];
 
     // PERMANENT FIX: Nepali room types with proper mapping
     $nepaliRoomTypes = [
@@ -247,52 +259,65 @@
         line-height: 1.6;
     }
     
-    /* 🚨 UPDATED: Stats Grid - Better spacing and design */
+    /* 🚨 UPDATED: Compact Stats Grid - Better spacing and design */
     .stats-grid {
         display: grid;
-        grid-template-columns: repeat(5, 1fr);
-        gap: 15px;
-        margin-top: 30px;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 10px;
+        margin-top: 20px;
     }
     
     .stat-item {
         background: rgba(255, 255, 255, 0.15);
-        padding: 25px 15px;
-        border-radius: 12px;
+        padding: 12px 8px;
+        border-radius: 8px;
         backdrop-filter: blur(10px);
         transition: all 0.3s ease;
         text-align: center;
         border: 1px solid rgba(255, 255, 255, 0.2);
+        height: 85px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        cursor: pointer;
     }
 
     .stat-item:hover {
-        transform: translateY(-5px);
+        transform: translateY(-3px);
         background: rgba(255, 255, 255, 0.2);
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .stat-item.active {
+        background: rgba(255, 255, 255, 0.25);
+        border: 1px solid rgba(255, 255, 255, 0.4);
     }
     
     .stat-count {
-        font-size: 2.2rem;
+        font-size: 1.8rem; /* Reduced from 2.2rem */
         font-weight: bold;
         color: white;
         display: block;
-        margin-bottom: 8px;
+        margin-bottom: 5px;
         text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        line-height: 1;
     }
     
     .stat-label {
         color: rgba(255,255,255,0.95);
-        font-size: 1rem;
+        font-size: 0.9rem; /* Reduced from 1rem */
         font-weight: 600;
         display: block;
-        margin-bottom: 5px;
+        margin-bottom: 3px;
+        line-height: 1.2;
     }
 
     .stat-subtext {
         color: rgba(255,255,255,0.8);
-        font-size: 0.85rem;
+        font-size: 0.75rem; /* Reduced from 0.85rem */
         display: block;
-        margin-top: 8px;
+        margin-top: 5px;
+        line-height: 1.2;
     }
     
     /* Available Rooms Specific Styles - UPDATED */
@@ -628,8 +653,7 @@
     /* Responsive Design */
     @media (max-width: 1200px) {
         .stats-grid {
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
         }
     }
     
@@ -769,11 +793,24 @@
 
         .stats-grid {
             grid-template-columns: 1fr;
-            gap: 12px;
+            gap: 8px;
         }
         
         .stat-item {
-            padding: 20px 15px;
+            padding: 10px 6px;
+            height: 80px;
+        }
+        
+        .stat-count {
+            font-size: 1.5rem;
+        }
+        
+        .stat-label {
+            font-size: 0.85rem;
+        }
+        
+        .stat-subtext {
+            font-size: 0.7rem;
         }
         
         /* Modal mobile - Ultra compact */
@@ -842,18 +879,30 @@
             </p>
         </div>
         
-        <!-- 🚨 UPDATED: Stats Grid with REAL data -->
+        <!-- 🚨 UPDATED: Compact Stats Grid with REAL data -->
         <div class="stats-grid">
-            @foreach($nepaliRoomTypes as $englishType => $nepaliType)
-            <div class="stat-item">
-                <span class="stat-count">{{ $availableRoomCounts[$englishType] ?? 0 }}</span>
-                <span class="stat-label nepali">{{ $nepaliType }}</span>
-                @if(isset($availableBedsCounts[$englishType]) && $availableBedsCounts[$englishType] > 0)
-                    <span class="stat-subtext nepali">({{ $availableBedsCounts[$englishType] }} बेड खाली)</span>
-                @else
-                    <span class="stat-subtext nepali">(कुनै बेड खाली छैन)</span>
-                @endif
+            @php
+                $totalAvailableBeds = $rooms->sum('available_beds');
+            @endphp
+            <!-- All rooms stat -->
+            <div class="stat-item active" data-room-type="all">
+                <span class="stat-count">{{ $rooms->count() }}</span>
+                <span class="stat-label nepali">सबै कोठाहरू</span>
+                <span class="stat-subtext nepali">({{ $totalAvailableBeds }} बेड खाली)</span>
             </div>
+
+            @foreach($availableRoomCounts as $englishType => $roomCount)
+                @if($roomCount > 0)
+                    <div class="stat-item" data-room-type="{{ $englishType }}">
+                        <span class="stat-count">{{ $roomCount }}</span>
+                        <span class="stat-label nepali">{{ $nepaliRoomTypes[$englishType] ?? $englishType }}</span>
+                        @if(isset($availableBedsCounts[$englishType]) && $availableBedsCounts[$englishType] > 0)
+                            <span class="stat-subtext nepali">({{ $availableBedsCounts[$englishType] }} बेड खाली)</span>
+                        @else
+                            <span class="stat-subtext nepali">(कुनै बेड खाली छैन)</span>
+                        @endif
+                    </div>
+                @endif
             @endforeach
         </div>
     </div>
@@ -869,7 +918,7 @@
             </p>
             
             <!-- ✅ FIXED: Room Gallery with PROPER image handling -->
-            <div class="gallery-grid">
+            <div class="gallery-grid" id="roomsGrid">
                 @foreach($rooms as $room)
                     @php
                         // Use room data as is from database
@@ -901,7 +950,7 @@
                         }
                     @endphp
                     
-                    <div class="gallery-item">
+                    <div class="gallery-item" data-room-type="{{ $room->type }}">
                         <!-- ✅ STRICT FIX: Image with proper error handling - TIMRO SYSTEM -->
                         @if($room->has_image)
                             <img src="{{ $room->image_url }}" 
@@ -1150,8 +1199,43 @@
         }
     });
 
-    // ✅ FIXED: Add error handling for images
+    // ✅ ADDED: Room filtering functionality
+    function filterRoomsByType(roomType) {
+        const allRooms = document.querySelectorAll('.gallery-item');
+        
+        if (roomType === 'all') {
+            // Show all rooms
+            allRooms.forEach(room => {
+                room.style.display = 'block';
+            });
+        } else {
+            // Show only rooms of selected type
+            allRooms.forEach(room => {
+                if (room.getAttribute('data-room-type') === roomType) {
+                    room.style.display = 'block';
+                } else {
+                    room.style.display = 'none';
+                }
+            });
+        }
+    }
+
+    // ✅ ADDED: Stats filtering functionality
     document.addEventListener('DOMContentLoaded', function() {
+        const statItems = document.querySelectorAll('.stat-item');
+        
+        statItems.forEach(item => {
+            item.addEventListener('click', function() {
+                // Remove active class from all
+                statItems.forEach(i => i.classList.remove('active'));
+                // Add active to clicked
+                this.classList.add('active');
+                
+                const roomType = this.getAttribute('data-room-type');
+                filterRoomsByType(roomType);
+            });
+        });
+
         // Handle broken images
         const galleryImages = document.querySelectorAll('.gallery-item img');
         galleryImages.forEach(img => {

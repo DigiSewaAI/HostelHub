@@ -535,7 +535,7 @@ class PublicController extends Controller
     }
 
     /**
-     * ✅ FIXED: Show only available rooms gallery - WITH CORRECT OCCUPANCY CALCULATION
+     * ✅ FIXED: Show only available rooms gallery - WITH CORRECT OCCUPANCY CALCULATION & DYNAMIC STATS
      */
     public function hostelGallery($slug)
     {
@@ -584,25 +584,28 @@ class PublicController extends Controller
                 })
             ]);
 
-            // ✅ FIXED: Calculate counts from room data
-            $availableRoomCounts = [
-                '1 seater' => $rooms->where('type', '1 seater')->count(),
-                '2 seater' => $rooms->where('type', '2 seater')->count(),
-                '3 seater' => $rooms->where('type', '3 seater')->count(),
-                '4 seater' => $rooms->where('type', '4 seater')->count(),
-                'other' => $rooms->whereNotIn('type', ['1 seater', '2 seater', '3 seater', '4 seater'])->count(),
-                'साझा कोठा' => $rooms->where('type', 'साझा कोठा')->count(),
-            ];
+            // ✅ FIXED: DYNAMIC STATS CALCULATION - More accurate counting
+            $availableRoomCounts = [];
+            $availableBedsCounts = [];
 
-            // ✅ FIXED: Calculate available beds from room data
-            $availableBedsCounts = [
-                '1 seater' => $rooms->where('type', '1 seater')->sum('available_beds'),
-                '2 seater' => $rooms->where('type', '2 seater')->sum('available_beds'),
-                '3 seater' => $rooms->where('type', '3 seater')->sum('available_beds'),
-                '4 seater' => $rooms->where('type', '4 seater')->sum('available_beds'),
-                'other' => $rooms->whereNotIn('type', ['1 seater', '2 seater', '3 seater', '4 seater'])->sum('available_beds'),
-                'साझा कोठा' => $rooms->where('type', 'साझा कोठा')->sum('available_beds'),
-            ];
+            foreach ($rooms as $room) {
+                $type = $room->type;
+
+                if (!isset($availableRoomCounts[$type])) {
+                    $availableRoomCounts[$type] = 0;
+                    $availableBedsCounts[$type] = 0;
+                }
+
+                // Only count available rooms
+                if ($room->status === 'available' && $room->available_beds > 0) {
+                    $availableRoomCounts[$type]++;
+                    $availableBedsCounts[$type] += $room->available_beds;
+                }
+            }
+
+            // Remove room types with zero available rooms
+            $availableRoomCounts = array_filter($availableRoomCounts);
+            $availableBedsCounts = array_intersect_key($availableBedsCounts, $availableRoomCounts);
 
             $mealMenus = MealMenu::where('hostel_id', $hostel->id)
                 ->where('is_active', true)
