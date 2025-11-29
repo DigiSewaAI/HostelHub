@@ -22,9 +22,8 @@ use App\Http\Controllers\Admin\DocumentController;
 |--------------------------------------------------------------------------
 */
 
-// ✅ REMOVE the prefix from here - prefix is now in web.php
-Route::middleware(['auth', 'hasOrganization', 'role:admin'])
-    ->name('admin.')  // ✅ KEEP only the name prefix
+// ✅ FIXED: Remove duplicate middleware since it's already applied in web.php
+Route::name('admin.')  // ✅ KEEP only the name prefix
     ->group(function () {
 
         // Admin Dashboard with cache management
@@ -95,6 +94,9 @@ Route::middleware(['auth', 'hasOrganization', 'role:admin'])
         // ✅ NEW: Admin Hostel Publish/Unpublish Routes
         Route::post('/hostels/{hostel}/publish', [AdminHostelController::class, 'publish'])->name('hostels.publish');
         Route::post('/hostels/{hostel}/unpublish', [AdminHostelController::class, 'unpublish'])->name('hostels.unpublish');
+
+        // ✅ NOTE: Featured Hostels Routes have been moved to web.php to bypass hasOrganization middleware
+        // They are now defined directly in the admin group in web.php
 
         // Routes for fixing hostel room counts
         Route::get('/hostels/fix-room-counts', [AdminHostelController::class, 'fixRoomCounts'])->name('hostels.fix-room-counts');

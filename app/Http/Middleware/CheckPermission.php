@@ -32,9 +32,9 @@ class CheckPermission
             'can_' . $permission => $user->can($permission)
         ]);
 
-        // Admin लाई सबै permission
+        // ✅ ENHANCED FIX: Admin should bypass all permission checks
         if ($user->hasRole('admin')) {
-            Log::info("User is admin, allowing access");
+            Log::info("User is admin, allowing access to: {$permission}");
             return $next($request);
         }
 

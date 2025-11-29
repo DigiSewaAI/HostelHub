@@ -9,6 +9,7 @@ use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Frontend\PublicController;
+use App\Http\Controllers\Admin\HostelController as AdminHostelController;
 
 // Force HTTPS in production
 if (app()->environment('production')) {
@@ -175,10 +176,14 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/bookings/{id}/cancel', [BookingController::class, 'cancel'])->name('bookings.cancel');
 });
 
-// ✅ FIXED: Admin routes with proper middleware order
+// ✅ FIXED: Admin routes with proper middleware order - REMOVED hasOrganization
 Route::prefix('admin')
-    ->middleware(['auth', 'hasOrganization', 'role:admin'])
+    ->middleware(['auth', 'role:admin']) // ✅ REMOVED: 'hasOrganization' to fix 403 error
     ->group(function () {
+        // ✅ CRITICAL FIX: Define featured routes FIRST before including admin.php
+        Route::get('/hostels/featured', [AdminHostelController::class, 'featuredHostels'])->name('admin.hostels.featured');
+        Route::post('/hostels/featured/update', [AdminHostelController::class, 'updateFeaturedHostels'])->name('admin.hostels.featured.update');
+
         require __DIR__ . '/admin.php';
 
         // ✅ NEW: Admin booking management routes
@@ -222,10 +227,25 @@ Route::prefix('student')
         Route::post('/bookings/{id}/cancel', [BookingController::class, 'cancel'])->name('student.bookings.cancel');
     });
 
+// ✅ ADD THIS TEMPORARY DEBUG ROUTE TO CHECK ALL ADMIN ROUTES
+Route::get('/debug-admin-routes', function () {
+    $routes = collect(Route::getRoutes())->filter(function ($route) {
+        return str_contains($route->uri(), 'admin') &&
+            in_array('GET', $route->methods());
+    })->map(function ($route) {
+        return [
+            'uri' => $route->uri(),
+            'name' => $route->getName(),
+            'action' => $route->getActionName()
+        ];
+    });
+
+    return response()->json($routes->values());
+});
+
 /*|--------------------------------------------------------------------------
 | Development Routes (Conditionally Loaded)
-|--------------------------------------------------------------------------
-*/
+|--------------------------------------------------------------------------*/
 if (app()->environment('local')) {
     require __DIR__ . '/dev.php';
 }

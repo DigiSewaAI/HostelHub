@@ -12,7 +12,8 @@ use App\Models\{
     Review,
     Room,
     Student,
-    Circular
+    Circular,
+    User
 };
 use App\Policies\{
     ContactPolicy,
@@ -24,7 +25,8 @@ use App\Policies\{
     ReviewPolicy,
     RoomPolicy,
     StudentPolicy,
-    CircularPolicy
+    CircularPolicy,
+    AdminPolicy
 };
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Gate;
@@ -47,6 +49,7 @@ class AuthServiceProvider extends ServiceProvider
         Organization::class => OrganizationPolicy::class,
         Hostel::class => HostelPolicy::class,
         Circular::class => CircularPolicy::class,
+        User::class => AdminPolicy::class, // ✅ ADDED: Admin policy for user model
     ];
 
     /**
@@ -55,6 +58,14 @@ class AuthServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->registerPolicies();
+
+        // ✅ ADMIN BYPASS: Allow admin to bypass all permission checks
+        Gate::before(function ($user, $ability) {
+            if ($user->hasRole('admin')) {
+                \Log::info("Admin bypass for ability: {$ability}");
+                return true;
+            }
+        });
 
         // ✅ EMERGENCY FIX: Complete bypass for student operations
         Gate::define('update-student', function ($user, $student) {
@@ -120,6 +131,32 @@ class AuthServiceProvider extends ServiceProvider
 
         Gate::define('view_circular_recipients', function ($user) {
             return $user->hasAnyRole(['admin', 'hostel_manager', 'owner']);
+        });
+
+        // ✅ ADDED: Admin dashboard access gate
+        Gate::define('view-admin-dashboard', function ($user) {
+            return $user->hasRole('admin');
+        });
+
+        // ✅ ADDED: Admin specific gates
+        Gate::define('access_admin', function ($user) {
+            return $user->hasRole('admin');
+        });
+
+        Gate::define('manage_users', function ($user) {
+            return $user->hasRole('admin');
+        });
+
+        Gate::define('manage_roles', function ($user) {
+            return $user->hasRole('admin');
+        });
+
+        Gate::define('manage_permissions', function ($user) {
+            return $user->hasRole('admin');
+        });
+
+        Gate::define('view_system_reports', function ($user) {
+            return $user->hasRole('admin');
         });
 
         // ✅ Payments लाई access गर्ने क्षमता
@@ -310,6 +347,28 @@ class AuthServiceProvider extends ServiceProvider
         // ✅ Report हेर्ने क्षमता
         Gate::define('view_payments_report', function ($user) {
             return $user->can('payments_report');
+        });
+
+        // ✅ ADDED: Organization session management gates
+        Gate::define('switch_organization', function ($user) {
+            return $user->hasAnyRole(['admin', 'hostel_manager', 'owner']);
+        });
+
+        Gate::define('manage_organization', function ($user) {
+            return $user->hasAnyRole(['admin', 'hostel_manager', 'owner']);
+        });
+
+        // ✅ ADDED: Booking management gates
+        Gate::define('access_bookings', function ($user) {
+            return $user->hasAnyRole(['admin', 'hostel_manager', 'owner', 'student']);
+        });
+
+        Gate::define('manage_bookings', function ($user) {
+            return $user->hasAnyRole(['admin', 'hostel_manager', 'owner']);
+        });
+
+        Gate::define('approve_bookings', function ($user) {
+            return $user->hasAnyRole(['admin', 'hostel_manager', 'owner']);
         });
     }
 }
