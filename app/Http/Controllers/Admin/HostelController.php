@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 
 class HostelController extends Controller
 {
@@ -63,6 +64,11 @@ class HostelController extends Controller
             }
         }
 
+        // Featured filter
+        if ($request->has('is_featured') && !empty($request->is_featured)) {
+            $query->where('is_featured', $request->is_featured === 'featured');
+        }
+
         // Organization filter
         if ($request->has('organization_id') && !empty($request->organization_id)) {
             $query->where('organization_id', $request->organization_id);
@@ -90,6 +96,7 @@ class HostelController extends Controller
         $totalHostels = Hostel::count();
         $activeHostels = Hostel::where('status', 'active')->count();
         $publishedHostels = Hostel::where('is_published', true)->count();
+        $featuredHostels = Hostel::where('is_featured', true)->count();
         $organizationsWithHostels = Organization::has('hostels')->count();
         $organizations = Organization::all(); // For filter dropdown
 
@@ -98,6 +105,7 @@ class HostelController extends Controller
             'totalHostels',
             'activeHostels',
             'publishedHostels',
+            'featuredHostels',
             'organizationsWithHostels',
             'organizations',
             'request'
@@ -117,7 +125,7 @@ class HostelController extends Controller
         }
 
         $request->validate([
-            'action' => 'required|in:publish,unpublish,activate,deactivate,delete',
+            'action' => 'required|in:publish,unpublish,activate,deactivate,delete,feature,unfeature',
             'hostel_ids' => 'required|array',
             'hostel_ids.*' => 'exists:hostels,id'
         ]);
@@ -163,6 +171,26 @@ class HostelController extends Controller
                             }
                             break;
 
+                        case 'feature':
+                            if (!$hostel->is_featured) {
+                                $hostel->update([
+                                    'is_featured' => true,
+                                    'featured_order' => Hostel::where('is_featured', true)->max('featured_order') + 1
+                                ]);
+                                $successCount++;
+                            }
+                            break;
+
+                        case 'unfeature':
+                            if ($hostel->is_featured) {
+                                $hostel->update([
+                                    'is_featured' => false,
+                                    'featured_order' => 0
+                                ]);
+                                $successCount++;
+                            }
+                            break;
+
                         case 'delete':
                             // Check if hostel can be deleted
                             if ($hostel->rooms()->count() > 0 || $hostel->students()->count() > 0) {
@@ -184,6 +212,9 @@ class HostelController extends Controller
                     $errors[] = "होस्टल '{$hostel->name}' मा त्रुटि: " . $e->getMessage();
                 }
             }
+
+            // Clear featured hostels cache
+            Cache::forget('home_featured_hostels');
 
             DB::commit();
 
@@ -269,6 +300,16 @@ class HostelController extends Controller
             // ✅ NEW: Handle branding toggle for new hostels
             $validated['show_hostelhub_branding'] = $request->has('show_hostelhub_branding');
 
+            // ✅ NEW: Handle featured fields
+            $validated['is_featured'] = $request->has('is_featured');
+            if ($validated['is_featured']) {
+                $validated['featured_order'] = Hostel::where('is_featured', true)->max('featured_order') + 1;
+            } else {
+                $validated['featured_order'] = 0;
+            }
+            $validated['commission_rate'] = $request->commission_rate ?? 10.00;
+            $validated['extra_commission'] = $request->extra_commission ?? 0.00;
+
             // Handle facilities
             if ($request->has('facilities') && !empty($request->facilities)) {
                 $validated['facilities'] = json_encode(explode(',', $request->facilities));
@@ -291,6 +332,11 @@ class HostelController extends Controller
             }
 
             $hostel = Hostel::create($validated);
+
+            // Clear featured hostels cache if this hostel is featured
+            if ($hostel->is_featured) {
+                Cache::forget('home_featured_hostels');
+            }
 
             DB::commit();
 
@@ -375,6 +421,22 @@ class HostelController extends Controller
             // ✅ NEW: Handle branding toggle
             $validated['show_hostelhub_branding'] = $request->has('show_hostelhub_branding');
 
+            // ✅ NEW: Handle featured fields
+            $wasFeatured = $hostel->is_featured;
+            $validated['is_featured'] = $request->has('is_featured');
+
+            if ($validated['is_featured'] && !$wasFeatured) {
+                // Newly featured - set order
+                $validated['featured_order'] = Hostel::where('is_featured', true)->max('featured_order') + 1;
+            } elseif (!$validated['is_featured'] && $wasFeatured) {
+                // Unfeatured - reset order
+                $validated['featured_order'] = 0;
+            }
+            // If already featured and remains featured, keep existing order
+
+            $validated['commission_rate'] = $request->commission_rate ?? $hostel->commission_rate;
+            $validated['extra_commission'] = $request->extra_commission ?? $hostel->extra_commission;
+
             // FIX: Clean the name before processing (remove any existing "होस्टेल")
             if ($request->has('name')) {
                 $cleanName = $this->cleanHostelName($validated['name']);
@@ -419,6 +481,11 @@ class HostelController extends Controller
 
             $hostel->update($validated);
 
+            // Clear featured hostels cache if featured status changed
+            if ($wasFeatured != $hostel->is_featured) {
+                Cache::forget('home_featured_hostels');
+            }
+
             DB::commit();
 
             return redirect()->route('admin.hostels.index')
@@ -461,6 +528,11 @@ class HostelController extends Controller
             }
 
             $hostel->delete();
+
+            // Clear featured hostels cache if this was featured
+            if ($hostel->is_featured) {
+                Cache::forget('home_featured_hostels');
+            }
 
             DB::commit();
 
@@ -509,6 +581,124 @@ class HostelController extends Controller
         $statusText = $newStatus == 'active' ? 'सक्रिय' : 'निष्क्रिय';
 
         return back()->with('success', "होस्टल {$statusText} गरियो।");
+    }
+
+    /**
+     * Toggle hostel featured status
+     */
+    public function toggleFeatured(Hostel $hostel)
+    {
+        // ✅ SECURITY FIX: Authorization check
+        $user = auth()->user();
+        if (!$user->hasRole('admin')) {
+            abort(403, 'तपाईंसँग यो स्थिति परिवर्तन गर्ने अनुमति छैन');
+        }
+
+        DB::beginTransaction();
+
+        try {
+            $newFeaturedStatus = !$hostel->is_featured;
+
+            if ($newFeaturedStatus) {
+                // Feature the hostel
+                $hostel->update([
+                    'is_featured' => true,
+                    'featured_order' => Hostel::where('is_featured', true)->max('featured_order') + 1
+                ]);
+                $message = 'होस्टल फिचर्ड सूचीमा थपियो।';
+            } else {
+                // Unfeature the hostel
+                $hostel->update([
+                    'is_featured' => false,
+                    'featured_order' => 0
+                ]);
+                $message = 'होस्टल फिचर्ड सूचीबाट हटाइयो।';
+            }
+
+            // Clear featured hostels cache
+            Cache::forget('home_featured_hostels');
+
+            DB::commit();
+
+            return back()->with('success', $message);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'फिचर्ड स्थिति परिवर्तन गर्दा त्रुटि: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Show featured hostels management page
+     */
+    public function featuredHostels()
+    {
+        // ✅ SECURITY FIX: Authorization check
+        $user = auth()->user();
+        if (!$user->hasRole('admin')) {
+            abort(403, 'तपाईंसँग यो पृष्ठ हेर्ने अनुमति छैन');
+        }
+
+        $hostels = Hostel::where('is_published', true)
+            ->orderBy('is_featured', 'desc')
+            ->orderBy('featured_order', 'asc')
+            ->orderBy('name')
+            ->get();
+
+        return view('admin.hostels.featured', compact('hostels'));
+    }
+
+    /**
+     * Update featured hostels in bulk
+     */
+    public function updateFeaturedHostels(Request $request)
+    {
+        // ✅ SECURITY FIX: Authorization check
+        $user = auth()->user();
+        if (!$user->hasRole('admin')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'तपाईंसँग यो कार्य गर्ने अनुमति छैन'
+            ], 403);
+        }
+
+        $request->validate([
+            'featured' => 'nullable|array',
+            'featured_order' => 'nullable|array',
+            'commission_rate' => 'nullable|array',
+            'extra_commission' => 'nullable|array',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            // Reset all featured status first
+            Hostel::query()->update([
+                'is_featured' => false,
+                'featured_order' => 0
+            ]);
+
+            // Update selected featured hostels
+            if ($request->has('featured')) {
+                foreach ($request->featured as $hostelId) {
+                    Hostel::where('id', $hostelId)->update([
+                        'is_featured' => true,
+                        'featured_order' => $request->featured_order[$hostelId] ?? 0,
+                        'commission_rate' => $request->commission_rate[$hostelId] ?? 10.00,
+                        'extra_commission' => $request->extra_commission[$hostelId] ?? 0,
+                    ]);
+                }
+            }
+
+            // Clear cache
+            Cache::forget('home_featured_hostels');
+
+            DB::commit();
+
+            return redirect()->back()->with('success', 'फिचर्ड होस्टलहरू सफलतापूर्वक अद्यावधिक गरियो!');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'फिचर्ड होस्टलहरू अद्यावधिक गर्दा त्रुटि: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -636,6 +826,7 @@ class HostelController extends Controller
         $totalHostels = Hostel::count();
         $activeHostels = Hostel::where('status', 'active')->count();
         $inactiveHostels = Hostel::where('status', 'inactive')->count();
+        $featuredHostels = Hostel::where('is_featured', true)->count();
 
         $hostelsByOrganization = Organization::withCount('hostels')
             ->has('hostels')
@@ -652,6 +843,7 @@ class HostelController extends Controller
             'totalHostels',
             'activeHostels',
             'inactiveHostels',
+            'featuredHostels',
             'hostelsByOrganization',
             'recentHostels'
         ));
@@ -669,7 +861,7 @@ class HostelController extends Controller
         }
 
         $request->validate([
-            'action' => 'required|in:activate,deactivate,delete',
+            'action' => 'required|in:activate,deactivate,delete,feature,unfeature',
             'hostel_ids' => 'required|array',
             'hostel_ids.*' => 'exists:hostels,id'
         ]);
@@ -694,6 +886,27 @@ class HostelController extends Controller
                     $message = 'चयन गरिएका होस्टलहरू निष्क्रिय गरियो।';
                     break;
 
+                case 'feature':
+                    $maxOrder = Hostel::where('is_featured', true)->max('featured_order') ?? 0;
+                    foreach ($hostels as $hostel) {
+                        $hostel->update([
+                            'is_featured' => true,
+                            'featured_order' => ++$maxOrder
+                        ]);
+                    }
+                    $message = 'चयन गरिएका होस्टलहरू फिचर्ड गरियो।';
+                    break;
+
+                case 'unfeature':
+                    foreach ($hostels as $hostel) {
+                        $hostel->update([
+                            'is_featured' => false,
+                            'featured_order' => 0
+                        ]);
+                    }
+                    $message = 'चयन गरिएका होस्टलहरू अनफिचर्ड गरियो।';
+                    break;
+
                 case 'delete':
                     foreach ($hostels as $hostel) {
                         // Check if hostel can be deleted
@@ -713,6 +926,11 @@ class HostelController extends Controller
                     }
                     $message = 'चयन गरिएका होस्टलहरू मेटाइयो।';
                     break;
+            }
+
+            // Clear featured hostels cache if featured status changed
+            if (in_array($request->action, ['feature', 'unfeature'])) {
+                Cache::forget('home_featured_hostels');
             }
 
             DB::commit();

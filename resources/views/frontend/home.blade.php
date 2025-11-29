@@ -377,6 +377,75 @@ main.home-page-main {
     box-shadow: 0 4px 8px rgba(14, 165, 233, 0.15);
 }
 
+/* ==================== HERO SLIDER STYLES FOR HOSTELS ==================== */
+.slide-link {
+    display: block;
+    position: relative;
+    height: 100%;
+    border-radius: 12px;
+    overflow: hidden;
+    text-decoration: none;
+    transition: transform 0.3s ease;
+}
+
+.slide-link:hover {
+    transform: scale(1.02);
+}
+
+.slide-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(transparent, rgba(0,0,0,0.7));
+    color: white;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.slide-link:hover .slide-overlay {
+    background: linear-gradient(transparent, rgba(0,0,0,0.9));
+}
+
+.slide-content {
+    text-align: center;
+}
+
+.hostel-name {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.hostel-location {
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.9);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+}
+
+.view-hostel-btn {
+    display: inline-block;
+    background: var(--primary);
+    color: white;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-top: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.slide-link:hover .view-hostel-btn {
+    background: var(--secondary);
+    transform: translateY(-2px);
+}
+
 /* ==================== RESPONSIVE DESIGN ==================== */
 
 /* Tablet */
@@ -422,6 +491,19 @@ main.home-page-main {
     .quick-badge {
         font-size: 0.75rem;
         padding: 0.3rem 0.6rem;
+    }
+
+    /* Mobile Hero Slider */
+    .hero-slideshow {
+        margin-top: 1rem;
+    }
+    
+    .hostel-name {
+        font-size: 1.1rem;
+    }
+    
+    .hostel-location {
+        font-size: 0.8rem;
     }
 }
 
@@ -552,20 +634,27 @@ main.home-page-main {
             <div class="hero-slideshow">
                 <div class="swiper hero-slider">
                     <div class="swiper-wrapper">
-                        @if(count($heroSliderItems ?? []) > 0)
-                            @foreach($heroSliderItems as $item)
+                        @if(isset($featuredHostels) && count($featuredHostels) > 0)
+                            @foreach($featuredHostels as $hostel)
                             <div class="swiper-slide">
-                                @if($item['media_type'] === 'image')
-                                    <img src="{{ $item['thumbnail_url'] }}" 
-                                         alt="{{ $item['title'] }}" 
+                                <a href="{{ $hostel['public_url'] ?? route('hostels.show', $hostel['slug']) }}" 
+                                   class="slide-link" 
+                                   title="{{ $hostel['name'] }} - {{ $hostel['city'] }}">
+                                    <img src="{{ $hostel['cover_image'] }}" 
+                                         alt="{{ $hostel['name'] }}" 
                                          loading="lazy"
-                                         onerror="this.onerror=null;this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgZmlsbD0iIzFlM2E4YSI+PC9yZWN0Pjx0ZXh0IHg9IjQwMCIgeT0iMjI1IiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IiNmZmYiPkhvc3RlbEh1YiBJbWFnZTwvdGV4dD48L3N2Zz4=';">
-                                @else
-                                    <img src="{{ $item['thumbnail_url'] }}" 
-                                         alt="{{ $item['title'] }}" 
-                                         loading="lazy"
-                                         onerror="this.onerror=null;this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgZmlsbD0iIzFlM2E4YSI+PC9yZWN0Pjx0ZXh0IHg9IjQwMCIgeT0iMjI1IiBkb21pbmFudC1iYXNlbGluZT0ibWtkZGxlIiB0ZXh0LWFuY2hvcj0ibWtkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IiNmZmYiPlZpZGVvIFRodW1ibmFpbDwvdGV4dD48L3N2Zz4=';">
-                                @endif
+                                         onerror="this.onerror=null;this.src='{{ asset('images/default-hostel.jpg') }}'">
+                                    <div class="slide-overlay">
+                                        <div class="slide-content">
+                                            <h4 class="hostel-name">{{ $hostel['name'] }}</h4>
+                                            <p class="hostel-location">
+                                                <i class="fas fa-map-marker-alt"></i>
+                                                {{ $hostel['city'] }}
+                                            </p>
+                                            <span class="view-hostel-btn">होस्टल हेर्नुहोस्</span>
+                                        </div>
+                                    </div>
+                                </a>
                             </div>
                             @endforeach
                         @else
@@ -574,11 +663,29 @@ main.home-page-main {
                                 <img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&h=450&fit=crop" 
                                      alt="Comfortable Hostel Rooms" 
                                      loading="lazy">
+                                <div class="slide-overlay">
+                                    <div class="slide-content">
+                                        <h4 class="hostel-name">HostelHub होस्टल</h4>
+                                        <p class="hostel-location">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            काठमाडौं
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
                             <div class="swiper-slide">
                                 <img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&h=450&fit=crop" 
                                      alt="Modern Hostel Facilities" 
                                      loading="lazy">
+                                <div class="slide-overlay">
+                                    <div class="slide-content">
+                                        <h4 class="hostel-name">आधुनिक होस्टल</h4>
+                                        <p class="hostel-location">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            पोखरा
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
                         @endif
                     </div>
@@ -672,7 +779,7 @@ main.home-page-main {
                 <div class="swiper-slide">
                     <div class="gallery-slide-container">
                         @if($item['media_type'] === 'image')
-                            <img src="{{ $item['thumbnail_url'] }}" alt="{{ $item['title'] }}" loading="lazy" onerror="this.onerror=null;this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgZmlsbD0iI2YwZjlmZiI+PC9yZWN0Pjx0ZXh0IHg9IjQwMCIgeT0iMjI1IiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWtkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQi IGZpbGw9IiMxZjI5MzciPkltYWdlIFRodW1ibmFpbDwvdGV4dD48L3N2Zz4=';">
+                            <img src="{{ $item['thumbnail_url'] }}" alt="{{ $item['title'] }}" loading="lazy" onerror="this.onerror=null;this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgZmlsbD0iI2YwZjlmZiI+PC9yZWN0Pjx0ZXh0IHg9IjQwMCIgeT0iMjI1IiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWtkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IiMxZjI5MzciPkltYWdlIFRodW1ibmFpbDwvdGV4dD48L3N2Zz4=';">
                         @else
                             <img src="{{ $item['thumbnail_url'] }}" alt="{{ $item['title'] }}" loading="lazy" class="youtube-thumbnail" data-youtube-id="{{ $item['youtube_id'] ?? '' }}" onerror="this.onerror=null;this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgZmlsbD0iIzFlM2E4YSI+PC9yZWN0Pjx0ZXh0IHg9IjQwMCIgeT0iMjI5IiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWtkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IiNmZmYiPlZpZGVvIFRodW1ibmFpbDwvdGV4dD48L3N2Zz4=';">
                             <div class="video-overlay">
@@ -806,7 +913,7 @@ main.home-page-main {
             <div class="step">
                 <div class="step-number">3</div>
                 <h3 class="step-title nepali">विस्तार गर्नुहोस्</h3>
-                <p class="step-desc nepali">हाम्रा उन्नत सुविधाहरू प्रयोग गरेर आफ्नो होस्टल व्यवसायलाई बढाउनुहोस्</p>
+                <p class="step-desc nepali">हाम्रा उन्नत सुविधाहरू प्रयोग गरेर आफ्नो होस्टल व्यसायलाई बढाउनुहोस्</p>
             </div>
         </div>
     </div>

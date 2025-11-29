@@ -705,6 +705,22 @@
                     <span class="sidebar-text" x-show="!sidebarCollapsed">होस्टलहरू</span>
                 </a>
                 
+                    <!-- ✅ NEW: Featured Hostels Menu -->
+                    <a href="{{ route('admin.hostels.featured') }}"
+                    class="sidebar-link {{ request()->routeIs('admin.hostels.featured*') ? 'active' : '' }}"
+                    aria-current="{{ request()->routeIs('admin.hostels.featured*') ? 'page' : 'false' }}">
+                        <i class="fas fa-star sidebar-icon"></i>
+                        <span class="sidebar-text" x-show="!sidebarCollapsed">
+                            फिचर्ड होस्टलहरू
+                            @php
+                                $featuredCount = \App\Models\Hostel::where('is_featured', true)->count();
+                            @endphp
+                            @if($featuredCount > 0)
+                                <span class="badge bg-yellow-500 text-white text-xs ml-2">{{ $featuredCount }}</span>
+                            @endif
+                        </span>
+                    </a>
+
                 <!-- Rooms -->
                 <a href="{{ route('admin.rooms.index') }}"
                    class="sidebar-link {{ request()->routeIs('admin.rooms.*') ? 'active' : '' }}"

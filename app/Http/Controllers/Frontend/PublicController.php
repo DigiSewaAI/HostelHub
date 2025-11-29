@@ -75,6 +75,31 @@ class PublicController extends Controller
                     ->get();
             });
 
+            // ✅ NEW: Admin-Managed Featured Hostels for Hero Slider
+            $featuredHostels = Cache::remember('home_featured_hostels', 3600, function () {
+                return Hostel::where('is_published', true)
+                    ->where('status', 'active')
+                    ->where('is_featured', true)
+                    ->whereNotNull('image')
+                    ->orderBy('featured_order', 'asc')
+                    ->limit(10)
+                    ->with(['images'])
+                    ->get()
+                    ->map(function ($hostel) {
+                        return [
+                            'id' => $hostel->id,
+                            'name' => $hostel->name,
+                            'city' => $hostel->city,
+                            'cover_image' => $hostel->image ? asset('storage/' . $hostel->image) : asset('images/default-hostel.jpg'),
+                            'slug' => $hostel->slug,
+                            'public_url' => route('hostels.show', $hostel->slug),
+                            'is_featured' => $hostel->is_featured,
+                            'featured_order' => $hostel->featured_order,
+                            'commission_rate' => $hostel->commission_rate
+                        ];
+                    });
+            });
+
             // 5. Recent Testimonials (with caching)
             $testimonials = Cache::remember('home_testimonials', 3600, function () {
                 return Review::with('student')
@@ -88,8 +113,8 @@ class PublicController extends Controller
                 return Room::distinct()->pluck('type');
             });
 
-            // 7. Hero Slider Items (with caching)
-            $heroSliderItems = Cache::remember('home_hero_slider_items', 3600, function () {
+            // 7. Hero Slider Items (with caching) - UPDATED: Use featured hostels
+            $heroSliderItems = $featuredHostels->isNotEmpty() ? $featuredHostels : Cache::remember('home_hero_slider_items', 3600, function () {
                 $items = Gallery::with(['hostel', 'room.hostel'])
                     ->where('is_active', true)
                     ->whereNotNull('file_path')
@@ -180,7 +205,8 @@ class PublicController extends Controller
                 'heroSliderItems',
                 'galleryItems',
                 'meals',
-                'featuredMealMenus'
+                'featuredMealMenus',
+                'featuredHostels' // ✅ NEW: Add featured hostels
             ));
         } catch (\Exception $e) {
             Log::error('PublicController@home error: ' . $e->getMessage());
@@ -208,7 +234,8 @@ class PublicController extends Controller
                 ]),
                 'galleryItems' => collect(),
                 'meals' => collect(),
-                'featuredMealMenus' => collect()
+                'featuredMealMenus' => collect(),
+                'featuredHostels' => collect() // ✅ NEW: Add empty collection for error case
             ]);
         }
     }

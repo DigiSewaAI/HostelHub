@@ -58,10 +58,31 @@ class DashboardController extends Controller
     }
 
     /**
+     * ✅ CRITICAL FIX: Ensure admin users have proper session setup
+     */
+    private function ensureAdminSession()
+    {
+        $user = auth()->user();
+
+        if ($user->hasRole('admin')) {
+            // ✅ Ensure admin has session organization set (can be null)
+            if (!session()->has('current_organization_id')) {
+                session(['current_organization_id' => null]);
+            }
+
+            // ✅ Clear any organization restrictions for admin
+            session(['admin_override' => true]);
+        }
+    }
+
+    /**
      * Admin dashboard with system-wide metrics
      */
     public function adminDashboard()
     {
+        // ✅ CRITICAL FIX: Ensure admin session is properly set
+        $this->ensureAdminSession();
+
         $this->authorize('view-admin-dashboard');
 
         $userId = auth()->id();
@@ -106,11 +127,11 @@ class DashboardController extends Controller
 
                 // Batch room status queries for efficiency with null safety
                 $roomStatus = Room::selectRaw('
-                    COUNT(CASE WHEN status = "available" THEN 1 END) as available,
-                    COUNT(CASE WHEN status = "occupied" THEN 1 END) as occupied,
-                    COUNT(CASE WHEN status = "reserved" THEN 1 END) as reserved,
-                    COUNT(CASE WHEN status = "maintenance" THEN 1 END) as maintenance
-                ')->first() ?? (object)[
+                COUNT(CASE WHEN status = "available" THEN 1 END) as available,
+                COUNT(CASE WHEN status = "occupied" THEN 1 END) as occupied,
+                COUNT(CASE WHEN status = "reserved" THEN 1 END) as reserved,
+                COUNT(CASE WHEN status = "maintenance" THEN 1 END) as maintenance
+            ')->first() ?? (object)[
                     'available' => 0,
                     'occupied' => 0,
                     'reserved' => 0,
