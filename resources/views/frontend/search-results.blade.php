@@ -179,25 +179,25 @@
                         </div>
 
                         <!-- Price Range Filter -->
-                        <div class="mb-6">
-                            <h4 class="font-semibold text-gray-800 mb-3 nepali">मूल्य दायरा</h4>
-                            <div class="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label class="block text-xs text-gray-600 mb-1 nepali">न्यूनतम</label>
-                                    <input type="number" name="min_price" 
-                                           value="{{ request('min_price') ?? ($searchFilters['min_price'] ?? '') }}"
-                                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                           placeholder="रु. ०">
-                                </div>
-                                <div>
-                                    <label class="block text-xs text-gray-600 mb-1 nepali">अधिकतम</label>
-                                    <input type="number" name="max_price" 
-                                           value="{{ request('max_price') ?? ($searchFilters['max_price'] ?? '') }}"
-                                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                           placeholder="रु. १००००">
-                                </div>
-                            </div>
-                        </div>
+<div class="mb-6">
+    <h4 class="font-semibold text-gray-800 mb-3 nepali">मूल्य दायरा</h4>
+    <div class="grid grid-cols-2 gap-3">
+        <div>
+            <label class="block text-xs text-gray-600 mb-1 nepali">न्यूनतम</label>
+            <input type="number" name="min_price" 
+                   value="{{ request('min_price', $searchFilters['min_price'] ?? '') }}"
+                   class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                   placeholder="रु. ०">
+        </div>
+        <div>
+            <label class="block text-xs text-gray-600 mb-1 nepali">अधिकतम</label>
+            <input type="number" name="max_price" 
+                   value="{{ request('max_price', $searchFilters['max_price'] ?? '10000') }}"
+                   class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                   placeholder="रु. १००००">
+        </div>
+    </div>
+</div>
 
                         <button type="submit" 
                                 class="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 rounded-lg font-semibold transition-all duration-300 nepali">
@@ -332,16 +332,15 @@
                                         @endif
                                     </div>
 
-                                    <!-- Price -->
+                                    <!-- Price - FIXED: Use calculated starting price -->
                                     <div class="text-center">
-                                        @if($minPrice > 0)
-                                        <span class="text-xl font-bold text-gray-900 nepali">रु. {{ number_format($minPrice) }}</span>
+                                        @if($hostel->starting_price > 0)
+                                        <span class="text-xl font-bold text-gray-900 nepali">रु. {{ number_format($hostel->starting_price) }}</span>
                                         <span class="text-gray-500 text-sm nepali block">सुरुवाती मूल्य</span>
                                         @else
                                         <span class="text-base font-semibold text-gray-500 nepali">मूल्य उपलब्ध छैन</span>
                                         @endif
                                     </div>
-                                </div>
 
                                 <!-- Three Button Layout - ALWAYS VISIBLE AT BOTTOM -->
                                 <div class="mt-auto pt-3 border-t border-gray-100">

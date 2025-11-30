@@ -380,7 +380,7 @@ class PublicController extends Controller
     }
 
     /**
-     * 🚨 FIXED: Unified search method without room type filters
+     * 🚨 FIXED: Unified search method with CORRECT price filtering
      */
     public function search(Request $request)
     {
@@ -389,7 +389,7 @@ class PublicController extends Controller
 
             // ✅ FIXED: Remove 'required' validation for city
             $request->validate([
-                'city' => 'nullable|string|min:2', // ✅ CHANGED: required -> nullable
+                'city' => 'nullable|string|min:2',
                 'hostel_id' => 'nullable|exists:hostels,id',
                 'check_in' => 'nullable|date',
                 'check_out' => 'nullable|date|after:check_in',
@@ -423,35 +423,85 @@ class PublicController extends Controller
                 });
             }
 
-            // 🔍 Price range filter - FIXED: Simple and effective approach
+            // 🔍 Price range filter - FINAL ULTIMATE FIX
             if ($request->filled('min_price') || $request->filled('max_price')) {
-                $minPrice = $request->get('min_price', 0);
-                $maxPrice = $request->get('max_price', 50000); // Reasonable max price
+                $minPrice = $request->filled('min_price') ? (float) $request->min_price : 0;
+                $maxPrice = $request->filled('max_price') ? (float) $request->max_price : 1000000;
 
-                $query->whereHas('rooms', function ($roomQuery) use ($minPrice, $maxPrice) {
-                    $roomQuery->where('status', 'available')
-                        ->where('available_beds', '>', 0);
-
-                    if ($minPrice > 0) {
-                        $roomQuery->where('price', '>=', $minPrice);
-                    }
-                    if ($maxPrice > 0) {
-                        $roomQuery->where('price', '<=', $maxPrice);
-                    }
-                });
-            }
-
-            // Temporary debugging code - remove after fixing
-            if ($request->filled('min_price') || $request->filled('max_price')) {
-                \Log::info("=== PRICE FILTER DEBUG ===", [
-                    'min_price' => $request->min_price,
-                    'max_price' => $request->max_price,
-                    'minPrice_parsed' => $minPrice ?? null,
-                    'maxPrice_parsed' => $maxPrice ?? null
+                \Log::info("🎯 ULTIMATE PRICE FILTER - FINAL:", [
+                    'min_price' => $minPrice,
+                    'max_price' => $maxPrice,
+                    'raw_min' => $request->min_price,
+                    'raw_max' => $request->max_price,
+                    'min_filled' => $request->filled('min_price'),
+                    'max_filled' => $request->filled('max_price')
                 ]);
+
+                // Get all hostel IDs from current query
+                $hostelIds = $query->pluck('id')->toArray();
+
+                \Log::info("🎯 Hostel IDs before price filter:", $hostelIds);
+
+                $filteredHostelIds = [];
+
+                foreach ($hostelIds as $hostelId) {
+                    $hostel = Hostel::find($hostelId);
+                    if (!$hostel) continue;
+
+                    $startingPrice = $hostel->min_price;
+
+                    // Skip if no starting price available
+                    if (is_null($startingPrice)) {
+                        continue;
+                    }
+
+                    // Convert to float for comparison
+                    $startingPrice = (float) $startingPrice;
+
+                    // ✅ CRITICAL FIX: Proper range checking with detailed logging
+                    $includeHostel = true;
+
+                    // Min price check
+                    if ($minPrice > 0 && $startingPrice < $minPrice) {
+                        $includeHostel = false;
+                        \Log::info("❌ MIN PRICE FILTER - Excluding: {$hostel->name}", [
+                            'starting_price' => $startingPrice,
+                            'min_filter' => $minPrice,
+                            'reason' => 'Starting price less than min filter'
+                        ]);
+                    }
+
+                    // Max price check (ONLY if max_price is provided and > 0)
+                    if ($maxPrice > 0 && $maxPrice < 1000000 && $startingPrice > $maxPrice) {
+                        $includeHostel = false;
+                        \Log::info("❌ MAX PRICE FILTER - Excluding: {$hostel->name}", [
+                            'starting_price' => $startingPrice,
+                            'max_filter' => $maxPrice,
+                            'reason' => 'Starting price greater than max filter'
+                        ]);
+                    }
+
+                    if ($includeHostel) {
+                        $filteredHostelIds[] = $hostelId;
+                        \Log::info("✅ INCLUDED - {$hostel->name} passed price filter", [
+                            'starting_price' => $startingPrice,
+                            'min_filter' => $minPrice,
+                            'max_filter' => $maxPrice
+                        ]);
+                    }
+                }
+
+                \Log::info("🎯 Final filtered hostel IDs:", $filteredHostelIds);
+
+                // Apply the final filter
+                if (!empty($filteredHostelIds)) {
+                    $query->whereIn('id', $filteredHostelIds);
+                } else {
+                    $query->where('id', 0);
+                }
             }
 
-            // 🔍 Hostel type filter (boys/girls) - FIXED: Search in name and description
+            // 🔍 Hostel type filter (boys/girls)
             if ($request->filled('hostel_type') && $request->hostel_type != 'all') {
                 $hostelType = $request->hostel_type;
                 $query->where(function ($q) use ($hostelType) {
@@ -486,22 +536,15 @@ class PublicController extends Controller
                 });
             }
 
-            // Get hostels with relationships
+            // ✅ Get hostels with relationships
             $hostels = $query->with([
                 'images',
                 'reviews' => function ($query) {
                     $query->where('is_published', true);
                 },
-                'rooms' => function ($roomQuery) use ($request) {
+                'rooms' => function ($roomQuery) {
                     $roomQuery->where('status', 'available')
                         ->where('available_beds', '>', 0);
-
-                    // Apply room-specific price filters
-                    if ($request->filled('min_price') || $request->filled('max_price')) {
-                        $minPrice = $request->get('min_price', 0);
-                        $maxPrice = $request->get('max_price', 100000);
-                        $roomQuery->whereBetween('price', [$minPrice, $maxPrice]);
-                    }
                 }
             ])
                 ->withCount(['rooms as available_rooms_count' => function ($roomQuery) {
@@ -509,6 +552,7 @@ class PublicController extends Controller
                         ->where('available_beds', '>', 0);
                 }])
                 ->withAvg('reviews', 'rating')
+                ->orderBy('created_at', 'desc') // ✅ FIXED: Display order - newest first
                 ->paginate(12);
 
             // Get cities for filters

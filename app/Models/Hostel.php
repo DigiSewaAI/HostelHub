@@ -331,6 +331,116 @@ class Hostel extends Model
         return $statuses[$this->status] ?? $this->status;
     }
 
+    /**
+     * Get available rooms for this hostel - FIXED: Only rooms with available beds
+     */
+    public function getAvailableRooms()
+    {
+        return $this->rooms()
+            ->where('status', 'available')
+            ->where('available_beds', '>', 0)
+            ->get();
+    }
+
+    /**
+     * Get minimum price from available rooms - FIXED: Only consider available rooms
+     */
+    public function getMinPriceAttribute()
+    {
+        $availableRooms = $this->getAvailableRooms();
+
+        // ✅ CRITICAL FIX: Filter out rooms with 0 available beds and null prices
+        $availableRooms = $availableRooms->filter(function ($room) {
+            return $room->available_beds > 0 && $room->price > 0;
+        });
+
+        return $availableRooms->isNotEmpty() ? $availableRooms->min('price') : null;
+    }
+
+    /**
+     * Get maximum price from available rooms - FIXED: Only consider available rooms
+     */
+    public function getMaxPriceAttribute()
+    {
+        $availableRooms = $this->getAvailableRooms();
+
+        // ✅ CRITICAL FIX: Filter out rooms with 0 available beds and null prices
+        $availableRooms = $availableRooms->filter(function ($room) {
+            return $room->available_beds > 0 && $room->price > 0;
+        });
+
+        return $availableRooms->isNotEmpty() ? $availableRooms->max('price') : null;
+    }
+
+    /**
+     * Get formatted price range for display
+     */
+    public function getFormattedPriceRangeAttribute()
+    {
+        $min = $this->min_price;
+        $max = $this->max_price;
+
+        if ($min && $max) {
+            if ($min === $max) {
+                return 'रु. ' . number_format($min);
+            }
+            return 'रु. ' . number_format($min) . ' - ' . number_format($max);
+        } elseif ($min) {
+            return 'रु. ' . number_format($min);
+        }
+
+        return 'मूल्य उपलब्ध छैन';
+    }
+
+    /**
+     * Get the starting price (minimum price of available rooms)
+     */
+    public function getStartingPriceAttribute()
+    {
+        $cheapestRoom = $this->rooms()
+            ->where('status', 'available')
+            ->where('available_beds', '>', 0)
+            ->orderBy('price', 'asc')
+            ->first();
+
+        return $cheapestRoom ? $cheapestRoom->price : null;
+    }
+
+    /**
+     * Get formatted starting price for display
+     */
+    public function getFormattedStartingPriceAttribute()
+    {
+        $startingPrice = $this->starting_price;
+        return $startingPrice ? 'रु. ' . number_format($startingPrice) : 'मूल्य उपलब्ध छैन';
+    }
+
+    /**
+     * TEMPORARY: Debug method to check room prices
+     */
+    public function debugRoomPrices()
+    {
+        $availableRooms = $this->getAvailableRooms();
+
+        return [
+            'hostel' => $this->name,
+            'total_rooms' => $this->rooms->count(),
+            'available_rooms' => $availableRooms->count(),
+            'min_price' => $availableRooms->min('price'),
+            'max_price' => $availableRooms->max('price'),
+            'all_prices' => $availableRooms->pluck('price')->toArray(),
+            'rooms_details' => $availableRooms->map(function ($room) {
+                return [
+                    'room_number' => $room->room_number,
+                    'type' => $room->type,
+                    'price' => $room->price,
+                    'available_beds' => $room->available_beds,
+                    'status' => $room->status
+                ];
+            })->toArray()
+        ];
+    }
+
     // ✅ Check if hostel can be deleted
     public function getCanBeDeletedAttribute()
     {
