@@ -302,39 +302,90 @@
         width: 95%;
     }
 
-    /* 🚨 UPDATED: CTA SECTION - MOVED UP LIKE ABOUT PAGE */
+    /* 🚨 UPDATED: CTA SECTION - EXACTLY LIKE PRICING PAGE */
+.gallery-cta-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding: 1.5rem 1.5rem 2rem 1.5rem; /* Reduced padding - top: 1.5rem, bottom: 2rem */
+    margin-top: 1rem; /* Reduced margin to bring it closer */
+}
+
+.gallery-cta-section {
+    text-align: center;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    padding: 2.5rem 2rem; /* Reduced from 3rem to 2.5rem */
+    border-radius: 1rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+    max-width: 800px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.gallery-cta-section h2 {
+    font-size: 1.75rem; /* Slightly smaller */
+    font-weight: bold;
+    margin-bottom: 0.75rem; /* Reduced margin */
+    color: white;
+}
+
+.gallery-cta-section p {
+    font-size: 1.125rem; /* Slightly smaller */
+    margin-bottom: 1.5rem; /* Reduced margin */
+    opacity: 0.9;
+}
+
+.gallery-cta-buttons-container {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1rem; /* Reduced margin */
+    width: 100%;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
     .gallery-cta-wrapper {
-        width: 100%;
-        display: flex;
-        justify-content: center;
-        padding: 2rem 1.5rem 4rem 1.5rem; /* Reduced bottom padding from 8rem to 4rem */
-        margin-top: 2rem; /* Added top margin to bring it up */
+        padding: 1rem 1rem 1.5rem 1rem; /* Further reduced mobile padding */
     }
     
     .gallery-cta-section {
-        text-align: center;
-        background: linear-gradient(135deg, var(--primary), var(--secondary));
-        color: white;
-        padding: 3rem 2rem;
-        border-radius: 1rem;
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
-        max-width: 800px;
-        width: 100%;
-        margin: 0 auto;
+        padding: 2rem 1.5rem; /* Reduced mobile padding */
     }
     
     .gallery-cta-section h2 {
-        font-size: 1.875rem;
-        font-weight: bold;
-        margin-bottom: 1rem;
-        color: white;
+        font-size: 1.5rem;
     }
     
     .gallery-cta-section p {
-        font-size: 1.25rem;
-        margin-bottom: 2rem;
-        opacity: 0.9;
+        font-size: 1rem;
+        margin-bottom: 1.25rem;
     }
+    
+    .gallery-cta-buttons-container {
+        margin-top: 0.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .gallery-cta-wrapper {
+        padding: 0.75rem 1rem 1.25rem 1rem;
+    }
+    
+    .gallery-cta-section {
+        padding: 1.5rem 1rem;
+    }
+    
+    .gallery-cta-section h2 {
+        font-size: 1.3rem;
+    }
+    
+    .gallery-cta-section p {
+        font-size: 0.9rem;
+    }
+}
     
     .gallery-trial-button {
         background-color: white;

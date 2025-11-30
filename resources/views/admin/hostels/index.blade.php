@@ -336,19 +336,27 @@
                                     @endif
                                 </span>
                             </td>
-                            <td>
-                                @if($hostel->is_published)
-                                    <span class="badge bg-success">
-                                        <i class="fas fa-check me-1"></i>प्रकाशित
-                                    </span>
-                                    <br>
-                                    <small class="text-muted">{{ $hostel->published_at?->format('Y-m-d') }}</small>
-                                @else
-                                    <span class="badge bg-secondary">
-                                        <i class="fas fa-times me-1"></i>अप्रकाशित
-                                    </span>
-                                @endif
-                            </td>
+                            <td class="text-center">
+    @if($hostel->is_published)
+        <span class="badge bg-success mb-2 d-block">प्रकाशित</span>
+        <form action="/admin/hostels/{{ $hostel->id }}/unpublish-now" method="POST" class="d-inline">
+            @csrf
+            <button type="submit" class="btn btn-warning btn-sm" 
+                    onclick="return confirm('यो होस्टल अप्रकाशित गर्नुहुन्छ?')">
+                अप्रकाशित
+            </button>
+        </form>
+    @else
+        <span class="badge bg-secondary mb-2 d-block">अप्रकाशित</span>
+        <form action="/admin/hostels/{{ $hostel->id }}/publish-now" method="POST" class="d-inline">
+            @csrf
+            <button type="submit" class="btn btn-success btn-sm"
+                    onclick="return confirm('यो होस्टल प्रकाशित गर्नुहुन्छ?')">
+                प्रकाशित
+            </button>
+        </form>
+    @endif
+</td>
                             <td>
                                 <div class="btn-group" role="group">
                                     <!-- View Button -->
@@ -366,31 +374,6 @@
                                        data-bs-toggle="tooltip">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    
-                                    <!-- Publish/Unpublish Button -->
-                                    @if($hostel->is_published)
-                                        <form action="{{ route('admin.hostels.unpublish', $hostel) }}" method="POST" class="d-inline">
-                                            @csrf
-                                            <button type="submit" 
-                                                    class="btn btn-sm btn-secondary"
-                                                    title="अप्रकाशित गर्नुहोस्"
-                                                    data-bs-toggle="tooltip"
-                                                    onclick="return confirm('के तपाइँ यो होस्टल अप्रकाशित गर्न चाहनुहुन्छ?')">
-                                                <i class="fas fa-eye-slash"></i>
-                                            </button>
-                                        </form>
-                                    @else
-                                        <form action="{{ route('admin.hostels.publish', $hostel) }}" method="POST" class="d-inline">
-                                            @csrf
-                                            <button type="submit" 
-                                                    class="btn btn-sm btn-success"
-                                                    title="प्रकाशित गर्नुहोस्"
-                                                    data-bs-toggle="tooltip"
-                                                    onclick="return confirm('के तपाइँ यो होस्टल प्रकाशित गर्न चाहनुहुन्छ?')">
-                                                <i class="fas fa-globe"></i>
-                                            </button>
-                                        </form>
-                                    @endif
 
                                     <!-- Live View Button -->
                                     @if($hostel->is_published && $hostel->slug)
@@ -745,6 +728,31 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }, 5000);
     }
+
+    // 🔥 CRITICAL FIX: Single Hostel Form Protection
+    // Prevent bulk operations from interfering with single forms
+    const singleForms = document.querySelectorAll('.single-hostel-form');
+    
+    singleForms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            // Ensure this form submits independently
+            console.log('Single hostel form submitting to:', this.action);
+            
+            // Show loading state
+            const button = this.querySelector('button[type="submit"]');
+            if (button) {
+                const originalText = button.innerHTML;
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>प्रक्रिया हुदैछ...';
+                
+                // Reset after 3 seconds if something goes wrong
+                setTimeout(() => {
+                    button.disabled = false;
+                    button.innerHTML = originalText;
+                }, 3000);
+            }
+        });
+    });
 
     // Export functionality
     const exportBtn = document.getElementById('exportBtn');

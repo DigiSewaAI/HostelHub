@@ -4,11 +4,11 @@
 @section('meta-description', 'तपाईंको खोजी अनुसारको कोठा र होस्टलहरू')
 
 @section('content')
-<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 py-8">
-    <div class="container mx-auto px-4">
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 py-2">
+    <div class="w-full px-2">
         <!-- Enhanced Search Header -->
-        <div class="mb-8">
-            <div class="bg-white rounded-2xl shadow-lg border border-blue-100 p-6 transform transition-all duration-300 hover:shadow-xl">
+        <div class="mb-2">
+            <div class="bg-white rounded-xl shadow-lg border border-blue-100 p-4 transform transition-all duration-300 hover:shadow-xl">
                 <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
                     <div class="mb-4 lg:mb-0">
                         <div class="flex items-center mb-3">
@@ -117,32 +117,32 @@
             </div>
         </div>
 
-        <div class="flex flex-col lg:flex-row gap-8">
+        <div class="flex flex-col lg:flex-row gap-2 px-2">
             <!-- Advanced Filter Sidebar -->
-            <div class="lg:w-1/4">
-                <div class="bg-white rounded-2xl shadow-lg border border-blue-100 p-6 sticky top-8">
-                    <h3 class="text-lg font-bold text-gray-900 mb-4 nepali border-b border-gray-200 pb-3">फिल्टरहरू</h3>
+            <div class="lg:w-1/6">
+                <div class="bg-white rounded-xl shadow-lg border border-blue-100 p-3 sticky top-2">
+                    <h3 class="text-md font-bold text-gray-900 mb-3 nepali border-b border-gray-200 pb-2">फिल्टरहरू</h3>
                     
                     <!-- Functional Filter Form -->
-                    <form action="{{ route('search') }}" method="GET" class="mb-6" id="filter-form">
+                    <form action="{{ route('search') }}" method="GET" class="mb-4" id="filter-form">
                         <!-- Hidden fields to preserve existing filters -->
                         <input type="hidden" name="city" value="{{ request('city') ?? ($searchFilters['city'] ?? '') }}">
                         <input type="hidden" name="check_in" value="{{ request('check_in') ?? ($searchFilters['check_in'] ?? '') }}">
                         <input type="hidden" name="check_out" value="{{ request('check_out') ?? ($searchFilters['check_out'] ?? '') }}">
                         <input type="hidden" name="hostel_id" value="{{ request('hostel_id') ?? ($searchFilters['hostel_id'] ?? '') }}">
                         
-                        <div class="mb-4">
+                        <div class="mb-3">
                             <label class="block text-sm font-medium text-gray-700 mb-2 nepali">खोजी गर्नुहोस्</label>
                             <input type="text" name="q" value="{{ request('q') ?? ($searchFilters['q'] ?? '') }}" 
-                                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 nepali"
+                                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 nepali text-sm"
                                    placeholder="होस्टलको नाम वा स्थान...">
                         </div>
                         
                         <!-- City Filter -->
                         @if(isset($cities) && $cities->count() > 0)
-                        <div class="mb-4">
+                        <div class="mb-3">
                             <label class="block text-sm font-medium text-gray-700 mb-2 nepali">शहर</label>
-                            <select name="city" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 nepali">
+                            <select name="city" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 nepali text-sm">
                                 <option value="">सबै शहर</option>
                                 @foreach($cities as $city)
                                     <option value="{{ $city }}" {{ (request('city') ?? ($searchFilters['city'] ?? '')) == $city ? 'selected' : '' }}>
@@ -154,71 +154,71 @@
                         @endif
 
                         <!-- Hostel Type Filter -->
-                        <div class="mb-6">
-                            <h4 class="font-semibold text-gray-800 mb-3 nepali">होस्टल प्रकार</h4>
+                        <div class="mb-4">
+                            <h4 class="font-semibold text-gray-800 mb-2 nepali text-sm">होस्टल प्रकार</h4>
                             <div class="space-y-2">
                                 <div class="flex items-center">
                                     <input type="radio" id="type-all" name="hostel_type" value="all" 
                                            {{ (request('hostel_type') ?? ($searchFilters['hostel_type'] ?? 'all')) == 'all' ? 'checked' : '' }}
-                                           class="mr-3 text-blue-600 focus:ring-blue-500">
-                                    <label for="type-all" class="text-gray-700 nepali text-sm">सबै प्रकार</label>
+                                           class="mr-2 text-blue-600 focus:ring-blue-500">
+                                    <label for="type-all" class="text-gray-700 nepali text-xs">सबै प्रकार</label>
                                 </div>
                                 <div class="flex items-center">
                                     <input type="radio" id="type-boys" name="hostel_type" value="boys" 
                                            {{ (request('hostel_type') ?? ($searchFilters['hostel_type'] ?? '')) == 'boys' ? 'checked' : '' }}
-                                           class="mr-3 text-blue-600 focus:ring-blue-500">
-                                    <label for="type-boys" class="text-gray-700 nepali text-sm">ब्वाइज होस्टल</label>
+                                           class="mr-2 text-blue-600 focus:ring-blue-500">
+                                    <label for="type-boys" class="text-gray-700 nepali text-xs">ब्वाइज होस्टल</label>
                                 </div>
                                 <div class="flex items-center">
                                     <input type="radio" id="type-girls" name="hostel_type" value="girls" 
                                            {{ (request('hostel_type') ?? ($searchFilters['hostel_type'] ?? '')) == 'girls' ? 'checked' : '' }}
-                                           class="mr-3 text-blue-600 focus:ring-blue-500">
-                                    <label for="type-girls" class="text-gray-700 nepali text-sm">गर्ल्स होस्टल</label>
+                                           class="mr-2 text-blue-600 focus:ring-blue-500">
+                                    <label for="type-girls" class="text-gray-700 nepali text-xs">गर्ल्स होस्टल</label>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Price Range Filter -->
-<div class="mb-6">
-    <h4 class="font-semibold text-gray-800 mb-3 nepali">मूल्य दायरा</h4>
-    <div class="grid grid-cols-2 gap-3">
-        <div>
-            <label class="block text-xs text-gray-600 mb-1 nepali">न्यूनतम</label>
-            <input type="number" name="min_price" 
-                   value="{{ request('min_price', $searchFilters['min_price'] ?? '') }}"
-                   class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                   placeholder="रु. ०">
-        </div>
-        <div>
-            <label class="block text-xs text-gray-600 mb-1 nepali">अधिकतम</label>
-            <input type="number" name="max_price" 
-                   value="{{ request('max_price', $searchFilters['max_price'] ?? '10000') }}"
-                   class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                   placeholder="रु. १००००">
-        </div>
-    </div>
-</div>
+                        <div class="mb-4">
+                            <h4 class="font-semibold text-gray-800 mb-2 nepali text-sm">मूल्य दायरा</h4>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-xs text-gray-600 mb-1 nepali">न्यूनतम</label>
+                                    <input type="number" name="min_price" 
+                                           value="{{ request('min_price', $searchFilters['min_price'] ?? '') }}"
+                                           class="w-full border border-gray-300 rounded-lg px-2 py-1 text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                           placeholder="रु. ०">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-600 mb-1 nepali">अधिकतम</label>
+                                    <input type="number" name="max_price" 
+                                           value="{{ request('max_price', $searchFilters['max_price'] ?? '10000') }}"
+                                           class="w-full border border-gray-300 rounded-lg px-2 py-1 text-xs focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                           placeholder="रु. १००००">
+                                </div>
+                            </div>
+                        </div>
 
                         <button type="submit" 
-                                class="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 rounded-lg font-semibold transition-all duration-300 nepali">
+                                class="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-2 rounded-lg font-semibold transition-all duration-300 nepali text-sm">
                             फिल्टर लागू गर्नुहोस्
                         </button>
                         
                         <!-- Reset Filters -->
                         <button type="button" onclick="resetFilters()" 
-                                class="w-full mt-2 bg-gray-100 border border-gray-300 text-gray-700 py-2 rounded-lg font-semibold hover:bg-gray-200 transition-colors nepali">
+                                class="w-full mt-2 bg-gray-100 border border-gray-300 text-gray-700 py-2 rounded-lg font-semibold hover:bg-gray-200 transition-colors nepali text-sm">
                             फिल्टर रिसेट गर्नुहोस्
                         </button>
                     </form>
 
                     <!-- Quick Actions -->
-                    <div class="space-y-3">
+                    <div class="space-y-2">
                         <a href="{{ route('hostels.index') }}"
-                           class="block w-full text-center bg-blue-50 border border-blue-200 text-blue-700 py-2 rounded-lg font-semibold hover:bg-blue-100 transition-colors nepali">
+                           class="block w-full text-center bg-blue-50 border border-blue-200 text-blue-700 py-2 rounded-lg font-semibold hover:bg-blue-100 transition-colors nepali text-sm">
                             सबै होस्टल हेर्नुहोस्
                         </a>
                         <a href="{{ url('/gallery') }}" 
-                           class="block w-full text-center bg-green-50 border border-green-200 text-green-700 py-2 rounded-lg font-semibold hover:bg-green-100 transition-colors nepali">
+                           class="block w-full text-center bg-green-50 border border-green-200 text-green-700 py-2 rounded-lg font-semibold hover:bg-green-100 transition-colors nepali text-sm">
                             मुख्य ग्यालरी हेर्नुहोस्
                         </a>
                     </div>
@@ -226,16 +226,16 @@
             </div>
 
             <!-- Main Content -->
-            <div class="lg:w-3/4">
+            <div class="lg:w-5/6">
                 <!-- Sorting Options -->
-                <div class="bg-white rounded-2xl shadow-lg border border-blue-100 p-4 mb-6">
+                <div class="bg-white rounded-xl shadow-lg border border-blue-100 p-3 mb-3">
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                        <div class="flex items-center mb-3 sm:mb-0">
-                            <span class="text-gray-600 mr-3 nepali">कुल {{ $hostels->total() }} वटा होस्टल</span>
+                        <div class="flex items-center mb-2 sm:mb-0">
+                            <span class="text-gray-600 mr-3 nepali text-sm">कुल {{ $hostels->total() }} वटा होस्टल</span>
                         </div>
                         <div class="flex items-center">
-                            <span class="text-gray-600 mr-3 nepali">क्रमबद्ध गर्नुहोस्:</span>
-                            <select class="border border-gray-300 rounded-lg px-4 py-2 bg-white text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 nepali">
+                            <span class="text-gray-600 mr-3 nepali text-sm">क्रमबद्ध गर्नुहोस्:</span>
+                            <select class="border border-gray-300 rounded-lg px-3 py-2 bg-white text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 nepali text-sm">
                                 <option>सिफारिस गरिएको</option>
                                 <option>मूल्य: कम-उच्च</option>
                                 <option>मूल्य: उच्च-कम</option>
@@ -246,11 +246,11 @@
                     </div>
                 </div>
 
-                <!-- Enhanced Hostels Grid -->
+                <!-- Enhanced Hostels Grid - 3 COLUMNS WITH MINIMAL GAP -->
                 @if($hostels->count() > 0)
-                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-6 mb-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 mb-6">
                     @foreach($hostels as $hostel)
-                        <!-- FINAL FIXED HOSTEL CARD - WITH COVER IMAGE BACKGROUND -->
+                        <!-- COMPACT HOSTEL CARD -->
                         @php
                             $mainImage = $hostel->images->first();
                             $avgRating = $hostel->reviews_avg_rating ?? 0;
@@ -265,17 +265,17 @@
                             $coverImage = $hostel->cover_image ? asset('storage/' . $hostel->cover_image) : $hostelImage;
                         @endphp
 
-                        <div class="group bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 relative min-h-[450px] flex flex-col">
+                        <div class="group bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-1 relative min-h-[380px] flex flex-col">
                             <!-- Top Section with Cover Image as Background -->
-                            <div class="h-48 relative overflow-hidden flex-shrink-0" style="background-image: url('{{ $coverImage }}'); background-size: cover; background-position: center;">
+                            <div class="h-36 relative overflow-hidden flex-shrink-0" style="background-image: url('{{ $coverImage }}'); background-size: cover; background-position: center;">
                                 <!-- Minimal Overlay for Better Text Readability -->
                                 <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
                                 
                                 <!-- Badges on Image -->
-                                <div class="absolute top-3 left-3 right-3 flex justify-between items-start">
+                                <div class="absolute top-2 left-2 right-2 flex justify-between items-start">
                                     <!-- Premium Badge -->
                                     @if($availableRooms > 5)
-                                    <span class="px-3 py-1 bg-gradient-to-r from-yellow-400 to-yellow-500 text-black text-xs font-bold rounded-full shadow-lg flex items-center border border-yellow-300">
+                                    <span class="px-2 py-1 bg-gradient-to-r from-yellow-400 to-yellow-500 text-black text-xs font-bold rounded-full shadow-lg flex items-center border border-yellow-300">
                                         <i class="fas fa-crown mr-1 text-xs"></i>
                                         PREMIUM
                                     </span>
@@ -285,7 +285,7 @@
 
                                     <!-- Rating Badge -->
                                     @if($avgRating > 0)
-                                    <span class="px-3 py-1 bg-black/70 text-white text-sm font-bold rounded-full flex items-center">
+                                    <span class="px-2 py-1 bg-black/70 text-white text-xs font-bold rounded-full flex items-center">
                                         <i class="fas fa-star text-yellow-400 mr-1"></i>
                                         {{ number_format($avgRating, 1) }}
                                         <span class="text-xs opacity-80 ml-1">({{ $reviewCount }})</span>
@@ -294,39 +294,39 @@
                                 </div>
 
                                 <!-- Location Badge -->
-                                <div class="absolute bottom-3 left-3">
-                                    <span class="px-3 py-1 bg-white/90 text-gray-800 text-sm font-semibold rounded-full nepali shadow-lg flex items-center">
-                                        <i class="fas fa-map-marker-alt mr-2 text-blue-600 text-xs"></i>
+                                <div class="absolute bottom-2 left-2">
+                                    <span class="px-2 py-1 bg-white/90 text-gray-800 text-xs font-semibold rounded-full nepali shadow-lg flex items-center">
+                                        <i class="fas fa-map-marker-alt mr-1 text-blue-600 text-xs"></i>
                                         {{ $hostel->city }}
                                     </span>
                                 </div>
                             </div>
 
                             <!-- Bottom Content Section - Light Background with Dark Text -->
-                            <div class="p-4 flex flex-col flex-grow">
+                            <div class="p-3 flex flex-col flex-grow">
                                 <!-- Title and Description -->
-                                <div class="mb-3 flex-grow">
-                                    <h3 class="text-lg font-bold text-gray-900 nepali mb-2 leading-tight">
+                                <div class="mb-2 flex-grow">
+                                    <h3 class="text-md font-bold text-gray-900 nepali mb-1 leading-tight">
                                         {{ $hostel->name }}
                                     </h3>
                                     
-                                    <p class="text-gray-600 text-sm nepali leading-relaxed line-clamp-3 mb-3">
-                                        {{ \Illuminate\Support\Str::limit($hostel->description, 100) }}
+                                    <p class="text-gray-600 text-xs nepali leading-relaxed line-clamp-2 mb-2">
+                                        {{ \Illuminate\Support\Str::limit($hostel->description, 70) }}
                                     </p>
                                 </div>
 
                                 <!-- Availability and Price Section - FIXED AVAILABILITY BADGE VISIBILITY -->
-                                <div class="mb-4">
+                                <div class="mb-2">
                                     <!-- Availability Badge - IMPROVED VISIBILITY -->
-                                    <div class="mb-3">
+                                    <div class="mb-2">
                                         @if($availableRooms > 0)
-                                        <span class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white text-sm font-bold rounded-lg nepali shadow-lg w-full justify-center">
-                                            <i class="fas fa-key mr-2 text-sm"></i>
+                                        <span class="inline-flex items-center px-2 py-1 bg-gradient-to-r from-green-500 to-green-600 text-white text-xs font-bold rounded-lg nepali shadow-lg w-full justify-center">
+                                            <i class="fas fa-key mr-1 text-xs"></i>
                                             {{ $availableRooms }} कोठा उपलब्ध
                                         </span>
                                         @else
-                                        <span class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white text-sm font-bold rounded-lg nepali shadow-lg w-full justify-center">
-                                            <i class="fas fa-times mr-2 text-sm"></i>
+                                        <span class="inline-flex items-center px-2 py-1 bg-gradient-to-r from-red-500 to-red-600 text-white text-xs font-bold rounded-lg nepali shadow-lg w-full justify-center">
+                                            <i class="fas fa-times mr-1 text-xs"></i>
                                             कोठा नभएको
                                         </span>
                                         @endif
@@ -335,28 +335,29 @@
                                     <!-- Price - FIXED: Use calculated starting price -->
                                     <div class="text-center">
                                         @if($hostel->starting_price > 0)
-                                        <span class="text-xl font-bold text-gray-900 nepali">रु. {{ number_format($hostel->starting_price) }}</span>
-                                        <span class="text-gray-500 text-sm nepali block">सुरुवाती मूल्य</span>
+                                        <span class="text-md font-bold text-gray-900 nepali">रु. {{ number_format($hostel->starting_price) }}</span>
+                                        <span class="text-gray-500 text-xs nepali block">सुरुवाती मूल्य</span>
                                         @else
-                                        <span class="text-base font-semibold text-gray-500 nepali">मूल्य उपलब्ध छैन</span>
+                                        <span class="text-sm font-semibold text-gray-500 nepali">मूल्य उपलब्ध छैन</span>
                                         @endif
                                     </div>
+                                </div>
 
                                 <!-- Three Button Layout - ALWAYS VISIBLE AT BOTTOM -->
-                                <div class="mt-auto pt-3 border-t border-gray-100">
-                                    <div class="grid grid-cols-3 gap-2">
+                                <div class="mt-auto pt-2 border-t border-gray-100">
+                                    <div class="grid grid-cols-3 gap-1">
                                         <!-- विवरण हेर्नुहोस् Button -->
                                         <a href="{{ route('hostels.show', $hostel->slug) }}" 
-                                           class="inline-flex items-center justify-center px-3 py-2 bg-blue-600 text-white font-semibold rounded-lg transition-all duration-300 hover:bg-blue-700 hover:shadow-lg nepali text-xs text-center">
+                                           class="inline-flex items-center justify-center px-1 py-1 bg-blue-600 text-white font-semibold rounded-lg transition-all duration-300 hover:bg-blue-700 hover:shadow-lg nepali text-xs text-center">
                                             <i class="fas fa-info-circle mr-1 text-xs"></i>
-                                            पृष्ठ हेर्नुहोस्
+                                            पृष्ठ
                                         </a>
 
                                         <!-- कोठा हेर्नुहोस् Button -->
                                         <a href="{{ route('hostel.gallery', $hostel->slug) }}" 
-                                           class="inline-flex items-center justify-center px-3 py-2 bg-purple-600 text-white font-semibold rounded-lg transition-all duration-300 hover:bg-purple-700 hover:shadow-lg nepali text-xs text-center">
+                                           class="inline-flex items-center justify-center px-1 py-1 bg-purple-600 text-white font-semibold rounded-lg transition-all duration-300 hover:bg-purple-700 hover:shadow-lg nepali text-xs text-center">
                                             <i class="fas fa-images mr-1 text-xs"></i>
-                                            कोठाहरू
+                                            कोठा
                                         </a>
 
                                         <!-- बुक गर्नुहोस् Button -->
@@ -372,13 +373,13 @@
                                             @endphp
                                             
                                             <a href="{{ $bookingUrl }}" 
-                                               class="inline-flex items-center justify-center px-3 py-2 bg-green-600 text-white font-semibold rounded-lg transition-all duration-300 hover:bg-green-700 hover:shadow-lg nepali text-xs text-center">
+                                               class="inline-flex items-center justify-center px-1 py-1 bg-green-600 text-white font-semibold rounded-lg transition-all duration-300 hover:bg-green-700 hover:shadow-lg nepali text-xs text-center">
                                                 <i class="fas fa-calendar-check mr-1 text-xs"></i>
-                                                बुक गर्नुहोस्
+                                                बुक
                                             </a>
                                         @else
                                         <button disabled
-                                           class="inline-flex items-center justify-center px-3 py-2 bg-gray-400 text-white font-semibold rounded-lg cursor-not-allowed nepali text-xs text-center">
+                                           class="inline-flex items-center justify-center px-1 py-1 bg-gray-400 text-white font-semibold rounded-lg cursor-not-allowed nepali text-xs text-center">
                                             <i class="fas fa-times mr-1 text-xs"></i>
                                             नभएको
                                         </button>
@@ -392,7 +393,7 @@
 
                 <!-- Enhanced Pagination -->
                 @if(method_exists($hostels, 'links') && $hostels->hasPages())
-                <div class="bg-white rounded-2xl shadow-lg border border-blue-100 p-6">
+                <div class="bg-white rounded-xl shadow-lg border border-blue-100 p-4">
                     <div class="flex justify-center">
                         {{ $hostels->links() }}
                     </div>
@@ -401,25 +402,25 @@
 
                 @else
                 <!-- Enhanced Empty State -->
-                <div class="text-center py-16">
+                <div class="text-center py-12">
                     <div class="max-w-md mx-auto">
-                        <div class="w-32 h-32 mx-auto mb-6 bg-gradient-to-br from-blue-100 to-indigo-200 rounded-full flex items-center justify-center shadow-lg">
-                            <i class="fas fa-search text-blue-400 text-5xl"></i>
+                        <div class="w-24 h-24 mx-auto mb-4 bg-gradient-to-br from-blue-100 to-indigo-200 rounded-full flex items-center justify-center shadow-lg">
+                            <i class="fas fa-search text-blue-400 text-3xl"></i>
                         </div>
-                        <h3 class="text-2xl font-bold text-gray-900 mb-3 nepali">कुनै होस्टल फेला परेन</h3>
-                        <p class="text-gray-600 mb-8 nepali text-lg leading-relaxed">
+                        <h3 class="text-xl font-bold text-gray-900 mb-2 nepali">कुनै होस्टल फेला परेन</h3>
+                        <p class="text-gray-600 mb-6 nepali text-sm leading-relaxed">
                             तपाईंको खोजी मिल्ने कुनै होस्टल उपलब्ध छैन। 
                             कृपया अरू स्थान वा होस्टल छनौट गर्नुहोस्।
                         </p>
-                        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                        <div class="flex flex-col sm:flex-row gap-3 justify-center">
                             <a href="{{ route('home') }}" 
-                               class="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl transition-all duration-300 transform hover:-translate-y-1 shadow-lg hover:shadow-xl nepali">
-                                <i class="fas fa-home mr-3"></i>
+                               class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl transition-all duration-300 transform hover:-translate-y-1 shadow-lg hover:shadow-xl nepali text-sm">
+                                <i class="fas fa-home mr-2"></i>
                                 गृहपृष्ठमा जानुहोस्
                             </a>
                             <a href="{{ route('hostels.index') }}" 
-                               class="inline-flex items-center px-8 py-4 bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-semibold rounded-xl transition-all duration-300 transform hover:-translate-y-1 shadow-lg hover:shadow-xl nepali">
-                                <i class="fas fa-building mr-3"></i>
+                               class="inline-flex items-center px-6 py-3 bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-semibold rounded-xl transition-all duration-300 transform hover:-translate-y-1 shadow-lg hover:shadow-xl nepali text-sm">
+                                <i class="fas fa-building mr-2"></i>
                                 सबै होस्टल हेर्नुहोस्
                             </a>
                         </div>
@@ -437,6 +438,13 @@
     font-family: 'Preeti', 'Mangal', 'Arial', sans-serif;
 }
 
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
 .line-clamp-3 {
     display: -webkit-box;
     -webkit-line-clamp: 3;
@@ -446,7 +454,7 @@
 
 /* Enhanced pagination styles */
 .pagination {
-    @apply flex justify-center items-center space-x-3;
+    @apply flex justify-center items-center space-x-2;
 }
 
 .pagination .page-item {
@@ -454,7 +462,7 @@
 }
 
 .pagination .page-link {
-    @apply px-4 py-2 text-sm border border-gray-300 bg-white text-gray-700 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-all duration-300;
+    @apply px-3 py-1 text-sm border border-gray-300 bg-white text-gray-700 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-all duration-300;
 }
 
 .pagination .page-item.active .page-link {
@@ -493,8 +501,8 @@
 }
 
 /* Flexible card height */
-.min-h-\[450px\] {
-    min-height: 450px;
+.min-h-\[380px\] {
+    min-height: 380px;
 }
 
 /* Ensure buttons are always visible */
@@ -520,7 +528,7 @@
 }
 
 /* Sharp image rendering */
-.h-48 .absolute.inset-0 {
+.h-36 .absolute.inset-0 {
     image-rendering: -webkit-optimize-contrast;
     image-rendering: crisp-edges;
 }
@@ -531,6 +539,34 @@
     background-size: cover;
     background-position: center;
 }
+
+/* True full-width optimization */
+.w-full {
+    width: 100% !important;
+}
+
+.px-2 {
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+}
+
+.gap-2 {
+    gap: 0.5rem !important;
+}
+
+.gap-3 {
+    gap: 0.75rem !important;
+}
+
+/* Remove any max-width constraints */
+.container {
+    max-width: none !important;
+}
+
+/* Compact rounded corners */
+.rounded-xl {
+    border-radius: 0.75rem !important;
+}
 </style>
 
 <!-- Enhanced JavaScript for Filters -->
@@ -540,7 +576,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const cards = document.querySelectorAll('.group');
     cards.forEach(card => {
         card.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-8px)';
+            this.style.transform = 'translateY(-4px)';
         });
         card.addEventListener('mouseleave', function() {
             this.style.transform = 'translateY(0)';

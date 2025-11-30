@@ -13,7 +13,7 @@ use App\Http\Controllers\Owner\BookingRequestController as OwnerBookingRequestCo
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\PaymentController;
-use App\Http\Controllers\Admin\RoomController;
+use App\Http\Controllers\Admin\RoomController as AdminRoomController; // ✅ FIXED: Added alias
 use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\Admin\ContactController;
 use App\Http\Controllers\Admin\DocumentController;
@@ -187,17 +187,17 @@ Route::middleware(['auth', 'hasOrganization', 'role:owner,hostel_manager'])
         // Owner Meal Menu Routes  
         Route::resource('meal-menus', OwnerMealMenuController::class);
 
-        // Room routes with plan limits
-        Route::get('rooms', [RoomController::class, 'index'])->name('rooms.index');
-        Route::get('rooms/create', [RoomController::class, 'create'])->name('rooms.create')->middleware('enforce.plan.limits');
-        Route::post('rooms', [RoomController::class, 'store'])->name('rooms.store')->middleware('enforce.plan.limits');
-        Route::get('rooms/{room}', [RoomController::class, 'show'])->name('rooms.show');
-        Route::get('rooms/{room}/edit', [RoomController::class, 'edit'])->name('rooms.edit');
-        Route::put('rooms/{room}', [RoomController::class, 'update'])->name('rooms.update');
-        Route::delete('rooms/{room}', [RoomController::class, 'destroy'])->name('rooms.destroy');
-        Route::get('rooms/search', [RoomController::class, 'search'])->name('rooms.search');
-        Route::post('rooms/{room}/change-status', [RoomController::class, 'changeStatus'])->name('rooms.change-status');
-        Route::get('rooms/export/csv', [RoomController::class, 'exportCSV'])->name('rooms.export-csv');
+        // ✅ FIXED: Room routes with correct AdminRoomController alias
+        Route::get('rooms', [AdminRoomController::class, 'index'])->name('rooms.index');
+        Route::get('rooms/create', [AdminRoomController::class, 'create'])->name('rooms.create')->middleware('enforce.plan.limits');
+        Route::post('rooms', [AdminRoomController::class, 'store'])->name('rooms.store')->middleware('enforce.plan.limits');
+        Route::get('rooms/{room}', [AdminRoomController::class, 'show'])->name('rooms.show');
+        Route::get('rooms/{room}/edit', [AdminRoomController::class, 'edit'])->name('rooms.edit');
+        Route::put('rooms/{room}', [AdminRoomController::class, 'update'])->name('rooms.update');
+        Route::delete('rooms/{room}', [AdminRoomController::class, 'destroy'])->name('rooms.destroy');
+        Route::get('rooms/search', [AdminRoomController::class, 'search'])->name('rooms.search');
+        Route::post('rooms/{room}/change-status', [AdminRoomController::class, 'changeStatus'])->name('rooms.change-status');
+        Route::get('rooms/export/csv', [AdminRoomController::class, 'exportCSV'])->name('rooms.export-csv');
 
         // ✅ FIXED: Owner student routes - simplified authorization with policy-based checks
         Route::get('students', [StudentController::class, 'index'])->name('students.index');

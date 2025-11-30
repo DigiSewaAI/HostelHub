@@ -8,7 +8,7 @@ use App\Http\Controllers\Admin\MealController;
 use App\Http\Controllers\Admin\MealMenuController as AdminMealMenuController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
-use App\Http\Controllers\Admin\RoomController;
+use App\Http\Controllers\Admin\RoomController as AdminRoomController; // ✅ FIXED: Added alias
 use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
@@ -71,11 +71,11 @@ Route::name('admin.')  // ✅ KEEP only the name prefix
 
         Route::resource('reviews', AdminReviewController::class);
 
-        // Room Routes
-        Route::resource('rooms', RoomController::class);
-        Route::get('/rooms/search', [RoomController::class, 'search'])->name('rooms.search');
-        Route::post('/rooms/{room}/change-status', [RoomController::class, 'changeStatus'])->name('rooms.change-status');
-        Route::get('/rooms/export/csv', [RoomController::class, 'exportCSV'])->name('rooms.export-csv');
+        // ✅ FIXED: Room Routes with correct AdminRoomController alias
+        Route::resource('rooms', AdminRoomController::class);
+        Route::get('/rooms/search', [AdminRoomController::class, 'search'])->name('rooms.search');
+        Route::post('/rooms/{room}/change-status', [AdminRoomController::class, 'changeStatus'])->name('rooms.change-status');
+        Route::get('/rooms/export/csv', [AdminRoomController::class, 'exportCSV'])->name('rooms.export-csv');
 
         // Student Routes
         Route::resource('students', StudentController::class);
