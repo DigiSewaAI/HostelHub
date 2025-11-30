@@ -44,7 +44,7 @@
                             </div>
                             
                             @if(request('city') || request('q') || request('hostel_id') || request('check_in') || 
-                                request('min_price') || request('room_type') || request('amenities') || request('hostel_type') ||
+                                request('min_price') || request('amenities') || request('hostel_type') ||
                                 (isset($searchFilters) && ($searchFilters['city'] ?? false)))
                             <div class="flex flex-wrap gap-2">
                                 @if(request('city') || (isset($searchFilters) && isset($searchFilters['city']) && $searchFilters['city']))
@@ -91,18 +91,6 @@
                                         <i class="fas fa-times text-xs"></i>
                                     </button>
                                 </span>
-                                @endif
-
-                                @if(request('room_type') && is_array(request('room_type')))
-                                    @foreach(request('room_type') as $roomType)
-                                    <span class="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-indigo-500 to-indigo-600 text-white text-sm font-medium shadow-sm nepali">
-                                        <i class="fas fa-bed mr-2 text-xs"></i>
-                                        {{ $roomType }}
-                                        <button class="ml-2 hover:bg-indigo-700 rounded-full w-4 h-4 flex items-center justify-center" onclick="removeFilter('room_type')">
-                                            <i class="fas fa-times text-xs"></i>
-                                        </button>
-                                    </span>
-                                    @endforeach
                                 @endif
 
                                 @if(request('hostel_type') && request('hostel_type') != 'all')
@@ -164,52 +152,6 @@
                             </select>
                         </div>
                         @endif
-                        
-                        <!-- Room Type Filter -->
-                        <div class="mb-6">
-                            <h4 class="font-semibold text-gray-800 mb-3 nepali">कोठाको प्रकार</h4>
-                            <div class="space-y-2">
-                                @if(isset($roomTypes) && $roomTypes->count() > 0)
-                                    @foreach($roomTypes as $roomType)
-                                    <div class="flex items-center">
-                                        <input type="checkbox" id="type-{{ $roomType['value'] }}" 
-                                               name="room_type[]" value="{{ $roomType['value'] }}"
-                                               {{ in_array($roomType['value'], request('room_type', $searchFilters['room_type'] ?? [])) ? 'checked' : '' }}
-                                               class="mr-3 text-blue-600 focus:ring-blue-500 rounded">
-                                        <label for="type-{{ $roomType['value'] }}" class="text-gray-700 nepali text-sm">
-                                            {{ $roomType['label'] }}
-                                        </label>
-                                    </div>
-                                    @endforeach
-                                @else
-                                    <!-- Fallback room types -->
-                                    <div class="flex items-center">
-                                        <input type="checkbox" id="type-1" name="room_type[]" value="1 seater" 
-                                               {{ in_array('1 seater', request('room_type', $searchFilters['room_type'] ?? [])) ? 'checked' : '' }}
-                                               class="mr-3 text-blue-600 focus:ring-blue-500 rounded">
-                                        <label for="type-1" class="text-gray-700 nepali text-sm">१ सिटर</label>
-                                    </div>
-                                    <div class="flex items-center">
-                                        <input type="checkbox" id="type-2" name="room_type[]" value="2 seater" 
-                                               {{ in_array('2 seater', request('room_type', $searchFilters['room_type'] ?? [])) ? 'checked' : '' }}
-                                               class="mr-3 text-blue-600 focus:ring-blue-500 rounded">
-                                        <label for="type-2" class="text-gray-700 nepali text-sm">२ सिटर</label>
-                                    </div>
-                                    <div class="flex items-center">
-                                        <input type="checkbox" id="type-3" name="room_type[]" value="3 seater" 
-                                               {{ in_array('3 seater', request('room_type', $searchFilters['room_type'] ?? [])) ? 'checked' : '' }}
-                                               class="mr-3 text-blue-600 focus:ring-blue-500 rounded">
-                                        <label for="type-3" class="text-gray-700 nepali text-sm">३ सिटर</label>
-                                    </div>
-                                    <div class="flex items-center">
-                                        <input type="checkbox" id="type-4" name="room_type[]" value="4 seater" 
-                                               {{ in_array('4 seater', request('room_type', $searchFilters['room_type'] ?? [])) ? 'checked' : '' }}
-                                               class="mr-3 text-blue-600 focus:ring-blue-500 rounded">
-                                        <label for="type-4" class="text-gray-700 nepali text-sm">४ सिटर</label>
-                                    </div>
-                                @endif
-                            </div>
-                        </div>
 
                         <!-- Hostel Type Filter -->
                         <div class="mb-6">
@@ -232,6 +174,27 @@
                                            {{ (request('hostel_type') ?? ($searchFilters['hostel_type'] ?? '')) == 'girls' ? 'checked' : '' }}
                                            class="mr-3 text-blue-600 focus:ring-blue-500">
                                     <label for="type-girls" class="text-gray-700 nepali text-sm">गर्ल्स होस्टल</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Price Range Filter -->
+                        <div class="mb-6">
+                            <h4 class="font-semibold text-gray-800 mb-3 nepali">मूल्य दायरा</h4>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs text-gray-600 mb-1 nepali">न्यूनतम</label>
+                                    <input type="number" name="min_price" 
+                                           value="{{ request('min_price') ?? ($searchFilters['min_price'] ?? '') }}"
+                                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                           placeholder="रु. ०">
+                                </div>
+                                <div>
+                                    <label class="block text-xs text-gray-600 mb-1 nepali">अधिकतम</label>
+                                    <input type="number" name="max_price" 
+                                           value="{{ request('max_price') ?? ($searchFilters['max_price'] ?? '') }}"
+                                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                           placeholder="रु. १००००">
                                 </div>
                             </div>
                         </div>
@@ -646,8 +609,6 @@ function removeFilter(filterType) {
     } else if (filterType === 'price') {
         url.searchParams.delete('min_price');
         url.searchParams.delete('max_price');
-    } else if (filterType === 'room_type') {
-        url.searchParams.delete('room_type');
     } else if (filterType === 'amenities') {
         url.searchParams.delete('amenities');
     } else if (filterType === 'hostel_type') {
