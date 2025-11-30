@@ -380,22 +380,21 @@ class PublicController extends Controller
     }
 
     /**
-     * 🚨 FIXED: Unified search method without problematic image ordering and facilities relationship
+     * 🚨 FIXED: Unified search method without room type filters
      */
     public function search(Request $request)
     {
         try {
             \Log::info("=== SEARCH REQUEST ===", $request->all());
 
-            // Simple validation
+            // ✅ FIXED: Remove 'required' validation for city
             $request->validate([
-                'city' => 'required|string|min:2',
+                'city' => 'nullable|string|min:2', // ✅ CHANGED: required -> nullable
                 'hostel_id' => 'nullable|exists:hostels,id',
                 'check_in' => 'nullable|date',
                 'check_out' => 'nullable|date|after:check_in',
                 'min_price' => 'nullable|numeric|min:0',
                 'max_price' => 'nullable|numeric|min:0',
-                'room_type' => 'nullable|array',
                 'amenities' => 'nullable|array',
                 'hostel_type' => 'nullable|string'
             ]);
@@ -424,34 +423,59 @@ class PublicController extends Controller
                 });
             }
 
-            // 🔍 Price range filter
+            // 🔍 Price range filter - FIXED: Simple and effective approach
             if ($request->filled('min_price') || $request->filled('max_price')) {
                 $minPrice = $request->get('min_price', 0);
-                $maxPrice = $request->get('max_price', 100000);
+                $maxPrice = $request->get('max_price', 50000); // Reasonable max price
 
                 $query->whereHas('rooms', function ($roomQuery) use ($minPrice, $maxPrice) {
                     $roomQuery->where('status', 'available')
-                        ->where('available_beds', '>', 0)
-                        ->whereBetween('price', [$minPrice, $maxPrice]);
+                        ->where('available_beds', '>', 0);
+
+                    if ($minPrice > 0) {
+                        $roomQuery->where('price', '>=', $minPrice);
+                    }
+                    if ($maxPrice > 0) {
+                        $roomQuery->where('price', '<=', $maxPrice);
+                    }
                 });
             }
 
-            // 🔍 Room type filter
-            if ($request->filled('room_type') && is_array($request->room_type)) {
-                $roomTypes = $request->room_type;
-                $query->whereHas('rooms', function ($roomQuery) use ($roomTypes) {
-                    $roomQuery->where('status', 'available')
-                        ->where('available_beds', '>', 0)
-                        ->whereIn('type', $roomTypes);
-                });
+            // Temporary debugging code - remove after fixing
+            if ($request->filled('min_price') || $request->filled('max_price')) {
+                \Log::info("=== PRICE FILTER DEBUG ===", [
+                    'min_price' => $request->min_price,
+                    'max_price' => $request->max_price,
+                    'minPrice_parsed' => $minPrice ?? null,
+                    'maxPrice_parsed' => $maxPrice ?? null
+                ]);
             }
 
-            // 🔍 Hostel type filter (boys/girls)
+            // 🔍 Hostel type filter (boys/girls) - FIXED: Search in name and description
             if ($request->filled('hostel_type') && $request->hostel_type != 'all') {
-                $query->where('name', 'like', '%' . $request->hostel_type . '%');
+                $hostelType = $request->hostel_type;
+                $query->where(function ($q) use ($hostelType) {
+                    if ($hostelType === 'boys') {
+                        $q->where('name', 'like', '%boys%')
+                            ->orWhere('name', 'like', '%Boys%')
+                            ->orWhere('name', 'like', '%BOYS%')
+                            ->orWhere('name', 'like', '%ब्वाइज%')
+                            ->orWhere('name', 'like', '%पुरुष%')
+                            ->orWhere('description', 'like', '%boys%')
+                            ->orWhere('description', 'like', '%ब्वाइज%');
+                    } elseif ($hostelType === 'girls') {
+                        $q->where('name', 'like', '%girls%')
+                            ->orWhere('name', 'like', '%Girls%')
+                            ->orWhere('name', 'like', '%GIRLS%')
+                            ->orWhere('name', 'like', '%गर्ल्स%')
+                            ->orWhere('name', 'like', '%महिला%')
+                            ->orWhere('description', 'like', '%girls%')
+                            ->orWhere('description', 'like', '%गर्ल्स%');
+                    }
+                });
             }
 
-            // 🔍 Amenities filter - FIXED: Use facilities column directly instead of relationship
+            // 🔍 Amenities filter
             if ($request->filled('amenities') && is_array($request->amenities)) {
                 $amenities = $request->amenities;
                 $query->where(function ($q) use ($amenities) {
@@ -462,7 +486,7 @@ class PublicController extends Controller
                 });
             }
 
-            // Get hostels with relationships - FIXED: No problematic image ordering and no facilities relationship
+            // Get hostels with relationships
             $hostels = $query->with([
                 'images',
                 'reviews' => function ($query) {
@@ -472,15 +496,11 @@ class PublicController extends Controller
                     $roomQuery->where('status', 'available')
                         ->where('available_beds', '>', 0);
 
-                    // Apply room-specific filters
+                    // Apply room-specific price filters
                     if ($request->filled('min_price') || $request->filled('max_price')) {
                         $minPrice = $request->get('min_price', 0);
                         $maxPrice = $request->get('max_price', 100000);
                         $roomQuery->whereBetween('price', [$minPrice, $maxPrice]);
-                    }
-
-                    if ($request->filled('room_type') && is_array($request->room_type)) {
-                        $roomQuery->whereIn('type', $request->room_type);
                     }
                 }
             ])
@@ -491,40 +511,13 @@ class PublicController extends Controller
                 ->withAvg('reviews', 'rating')
                 ->paginate(12);
 
-            // Get cities and room types for filters - 🚨 FIXED: Room type mapping without using Room model method
+            // Get cities for filters
             $cities = Cache::remember('search_cities', 3600, function () {
                 return Hostel::where('is_published', true)
                     ->whereNotNull('city')
                     ->distinct()
                     ->pluck('city')
                     ->filter();
-            });
-
-            $roomTypes = Cache::remember('search_room_types', 3600, function () {
-                return Room::where('status', 'available')
-                    ->where('available_beds', '>', 0)
-                    ->distinct()
-                    ->pluck('type')
-                    ->map(function ($type) {
-                        // 🚨 FIXED: Use simple mapping instead of Room model method
-                        $nepaliTypes = [
-                            '1 seater' => 'एक सिटर कोठा',
-                            '2 seater' => 'दुई सिटर कोठा',
-                            '3 seater' => 'तीन सिटर कोठा',
-                            '4 seater' => 'चार सिटर कोठा',
-                            'single' => 'एक सिटर कोठा',
-                            'double' => 'दुई सिटर कोठा',
-                            'triple' => 'तीन सिटर कोठा',
-                            'quad' => 'चार सिटर कोठा',
-                            'shared' => 'साझा कोठा',
-                            'other' => 'अन्य कोठा'
-                        ];
-
-                        return [
-                            'value' => $type,
-                            'label' => $nepaliTypes[$type] ?? $type
-                        ];
-                    });
             });
 
             // Search filters for view
@@ -535,7 +528,6 @@ class PublicController extends Controller
                 'check_out' => $request->check_out,
                 'min_price' => $request->min_price,
                 'max_price' => $request->max_price,
-                'room_type' => $request->room_type ?? [],
                 'amenities' => $request->amenities ?? [],
                 'hostel_type' => $request->hostel_type,
                 'q' => $request->q ?? $request->search
@@ -546,17 +538,16 @@ class PublicController extends Controller
                 'filters' => $searchFilters
             ]);
 
-            return view('frontend.search-results', compact('hostels', 'cities', 'roomTypes', 'searchFilters'));
+            return view('frontend.search-results', compact('hostels', 'cities', 'searchFilters'));
         } catch (\Exception $e) {
             \Log::error('❌ Search error: ' . $e->getMessage());
 
             // Return empty results on error
             $hostels = Hostel::where('id', 0)->paginate(12);
             $cities = collect([]);
-            $roomTypes = collect([]);
             $searchFilters = $request->all();
 
-            return view('frontend.search-results', compact('hostels', 'cities', 'roomTypes', 'searchFilters'))
+            return view('frontend.search-results', compact('hostels', 'cities', 'searchFilters'))
                 ->with('error', 'खोजी प्रक्रिया असफल: ' . $e->getMessage());
         }
     }
@@ -591,9 +582,6 @@ class PublicController extends Controller
                     'image',
                     'description'
                 ]);
-
-            // 🚨 REMOVED: forceSyncOccupancy() call since method doesn't exist
-            // Just use the room data as it is from database
 
             \Log::info("Room data from database:", [
                 'hostel_id' => $hostel->id,
