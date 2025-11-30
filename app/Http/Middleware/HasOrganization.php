@@ -17,12 +17,8 @@ class HasOrganization
             return redirect()->route('login');
         }
 
-        // ✅ CRITICAL FIX: Allow admin users to bypass organization check
+        // ✅ CRITICAL FIX: Allow admin users to bypass ALL organization checks
         if ($user->hasRole('admin')) {
-            // ✅ Set a default session organization for admin if needed
-            if (!session()->has('current_organization_id')) {
-                session(['current_organization_id' => null]);
-            }
             return $next($request);
         }
 

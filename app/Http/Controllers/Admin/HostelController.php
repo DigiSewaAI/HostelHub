@@ -947,14 +947,89 @@ class HostelController extends Controller
      */
     public function publish(Hostel $hostel)
     {
-        // ✅ SECURITY FIX: Authorization check
+        // ✅ SECURITY FIX: Authorization check with proper logging
         $user = auth()->user();
+        \Log::info("Publish attempt for hostel {$hostel->id} by user {$user->id}", [
+            'user_roles' => $user->getRoleNames()->toArray(),
+            'hostel_name' => $hostel->name,
+            'current_published_status' => $hostel->is_published
+        ]);
+
         if (!$user->hasRole('admin')) {
+            \Log::warning("Unauthorized publish attempt by user {$user->id}");
             abort(403, 'तपाईंसँग यो प्रकाशन गर्ने अनुमति छैन');
         }
 
         DB::beginTransaction();
 
+        try {
+            // Generate slug if not exists
+            if (!$hostel->slug) {
+                $hostel->slug = $this->generateUniqueSlug($hostel->name, $hostel->id);
+            }
+
+            $hostel->update([
+                'is_published' => true,
+                'published_at' => now(),
+            ]);
+
+            \Log::info("Hostel {$hostel->id} published successfully", [
+                'new_slug' => $hostel->slug,
+                'published_at' => $hostel->published_at
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('admin.hostels.index')
+                ->with('success', 'होस्टल सफलतापूर्वक प्रकाशित गरियो');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error("Failed to publish hostel {$hostel->id}: " . $e->getMessage());
+            return back()->with('error', 'होस्टल प्रकाशन गर्दा त्रुटि: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Unpublish the specified hostel.
+     */
+    public function unpublish(Hostel $hostel)
+    {
+        // ✅ SECURITY FIX: Authorization check with logging
+        $user = auth()->user();
+        \Log::info("Unpublish attempt for hostel {$hostel->id} by user {$user->id}");
+
+        if (!$user->hasRole('admin')) {
+            \Log::warning("Unauthorized unpublish attempt by user {$user->id}");
+            abort(403, 'तपाईंसँग यो अप्रकाशन गर्ने अनुमति छैन');
+        }
+
+        try {
+            $hostel->update([
+                'is_published' => false,
+                'published_at' => null,
+            ]);
+
+            \Log::info("Hostel {$hostel->id} unpublished successfully");
+
+            return redirect()->route('admin.hostels.index')
+                ->with('success', 'होस्टल सफलतापूर्वक अप्रकाशित गरियो');
+        } catch (\Exception $e) {
+            \Log::error("Failed to unpublish hostel {$hostel->id}: " . $e->getMessage());
+            return back()->with('error', 'होस्टल अप्रकाशन गर्दा त्रुटि: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Publish single hostel
+     */
+    public function publishSingle(Hostel $hostel)
+    {
+        // SECURITY: Admin only
+        if (!auth()->user()->hasRole('admin')) {
+            return redirect()->back()->with('error', 'Unauthorized access');
+        }
+
+        DB::beginTransaction();
         try {
             // Generate slug if not exists
             if (!$hostel->slug) {
@@ -972,27 +1047,31 @@ class HostelController extends Controller
                 ->with('success', 'होस्टल सफलतापूर्वक प्रकाशित गरियो');
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'होस्टल प्रकाशन गर्दा त्रुटि: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'प्रकाशन गर्दा त्रुटि: ' . $e->getMessage());
         }
     }
 
     /**
-     * Unpublish the specified hostel.
+     * Unpublish single hostel  
      */
-    public function unpublish(Hostel $hostel)
+    public function unpublishSingle(Hostel $hostel)
     {
-        // ✅ SECURITY FIX: Authorization check
-        $user = auth()->user();
-        if (!$user->hasRole('admin')) {
-            abort(403, 'तपाईंसँग यो अप्रकाशन गर्ने अनुमति छैन');
+        // SECURITY: Admin only
+        if (!auth()->user()->hasRole('admin')) {
+            return redirect()->back()->with('error', 'Unauthorized access');
         }
 
-        $hostel->update([
-            'is_published' => false,
-        ]);
+        try {
+            $hostel->update([
+                'is_published' => false,
+                'published_at' => null,
+            ]);
 
-        return redirect()->route('admin.hostels.index')
-            ->with('success', 'होस्टल सफलतापूर्वक अप्रकाशित गरियो');
+            return redirect()->route('admin.hostels.index')
+                ->with('success', 'होस्टल सफलतापूर्वक अप्रकाशित गरियो');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'अप्रकाशन गर्दा त्रुटि: ' . $e->getMessage());
+        }
     }
 
     /**
