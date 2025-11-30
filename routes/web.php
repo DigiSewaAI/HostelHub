@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Http\Request;
 use App\Http\Controllers\WelcomeController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\PricingController;
@@ -618,4 +619,50 @@ Route::get('/debug-hostel/{slug}', function ($slug) {
 Route::get('/sync-rooms-occupancy', function () {
     App\Models\Room::syncAllRoomsOccupancy();
     return "Room occupancy sync completed! Check logs for details.";
+});
+
+// web.php मा यो route थप्नुहोस्:
+
+Route::get('/debug-hostel-prices', function (Request $request) {
+    $minPrice = $request->get('min_price', 8000);
+    $maxPrice = $request->get('max_price', 10000);
+
+    $hostels = \App\Models\Hostel::where('is_published', true)
+        ->where('status', 'active')
+        ->get()
+        ->map(function ($hostel) use ($minPrice, $maxPrice) {
+            $startingPrice = $hostel->min_price;
+            $availableRooms = $hostel->getAvailableRooms();
+
+            return [
+                'hostel_id' => $hostel->id,
+                'hostel_name' => $hostel->name,
+                'calculated_min_price' => $startingPrice,
+                'available_rooms_count' => $availableRooms->count(),
+                'room_details' => $availableRooms->map(function ($room) {
+                    return [
+                        'room_number' => $room->room_number,
+                        'price' => $room->price,
+                        'available_beds' => $room->available_beds,
+                        'status' => $room->status
+                    ];
+                }),
+                'price_filter_min' => $minPrice,
+                'price_filter_max' => $maxPrice,
+                'should_show' => $startingPrice >= $minPrice && $startingPrice <= $maxPrice ? 'YES' : 'NO',
+                'filter_status' => $startingPrice >= $minPrice && $startingPrice <= $maxPrice ?
+                    '✅ INCLUDED' : '❌ EXCLUDED'
+            ];
+        });
+
+    return response()->json([
+        'filters_applied' => [
+            'min_price' => $minPrice,
+            'max_price' => $maxPrice
+        ],
+        'all_hostels' => $hostels,
+        'included_hostels' => $hostels->filter(function ($hostel) {
+            return $hostel['should_show'] === 'YES';
+        })->values()
+    ]);
 });
