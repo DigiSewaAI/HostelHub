@@ -297,182 +297,284 @@
             padding: 0 1.5rem;
         }
         
-        /* Footer Styles */
+        /* Footer Styles - UPDATED WITH FIXED COLUMNS */
         footer {
             background-color: var(--primary);
             color: var(--text-light);
-            padding: 1.5rem 0 0.5rem;
+            padding: 2rem 0 1rem !important;
+            width: 100vw !important;
+            margin: 0 !important;
+        }
+        
+        footer > .container {
+            max-width: 1200px !important;
+            width: 100% !important;
+            margin: 0 auto !important;
+            padding: 0 1.5rem !important;
         }
         
         .footer-grid {
-            display: grid;
-            grid-template-columns: 2fr 1.5fr 1.5fr 1.5fr;
-            gap: 1.5rem;
-            align-items: start;
-            margin-bottom: 0.8rem;
+            display: grid !important;
+            grid-template-columns: 1.5fr 1.2fr 1.5fr 1.2fr !important;
+            gap: 2.5rem !important;
+            align-items: start !important;
+            margin-bottom: 1.5rem !important;
+            width: 100% !important;
         }
         
-        .footer-col h3 {
-            font-size: 1.2rem;
-            margin-bottom: 0.8rem;
-            position: relative;
-            padding-bottom: 0.3rem;
-            color: var(--text-light);
+        .footer-col {
+            display: flex !important;
+            flex-direction: column !important;
+            width: 100% !important;
         }
-        .footer-col h3::after {
-            content: "";
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 40px;
-            height: 2px;
-            background: var(--secondary);
+        
+        /* 🚨 UPDATED: Column spacing with visual separation */
+        .footer-col:nth-child(2) { /* Quick Links */
+            padding-right: 1.5rem !important;
+            border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
         }
-        .footer-links {
-            list-style: none;
-            margin: 0;
-            padding: 0;
+        
+        .footer-col:nth-child(3) { /* Contact Info */
+            padding-left: 1.5rem !important;
+            padding-right: 1.5rem !important;
         }
-        .footer-links li {
-            margin-bottom: 0.4rem;
+        
+        .footer-col:nth-child(4) { /* Newsletter */
+            padding-left: 1.5rem !important;
+            border-left: 1px solid rgba(255, 255, 255, 0.1) !important;
         }
-        .footer-links a {
-            color: rgba(249, 250, 251, 0.8);
-            text-decoration: none;
-            transition: var(--transition);
-            display: flex;
-            align-items: center;
-            font-size: 0.9rem;
+        
+        .footer-logo-wrapper {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            margin-bottom: 1rem !important;
+            width: 100% !important;
         }
-        .footer-links a:hover {
-            color: var(--secondary);
-            transform: translateX(3px);
-        }
-        .footer-links i {
-            margin-right: 8px;
-            width: 16px;
-            color: var(--secondary);
-            font-size: 0.8rem;
-        }
-        .contact-info {
-            list-style: none;
-            margin: 0;
-            padding: 0;
-        }
-        .contact-info li {
-            margin-bottom: 0.6rem;
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-        }
-        .contact-info i {
-            color: var(--secondary);
-            font-size: 1rem;
-            margin-top: 2px;
-            flex-shrink: 0;
-            min-width: 16px;
-        }
+        
+        /* 🚨 CRITICAL FIX: Make footer logo clickable */
         .footer-logo {
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-            font-size: 1.4rem;
-            font-weight: 700;
-            margin-bottom: 0.8rem;
-            color: var(--text-light);
-            text-decoration: none;
+            display: block !important;
+            text-decoration: none !important;
+            margin-bottom: 1rem !important;
+            width: auto !important;
+            cursor: pointer !important;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .footer-logo:hover {
+            opacity: 0.9;
         }
         
         .footer-logo img {
-            height: 45px !important;
-            width: 45px !important;
-            object-fit: contain;
+            width: 120px !important;
+            height: 120px !important;
+            object-fit: contain !important;
+            display: block !important;
+            margin: 0 0 1rem 0 !important;
         }
         
-        .footer-logo-icon {
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--secondary);
-            border-radius: var(--radius);
-            color: var(--text-light);
-            font-weight: bold;
-            font-size: 16px;
+        .footer-logo-wrapper span {
+            font-size: 1.8rem !important;
+            font-weight: 700 !important;
+            color: white !important;
+            display: block !important;
+            margin-bottom: 0.5rem !important;
+            text-align: left !important;
+            font-family: 'Inter', sans-serif !important;
         }
         
-        .copyright {
-            margin-top: 1rem;
-            padding-top: 0.8rem;
-            border-top: 1px solid rgba(249, 250, 251, 0.1);
-            font-size: 0.9rem;
-            color: rgba(249, 250, 251, 0.6);
-            text-align: center;
-            grid-column: 1 / -1;
+        /* 🚨 FIX: Nepali text alignment */
+        .footer-logo-wrapper .nepali {
+            color: rgba(249, 250, 251, 0.8) !important;
+            line-height: 1.6 !important;
+            margin-bottom: 1rem !important;
+            width: 100% !important;
+            font-family: 'Noto Sans Devanagari', sans-serif !important;
+            display: block !important;
+            text-align: left !important;
+            padding-right: 0 !important;
+            margin-right: 0 !important;
         }
         
         .social-links {
-            display: flex;
-            gap: 8px;
-            margin-top: 1rem;
-            flex-wrap: wrap;
-            justify-content: flex-start;
+            display: flex !important;
+            gap: 10px !important;
+            margin-top: 1rem !important;
+            flex-wrap: wrap !important;
+            justify-content: flex-start !important;
+            width: 100% !important;
         }
+        
         .social-links a {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 32px;
-            height: 32px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            color: var(--text-light);
-            font-size: 0.9rem;
-            transition: var(--transition);
-            text-decoration: none;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 36px !important;
+            height: 36px !important;
+            background: rgba(255, 255, 255, 0.1) !important;
+            border-radius: 50% !important;
+            color: #f9fafb !important;
+            font-size: 1rem !important;
+            text-decoration: none !important;
+            cursor: pointer !important;
         }
+        
         .social-links a:hover {
-            background: var(--secondary);
-            color: var(--text-light);
-            transform: translateY(-2px);
+            background: #0ea5e9 !important;
+            color: #f9fafb !important;
+            transform: translateY(-3px) !important;
+        }
+        
+        .footer-col h3 {
+            font-size: 1.2rem !important;
+            margin-bottom: 1rem !important;
+            position: relative !important;
+            padding-bottom: 0.3rem !important;
+            color: #f9fafb !important;
+            text-align: left !important;
+            width: 100% !important;
+            display: block !important;
+            font-family: 'Noto Sans Devanagari', sans-serif !important;
+            font-weight: bold !important;
+        }
+        
+        .footer-col h3::after {
+            content: "" !important;
+            position: absolute !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            width: 40px !important;
+            height: 2px !important;
+            background: #0ea5e9 !important;
+            display: block !important;
+        }
+        
+        .footer-links {
+            list-style: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            display: block !important;
+        }
+        
+        .footer-links li {
+            margin-bottom: 0.5rem !important;
+            width: 100% !important;
+            display: block !important;
+        }
+        
+        .footer-links a {
+            color: rgba(249, 250, 251, 0.8) !important;
+            text-decoration: none !important;
+            display: flex !important;
+            align-items: center !important;
+            font-size: 0.9rem !important;
+            gap: 0.5rem !important;
+            width: 100% !important;
+            cursor: pointer !important;
+            font-family: 'Noto Sans Devanagari', sans-serif !important;
+        }
+        
+        .footer-links a:hover {
+            color: #0ea5e9 !important;
+            transform: translateX(3px) !important;
+        }
+        
+        .footer-links i {
+            color: #0ea5e9 !important;
+            font-size: 0.8rem !important;
+            width: 16px !important;
+            flex-shrink: 0 !important;
+        }
+        
+        .contact-info {
+            list-style: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            display: block !important;
+        }
+        
+        .contact-info li {
+            margin-bottom: 0.8rem !important;
+            display: flex !important;
+            align-items: flex-start !important;
+            gap: 12px !important;
+            width: 100% !important;
+            padding-right: 1rem !important;
+        }
+        
+        .contact-info i {
+            color: #0ea5e9 !important;
+            font-size: 1rem !important;
+            margin-top: 2px !important;
+            flex-shrink: 0 !important;
+            min-width: 18px !important;
+        }
+        
+        .contact-info div {
+            color: rgba(249, 250, 251, 0.8) !important;
+            line-height: 1.5 !important;
+            width: 100% !important;
+            display: block !important;
+            font-family: 'Noto Sans Devanagari', sans-serif !important;
+            font-size: 0.9rem !important;
         }
         
         .newsletter-form {
-            display: flex;
-            gap: 0.4rem;
-            margin-top: 0.8rem;
-            flex-wrap: wrap;
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 0.8rem !important;
+            margin-top: 0.5rem !important;
+            width: 100% !important;
         }
+        
         .newsletter-form input {
-            flex: 1;
-            min-width: 180px;
-            padding: 0.6rem 0.8rem;
-            border: none;
-            border-radius: var(--radius);
-            font-family: inherit;
-            font-size: 0.85rem;
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--text-light);
+            padding: 0.8rem 1rem !important;
+            border: none !important;
+            border-radius: 0.75rem !important;
+            font-family: 'Inter', sans-serif !important;
+            font-size: 0.95rem !important;
+            background: rgba(255, 255, 255, 0.1) !important;
+            color: #f9fafb !important;
+            width: 100% !important;
         }
+        
         .newsletter-form input::placeholder {
-            color: rgba(249, 255, 251, 0.6);
+            color: rgba(249, 250, 251, 0.6) !important;
         }
+        
         .newsletter-form button {
-            background: var(--secondary);
-            color: var(--text-light);
-            border: none;
-            border-radius: var(--radius);
-            padding: 0.6rem 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: var(--transition);
-            font-size: 0.85rem;
-            white-space: nowrap;
+            background: #0ea5e9 !important;
+            color: #f9fafb !important;
+            border: none !important;
+            border-radius: 0.75rem !important;
+            padding: 0.8rem 1.5rem !important;
+            font-weight: 600 !important;
+            cursor: pointer !important;
+            font-size: 0.95rem !important;
+            width: 100% !important;
+            text-align: center !important;
+            font-family: 'Noto Sans Devanagari', sans-serif !important;
         }
+        
         .newsletter-form button:hover {
-            background: var(--secondary-dark);
-            transform: translateY(-2px);
+            background: #0284c7 !important;
+            transform: translateY(-2px) !important;
+        }
+        
+        .copyright {
+            margin-top: 2rem !important;
+            padding-top: 1rem !important;
+            border-top: 1px solid rgba(249, 250, 251, 0.1) !important;
+            font-size: 0.9rem !important;
+            color: rgba(249, 250, 251, 0.6) !important;
+            text-align: center !important;
+            width: 100% !important;
+            display: block !important;
+            font-family: 'Noto Sans Devanagari', sans-serif !important;
         }
         
         /* Smooth transition utility */
@@ -489,8 +591,18 @@
         /* Responsive Design */
         @media (max-width: 1024px) {
             .footer-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 1.2rem;
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 2rem !important;
+            }
+            
+            /* Remove borders and padding on medium screens */
+            .footer-col:nth-child(2),
+            .footer-col:nth-child(3),
+            .footer-col:nth-child(4) {
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+                border-left: none !important;
+                border-right: none !important;
             }
         }
         
@@ -536,23 +648,59 @@
             }
             
             .footer-grid {
-                grid-template-columns: 1fr;
-                gap: 1rem;
+                grid-template-columns: 1fr !important;
+                gap: 1.5rem !important;
             }
             
-            .footer-logo img {
-                height: 40px !important;
-                width: 40px !important;
+            .footer-logo-wrapper {
+                align-items: center !important;
+                text-align: center !important;
             }
             
-            .contact-info li {
-                gap: 8px;
+            .footer-logo-wrapper span {
+                text-align: center !important;
+            }
+            
+            .footer-logo-wrapper .nepali {
+                text-align: center !important;
+            }
+            
+            .footer-col h3 {
+                text-align: center !important;
+            }
+            
+            .footer-col h3::after {
+                left: 50% !important;
+                transform: translateX(-50%) !important;
             }
             
             .social-links {
-                justify-content: center;
+                justify-content: center !important;
+            }
+            
+            .footer-links a {
+                justify-content: center !important;
+            }
+            
+            .contact-info li {
+                justify-content: center !important;
+                text-align: center !important;
+                padding-right: 0 !important;
+            }
+            
+            .newsletter-form input,
+            .newsletter-form button {
+                max-width: 300px !important;
+                margin: 0 auto !important;
+            }
+            
+            /* 🚨 FIX: Smaller logo on mobile */
+            .footer-logo img {
+                width: 80px !important;
+                height: 80px !important;
             }
         }
+        
         @media (max-width: 480px) {
             :root {
                 --header-height: 60px;
@@ -571,15 +719,13 @@
                 padding: 0 1rem;
             }
             
+            /* 🚨 FIX: Even smaller logo on small mobile */
             .footer-logo img {
-                height: 35px !important;
-                width: 35px !important;
-            }
-            
-            footer {
-                padding: 1rem 0 0.3rem;
+                width: 70px !important;
+                height: 70px !important;
             }
         }
+        
         @media (max-width: 360px) {
             header .logo img {
                 width: 50px;
@@ -596,8 +742,8 @@
             }
             
             .footer-logo img {
-                height: 30px !important;
-                width: 30px !important;
+                width: 60px !important;
+                height: 60px !important;
             }
         }
     </style>
@@ -673,8 +819,6 @@
         </div>
     </header>
 
-    
-
     <!-- Main Content -->
     <main id="main" class="main-content-global @if(Request::route()->getName() == 'home')home-page-main @else other-page-main @endif">
         <div class="content-container">
@@ -682,32 +826,34 @@
         </div>
     </main>
 
-    <!-- Footer -->
+    <!-- FOOTER - ULTIMATE FIX WITH PROPER LOGO SIZE AND CLICKABLE -->
     <footer>
         <div class="container">
             <div class="footer-grid">
+                <!-- Column 1: Logo & Description -->
                 <div class="footer-col">
-                    <a href="{{ route('home') }}" class="footer-logo">
-                        <img src="{{ asset('images/logo.png') }}" alt="HostelHub Logo" 
-                             style="height: 120px !important; width: 120px !important; object-fit: contain !important; margin: 1rem 0 !important; display: block !important;"
-                             onerror="this.style.display='none'">
-                        <span style="font-size: 2rem; display: block; margin-top: 1rem;">HostelHub</span>
-                    </a>
-                    <p class="nepali" style="color: rgba(249, 250, 251, 0.8); margin-top: 12px; line-height: 1.6;">
-                        नेपालको नम्बर १ होस्टल प्रबन्धन प्रणाली। हामी होस्टल व्यवस्थापनलाई सहज, दक्ष र विश्वसनीय बनाउँछौं।
-                    </p>
+                    <div class="footer-logo-wrapper">
+                        <!-- 🚨 ULTIMATE FIX: Simple clickable logo without inline styles -->
+                        <a href="{{ url('/') }}" class="footer-logo">
+                            <img src="{{ asset('images/logo.png') }}" alt="HostelHub Logo" 
+                                 onerror="this.style.display='none'">
+                        </a>
+                        <span>HostelHub</span>
+                        <p class="nepali">
+                            नेपालको नम्बर १ होस्टल प्रबन्धन प्रणाली। हामी होस्टल व्यवस्थापनलाई सहज, दक्ष र विश्वसनीय बनाउँछौं।
+                        </p>
+                    </div>
                     <div class="social-links">
-                        <a href="https://www.facebook.com/HostelHubNepal" 
-                           aria-label="फेसबुक" 
-                           target="_blank" 
-                           rel="noopener noreferrer">
-                           <i class="fab fa-facebook-f"></i>
+                        <a href="https://www.facebook.com/HostelHubNepal" aria-label="फेसबुक" target="_blank" rel="noopener noreferrer">
+                            <i class="fab fa-facebook-f"></i>
                         </a>
                         <a href="#" aria-label="ट्विटर"><i class="fab fa-twitter"></i></a>
                         <a href="#" aria-label="इन्स्टाग्राम"><i class="fab fa-instagram"></i></a>
                         <a href="#" aria-label="लिङ्क्डइन"><i class="fab fa-linkedin-in"></i></a>
                     </div>
                 </div>
+                
+                <!-- Column 2: Quick Links -->
                 <div class="footer-col">
                     <h3 class="nepali">तिब्र लिङ्कहरू</h3>
                     <ul class="footer-links">
@@ -722,30 +868,34 @@
                         <li><a href="{{ route('terms') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">सेवा सर्तहरू</span></a></li>
                     </ul>
                 </div>
+                
+                <!-- Column 3: Contact Info -->
                 <div class="footer-col">
                     <h3 class="nepali">सम्पर्क जानकारी</h3>
                     <ul class="contact-info">
                         <li>
-                            <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
+                            <i class="fas fa-map-marker-alt"></i>
                             <div class="nepali">कमलपोखरी, काठमाडौं, नेपाल</div>
                         </li>
                         <li>
-                            <i class="fas fa-phone-alt" aria-hidden="true"></i>
+                            <i class="fas fa-phone-alt"></i>
                             <div>+९७७ ९७६१७६२०३६</div>
                         </li>
                         <li>
-                            <i class="fas fa-envelope" aria-hidden="true"></i>
+                            <i class="fas fa-envelope"></i>
                             <div>info@hostelhub.com</div>
                         </li>
                         <li>
-                            <i class="fas fa-clock" aria-hidden="true"></i>
+                            <i class="fas fa-clock"></i>
                             <div class="nepali">सोम-शुक्र: ९:०० बिहान - ५:०० बेलुका</div>
                         </li>
                     </ul>
                 </div>
+                
+                <!-- Column 4: Newsletter -->
                 <div class="footer-col">
                     <h3 class="nepali">समाचारपत्र</h3>
-                    <p class="nepali" style="color: rgba(249, 250, 251, 0.8); margin-bottom: 12px; line-height: 1.6;">
+                    <p class="nepali">
                         हाम्रो नवीनतम अपडेटहरू प्राप्त गर्न तपाईंको इमेल दर्ता गर्नुहोस्
                     </p>
                     <form class="newsletter-form" action="{{ route('newsletter.subscribe') }}" method="POST">
@@ -755,9 +905,11 @@
                         <button type="submit" class="nepali">दर्ता गर्नुहोस्</button>
                     </form>
                 </div>
-                <div class="copyright">
-                    <p class="nepali">© 2025 HostelHub. सबै अधिकार सुरक्षित।</p>
-                </div>
+            </div>
+            
+            <!-- Copyright -->
+            <div class="copyright">
+                <p class="nepali">© 2025 HostelHub. सबै अधिकार सुरक्षित।</p>
             </div>
         </div>
     </footer>
@@ -828,6 +980,40 @@
                     }
                 }
             });
+
+            // 🚨 ULTIMATE FOOTER LOGO CLICK FIX
+            const footerLogo = document.querySelector('.footer-logo');
+            if (footerLogo) {
+                // Make sure the logo is clickable
+                footerLogo.style.cursor = 'pointer';
+                footerLogo.style.textDecoration = 'none';
+                
+                // Add click event as backup
+                footerLogo.addEventListener('click', function(e) {
+                    // Let the anchor tag do its default behavior
+                    // This is just a backup in case CSS is blocking it
+                });
+                
+                // Debug: Log when logo is clicked
+                footerLogo.addEventListener('click', function() {
+                    console.log('Footer logo clicked, navigating to home page');
+                });
+            }
+            
+            // 🚨 NUCLEAR OPTION: If still not working, force redirect
+            setTimeout(() => {
+                const logoAnchor = document.querySelector('.footer-logo');
+                if (logoAnchor) {
+                    // Ensure it's really an anchor with href
+                    logoAnchor.setAttribute('href', '{{ url("/") }}');
+                    logoAnchor.setAttribute('title', 'Go to Home Page');
+                    
+                    // Force remove any blocking styles
+                    logoAnchor.style.pointerEvents = 'auto';
+                    logoAnchor.style.zIndex = '1000';
+                    logoAnchor.style.position = 'relative';
+                }
+            }, 500);
         });
     </script>
 
