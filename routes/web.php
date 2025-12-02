@@ -72,9 +72,35 @@ Route::prefix('admin')
         Route::get('/hostels/featured', [AdminHostelController::class, 'featuredHostels'])->name('admin.hostels.featured');
         Route::post('/hostels/featured/update', [AdminHostelController::class, 'updateFeaturedHostels'])->name('admin.hostels.featured.update');
 
-        // ❌ REMOVED: Duplicate routes - Use the ones below instead
-        // Route::post('/hostels/{hostel}/publish', [AdminHostelController::class, 'publishSingle'])->name('admin.hostels.publish.single');
-        // Route::post('/hostels/{hostel}/unpublish', [AdminHostelController::class, 'unpublishSingle'])->name('admin.hostels.unpublish.single');
+        // ✅ CORRECTED: Single hostel publish/unpublish routes
+        Route::post('/hostels/{hostel}/publish', [AdminHostelController::class, 'publishSingle'])
+            ->name('admin.hostels.publish.single');
+
+        Route::post('/hostels/{hostel}/unpublish', [AdminHostelController::class, 'unpublishSingle'])
+            ->name('admin.hostels.unpublish.single');
+
+        // ✅ NEW: Bulk operations route for hostel management
+        Route::post('/hostels/bulk-operations', [AdminHostelController::class, 'bulkOperations'])
+            ->name('admin.hostels.bulk-operations');
+
+        // ✅ EMERGENCY WORKING ROUTES - GUARANTEED SOLUTION
+        Route::post('/hostels/{id}/publish-now', function ($id) {
+            $hostel = \App\Models\Hostel::findOrFail($id);
+            $hostel->update([
+                'is_published' => true,
+                'published_at' => now()
+            ]);
+            return redirect()->route('admin.hostels.index')->with('success', 'होस्टल प्रकाशित गरियो!');
+        })->name('admin.hostels.publish.now');
+
+        Route::post('/hostels/{id}/unpublish-now', function ($id) {
+            $hostel = \App\Models\Hostel::findOrFail($id);
+            $hostel->update([
+                'is_published' => false,
+                'published_at' => null
+            ]);
+            return redirect()->route('admin.hostels.index')->with('success', 'होस्टल अप्रकाशित गरियो!');
+        })->name('admin.hostels.unpublish.now');
 
         require __DIR__ . '/admin.php';
 
@@ -119,15 +145,6 @@ Route::prefix('student')
         Route::post('/bookings/{id}/cancel', [BookingController::class, 'cancel'])->name('student.bookings.cancel');
     });
 
-// ✅ SINGLE HOSTEL PUBLISH ROUTES (CORRECTED VERSION)
-Route::post('/admin/hostels/{hostel}/publish', [AdminHostelController::class, 'publishSingle'])
-    ->name('admin.hostels.publish.single')
-    ->middleware(['auth', 'role:admin']);
-
-Route::post('/admin/hostels/{hostel}/unpublish', [AdminHostelController::class, 'unpublishSingle'])
-    ->name('admin.hostels.unpublish.single')
-    ->middleware(['auth', 'role:admin']);
-
 /*|--------------------------------------------------------------------------
 | Development Routes (Conditionally Loaded)
 |--------------------------------------------------------------------------*/
@@ -135,23 +152,41 @@ if (app()->environment('local')) {
     require __DIR__ . '/dev.php';
 }
 
-// ✅ ABSOLUTE GUARANTEED SOLUTION - PUT THIS IN web.php
+// ✅ ABSOLUTE GUARANTEED SOLUTION - EMERGENCY BACKUP ROUTES
 Route::get('/force-publish/{id}', function ($id) {
     $user = Auth::user();
-    if (!$user->hasRole('admin')) return "Unauthorized";
+    if (!$user || !$user->hasRole('admin')) {
+        return redirect('/login')->with('error', 'Unauthorized');
+    }
 
     $hostel = \App\Models\Hostel::find($id);
-    $hostel->update(['is_published' => true, 'published_at' => now()]);
+    if (!$hostel) {
+        return redirect('/admin/hostels')->with('error', 'होस्टल फेला परेन');
+    }
+
+    $hostel->update([
+        'is_published' => true,
+        'published_at' => now()
+    ]);
 
     return redirect('/admin/hostels')->with('success', 'होस्टल प्रकाशित गरियो!');
-});
+})->middleware(['auth', 'role:admin']);
 
 Route::get('/force-unpublish/{id}', function ($id) {
     $user = Auth::user();
-    if (!$user->hasRole('admin')) return "Unauthorized";
+    if (!$user || !$user->hasRole('admin')) {
+        return redirect('/login')->with('error', 'Unauthorized');
+    }
 
     $hostel = \App\Models\Hostel::find($id);
-    $hostel->update(['is_published' => false, 'published_at' => null]);
+    if (!$hostel) {
+        return redirect('/admin/hostels')->with('error', 'होस्टल फेला परेन');
+    }
+
+    $hostel->update([
+        'is_published' => false,
+        'published_at' => null
+    ]);
 
     return redirect('/admin/hostels')->with('success', 'होस्टल अप्रकाशित गरियो!');
-});
+})->middleware(['auth', 'role:admin']);

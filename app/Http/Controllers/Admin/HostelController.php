@@ -118,27 +118,31 @@ class HostelController extends Controller
         // ✅ SECURITY FIX: Authorization check
         $user = auth()->user();
         if (!$user->hasRole('admin')) {
-            return response()->json([
-                'success' => false,
-                'message' => 'तपाईंसँग यो कार्य गर्ने अनुमति छैन'
-            ], 403);
+            return redirect()->route('admin.hostels.index')
+                ->with('error', 'तपाईंसँग यो कार्य गर्ने अनुमति छैन');
         }
 
         $request->validate([
             'action' => 'required|in:publish,unpublish,activate,deactivate,delete,feature,unfeature',
-            'hostel_ids' => 'required|array',
+            'hostel_ids' => 'required|array|min:1',
             'hostel_ids.*' => 'exists:hostels,id'
+        ], [
+            'hostel_ids.required' => 'कम्तिमा एउटा होस्टल चयन गर्नुहोस्',
+            'hostel_ids.min' => 'कम्तिमा एउटा होस्टल चयन गर्नुहोस्'
         ]);
 
         DB::beginTransaction();
 
         try {
-            $hostels = Hostel::whereIn('id', $request->hostel_ids)->get();
+            $hostelIds = $request->hostel_ids;
+            $hostels = Hostel::whereIn('id', $hostelIds)->get();
             $successCount = 0;
             $errors = [];
 
             foreach ($hostels as $hostel) {
                 try {
+                    $skipToNext = false; // 🔥 PHP 8.3 FIX: Flag variable
+
                     switch ($request->action) {
                         case 'publish':
                             if (!$hostel->is_published) {
@@ -193,10 +197,13 @@ class HostelController extends Controller
 
                         case 'delete':
                             // Check if hostel can be deleted
-                            if ($hostel->rooms()->count() > 0 || $hostel->students()->count() > 0) {
-                                $errors[] = "होस्टल '{$hostel->name}' मेटाउन सकिँदैन किनभने यसको कोठा वा विद्यार्थीहरू छन्।";
-                                // ✅ FIXED: Replace 'continue' with 'continue 2' for PHP 8.3
-                                continue 2;
+                            $hasRooms = $hostel->rooms()->exists();
+                            $hasBookings = $hostel->bookings()->exists();
+
+                            if ($hasRooms || $hasBookings) {
+                                $errors[] = "होस्टल '{$hostel->name}' मेटाउन सकिँदैन किनभने यसको कोठा वा बुकिंगहरू छन्।";
+                                $skipToNext = true; // 🔥 PHP 8.3 FIX: Use flag instead of continue
+                                break;
                             }
 
                             // Delete image if exists
@@ -208,8 +215,18 @@ class HostelController extends Controller
                             $successCount++;
                             break;
                     }
+
+                    // 🔥 PHP 8.3 FIX: Check flag and skip to next iteration
+                    if ($skipToNext) {
+                        continue;
+                    }
                 } catch (\Exception $e) {
                     $errors[] = "होस्टल '{$hostel->name}' मा त्रुटि: " . $e->getMessage();
+                    Log::error('Hostel bulk operation error', [
+                        'hostel_id' => $hostel->id,
+                        'action' => $request->action,
+                        'error' => $e->getMessage()
+                    ]);
                 }
             }
 
@@ -219,21 +236,28 @@ class HostelController extends Controller
             DB::commit();
 
             $message = "{$successCount} होस्टल सफलतापूर्वक अद्यावधिक गरियो";
+
             if (!empty($errors)) {
                 $message .= " (" . count($errors) . " त्रुटिहरू)";
+                // Redirect with both success and errors
+                return redirect()->route('admin.hostels.index')
+                    ->with('warning', $message)
+                    ->with('bulk_errors', $errors);
             }
 
-            return response()->json([
-                'success' => true,
-                'message' => $message,
-                'errors' => $errors
-            ]);
+            return redirect()->route('admin.hostels.index')
+                ->with('success', $message);
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json([
-                'success' => false,
-                'message' => 'बल्क अपरेसन असफल: ' . $e->getMessage()
-            ], 500);
+            Log::critical('Bulk operations failed', [
+                'action' => $request->action,
+                'hostel_ids' => $request->hostel_ids,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return redirect()->route('admin.hostels.index')
+                ->with('error', 'बल्क अपरेसन असफल: ' . $e->getMessage());
         }
     }
 
@@ -1024,53 +1048,33 @@ class HostelController extends Controller
      */
     public function publishSingle(Hostel $hostel)
     {
-        // SECURITY: Admin only
-        if (!auth()->user()->hasRole('admin')) {
-            return redirect()->back()->with('error', 'Unauthorized access');
-        }
-
-        DB::beginTransaction();
         try {
-            // Generate slug if not exists
-            if (!$hostel->slug) {
-                $hostel->slug = $this->generateUniqueSlug($hostel->name, $hostel->id);
-            }
-
             $hostel->update([
                 'is_published' => true,
-                'published_at' => now(),
+                'published_at' => now()
             ]);
 
-            DB::commit();
-
             return redirect()->route('admin.hostels.index')
-                ->with('success', 'होस्टल सफलतापूर्वक प्रकाशित गरियो');
+                ->with('success', 'होस्टल प्रकाशित गरियो!');
         } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()->with('error', 'प्रकाशन गर्दा त्रुटि: ' . $e->getMessage());
+            return redirect()->route('admin.hostels.index')
+                ->with('error', 'प्रकाशित गर्न असफल: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Unpublish single hostel  
-     */
     public function unpublishSingle(Hostel $hostel)
     {
-        // SECURITY: Admin only
-        if (!auth()->user()->hasRole('admin')) {
-            return redirect()->back()->with('error', 'Unauthorized access');
-        }
-
         try {
             $hostel->update([
                 'is_published' => false,
-                'published_at' => null,
+                'published_at' => null
             ]);
 
             return redirect()->route('admin.hostels.index')
-                ->with('success', 'होस्टल सफलतापूर्वक अप्रकाशित गरियो');
+                ->with('success', 'होस्टल अप्रकाशित गरियो!');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'अप्रकाशन गर्दा त्रुटि: ' . $e->getMessage());
+            return redirect()->route('admin.hostels.index')
+                ->with('error', 'अप्रकाशित गर्न असफल: ' . $e->getMessage());
         }
     }
 
