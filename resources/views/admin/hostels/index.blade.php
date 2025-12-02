@@ -31,6 +31,35 @@
         </div>
     @endif
 
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    @if(session('warning'))
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            {{ session('warning') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    @if(session('bulk_errors'))
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>त्रुटिहरू:</strong>
+            <ul class="mb-0 mt-2">
+                @foreach(session('bulk_errors') as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
     <!-- Statistics Cards -->
     <div class="row mb-4">
         <div class="col-xl-3 col-md-6 mb-4">
@@ -182,6 +211,8 @@
                             <option value="unpublish">अप्रकाशित गर्नुहोस्</option>
                             <option value="activate">सक्रिय गर्नुहोस्</option>
                             <option value="deactivate">निष्क्रिय गर्नुहोस्</option>
+                            <option value="feature">फिचर गर्नुहोस्</option>
+                            <option value="unfeature">फिचर हटाउनुहोस्</option>
                             <option value="delete">मेटाउनुहोस्</option>
                         </select>
                         <button class="btn btn-sm btn-primary" id="applyBulkAction">
@@ -236,7 +267,7 @@
                                              width="50"
                                              height="50"
                                              style="object-fit: cover;"
-                                             onerror="this.style.display='none'">
+                                             onerror="this.src='{{ asset('images/default-hostel.jpg') }}'">
                                     @else
                                         <div class="rounded bg-light d-flex align-items-center justify-content-center me-3"
                                              style="width: 50px; height: 50px;">
@@ -339,7 +370,7 @@
                             <td class="text-center">
     @if($hostel->is_published)
         <span class="badge bg-success mb-2 d-block">प्रकाशित</span>
-        <form action="/admin/hostels/{{ $hostel->id }}/unpublish-now" method="POST" class="d-inline">
+        <form action="{{ url('/admin/hostels/' . $hostel->id . '/unpublish') }}" method="POST" class="d-inline">
             @csrf
             <button type="submit" class="btn btn-warning btn-sm" 
                     onclick="return confirm('यो होस्टल अप्रकाशित गर्नुहुन्छ?')">
@@ -348,7 +379,7 @@
         </form>
     @else
         <span class="badge bg-secondary mb-2 d-block">अप्रकाशित</span>
-        <form action="/admin/hostels/{{ $hostel->id }}/publish-now" method="POST" class="d-inline">
+        <form action="{{ url('/admin/hostels/' . $hostel->id . '/publish') }}" method="POST" class="d-inline">
             @csrf
             <button type="submit" class="btn btn-success btn-sm"
                     onclick="return confirm('यो होस्टल प्रकाशित गर्नुहुन्छ?')">
@@ -592,7 +623,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // 🔥 FIXED: Apply bulk action - COMPLETELY REWRITTEN
+    // 🔥 SIMPLE BULK ACTION FIX - NO AJAX, SIMPLE FORM SUBMISSION
     if (applyBulkAction) {
         applyBulkAction.addEventListener('click', function() {
             const action = bulkActionSelect.value;
@@ -624,6 +655,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 case 'deactivate':
                     confirmMessage = `के तपाइँ निश्चित हुनुहुन्छ कि यी ${selectedIds.length} होस्टलहरू निष्क्रिय गर्न चाहनुहुन्छ?`;
                     break;
+                case 'feature':
+                    confirmMessage = `के तपाइँ निश्चित हुनुहुन्छ कि यी ${selectedIds.length} होस्टलहरू फिचर गर्न चाहनुहुन्छ?`;
+                    break;
+                case 'unfeature':
+                    confirmMessage = `के तपाइँ निश्चित हुनुहुन्छ कि यी ${selectedIds.length} होस्टलहरू फिचर हटाउन चाहनुहुन्छ?`;
+                    break;
                 case 'delete':
                     confirmMessage = `के तपाइँ निश्चित हुनुहुन्छ कि यी ${selectedIds.length} होस्टलहरू मेटाउन चाहनुहुन्छ? सबै कोठाहरू र सम्बन्धित डाटा हटाइनेछ।`;
                     break;
@@ -633,52 +670,37 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // Show loading state
-            const originalText = applyBulkAction.innerHTML;
-            applyBulkAction.disabled = true;
-            applyBulkAction.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>प्रक्रिया हुदैछ...';
-
-            // Perform bulk action via AJAX - FIXED: Use proper Laravel route
-            fetch('{{ route("admin.hostels.bulk-operations") }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: JSON.stringify({
-                    action: action,
-                    hostel_ids: selectedIds
-                })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    // Show success message
-                    showBulkActionAlert('सफलता', data.message, 'success');
-                    
-                    // Reload page after 2 seconds to see changes
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 2000);
-                } else {
-                    throw new Error(data.message || 'Unknown error occurred');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showBulkActionAlert('त्रुटि', 'बल्क अपरेसन असफल भयो: ' + error.message, 'error');
-            })
-            .finally(() => {
-                // Reset button state
-                applyBulkAction.disabled = false;
-                applyBulkAction.innerHTML = originalText;
+            // Create a form dynamically
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '{{ route("admin.hostels.bulk-operations") }}';
+            
+            // Add CSRF token
+            const csrfToken = document.createElement('input');
+            csrfToken.type = 'hidden';
+            csrfToken.name = '_token';
+            csrfToken.value = '{{ csrf_token() }}';
+            form.appendChild(csrfToken);
+            
+            // Add action
+            const actionInput = document.createElement('input');
+            actionInput.type = 'hidden';
+            actionInput.name = 'action';
+            actionInput.value = action;
+            form.appendChild(actionInput);
+            
+            // Add hostel_ids as hidden inputs
+            selectedIds.forEach(id => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'hostel_ids[]';
+                input.value = id;
+                form.appendChild(input);
             });
+            
+            // Add form to body and submit
+            document.body.appendChild(form);
+            form.submit();
         });
     }
 
@@ -694,65 +716,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-
-    // Helper function to show alerts for bulk actions
-    function showBulkActionAlert(title, message, type) {
-        const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
-        const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
-        
-        const alertHtml = `
-            <div class="alert ${alertClass} alert-dismissible fade show mb-4" role="alert">
-                <div class="d-flex align-items-center">
-                    <i class="fas ${icon} me-2"></i>
-                    <strong>${title}:</strong> ${message}
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        `;
-        
-        // Find the main content and prepend alert
-        const mainContent = document.querySelector('main');
-        if (mainContent) {
-            const existingAlert = mainContent.querySelector('.alert');
-            if (existingAlert) {
-                existingAlert.remove();
-            }
-            mainContent.insertAdjacentHTML('afterbegin', alertHtml);
-        }
-        
-        // Auto remove after 5 seconds
-        setTimeout(() => {
-            const alert = document.querySelector('.alert');
-            if (alert) {
-                alert.remove();
-            }
-        }, 5000);
-    }
-
-    // 🔥 CRITICAL FIX: Single Hostel Form Protection
-    // Prevent bulk operations from interfering with single forms
-    const singleForms = document.querySelectorAll('.single-hostel-form');
-    
-    singleForms.forEach(form => {
-        form.addEventListener('submit', function(e) {
-            // Ensure this form submits independently
-            console.log('Single hostel form submitting to:', this.action);
-            
-            // Show loading state
-            const button = this.querySelector('button[type="submit"]');
-            if (button) {
-                const originalText = button.innerHTML;
-                button.disabled = true;
-                button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>प्रक्रिया हुदैछ...';
-                
-                // Reset after 3 seconds if something goes wrong
-                setTimeout(() => {
-                    button.disabled = false;
-                    button.innerHTML = originalText;
-                }, 3000);
-            }
-        });
-    });
 
     // Export functionality
     const exportBtn = document.getElementById('exportBtn');
