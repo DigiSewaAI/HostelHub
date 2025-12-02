@@ -1,43 +1,69 @@
 @extends('layouts.frontend')
 @section('title', 'हाम्रा सुविधाहरू - HostelHub')
-@section('content')
-<div style="
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 3rem 1.5rem;
-  font-family: 'Segoe UI', sans-serif;
-  line-height: 1.7;
-  color: #374151;
-">
 
-  <!-- Page Header - EXACT GALLERY CTA DESIGN -->
-  <div style="
-    text-align: center;
-    margin-bottom: 3rem;
-    background: linear-gradient(135deg, var(--primary), var(--secondary));
-    color: white;
-    padding: 2.5rem 1.5rem;
-    border-radius: 1rem;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
-    max-width: 1000px;
-    margin-left: auto;
-    margin-right: auto;
-  ">
-    <h1 style="font-size: 2.5rem; font-weight: 800; color: white; margin-bottom: 1rem;">
-      हाम्रा शक्तिशाली सुविधाहरू
-    </h1>
-    <p style="font-size: 1.125rem; color: rgba(255, 255, 255, 0.9); max-width: 700px; margin: 0 auto; line-height: 1.6;">
-      HostelHub ले तपाइँको होस्टललाई आधुनिक, स्वचालित र दक्ष बनाउँछ।<br>
-      सबै कार्यहरू एउटै सजिलो प्लेटफर्ममा एकीकृत गर्नुहोस्।
-    </p>
-  </div>
+@push('styles')
+<style>
+    /* 🚨 IMPORTANT: Features page spacing fix - EXACT SAME AS GALLERY PAGE */
+    main#main.main-content-global.other-page-main {
+        padding-top: 0 !important;
+        margin-top: 0 !important;
+    }
 
-  <!-- Features Grid -->
-  <div style="max-width: 1000px; margin: 0 auto;">
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+    .features-page-wrapper {
+        padding: 0;
+        margin: 0;
+        min-height: calc(100vh - 200px);
+        display: flex;
+        flex-direction: column;
+    }
 
-      <!-- Feature 1 -->
-      <div style="
+    /* Page Header - EXACT SAME AS GALLERY PAGE HEADER */
+    .features-header {
+        text-align: center;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+        padding: 2.5rem 1.5rem;
+        border-radius: 1rem;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+        max-width: 1000px;
+        width: 90%;
+        
+        /* 🚨 EXACT SAME SPACING AS GALLERY PAGE HEADER */
+        margin: calc(var(--header-height, 70px) + 0.9rem) auto 1.5rem auto !important;
+    }
+    
+    .features-header h1 {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: white;
+        margin-bottom: 0.75rem;
+    }
+    
+    .features-header p {
+        font-size: 1.125rem;
+        color: rgba(255, 255, 255, 0.9);
+        max-width: 700px;
+        margin: 0 auto 0.75rem auto;
+        line-height: 1.6;
+    }
+
+    /* Features Grid Section - SAME STRUCTURE AS GALLERY FILTERS SECTION */
+    .features-grid-section {
+        padding-top: 0.5rem !important;
+        max-width: 1200px;
+        margin: 0 auto 1.5rem auto;
+        width: 95%;
+    }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .feature-card {
         background: white;
         padding: 1.5rem;
         border-radius: 0.75rem;
@@ -45,149 +71,86 @@
         border: 1px solid #f3f4f6;
         transition: all 0.3s ease;
         transform: translateY(0);
-      " onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 20px 25px -5px rgba(0, 0, 0, 0.1)';"
-         onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 15px -3px rgba(0, 0, 0, 0.1)';">
-        <div style="width: 48px; height: 48px; background-color: #001F5B; color: white; border-radius: 9999px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="stroke-width: 2;">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a3 3 0 015.356-1.857" />
-          </svg>
-        </div>
-        <h3 style="font-size: 1.25rem; font-weight: 700; color: #1f2937; margin-bottom: 0.5rem;">विद्यार्थी व्यवस्थापन</h3>
-        <p style="color: #4b5563; line-height: 1.5;">
-          KYC विवरण, उपस्थिति ट्र्याकिंग, फोटो प्रोफाइल, सम्पर्क जानकारी र फीस इतिहास सहित सबै विद्यार्थी डाटा एउटै ठाउँमा प्रबन्धन गर्नुहोस्।
-        </p>
-      </div>
+    }
 
-      <!-- Feature 2 -->
-      <div style="
-        background: white;
-        padding: 1.5rem;
-        border-radius: 0.75rem;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        border: 1px solid #f3f4f6;
-        transition: all 0.3s ease;
-      " onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 20px 25px -5px rgba(0, 0, 0, 0.1)';"
-         onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 15px -3px rgba(0, 0, 0, 0.1)';">
-        <div style="width: 48px; height: 48px; background-color: #001F5B; color: white; border-radius: 9999px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="stroke-width: 2;">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-          </svg>
-        </div>
-        <h3 style="font-size: 1.25rem; font-weight: 700; color: #1f2937; margin-bottom: 0.5rem;">कोठा/बेड आवंटन</h3>
-        <p style="color: #4b5563; line-height: 1.5;">
-          रियल-टाइम कोठा उपलब्धता, बेड भिजुअलाइजेसन, चार्ज अनुसार आवंटन र बुकिंग प्रबन्धन गर्नुहोस्। स्वचालित अलर्ट र डुप्लिकेट बुकिंग रोक्नुहोस्।
-        </p>
-      </div>
+    .feature-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    }
 
-      <!-- Feature 3 -->
-      <div style="
-        background: white;
-        padding: 1.5rem;
-        border-radius: 0.75rem;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        border: 1px solid #f3f4f6;
-        transition: all 0.3s ease;
-      " onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 20px 25px -5px rgba(0, 0, 0, 0.1)';"
-         onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 15px -3px rgba(0, 0, 0, 0.1)';">
-        <div style="width: 48px; height: 48px; background-color: #001F5B; color: white; border-radius: 9999px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="stroke-width: 2;">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-          </svg>
-        </div>
-        <h3 style="font-size: 1.25rem; font-weight: 700; color: #1f2937; margin-bottom: 0.5rem;">भुक्तानी ट्र्याकिंग</h3>
-        <p style="color: #4b5563; line-height: 1.5;">
-          स्वचालित बिल जनरेसन, भुक्तानी इतिहास, बक्यौता ट्र्याकिंग र SMS/इमेल रिमाइन्डर पठाउनुहोस्। सबै वित्तीय लेनदेन सुरक्षित र ट्रेसेबल हुन्छन्।
-        </p>
-      </div>
+    .feature-icon {
+        width: 48px;
+        height: 48px;
+        background-color: #001F5B;
+        color: white;
+        border-radius: 9999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+    }
 
-      <!-- Feature 4 -->
-      <div style="
-        background: white;
-        padding: 1.5rem;
-        border-radius: 0.75rem;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        border: 1px solid #f3f4f6;
-        transition: all 0.3s ease;
-      " onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 20px 25px -5px rgba(0, 0, 0, 0.1)';"
-         onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 15px -3px rgba(0, 0, 0, 0.1)';">
-        <div style="width: 48px; height: 48px; background-color: #001F5B; color: white; border-radius: 9999px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="stroke-width: 2;">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-          </svg>
-        </div>
-        <h3 style="font-size: 1.25rem; font-weight: 700; color: #1f2937; margin-bottom: 0.5rem;">भोजन व्यवस्थापन</h3>
-        <p style="color: #4b5563; line-height: 1.5;">
-          साप्ताहिक मेनु योजना बनाउनुहोस्, भोजन अर्डर ट्र्याक गर्नुहोस्, र खानेकुराको इन्भेन्टरी र खर्च प्रबन्धन गर्नुहोस्। विद्यार्थीले आफैंले अर्डर गर्न सक्छन्।
-        </p>
-      </div>
+    .feature-icon svg {
+        stroke-width: 2;
+    }
 
-      <!-- Feature 5 -->
-      <div style="
-        background: white;
-        padding: 1.5rem;
-        border-radius: 0.75rem;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        border: 1px solid #f3f4f6;
-        transition: all 0.3s ease;
-      " onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 20px 25px -5px rgba(0, 0, 0, 0.1)';"
-         onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 15px -3px rgba(0, 0, 0, 0.1)';">
-        <div style="width: 48px; height: 48px; background-color: #001F5B; color: white; border-radius: 9999px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="stroke-width: 2;">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-          </svg>
-        </div>
-        <h3 style="font-size: 1.25rem; font-weight: 700; color: #1f2937; margin-bottom: 0.5rem;">मोबाइल एप्प</h3>
-        <p style="color: #4b5563; line-height: 1.5;">
-          Android र iOS को लागि उपलब्ध मोबाइल एप्प मार्फत प्रशासक र विद्यार्थी दुवैले कहींबाट पनि कोठा स्थिति, भुक्तानी, भोजन अर्डर र उपस्थिति हेर्न सक्छन्।
-        </p>
-      </div>
+    .feature-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 0.5rem;
+    }
 
-      <!-- Feature 6 -->
-      <div style="
-        background: white;
-        padding: 1.5rem;
-        border-radius: 0.75rem;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        border: 1px solid #f3f4f6;
-        transition: all 0.3s ease;
-      " onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 20px 25px -5px rgba(0, 0, 0, 0.1)';"
-         onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 15px -3px rgba(0, 0, 0, 0.1)';">
-        <div style="width: 48px; height: 48px; background-color: #001F5B; color: white; border-radius: 9999px; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="stroke-width: 2;">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-          </svg>
-        </div>
-        <h3 style="font-size: 1.25rem; font-weight: 700; color: #1f2937; margin-bottom: 0.5rem;">विश्लेषण र रिपोर्ट</h3>
-        <p style="color: #4b5563; line-height: 1.5;">
-          भुक्तानी प्रगति, कोठा उपयोगिता, भोजन खपत र विद्यार्थी आगमन जस्ता विस्तृत रिपोर्टहरू प्राप्त गर्नुहोस्। आगामी निर्णयहरूको लागि डाटा आधारित विश्लेषण।
-        </p>
-      </div>
+    .feature-description {
+        color: #4b5563;
+        line-height: 1.5;
+    }
 
-    </div>
-  </div>
+    /* 🚨 CTA Section - EXACT SAME AS GALLERY PAGE */
+    .features-cta-wrapper {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        padding: 1.5rem 1.5rem 2rem 1.5rem;
+        margin-top: 1rem;
+    }
 
-  <!-- CTA Section - EXACT COPY FROM GALLERY PAGE -->
-  <div style="
-    text-align: center;
-    margin-top: 4rem;
-    margin-bottom: 2rem;
-    background: linear-gradient(135deg, var(--primary), var(--secondary));
-    color: white;
-    padding: 2.5rem 1.5rem;
-    border-radius: 1rem;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
-    max-width: 800px;
-    margin-left: auto;
-    margin-right: auto;
-  ">
-    <h2 style="font-size: 1.875rem; font-weight: bold; margin-bottom: 1rem;">अहिले नै प्रयोग सुरु गर्नुहोस्</h2>
-    <p style="font-size: 1.25rem; margin-bottom: 2rem; opacity: 0.9;">
-      हाम्रो सबै सुविधाहरू ७ दिनको निःशुल्क परीक्षणमा अनुभव गर्नुहोस्।
-    </p>
+    .features-cta-section {
+        text-align: center;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+        padding: 2.5rem 2rem;
+        border-radius: 1rem;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+        max-width: 800px;
+        width: 100%;
+        margin: 0 auto;
+    }
 
-    <!-- Buttons -->
-    <div style="display: flex; flex-direction: column; gap: 1rem; align-items: center;">
-      <a href="/demo" style="
+    .features-cta-section h2 {
+        font-size: 1.75rem;
+        font-weight: bold;
+        margin-bottom: 0.75rem;
+        color: white;
+    }
+
+    .features-cta-section p {
+        font-size: 1.125rem;
+        margin-bottom: 1.5rem;
+        opacity: 0.9;
+    }
+
+    .features-cta-buttons-container {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        justify-content: center;
+        margin-top: 1rem;
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .features-trial-button {
         background-color: white;
         color: #001F5B;
         font-weight: 600;
@@ -197,11 +160,21 @@
         min-width: 180px;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         transition: all 0.3s ease;
-      " onmouseover="this.style.backgroundColor='#f3f4f6'; this.style.transform='translateY(-2px)';"
-         onmouseout="this.style.backgroundColor='white'; this.style.transform='none';">
-        डेमो माग्नुहोस्
-      </a>
-      <a href="/register" style="
+        border: none;
+        cursor: pointer;
+        display: inline-block;
+        font-size: 1rem;
+        text-align: center;
+    }
+    
+    .features-trial-button:hover {
+        background-color: #f3f4f6;
+        transform: translateY(-2px);
+        color: #001F5B;
+    }
+
+    .features-outline-button {
+        background: transparent;
         border: 2px solid white;
         color: white;
         font-weight: 600;
@@ -209,25 +182,204 @@
         border-radius: 0.5rem;
         text-decoration: none;
         min-width: 180px;
-        background-color: transparent;
         transition: all 0.3s ease;
-      " onmouseover="this.style.backgroundColor='white'; this.style.color='#001F5B'; this.style.transform='translateY(-2px)';"
-         onmouseout="this.style.backgroundColor='transparent'; this.style.color='white'; this.style.transform='none';">
-        निःशुल्क साइन अप
-      </a>
-    </div>
-  </div>
+        cursor: pointer;
+        display: inline-block;
+        font-size: 1rem;
+        text-align: center;
+    }
+    
+    .features-outline-button:hover {
+        background: white;
+        color: #001F5B;
+        transform: translateY(-2px);
+    }
 
-</div>
+    /* Mobile adjustments - EXACT SAME AS GALLERY PAGE */
+    @media (max-width: 768px) {
+        .features-header {
+            margin: calc(60px + 0.25rem) auto 1rem auto !important;
+            padding: 1.75rem 1rem;
+            width: calc(100% - 2rem);
+        }
+        
+        .features-header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .features-header p {
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
 
-<style>
-  /* Responsive adjustments - EXACT COPY FROM PRIVACY PAGE */
-  @media (max-width: 640px) {
-    [style*="font-size: 2.5rem"] { font-size: 2rem !important; }
-    [style*="font-size: 1.875rem"] { font-size: 1.5rem !important; }
-    [style*="font-size: 1.25rem"] { font-size: 1.125rem !important; }
-    [style*="font-size: 1.125rem"] { font-size: 1rem !important; }
-    [style*="font-size: 1.5rem"] { font-size: 1.25rem !important; }
-  }
+        .features-grid-section {
+            padding-top: 0.25rem !important;
+            margin: 0 auto 1rem auto;
+        }
+
+        .features-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .features-cta-wrapper {
+            padding: 1rem 1rem 1.5rem 1rem;
+        }
+        
+        .features-cta-section {
+            padding: 2rem 1.5rem;
+        }
+        
+        .features-cta-section h2 {
+            font-size: 1.5rem;
+        }
+        
+        .features-cta-section p {
+            font-size: 1rem;
+            margin-bottom: 1.25rem;
+        }
+        
+        .features-cta-buttons-container {
+            margin-top: 0.75rem;
+            flex-direction: column;
+        }
+
+        .features-trial-button,
+        .features-outline-button {
+            padding: 0.6rem 1.5rem;
+            font-size: 0.9rem;
+            min-width: 160px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .features-header h1 {
+            font-size: 1.75rem;
+        }
+        
+        .features-cta-wrapper {
+            padding: 0.75rem 1rem 1.25rem 1rem;
+        }
+        
+        .features-cta-section {
+            padding: 1.5rem 1rem;
+        }
+        
+        .features-cta-section h2 {
+            font-size: 1.3rem;
+        }
+        
+        .features-cta-section p {
+            font-size: 0.9rem;
+        }
+    }
 </style>
+@endpush
+
+@section('content')
+
+<div class="features-page-wrapper">
+    <!-- Page Header - EXACT SAME SPACING AS GALLERY PAGE -->
+    <div class="features-header">
+        <h1>हाम्रा शक्तिशाली सुविधाहरू</h1>
+        <p>HostelHub ले तपाइँको होस्टललाई आधुनिक, स्वचालित र दक्ष बनाउँछ।<br>
+           सबै कार्यहरू एउटै सजिलो प्लेटफर्ममा एकीकृत गर्नुहोस्।</p>
+    </div>
+
+    <!-- Features Grid Section - Structured like gallery filters -->
+    <section class="features-grid-section">
+        <div class="features-grid">
+            <!-- Feature 1 -->
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a3 3 0 015.356-1.857" />
+                    </svg>
+                </div>
+                <h3 class="feature-title">विद्यार्थी व्यवस्थापन</h3>
+                <p class="feature-description">
+                    KYC विवरण, उपस्थिति ट्र्याकिंग, फोटो प्रोफाइल, सम्पर्क जानकारी र फीस इतिहास सहित सबै विद्यार्थी डाटा एउटै ठाउँमा प्रबन्धन गर्नुहोस्।
+                </p>
+            </div>
+
+            <!-- Feature 2 -->
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                </div>
+                <h3 class="feature-title">कोठा/बेड आवंटन</h3>
+                <p class="feature-description">
+                    रियल-टाइम कोठा उपलब्धता, बेड भिजुअलाइजेसन, चार्ज अनुसार आवंटन र बुकिंग प्रबन्धन गर्नुहोस्। स्वचालित अलर्ट र डुप्लिकेट बुकिंग रोक्नुहोस्।
+                </p>
+            </div>
+
+            <!-- Feature 3 -->
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                    </svg>
+                </div>
+                <h3 class="feature-title">भुक्तानी ट्र्याकिंग</h3>
+                <p class="feature-description">
+                    स्वचालित बिल जनरेसन, भुक्तानी इतिहास, बक्यौता ट्र्याकिंग र SMS/इमेल रिमाइन्डर पठाउनुहोस्। सबै वित्तीय लेनदेन सुरक्षित र ट्रेसेबल हुन्छन्।
+                </p>
+            </div>
+
+            <!-- Feature 4 -->
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                </div>
+                <h3 class="feature-title">भोजन व्यवस्थापन</h3>
+                <p class="feature-description">
+                    साप्ताहिक मेनु योजना बनाउनुहोस्, भोजन अर्डर ट्र्याक गर्नुहोस्, र खानेकुराको इन्भेन्टरी र खर्च प्रबन्धन गर्नुहोस्। विद्यार्थीले आफैंले अर्डर गर्न सक्छन्।
+                </p>
+            </div>
+
+            <!-- Feature 5 -->
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                </div>
+                <h3 class="feature-title">मोबाइल एप्प</h3>
+                <p class="feature-description">
+                    Android र iOS को लागि उपलब्ध मोबाइल एप्प मार्फत प्रशासक र विद्यार्थी दुवैले कहींबाट पनि कोठा स्थिति, भुक्तानी, भोजन अर्डर र उपस्थिति हेर्न सक्छन्।
+                </p>
+            </div>
+
+            <!-- Feature 6 -->
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                </div>
+                <h3 class="feature-title">विश्लेषण र रिपोर्ट</h3>
+                <p class="feature-description">
+                    भुक्तानी प्रगति, कोठा उपयोगिता, भोजन खपत र विद्यार्थी आगमन जस्ता विस्तृत रिपोर्टहरू प्राप्त गर्नुहोस्। आगामी निर्णयहरूको लागि डाटा आधारित विश्लेषण।
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 🚨 CTA Section - EXACT SAME SPACING AS GALLERY PAGE -->
+    <div class="features-cta-wrapper">
+        <section class="features-cta-section">
+            <h2>अहिले नै प्रयोग सुरु गर्नुहोस्</h2>
+            <p>हाम्रो सबै सुविधाहरू ७ दिनको निःशुल्क परीक्षणमा अनुभव गर्नुहोस्।</p>
+            <div class="features-cta-buttons-container">
+                <a href="{{ route('demo') }}" class="features-trial-button">डेमो माग्नुहोस्</a>
+                <a href="{{ route('register') }}" class="features-outline-button">निःशुल्क साइन अप</a>
+            </div>
+        </section>
+    </div>
+</div>
 @endsection

@@ -5,7 +5,7 @@
 @push('styles')
 <style>
     /* 🚨 CRITICAL: About page specific fixes */
-    .about-page-main {
+    main#main.main-content-global.other-page-main {
         padding-top: 0 !important;
         margin-top: 0 !important;
     }
@@ -23,10 +23,9 @@
         display: none !important;
     }
     
-    /* Updated Header Styles - EXACTLY LIKE PRIVACY PAGE */
+    /* Updated Header Styles - EXACT SAME AS GALLERY PAGE */
     .about-header {
         text-align: center;
-        margin: 0 auto 3rem auto;
         background: linear-gradient(135deg, var(--primary), var(--secondary));
         color: white;
         padding: 2.5rem 1.5rem;
@@ -34,20 +33,23 @@
         box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
         max-width: 1000px;
         width: 90%;
+        
+        /* 🚨 EXACT SAME SPACING AS GALLERY PAGE */
+        margin: calc(var(--header-height, 70px) + 0.9rem) auto 1.5rem auto !important;
     }
     
     .about-header h1 {
         font-size: 2.5rem;
         font-weight: 800;
         color: white;
-        margin-bottom: 1rem;
+        margin-bottom: 0.75rem;
     }
     
     .about-header p {
         font-size: 1.125rem;
         color: rgba(255, 255, 255, 0.9);
         max-width: 800px;
-        margin: 0 auto;
+        margin: 0 auto 0.75rem auto;
     }
 
     /* About Page Specific Styles */
@@ -66,6 +68,9 @@
         margin-bottom: 4rem;
         align-items: center;
         padding: 0 1.5rem;
+        max-width: 1200px;
+        margin: 0 auto 2rem auto;
+        width: 95%;
     }
     
     .intro-title {
@@ -103,6 +108,9 @@
         gap: 2rem;
         margin-bottom: 4rem;
         padding: 0 1.5rem;
+        max-width: 1200px;
+        margin: 0 auto 2rem auto;
+        width: 95%;
     }
     
     .value-card {
@@ -151,8 +159,8 @@
         margin-bottom: 4rem;
         border-radius: var(--radius);
         max-width: 1200px;
-        margin: 0 auto 4rem auto;
-        width: calc(100% - 3rem);
+        margin: 0 auto 2rem auto;
+        width: 95%;
     }
     
     .stats-grid {
@@ -184,8 +192,8 @@
         margin-bottom: 4rem;
         padding: 0 1.5rem;
         max-width: 1200px;
-        margin: 0 auto 4rem auto;
-        width: 100%;
+        margin: 0 auto 2rem auto;
+        width: 95%;
     }
     
     .section-title {
@@ -278,20 +286,20 @@
         color: white;
     }
     
-    /* 🚨 COMPLETELY FIXED CTA SECTION - PROPERLY CENTERED WITH FOOTER SPACING */
+    /* 🚨 CTA Section - EXACT SAME AS GALLERY PAGE */
     .about-cta-wrapper {
         width: 100%;
         display: flex;
         justify-content: center;
-        padding: 2rem 1.5rem 8rem 1.5rem; /* Large bottom padding for footer spacing */
-        margin-top: auto; /* Push to bottom of content */
+        padding: 1.5rem 1.5rem 2rem 1.5rem;
+        margin-top: 1rem;
     }
     
     .about-cta-section {
         text-align: center;
         background: linear-gradient(135deg, var(--primary), var(--secondary));
         color: white;
-        padding: 3rem 2rem;
+        padding: 2.5rem 2rem;
         border-radius: 1rem;
         box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
         max-width: 800px;
@@ -300,15 +308,15 @@
     }
     
     .about-cta-section h2 {
-        font-size: 1.875rem;
+        font-size: 1.75rem;
         font-weight: bold;
-        margin-bottom: 1rem;
+        margin-bottom: 0.75rem;
         color: white;
     }
     
     .about-cta-section p {
-        font-size: 1.25rem;
-        margin-bottom: 2rem;
+        font-size: 1.125rem;
+        margin-bottom: 1.5rem;
         opacity: 0.9;
     }
     
@@ -359,14 +367,15 @@
 
     .cta-buttons-container {
         display: flex;
-        flex-direction: column;
         gap: 1rem;
         align-items: center;
-        margin-top: 1.5rem;
+        justify-content: center;
+        margin-top: 1rem;
         width: 100%;
+        flex-wrap: wrap;
     }
 
-    /* Responsive Design */
+    /* Mobile adjustments - EXACT SAME AS GALLERY PAGE */
     @media (max-width: 1024px) {
         .values-grid,
         .stats-grid,
@@ -380,6 +389,22 @@
     }
     
     @media (max-width: 768px) {
+        .about-header {
+            margin: calc(60px + 0.25rem) auto 1rem auto !important;
+            padding: 1.75rem 1rem;
+            width: calc(100% - 2rem);
+        }
+        
+        .about-header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .about-header p {
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
         .about-intro {
             grid-template-columns: 1fr;
         }
@@ -398,26 +423,12 @@
             font-size: 2.5rem;
         }
 
-        .about-header {
-            padding: 2rem 1rem;
-            margin-bottom: 2rem;
-            width: calc(100% - 2rem);
-        }
-        
-        .about-header h1 {
-            font-size: 2rem;
-        }
-        
-        .about-header p {
-            font-size: 1rem;
-        }
-
         .about-cta-wrapper {
-            padding: 2rem 1rem 6rem 1rem;
+            padding: 1rem 1rem 1.5rem 1rem;
         }
         
         .about-cta-section {
-            padding: 2.5rem 1.5rem;
+            padding: 2rem 1.5rem;
         }
         
         .about-cta-section h2 {
@@ -425,7 +436,8 @@
         }
         
         .about-cta-section p {
-            font-size: 1.125rem;
+            font-size: 1rem;
+            margin-bottom: 1.25rem;
         }
         
         .about-contact-email {
@@ -444,6 +456,11 @@
             padding-left: 1rem;
             padding-right: 1rem;
         }
+
+        .cta-buttons-container {
+            margin-top: 0.75rem;
+            flex-direction: column;
+        }
     }
 
     @media (max-width: 480px) {
@@ -452,11 +469,11 @@
         }
         
         .about-cta-wrapper {
-            padding: 1.5rem 1rem 5rem 1rem;
+            padding: 0.75rem 1rem 1.25rem 1rem;
         }
         
         .about-cta-section {
-            padding: 2rem 1rem;
+            padding: 1.5rem 1rem;
         }
         
         .about-cta-section h2 {
@@ -464,7 +481,7 @@
         }
         
         .about-cta-section p {
-            font-size: 1rem;
+            font-size: 0.9rem;
         }
         
         .about-contact-email {
@@ -489,7 +506,7 @@
 @endpush
 
 @section('content')
-<!-- Updated Hero Section - EXACT SAME AS PRIVACY PAGE -->
+<!-- Updated Hero Section - EXACT SAME AS GALLERY PAGE -->
 <div class="about-header">
     <h1>हाम्रो बारेमा</h1>
     <p>HostelHub नेपालको अग्रणी होस्टल व्यवस्थापन प्रणाली हो</p>
@@ -617,7 +634,7 @@
         </div>
     </div>
 
-    <!-- 🚨 COMPLETELY FIXED CTA SECTION - PROPERLY CENTERED WITH FOOTER SPACING -->
+    <!-- 🚨 CTA Section - EXACT SAME AS GALLERY PAGE -->
     <div class="about-cta-wrapper">
         <section class="about-cta-section">
             <h2>हामीलाई सम्पर्क गर्नुहोस्</h2>
