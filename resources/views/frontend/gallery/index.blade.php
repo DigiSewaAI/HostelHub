@@ -24,10 +24,9 @@
         display: none !important;
     }
     
-    /* Updated Header Styles - PROPERLY SPACED */
+    /* 🚨 UPDATED: Gallery Header - MOVED UP CLOSER TO TOP */
     .gallery-header {
         text-align: center;
-        margin: 0 auto 3rem auto;
         background: linear-gradient(135deg, var(--primary), var(--secondary));
         color: white;
         padding: 2.5rem 1.5rem;
@@ -35,27 +34,30 @@
         box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
         max-width: 1000px;
         width: 90%;
-        margin-top: calc(var(--header-height, 70px) + 1rem);
+        
+        /* 🚨 CHANGED: Reduced top spacing significantly */
+        margin: calc(var(--header-height, 70px) + 0.9rem) auto 1.5rem auto !important;
+        
     }
     
     .gallery-header h1 {
         font-size: 2.5rem;
         font-weight: 800;
         color: white;
-        margin-bottom: 1rem;
+        margin-bottom: 0.75rem; /* Reduced from 1rem */
     }
     
     .gallery-header p {
         font-size: 1.125rem;
         color: rgba(255, 255, 255, 0.9);
         max-width: 800px;
-        margin: 0 auto;
+        margin: 0 auto 0.75rem auto; /* Reduced bottom margin */
     }
 
-    /* 🆕 NEW: Meal Gallery Button Styles */
+    /* 🆕 Meal Gallery Button Styles - Spacing reduced */
     .meal-gallery-button-container {
         text-align: center;
-        margin: 1.5rem 0 0 0;
+        margin: 0.75rem 0 0 0; /* Reduced from 1.5rem */
     }
     
     .meal-gallery-button {
@@ -80,6 +82,20 @@
         transform: translateY(-2px);
         box-shadow: 0 5px 15px rgba(255, 255, 255, 0.2);
         color: white;
+    }
+
+    /* 🚨 IMPORTANT: Override main content spacing for gallery page only */
+    main#main.main-content-global.other-page-main {
+        padding-top: 0 !important;
+        margin-top: 0 !important;
+    }
+
+    /* Gallery filters को spacing पनि घटाउने */
+    .gallery-filters {
+        padding-top: 0.5rem !important; /* Reduced from 1rem */
+        max-width: 1200px;
+        margin: 0 auto 1.5rem auto; /* Reduced bottom margin */
+        width: 95%;
     }
 
     .hostel-badge {
@@ -154,20 +170,31 @@
         display: none !important;
     }
 
+    /* Mobile adjustments for tighter spacing */
     @media (max-width: 768px) {
         .gallery-header {
-            margin-top: calc(60px + 0.5rem);
-            padding: 2rem 1rem;
+            margin: calc(60px + 0.25rem) auto 1rem auto !important; /* Even tighter on mobile */
+            padding: 1.75rem 1rem; /* Reduced padding */
             width: calc(100% - 2rem);
         }
         
         .gallery-header h1 {
             font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .gallery-header p {
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
         }
         
         .meal-gallery-button {
             padding: 0.6rem 1.25rem;
             font-size: 0.9rem;
+        }
+        
+        .meal-gallery-button-container {
+            margin: 0.5rem 0 0 0; /* Even tighter on mobile */
         }
         
         .hostel-badge {
@@ -183,6 +210,11 @@
         .video-badge {
             padding: 6px 12px;
             font-size: 0.7rem;
+        }
+
+        .gallery-filters {
+            padding-top: 0.25rem !important;
+            margin: 0 auto 1rem auto;
         }
     }
 
@@ -287,14 +319,6 @@
         100% { transform: rotate(360deg); }
     }
 
-    /* 🚨 FIX: Gallery sections spacing */
-    .gallery-filters {
-        padding-top: 1rem !important;
-        max-width: 1200px;
-        margin: 0 auto 2rem auto;
-        width: 95%;
-    }
-
     .gallery-main {
         padding-top: 0 !important;
         max-width: 1200px;
@@ -302,90 +326,90 @@
         width: 95%;
     }
 
-    /* 🚨 UPDATED: CTA SECTION - EXACTLY LIKE PRICING PAGE */
-.gallery-cta-wrapper {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    padding: 1.5rem 1.5rem 2rem 1.5rem; /* Reduced padding - top: 1.5rem, bottom: 2rem */
-    margin-top: 1rem; /* Reduced margin to bring it closer */
-}
-
-.gallery-cta-section {
-    text-align: center;
-    background: linear-gradient(135deg, var(--primary), var(--secondary));
-    color: white;
-    padding: 2.5rem 2rem; /* Reduced from 3rem to 2.5rem */
-    border-radius: 1rem;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
-    max-width: 800px;
-    width: 100%;
-    margin: 0 auto;
-}
-
-.gallery-cta-section h2 {
-    font-size: 1.75rem; /* Slightly smaller */
-    font-weight: bold;
-    margin-bottom: 0.75rem; /* Reduced margin */
-    color: white;
-}
-
-.gallery-cta-section p {
-    font-size: 1.125rem; /* Slightly smaller */
-    margin-bottom: 1.5rem; /* Reduced margin */
-    opacity: 0.9;
-}
-
-.gallery-cta-buttons-container {
-    display: flex;
-    gap: 1rem;
-    align-items: center;
-    justify-content: center;
-    margin-top: 1rem; /* Reduced margin */
-    width: 100%;
-    flex-wrap: wrap;
-}
-
-@media (max-width: 768px) {
+    /* 🚨 CTA SECTION - UNCHANGED (Perfect as is) */
     .gallery-cta-wrapper {
-        padding: 1rem 1rem 1.5rem 1rem; /* Further reduced mobile padding */
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        padding: 1.5rem 1.5rem 2rem 1.5rem;
+        margin-top: 1rem;
     }
-    
+
     .gallery-cta-section {
-        padding: 2rem 1.5rem; /* Reduced mobile padding */
+        text-align: center;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+        padding: 2.5rem 2rem;
+        border-radius: 1rem;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+        max-width: 800px;
+        width: 100%;
+        margin: 0 auto;
     }
-    
+
     .gallery-cta-section h2 {
-        font-size: 1.5rem;
+        font-size: 1.75rem;
+        font-weight: bold;
+        margin-bottom: 0.75rem;
+        color: white;
     }
-    
+
     .gallery-cta-section p {
-        font-size: 1rem;
-        margin-bottom: 1.25rem;
+        font-size: 1.125rem;
+        margin-bottom: 1.5rem;
+        opacity: 0.9;
     }
-    
+
     .gallery-cta-buttons-container {
-        margin-top: 0.75rem;
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        justify-content: center;
+        margin-top: 1rem;
+        width: 100%;
+        flex-wrap: wrap;
     }
-}
 
-@media (max-width: 480px) {
-    .gallery-cta-wrapper {
-        padding: 0.75rem 1rem 1.25rem 1rem;
+    @media (max-width: 768px) {
+        .gallery-cta-wrapper {
+            padding: 1rem 1rem 1.5rem 1rem;
+        }
+        
+        .gallery-cta-section {
+            padding: 2rem 1.5rem;
+        }
+        
+        .gallery-cta-section h2 {
+            font-size: 1.5rem;
+        }
+        
+        .gallery-cta-section p {
+            font-size: 1rem;
+            margin-bottom: 1.25rem;
+        }
+        
+        .gallery-cta-buttons-container {
+            margin-top: 0.75rem;
+        }
     }
-    
-    .gallery-cta-section {
-        padding: 1.5rem 1rem;
+
+    @media (max-width: 480px) {
+        .gallery-cta-wrapper {
+            padding: 0.75rem 1rem 1.25rem 1rem;
+        }
+        
+        .gallery-cta-section {
+            padding: 1.5rem 1rem;
+        }
+        
+        .gallery-cta-section h2 {
+            font-size: 1.3rem;
+        }
+        
+        .gallery-cta-section p {
+            font-size: 0.9rem;
+        }
     }
-    
-    .gallery-cta-section h2 {
-        font-size: 1.3rem;
-    }
-    
-    .gallery-cta-section p {
-        font-size: 0.9rem;
-    }
-}
     
     .gallery-trial-button {
         background-color: white;
@@ -423,70 +447,16 @@
         transform: none;
     }
 
-    .gallery-cta-buttons-container {
-        display: flex;
-        gap: 1rem;
-        align-items: center;
-        justify-content: center;
-        margin-top: 1.5rem;
-        width: 100%;
-        flex-wrap: wrap;
-    }
-
-    /* 🆕 NEW: Stats section spacing adjustment */
+    /* 🆕 Stats section spacing adjustment */
     .gallery-stats {
-        margin: 2rem auto 3rem auto;
+        margin: 1.5rem auto 2.5rem auto; /* Adjusted spacing */
         max-width: 1200px;
         width: 95%;
     }
 
     @media (max-width: 768px) {
-        .gallery-cta-wrapper {
-            padding: 2rem 1rem 3rem 1rem; /* Reduced mobile padding */
-        }
-        
-        .gallery-cta-section {
-            padding: 2.5rem 1.5rem;
-        }
-        
-        .gallery-cta-section h2 {
-            font-size: 1.5rem;
-        }
-        
-        .gallery-cta-section p {
-            font-size: 1.125rem;
-        }
-        
-        .gallery-trial-button {
-            padding: 0.6rem 1.5rem;
-            font-size: 0.9rem;
-        }
-        
-        .gallery-cta-buttons-container {
-            flex-direction: column;
-            gap: 0.8rem;
-        }
-
         .gallery-stats {
-            margin: 1.5rem auto 2rem auto;
-        }
-    }
-
-    @media (max-width: 480px) {
-        .gallery-cta-wrapper {
-            padding: 1.5rem 1rem 2.5rem 1rem;
-        }
-        
-        .gallery-cta-section {
-            padding: 2rem 1rem;
-        }
-        
-        .gallery-cta-section h2 {
-            font-size: 1.3rem;
-        }
-        
-        .gallery-cta-section p {
-            font-size: 1rem;
+            margin: 1rem auto 2rem auto;
         }
     }
 </style>
@@ -494,12 +464,12 @@
 
 @section('content')
 
-<!-- Updated Hero Section - PROPERLY SPACED -->
+<!-- Updated Hero Section - MOVED UP CLOSER TO TOP -->
 <div class="gallery-header">
     <h1 class="nepali">हाम्रो ग्यालरी</h1>
     <p class="nepali">हाम्रा विभिन्न होस्टलहरूको कोठा, सुविधा र आवासीय क्षेत्रहरूको वास्तविक झलकहरू अन्वेषण गर्नुहोस्</p>
     
-    <!-- 🆕 NEW: Meal Gallery Button -->
+    <!-- 🆕 Meal Gallery Button -->
     <div class="meal-gallery-button-container">
         <a href="{{ route('menu-gallery') }}" class="meal-gallery-button nepali">
             <i class="fas fa-utensils"></i>
@@ -691,7 +661,7 @@
         </div>
     </section>
 
-    <!-- 🚨 UPDATED: CTA SECTION - MOVED UP LIKE ABOUT PAGE -->
+    <!-- 🚨 CTA SECTION - UNCHANGED (Perfect spacing) -->
     <div class="gallery-cta-wrapper">
         <section class="gallery-cta-section">
             <h2 class="nepali">तपाईंको होस्टललाई HostelHub संग जोड्नुहोस्</h2>
