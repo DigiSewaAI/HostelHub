@@ -781,7 +781,7 @@ main.home-page-main {
                         @if($item['media_type'] === 'image')
                             <img src="{{ $item['thumbnail_url'] }}" alt="{{ $item['title'] }}" loading="lazy" onerror="this.onerror=null;this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgZmlsbD0iI2YwZjlmZiI+PC9yZWN0Pjx0ZXh0IHg9IjQwMCIgeT0iMjI1IiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWtkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IiMxZjI5MzciPkltYWdlIFRodW1ibmFpbDwvdGV4dD48L3N2Zz4=';">
                         @else
-                            <img src="{{ $item['thumbnail_url'] }}" alt="{{ $item['title'] }}" loading="lazy" class="youtube-thumbnail" data-youtube-id="{{ $item['youtube_id'] ?? '' }}" onerror="this.onerror=null;this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgZmlsbD0iIzFlM2E4YSI+PC9yZWN0Pjx0ZXh0IHg9IjQwMCIgeT0iMjI5IiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWtkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IiNmZmYiPlZpZGVvIFRodW1ibmFpbDwvdGV4dD48L3N2Zz4=';">
+                            <img src="{{ $item['thumbnail_url'] }}" alt="{{ $item['title'] }}" loading="lazy" class="youtube-thumbnail" data-youtube-id="{{ $item['youtube_id'] ?? '' }}" onerror="this.onerror=null;this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgZmlsbD0iIzFlM2E4YSI+PC9yZWN0Pjx0ZXh0IHg9IjQwMCIgeT0iMjI5IiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWtkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2ViraWYiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IiNmZmYiPlZpZGVvIFRodW1ibmFpbDwvdGV4dD48L3N2Zz4=';">
                             <div class="video-overlay">
                                 <div class="video-play-icon">
                                     <i class="fas fa-play"></i>
@@ -970,7 +970,7 @@ main.home-page-main {
     </div>
 </section>
 
-<!-- Pricing Section - FINAL ENHANCED VERSION -->
+<!-- Pricing Section - FIXED VERSION -->
 <section class="section pricing" id="pricing">
     <div class="container">
         <h2 class="section-title nepali">योजना अनुसारका मूल्यहरू</h2>
@@ -1014,7 +1014,46 @@ main.home-page-main {
                     </li>
                 </ul>
                 <div class="pricing-button">
-                    <a href="/register" class="pricing-btn pricing-btn-outline nepali">योजना छान्नुहोस्</a>
+                    @auth
+                        @php
+                            $organizationId = session('current_organization_id');
+                            $currentSubscription = null;
+                            $currentPlan = null;
+                            $isTrial = false;
+                            
+                            if ($organizationId) {
+                                $organization = \App\Models\Organization::with('subscription.plan')->find($organizationId);
+                                $currentSubscription = $organization->subscription ?? null;
+                                $currentPlan = $currentSubscription->plan ?? null;
+                                $isTrial = $currentSubscription && $currentSubscription->status == 'trial';
+                            }
+                            
+                            $isStarterCurrent = $currentPlan && $currentPlan->slug == 'starter';
+                        @endphp
+                        
+                        @if($isTrial)
+                            <button class="pricing-btn pricing-btn-outline nepali" disabled>
+                                परीक्षण अवधिमा
+                            </button>
+                        @elseif($isStarterCurrent)
+                            <button class="pricing-btn pricing-btn-outline nepali" disabled>
+                                सक्रिय योजना
+                            </button>
+                        @else
+                            <form action="{{ route('subscription.upgrade') }}" method="POST" style="display: inline;">
+                                @csrf
+                                <input type="hidden" name="plan" value="starter">
+                                <button type="submit" class="pricing-btn pricing-btn-outline nepali">
+                                    योजना छान्नुहोस्
+                                </button>
+                            </form>
+                        @endif
+                    @else
+                        <a href="{{ route('register.organization', ['plan' => 'starter']) }}" 
+                           class="pricing-btn pricing-btn-outline nepali">
+                            योजना छान्नुहोस्
+                        </a>
+                    @endauth
                 </div>
             </div>
 
@@ -1052,7 +1091,46 @@ main.home-page-main {
                     </li>
                 </ul>
                 <div class="pricing-button">
-                    <a href="/register" class="pricing-btn pricing-btn-primary nepali">योजना छान्नुहोस्</a>
+                    @auth
+                        @php
+                            $organizationId = session('current_organization_id');
+                            $currentSubscription = null;
+                            $currentPlan = null;
+                            $isTrial = false;
+                            
+                            if ($organizationId) {
+                                $organization = \App\Models\Organization::with('subscription.plan')->find($organizationId);
+                                $currentSubscription = $organization->subscription ?? null;
+                                $currentPlan = $currentSubscription->plan ?? null;
+                                $isTrial = $currentSubscription && $currentSubscription->status == 'trial';
+                            }
+                            
+                            $isProCurrent = $currentPlan && $currentPlan->slug == 'pro';
+                        @endphp
+                        
+                        @if($isTrial)
+                            <button class="pricing-btn pricing-btn-primary nepali" disabled>
+                                परीक्षण अवधिमा
+                            </button>
+                        @elseif($isProCurrent)
+                            <button class="pricing-btn pricing-btn-primary nepali" disabled>
+                                सक्रिय योजना
+                            </button>
+                        @else
+                            <form action="{{ route('subscription.upgrade') }}" method="POST" style="display: inline;">
+                                @csrf
+                                <input type="hidden" name="plan" value="pro">
+                                <button type="submit" class="pricing-btn pricing-btn-primary nepali">
+                                    योजना छान्नुहोस्
+                                </button>
+                            </form>
+                        @endif
+                    @else
+                        <a href="{{ route('register.organization', ['plan' => 'pro']) }}" 
+                           class="pricing-btn pricing-btn-primary nepali">
+                            योजना छान्नुहोस्
+                        </a>
+                    @endauth
                 </div>
             </div>
 
@@ -1093,14 +1171,53 @@ main.home-page-main {
                     </li>
                 </ul>
                 <div class="pricing-button">
-                    <a href="/register" class="pricing-btn pricing-btn-outline nepali">योजना छान्नुहोस्</a>
+                    @auth
+                        @php
+                            $organizationId = session('current_organization_id');
+                            $currentSubscription = null;
+                            $currentPlan = null;
+                            $isTrial = false;
+                            
+                            if ($organizationId) {
+                                $organization = \App\Models\Organization::with('subscription.plan')->find($organizationId);
+                                $currentSubscription = $organization->subscription ?? null;
+                                $currentPlan = $currentSubscription->plan ?? null;
+                                $isTrial = $currentSubscription && $currentSubscription->status == 'trial';
+                            }
+                            
+                            $isEnterpriseCurrent = $currentPlan && $currentPlan->slug == 'enterprise';
+                        @endphp
+                        
+                        @if($isTrial)
+                            <button class="pricing-btn pricing-btn-outline nepali" disabled>
+                                परीक्षण अवधिमा
+                            </button>
+                        @elseif($isEnterpriseCurrent)
+                            <button class="pricing-btn pricing-btn-outline nepali" disabled>
+                                सक्रिय योजना
+                            </button>
+                        @else
+                            <form action="{{ route('subscription.upgrade') }}" method="POST" style="display: inline;">
+                                @csrf
+                                <input type="hidden" name="plan" value="enterprise">
+                                <button type="submit" class="pricing-btn pricing-btn-outline nepali">
+                                    योजना छान्नुहोस्
+                                </button>
+                            </form>
+                        @endif
+                    @else
+                        <a href="{{ route('register.organization', ['plan' => 'enterprise']) }}" 
+                           class="pricing-btn pricing-btn-outline nepali">
+                            योजना छान्नुहोस्
+                        </a>
+                    @endauth
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Free Trial Section -->
+<!-- Free Trial Section - FIXED VERSION -->
 <section class="free-trial" style="margin-bottom: 15px !important;">
     <div class="container">
         <div class="trial-content">
@@ -1110,8 +1227,39 @@ main.home-page-main {
                 <p class="trial-highlight-text nepali">७ दिन निःशुल्क • कुनै क्रेडिट कार्ड आवश्यक छैन • कुनै पनि प्रतिबद्धता छैन !</p>
             </div>
             <div class="trial-cta">
-                <a href="/register" class="btn btn-primary nepali">निःशुल्क साइन अप गर्नुहोस्</a>
-                <a href="{{ route('demo') }}" class="btn btn-outline nepali" style="background: white; color: var(--primary);">डेमो हेर्नुहोस्</a>
+                @auth
+                    @php
+                        $organizationId = session('current_organization_id');
+                        $hasSubscription = false;
+                        
+                        if ($organizationId) {
+                            $organization = \App\Models\Organization::with('subscription')->find($organizationId);
+                            $hasSubscription = $organization->subscription ?? false;
+                        }
+                    @endphp
+                    
+                    @if($hasSubscription)
+                        <button class="btn btn-primary nepali" disabled>
+                            तपाईंसँग पहिले नै सदस्यता छ
+                        </button>
+                    @else
+                        <form action="{{ route('subscription.start-trial') }}" method="POST" style="display: inline;">
+                            @csrf
+                            <button type="submit" class="btn btn-primary nepali">
+                                निःशुल्क साइन अप गर्नुहोस्
+                            </button>
+                        </form>
+                    @endif
+                @else
+                    <a href="{{ route('register.organization', ['plan' => 'starter']) }}" 
+                       class="btn btn-primary nepali">
+                        निःशुल्क साइन अप गर्नुहोस्
+                    </a>
+                @endauth
+                
+                <a href="{{ route('demo') }}" class="btn btn-outline nepali" style="background: white; color: var(--primary);">
+                    डेमो हेर्नुहोस्
+                </a>
             </div>
         </div>
     </div>
@@ -1191,6 +1339,112 @@ document.addEventListener('DOMContentLoaded', function() {
     // 🚨 DEBUG: Check if routes are working
     console.log('🔍 Search Route:', '{{ route("search") }}');
     console.log('🏠 All Hostels Route:', '{{ route("hostels.index") }}');
+
+    // Handle plan form submissions
+    const planForms = document.querySelectorAll('.pricing-button form');
+    
+    planForms.forEach(form => {
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const button = this.querySelector('button[type="submit"]');
+            const originalText = button.textContent;
+            
+            // Show loading state
+            button.classList.add('loading');
+            button.disabled = true;
+            
+            try {
+                const formData = new FormData(this);
+                
+                const response = await fetch(this.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    if (data.redirect) {
+                        window.location.href = data.redirect;
+                    } else {
+                        // Show success message
+                        alert(data.message || 'योजना सफलतापूर्वक अपग्रेड गरियो');
+                        window.location.reload();
+                    }
+                } else {
+                    // Show error message from server
+                    throw new Error(data.message || 'अज्ञात त्रुटि');
+                }
+            } catch (error) {
+                // Show proper error message
+                alert('त्रुटि: ' + error.message);
+                button.classList.remove('loading');
+                button.textContent = originalText;
+                button.disabled = false;
+            }
+        });
+    });
+
+    // Handle trial form submission
+    const trialForm = document.querySelector('.free-trial form');
+    if (trialForm) {
+        trialForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const button = this.querySelector('button[type="submit"]');
+            const originalText = button.textContent;
+            
+            // Show loading state
+            button.classList.add('loading');
+            button.disabled = true;
+            
+            try {
+                const formData = new FormData(this);
+                
+                const response = await fetch(this.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    if (data.redirect) {
+                        window.location.href = data.redirect;
+                    } else {
+                        // Show success message
+                        alert(data.message || 'निःशुल्क परीक्षण सफलतापूर्वक सुरु गरियो');
+                        window.location.reload();
+                    }
+                } else {
+                    throw new Error(data.message || 'अज्ञात त्रुटि');
+                }
+            } catch (error) {
+                alert('त्रुटि: ' + error.message);
+                button.classList.remove('loading');
+                button.textContent = originalText;
+                button.disabled = false;
+            }
+        });
+    }
+
+    // Show success/error messages from session
+    @if(session('success'))
+        alert('{{ session('success') }}');
+    @endif
+
+    @if(session('error'))
+        alert('{{ session('error') }}');
+    @endif
 });
 </script>
 

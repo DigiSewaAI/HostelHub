@@ -161,7 +161,7 @@
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         transition: all 0.3s ease;
         border: none;
-        cursor: pointer;
+        cursor: button;
         display: inline-block;
         font-size: 1rem;
         text-align: center;
@@ -370,16 +370,158 @@
         </div>
     </section>
 
-    <!-- 🚨 CTA Section - EXACT SAME SPACING AS GALLERY PAGE -->
+    <!-- 🚨 PERMANENT FIXED CTA Section - CORRECT ROUTE -->
     <div class="features-cta-wrapper">
         <section class="features-cta-section">
             <h2>अहिले नै प्रयोग सुरु गर्नुहोस्</h2>
             <p>हाम्रो सबै सुविधाहरू ७ दिनको निःशुल्क परीक्षणमा अनुभव गर्नुहोस्।</p>
             <div class="features-cta-buttons-container">
                 <a href="{{ route('demo') }}" class="features-trial-button">डेमो माग्नुहोस्</a>
-                <a href="{{ route('register') }}" class="features-outline-button">निःशुल्क साइन अप</a>
+                
+                @auth
+                    @php
+                        $organizationId = session('current_organization_id');
+                        $hasSubscription = false;
+                        
+                        if ($organizationId) {
+                            $organization = \App\Models\Organization::with('subscription')->find($organizationId);
+                            $hasSubscription = $organization->subscription ?? false;
+                        }
+                    @endphp
+                    
+                    @if($hasSubscription)
+                        <button class="features-outline-button" disabled>
+                            तपाईंसँग पहिले नै सदस्यता छ
+                        </button>
+                    @else
+                        <form action="{{ route('subscription.start-trial') }}" method="POST" style="display: inline;">
+                            @csrf
+                            <button type="submit" class="features-outline-button">
+                                निःशुल्क साइन अप गर्नुहोस्
+                            </button>
+                        </form>
+                    @endif
+                @else
+                    <!-- 🚨 PERMANENT FIX: USE THE CORRECT ROUTE -->
+                    <!-- Your route list shows: GET|HEAD register/organization/{plan?} -->
+                    <!-- So the correct URL is: /register/organization/starter -->
+                    
+                    <a href="{{ url('/register/organization/starter') }}" 
+                       class="features-outline-button">
+                        निःशुल्क साइन अप
+                    </a>
+                    
+                    <!-- OR using route helper (same as Home Page) -->
+                    <!--
+                    <a href="{{ route('register.organization', ['plan' => 'starter']) }}" 
+                       class="features-outline-button">
+                        निःशुल्क साइन अप
+                    </a>
+                    -->
+                @endauth
             </div>
         </section>
     </div>
 </div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle trial form submission on features page
+    const trialForm = document.querySelector('.features-cta-section form');
+    if (trialForm) {
+        trialForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const button = this.querySelector('button[type="submit"]');
+            const originalText = button.textContent;
+            
+            // Show loading state
+            button.classList.add('loading');
+            button.disabled = true;
+            
+            try {
+                const formData = new FormData(this);
+                
+                const response = await fetch(this.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    if (data.redirect) {
+                        window.location.href = data.redirect;
+                    } else {
+                        // Show success message
+                        alert(data.message || 'निःशुल्क परीक्षण सफलतापूर्वक सुरु गरियो');
+                        window.location.reload();
+                    }
+                } else {
+                    throw new Error(data.message || 'अज्ञात त्रुटि');
+                }
+            } catch (error) {
+                alert('त्रुटि: ' + error.message);
+                button.classList.remove('loading');
+                button.textContent = originalText;
+                button.disabled = false;
+            }
+        });
+    }
+});
+
+// Add loading class styles
+const style = document.createElement('style');
+style.textContent = `
+    .features-outline-button.loading {
+        position: relative;
+        color: transparent;
+    }
+    
+    .features-outline-button.loading::after {
+        content: '';
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        top: 50%;
+        left: 50%;
+        margin: -10px 0 0 -10px;
+        border: 2px solid rgba(255,255,255,0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 1s ease-in-out infinite;
+    }
+    
+    .features-trial-button.loading {
+        position: relative;
+        color: transparent;
+    }
+    
+    .features-trial-button.loading::after {
+        content: '';
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        top: 50%;
+        left: 50%;
+        margin: -10px 0 0 -10px;
+        border: 2px solid rgba(0,31,91,0.3);
+        border-radius: 50%;
+        border-top-color: #001F5B;
+        animation: spin 1s ease-in-out infinite;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+`;
+document.head.appendChild(style);
+</script>
+@endpush
+
 @endsection

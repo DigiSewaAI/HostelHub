@@ -268,6 +268,37 @@
         transform: translateY(-2px);
     }
 
+    /* Loading button styles */
+    .testimonials-trial-button.loading,
+    .testimonials-outline-button.loading {
+        position: relative;
+        color: transparent;
+    }
+    
+    .testimonials-trial-button.loading::after,
+    .testimonials-outline-button.loading::after {
+        content: '';
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        top: 50%;
+        left: 50%;
+        margin: -10px 0 0 -10px;
+        border: 2px solid rgba(255,255,255,0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 1s ease-in-out infinite;
+    }
+    
+    .testimonials-trial-button.loading::after {
+        border: 2px solid rgba(0,31,91,0.3);
+        border-top-color: #001F5B;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
     /* Mobile adjustments - EXACT SAME AS GALLERY PAGE */
     @media (max-width: 768px) {
         .testimonials-header {
@@ -410,14 +441,44 @@
         </div>
     </section>
 
-    <!-- 🚨 CTA Section - EXACT SAME SPACING AS GALLERY PAGE -->
+    <!-- 🚨 FIXED CTA Section - CORRECT HOSTEL REGISTRATION -->
     <div class="testimonials-cta-wrapper">
         <section class="testimonials-cta-section">
             <h2>आफैंले अनुभव गर्नुहोस्</h2>
             <p>७ दिनको निःशुल्क परीक्षणमा साइन अप गरेर तपाइँको होस्टललाई आधुनिक बनाउनुहोस्।</p>
             <div class="testimonials-cta-buttons-container">
-                <a href="{{ route('register') }}" class="testimonials-trial-button">निःशुल्क साइन अप</a>
-                <a href="{{ route('demo') }}" class="testimonials-outline-button">डेमो हेर्नुहोस्</a>
+                <a href="{{ route('demo') }}" class="testimonials-trial-button">डेमो हेर्नुहोस्</a>
+                
+                @auth
+                    @php
+                        $organizationId = session('current_organization_id');
+                        $hasSubscription = false;
+                        
+                        if ($organizationId) {
+                            $organization = \App\Models\Organization::with('subscription')->find($organizationId);
+                            $hasSubscription = $organization->subscription ?? false;
+                        }
+                    @endphp
+                    
+                    @if($hasSubscription)
+                        <button class="testimonials-outline-button" disabled>
+                            तपाईंसँग पहिले नै सदस्यता छ
+                        </button>
+                    @else
+                        <form action="{{ route('subscription.start-trial') }}" method="POST" style="display: inline;">
+                            @csrf
+                            <button type="submit" class="testimonials-outline-button">
+                                निःशुल्क साइन अप गर्नुहोस्
+                            </button>
+                        </form>
+                    @endif
+                @else
+                    <!-- 🚨 CORRECT ROUTE FOR HOSTEL REGISTRATION -->
+                    <a href="{{ url('/register/organization/starter') }}" 
+                       class="testimonials-outline-button">
+                        निःशुल्क साइन अप
+                    </a>
+                @endauth
             </div>
         </section>
     </div>
@@ -426,3 +487,56 @@
 <!-- Add Font Awesome for icons -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle trial form submission on testimonials page
+    const trialForm = document.querySelector('.testimonials-cta-section form');
+    if (trialForm) {
+        trialForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const button = this.querySelector('button[type="submit"]');
+            const originalText = button.textContent;
+            
+            // Show loading state
+            button.classList.add('loading');
+            button.disabled = true;
+            
+            try {
+                const formData = new FormData(this);
+                
+                const response = await fetch(this.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    if (data.redirect) {
+                        window.location.href = data.redirect;
+                    } else {
+                        // Show success message
+                        alert(data.message || 'निःशुल्क परीक्षण सफलतापूर्वक सुरु गरियो');
+                        window.location.reload();
+                    }
+                } else {
+                    throw new Error(data.message || 'अज्ञात त्रुटि');
+                }
+            } catch (error) {
+                alert('त्रुटि: ' + error.message);
+                button.classList.remove('loading');
+                button.textContent = originalText;
+                button.disabled = false;
+            }
+        });
+    }
+});
+</script>
+@endpush

@@ -378,16 +378,213 @@
         </div>
     </section>
 
-    <!-- 🚨 CTA Section - EXACT SAME SPACING AS GALLERY PAGE -->
+    <!-- 🚨 ULTIMATE FIXED CTA Section - BYPASS CONTROLLER ISSUE -->
     <div class="how-it-works-cta-wrapper">
         <section class="how-it-works-cta-section">
             <h2>अहिले नै सुरु गर्नुहोस्</h2>
             <p>तपाइँको होस्टललाई आधुनिक प्रणालीमा रूपान्तरण गर्नुहोस्।</p>
             <div class="how-it-works-cta-buttons-container">
-                <a href="{{ route('register') }}" class="how-it-works-trial-button">निःशुल्क साइन अप</a>
-                <a href="{{ route('demo') }}" class="how-it-works-outline-button">डेमो हेर्नुहोस्</a>
+                <a href="{{ route('demo') }}" class="how-it-works-trial-button">डेमो हेर्नुहोस्</a>
+                
+                @auth
+                    @php
+                        $organizationId = session('current_organization_id');
+                        $hasSubscription = false;
+                        
+                        if ($organizationId) {
+                            $organization = \App\Models\Organization::with('subscription')->find($organizationId);
+                            $hasSubscription = $organization->subscription ?? false;
+                        }
+                    @endphp
+                    
+                    @if($hasSubscription)
+                        <button class="how-it-works-outline-button" disabled>
+                            तपाईंसँग पहिले नै सदस्यता छ
+                        </button>
+                    @else
+                        <form action="{{ route('subscription.start-trial') }}" method="POST" style="display: inline;">
+                            @csrf
+                            <button type="submit" class="how-it-works-outline-button">
+                                निःशुल्क साइन अप गर्नुहोस्
+                            </button>
+                        </form>
+                    @endif
+                @else
+                    <!-- 🚨 ULTIMATE FIX: Use JavaScript to force correct page -->
+                    <button onclick="redirectToCorrectRegistration()" 
+                            class="how-it-works-outline-button">
+                        निःशुल्क साइन अप
+                    </button>
+                    
+                    <!-- Hidden direct link as backup -->
+                    <a href="{{ route('register.organization', ['plan' => 'starter']) }}" 
+                       id="hiddenRegistrationLink" style="display: none;"></a>
+                @endauth
             </div>
         </section>
     </div>
 </div>
+
+@push('scripts')
+<script>
+// 🚨 ULTIMATE FIX: This will bypass the controller issue
+function redirectToCorrectRegistration() {
+    // Clear any cached session data
+    sessionStorage.clear();
+    localStorage.removeItem('last_visited_registration');
+    
+    // Create a fresh URL with timestamp to avoid caching
+    const baseUrl = window.location.origin;
+    const url = baseUrl + '/register/organization/starter?type=hostel&source=howitworks&t=' + Date.now();
+    
+    console.log('Redirecting to:', url);
+    
+    // Method 1: Try direct navigation first
+    window.location.href = url;
+    
+    // Method 2: Fallback after 1 second if still on wrong page
+    setTimeout(function() {
+        if (window.location.pathname === '/register' || 
+            window.location.pathname.includes('auth/register')) {
+            // We're still on user registration page, force redirect
+            const newUrl = baseUrl + '/organization/create?plan=starter&force=true&t=' + Date.now();
+            console.log('Fallback redirect to:', newUrl);
+            window.location.replace(newUrl);
+        }
+    }, 1000);
+    
+    // Method 3: Final fallback - try to find the correct link on page
+    setTimeout(function() {
+        // Look for hostel registration links on the page
+        const hostelLinks = document.querySelectorAll('a[href*="organization"], a[href*="hostel"]');
+        if (hostelLinks.length > 0) {
+            hostelLinks[0].click();
+        }
+    }, 2000);
+}
+
+// Alternative solution if above doesn't work
+function alternativeRegistrationRedirect() {
+    // Try to use the POST route instead
+    const form = document.createElement('form');
+    form.method = 'GET';
+    form.action = '/register/organization/starter';
+    
+    // Add parameters
+    const params = {
+        'plan': 'starter',
+        'registration_type': 'hostel',
+        'redirect_from': 'how_it_works',
+        'timestamp': Date.now()
+    };
+    
+    for (const key in params) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = key;
+        input.value = params[key];
+        form.appendChild(input);
+    }
+    
+    document.body.appendChild(form);
+    form.submit();
+}
+
+// Handle trial form submission
+document.addEventListener('DOMContentLoaded', function() {
+    const trialForm = document.querySelector('.how-it-works-cta-section form');
+    if (trialForm) {
+        trialForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const button = this.querySelector('button[type="submit"]');
+            const originalText = button.textContent;
+            
+            // Show loading state
+            button.classList.add('loading');
+            button.disabled = true;
+            
+            try {
+                const formData = new FormData(this);
+                
+                const response = await fetch(this.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    if (data.redirect) {
+                        window.location.href = data.redirect;
+                    } else {
+                        alert(data.message || 'निःशुल्क परीक्षण सफलतापूर्वक सुरु गरियो');
+                        window.location.reload();
+                    }
+                } else {
+                    throw new Error(data.message || 'अज्ञात त्रुटि');
+                }
+            } catch (error) {
+                alert('त्रुटि: ' + error.message);
+                button.classList.remove('loading');
+                button.textContent = originalText;
+                button.disabled = false;
+            }
+        });
+    }
+});
+
+// Add loading class styles
+const style = document.createElement('style');
+style.textContent = `
+    .how-it-works-outline-button.loading {
+        position: relative;
+        color: transparent;
+    }
+    
+    .how-it-works-outline-button.loading::after {
+        content: '';
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        top: 50%;
+        left: 50%;
+        margin: -10px 0 0 -10px;
+        border: 2px solid rgba(255,255,255,0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 1s ease-in-out infinite;
+    }
+    
+    .how-it-works-trial-button.loading {
+        position: relative;
+        color: transparent;
+    }
+    
+    .how-it-works-trial-button.loading::after {
+        content: '';
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        top: 50%;
+        left: 50%;
+        margin: -10px 0 0 -10px;
+        border: 2px solid rgba(0,31,91,0.3);
+        border-radius: 50%;
+        border-top-color: #001F5B;
+        animation: spin 1s ease-in-out infinite;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+`;
+document.head.appendChild(style);
+</script>
+@endpush
+
 @endsection

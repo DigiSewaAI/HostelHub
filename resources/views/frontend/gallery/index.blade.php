@@ -170,6 +170,44 @@
         display: none !important;
     }
 
+    /* 🚨 CTA Section Button Loading Styles */
+    .gallery-trial-button.loading {
+        position: relative;
+        color: transparent;
+    }
+    
+    .gallery-trial-button.loading::after {
+        content: '';
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        top: 50%;
+        left: 50%;
+        margin: -10px 0 0 -10px;
+        border: 2px solid rgba(255,255,255,0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 1s ease-in-out infinite;
+    }
+    
+    .gallery-trial-button[disabled] {
+        background: rgba(255, 255, 255, 0.3);
+        color: rgba(255, 255, 255, 0.7);
+        cursor: not-allowed;
+        transform: none !important;
+    }
+    
+    .gallery-trial-button[disabled]:hover {
+        background: rgba(255, 255, 255, 0.3);
+        color: rgba(255, 255, 255, 0.7);
+        transform: none !important;
+        box-shadow: none !important;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
     /* Mobile adjustments for tighter spacing */
     @media (max-width: 768px) {
         .gallery-header {
@@ -314,11 +352,6 @@
         margin: 0 auto;
     }
 
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-
     .gallery-main {
         padding-top: 0 !important;
         max-width: 1200px;
@@ -326,7 +359,7 @@
         width: 95%;
     }
 
-    /* 🚨 CTA SECTION - UNCHANGED (Perfect as is) */
+    /* 🚨 CTA SECTION - FIXED BUTTONS */
     .gallery-cta-wrapper {
         width: 100%;
         display: flex;
@@ -390,6 +423,7 @@
         
         .gallery-cta-buttons-container {
             margin-top: 0.75rem;
+            flex-direction: column;
         }
     }
 
@@ -661,14 +695,44 @@
         </div>
     </section>
 
-    <!-- 🚨 CTA SECTION - UNCHANGED (Perfect spacing) -->
+    <!-- 🚨 FIXED CTA SECTION - CORRECT HOSTEL REGISTRATION -->
     <div class="gallery-cta-wrapper">
         <section class="gallery-cta-section">
             <h2 class="nepali">तपाईंको होस्टललाई HostelHub संग जोड्नुहोस्</h2>
             <p class="nepali">७ दिन निःशुल्क परीक्षण गर्नुहोस् र होस्टल व्यवस्थापनलाई सजिलो, द्रुत र भरपर्दो बनाउनुहोस्</p>
             <div class="gallery-cta-buttons-container">
-                <a href="{{ route('register') }}" class="gallery-trial-button nepali">निःशुल्क साइन अप गर्नुहोस्</a>
                 <a href="{{ route('demo') }}" class="gallery-trial-button" style="background: transparent; border: 2px solid white; color: white;">डेमो हेर्नुहोस्</a>
+                
+                @auth
+                    @php
+                        $organizationId = session('current_organization_id');
+                        $hasSubscription = false;
+                        
+                        if ($organizationId) {
+                            $organization = \App\Models\Organization::with('subscription')->find($organizationId);
+                            $hasSubscription = $organization->subscription ?? false;
+                        }
+                    @endphp
+                    
+                    @if($hasSubscription)
+                        <button class="gallery-trial-button" disabled>
+                            तपाईंसँग पहिले नै सदस्यता छ
+                        </button>
+                    @else
+                        <form action="{{ route('subscription.start-trial') }}" method="POST" style="display: inline;">
+                            @csrf
+                            <button type="submit" class="gallery-trial-button">
+                                निःशुल्क साइन अप गर्नुहोस्
+                            </button>
+                        </form>
+                    @endif
+                @else
+                    <!-- 🚨 CORRECT ROUTE FOR HOSTEL REGISTRATION -->
+                    <a href="{{ url('/register/organization/starter') }}" 
+                       class="gallery-trial-button">
+                        निःशुल्क साइन अप गर्नुहोस्
+                    </a>
+                @endauth
             </div>
         </section>
     </div>
@@ -901,6 +965,53 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
+
+    // Handle trial form submission on gallery page
+    const trialForm = document.querySelector('.gallery-cta-section form');
+    if (trialForm) {
+        trialForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const button = this.querySelector('button[type="submit"]');
+            const originalText = button.textContent;
+            
+            // Show loading state
+            button.classList.add('loading');
+            button.disabled = true;
+            
+            try {
+                const formData = new FormData(this);
+                
+                const response = await fetch(this.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    if (data.redirect) {
+                        window.location.href = data.redirect;
+                    } else {
+                        // Show success message
+                        alert(data.message || 'निःशुल्क परीक्षण सफलतापूर्वक सुरु गरियो');
+                        window.location.reload();
+                    }
+                } else {
+                    throw new Error(data.message || 'अज्ञात त्रुटि');
+                }
+            } catch (error) {
+                alert('त्रुटि: ' + error.message);
+                button.classList.remove('loading');
+                button.textContent = originalText;
+                button.disabled = false;
+            }
+        });
+    }
 
     // Initialize filters
     filterGalleries();
