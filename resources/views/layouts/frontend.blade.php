@@ -7,8 +7,10 @@
     <title>@yield('page-title', 'HostelHub — होस्टल प्रबन्धन प्रणाली | Nepal')</title>
     <meta property="og:title" content="@yield('og-title', 'HostelHub — होस्टल प्रबन्धन प्रणाली')">
     <meta property="og:description" content="@yield('og-description', 'HostelHub — होस्टल व्यवस्थापन सजिलो बनाउने SaaS')">
+    
+    <!-- 🚨 IMPORTANT: Ensure FontAwesome loads properly -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
@@ -487,6 +489,9 @@
             font-size: 0.8rem !important;
             width: 16px !important;
             flex-shrink: 0 !important;
+            /* 🚨 IMPORTANT: Ensure FontAwesome icons display */
+            font-family: 'Font Awesome 6 Free' !important;
+            font-weight: 900 !important;
         }
         
         .contact-info {
@@ -512,6 +517,9 @@
             margin-top: 2px !important;
             flex-shrink: 0 !important;
             min-width: 18px !important;
+            /* 🚨 IMPORTANT: Ensure FontAwesome icons display */
+            font-family: 'Font Awesome 6 Free' !important;
+            font-weight: 900 !important;
         }
         
         .contact-info div {

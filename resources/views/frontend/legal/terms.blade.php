@@ -3,7 +3,7 @@
 
 @push('styles')
 <style>
-    /* 🚨 IMPORTANT: Terms page spacing fix - EXACT SAME AS GALLERY PAGE */
+    /* 🚨 IMPORTANT: Terms page spacing fix - EXACT SAME AS PRIVACY PAGE */
     main#main.main-content-global.other-page-main {
         padding-top: 0 !important;
         margin-top: 0 !important;
@@ -17,7 +17,7 @@
         flex-direction: column;
     }
 
-    /* Page Header - EXACT SAME AS GALLERY PAGE HEADER */
+    /* Page Header - EXACT SAME AS PRIVACY PAGE */
     .terms-header {
         text-align: center;
         background: linear-gradient(135deg, var(--primary), var(--secondary));
@@ -27,8 +27,6 @@
         box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
         max-width: 1000px;
         width: 90%;
-        
-        /* 🚨 EXACT SAME SPACING AS GALLERY PAGE HEADER */
         margin: calc(var(--header-height, 70px) + 0.9rem) auto 1.5rem auto !important;
     }
     
@@ -57,7 +55,7 @@
         width: 95%;
     }
 
-    /* Content Sections - SAME STRUCTURE AS GALLERY FILTERS SECTION */
+    /* Content Sections */
     .terms-content-section {
         padding-top: 0.5rem !important;
         max-width: 1200px;
@@ -79,11 +77,17 @@
 
     .terms-content p {
         margin-bottom: 1rem;
+        line-height: 1.7;
     }
 
     .terms-content ul {
         margin: 1rem 0 1rem 1.5rem;
         list-style: disc;
+        line-height: 1.8;
+    }
+
+    .terms-content li {
+        margin-bottom: 0.5rem;
     }
 
     /* Plain text contact info */
@@ -102,7 +106,7 @@
         text-decoration: underline;
     }
 
-    /* 🚨 CTA Section - EXACT SAME AS GALLERY PAGE */
+    /* 🚨 CTA Section - EXACT SAME AS PRIVACY PAGE */
     .terms-cta-wrapper {
         width: 100%;
         display: flex;
@@ -191,7 +195,38 @@
         transform: translateY(-2px);
     }
 
-    /* Mobile adjustments - EXACT SAME AS GALLERY PAGE */
+    /* Loading button styles */
+    .terms-trial-button.loading,
+    .terms-outline-button.loading {
+        position: relative;
+        color: transparent;
+    }
+    
+    .terms-trial-button.loading::after,
+    .terms-outline-button.loading::after {
+        content: '';
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        top: 50%;
+        left: 50%;
+        margin: -10px 0 0 -10px;
+        border: 2px solid rgba(255,255,255,0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 1s ease-in-out infinite;
+    }
+    
+    .terms-trial-button.loading::after {
+        border: 2px solid rgba(0,31,91,0.3);
+        border-top-color: #001F5B;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Mobile adjustments */
     @media (max-width: 768px) {
         .terms-header {
             margin: calc(60px + 0.25rem) auto 1rem auto !important;
@@ -273,20 +308,19 @@
 @endpush
 
 @section('content')
-
 <div class="terms-page-wrapper">
-    <!-- Page Header - EXACT SAME SPACING AS GALLERY PAGE -->
+    <!-- Page Header -->
     <div class="terms-header">
         <h1>सेवा सर्तहरू</h1>
         <p>HostelHub को सेवाहरू प्रयोग गर्दा लागू हुने कानूनी सर्तहरू।</p>
     </div>
 
-    <!-- Last Updated - Positioned like gallery filters section -->
+    <!-- Last Updated -->
     <div class="last-updated">
         अन्तिम अद्यावधिक: १० जेठ, २०८२
     </div>
 
-    <!-- Content Sections - Structured like gallery filters -->
+    <!-- Content Sections -->
     <section class="terms-content-section">
         <div class="terms-content">
             <h2>१. स्वीकृति</h2>
@@ -345,7 +379,6 @@
                 यदि तपाइँसँग सेवा सर्तहरू बारे कुनै प्रश्न छ भने, हामीलाई सम्पर्क गर्नुहोस्:
             </p>
             
-            <!-- Plain text without white card -->
             <div class="contact-plain">
                 <strong>ईमेल:</strong> <a href="mailto:legal@hostelhub.com">legal@hostelhub.com</a><br>
                 <strong>ठेगाना:</strong> कमलपोखरी, काठमाडौं, नेपाल
@@ -353,16 +386,95 @@
         </div>
     </section>
 
-    <!-- 🚨 CTA Section - EXACT SAME SPACING AS GALLERY PAGE -->
+    <!-- CTA Section -->
     <div class="terms-cta-wrapper">
         <section class="terms-cta-section">
             <h2>सुरक्षित र विश्वसनीय सेवा</h2>
             <p>हामी तपाइँको व्यवसायलाई नियम र पारदर्शिताका आधारमा सहयोग गर्छौं।</p>
             <div class="terms-cta-buttons-container">
-                <a href="{{ route('register') }}" class="terms-trial-button">निःशुल्क साइन अप</a>
                 <a href="{{ route('privacy') }}" class="terms-outline-button">गोपनीयता नीति हेर्नुहोस्</a>
+                
+                @auth
+                    @php
+                        $organizationId = session('current_organization_id');
+                        $hasSubscription = false;
+                        
+                        if ($organizationId) {
+                            $organization = \App\Models\Organization::with('subscription')->find($organizationId);
+                            $hasSubscription = $organization->subscription ?? false;
+                        }
+                    @endphp
+                    
+                    @if($hasSubscription)
+                        <button class="terms-trial-button" disabled>
+                            तपाईंसँग पहिले नै सदस्यता छ
+                        </button>
+                    @else
+                        <form action="{{ route('subscription.start-trial') }}" method="POST" style="display: inline;">
+                            @csrf
+                            <button type="submit" class="terms-trial-button">
+                                निःशुल्क साइन अप गर्नुहोस्
+                            </button>
+                        </form>
+                    @endif
+                @else
+                    <a href="{{ url('/register/organization/starter') }}" 
+                       class="terms-trial-button">
+                        निःशुल्क साइन अप
+                    </a>
+                @endauth
             </div>
         </section>
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const trialForm = document.querySelector('.terms-cta-section form');
+    if (trialForm) {
+        trialForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const button = this.querySelector('button[type="submit"]');
+            const originalText = button.textContent;
+            
+            button.classList.add('loading');
+            button.disabled = true;
+            
+            try {
+                const formData = new FormData(this);
+                
+                const response = await fetch(this.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    if (data.redirect) {
+                        window.location.href = data.redirect;
+                    } else {
+                        alert(data.message || 'निःशुल्क परीक्षण सफलतापूर्वक सुरु गरियो');
+                        window.location.reload();
+                    }
+                } else {
+                    throw new Error(data.message || 'अज्ञात त्रुटि');
+                }
+            } catch (error) {
+                alert('त्रुटि: ' + error.message);
+                button.classList.remove('loading');
+                button.textContent = originalText;
+                button.disabled = false;
+            }
+        });
+    }
+});
+</script>
+@endpush
