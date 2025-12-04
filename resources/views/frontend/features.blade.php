@@ -2,6 +2,7 @@
 @section('title', 'हाम्रा सुविधाहरू - HostelHub')
 
 @push('styles')
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
     /* 🚨 IMPORTANT: Features page spacing fix - EXACT SAME AS GALLERY PAGE */
     main#main.main-content-global.other-page-main {
@@ -106,7 +107,7 @@
         line-height: 1.5;
     }
 
-    /* 🚨 CTA Section - EXACT SAME AS GALLERY PAGE */
+    /* 🚨 CTA Section - UPDATED WITH 3 BUTTONS */
     .features-cta-wrapper {
         width: 100%;
         display: flex;
@@ -140,16 +141,35 @@
         opacity: 0.9;
     }
 
-    .features-cta-buttons-container {
-        display: flex;
-        gap: 1rem;
+    /* DEMO BUTTON (Orange Gradient) */
+    .features-demo-button {
+        background: linear-gradient(135deg, #FF6B6B, #FF8E53);
+        color: white;
+        font-weight: 600;
+        padding: 0.75rem 2rem;
+        border-radius: 0.5rem;
+        text-decoration: none;
+        min-width: 180px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
         align-items: center;
         justify-content: center;
-        margin-top: 1rem;
-        width: 100%;
-        flex-wrap: wrap;
+        gap: 0.5rem;
+        font-size: 1rem;
+        text-align: center;
     }
 
+    .features-demo-button:hover {
+        background: linear-gradient(135deg, #FF5252, #FF7A3D);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(255, 107, 107, 0.3);
+        color: white;
+    }
+
+    /* PRIMARY TRIAL BUTTON (White Background) */
     .features-trial-button {
         background-color: white;
         color: #001F5B;
@@ -162,7 +182,10 @@
         transition: all 0.3s ease;
         border: none;
         cursor: button;
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
         font-size: 1rem;
         text-align: center;
     }
@@ -173,6 +196,7 @@
         color: #001F5B;
     }
 
+    /* OUTLINE PRICING BUTTON */
     .features-outline-button {
         background: transparent;
         border: 2px solid white;
@@ -184,7 +208,10 @@
         min-width: 180px;
         transition: all 0.3s ease;
         cursor: pointer;
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
         font-size: 1rem;
         text-align: center;
     }
@@ -193,6 +220,54 @@
         background: white;
         color: #001F5B;
         transform: translateY(-2px);
+    }
+
+    .features-cta-buttons-container {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        justify-content: center;
+        margin-top: 1rem;
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    /* Loading states */
+    .features-outline-button.loading,
+    .features-trial-button.loading,
+    .features-demo-button.loading {
+        position: relative;
+        color: transparent;
+    }
+    
+    .features-outline-button.loading::after,
+    .features-trial-button.loading::after,
+    .features-demo-button.loading::after {
+        content: '';
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        top: 50%;
+        left: 50%;
+        margin: -10px 0 0 -10px;
+        border: 2px solid rgba(255,255,255,0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 1s ease-in-out infinite;
+    }
+    
+    .features-trial-button.loading::after {
+        border: 2px solid rgba(0,31,91,0.3);
+        border-top-color: #001F5B;
+    }
+    
+    .features-demo-button.loading::after {
+        border: 2px solid rgba(255,255,255,0.3);
+        border-top-color: white;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
     }
 
     /* Mobile adjustments - EXACT SAME AS GALLERY PAGE */
@@ -243,13 +318,17 @@
         .features-cta-buttons-container {
             margin-top: 0.75rem;
             flex-direction: column;
+            gap: 0.75rem;
         }
 
+        .features-demo-button,
         .features-trial-button,
         .features-outline-button {
             padding: 0.6rem 1.5rem;
             font-size: 0.9rem;
             min-width: 160px;
+            width: 100%;
+            max-width: 250px;
         }
     }
 
@@ -370,14 +449,19 @@
         </div>
     </section>
 
-    <!-- 🚨 PERMANENT FIXED CTA Section - CORRECT ROUTE -->
+    <!-- 🚨 UPDATED CTA Section with 3 BUTTONS -->
     <div class="features-cta-wrapper">
         <section class="features-cta-section">
             <h2>अहिले नै प्रयोग सुरु गर्नुहोस्</h2>
             <p>हाम्रो सबै सुविधाहरू ७ दिनको निःशुल्क परीक्षणमा अनुभव गर्नुहोस्।</p>
+            
             <div class="features-cta-buttons-container">
-                <a href="{{ route('demo') }}" class="features-trial-button">डेमो माग्नुहोस्</a>
+                <!-- BUTTON 1: DEMO (Orange Gradient with play icon) -->
+                <a href="{{ route('demo') }}" class="features-demo-button">
+                    <i class="fas fa-play-circle"></i> डेमो हेर्नुहोस्
+                </a>
                 
+                <!-- BUTTON 2: FREE TRIAL (Primary with rocket icon) -->
                 @auth
                     @php
                         $organizationId = session('current_organization_id');
@@ -391,34 +475,43 @@
                     
                     @if($hasSubscription)
                         <button class="features-outline-button" disabled>
-                            तपाईंसँग पहिले नै सदस्यता छ
+                            <i class="fas fa-check-circle"></i> पहिले नै सदस्यता
                         </button>
                     @else
                         <form action="{{ route('subscription.start-trial') }}" method="POST" style="display: inline;">
                             @csrf
-                            <button type="submit" class="features-outline-button">
-                                निःशुल्क साइन अप गर्नुहोस्
+                            <button type="submit" class="features-trial-button">
+                                <i class="fas fa-rocket"></i> निःशुल्क परीक्षण
                             </button>
                         </form>
                     @endif
                 @else
-                    <!-- 🚨 PERMANENT FIX: USE THE CORRECT ROUTE -->
-                    <!-- Your route list shows: GET|HEAD register/organization/{plan?} -->
-                    <!-- So the correct URL is: /register/organization/starter -->
-                    
+                    <!-- For non-logged in users -->
                     <a href="{{ url('/register/organization/starter') }}" 
-                       class="features-outline-button">
-                        निःशुल्क साइन अप
+                       class="features-trial-button">
+                        <i class="fas fa-rocket"></i> निःशुल्क परीक्षण
                     </a>
-                    
-                    <!-- OR using route helper (same as Home Page) -->
-                    <!--
-                    <a href="{{ route('register.organization', ['plan' => 'starter']) }}" 
-                       class="features-outline-button">
-                        निःशुल्क साइन अप
-                    </a>
-                    -->
                 @endauth
+                
+                <!-- BUTTON 3: PRICING (Outline with tags icon) - FIXED ROUTE -->
+                <!-- Use the correct route name from your routes file -->
+                @if(Route::has('pricing'))
+                    <a href="{{ route('pricing') }}" 
+                       class="features-outline-button">
+                        <i class="fas fa-tags"></i> योजनाहरू हेर्नुहोस्
+                    </a>
+                @elseif(Route::has('frontend.pricing'))
+                    <a href="{{ route('frontend.pricing') }}" 
+                       class="features-outline-button">
+                        <i class="fas fa-tags"></i> योजनाहरू हेर्नुहोस्
+                    </a>
+                @else
+                    <!-- Fallback to direct URL if route not found -->
+                    <a href="{{ url('/pricing') }}" 
+                       class="features-outline-button">
+                        <i class="fas fa-tags"></i> योजनाहरू हेर्नुहोस्
+                    </a>
+                @endif
             </div>
         </section>
     </div>
@@ -474,53 +567,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
-
-// Add loading class styles
-const style = document.createElement('style');
-style.textContent = `
-    .features-outline-button.loading {
-        position: relative;
-        color: transparent;
-    }
-    
-    .features-outline-button.loading::after {
-        content: '';
-        position: absolute;
-        width: 20px;
-        height: 20px;
-        top: 50%;
-        left: 50%;
-        margin: -10px 0 0 -10px;
-        border: 2px solid rgba(255,255,255,0.3);
-        border-radius: 50%;
-        border-top-color: white;
-        animation: spin 1s ease-in-out infinite;
-    }
-    
-    .features-trial-button.loading {
-        position: relative;
-        color: transparent;
-    }
-    
-    .features-trial-button.loading::after {
-        content: '';
-        position: absolute;
-        width: 20px;
-        height: 20px;
-        top: 50%;
-        left: 50%;
-        margin: -10px 0 0 -10px;
-        border: 2px solid rgba(0,31,91,0.3);
-        border-radius: 50%;
-        border-top-color: #001F5B;
-        animation: spin 1s ease-in-out infinite;
-    }
-    
-    @keyframes spin {
-        to { transform: rotate(360deg); }
-    }
-`;
-document.head.appendChild(style);
 </script>
 @endpush
 

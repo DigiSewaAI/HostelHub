@@ -106,18 +106,19 @@
         text-decoration: underline;
     }
 
-    /* 🚨 CTA Section - EXACT SAME AS GALLERY PAGE */
+    /* 🚨 UPDATED CTA SECTION - PROFESSIONAL STRATEGY (FIXED BORDER ISSUE) */
     .privacy-cta-wrapper {
         width: 100%;
         display: flex;
         justify-content: center;
-        padding: 1.5rem 1.5rem 2rem 1.5rem;
-        margin-top: 1rem;
+        padding: 2rem 1.5rem 3rem 1.5rem;
+        margin-top: 2rem;
+        /* 🚨 BACKGROUND REMOVED - केवल सफेद ब्याकग्राउन्ड राख्ने */
+        background: transparent;
     }
 
     .privacy-cta-section {
         text-align: center;
-        background: linear-gradient(135deg, var(--primary), var(--secondary));
         color: white;
         padding: 2.5rem 2rem;
         border-radius: 1rem;
@@ -125,6 +126,8 @@
         max-width: 800px;
         width: 100%;
         margin: 0 auto;
+        /* 🚨 ग्रेडियन्ट केवल यो सेक्सनमा मात्र */
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
     }
 
     .privacy-cta-section h2 {
@@ -142,14 +145,14 @@
 
     .privacy-cta-buttons-container {
         display: flex;
-        gap: 1rem;
+        gap: 1.5rem;
         align-items: center;
         justify-content: center;
-        margin-top: 1rem;
+        margin-top: 2rem;
         width: 100%;
-        flex-wrap: wrap;
     }
 
+    /* Privacy CTA Button Styles */
     .privacy-trial-button {
         background-color: white;
         color: #001F5B;
@@ -162,21 +165,24 @@
         transition: all 0.3s ease;
         border: none;
         cursor: pointer;
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
         font-size: 1rem;
-        text-align: center;
     }
     
-    .privacy-trial-button:hover {
+    .privacy-trial-button:hover:not(:disabled) {
         background-color: #f3f4f6;
         transform: translateY(-2px);
         color: #001F5B;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
     }
 
     .privacy-outline-button {
-        background: transparent;
-        border: 2px solid white;
+        background-color: transparent;
         color: white;
+        border: 2px solid white;
         font-weight: 600;
         padding: 0.75rem 2rem;
         border-radius: 0.5rem;
@@ -184,15 +190,32 @@
         min-width: 180px;
         transition: all 0.3s ease;
         cursor: pointer;
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
         font-size: 1rem;
-        text-align: center;
     }
     
     .privacy-outline-button:hover {
-        background: white;
+        background-color: white;
         color: #001F5B;
         transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .privacy-trial-button:disabled {
+        background: #6c757d;
+        color: white;
+        cursor: not-allowed;
+        transform: none;
+        border: none;
+    }
+
+    .privacy-trial-button:disabled:hover {
+        background: #6c757d;
+        color: white;
+        transform: none;
     }
 
     /* Loading button styles */
@@ -254,7 +277,7 @@
         }
 
         .privacy-cta-wrapper {
-            padding: 1rem 1rem 1.5rem 1rem;
+            padding: 1.5rem 1rem 2rem 1rem;
         }
         
         .privacy-cta-section {
@@ -271,8 +294,9 @@
         }
         
         .privacy-cta-buttons-container {
-            margin-top: 0.75rem;
+            margin-top: 1rem;
             flex-direction: column;
+            gap: 1rem;
         }
 
         .privacy-trial-button,
@@ -280,6 +304,8 @@
             padding: 0.6rem 1.5rem;
             font-size: 0.9rem;
             min-width: 160px;
+            width: 100%;
+            max-width: 250px;
         }
     }
 
@@ -289,7 +315,7 @@
         }
         
         .privacy-cta-wrapper {
-            padding: 0.75rem 1rem 1.25rem 1rem;
+            padding: 1rem 1rem 1.5rem 1rem;
         }
         
         .privacy-cta-section {
@@ -392,43 +418,39 @@
         </div>
     </section>
 
-    <!-- CTA Section -->
+    <!-- 🚨 UPDATED CTA SECTION - FIXED BORDER ISSUE -->
     <div class="privacy-cta-wrapper">
         <section class="privacy-cta-section">
             <h2>विश्वास र सुरक्षा</h2>
             <p>हामी तपाइँको गोपनीयतालाई गम्भीरतापूर्वक लिन्छौं।</p>
+            
             <div class="privacy-cta-buttons-container">
-                <a href="{{ route('terms') }}" class="privacy-outline-button">सेवा सर्तहरू हेर्नुहोस्</a>
+                <!-- BUTTON 1: TERMS OF SERVICE -->
+                <a href="{{ route('terms') }}" class="privacy-outline-button">
+                    <i class="fas fa-file-contract"></i> सेवा सर्तहरू हेर्नुहोस्
+                </a>
                 
-                @auth
-                    @php
-                        $organizationId = session('current_organization_id');
-                        $hasSubscription = false;
-                        
-                        if ($organizationId) {
-                            $organization = \App\Models\Organization::with('subscription')->find($organizationId);
-                            $hasSubscription = $organization->subscription ?? false;
-                        }
-                    @endphp
+                <!-- BUTTON 2: PRICING -->
+                @php
+                    // Try to determine the correct pricing route
+                    $pricingRoute = null;
                     
-                    @if($hasSubscription)
-                        <button class="privacy-trial-button" disabled>
-                            तपाईंसँग पहिले नै सदस्यता छ
-                        </button>
-                    @else
-                        <form action="{{ route('subscription.start-trial') }}" method="POST" style="display: inline;">
-                            @csrf
-                            <button type="submit" class="privacy-trial-button">
-                                निःशुल्क साइन अप गर्नुहोस्
-                            </button>
-                        </form>
-                    @endif
-                @else
-                    <a href="{{ url('/register/organization/starter') }}" 
-                       class="privacy-trial-button">
-                        निःशुल्क साइन अप
-                    </a>
-                @endauth
+                    if (Route::has('pricing')) {
+                        $pricingRoute = route('pricing');
+                    } elseif (Route::has('pricing.index')) {
+                        $pricingRoute = route('pricing.index');
+                    } elseif (Route::has('frontend.pricing')) {
+                        $pricingRoute = route('frontend.pricing');
+                    } elseif (Route::has('plans')) {
+                        $pricingRoute = route('plans');
+                    } else {
+                        $pricingRoute = url('/pricing');
+                    }
+                @endphp
+                
+                <a href="{{ $pricingRoute }}" class="privacy-trial-button">
+                    <i class="fas fa-tags"></i> योजनाहरू हेर्नुहोस्
+                </a>
             </div>
         </section>
     </div>
@@ -438,49 +460,41 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const trialForm = document.querySelector('.privacy-cta-section form');
-    if (trialForm) {
-        trialForm.addEventListener('submit', async function(e) {
+    // Add smooth scrolling for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
             e.preventDefault();
+            const targetId = this.getAttribute('href');
+            if (targetId === '#') return;
             
-            const button = this.querySelector('button[type="submit"]');
-            const originalText = button.textContent;
-            
-            button.classList.add('loading');
-            button.disabled = true;
-            
-            try {
-                const formData = new FormData(this);
-                
-                const response = await fetch(this.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json'
-                    }
+            const targetElement = document.querySelector(targetId);
+            if (targetElement) {
+                window.scrollTo({
+                    top: targetElement.offsetTop - 100,
+                    behavior: 'smooth'
                 });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    if (data.redirect) {
-                        window.location.href = data.redirect;
-                    } else {
-                        alert(data.message || 'निःशुल्क परीक्षण सफलतापूर्वक सुरु गरियो');
-                        window.location.reload();
-                    }
-                } else {
-                    throw new Error(data.message || 'अज्ञात त्रुटि');
-                }
-            } catch (error) {
-                alert('त्रुटि: ' + error.message);
-                button.classList.remove('loading');
-                button.textContent = originalText;
-                button.disabled = false;
             }
         });
-    }
+    });
+    
+    // Add section highlighting on scroll
+    const sections = document.querySelectorAll('.privacy-content h2');
+    const observerOptions = {
+        root: null,
+        rootMargin: '-100px 0px -100px 0px',
+        threshold: 0.3
+    };
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.transition = 'color 0.3s ease';
+                entry.target.style.color = 'var(--primary)';
+            }
+        });
+    }, observerOptions);
+    
+    sections.forEach(section => observer.observe(section));
 });
 </script>
 @endpush

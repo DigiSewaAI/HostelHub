@@ -2,6 +2,7 @@
 @section('title', 'कसरी काम गर्छ - HostelHub')
 
 @push('styles')
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
     /* 🚨 IMPORTANT: How it works page spacing fix - EXACT SAME AS GALLERY PAGE */
     main#main.main-content-global.other-page-main {
@@ -128,7 +129,7 @@
         line-height: 1.6;
     }
 
-    /* 🚨 CTA Section - EXACT SAME AS GALLERY PAGE */
+    /* 🚨 UPDATED CTA Section - WITH 3 BUTTONS */
     .how-it-works-cta-wrapper {
         width: 100%;
         display: flex;
@@ -162,16 +163,35 @@
         opacity: 0.9;
     }
 
-    .how-it-works-cta-buttons-container {
-        display: flex;
-        gap: 1rem;
+    /* INTERACTIVE DEMO BUTTON (Orange Gradient with mouse-pointer icon) */
+    .how-it-works-demo-button {
+        background: linear-gradient(135deg, #FF6B6B, #FF8E53);
+        color: white;
+        font-weight: 600;
+        padding: 0.75rem 2rem;
+        border-radius: 0.5rem;
+        text-decoration: none;
+        min-width: 180px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
         align-items: center;
         justify-content: center;
-        margin-top: 1rem;
-        width: 100%;
-        flex-wrap: wrap;
+        gap: 0.5rem;
+        font-size: 1rem;
+        text-align: center;
     }
 
+    .how-it-works-demo-button:hover {
+        background: linear-gradient(135deg, #FF5252, #FF7A3D);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(255, 107, 107, 0.3);
+        color: white;
+    }
+
+    /* FREE TRIAL BUTTON (White Background with bolt icon) */
     .how-it-works-trial-button {
         background-color: white;
         color: #001F5B;
@@ -183,8 +203,11 @@
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         transition: all 0.3s ease;
         border: none;
-        cursor: pointer;
-        display: inline-block;
+        cursor: button;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
         font-size: 1rem;
         text-align: center;
     }
@@ -195,6 +218,7 @@
         color: #001F5B;
     }
 
+    /* PRICING OUTLINE BUTTON (White outline with dollar-sign icon) */
     .how-it-works-outline-button {
         background: transparent;
         border: 2px solid white;
@@ -206,7 +230,10 @@
         min-width: 180px;
         transition: all 0.3s ease;
         cursor: pointer;
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
         font-size: 1rem;
         text-align: center;
     }
@@ -215,6 +242,54 @@
         background: white;
         color: #001F5B;
         transform: translateY(-2px);
+    }
+
+    .how-it-works-cta-buttons-container {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        justify-content: center;
+        margin-top: 1rem;
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    /* Loading states */
+    .how-it-works-outline-button.loading,
+    .how-it-works-trial-button.loading,
+    .how-it-works-demo-button.loading {
+        position: relative;
+        color: transparent;
+    }
+    
+    .how-it-works-outline-button.loading::after,
+    .how-it-works-trial-button.loading::after,
+    .how-it-works-demo-button.loading::after {
+        content: '';
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        top: 50%;
+        left: 50%;
+        margin: -10px 0 0 -10px;
+        border: 2px solid rgba(255,255,255,0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 1s ease-in-out infinite;
+    }
+    
+    .how-it-works-trial-button.loading::after {
+        border: 2px solid rgba(0,31,91,0.3);
+        border-top-color: #001F5B;
+    }
+    
+    .how-it-works-demo-button.loading::after {
+        border: 2px solid rgba(255,255,255,0.3);
+        border-top-color: white;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
     }
 
     /* Mobile adjustments - EXACT SAME AS GALLERY PAGE */
@@ -274,13 +349,17 @@
         .how-it-works-cta-buttons-container {
             margin-top: 0.75rem;
             flex-direction: column;
+            gap: 0.75rem;
         }
 
+        .how-it-works-demo-button,
         .how-it-works-trial-button,
         .how-it-works-outline-button {
             padding: 0.6rem 1.5rem;
             font-size: 0.9rem;
             min-width: 160px;
+            width: 100%;
+            max-width: 250px;
         }
     }
 
@@ -378,14 +457,19 @@
         </div>
     </section>
 
-    <!-- 🚨 ULTIMATE FIXED CTA Section - BYPASS CONTROLLER ISSUE -->
+    <!-- 🚨 UPDATED CTA Section with 3 BUTTONS -->
     <div class="how-it-works-cta-wrapper">
         <section class="how-it-works-cta-section">
             <h2>अहिले नै सुरु गर्नुहोस्</h2>
             <p>तपाइँको होस्टललाई आधुनिक प्रणालीमा रूपान्तरण गर्नुहोस्।</p>
+            
             <div class="how-it-works-cta-buttons-container">
-                <a href="{{ route('demo') }}" class="how-it-works-trial-button">डेमो हेर्नुहोस्</a>
+                <!-- BUTTON 1: INTERACTIVE DEMO (Orange gradient with mouse-pointer icon) -->
+                <a href="{{ route('demo') }}" class="how-it-works-demo-button">
+                    <i class="fas fa-mouse-pointer"></i> इन्टरएक्टिभ डेमो
+                </a>
                 
+                <!-- BUTTON 2: FREE TRIAL (Primary with bolt icon) -->
                 @auth
                     @php
                         $organizationId = session('current_organization_id');
@@ -399,27 +483,30 @@
                     
                     @if($hasSubscription)
                         <button class="how-it-works-outline-button" disabled>
-                            तपाईंसँग पहिले नै सदस्यता छ
+                            <i class="fas fa-check-circle"></i> पहिले नै सदस्यता
                         </button>
                     @else
                         <form action="{{ route('subscription.start-trial') }}" method="POST" style="display: inline;">
                             @csrf
-                            <button type="submit" class="how-it-works-outline-button">
-                                निःशुल्क साइन अप गर्नुहोस्
+                            <button type="submit" class="how-it-works-trial-button">
+                                <i class="fas fa-bolt"></i> निःशुल्क परीक्षण
                             </button>
                         </form>
                     @endif
                 @else
-                    <!-- 🚨 ULTIMATE FIX: Use JavaScript to force correct page -->
-                    <button onclick="redirectToCorrectRegistration()" 
-                            class="how-it-works-outline-button">
-                        निःशुल्क साइन अप
-                    </button>
-                    
-                    <!-- Hidden direct link as backup -->
-                    <a href="{{ route('register.organization', ['plan' => 'starter']) }}" 
-                       id="hiddenRegistrationLink" style="display: none;"></a>
+                    <!-- For non-logged in users -->
+                    <a href="{{ url('/register/organization/starter') }}" 
+                       class="how-it-works-trial-button">
+                        <i class="fas fa-bolt"></i> निःशुल्क परीक्षण
+                    </a>
                 @endauth
+                
+                <!-- BUTTON 3: PRICING (Outline with dollar-sign icon) - FIXED ROUTE -->
+                <!-- Use direct URL to avoid route errors -->
+                <a href="{{ url('/pricing') }}" 
+                   class="how-it-works-outline-button">
+                    <i class=></i> योजनाहरू हेर्नुहोस्
+                </a>
             </div>
         </section>
     </div>
@@ -427,71 +514,8 @@
 
 @push('scripts')
 <script>
-// 🚨 ULTIMATE FIX: This will bypass the controller issue
-function redirectToCorrectRegistration() {
-    // Clear any cached session data
-    sessionStorage.clear();
-    localStorage.removeItem('last_visited_registration');
-    
-    // Create a fresh URL with timestamp to avoid caching
-    const baseUrl = window.location.origin;
-    const url = baseUrl + '/register/organization/starter?type=hostel&source=howitworks&t=' + Date.now();
-    
-    console.log('Redirecting to:', url);
-    
-    // Method 1: Try direct navigation first
-    window.location.href = url;
-    
-    // Method 2: Fallback after 1 second if still on wrong page
-    setTimeout(function() {
-        if (window.location.pathname === '/register' || 
-            window.location.pathname.includes('auth/register')) {
-            // We're still on user registration page, force redirect
-            const newUrl = baseUrl + '/organization/create?plan=starter&force=true&t=' + Date.now();
-            console.log('Fallback redirect to:', newUrl);
-            window.location.replace(newUrl);
-        }
-    }, 1000);
-    
-    // Method 3: Final fallback - try to find the correct link on page
-    setTimeout(function() {
-        // Look for hostel registration links on the page
-        const hostelLinks = document.querySelectorAll('a[href*="organization"], a[href*="hostel"]');
-        if (hostelLinks.length > 0) {
-            hostelLinks[0].click();
-        }
-    }, 2000);
-}
-
-// Alternative solution if above doesn't work
-function alternativeRegistrationRedirect() {
-    // Try to use the POST route instead
-    const form = document.createElement('form');
-    form.method = 'GET';
-    form.action = '/register/organization/starter';
-    
-    // Add parameters
-    const params = {
-        'plan': 'starter',
-        'registration_type': 'hostel',
-        'redirect_from': 'how_it_works',
-        'timestamp': Date.now()
-    };
-    
-    for (const key in params) {
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = key;
-        input.value = params[key];
-        form.appendChild(input);
-    }
-    
-    document.body.appendChild(form);
-    form.submit();
-}
-
-// Handle trial form submission
 document.addEventListener('DOMContentLoaded', function() {
+    // Handle trial form submission on how-it-works page
     const trialForm = document.querySelector('.how-it-works-cta-section form');
     if (trialForm) {
         trialForm.addEventListener('submit', async function(e) {
@@ -522,6 +546,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (data.redirect) {
                         window.location.href = data.redirect;
                     } else {
+                        // Show success message
                         alert(data.message || 'निःशुल्क परीक्षण सफलतापूर्वक सुरु गरियो');
                         window.location.reload();
                     }
@@ -537,53 +562,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
-
-// Add loading class styles
-const style = document.createElement('style');
-style.textContent = `
-    .how-it-works-outline-button.loading {
-        position: relative;
-        color: transparent;
-    }
-    
-    .how-it-works-outline-button.loading::after {
-        content: '';
-        position: absolute;
-        width: 20px;
-        height: 20px;
-        top: 50%;
-        left: 50%;
-        margin: -10px 0 0 -10px;
-        border: 2px solid rgba(255,255,255,0.3);
-        border-radius: 50%;
-        border-top-color: white;
-        animation: spin 1s ease-in-out infinite;
-    }
-    
-    .how-it-works-trial-button.loading {
-        position: relative;
-        color: transparent;
-    }
-    
-    .how-it-works-trial-button.loading::after {
-        content: '';
-        position: absolute;
-        width: 20px;
-        height: 20px;
-        top: 50%;
-        left: 50%;
-        margin: -10px 0 0 -10px;
-        border: 2px solid rgba(0,31,91,0.3);
-        border-radius: 50%;
-        border-top-color: #001F5B;
-        animation: spin 1s ease-in-out infinite;
-    }
-    
-    @keyframes spin {
-        to { transform: rotate(360deg); }
-    }
-`;
-document.head.appendChild(style);
 </script>
 @endpush
 
