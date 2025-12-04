@@ -359,25 +359,29 @@
         width: 95%;
     }
 
-    /* 🚨 CTA SECTION - FIXED BUTTONS */
+    /* 🚨 UPDATED GALLERY CTA STYLES - PROFESSIONAL */
+
+    /* CTA Wrapper - Fix Border Issue */
     .gallery-cta-wrapper {
         width: 100%;
         display: flex;
         justify-content: center;
-        padding: 1.5rem 1.5rem 2rem 1.5rem;
-        margin-top: 1rem;
+        padding: 2rem 1.5rem 3rem 1.5rem;
+        margin-top: 2rem;
+        background: transparent; /* 🚨 TRANSPARENT - No full width gradient */
     }
 
+    /* CTA Section - Gradient only here */
     .gallery-cta-section {
         text-align: center;
-        background: linear-gradient(135deg, var(--primary), var(--secondary));
         color: white;
         padding: 2.5rem 2rem;
         border-radius: 1rem;
         box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
-        max-width: 800px;
+        max-width: 900px;
         width: 100%;
         margin: 0 auto;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
     }
 
     .gallery-cta-section h2 {
@@ -393,19 +397,114 @@
         opacity: 0.9;
     }
 
+    /* CTA Buttons Container */
     .gallery-cta-buttons-container {
         display: flex;
-        gap: 1rem;
-        align-items: center;
+        gap: 1.5rem;
         justify-content: center;
-        margin-top: 1rem;
+        align-items: center;
+        margin-top: 2rem;
         width: 100%;
-        flex-wrap: wrap;
     }
 
+    /* Button 1: DEMO (Orange Gradient) */
+    .gallery-demo-button {
+        background: linear-gradient(135deg, #FF6B6B, #FF8E53);
+        color: white;
+        font-weight: 600;
+        padding: 0.75rem 2rem;
+        border-radius: 0.5rem;
+        text-decoration: none;
+        min-width: 180px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        font-size: 1rem;
+    }
+
+    .gallery-demo-button:hover {
+        background: linear-gradient(135deg, #FF5252, #FF7A3D);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(255, 107, 107, 0.3);
+        color: white;
+    }
+
+    /* Button 2: FREE TRIAL (Primary White) */
+    .gallery-trial-button {
+        background-color: white;
+        color: var(--primary);
+        font-weight: 600;
+        padding: 0.75rem 2rem;
+        border-radius: 0.5rem;
+        text-decoration: none;
+        min-width: 180px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        font-size: 1rem;
+    }
+
+    .gallery-trial-button:hover:not(:disabled) {
+        background-color: #f3f4f6;
+        transform: translateY(-2px);
+        color: var(--primary);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .gallery-trial-button:disabled {
+        background: #6c757d;
+        color: white;
+        cursor: not-allowed;
+        transform: none;
+        border: none;
+    }
+
+    .gallery-trial-button:disabled:hover {
+        background: #6c757d;
+        color: white;
+        transform: none;
+    }
+
+    /* Button 3: PRICING (Outline) */
+    .gallery-outline-button {
+        background-color: transparent;
+        color: white;
+        border: 2px solid white;
+        font-weight: 600;
+        padding: 0.75rem 2rem;
+        border-radius: 0.5rem;
+        text-decoration: none;
+        min-width: 180px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        font-size: 1rem;
+    }
+
+    .gallery-outline-button:hover {
+        background-color: white;
+        color: var(--primary);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Mobile Responsive */
     @media (max-width: 768px) {
         .gallery-cta-wrapper {
-            padding: 1rem 1rem 1.5rem 1rem;
+            padding: 1.5rem 1rem 2rem 1rem;
         }
         
         .gallery-cta-section {
@@ -422,14 +521,24 @@
         }
         
         .gallery-cta-buttons-container {
-            margin-top: 0.75rem;
             flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .gallery-demo-button,
+        .gallery-trial-button,
+        .gallery-outline-button {
+            padding: 0.6rem 1.5rem;
+            font-size: 0.9rem;
+            min-width: 180px;
+            width: 100%;
+            max-width: 250px;
         }
     }
 
     @media (max-width: 480px) {
         .gallery-cta-wrapper {
-            padding: 0.75rem 1rem 1.25rem 1rem;
+            padding: 1rem 1rem 1.5rem 1rem;
         }
         
         .gallery-cta-section {
@@ -443,42 +552,6 @@
         .gallery-cta-section p {
             font-size: 0.9rem;
         }
-    }
-    
-    .gallery-trial-button {
-        background-color: white;
-        color: #001F5B;
-        font-weight: 600;
-        padding: 0.75rem 2rem;
-        border-radius: 0.5rem;
-        text-decoration: none;
-        min-width: 180px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        transition: all 0.3s ease;
-        border: none;
-        cursor: pointer;
-        display: inline-block;
-        font-size: 1rem;
-        text-align: center;
-    }
-    
-    .gallery-trial-button:hover {
-        background-color: #f3f4f6;
-        transform: translateY(-2px);
-        color: #001F5B;
-    }
-    
-    .gallery-trial-button:disabled {
-        background: #6c757d;
-        color: white;
-        cursor: not-allowed;
-        transform: none;
-    }
-
-    .gallery-trial-button:disabled:hover {
-        background: #6c757d;
-        color: white;
-        transform: none;
     }
 
     /* 🆕 Stats section spacing adjustment */
@@ -695,44 +768,75 @@
         </div>
     </section>
 
-    <!-- 🚨 FIXED CTA SECTION - CORRECT HOSTEL REGISTRATION -->
+    <!-- 🚨 UPDATED GALLERY CTA SECTION - PROFESSIONAL STRATEGY -->
     <div class="gallery-cta-wrapper">
         <section class="gallery-cta-section">
             <h2 class="nepali">तपाईंको होस्टललाई HostelHub संग जोड्नुहोस्</h2>
             <p class="nepali">७ दिन निःशुल्क परीक्षण गर्नुहोस् र होस्टल व्यवस्थापनलाई सजिलो, द्रुत र भरपर्दो बनाउनुहोस्</p>
+            
             <div class="gallery-cta-buttons-container">
-                <a href="{{ route('demo') }}" class="gallery-trial-button" style="background: transparent; border: 2px solid white; color: white;">डेमो हेर्नुहोस्</a>
+                <!-- BUTTON 1: DEMO (Orange Gradient) -->
+                <a href="{{ route('demo') }}" class="gallery-demo-button nepali">
+                    <i class="fas fa-play-circle"></i> डेमो हेर्नुहोस्
+                </a>
                 
+                <!-- BUTTON 2: FREE TRIAL (Primary White) -->
                 @auth
                     @php
                         $organizationId = session('current_organization_id');
                         $hasSubscription = false;
                         
                         if ($organizationId) {
-                            $organization = \App\Models\Organization::with('subscription')->find($organizationId);
-                            $hasSubscription = $organization->subscription ?? false;
+                            try {
+                                $organization = \App\Models\Organization::with('subscription')->find($organizationId);
+                                $hasSubscription = $organization->subscription ?? false;
+                            } catch (Exception $e) {
+                                $hasSubscription = false;
+                            }
                         }
                     @endphp
                     
                     @if($hasSubscription)
-                        <button class="gallery-trial-button" disabled>
-                            तपाईंसँग पहिले नै सदस्यता छ
+                        <button class="gallery-trial-button nepali" disabled>
+                            <i class="fas fa-check-circle"></i> तपाईंसँग पहिले नै सदस्यता छ
                         </button>
                     @else
                         <form action="{{ route('subscription.start-trial') }}" method="POST" style="display: inline;">
                             @csrf
-                            <button type="submit" class="gallery-trial-button">
-                                निःशुल्क साइन अप गर्नुहोस्
+                            <button type="submit" class="gallery-trial-button nepali">
+                                <i class="fas fa-rocket"></i> निःशुल्क परीक्षण
                             </button>
                         </form>
                     @endif
                 @else
-                    <!-- 🚨 CORRECT ROUTE FOR HOSTEL REGISTRATION -->
-                    <a href="{{ url('/register/organization/starter') }}" 
-                       class="gallery-trial-button">
-                        निःशुल्क साइन अप गर्नुहोस्
+                    <a href="{{ route('register.organization', ['plan' => 'starter']) }}" 
+                       class="gallery-trial-button nepali">
+                        <i class="fas fa-rocket"></i> निःशुल्क परीक्षण सुरु गर्नुहोस्
                     </a>
                 @endauth
+                
+                <!-- BUTTON 3: PRICING (Outline) - SMART ROUTE DETECTION -->
+                @php
+                    // Smart pricing route detection
+                    $pricingRoute = null;
+                    
+                    if (Route::has('pricing')) {
+                        $pricingRoute = route('pricing');
+                    } elseif (Route::has('pricing.index')) {
+                        $pricingRoute = route('pricing.index');
+                    } elseif (Route::has('frontend.pricing')) {
+                        $pricingRoute = route('frontend.pricing');
+                    } elseif (Route::has('plans')) {
+                        $pricingRoute = route('plans');
+                    } else {
+                        $pricingRoute = url('/pricing');
+                    }
+                @endphp
+                
+                <a href="{{ $pricingRoute }}" 
+                   class="gallery-outline-button nepali">
+                    <i class="fas fa-tags"></i> योजनाहरू हेर्नुहोस्
+                </a>
             </div>
         </section>
     </div>

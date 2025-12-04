@@ -102,6 +102,59 @@
         display: block;
     }
     
+    /* Platform Explanation Section */
+    .platform-explanation {
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        padding: 3rem 2rem;
+        border-radius: 1rem;
+        margin: 2rem auto 3rem auto;
+        max-width: 1000px;
+        width: 95%;
+        text-align: center;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .platform-explanation h3 {
+        font-size: 1.8rem;
+        color: var(--primary);
+        margin-bottom: 1rem;
+        font-weight: 700;
+    }
+    
+    .platform-explanation p {
+        font-size: 1.1rem;
+        line-height: 1.7;
+        color: var(--text-dark);
+        max-width: 800px;
+        margin: 0 auto 1.5rem auto;
+    }
+    
+    .platform-features {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+    
+    .platform-feature {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 0.75rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    
+    .platform-feature h4 {
+        color: var(--secondary);
+        margin-bottom: 0.5rem;
+        font-size: 1.1rem;
+    }
+    
+    .platform-feature p {
+        font-size: 0.95rem;
+        margin-bottom: 0;
+        color: #4a5568;
+    }
+    
     .values-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -286,25 +339,28 @@
         color: white;
     }
     
-    /* 🚨 CTA Section - EXACT SAME AS GALLERY PAGE */
+    /* 🚨 UPDATED CTA SECTION - PROFESSIONAL STRATEGY (FIXED BORDER ISSUE) */
     .about-cta-wrapper {
         width: 100%;
         display: flex;
         justify-content: center;
-        padding: 1.5rem 1.5rem 2rem 1.5rem;
-        margin-top: 1rem;
+        padding: 2rem 1.5rem 3rem 1.5rem;
+        margin-top: 2rem;
+        /* 🚨 BACKGROUND REMOVED - केवल सफेद ब्याकग्राउन्ड राख्ने */
+        background: transparent;
     }
     
     .about-cta-section {
         text-align: center;
-        background: linear-gradient(135deg, var(--primary), var(--secondary));
         color: white;
         padding: 2.5rem 2rem;
         border-radius: 1rem;
         box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
-        max-width: 800px;
+        max-width: 900px;
         width: 100%;
         margin: 0 auto;
+        /* 🚨 ग्रेडियन्ट केवल यो सेक्सनमा मात्र */
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
     }
     
     .about-cta-section h2 {
@@ -323,15 +379,26 @@
     .about-contact-email {
         font-size: 1.3rem;
         font-weight: 600;
-        margin: 20px 0;
+        margin: 1.5rem 0 2rem 0;
         display: block;
         color: #ffffff;
         text-decoration: underline;
     }
     
+    /* CTA Buttons Container */
+    .about-cta-buttons-container {
+        display: flex;
+        gap: 1.5rem;
+        justify-content: center;
+        align-items: center;
+        margin-top: 2rem;
+        width: 100%;
+    }
+    
+    /* ABOUT CTA BUTTON STYLES */
     .about-trial-button {
         background-color: white;
-        color: #001F5B;
+        color: var(--primary);
         font-weight: 600;
         padding: 0.75rem 2rem;
         border-radius: 0.5rem;
@@ -341,15 +408,44 @@
         transition: all 0.3s ease;
         border: none;
         cursor: pointer;
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
         font-size: 1rem;
-        text-align: center;
     }
     
-    .about-trial-button:hover {
+    .about-trial-button:hover:not(:disabled) {
         background-color: #f3f4f6;
         transform: translateY(-2px);
-        color: #001F5B;
+        color: var(--primary);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+    }
+    
+    .about-outline-button {
+        background-color: transparent;
+        color: white;
+        border: 2px solid white;
+        font-weight: 600;
+        padding: 0.75rem 2rem;
+        border-radius: 0.5rem;
+        text-decoration: none;
+        min-width: 180px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        font-size: 1rem;
+    }
+    
+    .about-outline-button:hover {
+        background-color: white;
+        color: var(--primary);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
     }
     
     .about-trial-button:disabled {
@@ -357,6 +453,7 @@
         color: white;
         cursor: not-allowed;
         transform: none;
+        border: none;
     }
 
     .about-trial-button:disabled:hover {
@@ -365,26 +462,21 @@
         transform: none;
     }
 
-    .cta-buttons-container {
-        display: flex;
-        gap: 1rem;
-        align-items: center;
-        justify-content: center;
-        margin-top: 1rem;
-        width: 100%;
-        flex-wrap: wrap;
-    }
-
-    /* Mobile adjustments - EXACT SAME AS GALLERY PAGE */
+    /* Mobile adjustments */
     @media (max-width: 1024px) {
         .values-grid,
         .stats-grid,
-        .team-grid {
+        .team-grid,
+        .platform-features {
             grid-template-columns: repeat(2, 1fr);
         }
         
         .about-container {
             max-width: 95%;
+        }
+        
+        .about-cta-buttons-container {
+            gap: 1rem;
         }
     }
     
@@ -415,16 +507,32 @@
         
         .values-grid,
         .stats-grid,
-        .team-grid {
+        .team-grid,
+        .platform-features {
             grid-template-columns: 1fr;
         }
         
         .stat-number {
             font-size: 2.5rem;
         }
+        
+        .platform-explanation {
+            padding: 2rem 1rem;
+        }
+        
+        .about-cta-buttons-container {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .about-trial-button,
+        .about-outline-button {
+            width: 100%;
+            max-width: 250px;
+        }
 
         .about-cta-wrapper {
-            padding: 1rem 1rem 1.5rem 1rem;
+            padding: 1.5rem 1rem 2rem 1rem;
         }
         
         .about-cta-section {
@@ -444,9 +552,11 @@
             font-size: 1.1rem;
         }
         
-        .about-trial-button {
+        .about-trial-button,
+        .about-outline-button {
             padding: 0.6rem 1.5rem;
             font-size: 0.9rem;
+            min-width: 180px;
         }
         
         .about-intro,
@@ -456,11 +566,6 @@
             padding-left: 1rem;
             padding-right: 1rem;
         }
-
-        .cta-buttons-container {
-            margin-top: 0.75rem;
-            flex-direction: column;
-        }
     }
 
     @media (max-width: 480px) {
@@ -469,7 +574,7 @@
         }
         
         .about-cta-wrapper {
-            padding: 0.75rem 1rem 1.25rem 1rem;
+            padding: 1rem 1rem 1.5rem 1rem;
         }
         
         .about-cta-section {
@@ -501,16 +606,20 @@
         .about-container {
             padding-bottom: 1rem;
         }
+        
+        .platform-explanation h3 {
+            font-size: 1.5rem;
+        }
     }
 </style>
 @endpush
 
 @section('content')
-<!-- Updated Hero Section - EXACT SAME AS GALLERY PAGE -->
+<!-- Updated Hero Section -->
 <div class="about-header">
     <h1>हाम्रो बारेमा</h1>
-    <p>HostelHub नेपालको अग्रणी होस्टल व्यवस्थापन प्रणाली हो</p>
-    <p>हाम्रो कथा, हाम्रो टिम र हाम्रो लक्ष्यहरू</p>
+    <p>HostelHub नेपालको अग्रणी Multi-Tenant होस्टल व्यवस्थापन SaaS प्लेटफर्म हो</p>
+    <p>हाम्रो कथा, हाम्रो टेक्नोलोजी र हाम्रो लक्ष्यहरू</p>
 </div>
 
 <div class="about-content-wrapper">
@@ -520,12 +629,33 @@
             <div class="intro-content">
                 <h2 class="intro-title">हाम्रो कथा</h2>
                 <div class="intro-text">
-                    <p>HostelHub नेपालको अग्रणी होस्टल व्यवस्थापन प्रणाली हो जसले होस्टलहरूको दैनिक कार्यहरूलाई डिजिटल रूपमा रूपान्तरण गर्न मद्दत गर्दछ। हाम्रो उद्देश्य होस्टल व्यवस्थापनलाई सजिलो, द्रुत र विश्वसनीय बनाउनु हो।</p>
-                    <p>हामी २०२५ मा सुरु भएको स्टार्टअप हौं र नेपालभरि २४ भन्दा बढी होस्टलहरू जडान भइसकेका छन्। हाम्रो टिममा प्राविधिक र व्यवसायिक क्षेत्रका अनुभवी विशेषज्ञहरू छन् जसको लक्ष्य नेपाली शिक्षा क्षेत्रमा सुधार ल्याउनु हो।</p>
+                    <p>HostelHub नेपालको पहिलो Multi-Tenant होस्टल व्यवस्थापन SaaS प्लेटफर्म हो जसले होस्टलहरूको दैनिक कार्यहरूलाई डिजिटल रूपमा रूपान्तरण गर्दछ। हाम्रो उद्देश्य होस्टल व्यवस्थापनलाई सजिलो, द्रुत र विश्वसनीय बनाउनु हो।</p>
+                    <p>हामी २०२५ मा सुरु भएको स्टार्टअप हौं र नेपालभरि २४ भन्दा बढी होस्टलहरू हाम्रो प्लेटफर्ममा जडान भइसकेका छन्। हाम्रो टिममा प्राविधिक र व्यवसायिक क्षेत्रका अनुभवी विशेषज्ञहरू छन् जसको लक्ष्य नेपाली शिक्षा क्षेत्रमा सुधार ल्याउनु हो।</p>
                 </div>
             </div>
             <div class="intro-image">
                 <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&q=80" alt="HostelHub Team" class="intro-img">
+            </div>
+        </div>
+
+        <!-- Platform Explanation Section -->
+        <div class="platform-explanation">
+            <h3>Multi-Tenant SaaS प्लेटफर्म</h3>
+            <p>HostelHub एउटै प्लेटफर्म भित्र धेरै होस्टलहरूको लागि अलग-अलग व्यवस्थापन ड्यासबोर्ड प्रदान गर्दछ। प्रत्येक होस्टलको डाटा पूर्ण रूपमा अलग, सुरक्षित र व्यक्तिगत हुन्छ।</p>
+            
+            <div class="platform-features">
+                <div class="platform-feature">
+                    <h4>सुरक्षित डाटा पृथकता</h4>
+                    <p>प्रत्येक होस्टलको डाटा अलग डाटाबेस शेमामा राखिन्छ</p>
+                </div>
+                <div class="platform-feature">
+                    <h4>सार्वजनिक पृष्ठ कस्टमाइजेशन</h4>
+                    <p>प्रत्येक होस्टलले आफ्नो सार्वजनिक पृष्ठ अनुकूलित गर्न सक्छ</p>
+                </div>
+                <div class="platform-feature">
+                    <h4>स्केलेबल आर्किटेक्चर</h4>
+                    <p>साना देखि ठूला होस्टलहरूको लागि उपयुक्त</p>
+                </div>
             </div>
         </div>
 
@@ -634,13 +764,15 @@
         </div>
     </div>
 
-    <!-- 🚨 CTA Section - EXACT SAME AS GALLERY PAGE -->
+    <!-- 🚨 UPDATED CTA SECTION - FIXED BORDER ISSUE -->
     <div class="about-cta-wrapper">
         <section class="about-cta-section">
             <h2>हामीलाई सम्पर्क गर्नुहोस्</h2>
             <p>हामी तपाईंलाई सहयोग गर्न तत्पर छौं</p>
             <a href="mailto:support@hostelhub.com" class="about-contact-email">support@hostelhub.com</a>
-            <div class="cta-buttons-container">
+            
+            <div class="about-cta-buttons-container">
+                <!-- BUTTON 1: FREE TRIAL -->
                 @auth
                     @php
                         $organizationId = session('current_organization_id');
@@ -658,17 +790,43 @@
                     
                     @if($hasSubscription)
                         <button class="about-trial-button" disabled>
-                            तपाईंसँग पहिले नै सदस्यता छ
+                            <i class="fas fa-check-circle"></i> तपाईंसँग पहिले नै सदस्यता छ
                         </button>
                     @else
-                        <form action="{{ route('subscription.start-trial') }}" method="POST" class="trial-form" style="display: inline;">
+                        <form action="{{ route('subscription.start-trial') }}" method="POST" style="display: inline;">
                             @csrf
-                            <button type="submit" class="about-trial-button">७ दिन निःशुल्क परीक्षण सुरु गर्नुहोस्</button>
+                            <button type="submit" class="about-trial-button">
+                                <i class="fas fa-rocket"></i> ७ दिन निःशुल्क परीक्षण
+                            </button>
                         </form>
                     @endif
                 @else
-                    <a href="{{ route('register.organization', ['plan' => 'starter']) }}" class="about-trial-button">७ दिन निःशुल्क परीक्षण सुरु गर्नुहोस्</a>
+                    <a href="{{ route('register.organization', ['plan' => 'starter']) }}" class="about-trial-button">
+                        <i class="fas fa-rocket"></i> निःशुल्क परीक्षण सुरु गर्नुहोस्
+                    </a>
                 @endauth
+                
+                <!-- BUTTON 2: PRICING -->
+                @php
+                    // Try to determine the correct pricing route
+                    $pricingRoute = null;
+                    
+                    if (Route::has('pricing')) {
+                        $pricingRoute = route('pricing');
+                    } elseif (Route::has('pricing.index')) {
+                        $pricingRoute = route('pricing.index');
+                    } elseif (Route::has('frontend.pricing')) {
+                        $pricingRoute = route('frontend.pricing');
+                    } elseif (Route::has('plans')) {
+                        $pricingRoute = route('plans');
+                    } else {
+                        $pricingRoute = url('/pricing');
+                    }
+                @endphp
+                
+                <a href="{{ $pricingRoute }}" class="about-outline-button">
+                    <i class="fas fa-tags"></i> योजनाहरू हेर्नुहोस्
+                </a>
             </div>
         </section>
     </div>

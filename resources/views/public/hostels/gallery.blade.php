@@ -80,6 +80,15 @@
         
         return $room->image && \Storage::disk('public')->exists($room->image);
     }
+    
+    // ✅ ADDED: Check if route exists
+    function routeExists($name) {
+        try {
+            return \Route::has($name);
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
 @endphp
 
 <style>
@@ -529,7 +538,7 @@
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
     
-    /* 🚨 UPDATED: CTA SECTION - EXACTLY LIKE ABOUT PAGE */
+    /* 🚨 UPDATED: Room Gallery CTA - STUDENT FOCUSED */
     .gallery-cta-wrapper {
         width: 100%;
         display: flex;
@@ -577,40 +586,75 @@
         text-decoration: underline;
     }
     
+    /* ✅ UPDATED: Attractive Book Now Button with shining effect */
     .gallery-trial-button {
-        background-color: white;
-        color: #001F5B;
-        font-weight: 600;
-        padding: 0.75rem 2rem;
-        border-radius: 0.5rem;
+        background: linear-gradient(135deg, #FF6B35, #FF8B3D) !important;
+        color: white !important;
+        font-weight: 700;
+        padding: 1rem 2rem;
+        border-radius: 0.75rem;
         text-decoration: none;
-        min-width: 180px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        transition: all 0.3s ease;
+        min-width: 200px;
+        box-shadow: 0 8px 20px rgba(255, 107, 53, 0.4);
+        transition: all 0.4s ease;
         border: none;
         cursor: pointer;
-        display: inline-block;
-        font-size: 1rem;
-        text-align: center;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        font-size: 1.1rem;
+        letter-spacing: 0.5px;
+        position: relative;
+        overflow: hidden;
+        z-index: 1;
+    }
+    
+    .gallery-trial-button::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        transition: left 0.7s ease;
+        z-index: -1;
     }
     
     .gallery-trial-button:hover {
-        background-color: #f3f4f6;
-        transform: translateY(-2px);
-        color: #001F5B;
+        transform: translateY(-4px);
+        box-shadow: 0 12px 25px rgba(255, 107, 53, 0.6);
+        color: white !important;
+    }
+    
+    .gallery-trial-button:hover::before {
+        left: 100%;
+    }
+    
+    .gallery-trial-button:active {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 15px rgba(255, 107, 53, 0.5);
+    }
+    
+    .gallery-trial-button i {
+        font-size: 1.2rem;
+        filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.2));
     }
     
     .gallery-trial-button:disabled {
-        background: #6c757d;
-        color: white;
+        background: #6c757d !important;
+        color: white !important;
         cursor: not-allowed;
-        transform: none;
+        transform: none !important;
+        box-shadow: 0 4px 10px rgba(108, 117, 125, 0.3) !important;
     }
 
     .gallery-trial-button:disabled:hover {
-        background: #6c757d;
-        color: white;
-        transform: none;
+        background: #6c757d !important;
+        color: white !important;
+        transform: none !important;
+        box-shadow: 0 4px 10px rgba(108, 117, 125, 0.3) !important;
     }
 
     .gallery-cta-buttons-container {
@@ -622,6 +666,31 @@
         width: 100%;
     }
 
+    /* Room Gallery CTA Specific Styles */
+    .gallery-cta-section .gallery-outline-button {
+        background-color: transparent;
+        color: white;
+        border: 2px solid white;
+        font-weight: 600;
+        padding: 0.75rem 2rem;
+        border-radius: 0.5rem;
+        text-decoration: none;
+        min-width: 180px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        font-size: 1rem;
+    }
+
+    .gallery-cta-section .gallery-outline-button:hover {
+        background-color: white;
+        color: var(--primary);
+        transform: translateY(-2px);
+    }
+    
     /* ✅ ADDED: Image error handling styles */
     .image-fallback {
         width: 100%;
@@ -756,8 +825,24 @@
         }
         
         .gallery-trial-button {
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            min-width: 180px;
+        }
+        
+        /* Room Gallery CTA Responsive */
+        .gallery-cta-buttons-container {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .gallery-cta-section .gallery-trial-button,
+        .gallery-cta-section .gallery-outline-button {
             padding: 0.6rem 1.5rem;
             font-size: 0.9rem;
+            min-width: 180px;
+            width: 100%;
+            max-width: 250px;
         }
     }
     
@@ -865,6 +950,12 @@
         
         .gallery-contact-email {
             font-size: 1rem;
+        }
+        
+        .gallery-trial-button {
+            padding: 0.75rem 1.25rem;
+            font-size: 1rem;
+            min-width: 160px;
         }
     }
 </style>
@@ -1003,16 +1094,7 @@
                 @endforeach
             </div>
             
-            <!-- Navigation Buttons -->
-            <div class="view-more">
-                <a href="{{ route('hostel.full-gallery', $hostel->slug) }}" class="btn btn-outline nepali" 
-                   style="border-color: var(--primary); color: var(--primary);">
-                    पूरा ग्यालरी हेर्नुहोस्
-                </a>
-                <a href="{{ route('hostel.book.all.rooms', ['slug' => $hostel->slug]) }}" class="btn btn-primary nepali">
-                    अहिले बुक गर्नुहोस्
-                </a>
-            </div>
+            <!-- ✅ REMOVED: Duplicate buttons above CTA section -->
             
         @else
             <!-- No Rooms Message -->
@@ -1036,42 +1118,56 @@
     </div>
 </section>
 
-<!-- 🚨 UPDATED: CTA SECTION - EXACTLY LIKE ABOUT PAGE -->
+<!-- 🚨 UPDATED: Room Gallery CTA - STUDENT FOCUSED -->
 <div class="gallery-cta-wrapper">
     <section class="gallery-cta-section">
-        <h2 class="nepali">हामीलाई सम्पर्क गर्नुहोस्</h2>
-        <p class="nepali">हामी तपाईंलाई सहयोग गर्न तत्पर छौं</p>
-        <a href="mailto:support@hostelhub.com" class="gallery-contact-email nepali">support@hostelhub.com</a>
+        <h2 class="nepali">कोठा बुक गर्न चाहनुहुन्छ?</h2>
+        <p class="nepali">अहिले नै कोठा सुरक्षित गर्नुहोस् वा होस्टलको बारेमा थप जानकारी लिनुहोस्</p>
+        
         <div class="gallery-cta-buttons-container">
-            @auth
-                @php
-                    $organizationId = session('current_organization_id');
-                    $hasSubscription = false;
-                    
-                    if ($organizationId) {
-                        try {
-                            $organization = \App\Models\Organization::with('subscription')->find($organizationId);
-                            $hasSubscription = $organization->subscription ?? false;
-                        } catch (Exception $e) {
-                            $hasSubscription = false;
-                        }
-                    }
-                @endphp
-                
-                @if($hasSubscription)
-                    <button class="gallery-trial-button nepali" disabled>
-                        तपाईंसँग पहिले नै सदस्यता छ
-                    </button>
-                @else
-                    <form action="{{ route('subscription.start-trial') }}" method="POST" class="trial-form" style="display: inline;">
-                        @csrf
-                        <button type="submit" class="gallery-trial-button nepali">७ दिन निःशुल्क परीक्षण सुरु गर्नुहोस्</button>
-                    </form>
-                @endif
+            <!-- ✅ UPDATED: Attractive Book Now Button with shining effect -->
+            <a href="{{ route('hostel.book.all.rooms', ['slug' => $hostel->slug]) }}" 
+               class="gallery-trial-button nepali">
+                <i class="fas fa-calendar-check"></i> अहिले बुक गर्नुहोस्
+            </a>
+            
+            <!-- Gallery बटन -->
+            <a href="{{ route('hostel.full-gallery', $hostel->slug) }}" 
+               class="gallery-outline-button nepali" style="border-color: white; color: white;">
+                <i class="fas fa-images"></i> पूरा ग्यालरी हेर्नुहोस्
+            </a>
+            
+            <!-- 🆕 FIXED: होस्टल मुख्य पृष्ठ बटन - Using hostel.gallery route instead -->
+            @if(routeExists('hostels.show'))
+                <a href="{{ route('hostels.show', $hostel->slug) }}" 
+                   class="gallery-outline-button nepali" style="border-color: white; color: white;">
+                    <i class="fas fa-external-link-alt"></i> पृष्ठ भ्रमण गर्नुहोस्
+                </a>
             @else
-                <a href="{{ route('register.organization', ['plan' => 'starter']) }}" class="gallery-trial-button nepali">७ दिन निःशुल्क परीक्षण सुरु गर्नुहोस्</a>
-            @endauth
+                <!-- Fallback: Use hostel.gallery or direct URL -->
+                <a href="/hostel/{{ $hostel->slug }}" 
+                   class="gallery-outline-button nepali" style="border-color: white; color: white;">
+                    <i class="fas fa-external-link-alt"></i> पृष्ठ भ्रमण गर्नुहोस्
+                </a>
+            @endif
         </div>
+        
+       <!-- Contact info -->
+<div style="margin-top: 1.5rem; color: rgba(255,255,255,0.8);">
+    <p class="nepali" style="margin-bottom: 0.5rem;">
+        <i class="fas fa-phone"></i> प्रत्यक्ष कल: {{ $hostel->contact_phone_formatted }}
+    </p>
+    
+    @if($hostel->contact_email_formatted)
+    <p class="nepali" style="margin-bottom: 0.5rem;">
+        <i class="fas fa-envelope"></i> इमेल: {{ $hostel->contact_email_formatted }}
+    </p>
+    @endif
+    
+    <p class="nepali">
+        <i class="fas fa-clock"></i> २४/७ सम्पर्क सेवा उपलब्ध
+    </p>
+</div>
     </section>
 </div>
 

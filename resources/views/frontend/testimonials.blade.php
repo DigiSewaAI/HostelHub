@@ -3,13 +3,13 @@
 
 @push('styles')
 <style>
-    /* 🚨 IMPORTANT: Testimonials page spacing fix - EXACT SAME AS GALLERY PAGE */
+    /* 🚨 IMPORTANT: Testimonial page spacing fix - EXACT SAME AS GALLERY PAGE */
     main#main.main-content-global.other-page-main {
         padding-top: 0 !important;
         margin-top: 0 !important;
     }
 
-    .testimonials-page-wrapper {
+    .testimonial-page-wrapper {
         padding: 0;
         margin: 0;
         min-height: calc(100vh - 200px);
@@ -17,8 +17,8 @@
         flex-direction: column;
     }
 
-    /* Page Header - EXACT SAME AS GALLERY PAGE HEADER */
-    .testimonials-header {
+    /* Page Header - EXACT SAME AS GALLERY PAGE */
+    .testimonial-header {
         text-align: center;
         background: linear-gradient(135deg, var(--primary), var(--secondary));
         color: white;
@@ -27,170 +27,109 @@
         box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
         max-width: 1000px;
         width: 90%;
-        
-        /* 🚨 EXACT SAME SPACING AS GALLERY PAGE HEADER */
         margin: calc(var(--header-height, 70px) + 0.9rem) auto 1.5rem auto !important;
     }
     
-    .testimonials-header h1 {
+    .testimonial-header h1 {
         font-size: 2.5rem;
         font-weight: 800;
         color: white;
         margin-bottom: 0.75rem;
     }
     
-    .testimonials-header p {
+    .testimonial-header p {
         font-size: 1.125rem;
         color: rgba(255, 255, 255, 0.9);
-        max-width: 700px;
+        max-width: 800px;
         margin: 0 auto 0.75rem auto;
-        line-height: 1.6;
     }
 
-    /* Testimonials Grid Section - SAME STRUCTURE AS GALLERY FILTERS SECTION */
-    .testimonials-grid-section {
-        padding-top: 0.5rem !important;
+    /* Testimonials Content */
+    .testimonials-content-section {
         max-width: 1200px;
-        margin: 0 auto 1.5rem auto;
+        margin: 0 auto 2rem auto;
         width: 95%;
+        padding: 0 1.5rem;
     }
 
-    .testimonials-grid {
+    .testimonials-container {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    /* Testimonial Cards */
+    .testimonial-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 1.5rem;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 2rem;
+        margin-top: 2rem;
     }
 
     .testimonial-card {
         background: white;
-        border: 1px solid #e5e7eb;
-        border-radius: 0.75rem;
-        padding: 1.5rem;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        border-radius: 1rem;
+        padding: 2rem;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
         transition: all 0.3s ease;
-        display: flex;
-        flex-direction: column;
+        border: 1px solid #e5e7eb;
     }
 
     .testimonial-card:hover {
-        transform: translateY(-6px);
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        transform: translateY(-5px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
     }
 
-    .testimonial-image-container {
-        margin-bottom: 1rem;
-        text-align: center;
-    }
-
-    .testimonial-image {
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        object-fit: cover;
-    }
-
-    .testimonial-initials {
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        background: #001F5B;
-        color: white;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        font-size: 1.2rem;
-    }
-
-    .testimonial-placeholder {
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        background: #e5e7eb;
-        color: #6b7280;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-    }
-
-    .testimonial-content {
+    .testimonial-text {
+        font-size: 1.1rem;
+        line-height: 1.8;
+        color: #4b5563;
+        margin-bottom: 1.5rem;
         font-style: italic;
-        color: #374151;
-        line-height: 1.6;
-        margin: 0 0 1rem 0;
-        flex-grow: 1;
-    }
-
-    .testimonial-rating {
-        margin-bottom: 1rem;
-        text-align: center;
-    }
-
-    .star {
-        color: #fbbf24;
-        font-size: 1.2rem;
-    }
-
-    .star-empty {
-        color: #d1d5db;
-        font-size: 1.2rem;
-    }
-
-    .rating-text {
-        margin-left: 0.5rem;
-        color: #6b7280;
-        font-size: 0.9rem;
     }
 
     .testimonial-author {
-        margin-top: auto;
-        font-weight: 600;
-        color: #001F5B;
-        font-size: 0.875rem;
-        text-align: center;
-        border-top: 1px solid #f3f4f6;
-        padding-top: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
     }
 
-    .no-testimonials {
-        grid-column: 1 / -1;
-        text-align: center;
-        padding: 3rem;
-        background: white;
-        border-radius: 0.75rem;
-        border: 1px solid #e5e7eb;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    }
-
-    .no-testimonials-icon {
-        font-size: 4rem;
-        color: #e5e7eb;
-        margin-bottom: 1rem;
-    }
-
-    .no-testimonials h3 {
+    .author-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        overflow: hidden;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
         font-size: 1.5rem;
-        color: #374151;
-        margin-bottom: 0.5rem;
+        font-weight: bold;
     }
 
-    .no-testimonials p {
+    .author-info h4 {
+        font-size: 1.2rem;
+        color: var(--primary);
+        margin-bottom: 0.25rem;
+    }
+
+    .author-info p {
         color: #6b7280;
+        font-size: 0.95rem;
     }
 
-    /* 🚨 CTA Section - EXACT SAME AS GALLERY PAGE */
-    .testimonials-cta-wrapper {
+    /* 🚨 UPDATED CTA SECTION - PROFESSIONAL STRATEGY (FIXED BORDER ISSUE) */
+    .testimonial-cta-wrapper {
         width: 100%;
         display: flex;
         justify-content: center;
-        padding: 1.5rem 1.5rem 2rem 1.5rem;
-        margin-top: 1rem;
+        padding: 2rem 1.5rem 3rem 1.5rem;
+        margin-top: 2rem;
+        background: transparent;
     }
 
-    .testimonials-cta-section {
+    .testimonial-cta-section {
         text-align: center;
-        background: linear-gradient(135deg, var(--primary), var(--secondary));
         color: white;
         padding: 2.5rem 2rem;
         border-radius: 1rem;
@@ -198,34 +137,35 @@
         max-width: 800px;
         width: 100%;
         margin: 0 auto;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
     }
 
-    .testimonials-cta-section h2 {
+    .testimonial-cta-section h2 {
         font-size: 1.75rem;
         font-weight: bold;
         margin-bottom: 0.75rem;
         color: white;
     }
 
-    .testimonials-cta-section p {
+    .testimonial-cta-section p {
         font-size: 1.125rem;
         margin-bottom: 1.5rem;
         opacity: 0.9;
     }
 
-    .testimonials-cta-buttons-container {
+    .testimonial-cta-buttons-container {
         display: flex;
-        gap: 1rem;
+        gap: 1.5rem;
         align-items: center;
         justify-content: center;
-        margin-top: 1rem;
+        margin-top: 2rem;
         width: 100%;
-        flex-wrap: wrap;
     }
 
-    .testimonials-trial-button {
-        background-color: white;
-        color: #001F5B;
+    /* Testimonial CTA Button Styles */
+    .testimonial-demo-button {
+        background: linear-gradient(135deg, #FF6B6B, #FF8E53);
+        color: white;
         font-weight: 600;
         padding: 0.75rem 2rem;
         border-radius: 0.5rem;
@@ -235,48 +175,69 @@
         transition: all 0.3s ease;
         border: none;
         cursor: pointer;
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
         font-size: 1rem;
-        text-align: center;
     }
     
-    .testimonials-trial-button:hover {
-        background-color: #f3f4f6;
+    .testimonial-demo-button:hover {
+        background: linear-gradient(135deg, #FF5252, #FF7A3D);
         transform: translateY(-2px);
-        color: #001F5B;
+        box-shadow: 0 10px 20px rgba(255, 107, 107, 0.3);
+        color: white;
     }
 
-    .testimonials-outline-button {
-        background: transparent;
-        border: 2px solid white;
-        color: white;
+    .testimonial-trial-button {
+        background-color: white;
+        color: var(--primary);
         font-weight: 600;
         padding: 0.75rem 2rem;
         border-radius: 0.5rem;
         text-decoration: none;
         min-width: 180px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         transition: all 0.3s ease;
+        border: none;
         cursor: pointer;
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
         font-size: 1rem;
-        text-align: center;
     }
     
-    .testimonials-outline-button:hover {
-        background: white;
-        color: #001F5B;
+    .testimonial-trial-button:hover:not(:disabled) {
+        background-color: #f3f4f6;
         transform: translateY(-2px);
+        color: var(--primary);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .testimonial-trial-button:disabled {
+        background: #6c757d;
+        color: white;
+        cursor: not-allowed;
+        transform: none;
+        border: none;
+    }
+
+    .testimonial-trial-button:disabled:hover {
+        background: #6c757d;
+        color: white;
+        transform: none;
     }
 
     /* Loading button styles */
-    .testimonials-trial-button.loading,
-    .testimonials-outline-button.loading {
+    .testimonial-trial-button.loading,
+    .testimonial-demo-button.loading {
         position: relative;
         color: transparent;
     }
     
-    .testimonials-trial-button.loading::after,
-    .testimonials-outline-button.loading::after {
+    .testimonial-trial-button.loading::after,
+    .testimonial-demo-button.loading::after {
         content: '';
         position: absolute;
         width: 20px;
@@ -290,7 +251,7 @@
         animation: spin 1s ease-in-out infinite;
     }
     
-    .testimonials-trial-button.loading::after {
+    .testimonial-trial-button.loading::after {
         border: 2px solid rgba(0,31,91,0.3);
         border-top-color: #001F5B;
     }
@@ -299,82 +260,115 @@
         to { transform: rotate(360deg); }
     }
 
-    /* Mobile adjustments - EXACT SAME AS GALLERY PAGE */
+    /* Empty State for No Testimonials */
+    .empty-testimonials {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: #f8fafc;
+        border-radius: 1rem;
+        border: 2px dashed #cbd5e0;
+    }
+
+    .empty-icon {
+        font-size: 4rem;
+        color: #9ca3af;
+        margin-bottom: 1.5rem;
+    }
+
+    .empty-message {
+        font-size: 1.2rem;
+        color: #6b7280;
+        margin-bottom: 1rem;
+    }
+
+    .empty-submessage {
+        font-size: 1rem;
+        color: #9ca3af;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    /* Mobile adjustments */
     @media (max-width: 768px) {
-        .testimonials-header {
+        .testimonial-header {
             margin: calc(60px + 0.25rem) auto 1rem auto !important;
             padding: 1.75rem 1rem;
             width: calc(100% - 2rem);
         }
         
-        .testimonials-header h1 {
+        .testimonial-header h1 {
             font-size: 2rem;
             margin-bottom: 0.5rem;
         }
         
-        .testimonials-header p {
+        .testimonial-header p {
             font-size: 1rem;
             margin-bottom: 0.5rem;
         }
 
-        .testimonials-grid-section {
-            padding-top: 0.25rem !important;
-            margin: 0 auto 1rem auto;
-        }
-
-        .testimonials-grid {
+        .testimonial-grid {
             grid-template-columns: 1fr;
-            gap: 1rem;
         }
 
-        .testimonials-cta-wrapper {
-            padding: 1rem 1rem 1.5rem 1rem;
+        .testimonial-cta-wrapper {
+            padding: 1.5rem 1rem 2rem 1rem;
         }
         
-        .testimonials-cta-section {
+        .testimonial-cta-section {
             padding: 2rem 1.5rem;
         }
         
-        .testimonials-cta-section h2 {
+        .testimonial-cta-section h2 {
             font-size: 1.5rem;
         }
         
-        .testimonials-cta-section p {
+        .testimonial-cta-section p {
             font-size: 1rem;
             margin-bottom: 1.25rem;
         }
         
-        .testimonials-cta-buttons-container {
-            margin-top: 0.75rem;
+        .testimonial-cta-buttons-container {
+            margin-top: 1rem;
             flex-direction: column;
+            gap: 1rem;
         }
 
-        .testimonials-trial-button,
-        .testimonials-outline-button {
+        .testimonial-demo-button,
+        .testimonial-trial-button {
             padding: 0.6rem 1.5rem;
             font-size: 0.9rem;
             min-width: 160px;
+            width: 100%;
+            max-width: 250px;
+        }
+
+        .empty-testimonials {
+            padding: 3rem 1.5rem;
+        }
+
+        .empty-icon {
+            font-size: 3rem;
         }
     }
 
     @media (max-width: 480px) {
-        .testimonials-header h1 {
+        .testimonial-header h1 {
             font-size: 1.75rem;
         }
         
-        .testimonials-cta-wrapper {
-            padding: 0.75rem 1rem 1.25rem 1rem;
+        .testimonial-cta-wrapper {
+            padding: 1rem 1rem 1.5rem 1rem;
         }
         
-        .testimonials-cta-section {
+        .testimonial-cta-section {
             padding: 1.5rem 1rem;
         }
         
-        .testimonials-cta-section h2 {
+        .testimonial-cta-section h2 {
             font-size: 1.3rem;
         }
         
-        .testimonials-cta-section p {
+        .testimonial-cta-section p {
             font-size: 0.9rem;
         }
     }
@@ -382,161 +376,164 @@
 @endpush
 
 @section('content')
-
-<div class="testimonials-page-wrapper">
-    <!-- Page Header - EXACT SAME SPACING AS GALLERY PAGE -->
-    <div class="testimonials-header">
+<div class="testimonial-page-wrapper">
+    <!-- Page Header -->
+    <div class="testimonial-header">
         <h1>हाम्रा ग्राहकहरूको प्रशंसापत्र</h1>
-        <p>HostelHub प्रयोग गर्ने होस्टल प्रबन्धक र मालिकहरूले के भन्छन् —<br>
-           वास्तविक अनुभव, वास्तविक परिणाम।</p>
+        <p>HostelHub प्रयोग गर्ने होस्टल प्रबन्धक र मालिकहरूले के भन्छन् —</p>
+        <p>वास्तविक अनुभव, वास्तविक परिणाम।</p>
     </div>
 
-    <!-- Testimonials Grid Section - Structured like gallery filters -->
-    <section class="testimonials-grid-section">
-        <div class="testimonials-grid">
-            @forelse($testimonials as $testimonial)
-            <div class="testimonial-card">
-                <!-- Display image or initials if available -->
-                <div class="testimonial-image-container">
-                    @if($testimonial->image)
-                    <img src="{{ asset('storage/' . $testimonial->image) }}" alt="{{ $testimonial->name }}" class="testimonial-image">
-                    @elseif($testimonial->initials)
-                    <div class="testimonial-initials">
-                        {{ $testimonial->initials }}
+    <!-- Testimonials Content -->
+    <section class="testimonials-content-section">
+        <div class="testimonials-container">
+            <!-- Note: यो डमी डाटा हो। वास्तविक डाटा database बाट ल्याउनुपर्छ -->
+            <!-- यदि कुनै प्रशंसापत्र छैन भने empty state देखाउने -->
+            
+            @if(false) <!-- Database बाट प्रशंसापत्र check गर्ने -->
+            <div class="testimonial-grid">
+                <!-- Testimonial 1 -->
+                <div class="testimonial-card">
+                    <div class="testimonial-text">
+                        "HostelHub ले हाम्रो होस्टल व्यवस्थापन पूर्ण रूपमा बदलेको छ। अब विद्यार्थी र कोठाको ट्र्याकिंग एकदमै सजिलो भएको छ।"
                     </div>
-                    @else
-                    <div class="testimonial-placeholder">
-                        <i class="fas fa-user" style="font-size: 1.2rem;"></i>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">र</div>
+                        <div class="author-info">
+                            <h4>रमेश श्रेष्ठ</h4>
+                            <p>सुन्दर होस्टल, काठमाडौं</p>
+                        </div>
                     </div>
-                    @endif
                 </div>
-                
-                <p class="testimonial-content">
-                    "{{ $testimonial->content }}"
-                </p>
-                
-                <!-- Display rating if available -->
-                @if($testimonial->rating)
-                <div class="testimonial-rating">
-                    @for($i = 1; $i <= 5; $i++)
-                        <span class="{{ $i <= $testimonial->rating ? 'star' : 'star-empty' }}">★</span>
-                    @endfor
-                    <span class="rating-text">({{ $testimonial->rating }}/5)</span>
+
+                <!-- Testimonial 2 -->
+                <div class="testimonial-card">
+                    <div class="testimonial-text">
+                        "मोबाइल एप्प र वेब इन्टरफेस दुवैको कम्बिनेशनले हाम्रो काम धेरै सहज बनाएको छ। भुक्तानी प्रणाली पनि अत्यन्तै सुरक्षित छ।"
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">स</div>
+                        <div class="author-info">
+                            <h4>सीता अधिकारी</h4>
+                            <p>ज्ञान होस्टल, पोखरा</p>
+                        </div>
+                    </div>
                 </div>
-                @endif
-                
-                <div class="testimonial-author">
-                    — {{ $testimonial->name }}{{ $testimonial->position ? ', ' . $testimonial->position : '' }}
+
+                <!-- Testimonial 3 -->
+                <div class="testimonial-card">
+                    <div class="testimonial-text">
+                        "७ दिनको निःशुल्क परीक्षण पछि हामीले तुरुन्तै प्रीमियम योजना लिएका छौं। यो साँच्चै राम्रो investment हो।"
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">ह</div>
+                        <div class="author-info">
+                            <h4>हरि गुरुङ</h4>
+                            <p>शान्ति होस्टल, चितवन</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Testimonial 4 -->
+                <div class="testimonial-card">
+                    <div class="testimonial-text">
+                        "ग्राहक सहयोग टिमको प्रतिक्रिया एकदमै छिटो छ। कुनै समस्या आएमा तुरुन्तै समाधान गर्छन्।"
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">ग</div>
+                        <div class="author-info">
+                            <h4>गीता शर्मा</h4>
+                            <p>विद्या होस्टल, भक्तपुर</p>
+                        </div>
+                    </div>
                 </div>
             </div>
-            @empty
-            <div class="no-testimonials">
-                <div class="no-testimonials-icon">
+            @else
+            <!-- Empty State - कुनै प्रशंसापत्र नभएको खण्डमा -->
+            <div class="empty-testimonials">
+                <div class="empty-icon">
                     <i class="fas fa-comments"></i>
                 </div>
-                <h3>कुनै प्रशंसापत्र उपलब्ध छैन</h3>
-                <p>हामी छिट्टै नयाँ प्रशंसापत्रहरू थप्नेछौं।</p>
+                <h3 class="empty-message">तपाइँ पहिलो ग्राहक बन्नुहोस्!</h3>
+                <p class="empty-submessage">
+                    HostelHub को सेवा प्रयोग गरेर आफ्नो अनुभव साझा गर्नुहोस्। 
+                    हामी छिट्टै नयाँ प्रशंसापत्रहरू थप्नेछौं।
+                </p>
             </div>
-            @endforelse
+            @endif
         </div>
     </section>
 
-    <!-- 🚨 FIXED CTA Section - CORRECT HOSTEL REGISTRATION -->
-    <div class="testimonials-cta-wrapper">
-        <section class="testimonials-cta-section">
+    <!-- 🚨 UPDATED CTA SECTION - PROFESSIONAL STRATEGY -->
+    <div class="testimonial-cta-wrapper">
+        <section class="testimonial-cta-section">
             <h2>आफैंले अनुभव गर्नुहोस्</h2>
             <p>७ दिनको निःशुल्क परीक्षणमा साइन अप गरेर तपाइँको होस्टललाई आधुनिक बनाउनुहोस्।</p>
-            <div class="testimonials-cta-buttons-container">
-                <a href="{{ route('demo') }}" class="testimonials-trial-button">डेमो हेर्नुहोस्</a>
+            
+            <div class="testimonial-cta-buttons-container">
+                <!-- BUTTON 1: DEMO (Orange Gradient) -->
+                <a href="{{ route('demo') }}" class="testimonial-demo-button">
+                    <i class="fas fa-play-circle"></i> डेमो हेर्नुहोस्
+                </a>
                 
+                <!-- BUTTON 2: FREE TRIAL -->
                 @auth
                     @php
                         $organizationId = session('current_organization_id');
                         $hasSubscription = false;
                         
                         if ($organizationId) {
-                            $organization = \App\Models\Organization::with('subscription')->find($organizationId);
-                            $hasSubscription = $organization->subscription ?? false;
+                            try {
+                                $organization = \App\Models\Organization::with('subscription')->find($organizationId);
+                                $hasSubscription = $organization->subscription ?? false;
+                            } catch (Exception $e) {
+                                $hasSubscription = false;
+                            }
                         }
                     @endphp
                     
                     @if($hasSubscription)
-                        <button class="testimonials-outline-button" disabled>
-                            तपाईंसँग पहिले नै सदस्यता छ
+                        <button class="testimonial-trial-button" disabled>
+                            <i class="fas fa-check-circle"></i> तपाईंसँग पहिले नै सदस्यता छ
                         </button>
                     @else
                         <form action="{{ route('subscription.start-trial') }}" method="POST" style="display: inline;">
                             @csrf
-                            <button type="submit" class="testimonials-outline-button">
-                                निःशुल्क साइन अप गर्नुहोस्
+                            <button type="submit" class="testimonial-trial-button">
+                                <i class="fas fa-rocket"></i> ७ दिन निःशुल्क परीक्षण
                             </button>
                         </form>
                     @endif
                 @else
-                    <!-- 🚨 CORRECT ROUTE FOR HOSTEL REGISTRATION -->
-                    <a href="{{ url('/register/organization/starter') }}" 
-                       class="testimonials-outline-button">
-                        निःशुल्क साइन अप
+                    <a href="{{ route('register.organization', ['plan' => 'starter']) }}" class="testimonial-trial-button">
+                        <i class="fas fa-rocket"></i> निःशुल्क परीक्षण सुरु गर्नुहोस्
                     </a>
                 @endauth
             </div>
         </section>
     </div>
 </div>
-
-<!-- Add Font Awesome for icons -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 @endsection
 
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Handle trial form submission on testimonials page
-    const trialForm = document.querySelector('.testimonials-cta-section form');
-    if (trialForm) {
-        trialForm.addEventListener('submit', async function(e) {
+    // Add smooth scrolling for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
             e.preventDefault();
+            const targetId = this.getAttribute('href');
+            if (targetId === '#') return;
             
-            const button = this.querySelector('button[type="submit"]');
-            const originalText = button.textContent;
-            
-            // Show loading state
-            button.classList.add('loading');
-            button.disabled = true;
-            
-            try {
-                const formData = new FormData(this);
-                
-                const response = await fetch(this.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json'
-                    }
+            const targetElement = document.querySelector(targetId);
+            if (targetElement) {
+                window.scrollTo({
+                    top: targetElement.offsetTop - 100,
+                    behavior: 'smooth'
                 });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    if (data.redirect) {
-                        window.location.href = data.redirect;
-                    } else {
-                        // Show success message
-                        alert(data.message || 'निःशुल्क परीक्षण सफलतापूर्वक सुरु गरियो');
-                        window.location.reload();
-                    }
-                } else {
-                    throw new Error(data.message || 'अज्ञात त्रुटि');
-                }
-            } catch (error) {
-                alert('त्रुटि: ' + error.message);
-                button.classList.remove('loading');
-                button.textContent = originalText;
-                button.disabled = false;
             }
         });
-    }
+    });
 });
 </script>
 @endpush

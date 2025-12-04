@@ -598,18 +598,29 @@ class PublicController extends Controller
 
     /**
      * ✅ FIXED: Show only available rooms gallery - WITH CORRECT OCCUPANCY CALCULATION & DYNAMIC STATS
+     * ✅ UPDATED: Now includes owner/contact phone information
      */
     public function hostelGallery($slug)
     {
         try {
             \Log::info("=== MAIN GALLERY DEBUG START ===", ['slug' => $slug]);
 
+            // ✅ UPDATED: Include owner relationship to fetch contact information
             $hostel = Hostel::where('slug', $slug)
+                ->with('owner') // Load owner information for contact details
                 ->first();
 
             if (!$hostel) {
                 abort(404, 'होस्टल फेला परेन।');
             }
+
+            \Log::info("Hostel data loaded:", [
+                'hostel_id' => $hostel->id,
+                'hostel_name' => $hostel->name,
+                'contact_phone' => $hostel->contact_phone,
+                'owner_phone' => $hostel->owner ? $hostel->owner->phone : null,
+                'owner_email' => $hostel->owner ? $hostel->owner->email : null
+            ]);
 
             // ✅ FIXED: Get ALL rooms for this hostel with proper data
             $rooms = Room::where('hostel_id', $hostel->id)
@@ -686,7 +697,12 @@ class PublicController extends Controller
                 'total_rooms' => $rooms->count(),
                 'available_room_counts' => $availableRoomCounts,
                 'available_beds_counts' => $availableBedsCounts,
-                'galleries_count' => $galleries->count()
+                'galleries_count' => $galleries->count(),
+                'contact_info' => [
+                    'phone' => $hostel->contact_phone,
+                    'owner_phone' => $hostel->owner ? $hostel->owner->phone : null,
+                    'email' => $hostel->owner ? $hostel->owner->email : null
+                ]
             ]);
 
             return view('public.hostels.gallery', compact(

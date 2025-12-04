@@ -271,6 +271,15 @@
         font-weight: 600;
     }
     
+    /* 🚨 FIX: Category card paragraph (invisible text) को लागि color fix */
+    .category-card p.nepali {
+        color: var(--text-dark) !important; /* 🚨 Dark color दिएको */
+        font-size: 1rem;
+        line-height: 1.4;
+        margin-bottom: 15px;
+        opacity: 0.8;
+    }
+    
     .category-count {
         background: var(--primary);
         color: white;
@@ -451,7 +460,7 @@
         display: block !important;
     }
     
-    /* 🚨 UPDATED: CTA SECTION - EXACTLY LIKE ABOUT PAGE */
+    /* 🚨 UPDATED: CTA SECTION - HOSTEL GALLERY FOR STUDENTS */
     .gallery-cta-wrapper {
         width: 100%;
         display: flex;
@@ -490,58 +499,91 @@
         opacity: 0.9;
     }
     
-    .gallery-contact-email {
-        font-size: 1.3rem;
-        font-weight: 600;
-        margin: 20px 0;
-        display: block;
-        color: #ffffff;
-        text-decoration: underline;
+    /* 🚨 HOSTEL GALLERY CTA SPECIFIC STYLES */
+    .gallery-cta-section .gallery-cta-buttons-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1.2rem;
+        align-items: center;
+        margin-top: 2rem;
+        margin-bottom: 2rem;
+        width: 100%;
     }
     
-    .gallery-trial-button {
-        background-color: white;
-        color: #001F5B;
+    /* Orange button for room availability - LIKE gallery.blade.php */
+    .gallery-room-availability-btn {
+        background-color: #e67e22 !important;
+        color: white !important;
         font-weight: 600;
-        padding: 0.75rem 2rem;
+        padding: 0.9rem 2.5rem;
         border-radius: 0.5rem;
         text-decoration: none;
-        min-width: 180px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        min-width: 250px;
+        box-shadow: 0 4px 12px rgba(230, 126, 34, 0.3);
         transition: all 0.3s ease;
         border: none;
         cursor: pointer;
-        display: inline-block;
-        font-size: 1rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.6rem;
+        font-size: 1.1rem;
         text-align: center;
     }
     
-    .gallery-trial-button:hover {
-        background-color: #f3f4f6;
-        transform: translateY(-2px);
-        color: #001F5B;
+    .gallery-room-availability-btn:hover {
+        background-color: #d35400 !important;
+        transform: translateY(-3px);
+        box-shadow: 0 6px 15px rgba(230, 126, 34, 0.4);
+        color: white !important;
     }
     
-    .gallery-trial-button:disabled {
-        background: #6c757d;
+    /* Outline buttons */
+    .gallery-outline-button {
+        background-color: transparent;
         color: white;
-        cursor: not-allowed;
-        transform: none;
-    }
-
-    .gallery-trial-button:disabled:hover {
-        background: #6c757d;
-        color: white;
-        transform: none;
-    }
-
-    .gallery-cta-buttons-container {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
+        border: 2px solid white;
+        font-weight: 600;
+        padding: 0.8rem 2.2rem;
+        border-radius: 0.5rem;
+        text-decoration: none;
+        min-width: 220px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        display: inline-flex;
         align-items: center;
-        margin-top: 1.5rem;
-        width: 100%;
+        justify-content: center;
+        gap: 0.6rem;
+        font-size: 1rem;
+    }
+    
+    .gallery-outline-button:hover {
+        background-color: white;
+        color: var(--primary);
+        transform: translateY(-3px);
+    }
+    
+    /* Contact info styling */
+    .gallery-contact-info {
+        margin-top: 1.8rem;
+        color: rgba(255, 255, 255, 0.9);
+        padding-top: 1.5rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .gallery-contact-info p {
+        margin-bottom: 0.6rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.6rem;
+        font-size: 1rem;
+    }
+    
+    .gallery-contact-info i {
+        font-size: 1.1rem;
+        width: 24px;
+        text-align: center;
     }
     
     /* Responsive Design */
@@ -637,13 +679,19 @@
             font-size: 1.125rem;
         }
         
-        .gallery-contact-email {
-            font-size: 1.1rem;
+        /* Mobile responsive for CTA buttons */
+        .gallery-cta-section .gallery-cta-buttons-container {
+            flex-direction: column;
+            gap: 1rem;
         }
         
-        .gallery-trial-button {
-            padding: 0.6rem 1.5rem;
-            font-size: 0.9rem;
+        .gallery-room-availability-btn,
+        .gallery-outline-button {
+            padding: 0.75rem 1.8rem;
+            font-size: 1rem;
+            min-width: 200px;
+            width: 100%;
+            max-width: 300px;
         }
     }
     
@@ -707,8 +755,11 @@
             font-size: 1rem;
         }
         
-        .gallery-contact-email {
-            font-size: 1rem;
+        .gallery-room-availability-btn,
+        .gallery-outline-button {
+            padding: 0.65rem 1.5rem;
+            font-size: 0.95rem;
+            min-width: 180px;
         }
     }
 </style>
@@ -955,44 +1006,64 @@
             </div>
         </div>
         
-        <!-- 🚨 UPDATED: CTA SECTION - EXACTLY LIKE ABOUT PAGE -->
-        <div class="gallery-cta-wrapper">
-            <section class="gallery-cta-section">
-                <h2 class="nepali">हामीलाई सम्पर्क गर्नुहोस्</h2>
-                <p class="nepali">हामी तपाईंलाई सहयोग गर्न तत्पर छौं</p>
-                <a href="mailto:support@hostelhub.com" class="gallery-contact-email nepali">support@hostelhub.com</a>
-                <div class="gallery-cta-buttons-container">
-                    @auth
-                        @php
-                            $organizationId = session('current_organization_id');
-                            $hasSubscription = false;
-                            
-                            if ($organizationId) {
-                                try {
-                                    $organization = \App\Models\Organization::with('subscription')->find($organizationId);
-                                    $hasSubscription = $organization->subscription ?? false;
-                                } catch (Exception $e) {
-                                    $hasSubscription = false;
-                                }
-                            }
-                        @endphp
-                        
-                        @if($hasSubscription)
-                            <button class="gallery-trial-button nepali" disabled>
-                                तपाईंसँग पहिले नै सदस्यता छ
-                            </button>
-                        @else
-                            <form action="{{ route('subscription.start-trial') }}" method="POST" class="trial-form" style="display: inline;">
-                                @csrf
-                                <button type="submit" class="gallery-trial-button nepali">७ दिन निःशुल्क परीक्षण सुरु गर्नुहोस्</button>
-                            </form>
-                        @endif
-                    @else
-                        <a href="{{ route('register.organization', ['plan' => 'starter']) }}" class="gallery-trial-button nepali">७ दिन निःशुल्क परीक्षण सुरु गर्नुहोस्</a>
-                    @endauth
-                </div>
-            </section>
+        <!-- 🚨 UPDATED: CTA SECTION - HOSTEL GALLERY FOR STUDENTS (NO ROUTE ERRORS) -->
+<div class="gallery-cta-wrapper">
+    <section class="gallery-cta-section">
+        <h2 class="nepali">यो होस्टलमा बस्न चाहनुहुन्छ?</h2>
+        <p class="nepali">कोठा उपलब्धता हेर्नुहोस् वा होस्टलको पूर्ण विवरण हेर्नुहोस्</p>
+        
+        <div class="gallery-cta-buttons-container">
+            <!-- कोठा उपलब्धता बटन (Orange) -->
+            @if(isset($hostel) && $hostel)
+                @if(\Route::has('hostel.gallery'))
+                    <a href="{{ route('hostel.gallery', $hostel->slug) }}" 
+                       class="gallery-room-availability-btn nepali">
+                        <i class="fas fa-bed"></i> कोठा उपलब्धता हेर्नुहोस्
+                    </a>
+                @else
+                    <a href="/hostel/{{ $hostel->slug }}/gallery" 
+                       class="gallery-room-availability-btn nepali">
+                        <i class="fas fa-bed"></i> कोठा उपलब्धता हेर्नुहोस्
+                    </a>
+                @endif
+            @endif
+            
+            <!-- होस्टल मुख्य पृष्ठ बटन (Outline) -->
+            @if(isset($hostel) && $hostel)
+                @if(\Route::has('hostels.show'))
+                    <a href="{{ route('hostels.show', $hostel->slug) }}" 
+                       class="gallery-outline-button nepali">
+                        <i class="fas fa-home"></i> पृष्ठ भ्रमण गर्नुहोस्
+                    </a>
+                @else
+                    <a href="/hostel/{{ $hostel->slug }}" 
+                       class="gallery-outline-button nepali">
+                        <i class="fas fa-home"></i> पृष्ठ भ्रमण गर्नुहोस्
+                    </a>
+                @endif
+            @endif
+            
+            <!-- कल बटन (Outline) -->
+            <a href="tel:9851134338" 
+               class="gallery-outline-button nepali">
+                <i class="fas fa-phone-alt"></i> कल गर्नुहोस्
+            </a>
         </div>
+        
+        <!-- Contact info -->
+        <div class="gallery-contact-info">
+            <p class="nepali">
+                <i class="fas fa-phone"></i> प्रत्यक्ष कल: 9851134338
+            </p>
+            <p class="nepali">
+                <i class="fas fa-envelope"></i> इमेल: shresthaxok@gmail.com
+            </p>
+            <p class="nepali">
+                <i class="fas fa-clock"></i> २४/७ सम्पर्क सेवा उपलब्ध
+            </p>
+        </div>
+    </section>
+</div>
     </div>
 </section>
 

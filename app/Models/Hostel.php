@@ -54,6 +54,12 @@ class Hostel extends Model
         'show_hostelhub_branding' => 'boolean'
     ];
 
+    // ✅ ADDED: Append accessor methods
+    protected $appends = [
+        'contact_phone_formatted',
+        'contact_email_formatted'
+    ];
+
     /**
      * Validation rules for Hostel model
      */
@@ -329,6 +335,58 @@ class Hostel extends Model
         ];
 
         return $statuses[$this->status] ?? $this->status;
+    }
+
+    // ✅ ADDED: Get formatted contact phone with fallback
+    public function getContactPhoneFormattedAttribute()
+    {
+        // First check if hostel has direct contact phone
+        if (!empty($this->attributes['contact_phone'])) {
+            return $this->attributes['contact_phone'];
+        }
+
+        // Fallback to owner's phone if owner relationship is loaded
+        if ($this->relationLoaded('owner') && $this->owner) {
+            if (!empty($this->owner->phone)) {
+                return $this->owner->phone;
+            }
+
+            // Fallback to owner's mobile
+            if (!empty($this->owner->mobile)) {
+                return $this->owner->mobile;
+            }
+        }
+
+        // Default fallback for public display
+        return '+९७७ ९८०XXXXXXXX';
+    }
+
+    // ✅ ADDED: Get formatted contact email with fallback
+    public function getContactEmailFormattedAttribute()
+    {
+        // First check if hostel has direct contact email
+        if (!empty($this->attributes['contact_email'])) {
+            return $this->attributes['contact_email'];
+        }
+
+        // Fallback to owner's email if owner relationship is loaded
+        if ($this->relationLoaded('owner') && $this->owner && !empty($this->owner->email)) {
+            return $this->owner->email;
+        }
+
+        return null;
+    }
+
+    // ✅ ADDED: Get contact phone for display (with smart fallback)
+    public function getDisplayPhoneAttribute()
+    {
+        return $this->contact_phone_formatted;
+    }
+
+    // ✅ ADDED: Get contact email for display (with smart fallback)
+    public function getDisplayEmailAttribute()
+    {
+        return $this->contact_email_formatted;
     }
 
     /**
