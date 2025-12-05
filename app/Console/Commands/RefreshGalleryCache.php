@@ -10,24 +10,24 @@ use App\Models\HostelImage;
 class RefreshGalleryCache extends Command
 {
     protected $signature = 'gallery:refresh';
-    protected $description = 'Refresh the homepage gallery cache';
+    protected $description = 'Refresh the homepage dynamic gallery cache';
 
     public function handle()
     {
-        $this->info('Refreshing gallery cache...');
+        $this->info('Refreshing dynamic gallery cache...');
 
-        // Clear all gallery cache keys
-        Cache::forget('dynamic_gallery_items_' . now()->format('Y-m-d_H'));
-        Cache::forget('dynamic_gallery_items_' . now()->subHour()->format('Y-m-d_H'));
+        // Get current hour key
+        $currentHour = now()->format('Y-m-d_H');
 
-        // Get current gallery items to warm cache
+        // Call the method from PublicController to regenerate cache
         $controller = new \App\Http\Controllers\Frontend\PublicController(new \App\Services\ImageService());
         $galleryItems = $controller->getDynamicGalleryItems();
 
-        $this->info('Gallery cache refreshed successfully!');
-        $this->info('Total images in cache: ' . $galleryItems->count());
+        $this->info('✅ Dynamic gallery cache refreshed successfully!');
+        $this->info("Cache key: dynamic_gallery_items_{$currentHour}");
+        $this->info('Total images cached: ' . $galleryItems->count());
 
-        // Log statistics
+        // Statistics
         $featuredCount = $galleryItems->where('is_featured_hostel', true)->count();
         $regularCount = $galleryItems->where('is_featured_hostel', false)->count();
 

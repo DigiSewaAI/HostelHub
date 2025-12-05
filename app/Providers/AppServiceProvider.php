@@ -5,12 +5,24 @@ namespace App\Providers;
 use App\Services\PlanLimitService;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Blade;
-use Illuminate\Support\Facades\Gate; // ✅ ADDED: For policy registration
+use Illuminate\Support\Facades\Gate;
+
+// View Components
 use App\View\Components\AdminNavLink;
+
+// Models
 use App\Models\StudentDocument; // ✅ ADDED: For policy registration
-use App\Policies\DocumentPolicy; // ✅ ADDED: For policy registration
 use App\Models\Student; // ✅ ADDED: For observer registration
+use App\Models\Hostel; // ✅ ADDED: For Hostel observer registration
+use App\Models\Room; // ✅ ADDED: For Room observer registration
+
+// Policies
+use App\Policies\DocumentPolicy; // ✅ ADDED: For policy registration
+
+// Observers
 use App\Observers\StudentObserver; // ✅ ADDED: For observer registration
+use App\Observers\HostelObserver; // ✅ ADDED: For Hostel observer registration
+use App\Observers\RoomObserver; // ✅ ADDED: For Room observer registration
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -37,6 +49,12 @@ class AppServiceProvider extends ServiceProvider
     {
         // ✅ ADDED: Register Student Observer for automatic room occupancy updates
         Student::observe(StudentObserver::class);
+
+        // ✅ ADDED: Register Hostel Observer
+        Hostel::observe(HostelObserver::class);
+
+        // ✅ ADDED: Register Room Observer
+        Room::observe(RoomObserver::class);
 
         // ✅ ADDED: Register Document Policy
         Gate::policy(StudentDocument::class, DocumentPolicy::class);

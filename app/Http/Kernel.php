@@ -171,5 +171,7 @@ class Kernel extends HttpKernel
      */
     protected $commands = [
         \App\Console\Commands\SyncRoomsOccupancy::class,
+        // ✅ NEW: Add gallery refresh command to Http Kernel
+        \App\Console\Commands\RefreshGalleryCache::class,
     ];
 }

@@ -102,6 +102,15 @@ Route::prefix('admin')
             return redirect()->route('admin.hostels.index')->with('success', 'होस्टल अप्रकाशित गरियो!');
         })->name('admin.hostels.unpublish.now');
 
+        // 🎨 NEW: Gallery Cache Management Routes (Step 8)
+        Route::get('/gallery/refresh-cache', function () {
+            Artisan::call('gallery:refresh');
+            return back()->with('success', 'Gallery cache refreshed successfully!');
+        })->name('gallery.refresh.cache');
+
+        Route::get('/gallery/stats', [\App\Http\Controllers\Frontend\PublicController::class, 'getGalleryStats'])
+            ->name('gallery.stats');
+
         require __DIR__ . '/admin.php';
 
         // Admin booking management routes

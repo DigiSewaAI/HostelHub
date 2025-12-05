@@ -85,72 +85,6 @@ main.home-page-main {
     align-items: start !important;
 }
 
-.gallery-slide-container {
-    position: relative;
-    border-radius: 8px;
-    overflow: hidden;
-    height: 100%;
-    background: #f8f9fa; /* Added background to prevent white space */
-}
-
-.hostel-badge-sm {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    background: rgba(0, 31, 91, 0.9);
-    color: white;
-    padding: 3px 6px;
-    border-radius: 4px;
-    font-size: 0.7rem;
-    font-weight: 500;
-    z-index: 10;
-    backdrop-filter: blur(4px);
-    display: flex;
-    align-items: center;
-    gap: 3px;
-    max-width: 120px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.hostel-badge-sm i {
-    font-size: 0.6rem;
-    flex-shrink: 0;
-}
-
-.room-badge {
-    position: absolute;
-    top: 8px;
-    left: 8px;
-    background: rgba(34, 197, 94, 0.9);
-    color: white;
-    padding: 3px 6px;
-    border-radius: 4px;
-    font-size: 0.7rem;
-    font-weight: 500;
-    z-index: 10;
-    backdrop-filter: blur(4px);
-}
-
-.swiper-slide {
-    height: auto;
-}
-
-.gallery-swiper .swiper-slide {
-    height: 200px; /* Fixed height for all slides */
-}
-
-.gallery-swiper .swiper-slide img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 8px;
-    display: block;
-    position: relative;
-    z-index: 1;
-}
-
 /* 🚨 HERO FULL WIDTH FIX */
 .hero {
     min-height: 100vh !important;
@@ -707,6 +641,213 @@ main.home-page-main {
     box-shadow: none !important;
 }
 
+/* ==================== UPDATED ENHANCED GALLERY STYLES ==================== */
+/* Enhanced Gallery Styles */
+.gallery-stats {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+}
+
+.stat-badge {
+    background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 10px 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.stat-badge i {
+    font-size: 1.1rem;
+}
+
+.featured-icon { color: #f59e0b; }
+.regular-icon { color: #3b82f6; }
+.rotate-icon { color: #10b981; }
+
+.gallery-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+    transition: transform 0.3s ease;
+}
+
+.gallery-slide-container:hover .gallery-image {
+    transform: scale(1.05);
+}
+
+.gallery-slide-container {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    height: 100%;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    background: #f8f9fa;
+}
+
+.featured-badge {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.95), rgba(217, 119, 6, 0.95));
+}
+
+.regular-badge {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.95), rgba(29, 78, 216, 0.95));
+}
+
+.fallback-badge {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.95), rgba(124, 58, 237, 0.95));
+}
+
+.hostel-badge-sm {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    color: white;
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    z-index: 10;
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    max-width: 120px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.hostel-badge-sm i {
+    font-size: 0.6rem;
+    flex-shrink: 0;
+}
+
+.room-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: rgba(34, 197, 94, 0.9);
+    color: white;
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    z-index: 10;
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.city-badge {
+    position: absolute;
+    bottom: 40px;
+    left: 8px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    max-width: 120px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.image-caption {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+    color: white;
+    padding: 10px 8px;
+    font-size: 0.75rem;
+    z-index: 9;
+}
+
+.gallery-info {
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    border-radius: 10px;
+    padding: 15px;
+    margin: 20px 0;
+    font-size: 0.9rem;
+    color: #0369a1;
+}
+
+.gallery-info i {
+    color: #0ea5e9;
+    margin-right: 8px;
+}
+
+.gallery-swiper {
+    padding: 10px 0 40px;
+}
+
+.gallery-next, .gallery-prev {
+    color: #1e3a8a;
+    background: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.gallery-next:after, .gallery-prev:after {
+    font-size: 1.2rem;
+}
+
+.swiper-pagination-bullet {
+    background: #94a3b8;
+}
+
+.swiper-pagination-bullet-active {
+    background: #1e3a8a;
+}
+
+.rotation-info {
+    text-align: center;
+    font-size: 0.85rem;
+    color: #64748b;
+    margin-top: 10px;
+}
+
+.swiper-slide {
+    height: auto;
+}
+
+.empty-gallery {
+    text-align: center;
+    padding: 3rem;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border: 2px dashed #dee2e6;
+}
+
+.empty-gallery i {
+    color: #6c757d;
+    margin-bottom: 1rem;
+}
+
+.empty-gallery p {
+    color: #6c757d;
+    margin-bottom: 1.5rem;
+}
+
 /* ==================== RESPONSIVE DESIGN ==================== */
 
 /* Tablet */
@@ -820,6 +961,18 @@ main.home-page-main {
     .gallery-swiper .swiper-slide {
         height: 180px;
     }
+    
+    .gallery-stats {
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .stat-badge {
+        width: 100%;
+        max-width: 300px;
+        justify-content: center;
+    }
 }
 
 /* Mobile */
@@ -890,6 +1043,10 @@ main.home-page-main {
     .gallery-swiper .swiper-slide {
         height: 160px;
     }
+    
+    .gallery-image {
+        height: 160px;
+    }
 }
 
 /* Small Mobile */
@@ -921,6 +1078,10 @@ main.home-page-main {
     
     /* Gallery Small Mobile */
     .gallery-swiper .swiper-slide {
+        height: 140px;
+    }
+    
+    .gallery-image {
         height: 140px;
     }
 }
@@ -1116,41 +1277,92 @@ main.home-page-main {
     </div>
 </div>
 
-<!-- Enhanced Gallery Section with Hostel Badges -->
+<!-- 🎨 UPDATED GALLERY SECTION - CLEANED VERSION -->
 <section class="section gallery" id="gallery">
     <div class="container">
-        <h2 class="section-title nepali">हाम्रो ग्यालरी</h2>
-        <p class="section-subtitle nepali">हाम्रा होस्टलहरूको फोटो र भिडियोहरू हेर्नुहोस्</p>
+        <h2 class="section-title nepali">🎨 विभिन्न होस्टलहरूका कोठा र दृश्यहरू</h2>
+        
+        @if($galleryItems->count() > 0)
         <div class="gallery-swiper swiper">
             <div class="swiper-wrapper">
                 @foreach($galleryItems as $item)
                 <div class="swiper-slide">
                     <div class="gallery-slide-container">
-                        <!-- ONLY IMAGES - NO VIDEO OVERLAY OR PLAY BUTTON -->
-                        <img src="{{ $item['thumbnail_url'] }}" alt="{{ $item['title'] }}" loading="lazy" 
-                             onerror="this.onerror=null;this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgZmlsbD0iI2YwZjlmZiI+PC9yZWN0Pjx0ZXh0IHg9IjQwMCIgeT0iMjI1IiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWtkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IiMxZjI5MzciPkltYWdlIFRodW1ibmFpbDwvdGV4dD48L3N2Zz4=';">
+                        <img src="{{ $item['thumbnail_url'] }}" 
+                             alt="{{ $item['title'] }}" 
+                             loading="lazy" 
+                             class="gallery-image"
+                             onerror="this.onerror=null;this.src='{{ asset('images/default-hostel.jpg') }}'">
                         
-                        <!-- Hostel Badge for Homepage -->
-                        <div class="hostel-badge-sm">
-                            <i class="fas fa-building"></i>
-                            <span class="nepali">{{ $item['hostel_name'] ?? 'Unknown Hostel' }}</span>
+                        <!-- Hostel Badge -->
+                        @if($item['is_room_image'])
+                        <div class="hostel-badge-sm {{ $item['is_featured_hostel'] ? 'featured-badge' : 'regular-badge' }}">
+                            <i class="fas {{ $item['is_featured_hostel'] ? 'fa-star' : 'fa-building' }}"></i>
+                            <span class="nepali">{{ $item['hostel_name'] }}</span>
                         </div>
+                        @else
+                        <div class="hostel-badge-sm fallback-badge">
+                            <i class="fas fa-images"></i>
+                            <span class="nepali">HostelHub</span>
+                        </div>
+                        @endif
 
-                        <!-- Room Badge if it's a room image -->
-                        @if(isset($item['is_room_image']) && $item['is_room_image'] && isset($item['room_number']))
+                        <!-- Room Badge if detected -->
+                        @if($item['is_room_image'] && $item['room_number'])
                             <div class="room-badge">
                                 <i class="fas fa-door-open"></i>
                                 <span class="nepali">कोठा {{ $item['room_number'] }}</span>
                             </div>
+                        @elseif($item['is_room_image'])
+                            <div class="room-badge">
+                                <i class="fas fa-bed"></i>
+                                <span class="nepali">कोठा</span>
+                            </div>
+                        @endif
+
+                        <!-- City/Location -->
+                        @if($item['city'])
+                        <div class="city-badge">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span class="nepali">{{ $item['city'] }}</span>
+                        </div>
+                        @endif
+
+                        <!-- Caption/Title -->
+                        @if($item['caption'])
+                        <div class="image-caption">
+                            <p class="nepali">{{ Str::limit($item['caption'], 40) }}</p>
+                        </div>
                         @endif
                     </div>
                 </div>
                 @endforeach
             </div>
+            
+            <!-- Navigation -->
+            <div class="swiper-button-next gallery-next"></div>
+            <div class="swiper-button-prev gallery-prev"></div>
+            
+            <!-- Pagination -->
+            <div class="swiper-pagination"></div>
         </div>
+        @else
+        <div class="empty-gallery">
+            <i class="fas fa-images fa-3x"></i>
+            <p class="nepali">अहिलेसम्म कुनै होस्टल छविहरू उपलब्ध छैनन्।</p>
+            <a href="{{ route('hostels.index') }}" class="btn btn-primary nepali">
+                <i class="fas fa-building"></i> होस्टलहरू हेर्नुहोस्
+            </a>
+        </div>
+        @endif
+        
+        @if($galleryItems->count() > 0)
         <div class="gallery-button">
-            <a href="{{ route('gallery') }}" class="view-gallery-btn nepali">पूरै ग्यालरी हेर्नुहोस्</a>
+            <a href="{{ route('gallery') }}" class="view-gallery-btn nepali">
+                <i class="fas fa-images"></i> पूरै ग्यालरी हेर्नुहोस्
+            </a>
         </div>
+        @endif
     </div>
 </section>
 
@@ -1705,33 +1917,63 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Testimonials Swiper error:', e);
     }
 
-    // Initialize Gallery Swiper
+    // 🎨 FIXED: Gallery Swiper with conditional loop to prevent back-and-forth movement
     try {
         if (typeof Swiper !== 'undefined') {
-            const gallerySwiper = new Swiper('.gallery-swiper', {
-                slidesPerView: 2,
-                spaceBetween: 15,
-                loop: true,
-                autoplay: {
-                    delay: 3000,
-                    disableOnInteraction: false,
-                },
-                breakpoints: {
-                    640: {
-                        slidesPerView: 3,
-                        spaceBetween: 15,
+            const gallerySwiperEl = document.querySelector('.gallery-swiper');
+            if (gallerySwiperEl) {
+                const slides = gallerySwiperEl.querySelectorAll('.swiper-slide');
+                const totalSlides = slides.length;
+                
+                // ✅ FIX: Only enable loop if there are MORE THAN 3 slides
+                // This prevents the back-and-forth movement when only 2-3 slides
+                const shouldLoop = totalSlides > 3;
+                
+                const gallerySwiper = new Swiper('.gallery-swiper', {
+                    slidesPerView: 2,
+                    spaceBetween: 15,
+                    loop: shouldLoop,
+                    autoplay: shouldLoop ? {
+                        delay: 3000,
+                        disableOnInteraction: false,
+                    } : false,
+                    pagination: {
+                        el: '.swiper-pagination',
+                        clickable: true,
                     },
-                    768: {
-                        slidesPerView: 4,
-                        spaceBetween: 15,
+                    navigation: {
+                        nextEl: '.gallery-next',
+                        prevEl: '.gallery-prev',
                     },
-                    1024: {
-                        slidesPerView: 4,
-                        spaceBetween: 20,
+                    breakpoints: {
+                        640: {
+                            slidesPerView: Math.min(3, totalSlides),
+                            spaceBetween: 15,
+                        },
+                        768: {
+                            slidesPerView: Math.min(4, totalSlides),
+                            spaceBetween: 15,
+                        },
+                        1024: {
+                            slidesPerView: Math.min(4, totalSlides),
+                            spaceBetween: 20,
+                        },
                     },
+                    // ✅ Additional fix: Prevent duplicate slides for small slide counts
+                    loopAdditionalSlides: shouldLoop ? 1 : 0,
+                    loopFillGroupWithBlank: shouldLoop
+                });
+                
+                console.log('✅ Gallery Swiper FIXED: slides=', totalSlides, 'loop=', shouldLoop);
+                
+                // ✅ If slides are very few (2-3), hide navigation arrows
+                if (totalSlides <= 3) {
+                    const nextBtn = document.querySelector('.gallery-next');
+                    const prevBtn = document.querySelector('.gallery-prev');
+                    if (nextBtn) nextBtn.style.display = 'none';
+                    if (prevBtn) prevBtn.style.display = 'none';
                 }
-            });
-            console.log('✅ Gallery Swiper initialized with auto-slide');
+            }
         }
     } catch (e) {
         console.log('Gallery Swiper error:', e);

@@ -366,11 +366,12 @@
     }
     
     .meal-time {
-        color: var(--text-light);
-        font-size: 0.9rem;
-        padding-top: 10px;
-        border-top: 1px solid var(--border);
-    }
+    color: var(--text-dark);
+    font-size: 0.9rem;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    font-weight: 500;
+}
     
     .no-meals {
         text-align: center;
