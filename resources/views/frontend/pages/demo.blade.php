@@ -10,33 +10,38 @@
         margin: 0;
         padding: 0;
         width: 100%;
+        min-height: calc(100vh - 200px);
+        display: flex;
+        flex-direction: column;
     }
     
     .demo-hero {
         text-align: center;
-        padding: 40px 20px;
+        padding: 2.5rem 1.5rem;
         background: linear-gradient(135deg, var(--primary), var(--secondary));
-        margin: 20px 0;
-        border-radius: 10px;
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
         color: white;
+        border-radius: 1rem;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+        max-width: 1000px;
+        width: 90%;
+        margin: calc(var(--header-height, 70px) + 0.9rem) auto 1.5rem auto !important;
         position: relative;
         overflow: hidden;
     }
     
     .demo-hero h1 {
-        font-size: 36px;
-        margin-bottom: 15px;
-        text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+        font-size: 2.5rem;
+        font-weight: 800;
         color: white;
+        margin-bottom: 0.75rem;
     }
     
     .demo-hero p {
-        font-size: 18px;
-        max-width: 800px;
-        margin: 0 auto;
-        opacity: 0.9;
+        font-size: 1.125rem;
         color: rgba(255, 255, 255, 0.9);
+        max-width: 700px;
+        margin: 0 auto 0.75rem auto;
+        line-height: 1.6;
     }
 
     .demo-hero::before {
@@ -52,11 +57,13 @@
     
     /* Video Section */
     .video-section {
-        margin: 40px 0;
+        max-width: 1200px;
+        margin: 0 auto 1.5rem auto;
+        width: 95%;
     }
     
     .video-container {
-        border-radius: 16px;
+        border-radius: 1rem;
         overflow: hidden;
         box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
         max-width: 900px;
@@ -75,35 +82,38 @@
     .video-suggestion {
         background: #f0f9ff;
         border-left: 4px solid var(--secondary);
-        padding: 15px;
-        margin-top: 20px;
-        border-radius: 8px;
+        padding: 1rem;
+        margin-top: 1.25rem;
+        border-radius: 0.75rem;
         max-width: 900px;
-        margin: 20px auto 0;
+        margin: 1.25rem auto 0;
+        font-size: 0.95rem;
     }
 
     .video-options {
         display: flex;
-        gap: 10px;
+        gap: 0.75rem;
         justify-content: center;
-        margin-top: 15px;
+        margin-top: 1.25rem;
         flex-wrap: wrap;
     }
 
     .video-option-btn {
-        padding: 8px 16px;
+        padding: 0.6rem 1.25rem;
         background: var(--primary);
         color: white;
         border: none;
-        border-radius: 20px;
+        border-radius: 1.25rem;
         cursor: pointer;
-        font-size: 14px;
+        font-size: 0.9rem;
         transition: all 0.3s ease;
+        font-weight: 500;
     }
 
     .video-option-btn:hover {
         background: var(--primary-dark);
         transform: translateY(-2px);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
 
     .video-option-btn.active {
@@ -112,30 +122,33 @@
     
     /* Feature Cards */
     .feature-section {
-        margin: 40px 0;
+        max-width: 1200px;
+        margin: 0 auto 1.5rem auto;
+        width: 95%;
     }
     
     .features-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 25px;
-        margin: 30px 0;
+        gap: 1.5rem;
+        margin: 0 auto;
     }
     
     .feature-card {
         background: white;
-        border-radius: 12px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-        padding: 30px;
+        border-radius: 0.75rem;
+        box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+        padding: 1.5rem;
         text-align: center;
         transition: transform 0.3s ease;
+        border: 1px solid #f3f4f6;
         position: relative;
         height: 100%;
     }
     
     .feature-card:hover {
-        transform: translateY(-10px);
-        box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+        transform: translateY(-6px);
+        box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
     }
     
     .feature-icon {
@@ -146,49 +159,53 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        margin: 0 auto 20px;
+        margin: 0 auto 1.25rem;
         color: white;
-        font-size: 24px;
+        font-size: 1.5rem;
     }
     
     .feature-card h3 {
-        font-size: 20px;
+        font-size: 1.25rem;
         font-weight: 700;
         color: var(--primary);
-        margin-bottom: 15px;
+        margin-bottom: 0.75rem;
     }
     
     .feature-card p {
-        color: #666;
-        line-height: 1.6;
+        color: #4b5563;
+        line-height: 1.5;
+        font-size: 0.95rem;
     }
     
     /* Steps Section */
     .steps-section {
-        margin: 40px 0;
+        max-width: 1200px;
+        margin: 0 auto 1.5rem auto;
+        width: 95%;
     }
     
     .steps-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 25px;
-        margin: 30px 0;
+        gap: 1.5rem;
+        margin: 0 auto;
     }
     
     .step-card {
         background: white;
-        border-radius: 12px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-        padding: 30px;
+        border-radius: 0.75rem;
+        box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+        padding: 1.5rem;
         text-align: center;
         transition: transform 0.3s ease;
+        border: 1px solid #f3f4f6;
         position: relative;
         height: 100%;
     }
     
     .step-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+        box-shadow: 0 15px 20px -5px rgba(0,0,0,0.1);
     }
     
     .step-number {
@@ -199,38 +216,50 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        margin: 0 auto 20px;
+        margin: 0 auto 1.25rem;
         color: white;
-        font-size: 24px;
+        font-size: 1.5rem;
         font-weight: bold;
     }
     
     .step-card h3 {
-        font-size: 18px;
+        font-size: 1.125rem;
         font-weight: 700;
         color: var(--primary);
-        margin-bottom: 15px;
+        margin-bottom: 0.75rem;
     }
     
     .step-card p {
-        color: #666;
-        line-height: 1.6;
+        color: #4b5563;
+        line-height: 1.5;
+        font-size: 0.95rem;
     }
     
-    /* 🚨 PERFECT CTA SECTION - EXACT SAME AS PRICING PAGE */
-    .demo-cta {
-        background: linear-gradient(135deg, var(--primary), var(--secondary));
-        padding: 50px 30px;
-        border-radius: 10px;
-        color: white;
-        margin: 40px 0;
+    /* 🚨 FIXED CTA SECTION - EXACT SAME SPACING AS FEATURES PAGE */
+    .demo-cta-wrapper {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        padding: 1.5rem 1.5rem 2rem 1.5rem;
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .demo-cta-section {
         text-align: center;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+        padding: 2.5rem 2rem;
+        border-radius: 1rem;
         box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+        max-width: 800px;
+        width: 100%;
+        margin: 0 auto;
         position: relative;
         overflow: hidden;
     }
     
-    .demo-cta::before {
+    .demo-cta-section::before {
         content: '';
         position: absolute;
         top: 0;
@@ -241,18 +270,18 @@
         background-repeat: repeat;
     }
     
-    .demo-cta h2 {
-        font-size: 32px;
-        margin-bottom: 15px;
+    .demo-cta-section h2 {
+        font-size: 1.75rem;
+        font-weight: bold;
+        margin-bottom: 0.75rem;
+        color: white;
         position: relative;
         z-index: 1;
-        color: white;
     }
     
-    .demo-cta p {
-        font-size: 18px;
-        max-width: 600px;
-        margin: 0 auto 30px;
+    .demo-cta-section p {
+        font-size: 1.125rem;
+        margin-bottom: 1.5rem;
         opacity: 0.9;
         position: relative;
         z-index: 1;
@@ -261,76 +290,129 @@
     
     .cta-buttons {
         display: flex;
-        gap: 15px;
+        gap: 1rem;
+        align-items: center;
         justify-content: center;
+        margin-top: 1rem;
+        width: 100%;
         flex-wrap: wrap;
         position: relative;
         z-index: 1;
     }
     
-    .btn-primary-cta {
-        display: inline-block;
-        background: white;
-        color: var(--primary);
-        padding: 15px 40px;
-        border-radius: 50px;
+    /* TRIAL BUTTON - SAME AS FEATURES PAGE */
+    .demo-trial-button {
+        background-color: white;
+        color: #001F5B;
+        font-weight: 600;
+        padding: 0.75rem 2rem;
+        border-radius: 0.5rem;
         text-decoration: none;
-        font-weight: 700;
+        min-width: 180px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         transition: all 0.3s ease;
-        border: 2px solid white;
-        font-size: 18px;
-        margin-top: 15px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        border: none;
         cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        font-size: 1rem;
+        text-align: center;
     }
     
-    .btn-primary-cta:hover {
-        background: transparent;
-        color: #ffffff;
-        transform: translateY(-3px);
-        box-shadow: 0 6px 15px rgba(255,255,255,0.2);
-        border-color: #ffffff;
+    .demo-trial-button:hover {
+        background-color: #f3f4f6;
+        transform: translateY(-2px);
+        color: #001F5B;
     }
-    
-    .btn-outline-cta {
-        display: inline-block;
+
+    /* OUTLINE BUTTON */
+    .demo-outline-button {
         background: transparent;
+        border: 2px solid white;
         color: white;
-        padding: 15px 40px;
-        border-radius: 50px;
+        font-weight: 600;
+        padding: 0.75rem 2rem;
+        border-radius: 0.5rem;
         text-decoration: none;
-        font-weight: 700;
+        min-width: 180px;
         transition: all 0.3s ease;
-        border: 2px solid white;
-        font-size: 18px;
-        margin-top: 15px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.15);
         cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        font-size: 1rem;
+        text-align: center;
     }
     
-    .btn-outline-cta:hover {
+    .demo-outline-button:hover {
         background: white;
-        color: var(--primary);
-        transform: translateY(-3px);
-        box-shadow: 0 6px 15px rgba(255,255,255,0.2);
+        color: #001F5B;
+        transform: translateY(-2px);
+    }
+
+    /* Loading states - SAME AS FEATURES PAGE */
+    .demo-outline-button.loading,
+    .demo-trial-button.loading {
+        position: relative;
+        color: transparent;
+    }
+    
+    .demo-outline-button.loading::after,
+    .demo-trial-button.loading::after {
+        content: '';
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        top: 50%;
+        left: 50%;
+        margin: -10px 0 0 -10px;
+        border: 2px solid rgba(255,255,255,0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 1s ease-in-out infinite;
+    }
+    
+    .demo-trial-button.loading::after {
+        border: 2px solid rgba(0,31,91,0.3);
+        border-top-color: #001F5B;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    
+    /* Disabled state for already subscribed users */
+    .demo-trial-button:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+    
+    .demo-trial-button:disabled:hover {
+        background: white;
+        color: #001F5B;
+        transform: none;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
     }
     
     /* Section Headers */
     .section-header {
         text-align: center;
-        margin-bottom: 40px;
+        margin-bottom: 1.5rem;
     }
     
     .section-header h2 {
-        font-size: 32px;
+        font-size: 1.75rem;
         font-weight: 700;
         color: var(--primary);
-        margin-bottom: 15px;
+        margin-bottom: 0.75rem;
     }
     
     .section-header p {
-        font-size: 18px;
-        color: #666;
+        font-size: 1.125rem;
+        color: #4b5563;
         max-width: 700px;
         margin: 0 auto;
     }
@@ -345,16 +427,31 @@
         animation: fadeIn 0.6s ease forwards;
     }
     
-    /* 🚨 CONSISTENT RESPONSIVE DESIGN */
+    /* 🚨 CONSISTENT RESPONSIVE DESIGN - SAME AS FEATURES PAGE */
     @media (max-width: 768px) {
+        .demo-hero {
+            margin: calc(60px + 0.25rem) auto 1rem auto !important;
+            padding: 1.75rem 1rem;
+            width: calc(100% - 2rem);
+        }
+        
         .demo-hero h1 {
-            font-size: 28px;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
         }
         
         .demo-hero p {
-            font-size: 16px;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
         }
-        
+
+        .video-section,
+        .feature-section,
+        .steps-section {
+            width: calc(100% - 2rem);
+            margin: 0 auto 1rem auto;
+        }
+
         .video-container iframe,
         .video-container video {
             height: 300px;
@@ -363,68 +460,52 @@
         .features-grid,
         .steps-grid {
             grid-template-columns: 1fr;
+            gap: 1rem;
         }
         
         .section-header h2 {
-            font-size: 28px;
+            font-size: 1.5rem;
         }
         
         .section-header p {
-            font-size: 16px;
+            font-size: 1rem;
         }
         
-        .demo-cta h2 {
-            font-size: 28px;
+        .demo-cta-wrapper {
+            padding: 1rem 1rem 1.5rem 1rem;
         }
         
-        .demo-cta p {
-            font-size: 16px;
+        .demo-cta-section {
+            padding: 2rem 1.5rem;
+        }
+        
+        .demo-cta-section h2 {
+            font-size: 1.5rem;
+        }
+        
+        .demo-cta-section p {
+            font-size: 1rem;
+            margin-bottom: 1.25rem;
         }
         
         .cta-buttons {
+            margin-top: 0.75rem;
             flex-direction: column;
-            align-items: center;
-        }
-        
-        .btn-primary-cta,
-        .btn-outline-cta {
-            width: 100%;
-            max-width: 300px;
-            text-align: center;
-            padding: 12px 30px;
-            font-size: 16px;
+            gap: 0.75rem;
         }
 
-        .demo-cta {
-            padding: 40px 20px;
-            margin: 30px 0;
+        .demo-trial-button,
+        .demo-outline-button {
+            padding: 0.6rem 1.5rem;
+            font-size: 0.9rem;
+            min-width: 160px;
+            width: 100%;
+            max-width: 250px;
         }
-        
-        .feature-section,
-        .steps-section,
-        .video-section {
-            margin: 30px 0;
-        }
-    }
-    
-    @media (max-width: 480px) {
-        .demo-hero {
-            padding: 30px 15px;
-            margin: 15px 0;
-        }
-        
-        .demo-hero h1 {
-            font-size: 24px;
-        }
-        
-        .feature-card,
-        .step-card {
-            padding: 20px;
-        }
-        
-        .demo-cta {
-            padding: 30px 15px;
-            margin: 25px 0;
+
+        .video-suggestion {
+            padding: 0.75rem;
+            font-size: 0.85rem;
         }
 
         .video-options {
@@ -436,27 +517,58 @@
             width: 100%;
             max-width: 200px;
         }
-
-        .demo-cta h2 {
-            font-size: 24px;
+    }
+    
+    @media (max-width: 480px) {
+        .demo-hero h1 {
+            font-size: 1.75rem;
         }
         
-        .demo-cta p {
-            font-size: 15px;
+        .demo-cta-wrapper {
+            padding: 0.75rem 1rem 1.25rem 1rem;
+        }
+        
+        .demo-cta-section {
+            padding: 1.5rem 1rem;
+        }
+        
+        .demo-cta-section h2 {
+            font-size: 1.3rem;
+        }
+        
+        .demo-cta-section p {
+            font-size: 0.9rem;
         }
         
         .section-header h2 {
-            font-size: 24px;
+            font-size: 1.4rem;
         }
         
         .section-header p {
-            font-size: 15px;
+            font-size: 0.9rem;
+        }
+        
+        .feature-card,
+        .step-card {
+            padding: 1.25rem;
+        }
+        
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            font-size: 1.25rem;
+        }
+        
+        .step-number {
+            width: 50px;
+            height: 50px;
+            font-size: 1.25rem;
         }
     }
 </style>
 
 <div class="demo-page-container">
-    <!-- Hero Section -->
+    <!-- Hero Section - SAME SPACING AS FEATURES PAGE HEADER -->
     <section class="demo-hero">
         <h1>HostelHub को डेमो हेर्नुहोस्</h1>
         <p>हाम्रो प्रणालीको सबै सुविधाहरू निःशुल्क परीक्षण गर्नुहोस्, कुनै पनि बाध्यता बिना</p>
@@ -570,15 +682,62 @@
         </div>
     </section>
 
-    <!-- 🚨 PERFECT CTA SECTION - EXACT SAME SPACING AS PRICING PAGE -->
-    <section class="demo-cta">
-        <h2>तपाईंको होस्टललाई HostelHub संग जोड्नुहोस्</h2>
-        <p>७ दिन निःशुल्क परीक्षण गर्नुहोस् र होस्टल व्यवस्थापनलाई सजिलो, द्रुत र भरपर्दो बनाउनुहोस्</p>
-        <div class="cta-buttons">
-            <a href="{{ route('register') }}" class="btn-primary-cta">निःशुल्क साइन अप गर्नुहोस्</a>
-            <a href="{{ route('gallery') }}" class="btn-outline-cta">ग्यालरी हेर्नुहोस्</a>
-        </div>
-    </section>
+    <!-- 🚨 FIXED CTA SECTION - EXACT SAME SPACING AS FEATURES PAGE -->
+    <div class="demo-cta-wrapper">
+        <section class="demo-cta-section">
+            <h2>तपाईंको होस्टललाई HostelHub संग जोड्नुहोस्</h2>
+            <p>७ दिन निःशुल्क परीक्षण गर्नुहोस् र होस्टल व्यवस्थापनलाई सजिलो, द्रुत र भरपर्दो बनाउनुहोस्</p>
+            
+            <div class="cta-buttons">
+                <!-- BUTTON 1: FREE TRIAL - SAME LOGIC AS FEATURES PAGE -->
+                @auth
+                    @php
+                        $organizationId = session('current_organization_id');
+                        $hasSubscription = false;
+                        
+                        if ($organizationId) {
+                            $organization = \App\Models\Organization::with('subscription')->find($organizationId);
+                            $hasSubscription = $organization->subscription ?? false;
+                        }
+                    @endphp
+                    
+                    @if($hasSubscription)
+                        <button class="demo-outline-button" disabled>
+                            <i class="fas fa-check-circle"></i> पहिले नै सदस्यता
+                        </button>
+                    @else
+                        <form action="{{ route('subscription.start-trial') }}" method="POST" style="display: inline;">
+                            @csrf
+                            <button type="submit" class="demo-trial-button">
+                                <i class="fas fa-rocket"></i> निःशुल्क परीक्षण
+                            </button>
+                        </form>
+                    @endif
+                @else
+                    <!-- For non-logged in users - Goes to organization registration -->
+                    <a href="{{ url('/register/organization/starter') }}" 
+                       class="demo-trial-button">
+                        <i class="fas fa-rocket"></i> निःशुल्क परीक्षण
+                    </a>
+                @endauth
+                
+                <!-- BUTTON 2: PRICING -->
+                @if(Route::has('pricing'))
+                    <a href="{{ route('pricing') }}" class="demo-outline-button">
+                        <i class="fas fa-tags"></i> योजनाहरू हेर्नुहोस्
+                    </a>
+                @elseif(Route::has('frontend.pricing'))
+                    <a href="{{ route('frontend.pricing') }}" class="demo-outline-button">
+                        <i class="fas fa-tags"></i> योजनाहरू हेर्नुहोस्
+                    </a>
+                @else
+                    <a href="{{ url('/pricing') }}" class="demo-outline-button">
+                        <i class="fas fa-tags"></i> योजनाहरू हेर्नुहोस्
+                    </a>
+                @endif
+            </div>
+        </section>
+    </div>
 </div>
 
 <script>
@@ -589,21 +748,21 @@
         
         featureCards.forEach(card => {
             card.addEventListener('mouseenter', function() {
-                this.style.boxShadow = '0 15px 35px rgba(0,0,0,0.15)';
+                this.style.boxShadow = '0 15px 20px -5px rgba(0,0,0,0.1)';
             });
             
             card.addEventListener('mouseleave', function() {
-                this.style.boxShadow = '0 10px 30px rgba(0,0,0,0.08)';
+                this.style.boxShadow = '0 10px 15px -3px rgba(0,0,0,0.1)';
             });
         });
         
         stepCards.forEach(card => {
             card.addEventListener('mouseenter', function() {
-                this.style.boxShadow = '0 15px 35px rgba(0,0,0,0.15)';
+                this.style.boxShadow = '0 15px 20px -5px rgba(0,0,0,0.1)';
             });
             
             card.addEventListener('mouseleave', function() {
-                this.style.boxShadow = '0 10px 30px rgba(0,0,0,0.08)';
+                this.style.boxShadow = '0 10px 15px -3px rgba(0,0,0,0.1)';
             });
         });
 
@@ -625,6 +784,53 @@
         document.querySelectorAll('.animate-fade-in').forEach(el => {
             observer.observe(el);
         });
+
+        // Handle trial form submission on demo page - SAME AS FEATURES PAGE
+        const trialForm = document.querySelector('.demo-cta-section form');
+        if (trialForm) {
+            trialForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const button = this.querySelector('button[type="submit"]');
+                const originalText = button.textContent;
+                
+                // Show loading state
+                button.classList.add('loading');
+                button.disabled = true;
+                
+                try {
+                    const formData = new FormData(this);
+                    
+                    const response = await fetch(this.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        if (data.redirect) {
+                            window.location.href = data.redirect;
+                        } else {
+                            // Show success message
+                            alert(data.message || 'निःशुल्क परीक्षण सफलतापूर्वक सुरु गरियो');
+                            window.location.reload();
+                        }
+                    } else {
+                        throw new Error(data.message || 'अज्ञात त्रुटि');
+                    }
+                } catch (error) {
+                    alert('त्रुटि: ' + error.message);
+                    button.classList.remove('loading');
+                    button.textContent = originalText;
+                    button.disabled = false;
+                }
+            });
+        }
     });
 
     // Video switching function

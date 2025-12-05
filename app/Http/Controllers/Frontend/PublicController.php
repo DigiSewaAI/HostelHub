@@ -12,7 +12,8 @@ use App\Models\Review;
 use App\Models\Newsletter;
 use App\Models\MealMenu;
 use App\Models\BookingRequest;
-use App\Models\Booking; // ✅ ADDED: Import Booking model
+use App\Models\Booking;
+use App\Models\HostelImage;
 use App\Services\ImageService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -23,6 +24,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class PublicController extends Controller
 {
@@ -39,7 +41,7 @@ class PublicController extends Controller
     public function home(): View
     {
         try {
-            // 1. Featured Rooms (Available rooms with at least one vacancy) - FIXED FOR POSTGRESQL
+            // 1. Featured Rooms (Available rooms with at least one vacancy)
             $featuredRooms = Room::where('status', 'available')
                 ->with(['students'])
                 ->get()
@@ -67,7 +69,7 @@ class PublicController extends Controller
                     ->filter();
             });
 
-            // 4. Featured Hostels (with caching) - 🚨 FIXED: Remove problematic image ordering
+            // 4. Featured Hostels (with caching)
             $hostels = Cache::remember('home_hostels_all', 3600, function () {
                 return Hostel::where('is_published', true)
                     ->where('status', 'active')
@@ -148,37 +150,8 @@ class PublicController extends Controller
                 return $items;
             });
 
-            // 8. Gallery Items (with caching)
-            $galleryItems = Cache::remember('home_gallery_items', 3600, function () {
-                $items = Gallery::with(['hostel', 'room.hostel'])
-                    ->where('is_active', true)
-                    ->whereNotNull('file_path')
-                    ->orderBy('created_at', 'desc')
-                    ->take(10)
-                    ->get()
-                    ->map(function ($item) {
-                        return $this->processGalleryItemForHome($item);
-                    });
-
-                if ($items->isEmpty()) {
-                    return collect([
-                        [
-                            'media_type' => 'image',
-                            'thumbnail_url' => 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=400&h=300&fit=crop',
-                            'title' => 'Study Room',
-                            'hostel_name' => 'HostelHub'
-                        ],
-                        [
-                            'media_type' => 'image',
-                            'thumbnail_url' => 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=400&h=300&fit=crop',
-                            'title' => 'Common Area',
-                            'hostel_name' => 'HostelHub'
-                        ]
-                    ]);
-                }
-
-                return $items;
-            });
+            // ✅ UPDATED: Gallery Items - DUAL-MODE SYSTEM
+            $galleryItems = $this->getSmartGalleryItems();
 
             // 9. Upcoming Meals (Temporarily commented out)
             $meals = collect();
@@ -206,7 +179,7 @@ class PublicController extends Controller
                 'galleryItems',
                 'meals',
                 'featuredMealMenus',
-                'featuredHostels' // ✅ NEW: Add featured hostels
+                'featuredHostels'
             ));
         } catch (\Exception $e) {
             Log::error('PublicController@home error: ' . $e->getMessage());
@@ -235,9 +208,274 @@ class PublicController extends Controller
                 'galleryItems' => collect(),
                 'meals' => collect(),
                 'featuredMealMenus' => collect(),
-                'featuredHostels' => collect() // ✅ NEW: Add empty collection for error case
+                'featuredHostels' => collect()
             ]);
         }
+    }
+
+    /**
+     * ✅ ENHANCED: DUAL-MODE DYNAMIC GALLERY SYSTEM
+     * 
+     * Mode 1: Simple Gallery (≤10 published hostels) - Only real room images, no fallback
+     * Mode 2: Dynamic Gallery (>10 published hostels) - Real images + fallback, optimized for performance
+     */
+    public function getSmartGalleryItems()
+    {
+        // Count published and active hostels
+        $totalPublished = Hostel::where('is_published', true)
+            ->where('status', 'active')
+            ->count();
+
+        $cacheKey = 'smart_gallery_' . $totalPublished . '_' . now()->format('Y-m-d_H');
+
+        return Cache::remember($cacheKey, 3600, function () use ($totalPublished) {
+            \Log::info("Dual-Mode Gallery: Total Published Hostels = {$totalPublished}");
+
+            // Mode 1: Simple Gallery (≤10 hostels) - Only real images
+            if ($totalPublished <= 10) {
+                return $this->getSimpleGalleryItems();
+            }
+            // Mode 2: Dynamic Gallery (>10 hostels) - Optimized with fallback
+            else {
+                return $this->getDynamicGalleryItemsOptimized($totalPublished);
+            }
+        });
+    }
+
+    /**
+     * Mode 1: Simple Gallery - Only real room images from published hostels
+     * Used when ≤10 published hostels exist
+     */
+    private function getSimpleGalleryItems()
+    {
+        $galleryItems = collect();
+
+        // Get ONLY published and active hostels
+        $hostels = Hostel::where('is_published', true)
+            ->where('status', 'active')
+            ->with(['rooms' => function ($query) {
+                $query->whereNotNull('image')
+                    ->where('image', '!=', '')
+                    ->orderBy('created_at', 'desc');
+            }])
+            ->orderBy('is_featured', 'desc')
+            ->orderBy('name')
+            ->get();
+
+        \Log::info("Simple Mode: Found {$hostels->count()} published hostels");
+
+        // Collect ALL real room images from ONLY published hostels
+        foreach ($hostels as $hostel) {
+            foreach ($hostel->rooms as $room) {
+                // ✅ STRICT: Only add if image exists in storage
+                if ($room->image && Storage::disk('public')->exists($room->image)) {
+                    $galleryItems->push($this->formatGalleryItem($room, $hostel));
+                }
+            }
+        }
+
+        $totalRealImages = $galleryItems->count();
+        \Log::info("Simple Mode: Total real images collected = {$totalRealImages}");
+
+        // ✅ IMPORTANT: No fallback images in simple mode
+        // Show only what we have (up to 40)
+        return $galleryItems->shuffle()->take(min(40, $totalRealImages));
+    }
+
+    /**
+     * Mode 2: Dynamic Gallery - Optimized for large number of hostels
+     * Used when >10 published hostels exist
+     */
+    private function getDynamicGalleryItemsOptimized($totalPublished)
+    {
+        $galleryItems = collect();
+
+        // Calculate how many images to take from each hostel
+        $imagesPerHostel = $this->calculateImagesPerHostel($totalPublished);
+
+        // Get published hostels with room images
+        $hostels = Hostel::where('is_published', true)
+            ->where('status', 'active')
+            ->with(['rooms' => function ($query) use ($imagesPerHostel) {
+                $query->whereNotNull('image')
+                    ->where('image', '!=', '')
+                    ->inRandomOrder()
+                    ->limit($imagesPerHostel * 2); // Get more than needed for random selection
+            }])
+            ->inRandomOrder()
+            ->get();
+
+        // Collect real images from each hostel
+        foreach ($hostels as $hostel) {
+            if ($hostel->rooms->isEmpty()) {
+                continue;
+            }
+
+            // Take random rooms from this hostel
+            $randomRooms = $hostel->rooms->take($imagesPerHostel);
+
+            foreach ($randomRooms as $room) {
+                // ✅ STRICT: Only add if image exists in storage
+                if ($room->image && Storage::disk('public')->exists($room->image)) {
+                    $galleryItems->push($this->formatGalleryItem($room, $hostel));
+                }
+            }
+        }
+
+        // Check if we need fallback images
+        $realImagesCount = $galleryItems->count();
+        $neededImages = 40 - $realImagesCount;
+
+        \Log::info("Dynamic Mode: Real images = {$realImagesCount}, Needed = {$neededImages}");
+
+        // ✅ Add fallback images only if we don't have enough real images
+        if ($neededImages > 0) {
+            $fallbackItems = $this->getFallbackGalleryItems($neededImages);
+            $galleryItems = $galleryItems->merge($fallbackItems);
+        }
+
+        return $galleryItems->shuffle()->take(40);
+    }
+
+    /**
+     * Calculate how many images to take from each hostel based on total count
+     */
+    private function calculateImagesPerHostel($totalPublished)
+    {
+        if ($totalPublished <= 5) {
+            return 8; // 5 hostels × 8 = 40
+        } elseif ($totalPublished <= 10) {
+            return 4; // 10 hostels × 4 = 40
+        } elseif ($totalPublished <= 20) {
+            return 2; // 20 hostels × 2 = 40
+        } elseif ($totalPublished <= 40) {
+            return 1; // 40 hostels × 1 = 40
+        } else {
+            // For >40 hostels, take 1 image from 40 random hostels
+            return 1;
+        }
+    }
+
+    /**
+     * Get fallback gallery items (dummy images)
+     * Only used in Dynamic Mode when real images are insufficient
+     */
+    private function getFallbackGalleryItems($count)
+    {
+        $fallbackSet = [
+            [
+                'id' => 'fallback_1',
+                'media_type' => 'photo',
+                'thumbnail_url' => 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&h=450&fit=crop',
+                'title' => 'Comfortable Hostel Room',
+                'hostel_name' => 'HostelHub',
+                'hostel_id' => 0,
+                'is_featured_hostel' => false,
+                'city' => 'Kathmandu',
+                'caption' => 'Comfortable and modern hostel accommodation',
+                'is_room_image' => false,
+                'room_number' => null
+            ],
+            [
+                'id' => 'fallback_2',
+                'media_type' => 'photo',
+                'thumbnail_url' => 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&h=450&fit=crop',
+                'title' => 'Modern Hostel Facilities',
+                'hostel_name' => 'HostelHub',
+                'hostel_id' => 0,
+                'is_featured_hostel' => false,
+                'city' => 'Pokhara',
+                'caption' => 'State-of-the-art facilities for students',
+                'is_room_image' => false,
+                'room_number' => null
+            ],
+            [
+                'id' => 'fallback_3',
+                'media_type' => 'photo',
+                'thumbnail_url' => 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&h=450&fit=crop',
+                'title' => 'Study Room',
+                'hostel_name' => 'HostelHub',
+                'hostel_id' => 0,
+                'is_featured_hostel' => false,
+                'city' => 'Biratnagar',
+                'caption' => 'Dedicated study area for students',
+                'is_room_image' => false,
+                'room_number' => null
+            ],
+            [
+                'id' => 'fallback_4',
+                'media_type' => 'photo',
+                'thumbnail_url' => 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=800&h=450&fit=crop',
+                'title' => 'Common Area',
+                'hostel_name' => 'HostelHub',
+                'hostel_id' => 0,
+                'is_featured_hostel' => false,
+                'city' => 'Chitwan',
+                'caption' => 'Spacious common area for socializing',
+                'is_room_image' => false,
+                'room_number' => null
+            ],
+            [
+                'id' => 'fallback_5',
+                'media_type' => 'photo',
+                'thumbnail_url' => 'https://images.unsplash.com/photo-1558036117-15e82a2c9a9a?w=800&h=450&fit=crop',
+                'title' => 'Clean Bathroom',
+                'hostel_name' => 'HostelHub',
+                'hostel_id' => 0,
+                'is_featured_hostel' => false,
+                'city' => 'Dharan',
+                'caption' => 'Clean and modern bathroom facilities',
+                'is_room_image' => false,
+                'room_number' => null
+            ]
+        ];
+
+        // Repeat the set if needed
+        $items = collect();
+        for ($i = 0; $i < $count; $i++) {
+            $fallbackIndex = $i % count($fallbackSet);
+            $items->push($fallbackSet[$fallbackIndex]);
+        }
+
+        \Log::info("Added {$count} fallback images to gallery");
+        return $items;
+    }
+
+    /**
+     * Format gallery item for consistent structure
+     */
+    private function formatGalleryItem($room, $hostel)
+    {
+        return [
+            'id' => $room->id,
+            'media_type' => 'photo',
+            'thumbnail_url' => asset('storage/' . $room->image),
+            'title' => $room->room_number ? 'Room ' . $room->room_number : $hostel->name . ' Room',
+            'hostel_name' => $hostel->name,
+            'hostel_id' => $hostel->id,
+            'is_featured_hostel' => $hostel->is_featured ?? false,
+            'city' => $hostel->city,
+            'caption' => $room->description ?: ($room->room_number ? 'Room ' . $room->room_number : 'Hostel Room'),
+            'is_room_image' => true,
+            'room_number' => $room->room_number
+        ];
+    }
+
+    /**
+     * Clear gallery cache when hostel/room data changes
+     */
+    public function clearGalleryCache()
+    {
+        $totalPublished = Hostel::where('is_published', true)
+            ->where('status', 'active')
+            ->count();
+
+        $cacheKey = 'smart_gallery_' . $totalPublished . '_' . now()->format('Y-m-d_H');
+        Cache::forget($cacheKey);
+
+        // Also clear any other gallery cache variations
+        Cache::forget('smart_gallery_*');
+        \Log::info("Gallery cache cleared for {$totalPublished} hostels");
     }
 
     /**
@@ -296,7 +534,6 @@ class PublicController extends Controller
         } catch (\Exception $e) {
             \Log::error('All hostels page error: ' . $e->getMessage());
 
-            // 🚨 FIXED: Use empty query for pagination instead of collection
             $hostels = Hostel::where('id', 0)->paginate(12);
             $cities = collect([]);
             $searchFilters = $request->all();
@@ -387,7 +624,6 @@ class PublicController extends Controller
         try {
             \Log::info("=== SEARCH REQUEST ===", $request->all());
 
-            // ✅ FIXED: Remove 'required' validation for city
             $request->validate([
                 'city' => 'nullable|string|min:2',
                 'hostel_id' => 'nullable|exists:hostels,id',
@@ -399,21 +635,17 @@ class PublicController extends Controller
                 'hostel_type' => 'nullable|string'
             ]);
 
-            // Start with active published hostels
             $query = Hostel::where('is_published', true)
                 ->where('status', 'active');
 
-            // 🔍 City filter
             if ($request->filled('city')) {
                 $query->where('city', 'like', '%' . $request->city . '%');
             }
 
-            // 🔍 Hostel filter
             if ($request->filled('hostel_id')) {
                 $query->where('id', $request->hostel_id);
             }
 
-            // 🔍 General search (name, address, description)
             if ($request->filled('q') || $request->filled('search')) {
                 $searchTerm = $request->get('q') ?? $request->get('search');
                 $query->where(function ($q) use ($searchTerm) {
@@ -423,25 +655,11 @@ class PublicController extends Controller
                 });
             }
 
-            // 🔍 Price range filter - FINAL ULTIMATE FIX
             if ($request->filled('min_price') || $request->filled('max_price')) {
                 $minPrice = $request->filled('min_price') ? (float) $request->min_price : 0;
                 $maxPrice = $request->filled('max_price') ? (float) $request->max_price : 1000000;
 
-                \Log::info("🎯 ULTIMATE PRICE FILTER - FINAL:", [
-                    'min_price' => $minPrice,
-                    'max_price' => $maxPrice,
-                    'raw_min' => $request->min_price,
-                    'raw_max' => $request->max_price,
-                    'min_filled' => $request->filled('min_price'),
-                    'max_filled' => $request->filled('max_price')
-                ]);
-
-                // Get all hostel IDs from current query
                 $hostelIds = $query->pluck('id')->toArray();
-
-                \Log::info("🎯 Hostel IDs before price filter:", $hostelIds);
-
                 $filteredHostelIds = [];
 
                 foreach ($hostelIds as $hostelId) {
@@ -449,51 +667,26 @@ class PublicController extends Controller
                     if (!$hostel) continue;
 
                     $startingPrice = $hostel->min_price;
-
-                    // Skip if no starting price available
                     if (is_null($startingPrice)) {
                         continue;
                     }
 
-                    // Convert to float for comparison
                     $startingPrice = (float) $startingPrice;
-
-                    // ✅ CRITICAL FIX: Proper range checking with detailed logging
                     $includeHostel = true;
 
-                    // Min price check
                     if ($minPrice > 0 && $startingPrice < $minPrice) {
                         $includeHostel = false;
-                        \Log::info("❌ MIN PRICE FILTER - Excluding: {$hostel->name}", [
-                            'starting_price' => $startingPrice,
-                            'min_filter' => $minPrice,
-                            'reason' => 'Starting price less than min filter'
-                        ]);
                     }
 
-                    // Max price check (ONLY if max_price is provided and > 0)
                     if ($maxPrice > 0 && $maxPrice < 1000000 && $startingPrice > $maxPrice) {
                         $includeHostel = false;
-                        \Log::info("❌ MAX PRICE FILTER - Excluding: {$hostel->name}", [
-                            'starting_price' => $startingPrice,
-                            'max_filter' => $maxPrice,
-                            'reason' => 'Starting price greater than max filter'
-                        ]);
                     }
 
                     if ($includeHostel) {
                         $filteredHostelIds[] = $hostelId;
-                        \Log::info("✅ INCLUDED - {$hostel->name} passed price filter", [
-                            'starting_price' => $startingPrice,
-                            'min_filter' => $minPrice,
-                            'max_filter' => $maxPrice
-                        ]);
                     }
                 }
 
-                \Log::info("🎯 Final filtered hostel IDs:", $filteredHostelIds);
-
-                // Apply the final filter
                 if (!empty($filteredHostelIds)) {
                     $query->whereIn('id', $filteredHostelIds);
                 } else {
@@ -501,7 +694,6 @@ class PublicController extends Controller
                 }
             }
 
-            // 🔍 Hostel type filter (boys/girls)
             if ($request->filled('hostel_type') && $request->hostel_type != 'all') {
                 $hostelType = $request->hostel_type;
                 $query->where(function ($q) use ($hostelType) {
@@ -525,7 +717,6 @@ class PublicController extends Controller
                 });
             }
 
-            // 🔍 Amenities filter
             if ($request->filled('amenities') && is_array($request->amenities)) {
                 $amenities = $request->amenities;
                 $query->where(function ($q) use ($amenities) {
@@ -536,7 +727,6 @@ class PublicController extends Controller
                 });
             }
 
-            // ✅ Get hostels with relationships
             $hostels = $query->with([
                 'images',
                 'reviews' => function ($query) {
@@ -552,10 +742,9 @@ class PublicController extends Controller
                         ->where('available_beds', '>', 0);
                 }])
                 ->withAvg('reviews', 'rating')
-                ->orderBy('created_at', 'desc') // ✅ FIXED: Display order - newest first
+                ->orderBy('created_at', 'desc')
                 ->paginate(12);
 
-            // Get cities for filters
             $cities = Cache::remember('search_cities', 3600, function () {
                 return Hostel::where('is_published', true)
                     ->whereNotNull('city')
@@ -564,7 +753,6 @@ class PublicController extends Controller
                     ->filter();
             });
 
-            // Search filters for view
             $searchFilters = [
                 'city' => $request->city,
                 'hostel_id' => $request->hostel_id,
@@ -586,7 +774,6 @@ class PublicController extends Controller
         } catch (\Exception $e) {
             \Log::error('❌ Search error: ' . $e->getMessage());
 
-            // Return empty results on error
             $hostels = Hostel::where('id', 0)->paginate(12);
             $cities = collect([]);
             $searchFilters = $request->all();
@@ -597,17 +784,15 @@ class PublicController extends Controller
     }
 
     /**
-     * ✅ FIXED: Show only available rooms gallery - WITH CORRECT OCCUPANCY CALCULATION & DYNAMIC STATS
-     * ✅ UPDATED: Now includes owner/contact phone information
+     * ✅ FIXED: Show only available rooms gallery
      */
     public function hostelGallery($slug)
     {
         try {
             \Log::info("=== MAIN GALLERY DEBUG START ===", ['slug' => $slug]);
 
-            // ✅ UPDATED: Include owner relationship to fetch contact information
             $hostel = Hostel::where('slug', $slug)
-                ->with('owner') // Load owner information for contact details
+                ->with('owner')
                 ->first();
 
             if (!$hostel) {
@@ -622,7 +807,6 @@ class PublicController extends Controller
                 'owner_email' => $hostel->owner ? $hostel->owner->email : null
             ]);
 
-            // ✅ FIXED: Get ALL rooms for this hostel with proper data
             $rooms = Room::where('hostel_id', $hostel->id)
                 ->orderBy('room_number')
                 ->get([
@@ -654,7 +838,6 @@ class PublicController extends Controller
                 })
             ]);
 
-            // ✅ FIXED: DYNAMIC STATS CALCULATION - More accurate counting
             $availableRoomCounts = [];
             $availableBedsCounts = [];
 
@@ -666,14 +849,12 @@ class PublicController extends Controller
                     $availableBedsCounts[$type] = 0;
                 }
 
-                // Only count available rooms
                 if ($room->status === 'available' && $room->available_beds > 0) {
                     $availableRoomCounts[$type]++;
                     $availableBedsCounts[$type] += $room->available_beds;
                 }
             }
 
-            // Remove room types with zero available rooms
             $availableRoomCounts = array_filter($availableRoomCounts);
             $availableBedsCounts = array_intersect_key($availableBedsCounts, $availableRoomCounts);
 
@@ -718,6 +899,8 @@ class PublicController extends Controller
             abort(404, 'ग्यालरी लोड गर्न असफल।');
         }
     }
+
+    // Other methods remain unchanged...
 
     // Add this temporary debugging method to see what's happening
     private function debugRoomOccupancy($hostelId)
@@ -1540,38 +1723,30 @@ class PublicController extends Controller
                 ->where('status', 'active')
                 ->firstOrFail();
 
-            // ✅ FIXED: Better date handling from query parameters
             $checkIn = request('check_in');
             $checkOut = request('check_out');
             $datesLocked = !empty($checkIn) && !empty($checkOut);
 
-            // ✅ FIXED: Validate dates if provided from search
             if ($datesLocked) {
                 $today = now()->format('Y-m-d');
-                // If check-in is today or in past, allow it but show warning
                 if ($checkIn < $today) {
-                    // Don't return error, just adjust to today
                     $checkIn = $today;
                 }
                 if ($checkOut && $checkOut <= $checkIn) {
-                    // Don't return error, just clear checkout
                     $checkOut = null;
                 }
             }
 
-            // ✅ FIXED: Get available rooms for the hostel with date filtering
             $roomsQuery = Room::where('hostel_id', $hostel->id)
                 ->where('status', 'available');
 
-            // ✅ FIXED: Calculate actual available beds based on APPROVED bookings only
             $roomsQuery->withCount(['bookings as approved_bookings_count' => function ($query) {
-                $query->where('status', Booking::STATUS_APPROVED); // ✅ ONLY count approved bookings
+                $query->where('status', Booking::STATUS_APPROVED);
             }]);
 
-            // If dates provided, filter rooms by availability for those dates
             if ($datesLocked && $checkIn) {
                 $roomsQuery->whereDoesntHave('bookings', function ($q) use ($checkIn, $checkOut) {
-                    $q->where('status', Booking::STATUS_APPROVED) // ✅ ONLY approved bookings block availability
+                    $q->where('status', Booking::STATUS_APPROVED)
                         ->where(function ($bookingQuery) use ($checkIn, $checkOut) {
                             $bookingQuery->whereBetween('check_in_date', [$checkIn, $checkOut])
                                 ->orWhereBetween('check_out_date', [$checkIn, $checkOut])
@@ -1584,10 +1759,8 @@ class PublicController extends Controller
             }
 
             $availableRooms = $roomsQuery->get()->map(function ($room) {
-                // ✅ FIXED: CORRECT available beds calculation based on APPROVED bookings only
                 $actualAvailableBeds = $room->capacity - $room->approved_bookings_count;
 
-                // Simple mapping for room types to Nepali
                 $nepaliTypes = [
                     '1 seater' => 'एक सिटर कोठा',
                     '2 seater' => 'दुई सिटर कोठा',
@@ -1609,15 +1782,14 @@ class PublicController extends Controller
                     'room_number' => $room->room_number,
                     'type' => $room->type,
                     'nepali_type' => ($nepaliTypes[$room->type] ?? $room->type),
-                    'available_beds' => $actualAvailableBeds, // ✅ Use calculated available beds
+                    'available_beds' => $actualAvailableBeds,
                     'price' => $room->price,
                     'capacity' => $room->capacity
                 ];
             })->filter(function ($room) {
-                return $room['available_beds'] > 0; // ✅ Only show rooms with actual available beds
+                return $room['available_beds'] > 0;
             });
 
-            // ✅ FIXED: Check if room_id is provided in query (for gallery booking)
             $selectedRoom = null;
             $roomId = request('room_id');
             if ($roomId) {
@@ -1630,11 +1802,9 @@ class PublicController extends Controller
                     ->first();
 
                 if ($selectedRoom) {
-                    // ✅ FIXED: CORRECT available beds calculation for selected room
                     $actualAvailableBeds = $selectedRoom->capacity - $selectedRoom->approved_bookings_count;
                     $selectedRoom->available_beds = $actualAvailableBeds;
 
-                    // Add nepali_type to selected room
                     $nepaliTypes = [
                         '1 seater' => 'एक सिटर कोठा',
                         '2 seater' => 'दुई सिटर कोठा',
@@ -1679,19 +1849,16 @@ class PublicController extends Controller
             $checkIn = $request->get('check_in');
             $checkOut = $request->get('check_out');
 
-            // Base query for available rooms
             $roomsQuery = $hostel->rooms()
                 ->where('status', 'available');
 
-            // ✅ FIXED: Calculate actual available beds based on APPROVED bookings only
             $roomsQuery->withCount(['bookings as approved_bookings_count' => function ($query) {
-                $query->where('status', Booking::STATUS_APPROVED); // ✅ ONLY count approved bookings
+                $query->where('status', Booking::STATUS_APPROVED);
             }]);
 
-            // If dates provided, check room availability for those dates
             if ($checkIn && $checkOut) {
                 $roomsQuery->whereDoesntHave('bookings', function ($q) use ($checkIn, $checkOut) {
-                    $q->where('status', Booking::STATUS_APPROVED) // ✅ ONLY approved bookings block availability
+                    $q->where('status', Booking::STATUS_APPROVED)
                         ->where(function ($bookingQuery) use ($checkIn, $checkOut) {
                             $bookingQuery->whereBetween('check_in_date', [$checkIn, $checkOut])
                                 ->orWhereBetween('check_out_date', [$checkIn, $checkOut])
@@ -1704,10 +1871,8 @@ class PublicController extends Controller
             }
 
             $rooms = $roomsQuery->get()->map(function ($room) {
-                // ✅ FIXED: CORRECT available beds calculation based on APPROVED bookings only
                 $actualAvailableBeds = $room->capacity - $room->approved_bookings_count;
 
-                // Simple mapping for room types to Nepali
                 $nepaliTypes = [
                     '1 seater' => 'एक सिटर कोठा',
                     '2 seater' => 'दुई सिटर कोठा',
@@ -1727,13 +1892,13 @@ class PublicController extends Controller
                     'type' => $room->type,
                     'nepali_type' => $nepaliTypes[$room->type] ?? $room->type,
                     'capacity' => $room->capacity,
-                    'available_beds' => $actualAvailableBeds, // ✅ Use calculated available beds
+                    'available_beds' => $actualAvailableBeds,
                     'price' => $room->price,
                     'formatted_price' => 'रु ' . number_format($room->price),
                     'description' => $room->description
                 ];
             })->filter(function ($room) {
-                return $room['available_beds'] > 0; // ✅ Only return rooms with actual available beds
+                return $room['available_beds'] > 0;
             });
 
             return response()->json([
@@ -1755,8 +1920,6 @@ class PublicController extends Controller
 
     /**
      * Store booking request with enhanced validation
-     * ✅ FIXED: Now creates Booking model instead of BookingRequest with proper hostel_id
-     * ✅ CRITICAL FIX: Redirect to NEW booking success route
      */
     public function storeBooking(Request $request, $slug)
     {
@@ -1766,24 +1929,21 @@ class PublicController extends Controller
                 ->where('status', 'active')
                 ->firstOrFail();
 
-            // ✅ UPDATED: Remove emergency_contact from validation
             $validated = $request->validate([
                 'name' => 'required|string|max:100',
                 'phone' => 'required|string|max:15',
                 'email' => 'nullable|email|max:100',
-                'check_in_date' => 'required|date|after_or_equal:today', // ✅ CHANGED: after_or_equal
+                'check_in_date' => 'required|date|after_or_equal:today',
                 'check_out_date' => 'required|date|after:check_in_date',
                 'room_id' => 'required|exists:rooms,id',
                 'message' => 'nullable|string|max:500'
-                // ❌ REMOVED: emergency_contact
             ]);
 
-            // Check if the room belongs to the hostel and is available
             $room = Room::where('id', $validated['room_id'])
                 ->where('hostel_id', $hostel->id)
                 ->where('status', 'available')
                 ->withCount(['bookings as approved_bookings_count' => function ($query) {
-                    $query->where('status', Booking::STATUS_APPROVED); // ✅ ONLY count approved bookings
+                    $query->where('status', Booking::STATUS_APPROVED);
                 }])
                 ->first();
 
@@ -1791,15 +1951,13 @@ class PublicController extends Controller
                 return back()->withInput()->with('error', 'यो कोठा अहिले उपलब्ध छैन वा तपाईंले छान्नुभएको कोठा यस होस्टलमा छैन।');
             }
 
-            // ✅ FIXED: Check actual available beds based on APPROVED bookings only
             $actualAvailableBeds = $room->capacity - $room->approved_bookings_count;
             if ($actualAvailableBeds <= 0) {
                 return back()->withInput()->with('error', 'यो कोठा अहिले उपलब्ध छैन। कृपया अर्को कोठा छान्नुहोस्।');
             }
 
-            // Check for booking conflicts for this room and dates - ONLY check approved bookings
             $conflictingBookings = Booking::where('room_id', $room->id)
-                ->where('status', Booking::STATUS_APPROVED) // ✅ ONLY approved bookings block availability
+                ->where('status', Booking::STATUS_APPROVED)
                 ->where(function ($query) use ($validated) {
                     $query->whereBetween('check_in_date', [$validated['check_in_date'], $validated['check_out_date']])
                         ->orWhereBetween('check_out_date', [$validated['check_in_date'], $validated['check_out_date']])
@@ -1814,9 +1972,8 @@ class PublicController extends Controller
                 return back()->withInput()->with('error', 'यो कोठा उक्त मितिहरूमा पहिले नै बुक गरिएको छ। कृपया अर्को मिति वा कोठा छान्नुहोस्।');
             }
 
-            // ✅ CRITICAL FIX: Create Booking model instead of BookingRequest with proper hostel_id
             $booking = Booking::create([
-                'hostel_id' => $hostel->id, // ✅ CRITICAL: Ensure hostel_id is saved
+                'hostel_id' => $hostel->id,
                 'room_id' => $room->id,
                 'guest_name' => $validated['name'],
                 'guest_phone' => $validated['phone'],
@@ -1830,9 +1987,6 @@ class PublicController extends Controller
                 'payment_status' => 'pending'
             ]);
 
-            // TODO: Send notification to hostel owner
-
-            // ✅ CRITICAL FIX: Redirect to NEW booking success route
             return redirect()->route('booking.success', $booking->id)
                 ->with('success', 'तपाईंको बुकिंग अनुरोध सफलतापूर्वक पेश गरियो। होस्टल प्रबन्धकले चाँडै नै तपाईंसँग सम्पर्क गर्नेछन्।');
         } catch (\Exception $e) {
@@ -1849,7 +2003,6 @@ class PublicController extends Controller
         $bookingRequest = BookingRequest::with(['hostel', 'room'])
             ->findOrFail($id);
 
-        // Simple mapping for room types to Nepali
         $nepaliTypes = [
             '1 seater' => 'एक सिटर कोठा',
             '2 seater' => 'दुई सिटर कोठा',
@@ -1863,7 +2016,6 @@ class PublicController extends Controller
             'other' => 'अन्य कोठा'
         ];
 
-        // Add computed properties for the view
         $bookingRequest->status_nepali = match ($bookingRequest->status) {
             'pending' => 'पेन्डिङ',
             'approved' => 'स्वीकृत',
@@ -1887,16 +2039,13 @@ class PublicController extends Controller
 
     /**
      * Show booking success page for NEW booking system
-     * This method handles both BookingRequest and Booking models
      */
     public function bookingSuccessNew($id)
     {
         try {
-            // First try to find BookingRequest
             $bookingRequest = BookingRequest::with(['hostel', 'room'])->find($id);
 
             if ($bookingRequest) {
-                // Simple mapping for room types to Nepali
                 $nepaliTypes = [
                     '1 seater' => 'एक सिटर कोठा',
                     '2 seater' => 'दुई सिटर कोठा',
@@ -1910,7 +2059,6 @@ class PublicController extends Controller
                     'other' => 'अन्य कोठा'
                 ];
 
-                // Add computed properties for the view
                 $bookingRequest->status_nepali = match ($bookingRequest->status) {
                     'pending' => 'पेन्डिङ',
                     'approved' => 'स्वीकृत',
@@ -1932,7 +2080,6 @@ class PublicController extends Controller
                 return view('frontend.booking.success', compact('bookingRequest'));
             }
 
-            // If BookingRequest not found, try to find Booking model
             $booking = Booking::with(['hostel', 'room'])->find($id);
 
             if (!$booking) {
