@@ -90,6 +90,7 @@ main.home-page-main {
     border-radius: 8px;
     overflow: hidden;
     height: 100%;
+    background: #f8f9fa; /* Added background to prevent white space */
 }
 
 .hostel-badge-sm {
@@ -136,11 +137,18 @@ main.home-page-main {
     height: auto;
 }
 
+.gallery-swiper .swiper-slide {
+    height: 200px; /* Fixed height for all slides */
+}
+
 .gallery-swiper .swiper-slide img {
     width: 100%;
-    height: 200px;
+    height: 100%;
     object-fit: cover;
     border-radius: 8px;
+    display: block;
+    position: relative;
+    z-index: 1;
 }
 
 /* 🚨 HERO FULL WIDTH FIX */
@@ -446,6 +454,259 @@ main.home-page-main {
     transform: translateY(-2px);
 }
 
+/* ==================== FIXED TESTIMONIAL CAROUSEL STYLES - BLUE CARDS ==================== */
+.testimonials-carousel-section {
+    width: 100%;
+    background: #f8fafc; /* Light background to match the page */
+    padding: 80px 0;
+    position: relative;
+}
+
+.testimonials-carousel-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.testimonials-carousel-title {
+    text-align: center;
+    color: var(--primary); /* Blue color like "योजना अनुसारका मूल्यहरू" */
+    font-size: 2.2rem;
+    margin-bottom: 15px;
+    font-weight: 700;
+}
+
+.testimonials-carousel-subtitle {
+    text-align: center;
+    color: #666;
+    font-size: 1.1rem;
+    margin-bottom: 50px;
+}
+
+.testimonials-swiper {
+    padding: 20px 0 60px;
+}
+
+/* BLUE TESTIMONIAL CARD - MATCHING WITH PRICING SECTION & SIGN UP BUTTON */
+.testimonial-carousel-card {
+    background: linear-gradient(135deg, var(--primary), var(--secondary)); /* Blue gradient like sign up button */
+    border-radius: 12px;
+    padding: 40px 30px;
+    border: none;
+    height: auto;
+    min-height: 320px;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 30px rgba(30, 58, 138, 0.2); /* Blue shadow */
+}
+
+.testimonial-carousel-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(30, 58, 138, 0.3);
+}
+
+.testimonial-quote {
+    font-size: 2.5rem;
+    color: rgba(255, 255, 255, 0.8); /* White with transparency */
+    line-height: 1;
+    margin-bottom: 15px;
+}
+
+.testimonial-text {
+    color: white; /* White text for contrast */
+    font-size: 1.1rem;
+    line-height: 1.6;
+    flex-grow: 1;
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+.testimonial-author {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    text-align: center;
+}
+
+.testimonial-author-avatar {
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.2); /* Light white background */
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: white;
+    flex-shrink: 0;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.testimonial-author-info h4 {
+    color: white; /* White text */
+    font-size: 1.2rem;
+    margin: 0 0 5px 0;
+    font-weight: 600;
+}
+
+.testimonial-author-info p {
+    color: rgba(255, 255, 255, 0.9); /* Slightly transparent white */
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+/* Swiper navigation for testimonials */
+.testimonials-swiper .swiper-pagination {
+    bottom: 10px !important;
+}
+
+.testimonials-swiper .swiper-pagination-bullet {
+    background: rgba(255, 255, 255, 0.5);
+    width: 10px;
+    height: 10px;
+    margin: 0 5px !important;
+    opacity: 0.7;
+}
+
+.testimonials-swiper .swiper-pagination-bullet-active {
+    background: white;
+    opacity: 1;
+    transform: scale(1.2);
+}
+
+.testimonials-swiper .swiper-button-next,
+.testimonials-swiper .swiper-button-prev {
+    color: var(--primary);
+    background: white;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    border: 2px solid var(--primary);
+}
+
+.testimonials-swiper .swiper-button-next:after,
+.testimonials-swiper .swiper-button-prev:after {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--primary);
+}
+
+.testimonials-swiper .swiper-button-next:hover,
+.testimonials-swiper .swiper-button-prev:hover {
+    background: var(--primary);
+    color: white;
+    transform: scale(1.1);
+}
+
+.testimonials-swiper .swiper-button-next:hover:after,
+.testimonials-swiper .swiper-button-prev:hover:after {
+    color: white;
+}
+
+/* ==================== UPDATED CTA SECTION STYLES ==================== */
+.free-trial-section {
+    width: 100%;
+    padding: 80px 20px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    text-align: center;
+    margin-bottom: 15px !important;
+}
+
+.trial-content {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.trial-title {
+    font-size: 2.2rem;
+    margin-bottom: 20px;
+    color: white;
+    font-weight: 700;
+}
+
+.trial-subtitle {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    opacity: 0.9;
+}
+
+.trial-highlight {
+    margin-bottom: 40px;
+}
+
+.trial-highlight-text {
+    font-size: 1rem;
+    opacity: 0.8;
+}
+
+/* 3-Button CTA Container */
+.trial-cta-buttons {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    align-items: center;
+    margin-top: 40px;
+    flex-wrap: wrap;
+}
+
+/* CTA Button Styles */
+.cta-button {
+    padding: 15px 30px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1.1rem;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-width: 200px;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    cursor: pointer;
+}
+
+.cta-button-primary {
+    background: #e67e22;
+    color: white;
+    border-color: #e67e22;
+}
+
+.cta-button-primary:hover {
+    background: #d35400;
+    border-color: #d35400;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(230, 126, 34, 0.3);
+}
+
+.cta-button-outline {
+    background: transparent;
+    color: white;
+    border-color: white;
+}
+
+.cta-button-outline:hover {
+    background: white;
+    color: var(--primary);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(255, 255, 255, 0.2);
+}
+
+.cta-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
 /* ==================== RESPONSIVE DESIGN ==================== */
 
 /* Tablet */
@@ -505,6 +766,60 @@ main.home-page-main {
     .hostel-location {
         font-size: 0.8rem;
     }
+    
+    /* Testimonials Responsive */
+    .testimonials-carousel-section {
+        padding: 60px 0;
+    }
+    
+    .testimonials-carousel-title {
+        font-size: 1.8rem;
+    }
+    
+    .testimonial-carousel-card {
+        padding: 30px 20px;
+        min-height: 300px;
+    }
+    
+    .testimonial-text {
+        font-size: 1rem;
+    }
+    
+    .testimonials-swiper .swiper-button-next,
+    .testimonials-swiper .swiper-button-prev {
+        width: 40px;
+        height: 40px;
+    }
+    
+    /* CTA Responsive */
+    .free-trial-section {
+        padding: 60px 20px;
+    }
+    
+    .trial-title {
+        font-size: 1.8rem;
+    }
+    
+    .trial-subtitle {
+        font-size: 1.1rem;
+    }
+    
+    .trial-cta-buttons {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .cta-button {
+        width: 100%;
+        max-width: 300px;
+        padding: 12px 25px;
+        font-size: 1rem;
+    }
+    
+    /* Gallery Responsive */
+    .gallery-swiper .swiper-slide {
+        height: 180px;
+    }
 }
 
 /* Mobile */
@@ -547,6 +862,34 @@ main.home-page-main {
         font-size: 0.7rem;
         padding: 0.25rem 0.5rem;
     }
+    
+    /* Testimonials Mobile */
+    .testimonials-carousel-title {
+        font-size: 1.6rem;
+    }
+    
+    .testimonials-carousel-subtitle {
+        font-size: 1rem;
+        margin-bottom: 30px;
+    }
+    
+    .testimonial-carousel-card {
+        padding: 25px 15px;
+    }
+    
+    /* CTA Mobile */
+    .trial-title {
+        font-size: 1.6rem;
+    }
+    
+    .trial-subtitle {
+        font-size: 1rem;
+    }
+    
+    /* Gallery Mobile */
+    .gallery-swiper .swiper-slide {
+        height: 160px;
+    }
 }
 
 /* Small Mobile */
@@ -574,6 +917,11 @@ main.home-page-main {
         flex-direction: column;
         align-items: center;
         gap: 0.3rem;
+    }
+    
+    /* Gallery Small Mobile */
+    .gallery-swiper .swiper-slide {
+        height: 140px;
     }
 }
 
@@ -778,16 +1126,9 @@ main.home-page-main {
                 @foreach($galleryItems as $item)
                 <div class="swiper-slide">
                     <div class="gallery-slide-container">
-                        @if($item['media_type'] === 'image')
-                            <img src="{{ $item['thumbnail_url'] }}" alt="{{ $item['title'] }}" loading="lazy" onerror="this.onerror=null;this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgZmlsbD0iI2YwZjlmZiI+PC9yZWN0Pjx0ZXh0IHg9IjQwMCIgeT0iMjI1IiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWtkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IiMxZjI5MzciPkltYWdlIFRodW1ibmFpbDwvdGV4dD48L3N2Zz4=';">
-                        @else
-                            <img src="{{ $item['thumbnail_url'] }}" alt="{{ $item['title'] }}" loading="lazy" class="youtube-thumbnail" data-youtube-id="{{ $item['youtube_id'] ?? '' }}" onerror="this.onerror=null;this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgZmlsbD0iIzFlM2E4YSI+PC9yZWN0Pjx0ZXh0IHg9IjQwMCIgeT0iMjI5IiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWtkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2ViraWYiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IiNmZmYiPlZpZGVvIFRodW1ibmFpbDwvdGV4dD48L3N2Zz4=';">
-                            <div class="video-overlay">
-                                <div class="video-play-icon">
-                                    <i class="fas fa-play"></i>
-                                </div>
-                            </div>
-                        @endif
+                        <!-- ONLY IMAGES - NO VIDEO OVERLAY OR PLAY BUTTON -->
+                        <img src="{{ $item['thumbnail_url'] }}" alt="{{ $item['title'] }}" loading="lazy" 
+                             onerror="this.onerror=null;this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjQ1MCIgZmlsbD0iI2YwZjlmZiI+PC9yZWN0Pjx0ZXh0IHg9IjQwMCIgeT0iMjI1IiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWtkZGxlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IiMxZjI5MzciPkltYWdlIFRodW1ibmFpbDwvdGV4dD48L3N2Zz4=';">
                         
                         <!-- Hostel Badge for Homepage -->
                         <div class="hostel-badge-sm">
@@ -919,53 +1260,73 @@ main.home-page-main {
     </div>
 </section>
 
-<!-- Testimonials -->
-<section class="section testimonials" id="testimonials">
-    <div class="container">
-        <h2 class="section-title nepali" style="color: var(--text-light);">ग्राहकहरूको प्रशंसापत्रहरू</h2>
-        <p class="section-subtitle" style="color: rgba(249, 250, 251, 0.9);">HostelHub प्रयोग गर्ने हाम्रा ग्राहकहरूले के भन्छन्</p>
-        <div class="testimonials-grid">
-            @foreach($testimonials as $testimonial)
-            <div class="testimonial-card">
-                <p class="testimonial-text nepali">{{ $testimonial->content }}</p>
-                <div class="testimonial-author">
-                    <div class="author-avatar">
-                        @if($testimonial->initials)
-                            {{ $testimonial->initials }}
-                        @else
-                            {{ substr($testimonial->name, 0, 2) }}
-                        @endif
+<!-- 🚀 FIX 1: TESTIMONIALS CAROUSEL - BLUE CARDS WITH WHITE TEXT -->
+<section class="testimonials-carousel-section" id="testimonials">
+    <div class="testimonials-carousel-container">
+        <h2 class="testimonials-carousel-title nepali">ग्राहकहरूको प्रशंसापत्रहरू</h2>
+        <p class="testimonials-carousel-subtitle nepali">HostelHub प्रयोग गर्ने हाम्रा ग्राहकहरूले के भन्छन्</p>
+        
+        <!-- Swiper Testimonials Carousel -->
+        <div class="swiper testimonials-swiper">
+            <div class="swiper-wrapper">
+                <!-- Testimonial 1 -->
+                <div class="swiper-slide">
+                    <div class="testimonial-carousel-card">
+                        <div class="testimonial-quote">"</div>
+                        <p class="testimonial-text nepali">
+                            HostelHub को कोठा बुकिंग प्रणाली धेरै सजिलो छ। मैले आफ्नो कोठा अहिले नै बुक गरेँ र प्रक्रिया धेरै छिटो थियो। होस्टलको सबै विवरण फोटो सहित थियो।
+                        </p>
+                        <div class="testimonial-author">
+                            <div class="testimonial-author-avatar">क</div>
+                            <div class="testimonial-author-info">
+                                <h4>कल्पना तामाङ</h4>
+                                <p>विद्यार्थी</p>
+                            </div>
+                        </div>
                     </div>
-                    <div class="author-info">
-                        <h4>{{ $testimonial->name }}</h4>
-                        <p>{{ $testimonial->position ?? 'Student' }}</p>
+                </div>
+                
+                <!-- Testimonial 2 -->
+                <div class="swiper-slide">
+                    <div class="testimonial-carousel-card">
+                        <div class="testimonial-quote">"</div>
+                        <p class="testimonial-text nepali">
+                            HostelHub ले हाम्रो होस्टल व्यवस्थापन धेरै सजिलो बनायो। विद्यार्थी व्यवस्थापन, भुक्तानी ट्र्याकिंग सबै एउटै ठाउँमा। अब सबै काम मोबाइलबाटै गर्न सक्छौं।
+                        </p>
+                        <div class="testimonial-author">
+                            <div class="testimonial-author-avatar">र</div>
+                            <div class="testimonial-author-info">
+                                <h4>राम श्रेष्ठ</h4>
+                                <p>होस्टल मालिक</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Testimonial 3 -->
+                <div class="swiper-slide">
+                    <div class="testimonial-carousel-card">
+                        <div class="testimonial-quote">"</div>
+                        <p class="testimonial-text nepali">
+                            खानाको मेनु अग्रिम हेर्न पाउँदा धेरै राम्रो लाग्छ। होस्टलको सबै सुविधाहरूको फोटो पनि ग्यालरीमा छन्। भुक्तानी पनि सजिलो, एक पटकमै बुक गर्न सकिन्छ।
+                        </p>
+                        <div class="testimonial-author">
+                            <div class="testimonial-author-avatar">स</div>
+                            <div class="testimonial-author-info">
+                                <h4>सरस्वती गौतम</h4>
+                                <p>विद्यार्थी</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            @endforeach
             
-            @if(count($testimonials) === 0)
-            <div class="testimonial-card">
-                <p class="testimonial-text nepali">HostelHub ले हाम्रो होस्टल व्यवस्थापन धेरै सजिलो बनायो। विद्यार्थीहरूको डाटा, भुक्तानी र कोठा व्यवस्थापन एकै ठाउँमा।</p>
-                <div class="testimonial-author">
-                    <div class="author-avatar">RM</div>
-                    <div class="author-info">
-                        <h4>रमेश महर्जन</h4>
-                        <p>होस्टल प्रबन्धक</p>
-                    </div>
-                </div>
-            </div>
-            <div class="testimonial-card">
-                <p class="testimonial-text nepali">विद्यार्थीको रूपमा, म आफ्नो कोठा, भुक्तानी र खानाको मेनु एपबाटै हेर्न सक्छु। धन्यवाद HostelHub!</p>
-                <div class="testimonial-author">
-                    <div class="author-avatar">SA</div>
-                    <div class="author-info">
-                        <h4>सिता अर्याल</h4>
-                        <p>विद्यार्थी</p>
-                    </div>
-                </div>
-            </div>
-            @endif
+            <!-- Navigation buttons -->
+            <div class="swiper-button-next"></div>
+            <div class="swiper-button-prev"></div>
+            
+            <!-- Pagination dots -->
+            <div class="swiper-pagination"></div>
         </div>
     </div>
 </section>
@@ -1217,8 +1578,8 @@ main.home-page-main {
     </div>
 </section>
 
-<!-- Free Trial Section - FIXED VERSION -->
-<section class="free-trial" style="margin-bottom: 15px !important;">
+<!-- 🚀 FIX 2: BOTTOM CTA WITH 3 PROFESSIONAL BUTTONS -->
+<section class="free-trial-section">
     <div class="container">
         <div class="trial-content">
             <h2 class="trial-title nepali">७ दिनको निःशुल्क परीक्षण</h2>
@@ -1226,7 +1587,10 @@ main.home-page-main {
             <div class="trial-highlight">
                 <p class="trial-highlight-text nepali">७ दिन निःशुल्क • कुनै क्रेडिट कार्ड आवश्यक छैन • कुनै पनि प्रतिबद्धता छैन !</p>
             </div>
-            <div class="trial-cta">
+            
+            <!-- 3-Button Professional CTA -->
+            <div class="trial-cta-buttons">
+                <!-- Button 1: FREE TRIAL (Primary) -->
                 @auth
                     @php
                         $organizationId = session('current_organization_id');
@@ -1239,26 +1603,38 @@ main.home-page-main {
                     @endphp
                     
                     @if($hasSubscription)
-                        <button class="btn btn-primary nepali" disabled>
-                            तपाईंसँग पहिले नै सदस्यता छ
+                        <button class="cta-button cta-button-primary nepali" disabled>
+                            <i class="fas fa-rocket"></i> तपाईंसँग पहिले नै सदस्यता छ
                         </button>
                     @else
                         <form action="{{ route('subscription.start-trial') }}" method="POST" style="display: inline;">
                             @csrf
-                            <button type="submit" class="btn btn-primary nepali">
-                                निःशुल्क साइन अप गर्नुहोस्
+                            <button type="submit" class="cta-button cta-button-primary nepali">
+                                <i class="fas fa-rocket"></i> निःशुल्क साइन अप गर्नुहोस्
                             </button>
                         </form>
                     @endif
                 @else
                     <a href="{{ route('register.organization', ['plan' => 'starter']) }}" 
-                       class="btn btn-primary nepali">
-                        निःशुल्क साइन अप गर्नुहोस्
+                       class="cta-button cta-button-primary nepali">
+                        <i class="fas fa-rocket"></i> निःशुल्क साइन अप गर्नुहोस्
                     </a>
                 @endauth
                 
-                <a href="{{ route('demo') }}" class="btn btn-outline nepali" style="background: white; color: var(--primary);">
-                    डेमो हेर्नुहोस्
+                <!-- Button 2: DEMO (Outline) -->
+                <a href="{{ route('demo') }}" class="cta-button cta-button-outline nepali">
+                    <i class="fas fa-play-circle"></i> डेमो हेर्नुहोस्
+                </a>
+                
+                <!-- Button 3: TESTIMONIALS (Outline) - Fixed to link to separate testimonials page -->
+                @php
+                    // Check if testimonials route exists, otherwise use direct URL
+                    $testimonialsRoute = Route::has('testimonials') ? route('testimonials') : 
+                                        (Route::has('testimonials.index') ? route('testimonials.index') : 
+                                        (Route::has('frontend.testimonials') ? route('frontend.testimonials') : url('/testimonials')));
+                @endphp
+                <a href="{{ $testimonialsRoute }}" class="cta-button cta-button-outline nepali">
+                    <i class="fas fa-comments"></i> प्रशंसापत्रहरू हेर्नुहोस्
                 </a>
             </div>
         </div>
@@ -1274,7 +1650,7 @@ main.home-page-main {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚨 HERO FIXED - DIRECT IN CONTENT');
     
-    // Initialize Swiper
+    // Initialize Hero Swiper
     try {
         if (typeof Swiper !== 'undefined') {
             const heroSwiper = new Swiper('.hero-slider', {
@@ -1291,6 +1667,74 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     } catch (e) {
         console.log('Swiper error:', e);
+    }
+
+    // 🚀 FIX 3: INITIALIZE TESTIMONIALS CAROUSEL
+    try {
+        if (typeof Swiper !== 'undefined') {
+            const testimonialsSwiper = new Swiper('.testimonials-swiper', {
+                loop: true,
+                slidesPerView: 1,
+                spaceBetween: 30,
+                autoplay: {
+                    delay: 5000,
+                    disableOnInteraction: false,
+                },
+                pagination: {
+                    el: '.swiper-pagination',
+                    clickable: true,
+                },
+                navigation: {
+                    nextEl: '.swiper-button-next',
+                    prevEl: '.swiper-button-prev',
+                },
+                breakpoints: {
+                    768: {
+                        slidesPerView: 1,
+                        spaceBetween: 30,
+                    },
+                    1024: {
+                        slidesPerView: 1,
+                        spaceBetween: 40,
+                    }
+                }
+            });
+            console.log('✅ Testimonials Swiper initialized with auto-slide');
+        }
+    } catch (e) {
+        console.log('Testimonials Swiper error:', e);
+    }
+
+    // Initialize Gallery Swiper
+    try {
+        if (typeof Swiper !== 'undefined') {
+            const gallerySwiper = new Swiper('.gallery-swiper', {
+                slidesPerView: 2,
+                spaceBetween: 15,
+                loop: true,
+                autoplay: {
+                    delay: 3000,
+                    disableOnInteraction: false,
+                },
+                breakpoints: {
+                    640: {
+                        slidesPerView: 3,
+                        spaceBetween: 15,
+                    },
+                    768: {
+                        slidesPerView: 4,
+                        spaceBetween: 15,
+                    },
+                    1024: {
+                        slidesPerView: 4,
+                        spaceBetween: 20,
+                    },
+                }
+            });
+            console.log('✅ Gallery Swiper initialized with auto-slide');
+        }
+    } catch (e) {
+        console.log('Gallery Swiper error:', e);
     }
 
     // 🚨 UPDATED: BETTER SEARCH FORM VALIDATION
@@ -1391,7 +1835,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Handle trial form submission
-    const trialForm = document.querySelector('.free-trial form');
+    const trialForm = document.querySelector('.free-trial-section form');
     if (trialForm) {
         trialForm.addEventListener('submit', async function(e) {
             e.preventDefault();
