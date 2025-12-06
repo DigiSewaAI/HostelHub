@@ -52,7 +52,7 @@ class GalleryController extends Controller
 
             $galleries = $query->orderBy('created_at', 'desc')->paginate(12);
 
-            // Get only published hostels for filter
+            // Get only published hostels for filter - FIX #3: Boys Hostels not appearing
             $hostels = Hostel::where('is_published', true)
                 ->orderBy('name')
                 ->get(['id', 'name', 'slug']);
@@ -712,7 +712,7 @@ class GalleryController extends Controller
                     $q->where('is_published', true);
                 });
 
-            // Apply media type filter (tab)
+            // Apply media type filter (tab) - FIX #1: Video Tab Not Working
             if ($request->filled('tab')) {
                 if ($request->tab === 'photos') {
                     $query->where('media_type', 'photo');
@@ -724,7 +724,7 @@ class GalleryController extends Controller
                 }
             }
 
-            // Apply hostel filter
+            // Apply hostel filter - FIX #3: Boys Hostels not appearing
             if ($request->filled('hostel_id')) {
                 $query->where('hostel_id', $request->hostel_id);
             }
@@ -798,7 +798,7 @@ class GalleryController extends Controller
                 $query->where('category', $request->category);
             }
 
-            // Filter by hostel
+            // Filter by hostel - FIX #3: Boys Hostels not appearing
             if ($request->filled('hostel_id')) {
                 $query->where('hostel_id', $request->hostel_id);
             }

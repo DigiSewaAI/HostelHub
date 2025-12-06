@@ -318,9 +318,9 @@ body .gallery-content-wrapper {
         color: var(--gallery-primary);
         text-decoration: none;
         font-weight: 600;
-        font-size: 0.9rem;
+        font-size: 0.8rem; /* FIX #4: Reduced from 0.9rem */
         transition: all 0.3s ease;
-        padding: 0.5rem 0;
+        padding: 0.3rem 0; /* FIX #4: Reduced from 0.5rem 0 */
     }
 
     .video-hostel-link:hover {
@@ -384,7 +384,7 @@ body .gallery-content-wrapper {
         gap: 0.3rem;
     }
 
-    /* Enhanced Hostel Link */
+    /* Enhanced Hostel Link - FIX #2: Remove text truncation */
     .hostel-link-enhanced {
         position: absolute;
         top: 10px;
@@ -402,6 +402,8 @@ body .gallery-content-wrapper {
         text-decoration: none;
         transition: all 0.3s ease;
         backdrop-filter: blur(4px);
+        white-space: normal; /* FIX #2: Allow text to wrap */
+        max-width: none; /* FIX #2: Remove max-width limit */
     }
 
     .hostel-link-enhanced:hover {
@@ -409,6 +411,30 @@ body .gallery-content-wrapper {
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
         color: white;
+    }
+
+    /* FIX #4: Reduced button size */
+    .quick-view-btn {
+        background: rgba(255, 255, 255, 0.9);
+        color: var(--gallery-dark);
+        border: none;
+        padding: 0.3rem 0.8rem; /* FIX #4: Reduced from 0.6rem 1.2rem */
+        border-radius: 4px;
+        font-size: 0.75rem; /* FIX #4: Reduced from 0.875rem */
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        text-decoration: none;
+        margin-top: 0.5rem;
+    }
+
+    .quick-view-btn:hover {
+        background: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
 
     /* Video Loading State */
@@ -749,7 +775,8 @@ body .gallery-content-wrapper {
                class="tab-btn nepali {{ $tab === 'videos' ? 'active' : '' }}">
                 <i class="fas fa-video"></i>
                 भिडियोहरू
-                <span class="tab-badge">{{ $metrics['total_videos'] ?? '25+' }}</span>
+                <!-- FIX #1: Video badge color -->
+                <span class="tab-badge" style="color: #1e293b;">{{ $metrics['total_videos'] ?? '25+' }}</span>
             </a>
             <a href="{{ route('gallery.index', ['tab' => 'virtual-tours']) }}" 
                class="tab-btn nepali {{ $tab === 'virtual-tours' ? 'active' : '' }}">
@@ -877,7 +904,8 @@ body .gallery-content-wrapper {
                                class="hostel-link-enhanced" 
                                title="{{ $hostelName }} मा जानुहोस्">
                                 <i class="fas fa-external-link-alt"></i>
-                                <span class="nepali">{{ Str::limit($hostelName, 15) }}</span>
+                                <!-- FIX #2: Removed Str::limit -->
+                                <span class="nepali">{{ $hostelName }}</span>
                             </a>
                             @endif
 
@@ -889,13 +917,8 @@ body .gallery-content-wrapper {
                             </div>
                             @endif
 
-                            <!-- Room Number Badge -->
-                            @if($roomNumber)
-                            <div class="room-number-badge" title="कोठा नम्बर: {{ $roomNumber }}">
-                                <i class="fas fa-door-open"></i>
-                                <span class="nepali">कोठा {{ $roomNumber }}</span>
-                            </div>
-                            @endif
+                            <!-- 🚨 REMOVED: Room Number Badge (तपाईंले मागे अनुसार) -->
+                            <!-- Room number अब मोडलमा मात्र देखाइनेछ -->
 
                             <img src="{{ $thumbnailUrl }}" 
                                  alt="{{ $title }}" 
@@ -914,9 +937,10 @@ body .gallery-content-wrapper {
                                 </div>
                                 <!-- View Details Button -->
                                 @if($hostelSlug)
+                                <!-- FIX #4: Reduced button size with inline style -->
                                 <a href="{{ route('hostels.show', $hostelSlug) }}" 
                                    class="quick-view-btn nepali" 
-                                   style="position: relative; transform: none; left: 0; bottom: 0; margin-top: 0.5rem;">
+                                   style="position: relative; transform: none; left: 0; bottom: 0; margin-top: 0.5rem; padding: 0.3rem 0.8rem !important; font-size: 0.75rem !important;">
                                     <i class="fas fa-info-circle"></i>
                                     होस्टल विवरण हेर्नुहोस्
                                 </a>
@@ -1002,7 +1026,8 @@ body .gallery-content-wrapper {
                                style="top: auto; bottom: 10px; left: 10px;"
                                title="{{ $hostelName }} मा जानुहोस्">
                                 <i class="fas fa-external-link-alt"></i>
-                                <span class="nepali">{{ Str::limit($hostelName, 12) }}</span>
+                                <!-- FIX #2: Removed Str::limit -->
+                                <span class="nepali">{{ $hostelName }}</span>
                             </a>
                             @endif
                         </div>
@@ -1058,7 +1083,7 @@ body .gallery-content-wrapper {
             <!-- Loading Indicator -->
             <div class="gallery-loading hidden">
                 <div class="loading-spinner"></div>
-                <p class="nepali">ग्यालरी आइटमहरू लोड हुँदैछ...</p>
+                                <p class="nepali">ग्यालरी आइटमहरू लोड हुँदैछ...</p>
             </div>
         </div>
     </section>
@@ -1181,6 +1206,7 @@ body .gallery-content-wrapper {
             <span class="modal-category nepali"></span>
             <span class="modal-date"></span>
             <span class="modal-hostel nepali"></span>
+            <!-- 🚨 Room number अब मोडलमा मात्र देखाइनेछ -->
             <span class="modal-room nepali"></span>
         </div>
         <div class="modal-actions">
@@ -1377,6 +1403,7 @@ document.addEventListener('DOMContentLoaded', function() {
         modalCategory.textContent = category;
         modalDate.textContent = date;
         modalHostel.textContent = hostel;
+        // 🚨 Room number अब मोडलमा मात्र देखाइनेछ
         modalRoom.textContent = roomNumber ? `कोठा: ${roomNumber}` : '';
         
         // Set hostel link
@@ -1716,7 +1743,7 @@ document.addEventListener('DOMContentLoaded', function() {
                        style="top: auto; bottom: 10px; left: 10px;"
                        title="${video.hostel_name} मा जानुहोस्">
                         <i class="fas fa-external-link-alt"></i>
-                        <span class="nepali">${video.hostel_name.substring(0, 12)}${video.hostel_name.length > 12 ? '...' : ''}</span>
+                        <span class="nepali">${video.hostel_name}</span>
                     </a>
                 ` : ''}
             </div>
