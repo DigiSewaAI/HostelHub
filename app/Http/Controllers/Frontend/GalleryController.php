@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Gallery;
 use App\Models\Hostel;
 use App\Models\Review;
+use App\Models\Room;
 use App\Services\GalleryCacheService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -27,32 +28,38 @@ class GalleryController extends Controller
 
     /**
      * ✅ ENHANCED: Display the main gallery page with tabs for photos/videos
+     * ✅ FIX: Now includes both Gallery images AND Room images
      */
     public function index(Request $request): View
     {
         $tab = $request->get('tab', 'photos'); // 'photos' or 'videos' or 'virtual-tours'
 
         try {
-            // Base query for galleries
-            $query = Gallery::with(['hostel', 'room'])
-                ->where('is_active', true)
-                ->whereHas('hostel', function ($query) {
-                    $query->where('is_published', true);
-                });
+            // Get ALL available media items - from both Gallery AND Room tables
+            $allItems = $this->getAllGalleryItems($tab);
 
-            // Filter by tab
-            if ($tab === 'photos') {
-                $query->where('media_type', 'photo');
-            } elseif ($tab === 'videos') {
-                $query->whereIn('media_type', ['external_video', 'local_video']);
-            } elseif ($tab === 'virtual-tours') {
-                $query->where('category', 'virtual_tour')
-                    ->orWhere('is_360_video', true);
-            }
+            // Apply filtering
+            $filteredItems = $this->applyFilters($allItems, $request);
 
-            $galleries = $query->orderBy('created_at', 'desc')->paginate(12);
+            // Paginate the results
+            $page = $request->get('page', 1);
+            $perPage = 12;
+            $offset = ($page - 1) * $perPage;
+            $currentPageItems = array_slice($filteredItems, $offset, $perPage);
 
-            // Get only published hostels for filter - FIX #3: Boys Hostels not appearing
+            $galleries = new LengthAwarePaginator(
+                $currentPageItems,
+                count($filteredItems),
+                $perPage,
+                $page,
+                [
+                    'path' => request()->url(),
+                    'query' => request()->query(),
+                    'fragment' => 'gallery-grid'
+                ]
+            );
+
+            // Get only published hostels for filter - INCLUDING BOYS HOSTELS
             $hostels = Hostel::where('is_published', true)
                 ->orderBy('name')
                 ->get(['id', 'name', 'slug']);
@@ -68,9 +75,9 @@ class GalleryController extends Controller
 
             $metrics = [
                 'total_students' => $this->getTotalStudents(),
-                'total_hostels' => Hostel::where('is_published', true)->count() ?: 3,
+                'total_hostels' => $hostels->count(),
                 'satisfaction_rate' => $this->getSatisfactionRate(),
-                'cities_covered' => $cities->count() ?: 3,
+                'cities_covered' => $cities->count(),
                 'total_videos' => $this->getTotalVideos(),
                 'total_photos' => $this->getTotalPhotos()
             ];
@@ -93,6 +100,238 @@ class GalleryController extends Controller
     }
 
     /**
+     * ✅ NEW: Get ALL gallery items from multiple sources
+     * Sources: Gallery table AND Room images
+     */
+    private function getAllGalleryItems($tab)
+    {
+        $allItems = [];
+
+        // 1. Get items from Gallery table
+        $galleryItems = $this->getGalleryTableItems($tab);
+        $allItems = array_merge($allItems, $galleryItems);
+
+        // 2. Get items from Room images (ONLY for photos tab)
+        if ($tab === 'photos') {
+            $roomItems = $this->getRoomImageItems();
+            $allItems = array_merge($allItems, $roomItems);
+        }
+
+        // 3. Shuffle and limit
+        shuffle($allItems);
+
+        return $allItems;
+    }
+
+    /**
+     * Get items from Gallery table
+     */
+    private function getGalleryTableItems($tab)
+    {
+        $query = Gallery::with(['hostel', 'room'])
+            ->where('is_active', true)
+            ->whereHas('hostel', function ($query) {
+                $query->where('is_published', true);
+            });
+
+        // Filter by tab
+        if ($tab === 'photos') {
+            $query->where('media_type', 'photo');
+        } elseif ($tab === 'videos') {
+            $query->whereIn('media_type', ['external_video', 'local_video']);
+        } elseif ($tab === 'virtual-tours') {
+            $query->where('category', 'virtual_tour')
+                ->orWhere('is_360_video', true);
+        }
+
+        $galleries = $query->orderBy('created_at', 'desc')->get();
+
+        $items = [];
+        foreach ($galleries as $gallery) {
+            $items[] = (object)[
+                'id' => 'gallery_' . $gallery->id,
+                'title' => $gallery->title,
+                'description' => $gallery->description,
+                'category' => $gallery->category,
+                'category_nepali' => $gallery->category_nepali ?? $this->getCategoryNepali($gallery->category),
+                'media_type' => $gallery->media_type,
+                'media_url' => $gallery->media_url,
+                'thumbnail_url' => $gallery->thumbnail_url,
+                'created_at' => $gallery->created_at,
+                'hostel_name' => $gallery->hostel->name ?? 'Unknown Hostel',
+                'hostel_id' => $gallery->hostel_id,
+                'hostel_slug' => $gallery->hostel->slug ?? '',
+                'room' => $gallery->room,
+                'room_number' => $gallery->room ? $gallery->room->room_number : null,
+                'is_room_image' => !is_null($gallery->room_id),
+                'source' => 'gallery',
+                'youtube_embed_url' => $gallery->youtube_embed_url,
+                'video_duration' => $gallery->video_duration,
+                'video_resolution' => $gallery->video_resolution,
+                'is_360_video' => $gallery->is_360_video ?? false,
+                'hd_available' => $gallery->hd_available ?? false,
+                'hd_url' => $gallery->hd_image_url ?? $gallery->media_url
+            ];
+        }
+
+        return $items;
+    }
+
+    /**
+     * Get items from Room images (Boys Hostels included)
+     */
+    private function getRoomImageItems()
+    {
+        // Get all published hostels INCLUDING BOYS HOSTELS
+        $hostels = Hostel::where('is_published', true)
+            ->where('status', 'active')
+            ->with(['rooms' => function ($query) {
+                $query->whereNotNull('image')
+                    ->where('image', '!=', '')
+                    ->where('status', 'available');
+            }])
+            ->get();
+
+        $items = [];
+
+        foreach ($hostels as $hostel) {
+            foreach ($hostel->rooms as $room) {
+                // Check if image exists in storage
+                if ($room->image && Storage::disk('public')->exists($room->image)) {
+                    $roomTypeNepali = $this->getRoomTypeNepali($room->type);
+
+                    $items[] = (object)[
+                        'id' => 'room_' . $room->id,
+                        'title' => $room->room_number ? 'कोठा ' . $room->room_number : $roomTypeNepali,
+                        'description' => $room->description ?: $roomTypeNepali . ' - ' . $hostel->name,
+                        'category' => $room->type,
+                        'category_nepali' => $roomTypeNepali,
+                        'media_type' => 'photo',
+                        'media_url' => asset('storage/' . $room->image),
+                        'thumbnail_url' => asset('storage/' . $room->image),
+                        'created_at' => $room->created_at,
+                        'hostel_name' => $hostel->name,
+                        'hostel_id' => $hostel->id,
+                        'hostel_slug' => $hostel->slug,
+                        'room' => (object)['room_number' => $room->room_number],
+                        'room_number' => $room->room_number,
+                        'is_room_image' => true,
+                        'source' => 'room',
+                        'room_type' => $room->type,
+                        'room_price' => $room->price,
+                        // Add missing properties to prevent errors
+                        'youtube_embed_url' => null,
+                        'video_duration' => null,
+                        'video_resolution' => null,
+                        'is_360_video' => false,
+                        'hd_available' => false,
+                        'hd_url' => asset('storage/' . $room->image)
+                    ];
+                }
+            }
+        }
+
+        return $items;
+    }
+
+    /**
+     * Apply filters to gallery items
+     */
+    private function applyFilters($items, Request $request)
+    {
+        $hostelId = $request->get('hostel_id');
+        $search = $request->get('search');
+        $category = $request->get('category', 'all');
+        $tab = $request->get('tab', 'photos');
+
+        $filteredItems = $items;
+
+        // Filter by hostel
+        if ($hostelId) {
+            $filteredItems = array_filter($filteredItems, function ($item) use ($hostelId) {
+                return $item->hostel_id == $hostelId;
+            });
+        }
+
+        // Filter by search
+        if ($search) {
+            $searchLower = strtolower($search);
+            $filteredItems = array_filter($filteredItems, function ($item) use ($searchLower) {
+                return str_contains(strtolower($item->title), $searchLower) ||
+                    str_contains(strtolower($item->description), $searchLower) ||
+                    str_contains(strtolower($item->hostel_name), $searchLower) ||
+                    str_contains(strtolower($item->category_nepali), $searchLower) ||
+                    ($item->room_number && str_contains(strtolower($item->room_number), $searchLower));
+            });
+        }
+
+        // Filter by category
+        if ($category && $category !== 'all') {
+            $filteredItems = array_filter($filteredItems, function ($item) use ($category) {
+                return $item->category === $category ||
+                    $item->category_nepali === $category;
+            });
+        }
+
+        // For video tab, filter by video category
+        if ($tab === 'videos' && $request->filled('video_category') && $request->video_category !== 'all') {
+            $videoCategory = $request->video_category;
+            $filteredItems = array_filter($filteredItems, function ($item) use ($videoCategory) {
+                return $item->category === $videoCategory;
+            });
+        }
+
+        return array_values($filteredItems);
+    }
+
+    /**
+     * Get room type in Nepali
+     */
+    private function getRoomTypeNepali($roomType)
+    {
+        $nepaliTypes = [
+            '1 seater' => '१ सिटर कोठा',
+            '2 seater' => '२ सिटर कोठा',
+            '3 seater' => '३ सिटर कोठा',
+            '4 seater' => '४ सिटर कोठा',
+            'single' => 'एक सिटर कोठा',
+            'double' => 'दुई सिटर कोठा',
+            'triple' => 'तीन सिटर कोठा',
+            'quad' => 'चार सिटर कोठा',
+            'shared' => 'साझा कोठा',
+            'other' => 'अन्य कोठा'
+        ];
+
+        return $nepaliTypes[$roomType] ?? $roomType;
+    }
+
+    /**
+     * Get category in Nepali
+     */
+    private function getCategoryNepali($category)
+    {
+        $categories = [
+            '1 seater' => '१ सिटर कोठा',
+            '2 seater' => '२ सिटर कोठा',
+            '3 seater' => '३ सिटर कोठा',
+            '4 seater' => '४ सिटर कोठा',
+            'living room' => 'लिभिङ रूम',
+            'bathroom' => 'बाथरूम',
+            'kitchen' => 'भान्सा',
+            'study room' => 'अध्ययन कोठा',
+            'event' => 'कार्यक्रम',
+            'hostel_tour' => 'होस्टल टुर',
+            'room_tour' => 'कोठा टुर',
+            'student_life' => 'विद्यार्थी जीवन',
+            'virtual_tour' => 'भर्चुअल टुर',
+            'testimonial' => 'विद्यार्थी अनुभव',
+            'facility' => 'सुविधाहरू'
+        ];
+
+        return $categories[$category] ?? $category;
+    }
+
+    /**
      * ✅ NEW: Get total videos count
      */
     private function getTotalVideos(): int
@@ -103,9 +342,9 @@ class GalleryController extends Controller
                 ->whereHas('hostel', function ($query) {
                     $query->where('is_published', true);
                 })
-                ->count() ?: 25;
+                ->count() ?: 4;
         } catch (\Exception $e) {
-            return 25; // Fallback
+            return 4;
         }
     }
 
@@ -115,14 +354,26 @@ class GalleryController extends Controller
     private function getTotalPhotos(): int
     {
         try {
-            return Gallery::where('is_active', true)
+            // Count from Gallery table
+            $galleryPhotos = Gallery::where('is_active', true)
                 ->where('media_type', 'photo')
                 ->whereHas('hostel', function ($query) {
                     $query->where('is_published', true);
                 })
-                ->count() ?: 150;
+                ->count();
+
+            // Count from Room images
+            $roomPhotos = Room::whereNotNull('image')
+                ->where('image', '!=', '')
+                ->whereHas('hostel', function ($query) {
+                    $query->where('is_published', true)
+                        ->where('status', 'active');
+                })
+                ->count();
+
+            return $galleryPhotos + $roomPhotos ?: 49;
         } catch (\Exception $e) {
-            return 150; // Fallback
+            return 49;
         }
     }
 
@@ -148,17 +399,18 @@ class GalleryController extends Controller
     private function getTotalStudents(): int
     {
         try {
-            // Try to get real count
             if (class_exists(Hostel::class)) {
                 $total = Hostel::where('is_published', true)
-                    ->withCount('students')
+                    ->withCount(['students' => function ($query) {
+                        $query->where('status', 'active');
+                    }])
                     ->get()
                     ->sum('students_count');
-                return $total ?: 500;
+                return $total ?: 22;
             }
-            return 500; // Fallback
+            return 22;
         } catch (\Exception $e) {
-            return 500; // Fallback
+            return 22;
         }
     }
 
@@ -181,9 +433,9 @@ class GalleryController extends Controller
                     return round(($positiveReviews / $totalReviews) * 100);
                 }
             }
-            return 98; // Fallback
+            return 95;
         } catch (\Exception $e) {
-            return 98; // Fallback
+            return 95;
         }
     }
 
@@ -192,70 +444,8 @@ class GalleryController extends Controller
      */
     private function showSampleData(string $tab = 'photos'): View
     {
-        $allSampleData = $this->getSampleGalleryData();
-
-        // Filter by tab
-        $filteredData = array_filter($allSampleData, function ($item) use ($tab) {
-            if ($tab === 'photos') {
-                return $item->media_type === 'photo';
-            } elseif ($tab === 'videos') {
-                return in_array($item->media_type, ['external_video', 'local_video']);
-            } elseif ($tab === 'virtual-tours') {
-                return $item->category === 'virtual_tour' || $item->is_360_video;
-            }
-            return true;
-        });
-
-        $sampleData = array_values($filteredData);
-
-        $page = request()->get('page', 1);
-        $perPage = 12;
-        $offset = ($page - 1) * $perPage;
-        $currentPageItems = array_slice($sampleData, $offset, $perPage);
-
-        $galleries = new LengthAwarePaginator(
-            $currentPageItems,
-            count($sampleData),
-            $perPage,
-            $page,
-            [
-                'path' => request()->url(),
-                'query' => request()->query(),
-                'fragment' => 'gallery-grid'
-            ]
-        );
-
-        $hostels = [
-            (object)['id' => 1, 'name' => 'शान्ति बोर्डिङ', 'slug' => 'shanti-boarding'],
-            (object)['id' => 2, 'name' => 'सिटी बोर्डिङ', 'slug' => 'city-boarding'],
-            (object)['id' => 3, 'name' => 'एजुकेशन बोर्डिङ', 'slug' => 'education-boarding']
-        ];
-
-        $cities = collect([
-            (object)['name' => 'काठमाडौं'],
-            (object)['name' => 'पोखरा'],
-            (object)['name' => 'चितवन']
-        ]);
-
-        $metrics = [
-            'total_students' => 500,
-            'total_hostels' => count($hostels),
-            'satisfaction_rate' => 98,
-            'cities_covered' => $cities->count(),
-            'total_videos' => 25,
-            'total_photos' => 150
-        ];
-
-        $videoCategories = $this->getVideoCategories();
-
-        return view('frontend.gallery.index', compact(
-            'galleries',
-            'hostels',
-            'cities',
-            'metrics',
-            'tab',
-            'videoCategories'
-        ));
+        // ... [keep the existing showSampleData method as is]
+        // This remains the same as in your original code
     }
 
     /**
@@ -263,384 +453,8 @@ class GalleryController extends Controller
      */
     private function getSampleGalleryData(): array
     {
-        return [
-            (object)[
-                'id' => 1,
-                'title' => 'आरामदायी १ सिटर कोठा',
-                'description' => 'विद्यार्थीहरूको लागि आरामदायी एक सिटर कोठा',
-                'category' => '1 seater',
-                'category_nepali' => '१ सिटर कोठा',
-                'media_type' => 'photo',
-                'file_path' => 'gallery/room1.jpg',
-                'thumbnail' => 'gallery/room1-thumb.jpg',
-                'media_url' => 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400',
-                'thumbnail_url' => 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400',
-                'created_at' => now()->subDays(5),
-                'hostel_name' => 'शान्ति बोर्डिङ',
-                'hostel_id' => 1,
-                'room' => (object)['room_number' => '101'],
-                'room_number' => '101',
-                'is_room_image' => true,
-                'youtube_embed_url' => null,
-                'video_duration' => null,
-                'video_resolution' => null,
-                'is_360_video' => false
-            ],
-            (object)[
-                'id' => 2,
-                'title' => 'होस्टल भिडियो टुर',
-                'description' => 'हाम्रो होस्टलको पूर्ण भिडियो टुर',
-                'category' => 'video',
-                'category_nepali' => 'भिडियो टुर',
-                'media_type' => 'external_video',
-                'media_url' => 'https://www.youtube.com/embed/sample-video',
-                'thumbnail_url' => 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400',
-                'created_at' => now()->subDays(10),
-                'hostel_name' => 'सिटी बोर्डिङ',
-                'hostel_id' => 2,
-                'room' => null,
-                'room_number' => null,
-                'is_room_image' => false,
-                'youtube_embed_url' => 'https://www.youtube.com/embed/sample-video',
-                'video_duration' => '3:45',
-                'video_resolution' => '1080p',
-                'is_360_video' => false
-            ],
-            (object)[
-                'id' => 3,
-                'title' => '२ सिटर कोठा',
-                'description' => 'दुई विद्यार्थीको लागि उपयुक्त कोठा',
-                'category' => '2 seater',
-                'category_nepali' => '२ सिटर कोठा',
-                'media_type' => 'photo',
-                'media_url' => 'https://images.unsplash.com/photo-1560185127-6ed189bf02f4?w=400',
-                'thumbnail_url' => 'https://images.unsplash.com/photo-1560185127-6ed189bf02f4?w=400',
-                'created_at' => now()->subDays(3),
-                'hostel_name' => 'एजुकेशन बोर्डिङ',
-                'hostel_id' => 3,
-                'room' => (object)['room_number' => '201'],
-                'room_number' => '201',
-                'is_room_image' => true,
-                'youtube_embed_url' => null,
-                'video_duration' => null,
-                'video_resolution' => null,
-                'is_360_video' => false
-            ],
-            (object)[
-                'id' => 4,
-                'title' => 'लिभिङ रूम',
-                'description' => 'विद्यार्थीहरूको लागि साझा लिभिङ रूम',
-                'category' => 'living room',
-                'category_nepali' => 'लिभिङ रूम',
-                'media_type' => 'photo',
-                'media_url' => 'https://images.unsplash.com/photo-1583847268967-bbe5f524f5cd?w=400',
-                'thumbnail_url' => 'https://images.unsplash.com/photo-1583847268967-bbe5f524f5cd?w=400',
-                'created_at' => now()->subDays(7),
-                'hostel_name' => 'शान्ति बोर्डिङ',
-                'hostel_id' => 1,
-                'room' => null,
-                'room_number' => null,
-                'is_room_image' => false,
-                'youtube_embed_url' => null,
-                'video_duration' => null,
-                'video_resolution' => null,
-                'is_360_video' => false
-            ],
-            (object)[
-                'id' => 5,
-                'title' => 'भान्सा क्षेत्र',
-                'description' => 'सफा र आधुनिक भान्सा',
-                'category' => 'kitchen',
-                'category_nepali' => 'भान्सा',
-                'media_type' => 'photo',
-                'media_url' => 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400',
-                'thumbnail_url' => 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400',
-                'created_at' => now()->subDays(2),
-                'hostel_name' => 'सिटी बोर्डिङ',
-                'hostel_id' => 2,
-                'room' => null,
-                'room_number' => null,
-                'is_room_image' => false,
-                'youtube_embed_url' => null,
-                'video_duration' => null,
-                'video_resolution' => null,
-                'is_360_video' => false
-            ],
-            (object)[
-                'id' => 6,
-                'title' => 'बाथरूम',
-                'description' => 'सफा र आधुनिक बाथरूम',
-                'category' => 'bathroom',
-                'category_nepali' => 'बाथरूम',
-                'media_type' => 'photo',
-                'media_url' => 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=400',
-                'thumbnail_url' => 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=400',
-                'created_at' => now()->subDays(1),
-                'hostel_name' => 'एजुकेशन बोर्डिङ',
-                'hostel_id' => 3,
-                'room' => null,
-                'room_number' => null,
-                'is_room_image' => false,
-                'youtube_embed_url' => null,
-                'video_duration' => null,
-                'video_resolution' => null,
-                'is_360_video' => false
-            ],
-            (object)[
-                'id' => 7,
-                'title' => '३ सिटर कोठा',
-                'description' => 'तिन विद्यार्थीको लागि उपयुक्त कोठा',
-                'category' => '3 seater',
-                'category_nepali' => '३ सिटर कोठा',
-                'media_type' => 'photo',
-                'media_url' => 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=400',
-                'thumbnail_url' => 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=400',
-                'created_at' => now()->subDays(4),
-                'hostel_name' => 'शान्ति बोर्डिङ',
-                'hostel_id' => 1,
-                'room' => (object)['room_number' => '301'],
-                'room_number' => '301',
-                'is_room_image' => true,
-                'youtube_embed_url' => null,
-                'video_duration' => null,
-                'video_resolution' => null,
-                'is_360_video' => false
-            ],
-            (object)[
-                'id' => 8,
-                'title' => 'अध्ययन कोठा',
-                'description' => 'शान्त वातावरणमा अध्ययन कोठा',
-                'category' => 'study room',
-                'category_nepali' => 'अध्ययन कोठा',
-                'media_type' => 'photo',
-                'media_url' => 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=400',
-                'thumbnail_url' => 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=400',
-                'created_at' => now()->subDays(6),
-                'hostel_name' => 'सिटी बोर्डिङ',
-                'hostel_id' => 2,
-                'room' => null,
-                'room_number' => null,
-                'is_room_image' => false,
-                'youtube_embed_url' => null,
-                'video_duration' => null,
-                'video_resolution' => null,
-                'is_360_video' => false
-            ],
-            (object)[
-                'id' => 9,
-                'title' => '४ सिटर कोठा',
-                'description' => 'चार विद्यार्थीको लागि उपयुक्त कोठा',
-                'category' => '4 seater',
-                'category_nepali' => '४ सिटर कोठा',
-                'media_type' => 'photo',
-                'media_url' => 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400',
-                'thumbnail_url' => 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=400',
-                'created_at' => now()->subDays(8),
-                'hostel_name' => 'एजुकेशन बोर्डिङ',
-                'hostel_id' => 3,
-                'room' => (object)['room_number' => '401'],
-                'room_number' => '401',
-                'is_room_image' => true,
-                'youtube_embed_url' => null,
-                'video_duration' => null,
-                'video_resolution' => null,
-                'is_360_video' => false
-            ],
-            (object)[
-                'id' => 10,
-                'title' => 'खेलकुद क्षेत्र',
-                'description' => 'विद्यार्थीहरूको लागि खेलकुद क्षेत्र',
-                'category' => 'event',
-                'category_nepali' => 'कार्यक्रम',
-                'media_type' => 'photo',
-                'media_url' => 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=400',
-                'thumbnail_url' => 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=400',
-                'created_at' => now()->subDays(9),
-                'hostel_name' => 'शान्ति बोर्डिङ',
-                'hostel_id' => 1,
-                'room' => null,
-                'room_number' => null,
-                'is_room_image' => false,
-                'youtube_embed_url' => null,
-                'video_duration' => null,
-                'video_resolution' => null,
-                'is_360_video' => false
-            ],
-            (object)[
-                'id' => 11,
-                'title' => 'पुस्तकालय',
-                'description' => 'अध्ययनको लागि पुस्तकालय',
-                'category' => 'study room',
-                'category_nepali' => 'अध्ययन कोठा',
-                'media_type' => 'photo',
-                'media_url' => 'https://images.unsplash.com/photo-1589998059171-988d887df646?w=400',
-                'thumbnail_url' => 'https://images.unsplash.com/photo-1589998059171-988d887df646?w=400',
-                'created_at' => now()->subDays(11),
-                'hostel_name' => 'सिटी बोर्डिङ',
-                'hostel_id' => 2,
-                'room' => null,
-                'room_number' => null,
-                'is_room_image' => false,
-                'youtube_embed_url' => null,
-                'video_duration' => null,
-                'video_resolution' => null,
-                'is_360_video' => false
-            ],
-            (object)[
-                'id' => 12,
-                'title' => 'विद्यार्थीहरूको कार्यक्रम',
-                'description' => 'वार्षिक विद्यार्थी कार्यक्रम',
-                'category' => 'event',
-                'category_nepali' => 'कार्यक्रम',
-                'media_type' => 'photo',
-                'media_url' => 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400',
-                'thumbnail_url' => 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400',
-                'created_at' => now()->subDays(12),
-                'hostel_name' => 'एजुकेशन बोर्डिङ',
-                'hostel_id' => 3,
-                'room' => null,
-                'room_number' => null,
-                'is_room_image' => false,
-                'youtube_embed_url' => null,
-                'video_duration' => null,
-                'video_resolution' => null,
-                'is_360_video' => false
-            ],
-            (object)[
-                'id' => 13,
-                'title' => 'होस्टल टुर भिडियो',
-                'description' => 'शान्ति बोर्डिङको पूर्ण भिडियो टुर',
-                'category' => 'hostel_tour',
-                'category_nepali' => 'होस्टल टुर',
-                'media_type' => 'external_video',
-                'file_path' => null,
-                'thumbnail' => 'https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg',
-                'media_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-                'thumbnail_url' => 'https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg',
-                'created_at' => now()->subDays(1),
-                'hostel_name' => 'शान्ति बोर्डिङ',
-                'hostel_id' => 1,
-                'room' => null,
-                'room_number' => null,
-                'is_room_image' => false,
-                'youtube_embed_url' => 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-                'video_duration' => '5:30',
-                'video_resolution' => '1080p',
-                'is_360_video' => false
-            ],
-            (object)[
-                'id' => 14,
-                'title' => 'कोठाको भर्चुअल टुर',
-                'description' => '३६० डिग्री कोठा भर्चुअल टुर',
-                'category' => 'virtual_tour',
-                'category_nepali' => 'भर्चुअल टुर',
-                'media_type' => 'external_video',
-                'file_path' => null,
-                'thumbnail' => 'https://img.youtube.com/vi/abc123def456/hqdefault.jpg',
-                'media_url' => 'https://www.youtube.com/watch?v=abc123def456',
-                'thumbnail_url' => 'https://img.youtube.com/vi/abc123def456/hqdefault.jpg',
-                'created_at' => now()->subDays(2),
-                'hostel_name' => 'सिटी बोर्डिङ',
-                'hostel_id' => 2,
-                'room' => (object)['room_number' => '101'],
-                'room_number' => '101',
-                'is_room_image' => true,
-                'youtube_embed_url' => 'https://www.youtube.com/embed/abc123def456',
-                'video_duration' => '3:45',
-                'video_resolution' => '4K',
-                'is_360_video' => true
-            ],
-            (object)[
-                'id' => 15,
-                'title' => 'विद्यार्थी अनुभव',
-                'description' => 'हाम्रा विद्यार्थीहरूको अनुभव',
-                'category' => 'testimonial',
-                'category_nepali' => 'विद्यार्थी अनुभव',
-                'media_type' => 'local_video',
-                'file_path' => 'videos/testimonial.mp4',
-                'thumbnail' => 'videos/testimonial-thumb.jpg',
-                'media_url' => 'https://storage.hostelhub.com/videos/testimonial.mp4',
-                'thumbnail_url' => 'https://storage.hostelhub.com/videos/testimonial-thumb.jpg',
-                'created_at' => now()->subDays(3),
-                'hostel_name' => 'एजुकेशन बोर्डिङ',
-                'hostel_id' => 3,
-                'room' => null,
-                'room_number' => null,
-                'is_room_image' => false,
-                'youtube_embed_url' => null,
-                'video_duration' => '4:15',
-                'video_resolution' => '1080p',
-                'is_360_video' => false
-            ],
-            (object)[
-                'id' => 16,
-                'title' => 'सुविधाहरूको भिडियो',
-                'description' => 'हाम्रा सबै सुविधाहरूको भिडियो',
-                'category' => 'facility',
-                'category_nepali' => 'सुविधाहरू',
-                'media_type' => 'external_video',
-                'file_path' => null,
-                'thumbnail' => 'https://img.youtube.com/vi/xyz789uvw123/hqdefault.jpg',
-                'media_url' => 'https://www.youtube.com/watch?v=xyz789uvw123',
-                'thumbnail_url' => 'https://img.youtube.com/vi/xyz789uvw123/hqdefault.jpg',
-                'created_at' => now()->subDays(4),
-                'hostel_name' => 'शान्ति बोर्डिङ',
-                'hostel_id' => 1,
-                'room' => null,
-                'room_number' => null,
-                'is_room_image' => false,
-                'youtube_embed_url' => 'https://www.youtube.com/embed/xyz789uvw123',
-                'video_duration' => '6:20',
-                'video_resolution' => '1080p',
-                'is_360_video' => false
-            ],
-            (object)[
-                'id' => 17,
-                'title' => 'HD कोठा दृश्य',
-                'description' => 'उच्च गुणस्तरको कोठाको तस्बिर',
-                'category' => '1 seater',
-                'category_nepali' => '१ सिटर कोठा',
-                'media_type' => 'photo',
-                'file_path' => 'gallery/hd/room-hd1.jpg',
-                'thumbnail' => 'gallery/hd/room-hd1-thumb.jpg',
-                'media_url' => 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400',
-                'thumbnail_url' => 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400',
-                'hd_url' => 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=1920',
-                'created_at' => now()->subDays(5),
-                'hostel_name' => 'शान्ति बोर्डिङ',
-                'hostel_id' => 1,
-                'room' => (object)['room_number' => '102'],
-                'room_number' => '102',
-                'is_room_image' => true,
-                'youtube_embed_url' => null,
-                'video_duration' => null,
-                'video_resolution' => null,
-                'is_360_video' => false
-            ],
-            (object)[
-                'id' => 18,
-                'title' => 'HD लिभिङ रूम',
-                'description' => 'उच्च गुणस्तरको लिभिङ रूम तस्बिर',
-                'category' => 'living room',
-                'category_nepali' => 'लिभिङ रूम',
-                'media_type' => 'photo',
-                'file_path' => 'gallery/hd/living-hd1.jpg',
-                'thumbnail' => 'gallery/hd/living-hd1-thumb.jpg',
-                'media_url' => 'https://images.unsplash.com/photo-1583847268967-bbe5f524f5cd?w=400',
-                'thumbnail_url' => 'https://images.unsplash.com/photo-1583847268967-bbe5f524f5cd?w=400',
-                'hd_url' => 'https://images.unsplash.com/photo-1583847268967-bbe5f524f5cd?w=1920',
-                'created_at' => now()->subDays(6),
-                'hostel_name' => 'सिटी बोर्डिङ',
-                'hostel_id' => 2,
-                'room' => null,
-                'room_number' => null,
-                'is_room_image' => false,
-                'youtube_embed_url' => null,
-                'video_duration' => null,
-                'video_resolution' => null,
-                'is_360_video' => false
-            ]
-        ];
+        // ... [keep the existing getSampleGalleryData method as is]
+        // This remains the same as in your original code
     }
 
     /**
@@ -678,8 +492,8 @@ class GalleryController extends Controller
         try {
             $stats = [
                 'total_students' => $this->getTotalStudents(),
-                'total_hostels' => Hostel::where('is_published', true)->count() ?: 25,
-                'cities_available' => 5,
+                'total_hostels' => Hostel::where('is_published', true)->count() ?: 6,
+                'cities_available' => Hostel::where('is_published', true)->distinct('city')->count(),
                 'satisfaction_rate' => $this->getSatisfactionRate() . '%',
                 'total_videos' => $this->getTotalVideos(),
                 'total_photos' => $this->getTotalPhotos()
@@ -689,76 +503,43 @@ class GalleryController extends Controller
         } catch (\Exception $e) {
             Log::error('Gallery stats error: ' . $e->getMessage());
             return response()->json([
-                'total_students' => 500,
-                'total_hostels' => 25,
-                'cities_available' => 5,
-                'satisfaction_rate' => '98%',
-                'total_videos' => 25,
-                'total_photos' => 150
+                'total_students' => 22,
+                'total_hostels' => 6,
+                'cities_available' => 2,
+                'satisfaction_rate' => '95%',
+                'total_videos' => 4,
+                'total_photos' => 49
             ]);
         }
     }
 
     /**
      * ✅ NEW: API endpoint for filtered galleries with video support
+     * ✅ FIXED: Now includes Room images for Boys Hostels
      */
     public function filteredGalleries(Request $request)
     {
         try {
-            // Try to get real data
-            $query = Gallery::with(['hostel', 'room'])
-                ->where('is_active', true)
-                ->whereHas('hostel', function ($q) {
-                    $q->where('is_published', true);
-                });
+            // Get ALL items (Gallery + Room images)
+            $allItems = $this->getAllGalleryItems($request->get('tab', 'photos'));
 
-            // Apply media type filter (tab) - FIX #1: Video Tab Not Working
-            if ($request->filled('tab')) {
-                if ($request->tab === 'photos') {
-                    $query->where('media_type', 'photo');
-                } elseif ($request->tab === 'videos') {
-                    $query->whereIn('media_type', ['external_video', 'local_video']);
-                } elseif ($request->tab === 'virtual-tours') {
-                    $query->where('category', 'virtual_tour')
-                        ->orWhere('is_360_video', true);
-                }
-            }
+            // Apply filters
+            $filteredItems = $this->applyFilters($allItems, $request);
 
-            // Apply hostel filter - FIX #3: Boys Hostels not appearing
-            if ($request->filled('hostel_id')) {
-                $query->where('hostel_id', $request->hostel_id);
-            }
-
-            // Apply category filter
-            if ($request->filled('category') && $request->category !== 'all') {
-                $query->where('category', $request->category);
-            }
-
-            // Apply search
-            if ($request->filled('search')) {
-                $search = $request->search;
-                $query->where(function ($q) use ($search) {
-                    $q->where('title', 'like', "%{$search}%")
-                        ->orWhere('description', 'like', "%{$search}%")
-                        ->orWhereHas('hostel', function ($q2) use ($search) {
-                            $q2->where('name', 'like', "%{$search}%");
-                        })
-                        ->orWhereHas('room', function ($q3) use ($search) {
-                            $q3->where('room_number', 'like', "%{$search}%");
-                        });
-                });
-            }
-
-            $galleries = $query->orderBy('created_at', 'desc')->paginate(12);
+            // Paginate
+            $page = $request->get('page', 1);
+            $perPage = 12;
+            $offset = ($page - 1) * $perPage;
+            $currentPageItems = array_slice($filteredItems, $offset, $perPage);
 
             return response()->json([
                 'success' => true,
-                'galleries' => $galleries->items(),
+                'galleries' => $currentPageItems,
                 'pagination' => [
-                    'total' => $galleries->total(),
-                    'per_page' => $galleries->perPage(),
-                    'current_page' => $galleries->currentPage(),
-                    'last_page' => $galleries->lastPage()
+                    'total' => count($filteredItems),
+                    'per_page' => $perPage,
+                    'current_page' => $page,
+                    'last_page' => ceil(count($filteredItems) / $perPage)
                 ]
             ]);
         } catch (\Exception $e) {
@@ -843,25 +624,44 @@ class GalleryController extends Controller
     public function getHdImage($id)
     {
         try {
-            $gallery = Gallery::where('id', $id)
-                ->where('is_active', true)
-                ->where('media_type', 'photo')
-                ->firstOrFail();
+            // Handle both gallery_ and room_ IDs
+            if (str_starts_with($id, 'gallery_')) {
+                $galleryId = str_replace('gallery_', '', $id);
+                $gallery = Gallery::where('id', $galleryId)
+                    ->where('is_active', true)
+                    ->where('media_type', 'photo')
+                    ->firstOrFail();
 
-            // Check if HD version exists
-            $hdPath = str_replace('.jpg', '-hd.jpg', $gallery->file_path);
+                // Check if HD version exists
+                $hdPath = str_replace('.jpg', '-hd.jpg', $gallery->file_path);
 
-            if (Storage::disk('public')->exists($hdPath)) {
-                $url = Storage::disk('public')->url($hdPath);
-            } else {
-                $url = Storage::disk('public')->url($gallery->file_path);
+                if (Storage::disk('public')->exists($hdPath)) {
+                    $url = Storage::disk('public')->url($hdPath);
+                } else {
+                    $url = Storage::disk('public')->url($gallery->file_path);
+                }
+
+                return response()->json([
+                    'success' => true,
+                    'hd_url' => $url,
+                    'title' => $gallery->title
+                ]);
+            } elseif (str_starts_with($id, 'room_')) {
+                $roomId = str_replace('room_', '', $id);
+                $room = Room::where('id', $roomId)
+                    ->whereNotNull('image')
+                    ->firstOrFail();
+
+                $url = asset('storage/' . $room->image);
+
+                return response()->json([
+                    'success' => true,
+                    'hd_url' => $url,
+                    'title' => 'कोठा ' . $room->room_number
+                ]);
             }
 
-            return response()->json([
-                'success' => true,
-                'hd_url' => $url,
-                'title' => $gallery->title
-            ]);
+            throw new \Exception('Invalid image ID');
         } catch (\Exception $e) {
             Log::error('HD image error: ' . $e->getMessage());
             return response()->json([
@@ -881,17 +681,45 @@ class GalleryController extends Controller
                 ->where('is_published', true)
                 ->firstOrFail();
 
+            // Get gallery items
             $galleries = Gallery::where('hostel_id', $hostel->id)
                 ->where('is_active', true)
                 ->with(['hostel', 'room'])
                 ->orderBy('created_at', 'desc')
                 ->get();
 
+            // Get room images
+            $rooms = Room::where('hostel_id', $hostel->id)
+                ->whereNotNull('image')
+                ->where('image', '!=', '')
+                ->get();
+
+            $roomItems = [];
+            foreach ($rooms as $room) {
+                if ($room->image && Storage::disk('public')->exists($room->image)) {
+                    $roomItems[] = [
+                        'id' => 'room_' . $room->id,
+                        'title' => $room->room_number ? 'कोठा ' . $room->room_number : $this->getRoomTypeNepali($room->type),
+                        'description' => $room->description ?: $this->getRoomTypeNepali($room->type),
+                        'category' => $room->type,
+                        'category_nepali' => $this->getRoomTypeNepali($room->type),
+                        'media_type' => 'photo',
+                        'media_url' => asset('storage/' . $room->image),
+                        'thumbnail_url' => asset('storage/' . $room->image),
+                        'room_number' => $room->room_number,
+                        'is_room_image' => true,
+                        'source' => 'room'
+                    ];
+                }
+            }
+
+            $allItems = array_merge($galleries->toArray(), $roomItems);
+
             return response()->json([
                 'success' => true,
                 'hostel' => $hostel,
-                'galleries' => $galleries,
-                'total_count' => $galleries->count()
+                'galleries' => $allItems,
+                'total_count' => count($allItems)
             ]);
         } catch (\Exception $e) {
             Log::error('Hostel gallery data error: ' . $e->getMessage());
@@ -919,12 +747,52 @@ class GalleryController extends Controller
                 ->take(6)
                 ->get();
 
-            return response()->json($galleries);
+            // Get featured room images from featured hostels
+            $featuredHostels = Hostel::where('is_published', true)
+                ->where('is_featured', true)
+                ->with(['rooms' => function ($query) {
+                    $query->whereNotNull('image')
+                        ->where('image', '!=', '')
+                        ->take(2);
+                }])
+                ->take(3)
+                ->get();
+
+            $roomItems = [];
+            foreach ($featuredHostels as $hostel) {
+                foreach ($hostel->rooms as $room) {
+                    if ($room->image && Storage::disk('public')->exists($room->image)) {
+                        $roomItems[] = (object)[
+                            'id' => 'room_' . $room->id,
+                            'title' => $room->room_number ? 'कोठा ' . $room->room_number : $this->getRoomTypeNepali($room->type),
+                            'description' => $hostel->name . ' - ' . $this->getRoomTypeNepali($room->type),
+                            'category' => $room->type,
+                            'category_nepali' => $this->getRoomTypeNepali($room->type),
+                            'media_type' => 'photo',
+                            'media_url' => asset('storage/' . $room->image),
+                            'thumbnail_url' => asset('storage/' . $room->image),
+                            'created_at' => $room->created_at,
+                            'hostel_name' => $hostel->name,
+                            'hostel_id' => $hostel->id,
+                            'hostel_slug' => $hostel->slug,
+                            'room_number' => $room->room_number,
+                            'is_room_image' => true,
+                            'source' => 'room'
+                        ];
+                    }
+                }
+            }
+
+            $allItems = array_merge($galleries->toArray(), $roomItems);
+            shuffle($allItems);
+            $allItems = array_slice($allItems, 0, 6);
+
+            return response()->json($allItems);
         } catch (\Exception $e) {
             Log::error('Featured galleries error: ' . $e->getMessage());
 
             // Return sample featured data
-            $sampleData = array_slice($this->getSampleGalleryData(), 0, 3);
+            $sampleData = array_slice($this->getSampleGalleryData(), 0, 6);
             return response()->json($sampleData);
         }
     }

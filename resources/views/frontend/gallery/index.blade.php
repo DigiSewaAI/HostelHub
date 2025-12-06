@@ -862,23 +862,26 @@ body .gallery-content-wrapper {
                 <div class="gallery-grid">
                     @forelse($galleries as $gallery)
                     @php
-                        $isArray = is_array($gallery);
-                        $mediaType = $isArray ? $gallery['media_type'] : $gallery->media_type;
-                        $categoryNepali = $isArray ? $gallery['category_nepali'] : $gallery->category_nepali;
-                        $title = $isArray ? $gallery['title'] : $gallery->title;
-                        $description = $isArray ? $gallery['description'] : $gallery->description;
-                        $createdAt = $isArray ? \Carbon\Carbon::parse($gallery['created_at']) : $gallery->created_at;
-                        $hostelName = $isArray ? $gallery['hostel_name'] : $gallery->hostel_name;
-                        $hostelId = $isArray ? $gallery['hostel_id'] : $gallery->hostel_id;
-                        $hostelSlug = $isArray ? ($gallery['hostel_slug'] ?? '') : ($gallery->hostel->slug ?? '');
-                        $room = $isArray ? ($gallery['room'] ?? null) : $gallery->room;
-                        $roomNumber = $room ? ($isArray ? $room['room_number'] : $room->room_number) : '';
-                        $thumbnailUrl = $isArray ? ($gallery['thumbnail_url'] ?? $gallery['media_url']) : ($gallery->thumbnail_url ?? $gallery->media_url);
-                        $mediaUrl = $isArray ? $gallery['media_url'] : $gallery->media_url;
-                        $hdAvailable = $isArray ? ($gallery['is_hd_available'] ?? false) : ($gallery->is_hd_available ?? false);
-                        $hdUrl = $isArray ? ($gallery['hd_url'] ?? $mediaUrl) : ($gallery->hd_image_url ?? $mediaUrl);
-                        $youtubeEmbedUrl = $isArray ? ($gallery['youtube_embed_url'] ?? '') : $gallery->youtube_embed_url;
-                    @endphp
+    $isArray = is_array($gallery);
+    $mediaType = $isArray ? $gallery['media_type'] : $gallery->media_type;
+    $categoryNepali = $isArray ? $gallery['category_nepali'] : ($gallery->category_nepali ?? '');
+    $title = $isArray ? $gallery['title'] : $gallery->title;
+    $description = $isArray ? $gallery['description'] : $gallery->description;
+    $createdAt = $isArray ? \Carbon\Carbon::parse($gallery['created_at']) : $gallery->created_at;
+    $hostelName = $isArray ? $gallery['hostel_name'] : $gallery->hostel_name;
+    $hostelId = $isArray ? $gallery['hostel_id'] : $gallery->hostel_id;
+    $hostelSlug = $isArray ? ($gallery['hostel_slug'] ?? '') : ($gallery->hostel_slug ?? '');
+    $room = $isArray ? ($gallery['room'] ?? null) : ($gallery->room ?? null);
+    $roomNumber = $room ? ($isArray ? ($room['room_number'] ?? '') : ($room->room_number ?? '')) : '';
+    $thumbnailUrl = $isArray ? ($gallery['thumbnail_url'] ?? ($gallery['media_url'] ?? '')) : ($gallery->thumbnail_url ?? ($gallery->media_url ?? ''));
+    $mediaUrl = $isArray ? $gallery['media_url'] : $gallery->media_url;
+    $hdAvailable = $isArray ? ($gallery['hd_available'] ?? false) : ($gallery->hd_available ?? false);
+    $hdUrl = $isArray ? ($gallery['hd_url'] ?? $mediaUrl) : ($gallery->hd_url ?? $mediaUrl);
+    $youtubeEmbedUrl = $isArray ? ($gallery['youtube_embed_url'] ?? '') : ($gallery->youtube_embed_url ?? '');
+    $videoDuration = $isArray ? ($gallery['video_duration'] ?? '') : ($gallery->video_duration ?? '');
+    $videoResolution = $isArray ? ($gallery['video_resolution'] ?? '') : ($gallery->video_resolution ?? '');
+    $is360Video = $isArray ? ($gallery['is_360_video'] ?? false) : ($gallery->is_360_video ?? false);
+@endphp
                     
                     @if($mediaType === 'photo')
                     <div class="gallery-item" 
