@@ -23,7 +23,25 @@ Route::group(['middleware' => 'web'], function () {
     Route::get('/about', [PublicController::class, 'about'])->name('about');
     Route::get('/features', [PublicController::class, 'features'])->name('features');
     Route::get('/how-it-works', [PublicController::class, 'howItWorks'])->name('how-it-works');
-    Route::get('/gallery', [FrontendGalleryController::class, 'index'])->name('gallery');
+
+    /*|--------------------------------------------------------------------------
+    | ✅ MAIN GALLERY SYSTEM ROUTES - SIMPLE AND WORKING
+    |--------------------------------------------------------------------------*/
+
+    // Main gallery page with tabs - 100% WORKING ROUTE
+    Route::get('/gallery', [App\Http\Controllers\Frontend\GalleryController::class, 'index'])->name('gallery.index');
+
+    // Gallery with specific tab
+    Route::get('/gallery/{tab}', [App\Http\Controllers\Frontend\GalleryController::class, 'index'])
+        ->where('tab', 'photos|videos|virtual-tours')
+        ->name('gallery.tab');
+
+    // Gallery filtering AJAX endpoint
+    Route::post('/gallery/filter', [App\Http\Controllers\Frontend\GalleryController::class, 'filteredGalleries'])->name('gallery.filter');
+
+    // Individual hostel gallery
+    Route::get('/gallery/hostel/{slug}', [App\Http\Controllers\Frontend\GalleryController::class, 'hostelGallery'])->name('gallery.hostel');
+
     Route::get('/pricing', [PricingController::class, 'index'])->name('pricing');
 
     // ✅ FIXED: Hostel listing routes - SEPARATE ROUTES FOR DIFFERENT NAMES
@@ -35,11 +53,23 @@ Route::group(['middleware' => 'web'], function () {
     // ✅ FIXED: Single search route for hostel search functionality (GET method)
     Route::get('/search', [PublicController::class, 'search'])->name('search');
 
-    // Public hostel gallery routes
+    /*|--------------------------------------------------------------------------
+    | ✅ HOSTEL SPECIFIC GALLERY ROUTES - For hostel public pages
+    |--------------------------------------------------------------------------*/
+
+    // Hostel's public page gallery section (lightbox/slider)
     Route::get('/hostel/{slug}/gallery', [PublicController::class, 'hostelGallery'])->name('hostel.gallery');
+
+    // Hostel's individual room gallery page
+    Route::get('/hostel/{slug}/room/{roomId}/gallery', [PublicController::class, 'hostelRoomGallery'])->name('hostel.room.gallery');
+
+    // Hostel's individual full gallery page
     Route::get('/hostel/{slug}/full-gallery', [PublicController::class, 'hostelFullGallery'])->name('hostel.full-gallery');
 
-    // Meal gallery route
+    // Hostel's video gallery
+    Route::get('/hostel/{slug}/videos', [PublicController::class, 'hostelVideos'])->name('hostel.videos');
+
+    // ✅ Meal gallery route
     Route::get('/menu-gallery', [MealGalleryController::class, 'index'])->name('menu-gallery');
 
     // ✅ FIXED: Booking routes for new booking system
@@ -67,10 +97,18 @@ Route::group(['middleware' => 'web'], function () {
     // Hostel preview route
     Route::get('/preview/{slug}', [OwnerPublicPageController::class, 'preview'])->name('hostels.preview');
 
-    // Gallery API Routes
-    Route::get('/api/gallery/data', [FrontendGalleryController::class, 'getGalleryData']);
-    Route::get('/api/gallery/categories', [FrontendGalleryController::class, 'getGalleryCategories']);
-    Route::get('/api/gallery/stats', [FrontendGalleryController::class, 'getGalleryStats']);
+    /*|--------------------------------------------------------------------------
+    | ✅ GALLERY API ROUTES
+    |--------------------------------------------------------------------------*/
+    Route::prefix('api/gallery')->group(function () {
+        Route::get('/data', [App\Http\Controllers\Frontend\GalleryController::class, 'getGalleryData']);
+        Route::get('/categories', [App\Http\Controllers\Frontend\GalleryController::class, 'getCategories']);
+        Route::get('/stats', [App\Http\Controllers\Frontend\GalleryController::class, 'getStats']);
+        Route::get('/featured', [App\Http\Controllers\Frontend\GalleryController::class, 'getFeaturedGalleries']);
+        Route::get('/videos', [App\Http\Controllers\Frontend\GalleryController::class, 'getVideos']);
+        Route::get('/{id}/hd', [App\Http\Controllers\Frontend\GalleryController::class, 'getHdImage']);
+        Route::get('/hostel/{slug}', [App\Http\Controllers\Frontend\GalleryController::class, 'getHostelGalleryData']);
+    });
 
     // Public testimonials
     Route::get('/reviews', [FrontendReviewController::class, 'index'])->name('reviews');
@@ -114,6 +152,15 @@ Route::group(['middleware' => 'web'], function () {
     // ✅ NEW: Convert guest booking to student booking
     Route::post('/booking/{id}/convert-to-student', [BookingController::class, 'convertToStudentBooking'])
         ->name('booking.convert-to-student');
+
+    // ✅ NEW: Homepage gallery section API
+    Route::get('/api/homepage/gallery', [PublicController::class, 'getHomepageGallery'])->name('api.homepage.gallery');
+
+    // ✅ NEW: Download gallery item
+    Route::get('/gallery/{id}/download', [App\Http\Controllers\Frontend\GalleryController::class, 'download'])->name('gallery.download');
+
+    // ✅ NEW: Share gallery item
+    Route::get('/gallery/{id}/share', [App\Http\Controllers\Frontend\GalleryController::class, 'share'])->name('gallery.share');
 });
 
 /*|--------------------------------------------------------------------------

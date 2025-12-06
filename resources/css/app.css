@@ -1486,3 +1486,15 @@ footer > .container {
     .footer-col:nth-child(3) { grid-column: 3 / 4 !important; }
     .footer-col:nth-child(4) { grid-column: 4 / 5 !important; }
 }
+
+/* 🚨 CRITICAL GALLERY SPACING FIX */
+.gallery-page-wrapper {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+/* Force header to stick to top */
+.gallery-header {
+    margin-top: 0 !important;
+    transform: translateY(0) !important;
+}

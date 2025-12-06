@@ -1515,6 +1515,41 @@ class PublicController extends Controller
     }
 
     /**
+     * ✅ NEW: Get homepage gallery data (REQUIRED BY ROUTE)
+     */
+    public function getHomepageGallery()
+    {
+        try {
+            // Get featured galleries for homepage
+            $featuredGalleries = \App\Models\Gallery::with(['hostel'])
+                ->where('is_active', true)
+                ->where('is_featured', true)
+                ->whereHas('hostel', function ($query) {
+                    $query->where('is_published', true);
+                })
+                ->orderBy('created_at', 'desc')
+                ->limit(8)
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'featured_galleries' => $featuredGalleries,
+                'stats' => [
+                    'total_photos' => \App\Models\Gallery::where('is_active', true)->where('media_type', 'photo')->count(),
+                    'total_videos' => \App\Models\Gallery::where('is_active', true)->whereIn('media_type', ['external_video', 'local_video'])->count(),
+                    'total_hostels' => \App\Models\Hostel::where('is_published', true)->count()
+                ]
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Homepage gallery error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to load homepage gallery'
+            ], 500);
+        }
+    }
+
+    /**
      * Get room availability for specific hostel
      */
     public function getHostelRoomAvailability($slug)

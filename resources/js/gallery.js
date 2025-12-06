@@ -4,19 +4,28 @@ class GalleryManager {
         this.currentFilter = 'all';
         this.currentSearch = '';
         this.currentHostelFilter = '';
+        this.currentTab = 'photos';
         this.visibleItems = 12;
         this.currentMediaIndex = 0;
         this.mediaItems = [];
+        this.videoItems = [];
         this.isLoading = false;
+        this.videoPage = 1;
+        this.hasMoreVideos = true;
+        this.isLoadingVideos = false;
+        this.hdImagesLoaded = new Set();
+        this.videoCategories = {};
         
         this.init();
     }
     
     init() {
-        console.log('GalleryManager initialized');
+        console.log('Enhanced GalleryManager initialized');
         this.cacheElements();
         this.bindEvents();
         this.initMediaItems();
+        this.loadVideoCategories();
+        this.setupIntersectionObserver();
         this.applyFilters();
     }
     
@@ -24,6 +33,7 @@ class GalleryManager {
         this.elements = {
             filterButtons: document.querySelectorAll('.filter-btn'),
             galleryItems: document.querySelectorAll('.gallery-item'),
+            videoCards: document.querySelectorAll('.video-card'),
             searchInput: document.querySelector('.search-input'),
             hostelFilter: document.getElementById('hostelFilter'),
             loadMoreBtn: document.querySelector('.load-more-btn'),
@@ -38,9 +48,18 @@ class GalleryManager {
             modalDate: document.querySelector('.modal-date'),
             modalHostel: document.querySelector('.modal-hostel'),
             modalRoom: document.querySelector('.modal-room'),
+            modalHostelLink: document.querySelector('.modal-hostel-link'),
             galleryGrid: document.querySelector('.gallery-grid'),
+            videosGrid: document.querySelector('.videos-grid'),
             loadingIndicator: document.querySelector('.gallery-loading'),
-            noResults: document.querySelector('.no-results')
+            videosLoadingIndicator: document.querySelector('.videos-loading'),
+            noResults: document.querySelector('.no-results'),
+            tabButtons: document.querySelectorAll('.tab-btn'),
+            tabContents: document.querySelectorAll('.tab-content'),
+            videoCategoryButtons: document.querySelectorAll('.video-category-btn'),
+            videoCategoriesContainer: document.querySelector('.video-categories'),
+            mealGalleryButton: document.querySelector('.meal-gallery-button'),
+            galleryCtaButtons: document.querySelectorAll('.gallery-trial-button, .gallery-demo-button, .gallery-outline-button')
         };
     }
     
@@ -80,8 +99,61 @@ class GalleryManager {
         
         // Gallery item clicks
         this.elements.galleryItems.forEach((item, index) => {
-            item.addEventListener('click', () => this.openModal(index));
+            item.addEventListener('click', (e) => {
+                if (!e.target.closest('.hostel-link-enhanced, .quick-view-btn')) {
+                    this.openModal(index, 'photo');
+                }
+            });
         });
+        
+        // Video card clicks
+        this.elements.videoCards.forEach((card, index) => {
+            card.addEventListener('click', (e) => {
+                if (!e.target.closest('.hostel-link-enhanced, .video-hostel-link')) {
+                    this.openModal(index, 'video');
+                }
+            });
+        });
+        
+        // Tab switching
+        if (this.elements.tabButtons) {
+            this.elements.tabButtons.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    if (btn.classList.contains('active')) {
+                        e.preventDefault();
+                        return;
+                    }
+                    this.handleTabSwitch(e);
+                });
+            });
+        }
+        
+        // Video category filtering
+        if (this.elements.videoCategoryButtons) {
+            this.elements.videoCategoryButtons.forEach(btn => {
+                btn.addEventListener('click', (e) => this.handleVideoCategoryFilter(e));
+            });
+        }
+        
+        // Meal gallery button
+        if (this.elements.mealGalleryButton) {
+            this.elements.mealGalleryButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                window.location.href = this.elements.mealGalleryButton.href;
+            });
+        }
+        
+        // CTA buttons
+        if (this.elements.galleryCtaButtons) {
+            this.elements.galleryCtaButtons.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    if (btn.disabled) {
+                        e.preventDefault();
+                        return;
+                    }
+                });
+            });
+        }
         
         // Keyboard navigation
         document.addEventListener('keydown', (e) => this.handleKeyboard(e));
@@ -94,11 +166,122 @@ class GalleryManager {
                 }
             });
         }
+        
+        // Infinite scroll for videos
+        window.addEventListener('scroll', () => this.handleInfiniteScroll());
+        
+        // HD image click handlers
+        this.setupHdImageLoading();
+    }
+    
+    setupIntersectionObserver() {
+        // Lazy load images and videos when they enter viewport
+        this.observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target.querySelector('img');
+                    if (img && img.dataset.src) {
+                        img.src = img.dataset.src;
+                        img.removeAttribute('data-src');
+                    }
+                    
+                    // Handle HD image preloading
+                    if (entry.target.classList.contains('gallery-item')) {
+                        const hdAvailable = entry.target.dataset.hdAvailable === 'true';
+                        const mediaId = entry.target.dataset.id;
+                        if (hdAvailable && !this.hdImagesLoaded.has(mediaId)) {
+                            this.preloadHdImage(mediaId, entry.target);
+                        }
+                    }
+                }
+            });
+        }, {
+            rootMargin: '100px',
+            threshold: 0.1
+        });
+        
+        // Observe all gallery items and video cards
+        document.querySelectorAll('.gallery-item, .video-card').forEach(item => {
+            this.observer.observe(item);
+        });
     }
     
     initMediaItems() {
         this.mediaItems = Array.from(this.elements.galleryItems);
-        console.log(`Initialized ${this.mediaItems.length} media items`);
+        this.videoItems = Array.from(this.elements.videoCards);
+        console.log(`Initialized ${this.mediaItems.length} photos and ${this.videoItems.length} videos`);
+    }
+    
+    loadVideoCategories() {
+        // Try to get video categories from the page
+        if (this.elements.videoCategoriesContainer) {
+            this.videoCategories = {};
+            this.elements.videoCategoryButtons.forEach(btn => {
+                const category = btn.dataset.category;
+                const name = btn.textContent.trim();
+                if (category && category !== 'all') {
+                    this.videoCategories[category] = name;
+                }
+            });
+        }
+    }
+    
+    handleTabSwitch(e) {
+        e.preventDefault();
+        const button = e.currentTarget;
+        const tab = button.getAttribute('href').includes('videos') ? 'videos' : 
+                   button.getAttribute('href').includes('virtual-tours') ? 'virtual-tours' : 'photos';
+        
+        // Update active tab
+        this.elements.tabButtons.forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
+        
+        // Update tab content
+        this.elements.tabContents.forEach(content => content.classList.remove('active'));
+        document.getElementById(`${tab}-tab`).classList.add('active');
+        
+        // Update current tab
+        this.currentTab = tab;
+        
+        // Reset filters and load appropriate content
+        this.visibleItems = 12;
+        this.currentFilter = 'all';
+        this.currentSearch = '';
+        this.currentHostelFilter = '';
+        
+        // Reset filter buttons
+        if (this.elements.filterButtons) {
+            this.elements.filterButtons.forEach(btn => btn.classList.remove('active'));
+            const allFilterBtn = Array.from(this.elements.filterButtons).find(btn => btn.dataset.filter === 'all');
+            if (allFilterBtn) allFilterBtn.classList.add('active');
+        }
+        
+        // Reset search input
+        if (this.elements.searchInput) {
+            this.elements.searchInput.value = '';
+        }
+        
+        // Reset hostel filter
+        if (this.elements.hostelFilter) {
+            this.elements.hostelFilter.value = '';
+        }
+        
+        // Show/hide video categories based on tab
+        if (this.elements.videoCategoriesContainer) {
+            if (tab === 'videos') {
+                this.elements.videoCategoriesContainer.style.display = 'block';
+            } else {
+                this.elements.videoCategoriesContainer.style.display = 'none';
+            }
+        }
+        
+        // Apply filters for the current tab
+        this.applyFilters();
+        
+        // Load videos if needed
+        if (tab === 'videos' && this.videoItems.length === 0) {
+            this.loadMoreVideos();
+        }
     }
     
     handleFilter(e) {
@@ -110,47 +293,90 @@ class GalleryManager {
         button.classList.add('active');
         
         this.currentFilter = filter;
-        this.visibleItems = 12; // Reset visible items
+        this.visibleItems = 12;
+        this.applyFilters();
+    }
+    
+    handleVideoCategoryFilter(e) {
+        const button = e.currentTarget;
+        const category = button.dataset.category;
+        
+        // Update active button
+        this.elements.videoCategoryButtons.forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
+        
+        // Apply filtering based on category
+        if (category === 'all') {
+            this.currentFilter = 'all';
+        } else {
+            this.currentFilter = this.videoCategories[category] || category;
+        }
+        
         this.applyFilters();
     }
     
     handleSearch(e) {
         this.currentSearch = e.target.value.toLowerCase().trim();
-        this.visibleItems = 12; // Reset visible items
+        this.visibleItems = 12;
         this.applyFilters();
     }
     
     handleHostelFilter(e) {
         this.currentHostelFilter = e.target.value;
-        this.visibleItems = 12; // Reset visible items
+        this.visibleItems = 12;
         this.applyFilters();
     }
     
     applyFilters() {
         let visibleCount = 0;
+        let itemsToFilter = [];
         
-        this.mediaItems.forEach((item, index) => {
-            const matchesFilter = this.currentFilter === 'all' || item.dataset.category === this.currentFilter;
+        // Choose which items to filter based on current tab
+        if (this.currentTab === 'photos') {
+            itemsToFilter = this.mediaItems;
+        } else if (this.currentTab === 'videos' || this.currentTab === 'virtual-tours') {
+            itemsToFilter = this.videoItems;
+        }
+        
+        itemsToFilter.forEach((item, index) => {
+            const matchesFilter = this.currentFilter === 'all' || 
+                (item.dataset.category && item.dataset.category === this.currentFilter) ||
+                (item.getAttribute('data-category') && item.getAttribute('data-category') === this.currentFilter);
+            
             const matchesSearch = this.currentSearch === '' || 
-                                item.dataset.title.toLowerCase().includes(this.currentSearch) ||
-                                (item.dataset.description && item.dataset.description.toLowerCase().includes(this.currentSearch)) ||
-                                (item.dataset.hostel && item.dataset.hostel.toLowerCase().includes(this.currentSearch)) ||
-                                (item.dataset.roomNumber && item.dataset.roomNumber.toLowerCase().includes(this.currentSearch));
+                (item.dataset.title && item.dataset.title.toLowerCase().includes(this.currentSearch)) ||
+                (item.getAttribute('data-title') && item.getAttribute('data-title').toLowerCase().includes(this.currentSearch)) ||
+                (item.dataset.description && item.dataset.description.toLowerCase().includes(this.currentSearch)) ||
+                (item.getAttribute('data-description') && item.getAttribute('data-description').toLowerCase().includes(this.currentSearch)) ||
+                (item.dataset.hostel && item.dataset.hostel.toLowerCase().includes(this.currentSearch)) ||
+                (item.getAttribute('data-hostel') && item.getAttribute('data-hostel').toLowerCase().includes(this.currentSearch)) ||
+                (item.dataset.roomNumber && item.dataset.roomNumber.toLowerCase().includes(this.currentSearch)) ||
+                (item.getAttribute('data-room-number') && item.getAttribute('data-room-number').toLowerCase().includes(this.currentSearch));
             
-            const matchesHostel = this.currentHostelFilter === '' || item.dataset.hostelId === this.currentHostelFilter;
+            const matchesHostel = this.currentHostelFilter === '' || 
+                (item.dataset.hostelId && item.dataset.hostelId === this.currentHostelFilter) ||
+                (item.getAttribute('data-hostel-id') && item.getAttribute('data-hostel-id') === this.currentHostelFilter);
             
-            if (matchesFilter && matchesSearch && matchesHostel) {
+            // Additional filter for virtual tours
+            let matchesVirtualTour = true;
+            if (this.currentTab === 'virtual-tours') {
+                const is360Video = item.getAttribute('data-is-360') === 'true' || 
+                                 item.dataset.is360 === 'true' ||
+                                 (item.dataset.category && item.dataset.category.includes('virtual')) ||
+                                 (item.getAttribute('data-category') && item.getAttribute('data-category').includes('virtual'));
+                matchesVirtualTour = is360Video;
+            }
+            
+            if (matchesFilter && matchesSearch && matchesHostel && matchesVirtualTour) {
                 item.style.display = 'block';
+                item.style.opacity = '1';
+                item.style.transform = 'scale(1)';
+                item.style.animationDelay = `${(index % 12) * 0.1}s`;
                 visibleCount++;
                 
                 // Show/hide based on visible items limit
-                if (visibleCount <= this.visibleItems) {
-                    item.style.opacity = '1';
-                    item.style.transform = 'scale(1)';
-                    item.style.animationDelay = `${(index % 12) * 0.1}s`;
-                } else {
-                    item.style.opacity = '0';
-                    item.style.transform = 'scale(0.8)';
+                if (visibleCount > this.visibleItems) {
+                    item.style.display = 'none';
                 }
             } else {
                 item.style.display = 'none';
@@ -159,15 +385,25 @@ class GalleryManager {
         
         this.updateLoadMoreButton();
         this.checkNoResults();
+        
+        // Smooth animation for appearing items
+        setTimeout(() => {
+            itemsToFilter.forEach(item => {
+                if (item.style.display === 'block') {
+                    item.classList.add('visible');
+                }
+            });
+        }, 50);
     }
     
     showVisibleItems() {
         let shown = 0;
-        this.mediaItems.forEach(item => {
+        const itemsToShow = this.currentTab === 'photos' ? this.mediaItems : this.videoItems;
+        
+        itemsToShow.forEach(item => {
             if (item.style.display !== 'none') {
                 if (shown < this.visibleItems) {
                     item.style.display = 'block';
-                    // Add animation delay for staggered effect
                     item.style.animationDelay = `${shown * 0.1}s`;
                     shown++;
                 } else {
@@ -195,8 +431,148 @@ class GalleryManager {
         }, 800);
     }
     
+    async loadMoreVideos() {
+        if (this.isLoadingVideos || !this.hasMoreVideos) return;
+        
+        this.isLoadingVideos = true;
+        if (this.elements.videosLoadingIndicator) {
+            this.elements.videosLoadingIndicator.style.display = 'block';
+        }
+        
+        try {
+            const response = await fetch(`/api/gallery/videos?page=${this.videoPage}`);
+            const data = await response.json();
+            
+            if (data.success && data.videos && data.videos.length > 0) {
+                this.videoPage++;
+                
+                // Create and append new video cards
+                data.videos.forEach(video => {
+                    const videoCard = this.createVideoCard(video);
+                    if (this.elements.videosGrid) {
+                        this.elements.videosGrid.appendChild(videoCard);
+                    }
+                });
+                
+                // Update video items array
+                this.videoItems = Array.from(document.querySelectorAll('.video-card'));
+                
+                // Update hasMoreVideos flag
+                this.hasMoreVideos = this.videoPage < data.pagination.last_page;
+                
+                // Re-attach event listeners
+                this.attachVideoCardEvents();
+                
+                // Update observer
+                document.querySelectorAll('.video-card').forEach(card => {
+                    this.observer.observe(card);
+                });
+            } else {
+                this.hasMoreVideos = false;
+            }
+        } catch (error) {
+            console.error('Error loading more videos:', error);
+        } finally {
+            this.isLoadingVideos = false;
+            if (this.elements.videosLoadingIndicator) {
+                this.elements.videosLoadingIndicator.style.display = 'none';
+            }
+        }
+    }
+    
+    createVideoCard(video) {
+        const div = document.createElement('div');
+        div.className = 'video-card';
+        div.setAttribute('data-category', video.category_nepali || video.category);
+        div.setAttribute('data-title', video.title);
+        div.setAttribute('data-description', video.description);
+        div.setAttribute('data-date', video.created_at);
+        div.setAttribute('data-hostel', video.hostel_name);
+        div.setAttribute('data-hostel-id', video.hostel_id);
+        div.setAttribute('data-hostel-slug', video.hostel_slug || '');
+        div.setAttribute('data-room-number', video.room_number || '');
+        div.setAttribute('data-media-type', video.media_type);
+        div.setAttribute('data-youtube-embed', video.youtube_embed_url || '');
+        div.setAttribute('data-video-url', video.media_url || '');
+        div.setAttribute('data-video-duration', video.video_duration || '');
+        div.setAttribute('data-video-resolution', video.video_resolution || '');
+        div.setAttribute('data-is-360', video.is_360_video || false);
+        div.setAttribute('data-id', video.id);
+        
+        const thumbnailUrl = video.thumbnail_url || 
+                           (video.media_type === 'external_video' && video.external_link ? 
+                            `https://img.youtube.com/vi/${this.getYoutubeId(video.external_link)}/hqdefault.jpg` : 
+                            video.media_url);
+        
+        const hostelName = video.hostel_name || 'Unknown Hostel';
+        const truncatedHostelName = hostelName.length > 12 ? hostelName.substring(0, 12) + '...' : hostelName;
+        
+        div.innerHTML = `
+            <div class="video-thumbnail">
+                <img src="${thumbnailUrl}" 
+                     alt="${video.title}" 
+                     loading="lazy"
+                     data-src="${thumbnailUrl}">
+                <div class="play-button">
+                    <i class="fas fa-play"></i>
+                </div>
+                ${video.video_duration ? `<div class="video-duration">${video.video_duration}</div>` : ''}
+                ${video.is_360_video ? `
+                    <div class="video-badge-360">
+                        <i class="fas fa-360-degrees"></i>
+                        360°
+                    </div>
+                ` : ''}
+                ${video.hostel_slug ? `
+                    <a href="/hostels/${video.hostel_slug}" 
+                       class="hostel-link-enhanced" 
+                       style="top: auto; bottom: 10px; left: 10px;"
+                       title="${hostelName} मा जानुहोस्">
+                        <i class="fas fa-external-link-alt"></i>
+                        <span class="nepali">${truncatedHostelName}</span>
+                    </a>
+                ` : ''}
+            </div>
+            <div class="video-info">
+                <h3 class="nepali">${video.title}</h3>
+                <div class="video-meta">
+                    <span class="nepali">${video.category_nepali || video.category}</span>
+                    ${video.video_resolution ? `<span class="video-resolution">${video.video_resolution}</span>` : ''}
+                </div>
+                <p class="video-description nepali">${video.description ? (video.description.substring(0, 80) + (video.description.length > 80 ? '...' : '')) : ''}</p>
+                ${video.hostel_slug ? `
+                    <a href="/hostels/${video.hostel_slug}" class="video-hostel-link nepali">
+                        <i class="fas fa-building"></i>
+                        ${hostelName} को विवरण हेर्नुहोस्
+                    </a>
+                ` : ''}
+            </div>
+        `;
+        
+        return div;
+    }
+    
+    attachVideoCardEvents() {
+        const newVideoCards = document.querySelectorAll('.video-card');
+        newVideoCards.forEach((card, index) => {
+            card.addEventListener('click', (e) => {
+                if (!e.target.closest('.hostel-link-enhanced, .video-hostel-link')) {
+                    this.openModal(index, 'video');
+                }
+            });
+        });
+    }
+    
+    getYoutubeId(url) {
+        if (!url) return null;
+        const pattern = /(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+        const match = url.match(pattern);
+        return match ? match[1] : null;
+    }
+    
     smoothScrollToNewItems() {
-        const newItems = Array.from(this.elements.galleryItems)
+        const items = this.currentTab === 'photos' ? this.mediaItems : this.videoItems;
+        const newItems = Array.from(items)
             .filter(item => item.style.display === 'block')
             .slice(-12);
             
@@ -205,6 +581,17 @@ class GalleryManager {
                 behavior: 'smooth', 
                 block: 'center' 
             });
+        }
+    }
+    
+    handleInfiniteScroll() {
+        if (this.currentTab !== 'videos' || this.isLoadingVideos || !this.hasMoreVideos) return;
+        
+        const scrollPosition = window.innerHeight + window.scrollY;
+        const pageHeight = document.documentElement.scrollHeight;
+        
+        if (scrollPosition >= pageHeight - 1000) {
+            this.loadMoreVideos();
         }
     }
     
@@ -228,7 +615,8 @@ class GalleryManager {
     updateLoadMoreButton() {
         if (!this.elements.loadMoreBtn) return;
         
-        const visibleCount = this.mediaItems.filter(item => 
+        const items = this.currentTab === 'photos' ? this.mediaItems : this.videoItems;
+        const visibleCount = items.filter(item => 
             item.style.display !== 'none'
         ).length;
         
@@ -244,7 +632,8 @@ class GalleryManager {
     checkNoResults() {
         if (!this.elements.noResults) return;
         
-        const hasVisibleItems = this.mediaItems.some(item => 
+        const items = this.currentTab === 'photos' ? this.mediaItems : this.videoItems;
+        const hasVisibleItems = items.some(item => 
             item.style.display !== 'none'
         );
         
@@ -255,70 +644,245 @@ class GalleryManager {
         }
     }
     
-    openModal(index) {
+    setupHdImageLoading() {
+        // Add click handler for HD images
+        document.addEventListener('click', (e) => {
+            const hdBadge = e.target.closest('.hd-badge');
+            if (hdBadge) {
+                const galleryItem = hdBadge.closest('.gallery-item');
+                if (galleryItem) {
+                    this.loadHdImageForModal(galleryItem);
+                }
+            }
+        });
+    }
+    
+    async loadHdImageForModal(galleryItem) {
+        const mediaId = galleryItem.dataset.id;
+        const hdUrl = galleryItem.dataset.hdUrl;
+        
+        if (!mediaId || !hdUrl) return;
+        
+        try {
+            // Show loading state
+            const modalImg = this.elements.modalContent.querySelector('img');
+            if (modalImg) {
+                modalImg.classList.add('hd-loading');
+            }
+            
+            // Load HD image
+            const response = await fetch(`/api/gallery/${mediaId}/hd`);
+            const data = await response.json();
+            
+            if (data.success && data.hd_url) {
+                // Replace with HD image
+                if (modalImg) {
+                    modalImg.src = data.hd_url;
+                    modalImg.classList.remove('hd-loading');
+                    modalImg.classList.add('hd-loaded');
+                    
+                    // Add HD badge to modal
+                    const existingBadge = this.elements.modalContent.querySelector('.modal-hd-badge');
+                    if (!existingBadge) {
+                        const hdBadge = document.createElement('div');
+                        hdBadge.className = 'modal-hd-badge';
+                        hdBadge.innerHTML = '<i class="fas fa-hd"></i> HD';
+                        this.elements.modalContent.appendChild(hdBadge);
+                    }
+                }
+                
+                // Mark as loaded
+                this.hdImagesLoaded.add(mediaId);
+            }
+        } catch (error) {
+            console.error('Error loading HD image:', error);
+            if (modalImg) {
+                modalImg.classList.remove('hd-loading');
+            }
+        }
+    }
+    
+    preloadHdImage(mediaId, galleryItem) {
+        const hdUrl = galleryItem.dataset.hdUrl;
+        if (!hdUrl || this.hdImagesLoaded.has(mediaId)) return;
+        
+        // Preload in background
+        const img = new Image();
+        img.src = hdUrl;
+        img.onload = () => {
+            this.hdImagesLoaded.add(mediaId);
+            galleryItem.dataset.hdLoaded = 'true';
+        };
+    }
+    
+    openModal(index, type = 'photo') {
+        let item;
+        if (type === 'photo') {
+            item = this.mediaItems[index];
+        } else {
+            item = this.videoItems[index];
+        }
+        
+        if (!item) return;
+        
         this.currentMediaIndex = index;
-        const media = this.mediaItems[index];
         
-        // Set modal content
-        this.elements.modalTitle.textContent = media.dataset.title || '';
-        this.elements.modalDescription.textContent = media.dataset.description || '';
-        this.elements.modalCategory.textContent = media.dataset.category || '';
-        this.elements.modalDate.textContent = media.dataset.date || '';
-        this.elements.modalHostel.textContent = media.dataset.hostel || '';
+        // Set modal content based on item data
+        const title = item.dataset.title || item.getAttribute('data-title') || '';
+        const description = item.dataset.description || item.getAttribute('data-description') || '';
+        const category = item.dataset.category || item.getAttribute('data-category') || '';
+        const date = item.dataset.date || item.getAttribute('data-date') || '';
+        const hostel = item.dataset.hostel || item.getAttribute('data-hostel') || '';
+        const roomNumber = item.dataset.roomNumber || item.getAttribute('data-room-number') || '';
+        const hostelSlug = item.dataset.hostelSlug || item.getAttribute('data-hostel-slug') || '';
+        const mediaType = item.dataset.mediaType || item.getAttribute('data-media-type') || 'photo';
+        const youtubeEmbed = item.dataset.youtubeEmbed || item.getAttribute('data-youtube-embed') || '';
+        const videoUrl = item.dataset.videoUrl || item.getAttribute('data-video-url') || '';
+        const is360Video = item.dataset.is360 === 'true' || item.getAttribute('data-is-360') === 'true';
+        const hdAvailable = item.dataset.hdAvailable === 'true' || item.getAttribute('data-hd-available') === 'true';
+        const hdUrl = item.dataset.hdUrl || item.getAttribute('data-hd-url') || '';
+        const mediaId = item.dataset.id || item.getAttribute('data-id') || '';
         
-        const roomNumber = media.dataset.roomNumber;
+        // Set modal text content
+        this.elements.modalTitle.textContent = title;
+        this.elements.modalDescription.textContent = description;
+        this.elements.modalCategory.textContent = category;
+        this.elements.modalDate.textContent = date;
+        this.elements.modalHostel.textContent = hostel;
         this.elements.modalRoom.textContent = roomNumber ? `कोठा: ${roomNumber}` : '';
+        
+        // Set hostel link
+        if (this.elements.modalHostelLink && hostelSlug) {
+            this.elements.modalHostelLink.href = `/hostels/${hostelSlug}`;
+            this.elements.modalHostelLink.style.display = 'inline-flex';
+        } else if (this.elements.modalHostelLink) {
+            this.elements.modalHostelLink.style.display = 'none';
+        }
         
         // Clear previous content
         this.elements.modalContent.innerHTML = '';
         
-        const mediaType = media.dataset.mediaType;
-        const youtubeEmbed = media.dataset.youtubeEmbed;
-        
         // Add media based on type
         if (mediaType === 'photo') {
             const img = document.createElement('img');
-            img.src = media.querySelector('img').src;
-            img.alt = media.dataset.title || 'Gallery Image';
+            const imgSrc = item.querySelector('img')?.src || '';
+            img.src = imgSrc;
+            img.alt = title;
+            img.className = 'modal-image';
             img.style.width = '100%';
             img.style.height = 'auto';
             img.style.display = 'block';
-            img.className = 'modal-image';
+            
+            // Set HD data attributes
+            if (hdAvailable && hdUrl) {
+                img.dataset.hdAvailable = 'true';
+                img.dataset.hdUrl = hdUrl;
+                img.dataset.mediaId = mediaId;
+            }
+            
             this.elements.modalContent.appendChild(img);
-        } else if ((mediaType === 'external_video' || mediaType === 'local_video') && youtubeEmbed) {
+            
+            // Add HD badge if available
+            if (hdAvailable) {
+                const hdBadge = document.createElement('div');
+                hdBadge.className = 'modal-hd-badge';
+                hdBadge.innerHTML = '<i class="fas fa-hd"></i> HD';
+                hdBadge.style.position = 'absolute';
+                hdBadge.style.top = '10px';
+                hdBadge.style.right = '10px';
+                hdBadge.style.background = 'rgba(0,0,0,0.7)';
+                hdBadge.style.color = '#10b981';
+                hdBadge.style.padding = '0.5rem 0.8rem';
+                hdBadge.style.borderRadius = '4px';
+                hdBadge.style.fontSize = '0.9rem';
+                hdBadge.style.fontWeight = '600';
+                hdBadge.style.zIndex = '10';
+                hdBadge.style.cursor = 'pointer';
+                hdBadge.title = 'HD संस्करण लोड गर्नुहोस्';
+                hdBadge.addEventListener('click', () => this.loadHdImageForModal(item));
+                this.elements.modalContent.appendChild(hdBadge);
+            }
+            
+        } else if (mediaType === 'external_video' && youtubeEmbed) {
             const iframe = document.createElement('iframe');
-            iframe.src = youtubeEmbed + (youtubeEmbed.includes('?') ? '&' : '?') + 'autoplay=1&rel=0';
+            iframe.src = youtubeEmbed + (youtubeEmbed.includes('?') ? '&' : '?') + 
+                        'autoplay=1&rel=0&controls=1&showinfo=0';
             iframe.width = '100%';
-            iframe.height = '400';
+            iframe.height = '500';
             iframe.allowFullscreen = true;
             iframe.style.border = 'none';
             iframe.className = 'modal-video';
             iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+            
             this.elements.modalContent.appendChild(iframe);
-        } else if (mediaType === 'local_video') {
+            
+            // Add 360 badge if applicable
+            if (is360Video) {
+                const badge = document.createElement('div');
+                badge.className = 'modal-360-badge';
+                badge.innerHTML = '<i class="fas fa-360-degrees"></i> 360° VIEW';
+                badge.style.position = 'absolute';
+                badge.style.top = '10px';
+                badge.style.left = '10px';
+                badge.style.background = 'rgba(14, 165, 233, 0.9)';
+                badge.style.color = 'white';
+                badge.style.padding = '0.5rem 0.8rem';
+                badge.style.borderRadius = '4px';
+                badge.style.fontSize = '0.9rem';
+                badge.style.fontWeight = '600';
+                badge.style.zIndex = '10';
+                this.elements.modalContent.appendChild(badge);
+            }
+            
+        } else if (mediaType === 'local_video' && videoUrl) {
+            const videoContainer = document.createElement('div');
+            videoContainer.className = 'modal-local-video';
+            videoContainer.style.position = 'relative';
+            videoContainer.style.width = '100%';
+            
             const video = document.createElement('video');
-            video.src = media.querySelector('source')?.src || '#';
+            video.src = videoUrl;
             video.controls = true;
+            video.autoplay = true;
             video.style.width = '100%';
             video.style.height = 'auto';
-            video.className = 'modal-video';
-            this.elements.modalContent.appendChild(video);
+            video.style.maxHeight = '70vh';
+            video.style.display = 'block';
+            
+            videoContainer.appendChild(video);
+            this.elements.modalContent.appendChild(videoContainer);
         } else {
             // Fallback for unknown media types
             const img = document.createElement('img');
-            img.src = media.querySelector('img')?.src || '';
-            img.alt = media.dataset.title || 'Gallery Image';
+            img.src = item.querySelector('img')?.src || '';
+            img.alt = title;
             img.style.width = '100%';
             img.style.height = 'auto';
             img.style.display = 'block';
             this.elements.modalContent.appendChild(img);
         }
         
+        // Show modal with animation
         this.elements.galleryModal.classList.add('active');
         document.body.style.overflow = 'hidden';
         
-        // Add animation
+        // Add fade-in animation
         this.elements.modalContent.style.animation = 'modalAppear 0.3s ease-out';
+        
+        // Update current items array for navigation
+        this.updateCurrentItemsForNavigation();
+    }
+    
+    updateCurrentItemsForNavigation() {
+        if (this.currentTab === 'photos') {
+            this.currentItems = Array.from(this.mediaItems).filter(item => 
+                item.style.display !== 'none'
+            );
+        } else if (this.currentTab === 'videos' || this.currentTab === 'virtual-tours') {
+            this.currentItems = Array.from(this.videoItems).filter(item => 
+                item.style.display !== 'none'
+            );
+        }
     }
     
     closeModal() {
@@ -335,34 +899,54 @@ class GalleryManager {
         if (video) {
             video.pause();
         }
+        
+        // Clear modal content
+        this.elements.modalContent.innerHTML = '';
     }
     
     navigateModal(direction) {
-        // Get currently visible items
-        const visibleItems = this.mediaItems.filter(item => 
-            item.style.display !== 'none'
+        this.updateCurrentItemsForNavigation();
+        
+        if (!this.currentItems || this.currentItems.length === 0) return;
+        
+        let newIndex = this.currentMediaIndex + direction;
+        
+        // Find the current item in filtered items
+        const currentItem = this.currentTab === 'photos' ? 
+            this.mediaItems[this.currentMediaIndex] : 
+            this.videoItems[this.currentMediaIndex];
+        
+        const currentVisibleIndex = this.currentItems.findIndex(item => 
+            item === currentItem
         );
         
-        if (visibleItems.length === 0) return;
+        if (currentVisibleIndex === -1) return;
         
-        // Find current index in visible items
-        const currentVisibleIndex = visibleItems.findIndex(item => 
-            item === this.mediaItems[this.currentMediaIndex]
-        );
-        
-        let newVisibleIndex = currentVisibleIndex + direction;
+        newIndex = currentVisibleIndex + direction;
         
         // Wrap around
-        if (newVisibleIndex < 0) {
-            newVisibleIndex = visibleItems.length - 1;
-        } else if (newVisibleIndex >= visibleItems.length) {
-            newVisibleIndex = 0;
+        if (newIndex < 0) {
+            newIndex = this.currentItems.length - 1;
+        } else if (newIndex >= this.currentItems.length) {
+            newIndex = 0;
         }
         
-        const newIndex = this.mediaItems.indexOf(visibleItems[newVisibleIndex]);
+        const nextItem = this.currentItems[newIndex];
+        
+        // Find the original index
+        let originalIndex;
+        if (this.currentTab === 'photos') {
+            originalIndex = this.mediaItems.findIndex(item => item === nextItem);
+        } else {
+            originalIndex = this.videoItems.findIndex(item => item === nextItem);
+        }
+        
+        if (originalIndex === -1) return;
         
         this.closeModal();
-        setTimeout(() => this.openModal(newIndex), 50);
+        setTimeout(() => {
+            this.openModal(originalIndex, this.currentTab === 'photos' ? 'photo' : 'video');
+        }, 50);
     }
     
     handleKeyboard(e) {
@@ -378,14 +962,29 @@ class GalleryManager {
             case 'ArrowRight':
                 this.navigateModal(1);
                 break;
+            case 'h':
+            case 'H':
+                // Load HD version on 'H' key press
+                const modalImg = this.elements.modalContent.querySelector('img[data-hd-available="true"]');
+                if (modalImg) {
+                    this.loadHdImageForModal(modalImg.closest('.gallery-item') || { dataset: { id: modalImg.dataset.mediaId } });
+                }
+                break;
         }
     }
 }
 
 // Initialize gallery when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded, initializing GalleryManager');
+    console.log('DOM loaded, initializing Enhanced GalleryManager');
     new GalleryManager();
+    
+    // Add any additional initialization for tabs if needed
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabParam = urlParams.get('tab');
+    if (tabParam && document.querySelector(`.tab-btn[href*="${tabParam}"]`)) {
+        document.querySelector(`.tab-btn[href*="${tabParam}"]`).click();
+    }
 });
 
 // Add CSS animation for modal and gallery items
@@ -402,7 +1001,7 @@ style.textContent = `
         }
     }
     
-    .gallery-item {
+    .gallery-item, .video-card {
         animation: itemAppear 0.6s ease-out both;
     }
     
@@ -421,23 +1020,193 @@ style.textContent = `
         max-width: 100%;
         max-height: 80vh;
         object-fit: contain;
+        transition: all 0.3s ease;
     }
     
-    .modal-video {
+    .modal-image.hd-loaded {
+        animation: hdLoad 0.5s ease-out;
+    }
+    
+    @keyframes hdLoad {
+        0% { opacity: 0.8; transform: scale(1); }
+        50% { opacity: 0.9; transform: scale(1.01); }
+        100% { opacity: 1; transform: scale(1); }
+    }
+    
+    .modal-image.hd-loading {
+        opacity: 0.7;
+        filter: blur(2px);
+    }
+    
+    .modal-video, .modal-local-video video {
         width: 100%;
-        height: 400px;
+        height: 500px;
         max-height: 80vh;
     }
     
+    .modal-hd-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(0, 0, 0, 0.7);
+        color: #10b981;
+        padding: 0.5rem 0.8rem;
+        border-radius: 4px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .modal-hd-badge:hover {
+        background: rgba(0, 0, 0, 0.9);
+        transform: scale(1.05);
+    }
+    
+    .modal-360-badge {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: rgba(14, 165, 233, 0.9);
+        color: white;
+        padding: 0.5rem 0.8rem;
+        border-radius: 4px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+    
+    .modal-actions {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .modal-hostel-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: white;
+        background: rgba(30, 58, 138, 0.8);
+        padding: 0.6rem 1.2rem;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .modal-hostel-link:hover {
+        background: rgba(30, 58, 138, 1);
+        transform: translateY(-2px);
+        color: white;
+    }
+    
     @media (max-width: 768px) {
-        .modal-video {
+        .modal-video,
+        .modal-local-video video {
             height: 300px;
+        }
+        
+        .gallery-item, .video-card {
+            animation-delay: 0s !important;
         }
     }
     
     @media (max-width: 480px) {
-        .modal-video {
+        .modal-video,
+        .modal-local-video video {
             height: 250px;
+        }
+    }
+    
+    /* Video play button animation */
+    @keyframes pulse {
+        0% { transform: translate(-50%, -50%) scale(1); }
+        50% { transform: translate(-50%, -50%) scale(1.1); }
+        100% { transform: translate(-50%, -50%) scale(1); }
+    }
+    
+    .video-card:hover .play-button {
+        animation: pulse 1.5s infinite;
+    }
+    
+    /* Tab content transitions */
+    .tab-content {
+        animation: fadeIn 0.3s ease-out;
+    }
+    
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    /* Loading spinner */
+    .videos-loading .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid var(--gallery-primary);
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 1rem;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    /* HD badge animation */
+    .hd-badge {
+        transition: all 0.3s ease;
+    }
+    
+    .gallery-item:hover .hd-badge {
+        background: rgba(0, 0, 0, 0.9);
+        color: #34d399;
+    }
+    
+    /* Virtual tour indicator */
+    .virtual-tour-indicator {
+        position: absolute;
+        top: 50px;
+        left: 10px;
+        background: rgba(139, 92, 246, 0.9);
+        color: white;
+        padding: 0.3rem 0.6rem;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .video-categories {
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .video-category-btn {
+            flex: 1;
+            min-width: 120px;
+            text-align: center;
         }
     }
 `;
