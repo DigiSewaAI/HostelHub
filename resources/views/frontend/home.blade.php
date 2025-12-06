@@ -1358,7 +1358,7 @@ main.home-page-main {
         
         @if($galleryItems->count() > 0)
         <div class="gallery-button">
-            <a href="{{ route('gallery') }}" class="view-gallery-btn nepali">
+            <a href="{{ route('gallery.index') }}" class="view-gallery-btn nepali">
                 <i class="fas fa-images"></i> पूरै ग्यालरी हेर्नुहोस्
             </a>
         </div>

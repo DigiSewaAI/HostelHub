@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\WelcomeController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\PricingController;
-use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Frontend\PublicController;
@@ -19,6 +18,12 @@ if (app()->environment('production')) {
     URL::forceScheme('https');
 }
 
+// ✅ FIXED: CORRECT GALLERY ROUTES - Added at top as requested
+Route::get('/gallery', [App\Http\Controllers\Frontend\GalleryController::class, 'index'])->name('gallery.index');
+Route::get('/gallery/{tab}', [App\Http\Controllers\Frontend\GalleryController::class, 'index'])
+    ->where('tab', 'photos|videos|virtual-tours')
+    ->name('gallery.tab');
+
 // ✅ Booking routes
 Route::get('/book-all/{slug}', [BookingController::class, 'createFromGalleryAllRooms'])->name('hostel.book.all.rooms');
 Route::get('/book/{slug}', [BookingController::class, 'createFromGallery'])->name('hostel.book.from.gallery');
@@ -26,7 +31,7 @@ Route::get('/booking-success/{id}', [PublicController::class, 'bookingSuccessNew
 
 // ✅ Basic pages
 Route::get('/pricing', [PricingController::class, 'index'])->name('pricing');
-Route::get('/gallery', [GalleryController::class, 'index'])->name('gallery');
+
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
 Route::get('/register', [RegisterController::class, 'showUserRegistrationForm'])->name('register');
@@ -117,6 +122,14 @@ Route::prefix('admin')
         Route::get('/bookings/pending', [BookingController::class, 'pendingApprovals'])->name('admin.bookings.pending');
         Route::post('/bookings/{id}/approve', [BookingController::class, 'approve'])->name('admin.bookings.approve');
         Route::post('/bookings/{id}/reject', [BookingController::class, 'reject'])->name('admin.bookings.reject');
+
+        // ✅ NEW: Admin gallery management routes
+        Route::get('/galleries', [\App\Http\Controllers\Admin\GalleryController::class, 'index'])->name('admin.galleries.index');
+        Route::get('/galleries/create', [\App\Http\Controllers\Admin\GalleryController::class, 'create'])->name('admin.galleries.create');
+        Route::post('/galleries', [\App\Http\Controllers\Admin\GalleryController::class, 'store'])->name('admin.galleries.store');
+        Route::get('/galleries/{gallery}/edit', [\App\Http\Controllers\Admin\GalleryController::class, 'edit'])->name('admin.galleries.edit');
+        Route::put('/galleries/{gallery}', [\App\Http\Controllers\Admin\GalleryController::class, 'update'])->name('admin.galleries.update');
+        Route::delete('/galleries/{gallery}', [\App\Http\Controllers\Admin\GalleryController::class, 'destroy'])->name('admin.galleries.destroy');
     });
 
 // ✅ Owner routes
@@ -137,6 +150,15 @@ Route::prefix('owner')
         Route::post('/bookings/{id}/reject', [BookingController::class, 'reject'])->name('owner.bookings.reject');
         Route::get('/hostel/{hostelId}/bookings', [BookingController::class, 'hostelBookings'])->name('owner.hostel.bookings');
         Route::get('/bookings/create', [BookingController::class, 'create'])->name('owner.bookings.create');
+
+        // ✅ NEW: Owner gallery management routes
+        Route::get('/galleries', [\App\Http\Controllers\Owner\GalleryController::class, 'index'])->name('owner.galleries.index');
+        Route::get('/galleries/create', [\App\Http\Controllers\Owner\GalleryController::class, 'create'])->name('owner.galleries.create');
+        Route::post('/galleries', [\App\Http\Controllers\Owner\GalleryController::class, 'store'])->name('owner.galleries.store');
+        Route::get('/galleries/{gallery}/edit', [\App\Http\Controllers\Owner\GalleryController::class, 'edit'])->name('owner.galleries.edit');
+        Route::put('/galleries/{gallery}', [\App\Http\Controllers\Owner\GalleryController::class, 'update'])->name('owner.galleries.update');
+        Route::delete('/galleries/{gallery}', [\App\Http\Controllers\Owner\GalleryController::class, 'destroy'])->name('owner.galleries.destroy');
+        Route::get('/hostel/{hostel}/galleries', [\App\Http\Controllers\Owner\GalleryController::class, 'hostelGalleries'])->name('owner.hostel.galleries');
     });
 
 // ✅ Student routes
