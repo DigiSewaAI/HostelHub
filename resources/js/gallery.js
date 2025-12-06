@@ -353,9 +353,31 @@ class GalleryManager {
                 (item.dataset.roomNumber && item.dataset.roomNumber.toLowerCase().includes(this.currentSearch)) ||
                 (item.getAttribute('data-room-number') && item.getAttribute('data-room-number').toLowerCase().includes(this.currentSearch));
             
-            const matchesHostel = this.currentHostelFilter === '' || 
-                (item.dataset.hostelId && item.dataset.hostelId === this.currentHostelFilter) ||
-                (item.getAttribute('data-hostel-id') && item.getAttribute('data-hostel-id') === this.currentHostelFilter);
+            // ✅ FIXED: Enhanced hostel filtering with Boys/Girls support
+            let matchesHostel = true;
+            if (this.currentHostelFilter) {
+                if (this.currentHostelFilter === 'boys') {
+                    // Check if hostel name contains "boys" or "ब्वाइज"
+                    const hostelName = (item.dataset.hostelName || item.getAttribute('data-hostel-name') || '').toLowerCase();
+                    const hostelGender = item.dataset.hostelGender || item.getAttribute('data-hostel-gender');
+                    matchesHostel = hostelGender === 'boys' || 
+                                   hostelName.includes('boys') || 
+                                   hostelName.includes('ब्वाइज') || 
+                                   hostelName.includes('पुरुष');
+                } else if (this.currentHostelFilter === 'girls') {
+                    // Check if hostel name contains "girls" or "गर्ल्स"
+                    const hostelName = (item.dataset.hostelName || item.getAttribute('data-hostel-name') || '').toLowerCase();
+                    const hostelGender = item.dataset.hostelGender || item.getAttribute('data-hostel-gender');
+                    matchesHostel = hostelGender === 'girls' || 
+                                   hostelName.includes('girls') || 
+                                   hostelName.includes('गर्ल्स') || 
+                                   hostelName.includes('महिला');
+                } else {
+                    // Specific hostel by ID
+                    const hostelId = item.dataset.hostelId || item.getAttribute('data-hostel-id');
+                    matchesHostel = hostelId == this.currentHostelFilter;
+                }
+            }
             
             // Additional filter for virtual tours
             let matchesVirtualTour = true;
@@ -490,6 +512,9 @@ class GalleryManager {
         div.setAttribute('data-hostel', video.hostel_name);
         div.setAttribute('data-hostel-id', video.hostel_id);
         div.setAttribute('data-hostel-slug', video.hostel_slug || '');
+        // ✅ FIXED: Add hostel-gender and hostel-name attributes
+        div.setAttribute('data-hostel-gender', video.hostel_gender || '');
+        div.setAttribute('data-hostel-name', (video.hostel_name || '').toLowerCase());
         div.setAttribute('data-room-number', video.room_number || '');
         div.setAttribute('data-media-type', video.media_type);
         div.setAttribute('data-youtube-embed', video.youtube_embed_url || '');

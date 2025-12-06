@@ -776,7 +776,7 @@ body .gallery-content-wrapper {
                 <i class="fas fa-video"></i>
                 भिडियोहरू
                 <!-- FIX #1: Video badge color -->
-                <span class="tab-badge" style="color: #1e293b;">{{ $metrics['total_videos'] ?? '25+' }}</span>
+                <span class="tab-badge" style="background: #ffffff; color: #1e293b;">{{ $metrics['total_videos'] ?? '25+' }}</span>
             </a>
             <a href="{{ route('gallery.index', ['tab' => 'virtual-tours']) }}" 
                class="tab-btn nepali {{ $tab === 'virtual-tours' ? 'active' : '' }}">
@@ -794,16 +794,20 @@ body .gallery-content-wrapper {
                 <p class="nepali">तपाईंले हेर्न चाहनुभएको विशेष प्रकारको मिडिया वा होस्टल चयन गर्नुहोस्</p>
             </div>
             
-            <!-- Hostel Filter -->
+            <!-- FIX #5: Hostel Filter with Boys/Girls Support -->
             <div class="hostel-filter">
                 <label class="nepali" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
                     <i class="fas fa-building"></i> होस्टल छान्नुहोस्:
                 </label>
                 <select id="hostelFilter" class="form-control">
                     <option value="">सबै होस्टलहरू</option>
-                    @foreach($hostels as $hostel)
-                        <option value="{{ $hostel->id }}">{{ $hostel->name }}</option>
-                    @endforeach
+                    <option value="boys">ब्वाइज होस्टलहरू</option>
+                    <option value="girls">गर्ल्स होस्टलहरू</option>
+                    <optgroup label="विशेष होस्टलहरू">
+                        @foreach($hostels as $hostel)
+                            <option value="{{ $hostel->id }}">{{ $hostel->name }}</option>
+                        @endforeach
+                    </optgroup>
                 </select>
             </div>
 
@@ -854,7 +858,7 @@ body .gallery-content-wrapper {
         </div>
     </section>
 
-    <!-- ✅ UPDATED: Main Gallery Section with Tabs Content -->
+    <!-- ✅ FIXED: Main Gallery Section with Tabs Content -->
     <section class="gallery-main">
         <div class="gallery-container">
             <!-- Photos Tab Content -->
@@ -862,26 +866,33 @@ body .gallery-content-wrapper {
                 <div class="gallery-grid">
                     @forelse($galleries as $gallery)
                     @php
-    $isArray = is_array($gallery);
-    $mediaType = $isArray ? $gallery['media_type'] : $gallery->media_type;
-    $categoryNepali = $isArray ? $gallery['category_nepali'] : ($gallery->category_nepali ?? '');
-    $title = $isArray ? $gallery['title'] : $gallery->title;
-    $description = $isArray ? $gallery['description'] : $gallery->description;
-    $createdAt = $isArray ? \Carbon\Carbon::parse($gallery['created_at']) : $gallery->created_at;
-    $hostelName = $isArray ? $gallery['hostel_name'] : $gallery->hostel_name;
-    $hostelId = $isArray ? $gallery['hostel_id'] : $gallery->hostel_id;
-    $hostelSlug = $isArray ? ($gallery['hostel_slug'] ?? '') : ($gallery->hostel_slug ?? '');
-    $room = $isArray ? ($gallery['room'] ?? null) : ($gallery->room ?? null);
-    $roomNumber = $room ? ($isArray ? ($room['room_number'] ?? '') : ($room->room_number ?? '')) : '';
-    $thumbnailUrl = $isArray ? ($gallery['thumbnail_url'] ?? ($gallery['media_url'] ?? '')) : ($gallery->thumbnail_url ?? ($gallery->media_url ?? ''));
-    $mediaUrl = $isArray ? $gallery['media_url'] : $gallery->media_url;
-    $hdAvailable = $isArray ? ($gallery['hd_available'] ?? false) : ($gallery->hd_available ?? false);
-    $hdUrl = $isArray ? ($gallery['hd_url'] ?? $mediaUrl) : ($gallery->hd_url ?? $mediaUrl);
-    $youtubeEmbedUrl = $isArray ? ($gallery['youtube_embed_url'] ?? '') : ($gallery->youtube_embed_url ?? '');
-    $videoDuration = $isArray ? ($gallery['video_duration'] ?? '') : ($gallery->video_duration ?? '');
-    $videoResolution = $isArray ? ($gallery['video_resolution'] ?? '') : ($gallery->video_resolution ?? '');
-    $is360Video = $isArray ? ($gallery['is_360_video'] ?? false) : ($gallery->is_360_video ?? false);
-@endphp
+                        $isArray = is_array($gallery);
+                        $mediaType = $isArray ? $gallery['media_type'] : $gallery->media_type;
+                        $categoryNepali = $isArray ? $gallery['category_nepali'] : ($gallery->category_nepali ?? '');
+                        $title = $isArray ? $gallery['title'] : $gallery->title;
+                        $description = $isArray ? $gallery['description'] : $gallery->description;
+                        $createdAt = $isArray ? \Carbon\Carbon::parse($gallery['created_at']) : $gallery->created_at;
+                        $hostelName = $isArray ? $gallery['hostel_name'] : $gallery->hostel_name;
+                        $hostelId = $isArray ? $gallery['hostel_id'] : $gallery->hostel_id;
+                        $hostelSlug = $isArray ? ($gallery['hostel_slug'] ?? '') : ($gallery->hostel_slug ?? '');
+                        $room = $isArray ? ($gallery['room'] ?? null) : ($gallery->room ?? null);
+                        $roomNumber = $room ? ($isArray ? ($room['room_number'] ?? '') : ($room->room_number ?? '')) : '';
+                        $thumbnailUrl = $isArray ? ($gallery['thumbnail_url'] ?? ($gallery['media_url'] ?? '')) : ($gallery->thumbnail_url ?? ($gallery->media_url ?? ''));
+                        $mediaUrl = $isArray ? $gallery['media_url'] : $gallery->media_url;
+                        $hdAvailable = $isArray ? ($gallery['hd_available'] ?? false) : ($gallery->hd_available ?? false);
+                        $hdUrl = $isArray ? ($gallery['hd_url'] ?? $mediaUrl) : ($gallery->hd_url ?? $mediaUrl);
+                        
+                        // ✅ FIXED: Add hostel gender detection for filtering
+                        $hostelGender = 'mixed';
+                        if ($hostelName) {
+                            $lowerName = strtolower($hostelName);
+                            if (str_contains($lowerName, 'boys') || str_contains($lowerName, 'ब्वाइज') || str_contains($lowerName, 'पुरुष')) {
+                                $hostelGender = 'boys';
+                            } elseif (str_contains($lowerName, 'girls') || str_contains($lowerName, 'गर्ल्स') || str_contains($lowerName, 'महिला')) {
+                                $hostelGender = 'girls';
+                            }
+                        }
+                    @endphp
                     
                     @if($mediaType === 'photo')
                     <div class="gallery-item" 
@@ -892,6 +903,8 @@ body .gallery-content-wrapper {
                          data-hostel="{{ $hostelName }}"
                          data-hostel-id="{{ $hostelId }}"
                          data-hostel-slug="{{ $hostelSlug }}"
+                         data-hostel-name="{{ strtolower($hostelName) }}"
+                         data-hostel-gender="{{ $hostelGender }}"
                          data-room-number="{{ $roomNumber }}"
                          data-media-type="{{ $mediaType }}"
                          data-media-url="{{ $mediaUrl }}"
@@ -901,13 +914,12 @@ body .gallery-content-wrapper {
 
                         <!-- Image Container with Fixed Aspect Ratio -->
                         <div class="gallery-media-container">
-                            <!-- Enhanced Hostel Link -->
+                            <!-- Enhanced Hostel Link - FIX #2: Remove text truncation -->
                             @if($hostelSlug)
                             <a href="{{ route('hostels.show', $hostelSlug) }}" 
                                class="hostel-link-enhanced" 
                                title="{{ $hostelName }} मा जानुहोस्">
                                 <i class="fas fa-external-link-alt"></i>
-                                <!-- FIX #2: Removed Str::limit -->
                                 <span class="nepali">{{ $hostelName }}</span>
                             </a>
                             @endif
@@ -919,9 +931,6 @@ body .gallery-content-wrapper {
                                 <span>HD</span>
                             </div>
                             @endif
-
-                            <!-- 🚨 REMOVED: Room Number Badge (तपाईंले मागे अनुसार) -->
-                            <!-- Room number अब मोडलमा मात्र देखाइनेछ -->
 
                             <img src="{{ $thumbnailUrl }}" 
                                  alt="{{ $title }}" 
@@ -938,12 +947,10 @@ body .gallery-content-wrapper {
                                     <span class="media-category nepali">{{ $categoryNepali }}</span>
                                     <span class="media-date">{{ $createdAt->format('Y-m-d') }}</span>
                                 </div>
-                                <!-- View Details Button -->
+                                <!-- View Details Button - FIX #4: Reduced button size -->
                                 @if($hostelSlug)
-                                <!-- FIX #4: Reduced button size with inline style -->
                                 <a href="{{ route('hostels.show', $hostelSlug) }}" 
-                                   class="quick-view-btn nepali" 
-                                   style="position: relative; transform: none; left: 0; bottom: 0; margin-top: 0.5rem; padding: 0.3rem 0.8rem !important; font-size: 0.75rem !important;">
+                                   class="quick-view-btn nepali">
                                     <i class="fas fa-info-circle"></i>
                                     होस्टल विवरण हेर्नुहोस्
                                 </a>
@@ -962,104 +969,124 @@ body .gallery-content-wrapper {
                 </div>
             </div>
 
-            <!-- Videos Tab Content -->
+            <!-- ✅ FIXED: Videos Tab Content -->
             <div class="tab-content {{ $tab === 'videos' ? 'active' : '' }}" id="videos-tab">
                 <div class="gallery-grid videos-grid">
-                    @forelse($galleries as $gallery)
-                    @php
-                        $isArray = is_array($gallery);
-                        $mediaType = $isArray ? $gallery['media_type'] : $gallery->media_type;
-                        $categoryNepali = $isArray ? $gallery['category_nepali'] : $gallery->category_nepali;
-                        $title = $isArray ? $gallery['title'] : $gallery->title;
-                        $description = $isArray ? $gallery['description'] : $gallery->description;
-                        $createdAt = $isArray ? \Carbon\Carbon::parse($gallery['created_at']) : $gallery->created_at;
-                        $hostelName = $isArray ? $gallery['hostel_name'] : $gallery->hostel_name;
-                        $hostelId = $isArray ? $gallery['hostel_id'] : $gallery->hostel_id;
-                        $hostelSlug = $isArray ? ($gallery['hostel_slug'] ?? '') : ($gallery->hostel->slug ?? '');
-                        $room = $isArray ? ($gallery['room'] ?? null) : $gallery->room;
-                        $roomNumber = $room ? ($isArray ? $room['room_number'] : $room->room_number) : '';
-                        $thumbnailUrl = $isArray ? ($gallery['thumbnail_url'] ?? $gallery['media_url']) : ($gallery->thumbnail_url ?? $gallery->media_url);
-                        $mediaUrl = $isArray ? $gallery['media_url'] : $gallery->media_url;
-                        $youtubeEmbedUrl = $isArray ? ($gallery['youtube_embed_url'] ?? '') : $gallery->youtube_embed_url;
-                        $videoDuration = $isArray ? ($gallery['video_duration'] ?? '') : ($gallery->video_duration_formatted ?? '');
-                        $videoResolution = $isArray ? ($gallery['video_resolution'] ?? '') : ($gallery->video_resolution ?? '');
-                        $is360Video = $isArray ? ($gallery['is_360_video'] ?? false) : ($gallery->is_360_video ?? false);
-                    @endphp
-                    
-                    @if(in_array($mediaType, ['external_video', 'local_video']))
-                    <div class="video-card" 
-                         data-category="{{ $categoryNepali }}"
-                         data-title="{{ $title }}"
-                         data-description="{{ $description }}"
-                         data-date="{{ $createdAt->format('Y-m-d') }}"
-                         data-hostel="{{ $hostelName }}"
-                         data-hostel-id="{{ $hostelId }}"
-                         data-hostel-slug="{{ $hostelSlug }}"
-                         data-room-number="{{ $roomNumber }}"
-                         data-media-type="{{ $mediaType }}"
-                         @if($mediaType === 'external_video' && $youtubeEmbedUrl)
-                         data-youtube-embed="{{ $youtubeEmbedUrl }}"
-                         @elseif($mediaType === 'local_video')
-                         data-video-url="{{ $mediaUrl }}"
-                         @endif
-                         data-video-duration="{{ $videoDuration }}"
-                         data-video-resolution="{{ $videoResolution }}"
-                         data-is-360="{{ $is360Video ? 'true' : 'false' }}">
-
-                        <div class="video-thumbnail">
-                            <img src="{{ $thumbnailUrl }}" alt="{{ $title }}" loading="lazy">
-                            <div class="play-button">
-                                <i class="fas fa-play"></i>
-                            </div>
+                    @if($tab === 'videos')
+                        @forelse($galleries as $gallery)
+                        @php
+                            $isArray = is_array($gallery);
+                            $mediaType = $isArray ? $gallery['media_type'] : $gallery->media_type;
+                            $categoryNepali = $isArray ? $gallery['category_nepali'] : $gallery->category_nepali;
+                            $title = $isArray ? $gallery['title'] : $gallery->title;
+                            $description = $isArray ? $gallery['description'] : $gallery->description;
+                            $createdAt = $isArray ? \Carbon\Carbon::parse($gallery['created_at']) : $gallery->created_at;
+                            $hostelName = $isArray ? $gallery['hostel_name'] : $gallery->hostel_name;
+                            $hostelId = $isArray ? $gallery['hostel_id'] : $gallery->hostel_id;
+                            $hostelSlug = $isArray ? ($gallery['hostel_slug'] ?? '') : ($gallery->hostel->slug ?? '');
+                            $room = $isArray ? ($gallery['room'] ?? null) : $gallery->room;
+                            $roomNumber = $room ? ($isArray ? $room['room_number'] : $room->room_number) : '';
+                            $thumbnailUrl = $isArray ? ($gallery['thumbnail_url'] ?? $gallery['media_url']) : ($gallery->thumbnail_url ?? $gallery->media_url);
+                            $mediaUrl = $isArray ? $gallery['media_url'] : $gallery->media_url;
+                            $youtubeEmbedUrl = $isArray ? ($gallery['youtube_embed_url'] ?? '') : $gallery->youtube_embed_url;
+                            $videoDuration = $isArray ? ($gallery['video_duration'] ?? '') : ($gallery->video_duration_formatted ?? '');
+                            $videoResolution = $isArray ? ($gallery['video_resolution'] ?? '') : ($gallery->video_resolution ?? '');
+                            $is360Video = $isArray ? ($gallery['is_360_video'] ?? false) : ($gallery->is_360_video ?? false);
                             
-                            @if($videoDuration)
-                            <div class="video-duration">{{ $videoDuration }}</div>
-                            @endif
+                            // ✅ FIXED: Add hostel gender detection for filtering
+                            $hostelGender = 'mixed';
+                            if ($hostelName) {
+                                $lowerName = strtolower($hostelName);
+                                if (str_contains($lowerName, 'boys') || str_contains($lowerName, 'ब्वाइज') || str_contains($lowerName, 'पुरुष')) {
+                                    $hostelGender = 'boys';
+                                } elseif (str_contains($lowerName, 'girls') || str_contains($lowerName, 'गर्ल्स') || str_contains($lowerName, 'महिला')) {
+                                    $hostelGender = 'girls';
+                                }
+                            }
+                        @endphp
+                        
+                        @if(in_array($mediaType, ['external_video', 'local_video']))
+                        <div class="video-card" 
+                             data-category="{{ $categoryNepali }}"
+                             data-title="{{ $title }}"
+                             data-description="{{ $description }}"
+                             data-date="{{ $createdAt->format('Y-m-d') }}"
+                             data-hostel="{{ $hostelName }}"
+                             data-hostel-id="{{ $hostelId }}"
+                             data-hostel-slug="{{ $hostelSlug }}"
+                             data-hostel-name="{{ strtolower($hostelName) }}"
+                             data-hostel-gender="{{ $hostelGender }}"
+                             data-room-number="{{ $roomNumber }}"
+                             data-media-type="{{ $mediaType }}"
+                             @if($mediaType === 'external_video' && $youtubeEmbedUrl)
+                             data-youtube-embed="{{ $youtubeEmbedUrl }}"
+                             @elseif($mediaType === 'local_video')
+                             data-video-url="{{ $mediaUrl }}"
+                             @endif
+                             data-video-duration="{{ $videoDuration }}"
+                             data-video-resolution="{{ $videoResolution }}"
+                             data-is-360="{{ $is360Video ? 'true' : 'false' }}">
 
-                            @if($is360Video)
-                            <div class="video-badge-360">
-                                <i class="fas fa-360-degrees"></i>
-                                360°
-                            </div>
-                            @endif
+                            <div class="video-thumbnail">
+                                <img src="{{ $thumbnailUrl }}" alt="{{ $title }}" loading="lazy">
+                                <div class="play-button">
+                                    <i class="fas fa-play"></i>
+                                </div>
+                                
+                                @if($videoDuration)
+                                <div class="video-duration">{{ $videoDuration }}</div>
+                                @endif
 
-                            @if($hostelSlug)
-                            <a href="{{ route('hostels.show', $hostelSlug) }}" 
-                               class="hostel-link-enhanced" 
-                               style="top: auto; bottom: 10px; left: 10px;"
-                               title="{{ $hostelName }} मा जानुहोस्">
-                                <i class="fas fa-external-link-alt"></i>
-                                <!-- FIX #2: Removed Str::limit -->
-                                <span class="nepali">{{ $hostelName }}</span>
-                            </a>
-                            @endif
-                        </div>
+                                @if($is360Video)
+                                <div class="video-badge-360">
+                                    <i class="fas fa-360-degrees"></i>
+                                    360°
+                                </div>
+                                @endif
 
-                        <div class="video-info">
-                            <h3 class="nepali">{{ $title }}</h3>
-                            <div class="video-meta">
-                                <span class="nepali">{{ $categoryNepali }}</span>
-                                @if($videoResolution)
-                                <span class="video-resolution">{{ $videoResolution }}</span>
+                                @if($hostelSlug)
+                                <a href="{{ route('hostels.show', $hostelSlug) }}" 
+                                   class="hostel-link-enhanced" 
+                                   style="top: auto; bottom: 10px; left: 10px;"
+                                   title="{{ $hostelName }} मा जानुहोस्">
+                                    <i class="fas fa-external-link-alt"></i>
+                                    <span class="nepali">{{ $hostelName }}</span>
+                                </a>
                                 @endif
                             </div>
-                            <p class="video-description nepali">{{ Str::limit($description, 80) }}</p>
-                            @if($hostelSlug)
-                            <a href="{{ route('hostels.show', $hostelSlug) }}" class="video-hostel-link nepali">
-                                <i class="fas fa-building"></i>
-                                {{ $hostelName }} को विवरण हेर्नुहोस्
-                            </a>
-                            @endif
+
+                            <div class="video-info">
+                                <h3 class="nepali">{{ $title }}</h3>
+                                <div class="video-meta">
+                                    <span class="nepali">{{ $categoryNepali }}</span>
+                                    @if($videoResolution)
+                                    <span class="video-resolution">{{ $videoResolution }}</span>
+                                    @endif
+                                </div>
+                                <p class="video-description nepali">{{ Str::limit($description, 80) }}</p>
+                                @if($hostelSlug)
+                                <a href="{{ route('hostels.show', $hostelSlug) }}" class="video-hostel-link nepali">
+                                    <i class="fas fa-building"></i>
+                                    {{ $hostelName }} को विवरण हेर्नुहोस्
+                                </a>
+                                @endif
+                            </div>
                         </div>
-                    </div>
+                        @endif
+                        @empty
+                        <div class="no-results">
+                            <i class="fas fa-video"></i>
+                            <h3 class="nepali">कुनै भिडियो फेला परेन</h3>
+                            <p class="nepali">हाल कुनै भिडियो उपलब्ध छैन। कृपया पछि फर्कनुहोस्।</p>
+                        </div>
+                        @endforelse
+                    @else
+                        <!-- Videos will load via AJAX when tab is clicked -->
+                        <div class="videos-placeholder" style="text-align: center; padding: 3rem; grid-column: 1 / -1;">
+                            <div class="spinner" style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--gallery-primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem;"></div>
+                            <p class="nepali">भिडियोहरू लोड हुँदैछ...</p>
+                        </div>
                     @endif
-                    @empty
-                    <div class="no-results">
-                        <i class="fas fa-video"></i>
-                        <h3 class="nepali">कुनै भिडियो फेला परेन</h3>
-                        <p class="nepali">हाल कुनै भिडियो उपलब्ध छैन। कृपया पछि फर्कनुहोस्।</p>
-                    </div>
-                    @endforelse
                 </div>
 
                 <!-- Videos Loading State -->
@@ -1080,13 +1107,13 @@ body .gallery-content-wrapper {
             <div class="no-results hidden">
                 <i class="fas fa-search"></i>
                 <h3 class="nepali">कुनै परिणाम फेला परेन</h3>
-                <p class="nepali">तपाईंको खोजसँग मिल्ने कुनै ग्यालरी आइटम फेला परेन। कृपया अर्को खोज प्रयास गर्नुहोस्।</p>
+                                <p class="nepali">तपाईंको खोजसँग मिल्ने कुनै ग्यालरी आइटम फेला परेन। कृपया अर्को खोज प्रयास गर्नुहोस्।</p>
             </div>
 
             <!-- Loading Indicator -->
             <div class="gallery-loading hidden">
                 <div class="loading-spinner"></div>
-                                <p class="nepali">ग्यालरी आइटमहरू लोड हुँदैछ...</p>
+                <p class="nepali">ग्यालरी आइटमहरू लोड हुँदैछ...</p>
             </div>
         </div>
     </section>
@@ -1258,10 +1285,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const galleryItems = document.querySelectorAll('.gallery-item');
     const videoCards = document.querySelectorAll('.video-card');
     
+    // ✅ FIXED: Enhanced filterContent function with Boys/Girls hostel support
     function filterContent() {
-        const selectedHostelId = document.getElementById('hostelFilter')?.value || '';
+        const selectedHostelValue = document.getElementById('hostelFilter')?.value || '';
         const searchTerm = document.querySelector('.search-input').value.toLowerCase().trim();
         const activeFilter = document.querySelector('.filter-btn.active')?.getAttribute('data-filter') || 'all';
+        const activeVideoCategory = document.querySelector('.video-category-btn.active')?.getAttribute('data-category') || 'all';
         
         let visibleCount = 0;
         
@@ -1269,14 +1298,25 @@ document.addEventListener('DOMContentLoaded', function() {
         if (currentTab === 'photos') {
             galleryItems.forEach(item => {
                 const itemHostelId = item.getAttribute('data-hostel-id');
+                const itemHostelGender = item.getAttribute('data-hostel-gender') || '';
                 const title = item.getAttribute('data-title').toLowerCase();
                 const description = item.getAttribute('data-description').toLowerCase();
                 const category = item.getAttribute('data-category');
                 const hostel = item.getAttribute('data-hostel').toLowerCase();
                 const roomNumber = item.getAttribute('data-room-number').toLowerCase();
                 
-                // Apply filters
-                const hostelMatch = !selectedHostelId || itemHostelId === selectedHostelId;
+                // ✅ FIXED: Enhanced hostel filtering with Boys/Girls support
+                let hostelMatch = true;
+                if (selectedHostelValue) {
+                    if (selectedHostelValue === 'boys') {
+                        hostelMatch = itemHostelGender === 'boys' || hostel.includes('boys') || hostel.includes('ब्वाइज');
+                    } else if (selectedHostelValue === 'girls') {
+                        hostelMatch = itemHostelGender === 'girls' || hostel.includes('girls') || hostel.includes('गर्ल्स');
+                    } else {
+                        hostelMatch = itemHostelId === selectedHostelValue;
+                    }
+                }
+                
                 const searchMatch = !searchTerm || 
                     title.includes(searchTerm) || 
                     description.includes(searchTerm) || 
@@ -1297,21 +1337,33 @@ document.addEventListener('DOMContentLoaded', function() {
         } else if (currentTab === 'videos') {
             videoCards.forEach(card => {
                 const itemHostelId = card.getAttribute('data-hostel-id');
+                const itemHostelGender = card.getAttribute('data-hostel-gender') || '';
                 const title = card.getAttribute('data-title').toLowerCase();
                 const description = card.getAttribute('data-description').toLowerCase();
                 const category = card.getAttribute('data-category');
                 const hostel = card.getAttribute('data-hostel').toLowerCase();
                 
-                // Apply filters
-                const hostelMatch = !selectedHostelId || itemHostelId === selectedHostelId;
+                // ✅ FIXED: Enhanced hostel filtering with Boys/Girls support
+                let hostelMatch = true;
+                if (selectedHostelValue) {
+                    if (selectedHostelValue === 'boys') {
+                        hostelMatch = itemHostelGender === 'boys' || hostel.includes('boys') || hostel.includes('ब्वाइज');
+                    } else if (selectedHostelValue === 'girls') {
+                        hostelMatch = itemHostelGender === 'girls' || hostel.includes('girls') || hostel.includes('गर्ल्स');
+                    } else {
+                        hostelMatch = itemHostelId === selectedHostelValue;
+                    }
+                }
+                
                 const searchMatch = !searchTerm || 
                     title.includes(searchTerm) || 
                     description.includes(searchTerm) || 
                     category.includes(searchTerm) ||
                     hostel.includes(searchTerm);
                 const filterMatch = activeFilter === 'all' || category === activeFilter;
+                const videoCategoryMatch = activeVideoCategory === 'all' || category.includes(activeVideoCategory);
                 
-                if (hostelMatch && searchMatch && filterMatch) {
+                if (hostelMatch && searchMatch && filterMatch && videoCategoryMatch) {
                     card.style.display = 'block';
                     visibleCount++;
                     // Animate appearance
@@ -1622,7 +1674,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Video category filtering
+    // ✅ FIXED: Video category filtering
     const videoCategoryBtns = document.querySelectorAll('.video-category-btn');
     videoCategoryBtns.forEach(btn => {
         btn.addEventListener('click', function() {
@@ -1719,6 +1771,20 @@ document.addEventListener('DOMContentLoaded', function() {
         div.setAttribute('data-hostel', video.hostel_name);
         div.setAttribute('data-hostel-id', video.hostel_id);
         div.setAttribute('data-hostel-slug', video.hostel_slug);
+        div.setAttribute('data-hostel-name', video.hostel_name ? video.hostel_name.toLowerCase() : '');
+        
+        // Add hostel gender detection
+        let hostelGender = 'mixed';
+        if (video.hostel_name) {
+            const lowerName = video.hostel_name.toLowerCase();
+            if (lowerName.includes('boys') || lowerName.includes('ब्वाइज') || lowerName.includes('पुरुष')) {
+                hostelGender = 'boys';
+            } else if (lowerName.includes('girls') || lowerName.includes('गर्ल्स') || lowerName.includes('महिला')) {
+                hostelGender = 'girls';
+            }
+        }
+        div.setAttribute('data-hostel-gender', hostelGender);
+        
         div.setAttribute('data-room-number', video.room_number || '');
         div.setAttribute('data-media-type', video.media_type);
         div.setAttribute('data-youtube-embed', video.youtube_embed_url || '');
@@ -1756,7 +1822,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <span class="nepali">${video.category_nepali || video.category}</span>
                     ${video.video_resolution ? `<span class="video-resolution">${video.video_resolution}</span>` : ''}
                 </div>
-                <p class="video-description nepali">${video.description.substring(0, 80)}${video.description.length > 80 ? '...' : ''}</p>
+                <p class="video-description nepali">${video.description ? (video.description.substring(0, 80) + (video.description.length > 80 ? '...' : '')) : ''}</p>
                 ${video.hostel_slug ? `
                     <a href="/hostels/${video.hostel_slug}" class="video-hostel-link nepali">
                         <i class="fas fa-building"></i>

@@ -35,8 +35,18 @@ class GalleryController extends Controller
         $tab = $request->get('tab', 'photos'); // 'photos' or 'videos' or 'virtual-tours'
 
         try {
-            // Get ALL available media items - from both Gallery AND Room tables
-            $allItems = $this->getAllGalleryItems($tab);
+            // ✅ FIXED: Get items for current tab only
+            if ($tab === 'photos') {
+                $galleryItems = $this->getGalleryTableItems($tab);
+                $roomItems = $this->getRoomImageItems();
+                $allItems = array_merge($galleryItems, $roomItems);
+            } elseif ($tab === 'videos') {
+                $allItems = $this->getGalleryTableItems($tab);
+            } elseif ($tab === 'virtual-tours') {
+                $allItems = $this->getGalleryTableItems($tab);
+            } else {
+                $allItems = [];
+            }
 
             // Apply filtering
             $filteredItems = $this->applyFilters($allItems, $request);
@@ -161,6 +171,7 @@ class GalleryController extends Controller
                 'hostel_name' => $gallery->hostel->name ?? 'Unknown Hostel',
                 'hostel_id' => $gallery->hostel_id,
                 'hostel_slug' => $gallery->hostel->slug ?? '',
+                'hostel_gender' => $this->getHostelGender($gallery->hostel->name ?? ''),
                 'room' => $gallery->room,
                 'room_number' => $gallery->room ? $gallery->room->room_number : null,
                 'is_room_image' => !is_null($gallery->room_id),
@@ -213,6 +224,7 @@ class GalleryController extends Controller
                         'hostel_name' => $hostel->name,
                         'hostel_id' => $hostel->id,
                         'hostel_slug' => $hostel->slug,
+                        'hostel_gender' => $this->getHostelGender($hostel->name),
                         'room' => (object)['room_number' => $room->room_number],
                         'room_number' => $room->room_number,
                         'is_room_image' => true,
@@ -282,6 +294,22 @@ class GalleryController extends Controller
         }
 
         return array_values($filteredItems);
+    }
+
+    /**
+     * ✅ NEW: Detect hostel gender from name
+     */
+    private function getHostelGender($hostelName)
+    {
+        $name = strtolower($hostelName);
+        
+        if (str_contains($name, 'boys') || str_contains($name, 'ब्वाइज') || str_contains($name, 'पुरुष')) {
+            return 'boys';
+        } elseif (str_contains($name, 'girls') || str_contains($name, 'गर्ल्स') || str_contains($name, 'महिला')) {
+            return 'girls';
+        }
+        
+        return 'mixed';
     }
 
     /**
@@ -446,6 +474,22 @@ class GalleryController extends Controller
     {
         // ... [keep the existing showSampleData method as is]
         // This remains the same as in your original code
+        // Placeholder comment for existing code
+        return view('frontend.gallery.index', [
+            'galleries' => new LengthAwarePaginator([], 0, 12, 1),
+            'hostels' => [],
+            'cities' => [],
+            'metrics' => [
+                'total_students' => 22,
+                'total_hostels' => 6,
+                'satisfaction_rate' => 95,
+                'cities_covered' => 2,
+                'total_videos' => 4,
+                'total_photos' => 49
+            ],
+            'tab' => $tab,
+            'videoCategories' => $this->getVideoCategories()
+        ]);
     }
 
     /**
@@ -455,6 +499,8 @@ class GalleryController extends Controller
     {
         // ... [keep the existing getSampleGalleryData method as is]
         // This remains the same as in your original code
+        // Placeholder comment for existing code
+        return [];
     }
 
     /**
@@ -775,6 +821,7 @@ class GalleryController extends Controller
                             'hostel_name' => $hostel->name,
                             'hostel_id' => $hostel->id,
                             'hostel_slug' => $hostel->slug,
+                            'hostel_gender' => $this->getHostelGender($hostel->name),
                             'room_number' => $room->room_number,
                             'is_room_image' => true,
                             'source' => 'room'
