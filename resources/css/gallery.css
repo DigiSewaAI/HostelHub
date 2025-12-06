@@ -316,7 +316,7 @@
     padding: 0.6rem 1.2rem;
 }
 
-/* ✅ FIXED: Quick View Button */
+/* ✅ FIXED: Quick View Button - SIZE REDUCED */
 .quick-view-btn {
     position: absolute;
     bottom: 1rem;
@@ -324,10 +324,10 @@
     transform: translateX(-50%) translateY(10px);
     background: white;
     color: var(--gallery-primary);
-    padding: 0.6rem 1.2rem;
+    padding: 0.3rem 0.8rem; /* Reduced from 0.6rem 1.2rem */
     border-radius: 50px;
     font-weight: 600;
-    font-size: 0.875rem;
+    font-size: 0.75rem; /* Reduced from 0.875rem */
     opacity: 0;
     transition: var(--gallery-transition);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -1298,6 +1298,7 @@
     color: #666;
 }
 
+/* ✅ FIXED: Video Hostel Link - SIZE REDUCED */
 .video-hostel-link {
     display: inline-flex;
     align-items: center;
@@ -1305,9 +1306,9 @@
     color: var(--gallery-primary);
     text-decoration: none;
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: 0.8rem; /* Reduced from 0.9rem */
     transition: all 0.3s ease;
-    padding: 0.5rem 0;
+    padding: 0.3rem 0; /* Reduced from 0.5rem 0 */
 }
 
 .video-hostel-link:hover {
