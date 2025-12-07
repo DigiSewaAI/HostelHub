@@ -46,6 +46,40 @@ body .gallery-content-wrapper {
     padding-top: 0 !important;
 }
 
+/* 🚨 CRITICAL: Force hide all spinners by default */
+.gallery-loading,
+.videos-loading,
+.videos-placeholder .spinner,
+.loading-spinner {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+
+/* Only show when explicitly triggered */
+.gallery-loading:not(.hidden),
+.videos-loading:not(.hidden) {
+    display: block;
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Ensure videos placeholder is hidden when videos exist */
+.videos-grid:has(.video-card) .videos-placeholder {
+    display: none !important;
+}
+
+/* FIX: Make sure videos grid shows properly */
+.videos-grid {
+    position: relative;
+    min-height: 200px;
+}
+
+/* FIX: Smooth transitions for placeholder */
+.videos-placeholder {
+    transition: opacity 0.3s ease, height 0.3s ease;
+}
+
 /* Mobile fix */
 @media (max-width: 768px) {
     .gallery-header {
@@ -437,14 +471,14 @@ body .gallery-content-wrapper {
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
 
-    /* Video Loading State */
-    .videos-loading {
+    /* Enhanced Loading State for Videos */
+    .videos-placeholder {
         text-align: center;
         padding: 3rem;
         grid-column: 1 / -1;
     }
 
-    .videos-loading .spinner {
+    .videos-placeholder .spinner {
         width: 40px;
         height: 40px;
         border: 4px solid #f3f3f3;
@@ -452,6 +486,10 @@ body .gallery-content-wrapper {
         border-radius: 50%;
         animation: spin 1s linear infinite;
         margin: 0 auto 1rem;
+    }
+
+    .videos-placeholder.hidden {
+        display: none !important;
     }
 
     /* 🚨 UPDATED GALLERY CTA SECTION - EXACT SAME AS FEATURES PAGE */
@@ -994,32 +1032,29 @@ body .gallery-content-wrapper {
                 </div>
             </div>
 
-            <!-- ✅ FIXED: Videos Tab Content - SIMPLIFIED VERSION -->
+            <!-- ✅ FIXED: Videos Tab Content - SERVER-SIDE ONLY -->
             <div class="tab-content {{ $tab === 'videos' ? 'active' : '' }}" id="videos-tab">
                 <div class="gallery-grid videos-grid">
                     @if($tab === 'videos')
                         @php
                             $hasVideos = false;
+                            $videoCount = 0;
                         @endphp
                         
                         @foreach($galleries as $gallery)
                             @php
-                                // Check if it's a gallery item and not pagination data
-                                if (!is_object($gallery) && !is_array($gallery)) {
-                                    continue;
-                                }
+                                if (!is_object($gallery) && !is_array($gallery)) continue;
                                 
                                 $isArray = is_array($gallery);
                                 $mediaType = $isArray ? ($gallery['media_type'] ?? null) : ($gallery->media_type ?? null);
                                 
-                                // Skip if not a video
                                 if (!$mediaType || !in_array($mediaType, ['external_video', 'local_video'])) {
                                     continue;
                                 }
                                 
                                 $hasVideos = true;
+                                $videoCount++;
                                 
-                                // ✅ FIXED: Proper data extraction for videos
                                 if ($isArray) {
                                     $id = $gallery['id'] ?? '';
                                     $category = $gallery['category'] ?? '';
@@ -1056,35 +1091,20 @@ body .gallery-content-wrapper {
                                     $hostelGender = $gallery->hostel_gender ?? 'mixed';
                                 }
                                 
-                                // ✅ FIXED: Category mapping from Nepali to English keys
-                                $categoryMapping = [
-                                    'होस्टल टुर' => 'hostel_tour',
-                                    'कोठा टुर' => 'room_tour',
-                                    'विद्यार्थी जीवन' => 'student_life',
-                                    'भर्चुअल टुर' => 'virtual_tour',
-                                    'विद्यार्थी अनुभव' => 'student_experience',
-                                    'सुविधाहरू' => 'facilities',
-                                ];
-                                
-                                $categoryKey = $categoryMapping[$category] ?? $category;
-                                $categoryKey = $categoryMapping[$categoryNepali] ?? $categoryKey;
-                                
-                                // Ensure we have a valid thumbnail
-                                if (empty($thumbnailUrl) || $thumbnailUrl == asset('')) {
-                                    $thumbnailUrl = asset('images/video-thumbnail.jpg');
-                                }
-                                
-                                // ✅ FIXED: Video URL for modal
                                 $videoModalUrl = '';
                                 if ($mediaType === 'external_video' && $youtubeEmbedUrl) {
                                     $videoModalUrl = $youtubeEmbedUrl . '?autoplay=1&rel=0&controls=1&showinfo=0';
                                 } elseif ($mediaType === 'local_video' && $mediaUrl) {
                                     $videoModalUrl = $mediaUrl;
                                 }
+                                
+                                if (empty($thumbnailUrl) || $thumbnailUrl == asset('')) {
+                                    $thumbnailUrl = asset('images/video-thumbnail.jpg');
+                                }
                             @endphp
                             
-                            <div class="video-card" 
-                                 data-category="{{ $categoryKey }}"
+                            <div class="video-card server-loaded" 
+                                 data-category="{{ $category }}"
                                  data-title="{{ $title }}"
                                  data-description="{{ $description }}"
                                  data-date="{{ $createdAt->format('Y-m-d') }}"
@@ -1099,8 +1119,7 @@ body .gallery-content-wrapper {
                                  data-video-duration="{{ $videoDuration }}"
                                  data-video-resolution="{{ $videoResolution }}"
                                  data-is-360="{{ $is360Video ? 'true' : 'false' }}"
-                                 data-id="{{ $id }}"
-                                 onclick="openVideoModal(this)">
+                                 data-id="{{ $id }}">
 
                                 <div class="video-thumbnail">
                                     <img src="{{ $thumbnailUrl }}" alt="{{ $title }}" loading="lazy">
@@ -1123,8 +1142,7 @@ body .gallery-content-wrapper {
                                     <a href="{{ route('hostels.show', $hostelSlug) }}" 
                                        class="hostel-link-enhanced" 
                                        style="top: auto; bottom: 10px; left: 10px;"
-                                       title="{{ $hostelName }} मा जानुहोस्"
-                                       onclick="event.stopPropagation();">
+                                       title="{{ $hostelName }} मा जानुहोस्">
                                         <i class="fas fa-external-link-alt"></i>
                                         <span class="nepali">{{ $hostelName }}</span>
                                     </a>
@@ -1141,7 +1159,7 @@ body .gallery-content-wrapper {
                                     </div>
                                     <p class="video-description nepali">{{ Str::limit($description, 80) }}</p>
                                     @if($hostelSlug)
-                                    <a href="{{ route('hostels.show', $hostelSlug) }}" class="video-hostel-link nepali" onclick="event.stopPropagation();">
+                                    <a href="{{ route('hostels.show', $hostelSlug) }}" class="video-hostel-link nepali">
                                         <i class="fas fa-building"></i>
                                         {{ $hostelName }} को विवरण हेर्नुहोस्
                                     </a>
@@ -1157,19 +1175,17 @@ body .gallery-content-wrapper {
                             <p class="nepali">हाल कुनै भिडियो उपलब्ध छैन। कृपया पछि फर्कनुहोस्।</p>
                         </div>
                         @endif
+                        
+                        <!-- ✅ HIDDEN: Videos counter for JS -->
+                        <div id="videos-count" data-count="{{ $videoCount }}" style="display: none;"></div>
+                        
                     @else
-                        <!-- Videos will load via AJAX when tab is clicked -->
-                        <div class="videos-placeholder" style="text-align: center; padding: 3rem; grid-column: 1 / -1;">
-                            <div class="spinner" style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--gallery-primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem;"></div>
+                        <!-- Placeholder only shown when tab is inactive -->
+                        <div class="videos-placeholder">
+                            <div class="spinner"></div>
                             <p class="nepali">भिडियोहरू लोड हुँदैछ...</p>
                         </div>
                     @endif
-                </div>
-
-                <!-- Videos Loading State -->
-                <div class="videos-loading" style="display: none;">
-                    <div class="spinner"></div>
-                    <p class="nepali">भिडियोहरू लोड हुँदैछ...</p>
                 </div>
             </div>
 
@@ -1328,4 +1344,130 @@ body .gallery-content-wrapper {
 
 @push('scripts')
 @vite(['resources/js/gallery.js'])
+<script>
+// Simple function to handle video modal
+function openVideoModal(videoCard) {
+    const modal = document.querySelector('.gallery-modal');
+    const modalContent = modal.querySelector('.modal-content');
+    const modalTitle = modal.querySelector('.modal-title');
+    const modalDescription = modal.querySelector('.modal-description');
+    
+    // Get video data
+    const videoModalUrl = videoCard.getAttribute('data-video-modal-url');
+    const title = videoCard.getAttribute('data-title');
+    const description = videoCard.getAttribute('data-description');
+    
+    // Set modal content
+    modalTitle.textContent = title;
+    modalDescription.textContent = description;
+    
+    // Clear and add video
+    modalContent.innerHTML = '';
+    
+    if (videoModalUrl && videoModalUrl.includes('youtube.com')) {
+        const iframe = document.createElement('iframe');
+        iframe.src = videoModalUrl;
+        iframe.width = '100%';
+        iframe.height = '500';
+        iframe.allowFullscreen = true;
+        iframe.style.border = 'none';
+        modalContent.appendChild(iframe);
+    } else if (videoModalUrl) {
+        const video = document.createElement('video');
+        video.src = videoModalUrl;
+        video.controls = true;
+        video.autoplay = true;
+        video.style.width = '100%';
+        modalContent.appendChild(video);
+    }
+    
+    // Show modal
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+// ✅ FIXED: Videos placeholder hide logic - ENHANCED
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded - checking videos placeholder');
+    
+    // Function to hide all spinners and placeholders
+    function hideAllSpinners() {
+        // Hide the videos placeholder
+        const placeholder = document.querySelector('.videos-placeholder');
+        if (placeholder) {
+            placeholder.style.display = 'none';
+            placeholder.classList.add('hidden');
+        }
+        
+        // Hide any other loading indicators
+        const spinners = document.querySelectorAll('.spinner, .gallery-loading');
+        spinners.forEach(spinner => {
+            spinner.style.display = 'none';
+            spinner.classList.add('hidden');
+        });
+    }
+    
+    // Check if we're on videos tab
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabParam = urlParams.get('tab');
+    
+    if (tabParam === 'videos') {
+        console.log('On videos tab');
+        
+        // Get the video count from the hidden div
+        const videosCountElement = document.getElementById('videos-count');
+        const serverVideoCount = videosCountElement ? parseInt(videosCountElement.getAttribute('data-count')) : 0;
+        const clientVideoCount = document.querySelectorAll('.video-card').length;
+        
+        const hasVideos = serverVideoCount > 0 || clientVideoCount > 0;
+        
+        console.log(`Found ${serverVideoCount} server videos and ${clientVideoCount} client video cards`);
+        
+        // If videos exist, IMMEDIATELY hide placeholder
+        if (hasVideos) {
+            console.log('Hiding videos placeholder immediately');
+            hideAllSpinners();
+        } else {
+            // If no videos, we still hide the spinner because we show a "no results" message
+            hideAllSpinners();
+        }
+    } else {
+        // For other tabs, hide the videos placeholder (it's in the videos tab which is inactive)
+        hideAllSpinners();
+    }
+    
+    // Also check after DOM is fully ready
+    setTimeout(function() {
+        hideAllSpinners();
+    }, 100);
+});
+
+// ✅ FIXED: Also check when window loads
+window.addEventListener('load', function() {
+    console.log('Window loaded - final check for videos placeholder');
+    
+    // Re-run the hide function
+    const placeholder = document.querySelector('.videos-placeholder');
+    if (placeholder) {
+        placeholder.style.display = 'none';
+        placeholder.classList.add('hidden');
+    }
+    
+    // Hide any other loading indicators
+    const spinners = document.querySelectorAll('.spinner, .gallery-loading');
+    spinners.forEach(spinner => {
+        spinner.style.display = 'none';
+        spinner.classList.add('hidden');
+    });
+});
+
+// ✅ FIXED: Tab click handler
+function handleTabClick(event, tabName) {
+    // Only prevent default if it's not videos tab (since videos uses server-side)
+    if (tabName === 'photos') {
+        event.preventDefault();
+    }
+    return true;
+}
+</script>
 @endpush
