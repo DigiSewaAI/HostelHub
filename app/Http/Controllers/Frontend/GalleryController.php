@@ -27,6 +27,30 @@ class GalleryController extends Controller
     }
 
     /**
+     * ✅ FIXED: Added gender normalization method
+     */
+    private function normalizeGender($gender): string
+    {
+        if (!$gender) return 'mixed';
+
+        $gender = strtolower(trim($gender));
+
+        if (
+            str_contains($gender, 'boy') || str_contains($gender, 'male') ||
+            str_contains($gender, 'ब्वाइ') || str_contains($gender, 'पुरुष')
+        ) {
+            return 'boys';
+        } elseif (
+            str_contains($gender, 'girl') || str_contains($gender, 'female') ||
+            str_contains($gender, 'गर्ल') || str_contains($gender, 'महिला')
+        ) {
+            return 'girls';
+        }
+
+        return 'mixed';
+    }
+
+    /**
      * ✅ ENHANCED: Display the main gallery page with tabs for photos/videos
      * ✅ FIX: Now includes both Gallery images AND Room images with proper video tab handling
      */
@@ -140,6 +164,9 @@ class GalleryController extends Controller
             $youtubeId = $this->extractYoutubeId($gallery->media_url);
             $youtubeEmbedUrl = $youtubeId ? "https://www.youtube.com/embed/{$youtubeId}" : null;
 
+            // ✅ FIXED: Use normalized gender
+            $normalizedGender = $this->normalizeGender($gallery->hostel->gender ?? 'mixed');
+
             $items[] = (object)[
                 'id' => 'gallery_' . $gallery->id,
                 'title' => $gallery->title,
@@ -153,7 +180,7 @@ class GalleryController extends Controller
                 'hostel_name' => $gallery->hostel->name ?? 'Unknown Hostel',
                 'hostel_id' => $gallery->hostel_id,
                 'hostel_slug' => $gallery->hostel->slug ?? '',
-                'hostel_gender' => $gallery->hostel->gender ?? 'mixed', // ✅ FIXED: Use actual gender column
+                'hostel_gender' => $normalizedGender, // ✅ FIXED: Use normalized gender
                 'room' => $gallery->room,
                 'room_number' => $gallery->room ? $gallery->room->room_number : null,
                 'is_room_image' => !is_null($gallery->room_id),
@@ -205,6 +232,9 @@ class GalleryController extends Controller
             $youtubeId = $this->extractYoutubeId($gallery->media_url);
             $youtubeEmbedUrl = $youtubeId ? "https://www.youtube.com/embed/{$youtubeId}" : null;
 
+            // ✅ FIXED: Use normalized gender
+            $normalizedGender = $this->normalizeGender($gallery->hostel->gender ?? 'mixed');
+
             $items[] = (object)[
                 'id' => 'gallery_' . $gallery->id,
                 'title' => $gallery->title,
@@ -218,7 +248,7 @@ class GalleryController extends Controller
                 'hostel_name' => $gallery->hostel->name ?? 'Unknown Hostel',
                 'hostel_id' => $gallery->hostel_id,
                 'hostel_slug' => $gallery->hostel->slug ?? '',
-                'hostel_gender' => $gallery->hostel->gender ?? 'mixed', // ✅ FIXED: Use actual gender column
+                'hostel_gender' => $normalizedGender, // ✅ FIXED: Use normalized gender
                 'room' => $gallery->room,
                 'room_number' => $gallery->room ? $gallery->room->room_number : null,
                 'is_room_image' => false,
@@ -254,8 +284,8 @@ class GalleryController extends Controller
         $items = [];
 
         foreach ($hostels as $hostel) {
-            // ✅ FIXED: Get hostel gender from actual column
-            $hostelGender = $hostel->gender ?? 'mixed';
+            // ✅ FIXED: Use normalized gender
+            $normalizedGender = $this->normalizeGender($hostel->gender ?? 'mixed');
 
             foreach ($hostel->rooms as $room) {
                 // Check if image exists in storage
@@ -275,7 +305,7 @@ class GalleryController extends Controller
                         'hostel_name' => $hostel->name,
                         'hostel_id' => $hostel->id,
                         'hostel_slug' => $hostel->slug,
-                        'hostel_gender' => $hostelGender, // ✅ FIXED: Use actual gender column
+                        'hostel_gender' => $normalizedGender, // ✅ FIXED: Use normalized gender
                         'room' => (object)['room_number' => $room->room_number],
                         'room_number' => $room->room_number,
                         'is_room_image' => true,
@@ -297,7 +327,6 @@ class GalleryController extends Controller
 
         return $items;
     }
-
     /**
      * ✅ NEW: Extract YouTube ID from URL
      */
