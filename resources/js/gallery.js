@@ -155,34 +155,33 @@ class GalleryManager {
     }
     
     bindEvents() {
-        // Only bind photo-related events if we're on photos tab
-        if (this.currentTab === 'photos') {
-            // Filter buttons
-            this.elements.filterButtons.forEach(btn => {
-                btn.addEventListener('click', (e) => this.handleFilter(e));
+        // Bind filter buttons for ALL tabs
+        this.elements.filterButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => this.handleFilter(e));
+        });
+        
+        // Search input (works for all tabs)
+        if (this.elements.searchInput) {
+            this.elements.searchInput.addEventListener('input', (e) => this.handleSearch(e));
+            this.elements.searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    this.handleSearch(e);
+                }
             });
-            
-            // Search input
-            if (this.elements.searchInput) {
-                this.elements.searchInput.addEventListener('input', (e) => this.handleSearch(e));
-                this.elements.searchInput.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') {
-                        this.handleSearch(e);
-                    }
-                });
-            }
-            
-            // Hostel filter
-            if (this.elements.hostelFilter) {
-                this.elements.hostelFilter.addEventListener('change', (e) => this.handleHostelFilter(e));
-            }
-            
-            // Load more
-            if (this.elements.loadMoreBtn) {
-                this.elements.loadMoreBtn.addEventListener('click', () => this.loadMoreItems());
-            }
-            
-            // Gallery item clicks
+        }
+        
+        // Hostel filter (works for all tabs)
+        if (this.elements.hostelFilter) {
+            this.elements.hostelFilter.addEventListener('change', (e) => this.handleHostelFilter(e));
+        }
+        
+        // Load more (works for all tabs)
+        if (this.elements.loadMoreBtn) {
+            this.elements.loadMoreBtn.addEventListener('click', () => this.loadMoreItems());
+        }
+        
+        // Gallery item clicks (only for photos tab)
+        if (this.currentTab === 'photos') {
             this.elements.galleryItems.forEach((item, index) => {
                 item.addEventListener('click', (e) => {
                     if (!e.target.closest('.hostel-link-enhanced, .quick-view-btn')) {
@@ -305,22 +304,6 @@ class GalleryManager {
         // Apply filters if we have video items
         if (this.videoItems.length > 0) {
             this.applyFilters();
-        }
-        
-        // Handle search on videos tab
-        if (this.elements.searchInput) {
-            this.elements.searchInput.addEventListener('input', (e) => {
-                this.currentSearch = e.target.value.toLowerCase().trim();
-                this.applyFilters();
-            });
-        }
-        
-        // Handle hostel filter on videos tab
-        if (this.elements.hostelFilter) {
-            this.elements.hostelFilter.addEventListener('change', (e) => {
-                this.currentHostelFilter = e.target.value;
-                this.applyFilters();
-            });
         }
         
         // ✅ FIXED: Additional check after content is fully loaded
@@ -487,9 +470,9 @@ class GalleryManager {
     
     applyFilters() {
         console.log('Applying filters for tab:', this.currentTab, {
-            hostelFilter: this.currentHostelFilter,
+            filter: this.currentFilter,
             search: this.currentSearch,
-            filter: this.currentFilter
+            hostelFilter: this.currentHostelFilter
         });
         
         let visibleCount = 0;
@@ -508,12 +491,23 @@ class GalleryManager {
             // Skip if item doesn't exist
             if (!item) return;
             
-            // Category filter logic for photos
-            const matchesFilter = this.currentFilter === 'all' || 
-                (item.dataset.category && item.dataset.category === this.currentFilter) ||
-                (item.getAttribute('data-category') && item.getAttribute('data-category') === this.currentFilter);
+            // ✅ FIXED: SEPARATE CATEGORY FILTER LOGIC FOR EACH TAB
+            let matchesFilter = true;
             
-            // Search filter logic
+            if (this.currentTab === 'photos') {
+                // Photos tab: Use Nepali category matching
+                matchesFilter = this.currentFilter === 'all' || 
+                    (item.dataset.category && item.dataset.category === this.currentFilter) ||
+                    (item.getAttribute('data-category') && item.getAttribute('data-category') === this.currentFilter);
+            } else if (this.currentTab === 'videos') {
+                // Videos tab: Use English category matching
+                matchesFilter = this.currentFilter === 'all' || 
+                    (item.dataset.category && item.dataset.category === this.currentFilter) ||
+                    (item.getAttribute('data-category') && item.getAttribute('data-category') === this.currentFilter);
+            }
+            // For virtual-tours tab, no category filter
+            
+            // Search filter logic (common for all tabs)
             const matchesSearch = this.currentSearch === '' || 
                 (item.dataset.title && item.dataset.title.toLowerCase().includes(this.currentSearch)) ||
                 (item.getAttribute('data-title') && item.getAttribute('data-title').toLowerCase().includes(this.currentSearch)) ||
@@ -524,37 +518,13 @@ class GalleryManager {
                 (item.dataset.roomNumber && item.dataset.roomNumber.toLowerCase().includes(this.currentSearch)) ||
                 (item.getAttribute('data-room-number') && item.getAttribute('data-room-number').toLowerCase().includes(this.currentSearch));
             
-            // ✅ FIXED: Simplified Boys/Girls filter logic
+            // ✅ FIXED: SIMPLIFIED Gender filter logic
             let matchesHostel = true;
             if (this.currentHostelFilter) {
-                if (this.currentHostelFilter === 'boys' || this.currentHostelFilter === 'girls') {
-                    // Check data-hostel-gender attribute first
-                    const hostelGender = item.getAttribute('data-hostel-gender') || 
-                                         item.dataset.hostelGender || '';
-                    
-                    // Check hostel name for gender indicators
-                    const hostelName = (item.getAttribute('data-hostel-name') || 
-                                        item.dataset.hostelName || 
-                                        item.dataset.hostel || 
-                                        '').toLowerCase();
-                    
-                    // Simple gender matching
-                    if (this.currentHostelFilter === 'boys') {
-                        matchesHostel = hostelGender === 'boys' || 
-                                      hostelGender === 'male' ||
-                                      hostelName.includes('boys') ||
-                                      hostelName.includes('boy') ||
-                                      hostelName.includes('ब्वाइज') ||
-                                      hostelName.includes('ब्वायज') ||
-                                      hostelName.includes('पुरुष');
-                    } else if (this.currentHostelFilter === 'girls') {
-                        matchesHostel = hostelGender === 'girls' || 
-                                      hostelGender === 'female' ||
-                                      hostelName.includes('girls') ||
-                                      hostelName.includes('girl') ||
-                                      hostelName.includes('गर्ल्स') ||
-                                      hostelName.includes('महिला');
-                    }
+                if (this.currentHostelFilter === 'boys' || this.currentHostelFilter === 'girls' || this.currentHostelFilter === 'mixed') {
+                    // Get the normalized gender value from data attribute
+                    const hostelGender = item.getAttribute('data-hostel-gender') || item.dataset.hostelGender;
+                    matchesHostel = hostelGender === this.currentHostelFilter;
                 } else {
                     // Specific hostel by ID
                     const hostelId = item.getAttribute('data-hostel-id') || item.dataset.hostelId;
@@ -569,8 +539,18 @@ class GalleryManager {
                 matchesVirtualTour = is360 === 'true' || is360 === '1' || is360 === true;
             }
             
-            // Apply all filters
-            if ((this.currentTab !== 'photos' || matchesFilter) && matchesSearch && matchesHostel && matchesVirtualTour) {
+            // ✅ FIXED: Apply filters correctly based on tab
+            let shouldShow = matchesSearch && matchesHostel;
+            
+            if (this.currentTab === 'photos' || this.currentTab === 'videos') {
+                shouldShow = shouldShow && matchesFilter;
+            }
+            
+            if (this.currentTab === 'virtual-tours') {
+                shouldShow = shouldShow && matchesVirtualTour;
+            }
+            
+            if (shouldShow) {
                 item.style.display = 'block';
                 item.style.opacity = '1';
                 item.style.transform = 'scale(1)';
