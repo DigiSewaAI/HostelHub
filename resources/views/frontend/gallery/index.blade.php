@@ -214,13 +214,25 @@ body .gallery-content-wrapper {
         box-shadow: 0 5px 15px rgba(30, 58, 138, 0.3);
     }
 
+    /* 🚨 FIXED: Badge visibility - Always visible */
     .tab-badge {
-        background: rgba(255, 255, 255, 0.2);
-        color: white;
+        background: rgba(0, 0, 0, 0.7); /* Dark background for inactive state */
+        color: white !important;
         padding: 0.2rem 0.5rem;
         border-radius: 20px;
         font-size: 0.7rem;
         font-weight: 600;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+    }
+
+    /* Active state badge */
+    .tab-btn.active .tab-badge {
+        background: rgba(255, 255, 255, 0.95) !important;
+        color: #1e293b !important;
+        border: 1px solid rgba(30, 41, 59, 0.2) !important;
+        font-weight: 700 !important;
+        text-shadow: none;
     }
 
     .tab-content {
@@ -748,6 +760,17 @@ body .gallery-content-wrapper {
             width: 100%;
             max-width: 250px;
         }
+        
+        /* Mobile badge visibility fix */
+        .tab-badge {
+            background: rgba(0, 0, 0, 0.8) !important;
+            color: white !important;
+        }
+        
+        .tab-btn.active .tab-badge {
+            background: rgba(255, 255, 255, 0.95) !important;
+            color: #1e293b !important;
+        }
     }
 
     @media (max-width: 480px) {
@@ -816,7 +839,7 @@ body .gallery-content-wrapper {
                 <i class="fas fa-video"></i>
                 भिडियोहरू
                 <!-- FIX #1: Video badge color -->
-                <span class="tab-badge" style="background: #ffffff; color: #1e293b;">{{ $metrics['total_videos'] ?? '25+' }}</span>
+                <span class="tab-badge">{{ $metrics['total_videos'] ?? '25+' }}</span>
             </a>
             <a href="{{ route('gallery.index', ['tab' => 'virtual-tours']) }}" 
                class="tab-btn nepali {{ $tab === 'virtual-tours' ? 'active' : '' }}"
