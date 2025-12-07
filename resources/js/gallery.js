@@ -1,4 +1,4 @@
-// Advanced Gallery Functionality
+// Advanced Gallery Functionality - FIXED VERSION
 class GalleryManager {
     constructor() {
         this.currentFilter = 'all';
@@ -18,17 +18,31 @@ class GalleryManager {
         this.videoCategories = {};
         this.currentItems = [];
         
+        // Check if we're on a tab that requires full page reload
+        const urlParams = new URLSearchParams(window.location.search);
+        const tabParam = urlParams.get('tab');
+        if (tabParam && (tabParam === 'videos' || tabParam === 'virtual-tours')) {
+            // If server already loaded videos tab, don't use client-side filtering
+            this.currentTab = tabParam;
+        }
+        
         this.init();
     }
     
     init() {
-        console.log('Enhanced GalleryManager initialized');
+        console.log('Enhanced GalleryManager initialized - Tab:', this.currentTab);
         this.cacheElements();
         this.bindEvents();
-        this.initMediaItems();
-        this.loadVideoCategories();
-        this.setupIntersectionObserver();
-        this.applyFilters();
+        
+        // Only initialize items if we're on photos tab or videos were loaded client-side
+        if (this.currentTab === 'photos') {
+            this.initMediaItems();
+            this.setupIntersectionObserver();
+            this.applyFilters();
+        } else {
+            // For videos/virtual-tours tabs, handle differently
+            this.handleVideoTabInitialization();
+        }
     }
     
     cacheElements() {
@@ -66,27 +80,44 @@ class GalleryManager {
     }
     
     bindEvents() {
-        // Filter buttons
-        this.elements.filterButtons.forEach(btn => {
-            btn.addEventListener('click', (e) => this.handleFilter(e));
-        });
-        
-        // Search input
-        if (this.elements.searchInput) {
-            this.elements.searchInput.addEventListener('input', (e) => this.handleSearch(e));
+        // Only bind photo-related events if we're on photos tab
+        if (this.currentTab === 'photos') {
+            // Filter buttons
+            this.elements.filterButtons.forEach(btn => {
+                btn.addEventListener('click', (e) => this.handleFilter(e));
+            });
+            
+            // Search input
+            if (this.elements.searchInput) {
+                this.elements.searchInput.addEventListener('input', (e) => this.handleSearch(e));
+                this.elements.searchInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.handleSearch(e);
+                    }
+                });
+            }
+            
+            // Hostel filter
+            if (this.elements.hostelFilter) {
+                this.elements.hostelFilter.addEventListener('change', (e) => this.handleHostelFilter(e));
+            }
+            
+            // Load more
+            if (this.elements.loadMoreBtn) {
+                this.elements.loadMoreBtn.addEventListener('click', () => this.loadMoreItems());
+            }
+            
+            // Gallery item clicks
+            this.elements.galleryItems.forEach((item, index) => {
+                item.addEventListener('click', (e) => {
+                    if (!e.target.closest('.hostel-link-enhanced, .quick-view-btn')) {
+                        this.openModal(index, 'photo');
+                    }
+                });
+            });
         }
         
-        // Hostel filter
-        if (this.elements.hostelFilter) {
-            this.elements.hostelFilter.addEventListener('change', (e) => this.handleHostelFilter(e));
-        }
-        
-        // Load more
-        if (this.elements.loadMoreBtn) {
-            this.elements.loadMoreBtn.addEventListener('click', () => this.loadMoreItems());
-        }
-        
-        // Modal events
+        // Modal events (always bind these)
         if (this.elements.modalClose) {
             this.elements.modalClose.addEventListener('click', () => this.closeModal());
         }
@@ -99,22 +130,24 @@ class GalleryManager {
             this.elements.modalNext.addEventListener('click', () => this.navigateModal(1));
         }
         
-        // Gallery item clicks
-        this.elements.galleryItems.forEach((item, index) => {
-            item.addEventListener('click', (e) => {
-                if (!e.target.closest('.hostel-link-enhanced, .quick-view-btn')) {
-                    this.openModal(index, 'photo');
-                }
-            });
-        });
-        
-        // Video card clicks - FIXED: Added proper event delegation for videos
+        // Video card clicks - FIXED: Simplified approach
         this.attachVideoCardEvents();
         
-        // Tab switching
+        // Tab switching - FIXED: Use server-side navigation for videos/virtual-tours
         if (this.elements.tabButtons) {
             this.elements.tabButtons.forEach(btn => {
                 btn.addEventListener('click', (e) => {
+                    const tab = btn.getAttribute('href').includes('videos') ? 'videos' : 
+                               btn.getAttribute('href').includes('virtual-tours') ? 'virtual-tours' : 'photos';
+                    
+                    // For videos and virtual-tours, let the server handle it
+                    if (tab === 'videos' || tab === 'virtual-tours') {
+                        e.preventDefault();
+                        window.location.href = btn.getAttribute('href');
+                        return;
+                    }
+                    
+                    // For photos, handle client-side
                     if (btn.classList.contains('active')) {
                         e.preventDefault();
                         return;
@@ -124,10 +157,18 @@ class GalleryManager {
             });
         }
         
-        // Video category filtering
-        if (this.elements.videoCategoryButtons) {
+        // Video category filtering - FIXED: Use server-side filtering
+        if (this.elements.videoCategoryButtons && this.currentTab === 'videos') {
             this.elements.videoCategoryButtons.forEach(btn => {
-                btn.addEventListener('click', (e) => this.handleVideoCategoryFilter(e));
+                btn.addEventListener('click', (e) => {
+                    const category = btn.dataset.category;
+                    if (category && category !== this.currentVideoCategory) {
+                        e.preventDefault();
+                        const url = new URL(window.location);
+                        url.searchParams.set('video_category', category);
+                        window.location.href = url.toString();
+                    }
+                });
             });
         }
         
@@ -163,30 +204,58 @@ class GalleryManager {
             });
         }
         
-        // Infinite scroll for videos
-        window.addEventListener('scroll', () => this.handleInfiniteScroll());
-        
         // HD image click handlers
         this.setupHdImageLoading();
     }
     
-    // NEW: Attach video card events properly
+    // NEW: Handle video tab initialization
+    handleVideoTabInitialization() {
+        console.log('Initializing video tab functionality');
+        
+        // Initialize video items
+        this.videoItems = Array.from(this.elements.videoCards || []);
+        console.log(`Found ${this.videoItems.length} video items`);
+        
+        // Set up intersection observer for videos
+        if (this.videoItems.length > 0) {
+            this.setupIntersectionObserver();
+        }
+        
+        // Apply filters if we have video items
+        if (this.videoItems.length > 0) {
+            this.applyFilters();
+        }
+        
+        // Handle search on videos tab
+        if (this.elements.searchInput) {
+            this.elements.searchInput.addEventListener('input', (e) => {
+                this.currentSearch = e.target.value.toLowerCase().trim();
+                this.applyFilters();
+            });
+        }
+        
+        // Handle hostel filter on videos tab
+        if (this.elements.hostelFilter) {
+            this.elements.hostelFilter.addEventListener('change', (e) => {
+                this.currentHostelFilter = e.target.value;
+                this.applyFilters();
+            });
+        }
+    }
+    
+    // FIXED: Simplified video card events
     attachVideoCardEvents() {
         const videoCards = document.querySelectorAll('.video-card');
         videoCards.forEach((card, index) => {
-            // Remove existing event listeners to prevent duplicates
-            const newCard = card.cloneNode(true);
-            card.parentNode.replaceChild(newCard, card);
-            
-            // Add fresh event listener
-            newCard.addEventListener('click', (e) => {
+            // Add fresh event listener with proper event delegation
+            card.addEventListener('click', (e) => {
                 // Prevent click if clicked on hostel link or video hostel link
                 if (e.target.closest('.hostel-link-enhanced, .video-hostel-link')) {
                     return;
                 }
                 
                 // Find the index in the current videoItems array
-                const currentIndex = Array.from(this.videoItems).indexOf(newCard);
+                const currentIndex = Array.from(videoCards).indexOf(card);
                 if (currentIndex !== -1) {
                     this.openModal(currentIndex, 'video');
                 }
@@ -194,7 +263,7 @@ class GalleryManager {
         });
         
         // Update video items reference
-        this.videoItems = Array.from(document.querySelectorAll('.video-card'));
+        this.videoItems = Array.from(videoCards);
     }
     
     setupIntersectionObserver() {
@@ -224,29 +293,18 @@ class GalleryManager {
         });
         
         // Observe all gallery items and video cards
-        document.querySelectorAll('.gallery-item, .video-card').forEach(item => {
+        const itemsToObserve = this.currentTab === 'photos' ? 
+            document.querySelectorAll('.gallery-item') : 
+            document.querySelectorAll('.video-card');
+            
+        itemsToObserve.forEach(item => {
             this.observer.observe(item);
         });
     }
     
     initMediaItems() {
         this.mediaItems = Array.from(this.elements.galleryItems);
-        this.videoItems = Array.from(this.elements.videoCards);
-        console.log(`Initialized ${this.mediaItems.length} photos and ${this.videoItems.length} videos`);
-    }
-    
-    loadVideoCategories() {
-        // Try to get video categories from the page
-        if (this.elements.videoCategoriesContainer) {
-            this.videoCategories = {};
-            this.elements.videoCategoryButtons.forEach(btn => {
-                const category = btn.dataset.category;
-                const name = btn.textContent.trim();
-                if (category && category !== 'all') {
-                    this.videoCategories[category] = name;
-                }
-            });
-        }
+        console.log(`Initialized ${this.mediaItems.length} photos`);
     }
     
     handleTabSwitch(e) {
@@ -280,13 +338,6 @@ class GalleryManager {
             if (allFilterBtn) allFilterBtn.classList.add('active');
         }
         
-        // Reset video category buttons
-        if (this.elements.videoCategoryButtons) {
-            this.elements.videoCategoryButtons.forEach(btn => btn.classList.remove('active'));
-            const allVideoCategoryBtn = Array.from(this.elements.videoCategoryButtons).find(btn => btn.dataset.category === 'all');
-            if (allVideoCategoryBtn) allVideoCategoryBtn.classList.add('active');
-        }
-        
         // Reset search input
         if (this.elements.searchInput) {
             this.elements.searchInput.value = '';
@@ -297,23 +348,14 @@ class GalleryManager {
             this.elements.hostelFilter.value = '';
         }
         
-        // Show/hide video categories based on tab
-        if (this.elements.videoCategoriesContainer) {
-            if (tab === 'videos') {
-                this.elements.videoCategoriesContainer.style.display = 'block';
-            } else {
-                this.elements.videoCategoriesContainer.style.display = 'none';
-            }
-        }
-        
-        // Apply filters for the current tab
-        this.applyFilters();
-        
-        // Re-attach video events if we're on videos tab
-        if (tab === 'videos' || tab === 'virtual-tours') {
-            setTimeout(() => {
-                this.attachVideoCardEvents();
-            }, 100);
+        // Re-initialize based on tab
+        if (tab === 'photos') {
+            this.initMediaItems();
+            this.setupIntersectionObserver();
+            this.applyFilters();
+        } else {
+            // For videos/virtual-tours, redirect to server-side version
+            window.location.href = button.getAttribute('href');
         }
     }
     
@@ -330,19 +372,6 @@ class GalleryManager {
         this.applyFilters();
     }
     
-    handleVideoCategoryFilter(e) {
-        const button = e.currentTarget;
-        const category = button.dataset.category;
-        
-        // Update active button
-        this.elements.videoCategoryButtons.forEach(btn => btn.classList.remove('active'));
-        button.classList.add('active');
-        
-        this.currentVideoCategory = category;
-        this.visibleItems = 12;
-        this.applyFilters();
-    }
-    
     handleSearch(e) {
         this.currentSearch = e.target.value.toLowerCase().trim();
         this.visibleItems = 12;
@@ -350,17 +379,26 @@ class GalleryManager {
     }
     
     handleHostelFilter(e) {
-        this.currentHostelFilter = e.target.value;
+        const value = e.target.value;
+        
+        // FIXED: Simplified gender detection
+        if (value === 'boys' || value === 'girls') {
+            this.currentHostelFilter = value;
+        } else if (value) {
+            this.currentHostelFilter = value; // Specific hostel ID
+        } else {
+            this.currentHostelFilter = '';
+        }
+        
         this.visibleItems = 12;
         this.applyFilters();
     }
     
     applyFilters() {
-        console.log('Applying filters:', {
-            tab: this.currentTab,
+        console.log('Applying filters for tab:', this.currentTab, {
             hostelFilter: this.currentHostelFilter,
-            videoCategory: this.currentVideoCategory,
-            search: this.currentSearch
+            search: this.currentSearch,
+            filter: this.currentFilter
         });
         
         let visibleCount = 0;
@@ -371,10 +409,15 @@ class GalleryManager {
             itemsToFilter = this.mediaItems;
         } else if (this.currentTab === 'videos' || this.currentTab === 'virtual-tours') {
             itemsToFilter = this.videoItems;
+        } else {
+            return; // Unknown tab
         }
         
         itemsToFilter.forEach((item, index) => {
-            // Category filter logic
+            // Skip if item doesn't exist
+            if (!item) return;
+            
+            // Category filter logic for photos
             const matchesFilter = this.currentFilter === 'all' || 
                 (item.dataset.category && item.dataset.category === this.currentFilter) ||
                 (item.getAttribute('data-category') && item.getAttribute('data-category') === this.currentFilter);
@@ -393,62 +436,39 @@ class GalleryManager {
             // FIXED: Simplified Boys/Girls filter logic
             let matchesHostel = true;
             if (this.currentHostelFilter) {
-                // First check data-hostel-gender attribute
-                const hostelGender = item.getAttribute('data-hostel-gender') || 
-                                     item.dataset.hostelGender || 
-                                     'mixed';
-                
-                console.log(`Item ${index} hostel gender:`, hostelGender);
-                
-                if (this.currentHostelFilter === 'boys') {
-                    matchesHostel = hostelGender === 'boys' || hostelGender === 'male';
+                if (this.currentHostelFilter === 'boys' || this.currentHostelFilter === 'girls') {
+                    // Check data-hostel-gender attribute first
+                    const hostelGender = item.getAttribute('data-hostel-gender') || 
+                                         item.dataset.hostelGender || '';
                     
-                    // If not matched by gender, check hostel name
-                    if (!matchesHostel) {
-                        const hostelName = (item.getAttribute('data-hostel-name') || item.dataset.hostelName || '').toLowerCase();
-                        matchesHostel = hostelName.includes('boys') || 
+                    // Check hostel name for gender indicators
+                    const hostelName = (item.getAttribute('data-hostel-name') || 
+                                        item.dataset.hostelName || 
+                                        item.dataset.hostel || 
+                                        '').toLowerCase();
+                    
+                    // Simple gender matching
+                    if (this.currentHostelFilter === 'boys') {
+                        matchesHostel = hostelGender === 'boys' || 
+                                      hostelGender === 'male' ||
+                                      hostelName.includes('boys') ||
                                       hostelName.includes('boy') ||
                                       hostelName.includes('ब्वाइज') ||
                                       hostelName.includes('ब्वायज') ||
                                       hostelName.includes('पुरुष');
-                    }
-                    
-                } else if (this.currentHostelFilter === 'girls') {
-                    matchesHostel = hostelGender === 'girls' || hostelGender === 'female';
-                    
-                    if (!matchesHostel) {
-                        const hostelName = (item.getAttribute('data-hostel-name') || item.dataset.hostelName || '').toLowerCase();
-                        matchesHostel = hostelName.includes('girls') || 
+                    } else if (this.currentHostelFilter === 'girls') {
+                        matchesHostel = hostelGender === 'girls' || 
+                                      hostelGender === 'female' ||
+                                      hostelName.includes('girls') ||
                                       hostelName.includes('girl') ||
                                       hostelName.includes('गर्ल्स') ||
                                       hostelName.includes('महिला');
                     }
-                    
                 } else {
                     // Specific hostel by ID
                     const hostelId = item.getAttribute('data-hostel-id') || item.dataset.hostelId;
                     matchesHostel = hostelId == this.currentHostelFilter;
                 }
-            }
-            
-            // FIXED: Video category filter logic
-            let matchesVideoCategory = true;
-            if (this.currentTab === 'videos' && this.currentVideoCategory && this.currentVideoCategory !== 'all') {
-                const itemCategoryKey = item.getAttribute('data-category-key') || item.dataset.categoryKey;
-                const itemCategoryNepali = item.getAttribute('data-category') || item.dataset.category;
-                
-                // Check both English key and Nepali text for compatibility
-                matchesVideoCategory = (itemCategoryKey && itemCategoryKey === this.currentVideoCategory) || 
-                                     (itemCategoryNepali && this.videoCategories[this.currentVideoCategory] && 
-                                      itemCategoryNepali === this.videoCategories[this.currentVideoCategory]);
-                
-                console.log(`Video category check:`, {
-                    itemCategoryKey,
-                    itemCategoryNepali,
-                    currentCategory: this.currentVideoCategory,
-                    nepaliName: this.videoCategories[this.currentVideoCategory],
-                    matches: matchesVideoCategory
-                });
             }
             
             // FIXED: Virtual tour filter logic
@@ -458,7 +478,8 @@ class GalleryManager {
                 matchesVirtualTour = is360 === 'true' || is360 === '1' || is360 === true;
             }
             
-            if (matchesFilter && matchesSearch && matchesHostel && matchesVideoCategory && matchesVirtualTour) {
+            // Apply all filters
+            if ((this.currentTab !== 'photos' || matchesFilter) && matchesSearch && matchesHostel && matchesVirtualTour) {
                 item.style.display = 'block';
                 item.style.opacity = '1';
                 item.style.transform = 'scale(1)';
@@ -480,7 +501,7 @@ class GalleryManager {
         // Smooth animation for appearing items
         setTimeout(() => {
             itemsToFilter.forEach(item => {
-                if (item.style.display === 'block') {
+                if (item && item.style.display === 'block') {
                     item.classList.add('visible');
                 }
             });
@@ -492,7 +513,7 @@ class GalleryManager {
         const itemsToShow = this.currentTab === 'photos' ? this.mediaItems : this.videoItems;
         
         itemsToShow.forEach(item => {
-            if (item.style.display !== 'none') {
+            if (item && item.style.display !== 'none') {
                 if (shown < this.visibleItems) {
                     item.style.display = 'block';
                     item.style.animationDelay = `${shown * 0.1}s`;
@@ -522,141 +543,10 @@ class GalleryManager {
         }, 800);
     }
     
-    async loadMoreVideos() {
-        if (this.isLoadingVideos || !this.hasMoreVideos) return;
-        
-        this.isLoadingVideos = true;
-        if (this.elements.videosLoadingIndicator) {
-            this.elements.videosLoadingIndicator.style.display = 'block';
-        }
-        
-        try {
-            const response = await fetch(`/api/gallery/videos?page=${this.videoPage}`);
-            const data = await response.json();
-            
-            if (data.success && data.videos && data.videos.length > 0) {
-                this.videoPage++;
-                
-                // Create and append new video cards
-                data.videos.forEach(video => {
-                    const videoCard = this.createVideoCard(video);
-                    if (this.elements.videosGrid) {
-                        this.elements.videosGrid.appendChild(videoCard);
-                    }
-                });
-                
-                // Update video items array
-                this.videoItems = Array.from(document.querySelectorAll('.video-card'));
-                
-                // Update hasMoreVideos flag
-                this.hasMoreVideos = this.videoPage < data.pagination.last_page;
-                
-                // Re-attach event listeners
-                this.attachVideoCardEvents();
-                
-                // Update observer
-                document.querySelectorAll('.video-card').forEach(card => {
-                    this.observer.observe(card);
-                });
-            } else {
-                this.hasMoreVideos = false;
-            }
-        } catch (error) {
-            console.error('Error loading more videos:', error);
-        } finally {
-            this.isLoadingVideos = false;
-            if (this.elements.videosLoadingIndicator) {
-                this.elements.videosLoadingIndicator.style.display = 'none';
-            }
-        }
-    }
-    
-    createVideoCard(video) {
-        const div = document.createElement('div');
-        div.className = 'video-card';
-        div.setAttribute('data-category', video.category_nepali || video.category);
-        div.setAttribute('data-category-key', video.category_key || video.category);
-        div.setAttribute('data-title', video.title);
-        div.setAttribute('data-description', video.description);
-        div.setAttribute('data-date', video.created_at);
-        div.setAttribute('data-hostel', video.hostel_name);
-        div.setAttribute('data-hostel-id', video.hostel_id);
-        div.setAttribute('data-hostel-slug', video.hostel_slug || '');
-        div.setAttribute('data-hostel-gender', video.hostel_gender || '');
-        div.setAttribute('data-hostel-name', (video.hostel_name || '').toLowerCase());
-        div.setAttribute('data-room-number', video.room_number || '');
-        div.setAttribute('data-media-type', video.media_type);
-        div.setAttribute('data-youtube-embed', video.youtube_embed_url || '');
-        div.setAttribute('data-video-url', video.media_url || '');
-        div.setAttribute('data-video-duration', video.video_duration || '');
-        div.setAttribute('data-video-resolution', video.video_resolution || '');
-        div.setAttribute('data-is-360', video.is_360_video || false);
-        div.setAttribute('data-id', video.id);
-        
-        const thumbnailUrl = video.thumbnail_url || 
-                           (video.media_type === 'external_video' && video.external_link ? 
-                            `https://img.youtube.com/vi/${this.getYoutubeId(video.external_link)}/hqdefault.jpg` : 
-                            video.media_url);
-        
-        const hostelName = video.hostel_name || 'Unknown Hostel';
-        const truncatedHostelName = hostelName.length > 12 ? hostelName.substring(0, 12) + '...' : hostelName;
-        
-        div.innerHTML = `
-            <div class="video-thumbnail">
-                <img src="${thumbnailUrl}" 
-                     alt="${video.title}" 
-                     loading="lazy"
-                     data-src="${thumbnailUrl}">
-                <div class="play-button">
-                    <i class="fas fa-play"></i>
-                </div>
-                ${video.video_duration ? `<div class="video-duration">${video.video_duration}</div>` : ''}
-                ${video.is_360_video ? `
-                    <div class="video-badge-360">
-                        <i class="fas fa-360-degrees"></i>
-                        360°
-                    </div>
-                ` : ''}
-                ${video.hostel_slug ? `
-                    <a href="/hostels/${video.hostel_slug}" 
-                       class="hostel-link-enhanced" 
-                       style="top: auto; bottom: 10px; left: 10px;"
-                       title="${hostelName} मा जानुहोस्">
-                        <i class="fas fa-external-link-alt"></i>
-                        <span class="nepali">${truncatedHostelName}</span>
-                    </a>
-                ` : ''}
-            </div>
-            <div class="video-info">
-                <h3 class="nepali">${video.title}</h3>
-                <div class="video-meta">
-                    <span class="nepali">${video.category_nepali || video.category}</span>
-                    ${video.video_resolution ? `<span class="video-resolution">${video.video_resolution}</span>` : ''}
-                </div>
-                <p class="video-description nepali">${video.description ? (video.description.substring(0, 80) + (video.description.length > 80 ? '...' : '')) : ''}</p>
-                ${video.hostel_slug ? `
-                    <a href="/hostels/${video.hostel_slug}" class="video-hostel-link nepali">
-                        <i class="fas fa-building"></i>
-                        ${hostelName} को विवरण हेर्नुहोस्
-                    </a>
-                ` : ''}
-            </div>
-        `;
-        
-        return div;
-    }
-    
-    getYoutubeId(url) {
-        if (!url) return null;
-        const pattern = /(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
-        const match = url.match(pattern);
-        return match ? match[1] : null;
-    }
-    
     smoothScrollToNewItems() {
         const items = this.currentTab === 'photos' ? this.mediaItems : this.videoItems;
         const newItems = Array.from(items)
-            .filter(item => item.style.display === 'block')
+            .filter(item => item && item.style.display === 'block')
             .slice(-12);
             
         if (newItems.length > 0) {
@@ -664,17 +554,6 @@ class GalleryManager {
                 behavior: 'smooth', 
                 block: 'center' 
             });
-        }
-    }
-    
-    handleInfiniteScroll() {
-        if (this.currentTab !== 'videos' || this.isLoadingVideos || !this.hasMoreVideos) return;
-        
-        const scrollPosition = window.innerHeight + window.scrollY;
-        const pageHeight = document.documentElement.scrollHeight;
-        
-        if (scrollPosition >= pageHeight - 1000) {
-            this.loadMoreVideos();
         }
     }
     
@@ -700,7 +579,7 @@ class GalleryManager {
         
         const items = this.currentTab === 'photos' ? this.mediaItems : this.videoItems;
         const visibleCount = items.filter(item => 
-            item.style.display !== 'none'
+            item && item.style.display !== 'none'
         ).length;
         
         if (visibleCount <= this.visibleItems) {
@@ -717,7 +596,7 @@ class GalleryManager {
         
         const items = this.currentTab === 'photos' ? this.mediaItems : this.videoItems;
         const hasVisibleItems = items.some(item => 
-            item.style.display !== 'none'
+            item && item.style.display !== 'none'
         );
         
         if (hasVisibleItems) {
@@ -779,6 +658,7 @@ class GalleryManager {
             }
         } catch (error) {
             console.error('Error loading HD image:', error);
+            const modalImg = this.elements.modalContent.querySelector('img');
             if (modalImg) {
                 modalImg.classList.remove('hd-loading');
             }
@@ -812,13 +692,6 @@ class GalleryManager {
             console.error('Item not found at index:', index);
             return;
         }
-        
-        console.log('Item data attributes:');
-        console.log('Title:', item.getAttribute('data-title'));
-        console.log('Media Type:', item.getAttribute('data-media-type'));
-        console.log('Video URL:', item.getAttribute('data-video-url'));
-        console.log('YouTube Embed:', item.getAttribute('data-youtube-embed'));
-        console.log('Hostel Gender:', item.getAttribute('data-hostel-gender'));
         
         this.currentMediaIndex = index;
         
@@ -857,7 +730,7 @@ class GalleryManager {
         // Clear previous content
         this.elements.modalContent.innerHTML = '';
         
-        // Add media based on type
+        // Add media based on type - FIXED: Better video handling
         if (mediaType === 'photo') {
             const img = document.createElement('img');
             const imgSrc = item.querySelector('img')?.src || '';
@@ -934,6 +807,8 @@ class GalleryManager {
             videoContainer.className = 'modal-local-video';
             videoContainer.style.position = 'relative';
             videoContainer.style.width = '100%';
+            videoContainer.style.maxHeight = '70vh';
+            videoContainer.style.overflow = 'hidden';
             
             const video = document.createElement('video');
             video.src = videoUrl;
@@ -971,11 +846,11 @@ class GalleryManager {
     updateCurrentItemsForNavigation() {
         if (this.currentTab === 'photos') {
             this.currentItems = Array.from(this.mediaItems).filter(item => 
-                item.style.display !== 'none'
+                item && item.style.display !== 'none'
             );
         } else if (this.currentTab === 'videos' || this.currentTab === 'virtual-tours') {
             this.currentItems = Array.from(this.videoItems).filter(item => 
-                item.style.display !== 'none'
+                item && item.style.display !== 'none'
             );
         }
     }
@@ -1045,7 +920,7 @@ class GalleryManager {
     }
     
     handleKeyboard(e) {
-        if (!this.elements.galleryModal.classList.contains('active')) return;
+        if (!this.elements.galleryModal || !this.elements.galleryModal.classList.contains('active')) return;
         
         switch(e.key) {
             case 'Escape':
@@ -1072,13 +947,26 @@ class GalleryManager {
 // Initialize gallery when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM loaded, initializing Enhanced GalleryManager');
-    new GalleryManager();
     
-    // Add any additional initialization for tabs if needed
+    // Check URL parameters for tab
     const urlParams = new URLSearchParams(window.location.search);
     const tabParam = urlParams.get('tab');
+    
+    // Initialize gallery manager
+    const galleryManager = new GalleryManager();
+    
+    // If tab parameter exists and we're not already on that tab, switch to it
     if (tabParam && document.querySelector(`.tab-btn[href*="${tabParam}"]`)) {
-        document.querySelector(`.tab-btn[href*="${tabParam}"]`).click();
+        const tabBtn = document.querySelector(`.tab-btn[href*="${tabParam}"]`);
+        if (!tabBtn.classList.contains('active')) {
+            // If it's videos or virtual-tours, the server should have already loaded it
+            // If it's photos and we're on a different tab, switch client-side
+            if (tabParam === 'photos' && galleryManager.currentTab !== 'photos') {
+                setTimeout(() => {
+                    tabBtn.click();
+                }, 100);
+            }
+        }
     }
 });
 
@@ -1321,6 +1209,30 @@ style.textContent = `
         overflow-y: auto;
         z-index: 9999;
         display: none;
+    }
+    
+    /* FIXED: Better video modal styling */
+    .modal-video-container {
+        position: relative;
+        width: 100%;
+        height: 500px;
+        max-height: 70vh;
+        overflow: hidden;
+    }
+    
+    .modal-video-container iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+    }
+    
+    /* FIXED: Better hostel filter styling */
+    .hostel-filter select option[data-gender="boys"] {
+        color: #3b82f6;
+    }
+    
+    .hostel-filter select option[data-gender="girls"] {
+        color: #ec4899;
     }
 `;
 document.head.appendChild(style);
