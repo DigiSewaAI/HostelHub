@@ -44,20 +44,25 @@ class Hostel extends Model
         'youtube_url',
         'linkedin_url',
         // ✅ NEW: Branding Control Field
-        'show_hostelhub_branding'
+        'show_hostelhub_branding',
+        // ✅ NEW: Gender field for Boys/Girls filter
+        'gender'
     ];
 
     protected $casts = [
         'facilities' => 'array',
         'is_published' => 'boolean',
         'published_at' => 'datetime',
-        'show_hostelhub_branding' => 'boolean'
+        'show_hostelhub_branding' => 'boolean',
+        // ✅ NEW: Cast gender field
+        'gender' => 'string'
     ];
 
     // ✅ ADDED: Append accessor methods
     protected $appends = [
         'contact_phone_formatted',
-        'contact_email_formatted'
+        'contact_email_formatted',
+        'gender_detected'  // ✅ NEW: Added gender_detected attribute
     ];
 
     /**
@@ -96,7 +101,9 @@ class Hostel extends Model
             'whatsapp_number' => 'nullable|string|max:20',
             'youtube_url' => 'nullable|url|max:500',
             'linkedin_url' => 'nullable|url|max:500',
-            'show_hostelhub_branding' => 'boolean'
+            'show_hostelhub_branding' => 'boolean',
+            // ✅ NEW: Gender validation rule
+            'gender' => 'nullable|in:boys,girls,mixed'
         ];
     }
 
@@ -388,6 +395,45 @@ class Hostel extends Model
     {
         return $this->contact_email_formatted;
     }
+
+    // ✅ NEW: Gender detection for gallery filters
+    public function getGenderDetectedAttribute()
+    {
+        // पहिले gender column check गर्ने
+        if (!empty($this->attributes['gender'])) {
+            return $this->attributes['gender'];
+        }
+
+        // Hostel name बाट gender detect गर्ने
+        $name = strtolower($this->name);
+
+        // Boys hostels को लागि (अब सही नाममा "boys" छ)
+        if (
+            str_contains($name, 'boys') ||
+            str_contains($name, 'ब्वाइज') ||
+            str_contains($name, 'पुरुष') ||
+            str_contains($name, 'ब्वायज') ||
+            str_contains($name, 'male') ||
+            str_contains($name, 'mens')
+        ) {
+            return 'boys';
+        }
+
+        // Girls hostels को लागि
+        if (
+            str_contains($name, 'girls') ||
+            str_contains($name, 'गर्ल्स') ||
+            str_contains($name, 'महिला') ||
+            str_contains($name, 'female') ||
+            str_contains($name, 'womens')
+        ) {
+            return 'girls';
+        }
+
+        return 'mixed';
+    }
+
+
 
     /**
      * Get available rooms for this hostel - FIXED: Only rooms with available beds

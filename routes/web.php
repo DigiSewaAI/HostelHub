@@ -221,3 +221,44 @@ Route::get('/force-unpublish/{id}', function ($id) {
 
     return redirect('/admin/hostels')->with('success', 'होस्टल अप्रकाशित गरियो!');
 })->middleware(['auth', 'role:admin']);
+
+// Temporary route थप्नुहोस् routes/web.php मा:
+Route::get('/debug-hostels', function () {
+    $hostels = \App\Models\Hostel::where('is_published', true)->get();
+
+    $result = [];
+    foreach ($hostels as $hostel) {
+        $result[] = [
+            'id' => $hostel->id,
+            'name' => $hostel->name,
+            'gender' => $hostel->gender,
+            'gender_detected' => $hostel->gender_detected,
+            'is_published' => $hostel->is_published
+        ];
+    }
+
+    return response()->json($result);
+});
+
+// Temporary route थप्नुहोस् routes/web.php मा:
+Route::get('/verify-boys', function () {
+    $hostels = \App\Models\Hostel::where('is_published', true)->get();
+
+    $boys = [];
+    foreach ($hostels as $hostel) {
+        if ($hostel->gender_detected === 'boys') {
+            $boys[] = [
+                'id' => $hostel->id,
+                'name' => $hostel->name,
+                'gender_column' => $hostel->gender,
+                'gender_detected' => $hostel->gender_detected
+            ];
+        }
+    }
+
+    return response()->json([
+        'boys_hostels_count' => count($boys),
+        'boys_hostels' => $boys,
+        'all_published' => $hostels->count()
+    ]);
+});

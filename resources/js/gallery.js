@@ -5,6 +5,7 @@ class GalleryManager {
         this.currentSearch = '';
         this.currentHostelFilter = '';
         this.currentTab = 'photos';
+        this.currentVideoCategory = 'all';
         this.visibleItems = 12;
         this.currentMediaIndex = 0;
         this.mediaItems = [];
@@ -15,6 +16,7 @@ class GalleryManager {
         this.isLoadingVideos = false;
         this.hdImagesLoaded = new Set();
         this.videoCategories = {};
+        this.currentItems = [];
         
         this.init();
     }
@@ -106,14 +108,8 @@ class GalleryManager {
             });
         });
         
-        // Video card clicks
-        this.elements.videoCards.forEach((card, index) => {
-            card.addEventListener('click', (e) => {
-                if (!e.target.closest('.hostel-link-enhanced, .video-hostel-link')) {
-                    this.openModal(index, 'video');
-                }
-            });
-        });
+        // Video card clicks - FIXED: Added proper event delegation for videos
+        this.attachVideoCardEvents();
         
         // Tab switching
         if (this.elements.tabButtons) {
@@ -172,6 +168,33 @@ class GalleryManager {
         
         // HD image click handlers
         this.setupHdImageLoading();
+    }
+    
+    // NEW: Attach video card events properly
+    attachVideoCardEvents() {
+        const videoCards = document.querySelectorAll('.video-card');
+        videoCards.forEach((card, index) => {
+            // Remove existing event listeners to prevent duplicates
+            const newCard = card.cloneNode(true);
+            card.parentNode.replaceChild(newCard, card);
+            
+            // Add fresh event listener
+            newCard.addEventListener('click', (e) => {
+                // Prevent click if clicked on hostel link or video hostel link
+                if (e.target.closest('.hostel-link-enhanced, .video-hostel-link')) {
+                    return;
+                }
+                
+                // Find the index in the current videoItems array
+                const currentIndex = Array.from(this.videoItems).indexOf(newCard);
+                if (currentIndex !== -1) {
+                    this.openModal(currentIndex, 'video');
+                }
+            });
+        });
+        
+        // Update video items reference
+        this.videoItems = Array.from(document.querySelectorAll('.video-card'));
     }
     
     setupIntersectionObserver() {
@@ -248,12 +271,20 @@ class GalleryManager {
         this.currentFilter = 'all';
         this.currentSearch = '';
         this.currentHostelFilter = '';
+        this.currentVideoCategory = 'all';
         
         // Reset filter buttons
         if (this.elements.filterButtons) {
             this.elements.filterButtons.forEach(btn => btn.classList.remove('active'));
             const allFilterBtn = Array.from(this.elements.filterButtons).find(btn => btn.dataset.filter === 'all');
             if (allFilterBtn) allFilterBtn.classList.add('active');
+        }
+        
+        // Reset video category buttons
+        if (this.elements.videoCategoryButtons) {
+            this.elements.videoCategoryButtons.forEach(btn => btn.classList.remove('active'));
+            const allVideoCategoryBtn = Array.from(this.elements.videoCategoryButtons).find(btn => btn.dataset.category === 'all');
+            if (allVideoCategoryBtn) allVideoCategoryBtn.classList.add('active');
         }
         
         // Reset search input
@@ -278,9 +309,11 @@ class GalleryManager {
         // Apply filters for the current tab
         this.applyFilters();
         
-        // Load videos if needed
-        if (tab === 'videos' && this.videoItems.length === 0) {
-            this.loadMoreVideos();
+        // Re-attach video events if we're on videos tab
+        if (tab === 'videos' || tab === 'virtual-tours') {
+            setTimeout(() => {
+                this.attachVideoCardEvents();
+            }, 100);
         }
     }
     
@@ -305,13 +338,8 @@ class GalleryManager {
         this.elements.videoCategoryButtons.forEach(btn => btn.classList.remove('active'));
         button.classList.add('active');
         
-        // Apply filtering based on category
-        if (category === 'all') {
-            this.currentFilter = 'all';
-        } else {
-            this.currentFilter = this.videoCategories[category] || category;
-        }
-        
+        this.currentVideoCategory = category;
+        this.visibleItems = 12;
         this.applyFilters();
     }
     
@@ -328,6 +356,13 @@ class GalleryManager {
     }
     
     applyFilters() {
+        console.log('Applying filters:', {
+            tab: this.currentTab,
+            hostelFilter: this.currentHostelFilter,
+            videoCategory: this.currentVideoCategory,
+            search: this.currentSearch
+        });
+        
         let visibleCount = 0;
         let itemsToFilter = [];
         
@@ -339,10 +374,12 @@ class GalleryManager {
         }
         
         itemsToFilter.forEach((item, index) => {
+            // Category filter logic
             const matchesFilter = this.currentFilter === 'all' || 
                 (item.dataset.category && item.dataset.category === this.currentFilter) ||
                 (item.getAttribute('data-category') && item.getAttribute('data-category') === this.currentFilter);
             
+            // Search filter logic
             const matchesSearch = this.currentSearch === '' || 
                 (item.dataset.title && item.dataset.title.toLowerCase().includes(this.currentSearch)) ||
                 (item.getAttribute('data-title') && item.getAttribute('data-title').toLowerCase().includes(this.currentSearch)) ||
@@ -353,43 +390,75 @@ class GalleryManager {
                 (item.dataset.roomNumber && item.dataset.roomNumber.toLowerCase().includes(this.currentSearch)) ||
                 (item.getAttribute('data-room-number') && item.getAttribute('data-room-number').toLowerCase().includes(this.currentSearch));
             
-            // ✅ FIXED: Enhanced hostel filtering with Boys/Girls support
+            // FIXED: Simplified Boys/Girls filter logic
             let matchesHostel = true;
             if (this.currentHostelFilter) {
+                // First check data-hostel-gender attribute
+                const hostelGender = item.getAttribute('data-hostel-gender') || 
+                                     item.dataset.hostelGender || 
+                                     'mixed';
+                
+                console.log(`Item ${index} hostel gender:`, hostelGender);
+                
                 if (this.currentHostelFilter === 'boys') {
-                    // Check if hostel name contains "boys" or "ब्वाइज"
-                    const hostelName = (item.dataset.hostelName || item.getAttribute('data-hostel-name') || '').toLowerCase();
-                    const hostelGender = item.dataset.hostelGender || item.getAttribute('data-hostel-gender');
-                    matchesHostel = hostelGender === 'boys' || 
-                                   hostelName.includes('boys') || 
-                                   hostelName.includes('ब्वाइज') || 
-                                   hostelName.includes('पुरुष');
+                    matchesHostel = hostelGender === 'boys' || hostelGender === 'male';
+                    
+                    // If not matched by gender, check hostel name
+                    if (!matchesHostel) {
+                        const hostelName = (item.getAttribute('data-hostel-name') || item.dataset.hostelName || '').toLowerCase();
+                        matchesHostel = hostelName.includes('boys') || 
+                                      hostelName.includes('boy') ||
+                                      hostelName.includes('ब्वाइज') ||
+                                      hostelName.includes('ब्वायज') ||
+                                      hostelName.includes('पुरुष');
+                    }
+                    
                 } else if (this.currentHostelFilter === 'girls') {
-                    // Check if hostel name contains "girls" or "गर्ल्स"
-                    const hostelName = (item.dataset.hostelName || item.getAttribute('data-hostel-name') || '').toLowerCase();
-                    const hostelGender = item.dataset.hostelGender || item.getAttribute('data-hostel-gender');
-                    matchesHostel = hostelGender === 'girls' || 
-                                   hostelName.includes('girls') || 
-                                   hostelName.includes('गर्ल्स') || 
-                                   hostelName.includes('महिला');
+                    matchesHostel = hostelGender === 'girls' || hostelGender === 'female';
+                    
+                    if (!matchesHostel) {
+                        const hostelName = (item.getAttribute('data-hostel-name') || item.dataset.hostelName || '').toLowerCase();
+                        matchesHostel = hostelName.includes('girls') || 
+                                      hostelName.includes('girl') ||
+                                      hostelName.includes('गर्ल्स') ||
+                                      hostelName.includes('महिला');
+                    }
+                    
                 } else {
                     // Specific hostel by ID
-                    const hostelId = item.dataset.hostelId || item.getAttribute('data-hostel-id');
+                    const hostelId = item.getAttribute('data-hostel-id') || item.dataset.hostelId;
                     matchesHostel = hostelId == this.currentHostelFilter;
                 }
             }
             
-            // Additional filter for virtual tours
-            let matchesVirtualTour = true;
-            if (this.currentTab === 'virtual-tours') {
-                const is360Video = item.getAttribute('data-is-360') === 'true' || 
-                                 item.dataset.is360 === 'true' ||
-                                 (item.dataset.category && item.dataset.category.includes('virtual')) ||
-                                 (item.getAttribute('data-category') && item.getAttribute('data-category').includes('virtual'));
-                matchesVirtualTour = is360Video;
+            // FIXED: Video category filter logic
+            let matchesVideoCategory = true;
+            if (this.currentTab === 'videos' && this.currentVideoCategory && this.currentVideoCategory !== 'all') {
+                const itemCategoryKey = item.getAttribute('data-category-key') || item.dataset.categoryKey;
+                const itemCategoryNepali = item.getAttribute('data-category') || item.dataset.category;
+                
+                // Check both English key and Nepali text for compatibility
+                matchesVideoCategory = (itemCategoryKey && itemCategoryKey === this.currentVideoCategory) || 
+                                     (itemCategoryNepali && this.videoCategories[this.currentVideoCategory] && 
+                                      itemCategoryNepali === this.videoCategories[this.currentVideoCategory]);
+                
+                console.log(`Video category check:`, {
+                    itemCategoryKey,
+                    itemCategoryNepali,
+                    currentCategory: this.currentVideoCategory,
+                    nepaliName: this.videoCategories[this.currentVideoCategory],
+                    matches: matchesVideoCategory
+                });
             }
             
-            if (matchesFilter && matchesSearch && matchesHostel && matchesVirtualTour) {
+            // FIXED: Virtual tour filter logic
+            let matchesVirtualTour = true;
+            if (this.currentTab === 'virtual-tours') {
+                const is360 = item.getAttribute('data-is-360') || item.dataset.is360;
+                matchesVirtualTour = is360 === 'true' || is360 === '1' || is360 === true;
+            }
+            
+            if (matchesFilter && matchesSearch && matchesHostel && matchesVideoCategory && matchesVirtualTour) {
                 item.style.display = 'block';
                 item.style.opacity = '1';
                 item.style.transform = 'scale(1)';
@@ -506,13 +575,13 @@ class GalleryManager {
         const div = document.createElement('div');
         div.className = 'video-card';
         div.setAttribute('data-category', video.category_nepali || video.category);
+        div.setAttribute('data-category-key', video.category_key || video.category);
         div.setAttribute('data-title', video.title);
         div.setAttribute('data-description', video.description);
         div.setAttribute('data-date', video.created_at);
         div.setAttribute('data-hostel', video.hostel_name);
         div.setAttribute('data-hostel-id', video.hostel_id);
         div.setAttribute('data-hostel-slug', video.hostel_slug || '');
-        // ✅ FIXED: Add hostel-gender and hostel-name attributes
         div.setAttribute('data-hostel-gender', video.hostel_gender || '');
         div.setAttribute('data-hostel-name', (video.hostel_name || '').toLowerCase());
         div.setAttribute('data-room-number', video.room_number || '');
@@ -575,17 +644,6 @@ class GalleryManager {
         `;
         
         return div;
-    }
-    
-    attachVideoCardEvents() {
-        const newVideoCards = document.querySelectorAll('.video-card');
-        newVideoCards.forEach((card, index) => {
-            card.addEventListener('click', (e) => {
-                if (!e.target.closest('.hostel-link-enhanced, .video-hostel-link')) {
-                    this.openModal(index, 'video');
-                }
-            });
-        });
     }
     
     getYoutubeId(url) {
@@ -741,6 +799,8 @@ class GalleryManager {
     }
     
     openModal(index, type = 'photo') {
+        console.log('Opening modal for:', { index, type });
+        
         let item;
         if (type === 'photo') {
             item = this.mediaItems[index];
@@ -748,7 +808,17 @@ class GalleryManager {
             item = this.videoItems[index];
         }
         
-        if (!item) return;
+        if (!item) {
+            console.error('Item not found at index:', index);
+            return;
+        }
+        
+        console.log('Item data attributes:');
+        console.log('Title:', item.getAttribute('data-title'));
+        console.log('Media Type:', item.getAttribute('data-media-type'));
+        console.log('Video URL:', item.getAttribute('data-video-url'));
+        console.log('YouTube Embed:', item.getAttribute('data-youtube-embed'));
+        console.log('Hostel Gender:', item.getAttribute('data-hostel-gender'));
         
         this.currentMediaIndex = index;
         
@@ -1233,6 +1303,24 @@ style.textContent = `
             min-width: 120px;
             text-align: center;
         }
+    }
+    
+    /* Debug console styles */
+    .debug-console {
+        position: fixed;
+        bottom: 10px;
+        right: 10px;
+        background: rgba(0,0,0,0.9);
+        color: #10b981;
+        padding: 10px;
+        border-radius: 5px;
+        font-family: monospace;
+        font-size: 12px;
+        max-width: 300px;
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 9999;
+        display: none;
     }
 `;
 document.head.appendChild(style);
