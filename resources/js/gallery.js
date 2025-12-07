@@ -1,4 +1,4 @@
-// Advanced Gallery Functionality - FIXED VERSION
+// Enhanced Gallery Functionality - UPDATED VERSION with Videos Placeholder Fix
 class GalleryManager {
     constructor() {
         this.currentFilter = 'all';
@@ -18,6 +18,10 @@ class GalleryManager {
         this.videoCategories = {};
         this.currentItems = [];
         
+        // ✅ FIXED: Add spinner guard variables
+        this.spinnerGuard = false;
+        this.spinnerTimeout = null;
+        
         // Check if we're on a tab that requires full page reload
         const urlParams = new URLSearchParams(window.location.search);
         const tabParam = urlParams.get('tab');
@@ -31,8 +35,15 @@ class GalleryManager {
     
     init() {
         console.log('Enhanced GalleryManager initialized - Tab:', this.currentTab);
+        
+        // ✅ FIXED: Immediately hide all spinners before anything else
+        this.hideAllSpinnersImmediately();
+        
         this.cacheElements();
         this.bindEvents();
+        
+        // ✅ FIXED: Immediately hide videos placeholder if videos are loaded
+        this.hideVideosPlaceholder();
         
         // Only initialize items if we're on photos tab or videos were loaded client-side
         if (this.currentTab === 'photos') {
@@ -43,6 +54,13 @@ class GalleryManager {
             // For videos/virtual-tours tabs, handle differently
             this.handleVideoTabInitialization();
         }
+        
+        // ✅ FIXED: Extra check after initialization with spinner guard
+        clearTimeout(this.spinnerTimeout);
+        this.spinnerTimeout = setTimeout(() => {
+            this.hideAllSpinnersImmediately();
+            this.hideVideosPlaceholder();
+        }, 100);
     }
     
     cacheElements() {
@@ -75,8 +93,65 @@ class GalleryManager {
             videoCategoryButtons: document.querySelectorAll('.video-category-btn'),
             videoCategoriesContainer: document.querySelector('.video-categories'),
             mealGalleryButton: document.querySelector('.meal-gallery-button'),
-            galleryCtaButtons: document.querySelectorAll('.gallery-trial-button, .gallery-demo-button, .gallery-outline-button')
+            galleryCtaButtons: document.querySelectorAll('.gallery-trial-button, .gallery-demo-button, .gallery-outline-button'),
+            videosPlaceholder: document.querySelector('.videos-placeholder')
         };
+    }
+    
+    // ✅ NEW: Method to immediately hide all spinners
+    hideAllSpinnersImmediately() {
+        if (this.spinnerGuard) return;
+        this.spinnerGuard = true;
+        
+        // Hide main gallery loading indicator
+        if (this.elements.loadingIndicator) {
+            this.elements.loadingIndicator.style.display = 'none';
+            this.elements.loadingIndicator.classList.add('hidden');
+        }
+        
+        // Hide videos loading indicator
+        if (this.elements.videosLoadingIndicator) {
+            this.elements.videosLoadingIndicator.style.display = 'none';
+            this.elements.videosLoadingIndicator.classList.add('hidden');
+        }
+        
+        // Hide any spinner elements in videos placeholder
+        const spinners = document.querySelectorAll('.spinner, .loading-spinner, .videos-placeholder .spinner');
+        spinners.forEach(spinner => {
+            spinner.style.display = 'none';
+            spinner.classList.add('hidden');
+        });
+        
+        // Reset load more button
+        if (this.elements.loadMoreBtn) {
+            this.elements.loadMoreBtn.disabled = false;
+            this.elements.loadMoreBtn.textContent = 'थप हेर्नुहोस्';
+        }
+        
+        console.log('All spinners hidden immediately');
+    }
+    
+    // ✅ FIXED: Enhanced function to hide videos placeholder - SIMPLIFIED VERSION
+    hideVideosPlaceholder() {
+        // Only run if we're on videos or virtual-tours tab
+        if (this.currentTab !== 'videos' && this.currentTab !== 'virtual-tours') {
+            return;
+        }
+        
+        const placeholder = this.elements.videosPlaceholder;
+        const videoCards = this.elements.videoCards;
+        
+        if (videoCards && videoCards.length > 0 && placeholder) {
+            console.log('Hiding videos placeholder - found', videoCards.length, 'videos');
+            placeholder.style.display = 'none';
+            placeholder.classList.add('hidden');
+            placeholder.style.visibility = 'hidden';
+            placeholder.style.opacity = '0';
+            placeholder.style.height = '0';
+            placeholder.style.padding = '0';
+            placeholder.style.margin = '0';
+            placeholder.style.overflow = 'hidden';
+        }
     }
     
     bindEvents() {
@@ -130,10 +205,10 @@ class GalleryManager {
             this.elements.modalNext.addEventListener('click', () => this.navigateModal(1));
         }
         
-        // Video card clicks - FIXED: Simplified approach
+        // Video card clicks - ✅ FIXED: Simplified approach
         this.attachVideoCardEvents();
         
-        // Tab switching - FIXED: Use server-side navigation for videos/virtual-tours
+        // Tab switching - ✅ FIXED: Use server-side navigation for videos/virtual-tours
         if (this.elements.tabButtons) {
             this.elements.tabButtons.forEach(btn => {
                 btn.addEventListener('click', (e) => {
@@ -157,7 +232,7 @@ class GalleryManager {
             });
         }
         
-        // Video category filtering - FIXED: Use server-side filtering
+        // Video category filtering - ✅ FIXED: Use server-side filtering
         if (this.elements.videoCategoryButtons && this.currentTab === 'videos') {
             this.elements.videoCategoryButtons.forEach(btn => {
                 btn.addEventListener('click', (e) => {
@@ -208,13 +283,19 @@ class GalleryManager {
         this.setupHdImageLoading();
     }
     
-    // NEW: Handle video tab initialization
+    // ✅ FIXED: Handle video tab initialization with better placeholder handling
     handleVideoTabInitialization() {
-        console.log('Initializing video tab functionality');
+        console.log('Initializing video tab functionality for:', this.currentTab);
+        
+        // ✅ FIXED: Hide spinners immediately
+        this.hideAllSpinnersImmediately();
         
         // Initialize video items
         this.videoItems = Array.from(this.elements.videoCards || []);
         console.log(`Found ${this.videoItems.length} video items`);
+        
+        // ✅ FIXED: Hide videos placeholder immediately when videos are loaded
+        this.hideVideosPlaceholder();
         
         // Set up intersection observer for videos
         if (this.videoItems.length > 0) {
@@ -241,9 +322,16 @@ class GalleryManager {
                 this.applyFilters();
             });
         }
+        
+        // ✅ FIXED: Additional check after content is fully loaded
+        clearTimeout(this.spinnerTimeout);
+        this.spinnerTimeout = setTimeout(() => {
+            this.hideAllSpinnersImmediately();
+            this.hideVideosPlaceholder();
+        }, 500);
     }
     
-    // FIXED: Simplified video card events
+    // ✅ FIXED: Simplified video card events
     attachVideoCardEvents() {
         const videoCards = document.querySelectorAll('.video-card');
         videoCards.forEach((card, index) => {
@@ -348,6 +436,9 @@ class GalleryManager {
             this.elements.hostelFilter.value = '';
         }
         
+        // ✅ FIXED: Hide spinners when switching tabs
+        this.hideAllSpinnersImmediately();
+        
         // Re-initialize based on tab
         if (tab === 'photos') {
             this.initMediaItems();
@@ -381,7 +472,7 @@ class GalleryManager {
     handleHostelFilter(e) {
         const value = e.target.value;
         
-        // FIXED: Simplified gender detection
+        // ✅ FIXED: Simplified gender detection
         if (value === 'boys' || value === 'girls') {
             this.currentHostelFilter = value;
         } else if (value) {
@@ -433,7 +524,7 @@ class GalleryManager {
                 (item.dataset.roomNumber && item.dataset.roomNumber.toLowerCase().includes(this.currentSearch)) ||
                 (item.getAttribute('data-room-number') && item.getAttribute('data-room-number').toLowerCase().includes(this.currentSearch));
             
-            // FIXED: Simplified Boys/Girls filter logic
+            // ✅ FIXED: Simplified Boys/Girls filter logic
             let matchesHostel = true;
             if (this.currentHostelFilter) {
                 if (this.currentHostelFilter === 'boys' || this.currentHostelFilter === 'girls') {
@@ -471,7 +562,7 @@ class GalleryManager {
                 }
             }
             
-            // FIXED: Virtual tour filter logic
+            // ✅ FIXED: Virtual tour filter logic
             let matchesVirtualTour = true;
             if (this.currentTab === 'virtual-tours') {
                 const is360 = item.getAttribute('data-is-360') || item.dataset.is360;
@@ -494,6 +585,14 @@ class GalleryManager {
                 item.style.display = 'none';
             }
         });
+        
+        // ✅ FIXED: Hide videos placeholder when videos are loaded
+        if (this.currentTab === 'videos' || this.currentTab === 'virtual-tours') {
+            this.hideVideosPlaceholder();
+        }
+        
+        // ✅ FIXED: Hide spinners after filtering
+        this.hideAllSpinnersImmediately();
         
         this.updateLoadMoreButton();
         this.checkNoResults();
@@ -535,7 +634,10 @@ class GalleryManager {
         setTimeout(() => {
             this.visibleItems += 12;
             this.applyFilters();
-            this.hideLoading();
+            
+            // ✅ FIXED: Hide loading after operation
+            this.hideAllSpinnersImmediately();
+            
             this.isLoading = false;
             
             // Smooth scroll to newly loaded items
@@ -558,8 +660,12 @@ class GalleryManager {
     }
     
     showLoading() {
+        // ✅ FIXED: Only show loading if not already shown
+        if (this.spinnerGuard) return;
+        
         if (this.elements.loadingIndicator) {
             this.elements.loadingIndicator.style.display = 'block';
+            this.elements.loadingIndicator.classList.remove('hidden');
         }
         if (this.elements.loadMoreBtn) {
             this.elements.loadMoreBtn.disabled = true;
@@ -568,10 +674,8 @@ class GalleryManager {
     }
     
     hideLoading() {
-        if (this.elements.loadingIndicator) {
-            this.elements.loadingIndicator.style.display = 'none';
-        }
-        this.updateLoadMoreButton();
+        // ✅ FIXED: Use the new spinner hiding method
+        this.hideAllSpinnersImmediately();
     }
     
     updateLoadMoreButton() {
@@ -730,7 +834,7 @@ class GalleryManager {
         // Clear previous content
         this.elements.modalContent.innerHTML = '';
         
-        // Add media based on type - FIXED: Better video handling
+        // Add media based on type - ✅ FIXED: Better video handling
         if (mediaType === 'photo') {
             const img = document.createElement('img');
             const imgSrc = item.querySelector('img')?.src || '';
@@ -944,13 +1048,33 @@ class GalleryManager {
     }
 }
 
-// Initialize gallery when DOM is loaded
+// ✅ FIXED: Initialize gallery when DOM is loaded with better videos placeholder handling
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM loaded, initializing Enhanced GalleryManager');
     
     // Check URL parameters for tab
     const urlParams = new URLSearchParams(window.location.search);
     const tabParam = urlParams.get('tab');
+    
+    // ✅ FIXED: Hide all spinners immediately
+    const hideSpinnersImmediately = () => {
+        const spinners = document.querySelectorAll('.spinner, .loading-spinner, .gallery-loading, .videos-loading');
+        spinners.forEach(spinner => {
+            spinner.style.display = 'none';
+            spinner.classList.add('hidden');
+        });
+        
+        // Hide videos placeholder if videos exist
+        const videoCards = document.querySelectorAll('.video-card');
+        const placeholder = document.querySelector('.videos-placeholder');
+        if (videoCards.length > 0 && placeholder) {
+            placeholder.style.display = 'none';
+            placeholder.classList.add('hidden');
+        }
+    };
+    
+    // Initial hide
+    hideSpinnersImmediately();
     
     // Initialize gallery manager
     const galleryManager = new GalleryManager();
@@ -959,7 +1083,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (tabParam && document.querySelector(`.tab-btn[href*="${tabParam}"]`)) {
         const tabBtn = document.querySelector(`.tab-btn[href*="${tabParam}"]`);
         if (!tabBtn.classList.contains('active')) {
-            // If it's videos or virtual-tours, the server should have already loaded it
             // If it's photos and we're on a different tab, switch client-side
             if (tabParam === 'photos' && galleryManager.currentTab !== 'photos') {
                 setTimeout(() => {
@@ -968,9 +1091,64 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     }
+    
+    // ✅ FIXED: Additional check to hide videos placeholder with timeout cleanup
+    setTimeout(() => {
+        hideSpinnersImmediately();
+        galleryManager.hideAllSpinnersImmediately();
+        galleryManager.hideVideosPlaceholder();
+        
+        if (tabParam === 'videos' || tabParam === 'virtual-tours') {
+            console.log('Checking videos placeholder after timeout...');
+            galleryManager.hideVideosPlaceholder();
+        }
+    }, 300);
+    
+    // ✅ FIXED: Also hide on window load with proper cleanup
+    window.addEventListener('load', () => {
+        console.log('Window loaded, final spinner cleanup...');
+        
+        setTimeout(() => {
+            hideSpinnersImmediately();
+            galleryManager.hideAllSpinnersImmediately();
+            galleryManager.hideVideosPlaceholder();
+            
+            // Extra check for videos tab
+            if (tabParam === 'videos' || tabParam === 'virtual-tours') {
+                setTimeout(() => {
+                    galleryManager.hideAllSpinnersImmediately();
+                    galleryManager.hideVideosPlaceholder();
+                }, 500);
+            }
+        }, 500);
+    });
+    
+    // ✅ FIXED: Extra safety checks for videos placeholder
+    setTimeout(() => {
+        hideSpinnersImmediately();
+        galleryManager.hideAllSpinnersImmediately();
+        
+        if (tabParam === 'videos' || tabParam === 'virtual-tours') {
+            console.log('Final check for videos placeholder...');
+            galleryManager.hideVideosPlaceholder();
+            
+            // Force check by querying all video cards
+            const videoCards = document.querySelectorAll('.video-card');
+            const placeholder = document.querySelector('.videos-placeholder');
+            
+            if (videoCards.length > 0 && placeholder) {
+                console.log('Force hiding videos placeholder');
+                placeholder.style.display = 'none';
+                placeholder.classList.add('hidden');
+                placeholder.style.visibility = 'hidden';
+                placeholder.style.opacity = '0';
+                placeholder.style.height = '0';
+            }
+        }
+    }, 1000);
 });
 
-// Add CSS animation for modal and gallery items
+// Add CSS animation for modal and gallery items with enhanced placeholder fixes
 const style = document.createElement('style');
 style.textContent = `
     @keyframes modalAppear {
@@ -1211,7 +1389,7 @@ style.textContent = `
         display: none;
     }
     
-    /* FIXED: Better video modal styling */
+    /* ✅ FIXED: Better video modal styling */
     .modal-video-container {
         position: relative;
         width: 100%;
@@ -1226,13 +1404,101 @@ style.textContent = `
         border: none;
     }
     
-    /* FIXED: Better hostel filter styling */
+    /* ✅ FIXED: Better hostel filter styling */
     .hostel-filter select option[data-gender="boys"] {
         color: #3b82f6;
     }
     
     .hostel-filter select option[data-gender="girls"] {
         color: #ec4899;
+    }
+    
+    /* ✅ FIXED: Enhanced styles for videos placeholder fix */
+    .videos-placeholder {
+        transition: opacity 0.3s ease, height 0.3s ease, padding 0.3s ease, margin 0.3s ease;
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 3rem;
+        display: block;
+        visibility: visible;
+        opacity: 1;
+        height: auto;
+    }
+    
+    .videos-placeholder.hidden {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: hidden !important;
+        pointer-events: none !important;
+    }
+    
+    /* ✅ CRITICAL: Force hide all spinners by default */
+    .gallery-loading.hidden,
+    .videos-loading.hidden,
+    .videos-placeholder.hidden .spinner,
+    .loading-spinner.hidden {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+    }
+    
+    /* Ensure videos grid shows properly */
+    .videos-grid {
+        position: relative;
+        min-height: 200px;
+    }
+    
+    .videos-loading {
+        transition: opacity 0.3s ease;
+    }
+    
+    .videos-loading.hidden {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: hidden !important;
+    }
+    
+    /* ✅ FIXED: Prevent flash of placeholder */
+    .tab-content:not(.active) .videos-placeholder {
+        display: none !important;
+    }
+    
+    /* ✅ FIXED: Make sure video cards are visible */
+    .video-card {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    
+    /* ✅ FIXED: Smooth transition for video grid */
+    .videos-grid {
+        transition: min-height 0.3s ease;
+    }
+    
+    /* ✅ FIXED: Force videos placeholder to be hidden when not needed */
+    [data-tab="videos"] .videos-placeholder.hidden,
+    [data-tab="virtual-tours"] .videos-placeholder.hidden {
+        display: none !important;
+    }
+    
+    /* ✅ FIXED: Hidden class for all spinners */
+    .hidden {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: hidden !important;
+        pointer-events: none !important;
     }
 `;
 document.head.appendChild(style);
