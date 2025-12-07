@@ -28,28 +28,28 @@ class GalleryController extends Controller
 
     /**
      * ✅ ENHANCED: Display the main gallery page with tabs for photos/videos
-     * ✅ FIX: Now includes both Gallery images AND Room images
+     * ✅ FIX: Now includes both Gallery images AND Room images with proper video tab handling
      */
     public function index(Request $request): View
     {
         $tab = $request->get('tab', 'photos'); // 'photos' or 'videos' or 'virtual-tours'
 
         try {
-            // ✅ FIXED: Get items for current tab only
+            // ✅ FIXED: Get items based on tab
             if ($tab === 'photos') {
-                $galleryItems = $this->getGalleryTableItems($tab);
+                $galleryItems = $this->getGalleryTableItems('photo');
                 $roomItems = $this->getRoomImageItems();
                 $allItems = array_merge($galleryItems, $roomItems);
             } elseif ($tab === 'videos') {
-                $allItems = $this->getGalleryTableItems($tab);
+                $allItems = $this->getVideoItems($request);
             } elseif ($tab === 'virtual-tours') {
-                $allItems = $this->getGalleryTableItems($tab);
+                $allItems = $this->getGalleryTableItems('virtual_tour');
             } else {
                 $allItems = [];
             }
 
-            // Apply filtering
-            $filteredItems = $this->applyFilters($allItems, $request);
+            // Apply filtering - ✅ FIXED: Pass tab parameter
+            $filteredItems = $this->applyFilters($allItems, $request, $tab);
 
             // Paginate the results
             $page = $request->get('page', 1);
@@ -63,16 +63,16 @@ class GalleryController extends Controller
                 $perPage,
                 $page,
                 [
-                    'path' => request()->url(),
-                    'query' => request()->query(),
+                    'path' => $request->url(),
+                    'query' => array_merge($request->query(), ['tab' => $tab]),
                     'fragment' => 'gallery-grid'
                 ]
             );
 
-            // Get only published hostels for filter - INCLUDING BOYS HOSTELS
+            // ✅ FIXED: Get only published hostels for filter - INCLUDING BOYS HOSTELS
             $hostels = Hostel::where('is_published', true)
                 ->orderBy('name')
-                ->get(['id', 'name', 'slug']);
+                ->get(['id', 'name', 'slug', 'gender']); // ✅ Include gender column
 
             // Get cities from published hostels
             $cities = Hostel::where('is_published', true)
@@ -110,33 +110,9 @@ class GalleryController extends Controller
     }
 
     /**
-     * ✅ NEW: Get ALL gallery items from multiple sources
-     * Sources: Gallery table AND Room images
+     * ✅ FIXED: Get items from Gallery table with proper video duration format and URL generation
      */
-    private function getAllGalleryItems($tab)
-    {
-        $allItems = [];
-
-        // 1. Get items from Gallery table
-        $galleryItems = $this->getGalleryTableItems($tab);
-        $allItems = array_merge($allItems, $galleryItems);
-
-        // 2. Get items from Room images (ONLY for photos tab)
-        if ($tab === 'photos') {
-            $roomItems = $this->getRoomImageItems();
-            $allItems = array_merge($allItems, $roomItems);
-        }
-
-        // 3. Shuffle and limit
-        shuffle($allItems);
-
-        return $allItems;
-    }
-
-    /**
-     * ✅ FIXED: Get items from Gallery table with proper video duration format
-     */
-    private function getGalleryTableItems($tab)
+    private function getGalleryTableItems($mediaType = 'photo')
     {
         $query = Gallery::with(['hostel', 'room'])
             ->where('is_active', true)
@@ -144,52 +120,116 @@ class GalleryController extends Controller
                 $query->where('is_published', true);
             });
 
-        // Filter by tab
-        if ($tab === 'photos') {
+        // Filter by media type
+        if ($mediaType === 'photo') {
             $query->where('media_type', 'photo');
-        } elseif ($tab === 'videos') {
-            $query->whereIn('media_type', ['external_video', 'local_video']);
-        } elseif ($tab === 'virtual-tours') {
-            $query->where('category', 'virtual_tour')
-                ->orWhere('is_360_video', true);
+        } elseif ($mediaType === 'virtual_tour') {
+            $query->where('is_360_video', true)
+                ->orWhere('category', 'virtual_tour');
         }
 
         $galleries = $query->orderBy('created_at', 'desc')->get();
 
         $items = [];
         foreach ($galleries as $gallery) {
-            // ✅ FIXED: Use gender_detected property directly
-            $hostelGender = 'mixed';
-            if ($gallery->hostel && property_exists($gallery->hostel, 'gender_detected')) {
-                $hostelGender = $gallery->hostel->gender_detected;
-            } elseif ($gallery->hostel && property_exists($gallery->hostel, 'gender')) {
-                $hostelGender = $gallery->hostel->gender;
-            }
+            // ✅ FIXED: Get media URLs with proper storage path
+            $mediaUrl = $this->getProperMediaUrl($gallery);
+            $thumbnailUrl = $this->getProperThumbnailUrl($gallery);
+
+            // ✅ FIXED: Extract YouTube ID for embed
+            $youtubeId = $this->extractYoutubeId($gallery->media_url);
+            $youtubeEmbedUrl = $youtubeId ? "https://www.youtube.com/embed/{$youtubeId}" : null;
 
             $items[] = (object)[
                 'id' => 'gallery_' . $gallery->id,
                 'title' => $gallery->title,
                 'description' => $gallery->description,
-                'category' => $gallery->category, // ✅ English key
+                'category' => $gallery->category,
                 'category_nepali' => $gallery->category_nepali ?? $this->getCategoryNepali($gallery->category),
                 'media_type' => $gallery->media_type,
-                'media_url' => $gallery->media_url,
-                'thumbnail_url' => $gallery->thumbnail_url,
+                'media_url' => $mediaUrl,
+                'thumbnail_url' => $thumbnailUrl,
                 'created_at' => $gallery->created_at,
                 'hostel_name' => $gallery->hostel->name ?? 'Unknown Hostel',
                 'hostel_id' => $gallery->hostel_id,
                 'hostel_slug' => $gallery->hostel->slug ?? '',
-                'hostel_gender' => $hostelGender, // ✅ FIXED: Use gender_detected directly
+                'hostel_gender' => $gallery->hostel->gender ?? 'mixed', // ✅ FIXED: Use actual gender column
                 'room' => $gallery->room,
                 'room_number' => $gallery->room ? $gallery->room->room_number : null,
                 'is_room_image' => !is_null($gallery->room_id),
                 'source' => 'gallery',
-                'youtube_embed_url' => $gallery->youtube_embed_url,
-                'video_duration' => $gallery->video_duration_formatted ?? $gallery->video_duration, // ✅ FIXED: Use formatted duration
+                'youtube_embed_url' => $youtubeEmbedUrl,
+                'youtube_id' => $youtubeId,
+                'video_duration' => $gallery->video_duration_formatted ?? $gallery->video_duration,
                 'video_resolution' => $gallery->video_resolution,
                 'is_360_video' => (bool)($gallery->is_360_video ?? false),
                 'hd_available' => $gallery->hd_available ?? false,
-                'hd_url' => $gallery->hd_image_url ?? $gallery->media_url
+                'hd_url' => $gallery->hd_image_url ?? $mediaUrl
+            ];
+        }
+
+        return $items;
+    }
+
+    /**
+     * ✅ NEW: Get video items with proper URL formatting
+     */
+    private function getVideoItems(Request $request): array
+    {
+        $query = Gallery::with(['hostel', 'room'])
+            ->where('is_active', true)
+            ->whereIn('media_type', ['external_video', 'local_video'])
+            ->whereHas('hostel', function ($query) {
+                $query->where('is_published', true);
+            });
+
+        // Filter by video category if specified
+        if ($request->filled('video_category') && $request->video_category !== 'all') {
+            $query->where('category', $request->video_category);
+        }
+
+        // Filter by hostel if specified
+        if ($request->filled('hostel_id')) {
+            $query->where('hostel_id', $request->hostel_id);
+        }
+
+        $galleries = $query->orderBy('created_at', 'desc')->get();
+
+        $items = [];
+        foreach ($galleries as $gallery) {
+            // ✅ FIXED: Get media URLs with proper storage path
+            $mediaUrl = $this->getProperMediaUrl($gallery);
+            $thumbnailUrl = $this->getProperThumbnailUrl($gallery);
+
+            // ✅ FIXED: Extract YouTube ID for embed
+            $youtubeId = $this->extractYoutubeId($gallery->media_url);
+            $youtubeEmbedUrl = $youtubeId ? "https://www.youtube.com/embed/{$youtubeId}" : null;
+
+            $items[] = (object)[
+                'id' => 'gallery_' . $gallery->id,
+                'title' => $gallery->title,
+                'description' => $gallery->description,
+                'category' => $gallery->category,
+                'category_nepali' => $gallery->category_nepali ?? $this->getCategoryNepali($gallery->category),
+                'media_type' => $gallery->media_type,
+                'media_url' => $mediaUrl,
+                'thumbnail_url' => $thumbnailUrl,
+                'created_at' => $gallery->created_at,
+                'hostel_name' => $gallery->hostel->name ?? 'Unknown Hostel',
+                'hostel_id' => $gallery->hostel_id,
+                'hostel_slug' => $gallery->hostel->slug ?? '',
+                'hostel_gender' => $gallery->hostel->gender ?? 'mixed', // ✅ FIXED: Use actual gender column
+                'room' => $gallery->room,
+                'room_number' => $gallery->room ? $gallery->room->room_number : null,
+                'is_room_image' => false,
+                'source' => 'gallery',
+                'youtube_embed_url' => $youtubeEmbedUrl,
+                'youtube_id' => $youtubeId,
+                'video_duration' => $gallery->video_duration_formatted ?? $gallery->video_duration,
+                'video_resolution' => $gallery->video_resolution,
+                'is_360_video' => (bool)($gallery->is_360_video ?? false),
+                'hd_available' => false,
+                'hd_url' => $mediaUrl
             ];
         }
 
@@ -214,13 +254,8 @@ class GalleryController extends Controller
         $items = [];
 
         foreach ($hostels as $hostel) {
-            // ✅ FIXED: Get hostel gender directly from model
-            $hostelGender = 'mixed';
-            if (property_exists($hostel, 'gender_detected')) {
-                $hostelGender = $hostel->gender_detected;
-            } elseif (property_exists($hostel, 'gender')) {
-                $hostelGender = $hostel->gender;
-            }
+            // ✅ FIXED: Get hostel gender from actual column
+            $hostelGender = $hostel->gender ?? 'mixed';
 
             foreach ($hostel->rooms as $room) {
                 // Check if image exists in storage
@@ -234,13 +269,13 @@ class GalleryController extends Controller
                         'category' => $room->type,
                         'category_nepali' => $roomTypeNepali,
                         'media_type' => 'photo',
-                        'media_url' => asset('storage/' . $room->image),
-                        'thumbnail_url' => asset('storage/' . $room->image),
+                        'media_url' => Storage::url($room->image), // ✅ FIXED: Use Storage::url
+                        'thumbnail_url' => Storage::url($room->image), // ✅ FIXED: Use Storage::url
                         'created_at' => $room->created_at,
                         'hostel_name' => $hostel->name,
                         'hostel_id' => $hostel->id,
                         'hostel_slug' => $hostel->slug,
-                        'hostel_gender' => $hostelGender, // ✅ FIXED: Use gender_detected directly
+                        'hostel_gender' => $hostelGender, // ✅ FIXED: Use actual gender column
                         'room' => (object)['room_number' => $room->room_number],
                         'room_number' => $room->room_number,
                         'is_room_image' => true,
@@ -249,11 +284,12 @@ class GalleryController extends Controller
                         'room_price' => $room->price,
                         // Add missing properties to prevent errors
                         'youtube_embed_url' => null,
+                        'youtube_id' => null,
                         'video_duration' => null,
                         'video_resolution' => null,
                         'is_360_video' => false,
                         'hd_available' => false,
-                        'hd_url' => asset('storage/' . $room->image)
+                        'hd_url' => Storage::url($room->image)
                     ];
                 }
             }
@@ -263,103 +299,86 @@ class GalleryController extends Controller
     }
 
     /**
-     * ✅ FIXED: Detect gender from hostel with improved logic
+     * ✅ NEW: Extract YouTube ID from URL
      */
-    private function detectGenderFromHostel($hostel)
+    private function extractYoutubeId($url): ?string
     {
-        if (!$hostel) {
-            return 'mixed';
-        }
+        if (!$url) return null;
 
-        // पहिले hostel को gender column check गर्ने
-        if (is_object($hostel) && property_exists($hostel, 'gender')) {
-            if (!empty($hostel->gender)) {
-                return $hostel->gender;
+        $patterns = [
+            '/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i',
+            '/youtube\.com\/embed\/([^"&?\/\s]{11})/i',
+            '/youtube\.com\/watch\?v=([^"&?\/\s]{11})/i'
+        ];
+
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $url, $matches)) {
+                return $matches[1];
             }
         }
 
-        // फेरी gender_detected property check गर्ने
-        if (is_object($hostel) && property_exists($hostel, 'gender_detected')) {
-            return $hostel->gender_detected;
-        }
-
-        // Fallback: Hostel name बाट gender detect गर्ने
-        return $this->getHostelGenderFromName($hostel);
+        return null;
     }
 
     /**
-     * ✅ NEW: Get hostel gender from name with fallback
+     * ✅ NEW: Get proper media URL with Storage::url for local files
      */
-    private function getHostelGenderFromName($hostel)
+    private function getProperMediaUrl($gallery): string
     {
-        if (!$hostel) {
-            return 'mixed';
+        // If it's a local video or photo, use Storage::url
+        if (($gallery->media_type === 'local_video' || $gallery->media_type === 'photo') &&
+            !Str::startsWith($gallery->media_url, ['http://', 'https://', '//'])
+        ) {
+            return Storage::url($gallery->media_url);
         }
 
-        // Hostel object बाट name निकाल्ने
-        if (is_object($hostel) && property_exists($hostel, 'name')) {
-            $hostelName = $hostel->name;
-        } elseif (is_array($hostel) && isset($hostel['name'])) {
-            $hostelName = $hostel['name'];
-        } else {
-            return 'mixed';
-        }
-
-        return $this->getHostelGender($hostelName);
+        // Otherwise return as-is (for external URLs)
+        return $gallery->media_url ?? '';
     }
 
     /**
-     * ✅ FIXED: Detect hostel gender from name with more keywords
+     * ✅ NEW: Get proper thumbnail URL with Storage::url for local files
      */
-    private function getHostelGender($hostelName)
+    private function getProperThumbnailUrl($gallery): string
     {
-        if (empty($hostelName)) {
-            return 'mixed';
+        // If thumbnail exists and is local, use Storage::url
+        if ($gallery->thumbnail_url && !Str::startsWith($gallery->thumbnail_url, ['http://', 'https://', '//'])) {
+            return Storage::url($gallery->thumbnail_url);
         }
 
-        $name = strtolower($hostelName);
-
-        // Boys hostels का लागि (अब सही नाममा "boys" छ)
-        if (
-            str_contains($name, 'boys') ||
-            str_contains($name, 'ब्वाइज') ||
-            str_contains($name, 'पुरुष') ||
-            str_contains($name, 'ब्वायज') ||
-            str_contains($name, 'male') ||
-            str_contains($name, 'mens') ||
-            str_contains($name, 'पुस')
-        ) {
-            return 'boys';
+        // For YouTube videos without thumbnail, generate from YouTube ID
+        if ($gallery->media_type === 'external_video' && !$gallery->thumbnail_url) {
+            $youtubeId = $this->extractYoutubeId($gallery->media_url);
+            if ($youtubeId) {
+                return "https://img.youtube.com/vi/{$youtubeId}/hqdefault.jpg";
+            }
         }
 
-        // Girls hostels का लागि
-        if (
-            str_contains($name, 'girls') ||
-            str_contains($name, 'गर्ल्स') ||
-            str_contains($name, 'महिला') ||
-            str_contains($name, 'female') ||
-            str_contains($name, 'womens') ||
-            str_contains($name, 'महि')
-        ) {
-            return 'girls';
-        }
-
-        return 'mixed';
+        // Fallback to media URL or default
+        return $gallery->thumbnail_url ?? $this->getProperMediaUrl($gallery) ?? asset('images/default-thumbnail.jpg');
     }
 
     /**
-     * ✅ FIXED: Apply filters to gallery items with video category support
+     * ✅ FIXED: Apply filters to gallery items with video category support and gender filter
      */
-    private function applyFilters($items, Request $request)
+    private function applyFilters($items, Request $request, $tab = 'photos')
     {
         $hostelId = $request->get('hostel_id');
+        $hostelGender = $request->get('hostel_gender'); // ✅ NEW: Gender filter
         $search = $request->get('search');
         $category = $request->get('category', 'all');
-        $tab = $request->get('tab', 'photos');
+        $videoCategory = $request->get('video_category', 'all');
 
         $filteredItems = $items;
 
-        // Filter by hostel
+        // ✅ NEW: Filter by hostel gender (boys/girls/mixed)
+        if ($hostelGender) {
+            $filteredItems = array_filter($filteredItems, function ($item) use ($hostelGender) {
+                return isset($item->hostel_gender) && $item->hostel_gender === $hostelGender;
+            });
+        }
+
+        // Filter by specific hostel ID
         if ($hostelId) {
             $filteredItems = array_filter($filteredItems, function ($item) use ($hostelId) {
                 return $item->hostel_id == $hostelId;
@@ -381,18 +400,16 @@ class GalleryController extends Controller
         // Filter by category (For photos tab)
         if ($category && $category !== 'all' && $tab === 'photos') {
             $filteredItems = array_filter($filteredItems, function ($item) use ($category) {
-                // दुवै English र Nepali category match गर्ने
+                // Match both English and Nepali categories
                 return $item->category === $category ||
                     $item->category_nepali === $category ||
                     strtolower($item->category) === strtolower($category);
             });
         }
 
-        // For video tab, filter by video category (English keys only)
-        if ($tab === 'videos' && $request->filled('video_category') && $request->video_category !== 'all') {
-            $videoCategory = $request->video_category;
+        // For video tab, filter by video category
+        if ($tab === 'videos' && $videoCategory && $videoCategory !== 'all') {
             $filteredItems = array_filter($filteredItems, function ($item) use ($videoCategory) {
-                // ✅ FIXED: Video category filter ले English keys मा match गर्नुपर्छ
                 return isset($item->category) && $item->category === $videoCategory;
             });
         }
@@ -499,7 +516,7 @@ class GalleryController extends Controller
     private function getVideoCategories(): array
     {
         try {
-            // Database बाट actual video categories लिने (English keys only)
+            // Get categories from database
             $categoriesFromDB = Gallery::whereIn('media_type', ['external_video', 'local_video'])
                 ->where('is_active', true)
                 ->whereNotNull('category')
@@ -520,27 +537,24 @@ class GalleryController extends Controller
                 'event' => 'कार्यक्रम'
             ];
 
-            // ✅ FIXED: Start with 'all' category
+            // Start with 'all' category
             $categories = ['all' => 'सबै'];
 
-            // Database बाट आएका categories लाई include गर्ने
+            // Add database categories
             foreach ($categoriesFromDB as $category) {
                 if (isset($defaultCategories[$category])) {
                     $categories[$category] = $defaultCategories[$category];
                 } else {
-                    // यदि Nepali भएर आएको छ भने English मा convert गर्ने
-                    $englishKey = $this->convertToEnglishKey($category);
-                    $categories[$englishKey] = $category;
+                    $categories[$category] = $category;
                 }
             }
 
-            // यदि database बाट कुनै category नआएको भए default categories use गर्ने
-            if (count($categories) <= 1) { // only 'all' है
+            // If no categories from DB, use defaults
+            if (count($categories) <= 1) {
                 $categories = $defaultCategories;
             }
 
-            // Ensure keys are unique
-            return array_unique($categories, SORT_REGULAR);
+            return $categories;
         } catch (\Exception $e) {
             Log::error('Video categories error: ' . $e->getMessage());
 
@@ -555,24 +569,6 @@ class GalleryController extends Controller
                 'facility' => 'सुविधाहरू'
             ];
         }
-    }
-
-    /**
-     * ✅ NEW: Convert Nepali category to English key
-     */
-    private function convertToEnglishKey($nepaliCategory)
-    {
-        $mapping = [
-            'होस्टल टुर' => 'hostel_tour',
-            'कोठा टुर' => 'room_tour',
-            'विद्यार्थी जीवन' => 'student_life',
-            'भर्चुअल टुर' => 'virtual_tour',
-            'विद्यार्थी अनुभव' => 'testimonial',
-            'सुविधाहरू' => 'facility',
-            'कार्यक्रम' => 'event'
-        ];
-
-        return $mapping[$nepaliCategory] ?? strtolower(str_replace(' ', '_', $nepaliCategory));
     }
 
     /**
@@ -644,15 +640,6 @@ class GalleryController extends Controller
     }
 
     /**
-     * ✅ ENHANCED: Enhanced sample gallery data with videos and HD images
-     */
-    private function getSampleGalleryData(): array
-    {
-        // Sample data remains the same as before
-        return [];
-    }
-
-    /**
      * ✅ API: Get gallery categories (ONLY ONE METHOD - NO DUPLICATE)
      */
     public function getCategories()
@@ -709,7 +696,7 @@ class GalleryController extends Controller
     }
 
     /**
-     * ✅ NEW: API endpoint for filtered galleries with video support
+     * ✅ FIXED: API endpoint for filtered galleries with video support
      * ✅ FIXED: Now includes Room images for Boys Hostels
      */
     public function filteredGalleries(Request $request)
@@ -717,17 +704,21 @@ class GalleryController extends Controller
         try {
             $tab = $request->get('tab', 'photos');
 
-            // ✅ FIXED: Get ALL items (Gallery + Room images) based on tab
+            // ✅ FIXED: Get ALL items based on tab
             if ($tab === 'photos') {
-                $galleryItems = $this->getGalleryTableItems($tab);
+                $galleryItems = $this->getGalleryTableItems('photo');
                 $roomItems = $this->getRoomImageItems();
                 $allItems = array_merge($galleryItems, $roomItems);
+            } elseif ($tab === 'videos') {
+                $allItems = $this->getVideoItems($request);
+            } elseif ($tab === 'virtual-tours') {
+                $allItems = $this->getGalleryTableItems('virtual_tour');
             } else {
-                $allItems = $this->getGalleryTableItems($tab);
+                $allItems = [];
             }
 
             // Apply filters
-            $filteredItems = $this->applyFilters($allItems, $request);
+            $filteredItems = $this->applyFilters($allItems, $request, $tab);
 
             // Paginate
             $page = $request->get('page', 1);
@@ -749,112 +740,73 @@ class GalleryController extends Controller
             Log::error('Filtered galleries error: ' . $e->getMessage());
 
             // Return sample data as fallback
-            $sampleData = array_slice($this->getSampleGalleryData(), 0, 12);
-
             return response()->json([
-                'success' => true,
-                'galleries' => $sampleData,
+                'success' => false,
+                'message' => 'Failed to load galleries',
+                'galleries' => [],
                 'pagination' => [
-                    'total' => 12,
+                    'total' => 0,
                     'per_page' => 12,
                     'current_page' => 1,
-                    'last_page' => 1
+                    'last_page' => 0
                 ]
             ]);
         }
     }
 
     /**
-     * ✅ FIXED: API endpoint for videos only with proper filtering
+     * ✅ FIXED: API endpoint for videos only with proper filtering and URL formatting
      */
     public function getVideos(Request $request)
     {
         try {
-            $query = Gallery::with(['hostel', 'room'])
-                ->where('is_active', true)
-                ->whereIn('media_type', ['external_video', 'local_video'])
-                ->whereHas('hostel', function ($query) {
-                    $query->where('is_published', true);
-                });
+            $allItems = $this->getVideoItems($request);
 
-            // ✅ FIXED: Filter by category (English keys only)
-            if ($request->filled('category') && $request->category !== 'all') {
-                $query->where('category', $request->category);
-            }
+            // Apply filters
+            $filteredItems = $this->applyFilters($allItems, $request, 'videos');
 
-            // ✅ FIXED: Filter by hostel - Boys Hostels included
-            if ($request->filled('hostel_id')) {
-                $query->where('hostel_id', $request->hostel_id);
-            }
-
-            // ✅ FIXED: Get videos with proper data structure
-            $videos = $query->orderBy('created_at', 'desc')->paginate(12);
-
-            // Transform to proper format
-            $videoItems = [];
-            foreach ($videos as $video) {
-                $videoItems[] = (object)[
-                    'id' => 'gallery_' . $video->id,
-                    'title' => $video->title,
-                    'description' => $video->description,
-                    'category' => $video->category,
-                    'category_nepali' => $video->category_nepali ?? $this->getCategoryNepali($video->category),
-                    'media_type' => $video->media_type,
-                    'media_url' => $video->media_url,
-                    'thumbnail_url' => $video->thumbnail_url,
-                    'created_at' => $video->created_at,
-                    'hostel_name' => $video->hostel->name ?? 'Unknown Hostel',
-                    'hostel_id' => $video->hostel_id,
-                    'hostel_slug' => $video->hostel->slug ?? '',
-                    'hostel_gender' => $video->hostel->gender_detected ?? ($video->hostel->gender ?? 'mixed'),
-                    'youtube_embed_url' => $video->youtube_embed_url,
-                    'video_duration' => $video->video_duration_formatted ?? $video->video_duration,
-                    'video_resolution' => $video->video_resolution,
-                    'is_360_video' => (bool)($video->is_360_video ?? false)
-                ];
-            }
+            // Paginate
+            $page = $request->get('page', 1);
+            $perPage = 12;
+            $offset = ($page - 1) * $perPage;
+            $currentPageItems = array_slice($filteredItems, $offset, $perPage);
 
             return response()->json([
                 'success' => true,
-                'videos' => $videoItems,
+                'videos' => $currentPageItems,
                 'pagination' => [
-                    'total' => $videos->total(),
-                    'per_page' => $videos->perPage(),
-                    'current_page' => $videos->currentPage(),
-                    'last_page' => $videos->lastPage()
+                    'total' => count($filteredItems),
+                    'per_page' => $perPage,
+                    'current_page' => $page,
+                    'last_page' => ceil(count($filteredItems) / $perPage)
                 ]
             ]);
         } catch (\Exception $e) {
             Log::error('Videos API error: ' . $e->getMessage());
 
-            // Return sample videos
-            $allSampleData = $this->getSampleGalleryData();
-            $sampleVideos = array_filter($allSampleData, function ($item) {
-                return in_array($item->media_type, ['external_video', 'local_video']);
-            });
-
             return response()->json([
-                'success' => true,
-                'videos' => array_values($sampleVideos),
+                'success' => false,
+                'message' => 'Failed to load videos',
+                'videos' => [],
                 'pagination' => [
-                    'total' => count($sampleVideos),
+                    'total' => 0,
                     'per_page' => 12,
                     'current_page' => 1,
-                    'last_page' => 1
+                    'last_page' => 0
                 ]
             ]);
         }
     }
 
     /**
-     * ✅ NEW: Get HD image URL
+     * ✅ FIXED: Get HD image URL with proper storage path
      */
     public function getHdImage($id)
     {
         try {
             // Handle both gallery_ and room_ IDs
-            if (str_starts_with($id, 'gallery_')) {
-                $galleryId = str_replace('gallery_', '', $id);
+            if (Str::startsWith($id, 'gallery_')) {
+                $galleryId = Str::replace('gallery_', '', $id);
                 $gallery = Gallery::where('id', $galleryId)
                     ->where('is_active', true)
                     ->where('media_type', 'photo')
@@ -864,9 +816,9 @@ class GalleryController extends Controller
                 $hdPath = str_replace('.jpg', '-hd.jpg', $gallery->file_path);
 
                 if (Storage::disk('public')->exists($hdPath)) {
-                    $url = Storage::disk('public')->url($hdPath);
+                    $url = Storage::url($hdPath);
                 } else {
-                    $url = Storage::disk('public')->url($gallery->file_path);
+                    $url = Storage::url($gallery->file_path);
                 }
 
                 return response()->json([
@@ -874,13 +826,13 @@ class GalleryController extends Controller
                     'hd_url' => $url,
                     'title' => $gallery->title
                 ]);
-            } elseif (str_starts_with($id, 'room_')) {
-                $roomId = str_replace('room_', '', $id);
+            } elseif (Str::startsWith($id, 'room_')) {
+                $roomId = Str::replace('room_', '', $id);
                 $room = Room::where('id', $roomId)
                     ->whereNotNull('image')
                     ->firstOrFail();
 
-                $url = asset('storage/' . $room->image);
+                $url = Storage::url($room->image);
 
                 return response()->json([
                     'success' => true,
@@ -900,7 +852,7 @@ class GalleryController extends Controller
     }
 
     /**
-     * ✅ FIXED: Get hostel gallery data
+     * ✅ FIXED: Get hostel gallery data with proper URLs
      */
     public function getHostelGalleryData($slug)
     {
@@ -915,6 +867,26 @@ class GalleryController extends Controller
                 ->with(['hostel', 'room'])
                 ->orderBy('created_at', 'desc')
                 ->get();
+
+            $galleryItems = [];
+            foreach ($galleries as $gallery) {
+                $mediaUrl = $this->getProperMediaUrl($gallery);
+                $thumbnailUrl = $this->getProperThumbnailUrl($gallery);
+
+                $galleryItems[] = [
+                    'id' => 'gallery_' . $gallery->id,
+                    'title' => $gallery->title,
+                    'description' => $gallery->description,
+                    'category' => $gallery->category,
+                    'category_nepali' => $gallery->category_nepali ?? $this->getCategoryNepali($gallery->category),
+                    'media_type' => $gallery->media_type,
+                    'media_url' => $mediaUrl,
+                    'thumbnail_url' => $thumbnailUrl,
+                    'room_number' => $gallery->room ? $gallery->room->room_number : null,
+                    'is_room_image' => !is_null($gallery->room_id),
+                    'source' => 'gallery'
+                ];
+            }
 
             // Get room images
             $rooms = Room::where('hostel_id', $hostel->id)
@@ -932,8 +904,8 @@ class GalleryController extends Controller
                         'category' => $room->type,
                         'category_nepali' => $this->getRoomTypeNepali($room->type),
                         'media_type' => 'photo',
-                        'media_url' => asset('storage/' . $room->image),
-                        'thumbnail_url' => asset('storage/' . $room->image),
+                        'media_url' => Storage::url($room->image),
+                        'thumbnail_url' => Storage::url($room->image),
                         'room_number' => $room->room_number,
                         'is_room_image' => true,
                         'source' => 'room'
@@ -941,7 +913,7 @@ class GalleryController extends Controller
                 }
             }
 
-            $allItems = array_merge($galleries->toArray(), $roomItems);
+            $allItems = array_merge($galleryItems, $roomItems);
 
             return response()->json([
                 'success' => true,
@@ -978,6 +950,9 @@ class GalleryController extends Controller
             // Transform gallery items
             $galleryItems = [];
             foreach ($galleries as $gallery) {
+                $mediaUrl = $this->getProperMediaUrl($gallery);
+                $thumbnailUrl = $this->getProperThumbnailUrl($gallery);
+
                 $galleryItems[] = (object)[
                     'id' => 'gallery_' . $gallery->id,
                     'title' => $gallery->title,
@@ -985,13 +960,13 @@ class GalleryController extends Controller
                     'category' => $gallery->category,
                     'category_nepali' => $gallery->category_nepali ?? $this->getCategoryNepali($gallery->category),
                     'media_type' => $gallery->media_type,
-                    'media_url' => $gallery->media_url,
-                    'thumbnail_url' => $gallery->thumbnail_url,
+                    'media_url' => $mediaUrl,
+                    'thumbnail_url' => $thumbnailUrl,
                     'created_at' => $gallery->created_at,
                     'hostel_name' => $gallery->hostel->name ?? 'Unknown Hostel',
                     'hostel_id' => $gallery->hostel_id,
                     'hostel_slug' => $gallery->hostel->slug ?? '',
-                    'hostel_gender' => $gallery->hostel->gender_detected ?? ($gallery->hostel->gender ?? 'mixed'),
+                    'hostel_gender' => $gallery->hostel->gender ?? 'mixed',
                     'is_room_image' => !is_null($gallery->room_id),
                     'source' => 'gallery'
                 ];
@@ -1019,13 +994,13 @@ class GalleryController extends Controller
                             'category' => $room->type,
                             'category_nepali' => $this->getRoomTypeNepali($room->type),
                             'media_type' => 'photo',
-                            'media_url' => asset('storage/' . $room->image),
-                            'thumbnail_url' => asset('storage/' . $room->image),
+                            'media_url' => Storage::url($room->image),
+                            'thumbnail_url' => Storage::url($room->image),
                             'created_at' => $room->created_at,
                             'hostel_name' => $hostel->name,
                             'hostel_id' => $hostel->id,
                             'hostel_slug' => $hostel->slug,
-                            'hostel_gender' => $hostel->gender_detected ?? ($hostel->gender ?? 'mixed'),
+                            'hostel_gender' => $hostel->gender ?? 'mixed',
                             'room_number' => $room->room_number,
                             'is_room_image' => true,
                             'source' => 'room'
@@ -1041,10 +1016,7 @@ class GalleryController extends Controller
             return response()->json($allItems);
         } catch (\Exception $e) {
             Log::error('Featured galleries error: ' . $e->getMessage());
-
-            // Return sample featured data
-            $sampleData = array_slice($this->getSampleGalleryData(), 0, 6);
-            return response()->json($sampleData);
+            return response()->json([]);
         }
     }
 
@@ -1060,5 +1032,29 @@ class GalleryController extends Controller
             Log::error('Clear cache error: ' . $e->getMessage());
             return back()->with('error', 'Failed to clear gallery cache.');
         }
+    }
+
+    /**
+     * ✅ NEW: Get proper media URL for gallery item
+     */
+    private function getMediaUrl($item)
+    {
+        if ($item->media_type === 'photo' && !Str::startsWith($item->media_url, ['http://', 'https://'])) {
+            return Storage::url($item->media_url);
+        }
+
+        return $item->media_url;
+    }
+
+    /**
+     * ✅ NEW: Get proper thumbnail URL for gallery item
+     */
+    private function getThumbnailUrl($item)
+    {
+        if ($item->thumbnail_url && !Str::startsWith($item->thumbnail_url, ['http://', 'https://'])) {
+            return Storage::url($item->thumbnail_url);
+        }
+
+        return $item->thumbnail_url ?? $this->getMediaUrl($item);
     }
 }
