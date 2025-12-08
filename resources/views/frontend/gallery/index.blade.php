@@ -858,30 +858,29 @@ body .gallery-content-wrapper {
                 <p class="nepali">तपाईंले हेर्न चाहनुभएको विशेष प्रकारको मिडिया वा होस्टल चयन गर्नुहोस्</p>
             </div>
             
-            <!-- FIX #5: Hostel Filter with Boys/Girls Support -->
-            <div class="hostel-filter">
-                <label class="nepali" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
-                    <i class="fas fa-building"></i> होस्टल छान्नुहोस्:
-                </label>
-                <select id="hostelFilter" class="form-control" onchange="handleHostelFilterChange()">
-                    <option value="">सबै होस्टलहरू</option>
-                    <option value="boys" {{ request('hostel_gender') == 'boys' ? 'selected' : '' }}>
-                        ब्वाइज होस्टलहरू
-                    </option>
-                    <option value="girls" {{ request('hostel_gender') == 'girls' ? 'selected' : '' }}>
-                        गर्ल्स होस्टलहरू
-                    </option>
-                    <optgroup label="विशेष होस्टलहरू">
-                        @foreach($hostels as $hostel)
-                            <option value="{{ $hostel->id }}" 
-                                    data-gender="{{ $hostel->gender }}"
-                                    {{ request('hostel_id') == $hostel->id ? 'selected' : '' }}>
-                                {{ $hostel->name }}
-                            </option>
-                        @endforeach
-                    </optgroup>
-                </select>
-            </div>
+            <!-- Hostel Filter -->
+<div class="hostel-filter">
+    <label class="nepali" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
+        <i class="fas fa-building"></i> होस्टल छान्नुहोस्:
+    </label>
+    <select id="hostelFilter" class="form-control">
+        <option value="">सबै होस्टलहरू</option>
+        <option value="boys" {{ request('hostel_gender') == 'boys' ? 'selected' : '' }}>
+            ब्वाइज होस्टलहरू
+        </option>
+        <option value="girls" {{ request('hostel_gender') == 'girls' ? 'selected' : '' }}>
+            गर्ल्स होस्टलहरू
+        </option>
+        <optgroup label="विशेष होस्टलहरू">
+            @foreach($hostels as $hostel)
+                <option value="{{ $hostel->id }}" 
+                        {{ request('hostel_id') == $hostel->id ? 'selected' : '' }}>
+                    {{ $hostel->name }}
+                </option>
+            @endforeach
+        </optgroup>
+    </select>
+</div>
 
             <!-- Video Categories Filter (Only for videos tab) -->
             @if($tab === 'videos')
