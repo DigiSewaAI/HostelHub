@@ -1,408 +1,21 @@
 @extends('layouts.frontend')
 
-@section('content')
-    <!-- Enhanced Hero Section -->
-    <section class="meal-hero" style="padding-top: 120px;">
-        <div class="container">
-            <div class="hero-content" style="
-                text-align: center;
-                background: linear-gradient(135deg, var(--primary), var(--secondary));
-                color: white;
-                padding: 2.5rem 1.5rem;
-                border-radius: 1rem;
-                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
-                max-width: 1000px;
-                margin: 0 auto;
-            ">
-                <h1 class="nepali hero-title" style="font-size: 2.5rem; font-weight: 800; color: white; margin-bottom: 1rem;">
-                    विभिन्न होस्टलहरूको खानाको ग्यालरी
-                </h1>
-                <p class="nepali hero-subtitle" style="font-size: 1.125rem; color: rgba(255, 255, 255, 0.9); margin-bottom: 2rem;">
-                    ताजा, स्वस्थ र स्वादिष्ट खानाको अनुभव
-                </p>
-                <div class="search-bar">
-                    <form action="{{ route('menu-gallery') }}" method="GET">
-                        <div class="search-container" style="
-                            position: relative;
-                            max-width: 600px;
-                            margin: 0 auto;
-                            background: white;
-                            border-radius: 50px;
-                            padding: 5px;
-                            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-                            display: flex;
-                            align-items: center;
-                        ">
-                            <i class="fas fa-search search-icon" style="position: absolute; left: 20px; color: #667eea; font-size: 1.1rem;"></i>
-                            <input type="text" name="search" placeholder="खाना वा होस्टलको नामले खोज्नुहोस्..." 
-                                   class="nepali search-input" value="{{ request('search') }}" style="
-                                flex: 1;
-                                border: none;
-                                padding: 15px 20px 15px 50px;
-                                font-size: 1rem;
-                                background: transparent;
-                                outline: none;
-                                color: #000000;
-                            ">
-                            <button type="submit" class="search-btn" style="
-                                background: linear-gradient(135deg, var(--primary), var(--secondary));
-                                color: white;
-                                border: none;
-                                padding: 12px 30px;
-                                border-radius: 50px;
-                                font-weight: 600;
-                                cursor: pointer;
-                                transition: all 0.3s ease;
-                            " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 5px 15px rgba(102, 126, 234, 0.4)';"
-                               onmouseout="this.style.transform='none'; this.style.boxShadow='none';">
-                                खोज्नुहोस्
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Enhanced Filters -->
-    <section class="meal-filters">
-        <div class="container">
-            <div class="filters-container">
-                <div class="filter-tabs">
-                    <a href="{{ route('menu-gallery', ['type' => 'all']) }}" 
-                       class="filter-tab {{ !request('type') || request('type') == 'all' ? 'active' : '' }}">
-                        <i class="fas fa-th-large"></i>
-                        <span class="nepali">सबै खाना</span>
-                    </a>
-                    <a href="{{ route('menu-gallery', ['type' => 'breakfast']) }}" 
-                       class="filter-tab {{ request('type') == 'breakfast' ? 'active' : '' }}">
-                        <i class="fas fa-sun"></i>
-                        <span class="nepali">विहानको खाना</span>
-                    </a>
-                    <a href="{{ route('menu-gallery', ['type' => 'lunch']) }}" 
-                       class="filter-tab {{ request('type') == 'lunch' ? 'active' : '' }}">
-                        <i class="fas fa-utensils"></i>
-                        <span class="nepali">दिउसोको खाना</span>
-                    </a>
-                    <a href="{{ route('menu-gallery', ['type' => 'dinner']) }}" 
-                       class="filter-tab {{ request('type') == 'dinner' ? 'active' : '' }}">
-                        <i class="fas fa-moon"></i>
-                        <span class="nepali">बेलुकाको खाना</span>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Enhanced Food Gallery -->
-    <section class="enhanced-food-gallery">
-        <div class="container">
-            <!-- ✅ FIXED: Compact Statistics Cards -->
-            <div class="gallery-stats">
-                <div class="stat-item compact">
-                    <i class="fas fa-utensils"></i>
-                    <div class="stat-content">
-                        <span class="stat-number">{{ $mealMenus->count() }}</span>
-                        <span class="nepali stat-label">खानाका प्रकार</span>
-                    </div>
-                </div>
-                <div class="stat-item compact">
-                    <i class="fas fa-hotel"></i>
-                    <div class="stat-content">
-                        <span class="stat-number">{{ $featuredHostels->count() }}</span>
-                        <span class="nepali stat-label">होस्टलहरू</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="enhanced-food-grid">
-                @forelse($mealMenus as $menu)
-                <div class="enhanced-food-card">
-                    <div class="card-image-container">
-                        <div class="food-image-wrapper">
-                            @if($menu->image)
-                                <!-- ✅ FIXED: Reduced image height -->
-                                <img src="{{ asset('storage/'.$menu->image) }}" 
-                                     alt="{{ $menu->description }}" 
-                                     class="food-image"
-                                     style="width: 100%; height: 220px; object-fit: cover;">
-                            @else
-                                <img src="https://images.unsplash.com/photo-1565958011703-44f9829ba187?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" 
-                                     alt="{{ $menu->description }}" 
-                                     class="food-image"
-                                     style="width: 100%; height: 220px; object-fit: cover;">
-                            @endif
-                            <div class="image-overlay">
-                                <div class="meal-badge">
-                                    <i class="fas fa-clock"></i>
-                                    <span class="nepali">
-                                        @if($menu->meal_type == 'breakfast')
-                                            ७:०० - ९:०० बिहान
-                                        @elseif($menu->meal_type == 'lunch')
-                                            १२:०० - २:०० दिउँसो
-                                        @else
-                                            ६:०० - ८:०० बेलुका
-                                        @endif
-                                    </span>
-                                </div>
-                                <button class="quick-view-btn" data-meal-id="{{ $menu->id }}">
-                                    <i class="fas fa-eye"></i>
-                                    <span class="nepali">हेर्नुहोस्</span>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="type-indicator {{ $menu->meal_type }}">
-                            @if($menu->meal_type == 'breakfast')
-                                <i class="fas fa-sun"></i>
-                                <span class="nepali">विहानको खाना</span>
-                            @elseif($menu->meal_type == 'lunch')
-                                <i class="fas fa-utensils"></i>
-                                <span class="nepali">दिउसोको खाना</span>
-                            @else
-                                <i class="fas fa-moon"></i>
-                                <span class="nepali">बेलुकाको खाना</span>
-                            @endif
-                        </div>
-                    </div>
-                    
-                    <div class="card-content">
-                        <div class="meal-header">
-                            <h3 class="nepali meal-title">{{ $menu->description }}</h3>
-                            <!-- ❌ REMOVED: Hardcoded star ratings -->
-                        </div>
-                        
-                        <div class="meal-meta">
-                            <div class="meta-item">
-                                <i class="fas fa-hotel"></i>
-                                <span class="nepali">{{ $menu->hostel->name ?? 'होस्टल' }}</span>
-                            </div>
-                            <div class="meta-item">
-                                <i class="fas fa-calendar"></i>
-                                <span class="nepali">
-                                    @php
-                                        $days = [
-                                            'sunday' => 'आइतबार',
-                                            'monday' => 'सोमबार', 
-                                            'tuesday' => 'मङ्गलबार',
-                                            'wednesday' => 'बुधबार',
-                                            'thursday' => 'बिहिबार',
-                                            'friday' => 'शुक्रबार',
-                                            'saturday' => 'शनिबार'
-                                        ];
-                                    @endphp
-                                    {{ $days[strtolower($menu->day_of_week)] ?? $menu->day_of_week }}
-                                </span>
-                            </div>
-                        </div>
-                        
-                        <div class="meal-items">
-                            <h4 class="nepali items-title">खानाका वस्तुहरू:</h4>
-                            <p class="nepali items-list">
-                                {{ $menu->formatted_items ?? $menu->description }}
-                            </p>
-                        </div>
-                        
-                        <!-- ✅ FIXED: Removed Like button, Enhanced Share button -->
-                        <div class="meal-actions">
-                            <button class="action-btn share-btn" data-meal-id="{{ $menu->id }}" data-meal-description="{{ $menu->description }}">
-                                <i class="fas fa-share-alt"></i>
-                                <span class="nepali">सेयर गर्नुहोस्</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                @empty
-                <div class="no-meals-found">
-                    <div class="empty-state">
-                        <i class="fas fa-utensils"></i>
-                        <h3 class="nepali">कुनै खानाको मेनु फेला परेन</h3>
-                        <p class="nepali">कृपया फिल्टर परिवर्तन गर्नुहोस् वा पछि फेरि प्रयास गर्नुहोस्</p>
-                    </div>
-                </div>
-                @endforelse
-            </div>
-        </div>
-    </section>
-
-    <!-- Hostel Slider Section -->
-    <section class="featured-hostels-slider" style="background: #f8f9fa; padding: 4rem 0;">
-        <div class="container">
-            <h2 class="section-title nepali" style="text-align: center; font-size: 2.5rem; font-weight: 700; color: #2d3748; margin-bottom: 3rem;">
-                खाना पोस्ट गर्ने होस्टलहरू
-            </h2>
-            
-            @if($featuredHostels->count() > 0)
-            <div class="hostels-slider-container" style="position: relative; padding: 0 3rem;">
-                <div class="swiper hostels-slider">
-                    <div class="swiper-wrapper">
-                        @foreach($featuredHostels as $hostel)
-                        <div class="swiper-slide">
-                            <div class="hostel-slide-card" style="
-                                background: white;
-                                border-radius: 15px;
-                                padding: 1.5rem;
-                                text-align: center;
-                                box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-                                transition: all 0.3s ease;
-                                height: 100%;
-                                display: flex;
-                                flex-direction: column;
-                                align-items: center;
-                                justify-content: center;
-                            ">
-                                <div class="hostel-logo" style="
-                                    width: 80px;
-                                    height: 80px;
-                                    border-radius: 50%;
-                                    overflow: hidden;
-                                    margin: 0 auto 1rem;
-                                    border: 3px solid var(--primary);
-                                    padding: 3px;
-                                    background: white;
-                                ">
-                                    <img src="{{ $hostel->logo_path ? asset('storage/'.$hostel->logo_path) : 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80' }}" 
-                                         alt="{{ $hostel->name }}" 
-                                         style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
-                                </div>
-                                
-                                <div class="hostel-info" style="text-align: center;">
-                                    <h4 class="nepali" style="font-size: 1.1rem; font-weight: 700; color: #2d3748; margin-bottom: 0.5rem;">
-                                        {{ $hostel->name }}
-                                    </h4>
-                                    <p class="nepali hostel-location" style="
-                                        color: #6c757d;
-                                        font-size: 0.85rem;
-                                        margin-bottom: 0;
-                                        display: flex;
-                                        align-items: center;
-                                        justify-content: center;
-                                        gap: 0.3rem;
-                                    ">
-                                        <i class="fas fa-map-marker-alt" style="font-size: 0.8rem;"></i>
-                                        {{ $hostel->city ?? 'काठमाडौं' }}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                        @endforeach
-                    </div>
-                    
-                    <!-- Navigation buttons -->
-                    <div class="swiper-button-next" style="
-                        color: var(--primary);
-                        background: rgba(255,255,255,0.9);
-                        width: 40px;
-                        height: 40px;
-                        border-radius: 50%;
-                        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                    "></div>
-                    <div class="swiper-button-prev" style="
-                        color: var(--primary);
-                        background: rgba(255,255,255,0.9);
-                        width: 40px;
-                        height: 40px;
-                        border-radius: 50%;
-                        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                    "></div>
-                    
-                    <!-- Pagination -->
-                    <div class="swiper-pagination"></div>
-                </div>
-            </div>
-            @else
-            <div class="no-hostels" style="text-align: center; padding: 2rem;">
-                <p class="nepali" style="color: #6c757d; font-size: 1.1rem;">
-                    अहिले कुनै होस्टलले खानाको मेनु पोस्ट गरेको छैन।
-                </p>
-            </div>
-            @endif
-        </div>
-    </section>
-
-    <!-- CTA Section -->
-    <section class="cta-section" style="padding: 4rem 0; background: white;">
-        <div class="container">
-            <div style="
-                text-align: center;
-                background: linear-gradient(135deg, var(--primary), var(--secondary));
-                color: white;
-                padding: 3rem 2rem;
-                border-radius: 1rem;
-                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
-                max-width: 800px;
-                margin: 0 auto;
-            ">
-                <h2 class="nepali" style="font-size: 1.875rem; font-weight: bold; margin-bottom: 1rem;">
-                    के तपाईं पनि आफ्नो होस्टलका खानाहरू यसरी सार्वजनिक देखाउन चाहनुहुन्छ?
-                </h2>
-                <p class="nepali" style="font-size: 1.25rem; margin-bottom: 2rem; opacity: 0.9;">
-                    HostelHub मा आफ्नो होस्टल दर्ता गर्नुहोस् र आफ्ना स्वादिष्ट खानाहरू सबैलाई देखाउनुहोस्
-                </p>
-                
-                <div style="display: flex; flex-direction: column; gap: 1rem; align-items: center;">
-                    <a href="/register/organization" class="nepali" style="
-                        background-color: white;
-                        color: #001F5B;
-                        font-weight: 600;
-                        padding: 0.75rem 2rem;
-                        border-radius: 0.5rem;
-                        text-decoration: none;
-                        min-width: 180px;
-                        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-                        transition: all 0.3s ease;
-                    " onmouseover="this.style.backgroundColor='#f3f4f6'; this.style.transform='translateY(-2px)';"
-                       onmouseout="this.style.backgroundColor='white'; this.style.transform='none';">
-                        Hostel Owner बन्नुहोस्
-                    </a>
-                    <a href="/features" class="nepali" style="
-                        border: 2px solid white;
-                        color: white;
-                        font-weight: 600;
-                        padding: 0.75rem 2rem;
-                        border-radius: 0.5rem;
-                        text-decoration: none;
-                        min-width: 180px;
-                        background-color: transparent;
-                        transition: all 0.3s ease;
-                    " onmouseover="this.style.backgroundColor='white'; this.style.color='#001F5B'; this.style.transform='translateY(-2px)';"
-                       onmouseout="this.style.backgroundColor='transparent'; this.style.color='white'; this.style.transform='none';">
-                        विशेषताहरू हेर्नुहोस्
-                    </a>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ✅ NEW: Share Modal -->
-    <div id="shareModal" class="share-modal">
-        <div class="share-modal-content">
-            <div class="share-modal-header">
-                <h3 class="nepali">सेयर गर्नुहोस्</h3>
-                <button class="share-modal-close">&times;</button>
-            </div>
-            <div class="share-options">
-                <button class="share-option" data-platform="facebook">
-                    <i class="fab fa-facebook"></i>
-                    <span class="nepali">Facebook</span>
-                </button>
-                <button class="share-option" data-platform="twitter">
-                    <i class="fab fa-twitter"></i>
-                    <span class="nepali">Twitter</span>
-                </button>
-                <button class="share-option" data-platform="whatsapp">
-                    <i class="fab fa-whatsapp"></i>
-                    <span class="nepali">WhatsApp</span>
-                </button>
-                <button class="share-option" data-platform="copy">
-                    <i class="fas fa-link"></i>
-                    <span class="nepali">लिङ्क कपी गर्नुहोस्</span>
-                </button>
-            </div>
-        </div>
-    </div>
-@endsection
-
 @push('styles')
+<!-- 🚨 ADD MAIN CONTENT RESET - EXACTLY SAME AS FEATURES PAGE -->
+<style>
+    main#main.main-content-global.other-page-main {
+        padding-top: 0 !important;
+        margin-top: 0 !important;
+    }
+
+    .gallery-page-wrapper {
+        padding: 0;
+        margin: 0;
+        min-height: calc(100vh - 200px);
+        display: flex;
+        flex-direction: column;
+    }
+</style>
 <!-- Swiper CSS -->
 <link rel="stylesheet" href="https://unpkg.com/swiper@8/swiper-bundle.min.css" />
 
@@ -414,6 +27,36 @@
     text-align: center;
     position: relative;
     overflow: hidden;
+}
+
+/* 🚨 UPDATED: HERO SECTION - EXACT SAME SPACING AS FEATURES PAGE */
+.gallery-hero {
+    text-align: center;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    padding: 2.5rem 1.5rem;
+    border-radius: 1rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+    max-width: 1000px;
+    width: 90%;
+    
+    /* 🚨 EXACT SAME MARGIN AS FEATURES PAGE HEADER */
+    margin: calc(var(--header-height, 70px) + 0.9rem) auto 1.5rem auto !important;
+}
+
+.gallery-hero h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 0.75rem;
+}
+
+.gallery-hero p {
+    font-size: 1.125rem;
+    color: rgba(255, 255, 255, 0.9);
+    max-width: 700px;
+    margin: 0 auto 0.75rem auto;
+    line-height: 1.6;
 }
 
 /* Enhanced Filters */
@@ -871,18 +514,22 @@
     background: var(--primary);
 }
 
-/* Responsive Design */
+/* 🚨 MOBILE ADJUSTMENTS - EXACT SAME AS FEATURES PAGE */
 @media (max-width: 768px) {
-    .meal-hero {
-        padding: 100px 0 40px;
+    .gallery-hero {
+        margin: calc(60px + 0.25rem) auto 1rem auto !important;
+        padding: 1.75rem 1rem;
+        width: calc(100% - 2rem);
     }
     
-    .hero-title {
+    .gallery-hero h1 {
         font-size: 2rem;
+        margin-bottom: 0.5rem;
     }
     
-    .hero-subtitle {
-        font-size: 1.1rem;
+    .gallery-hero p {
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
     }
     
     .search-container {
@@ -952,12 +599,8 @@
 }
 
 @media (max-width: 480px) {
-    .meal-hero {
-        padding: 80px 0 30px;
-    }
-    
-    .hero-title {
-        font-size: 1.8rem;
+    .gallery-hero h1 {
+        font-size: 1.75rem;
     }
     
     .card-content {
@@ -985,6 +628,366 @@
 }
 </style>
 @endpush
+
+@section('content')
+
+<div class="gallery-page-wrapper">
+    <!-- 🚨 UPDATED: Hero Section - EXACT SAME SPACING AS FEATURES PAGE -->
+    <section class="gallery-hero">
+        <h1 class="nepali hero-title">विभिन्न होस्टलहरूको खानाको ग्यालरी</h1>
+        <p class="nepali hero-subtitle">ताजा, स्वस्थ र स्वादिष्ट खानाको अनुभव</p>
+        <div class="search-bar">
+            <form action="{{ route('menu-gallery') }}" method="GET">
+                <div class="search-container">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" name="search" placeholder="खाना वा होस्टलको नामले खोज्नुहोस्..." 
+                           class="nepali search-input" value="{{ request('search') }}">
+                    <button type="submit" class="search-btn">
+                        खोज्नुहोस्
+                    </button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <!-- Enhanced Filters -->
+    <section class="meal-filters">
+        <div class="container">
+            <div class="filters-container">
+                <div class="filter-tabs">
+                    <a href="{{ route('menu-gallery', ['type' => 'all']) }}" 
+                       class="filter-tab {{ !request('type') || request('type') == 'all' ? 'active' : '' }}">
+                        <i class="fas fa-th-large"></i>
+                        <span class="nepali">सबै खाना</span>
+                    </a>
+                    <a href="{{ route('menu-gallery', ['type' => 'breakfast']) }}" 
+                       class="filter-tab {{ request('type') == 'breakfast' ? 'active' : '' }}">
+                        <i class="fas fa-sun"></i>
+                        <span class="nepali">विहानको खाना</span>
+                    </a>
+                    <a href="{{ route('menu-gallery', ['type' => 'lunch']) }}" 
+                       class="filter-tab {{ request('type') == 'lunch' ? 'active' : '' }}">
+                        <i class="fas fa-utensils"></i>
+                        <span class="nepali">दिउसोको खाना</span>
+                    </a>
+                    <a href="{{ route('menu-gallery', ['type' => 'dinner']) }}" 
+                       class="filter-tab {{ request('type') == 'dinner' ? 'active' : '' }}">
+                        <i class="fas fa-moon"></i>
+                        <span class="nepali">बेलुकाको खाना</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Enhanced Food Gallery -->
+    <section class="enhanced-food-gallery">
+        <div class="container">
+            <!-- ✅ FIXED: Compact Statistics Cards -->
+            <div class="gallery-stats">
+                <div class="stat-item compact">
+                    <i class="fas fa-utensils"></i>
+                    <div class="stat-content">
+                        <span class="stat-number">{{ $mealMenus->count() }}</span>
+                        <span class="nepali stat-label">खानाका प्रकार</span>
+                    </div>
+                </div>
+                <div class="stat-item compact">
+                    <i class="fas fa-hotel"></i>
+                    <div class="stat-content">
+                        <span class="stat-number">{{ $featuredHostels->count() }}</span>
+                        <span class="nepali stat-label">होस्टलहरू</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="enhanced-food-grid">
+                @forelse($mealMenus as $menu)
+                <div class="enhanced-food-card">
+                    <div class="card-image-container">
+                        <div class="food-image-wrapper">
+                            @if($menu->image)
+                                <!-- ✅ FIXED: Reduced image height -->
+                                <img src="{{ asset('storage/'.$menu->image) }}" 
+                                     alt="{{ $menu->description }}" 
+                                     class="food-image"
+                                     style="width: 100%; height: 220px; object-fit: cover;">
+                            @else
+                                <img src="https://images.unsplash.com/photo-1565958011703-44f9829ba187?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" 
+                                     alt="{{ $menu->description }}" 
+                                     class="food-image"
+                                     style="width: 100%; height: 220px; object-fit: cover;">
+                            @endif
+                            <div class="image-overlay">
+                                <div class="meal-badge">
+                                    <i class="fas fa-clock"></i>
+                                    <span class="nepali">
+                                        @if($menu->meal_type == 'breakfast')
+                                            ७:०० - ९:०० बिहान
+                                        @elseif($menu->meal_type == 'lunch')
+                                            १२:०० - २:०० दिउँसो
+                                        @else
+                                            ६:०० - ८:०० बेलुका
+                                        @endif
+                                    </span>
+                                </div>
+                                <button class="quick-view-btn" data-meal-id="{{ $menu->id }}">
+                                    <i class="fas fa-eye"></i>
+                                    <span class="nepali">हेर्नुहोस्</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="type-indicator {{ $menu->meal_type }}">
+                            @if($menu->meal_type == 'breakfast')
+                                <i class="fas fa-sun"></i>
+                                <span class="nepali">विहानको खाना</span>
+                            @elseif($menu->meal_type == 'lunch')
+                                <i class="fas fa-utensils"></i>
+                                <span class="nepali">दिउसोको खाना</span>
+                            @else
+                                <i class="fas fa-moon"></i>
+                                <span class="nepali">बेलुकाको खाना</span>
+                            @endif
+                        </div>
+                    </div>
+                    
+                    <div class="card-content">
+                        <div class="meal-header">
+                            <h3 class="nepali meal-title">{{ $menu->description }}</h3>
+                            <!-- ❌ REMOVED: Hardcoded star ratings -->
+                        </div>
+                        
+                        <div class="meal-meta">
+                            <div class="meta-item">
+                                <i class="fas fa-hotel"></i>
+                                <span class="nepali">{{ $menu->hostel->name ?? 'होस्टल' }}</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="fas fa-calendar"></i>
+                                <span class="nepali">
+                                    @php
+                                        $days = [
+                                            'sunday' => 'आइतबार',
+                                            'monday' => 'सोमबार', 
+                                            'tuesday' => 'मङ्गलबार',
+                                            'wednesday' => 'बुधबार',
+                                            'thursday' => 'बिहिबार',
+                                            'friday' => 'शुक्रबार',
+                                            'saturday' => 'शनिबार'
+                                        ];
+                                    @endphp
+                                    {{ $days[strtolower($menu->day_of_week)] ?? $menu->day_of_week }}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="meal-items">
+                            <h4 class="nepali items-title">खानाका वस्तुहरू:</h4>
+                            <p class="nepali items-list">
+                                {{ $menu->formatted_items ?? $menu->description }}
+                            </p>
+                        </div>
+                        
+                        <!-- ✅ FIXED: Removed Like button, Enhanced Share button -->
+                        <div class="meal-actions">
+                            <button class="action-btn share-btn" data-meal-id="{{ $menu->id }}" data-meal-description="{{ $menu->description }}">
+                                <i class="fas fa-share-alt"></i>
+                                <span class="nepali">सेयर गर्नुहोस्</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                @empty
+                <div class="no-meals-found">
+                    <div class="empty-state">
+                        <i class="fas fa-utensils"></i>
+                        <h3 class="nepali">कुनै खानाको मेनु फेला परेन</h3>
+                        <p class="nepali">कृपया फिल्टर परिवर्तन गर्नुहोस् वा पछि फेरि प्रयास गर्नुहोस्</p>
+                    </div>
+                </div>
+                @endforelse
+            </div>
+        </div>
+    </section>
+
+    <!-- Hostel Slider Section -->
+    <section class="featured-hostels-slider" style="background: #f8f9fa; padding: 4rem 0;">
+        <div class="container">
+            <h2 class="section-title nepali" style="text-align: center; font-size: 2.5rem; font-weight: 700; color: #2d3748; margin-bottom: 3rem;">
+                खाना पोस्ट गर्ने होस्टलहरू
+            </h2>
+            
+            @if($featuredHostels->count() > 0)
+            <div class="hostels-slider-container" style="position: relative; padding: 0 3rem;">
+                <div class="swiper hostels-slider">
+                    <div class="swiper-wrapper">
+                        @foreach($featuredHostels as $hostel)
+                        <div class="swiper-slide">
+                            <div class="hostel-slide-card" style="
+                                background: white;
+                                border-radius: 15px;
+                                padding: 1.5rem;
+                                text-align: center;
+                                box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+                                transition: all 0.3s ease;
+                                height: 100%;
+                                display: flex;
+                                flex-direction: column;
+                                align-items: center;
+                                justify-content: center;
+                            ">
+                                <div class="hostel-logo" style="
+                                    width: 80px;
+                                    height: 80px;
+                                    border-radius: 50%;
+                                    overflow: hidden;
+                                    margin: 0 auto 1rem;
+                                    border: 3px solid var(--primary);
+                                    padding: 3px;
+                                    background: white;
+                                ">
+                                    <img src="{{ $hostel->logo_path ? asset('storage/'.$hostel->logo_path) : 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80' }}" 
+                                         alt="{{ $hostel->name }}" 
+                                         style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+                                </div>
+                                
+                                <div class="hostel-info" style="text-align: center;">
+                                    <h4 class="nepali" style="font-size: 1.1rem; font-weight: 700; color: #2d3748; margin-bottom: 0.5rem;">
+                                        {{ $hostel->name }}
+                                    </h4>
+                                    <p class="nepali hostel-location" style="
+                                        color: #6c757d;
+                                        font-size: 0.85rem;
+                                        margin-bottom: 0;
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        gap: 0.3rem;
+                                    ">
+                                        <i class="fas fa-map-marker-alt" style="font-size: 0.8rem;"></i>
+                                        {{ $hostel->city ?? 'काठमाडौं' }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                    
+                    <!-- Navigation buttons -->
+                    <div class="swiper-button-next" style="
+                        color: var(--primary);
+                        background: rgba(255,255,255,0.9);
+                        width: 40px;
+                        height: 40px;
+                        border-radius: 50%;
+                        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                    "></div>
+                    <div class="swiper-button-prev" style="
+                        color: var(--primary);
+                        background: rgba(255,255,255,0.9);
+                        width: 40px;
+                        height: 40px;
+                        border-radius: 50%;
+                        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                    "></div>
+                    
+                    <!-- Pagination -->
+                    <div class="swiper-pagination"></div>
+                </div>
+            </div>
+            @else
+            <div class="no-hostels" style="text-align: center; padding: 2rem;">
+                <p class="nepali" style="color: #6c757d; font-size: 1.1rem;">
+                    अहिले कुनै होस्टलले खानाको मेनु पोस्ट गरेको छैन।
+                </p>
+            </div>
+            @endif
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section" style="padding: 4rem 0; background: white;">
+        <div class="container">
+            <div style="
+                text-align: center;
+                background: linear-gradient(135deg, var(--primary), var(--secondary));
+                color: white;
+                padding: 3rem 2rem;
+                border-radius: 1rem;
+                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+                max-width: 800px;
+                margin: 0 auto;
+            ">
+                <h2 class="nepali" style="font-size: 1.875rem; font-weight: bold; margin-bottom: 1rem;">
+                    के तपाईं पनि आफ्नो होस्टलका खानाहरू यसरी सार्वजनिक देखाउन चाहनुहुन्छ?
+                </h2>
+                <p class="nepali" style="font-size: 1.25rem; margin-bottom: 2rem; opacity: 0.9;">
+                    HostelHub मा आफ्नो होस्टल दर्ता गर्नुहोस् र आफ्ना स्वादिष्ट खानाहरू सबैलाई देखाउनुहोस्
+                </p>
+                
+                <div style="display: flex; flex-direction: column; gap: 1rem; align-items: center;">
+                    <a href="/register/organization" class="nepali" style="
+                        background-color: white;
+                        color: #001F5B;
+                        font-weight: 600;
+                        padding: 0.75rem 2rem;
+                        border-radius: 0.5rem;
+                        text-decoration: none;
+                        min-width: 180px;
+                        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+                        transition: all 0.3s ease;
+                    " onmouseover="this.style.backgroundColor='#f3f4f6'; this.style.transform='translateY(-2px)';"
+                       onmouseout="this.style.backgroundColor='white'; this.style.transform='none';">
+                        Hostel Owner बन्नुहोस्
+                    </a>
+                    <a href="/features" class="nepali" style="
+                        border: 2px solid white;
+                        color: white;
+                        font-weight: 600;
+                        padding: 0.75rem 2rem;
+                        border-radius: 0.5rem;
+                        text-decoration: none;
+                        min-width: 180px;
+                        background-color: transparent;
+                        transition: all 0.3s ease;
+                    " onmouseover="this.style.backgroundColor='white'; this.style.color='#001F5B'; this.style.transform='translateY(-2px)';"
+                       onmouseout="this.style.backgroundColor='transparent'; this.style.color='white'; this.style.transform='none';">
+                        विशेषताहरू हेर्नुहोस्
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ✅ NEW: Share Modal -->
+    <div id="shareModal" class="share-modal">
+        <div class="share-modal-content">
+            <div class="share-modal-header">
+                <h3 class="nepali">सेयर गर्नुहोस्</h3>
+                <button class="share-modal-close">&times;</button>
+            </div>
+            <div class="share-options">
+                <button class="share-option" data-platform="facebook">
+                    <i class="fab fa-facebook"></i>
+                    <span class="nepali">Facebook</span>
+                </button>
+                <button class="share-option" data-platform="twitter">
+                    <i class="fab fa-twitter"></i>
+                    <span class="nepali">Twitter</span>
+                </button>
+                <button class="share-option" data-platform="whatsapp">
+                    <i class="fab fa-whatsapp"></i>
+                    <span class="nepali">WhatsApp</span>
+                </button>
+                <button class="share-option" data-platform="copy">
+                    <i class="fas fa-link"></i>
+                    <span class="nepali">लिङ्क कपी गर्नुहोस्</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
 
 @push('scripts')
 <!-- Swiper JS -->

@@ -231,3 +231,7 @@ Route::middleware(['auth', 'hasOrganization', 'role:owner,hostel_manager'])
 
 // Add this to the contact routes section
 Route::delete('contacts/{contact}', [ContactController::class, 'destroy'])->name('contacts.destroy');
+
+// Gallery Feature Toggle Routes - PATCH method प्रयोग गर्ने
+Route::patch('/galleries/{gallery}/toggle-featured', [OwnerGalleryController::class, 'toggleFeatured'])->name('galleries.toggle-featured');
+Route::patch('/galleries/{gallery}/toggle-active', [OwnerGalleryController::class, 'toggleActive'])->name('galleries.toggle-active');
