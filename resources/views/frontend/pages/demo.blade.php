@@ -2,28 +2,35 @@
 
 @section('page-title', 'HostelHub डेमो')
 
-@section('content')
+@push('styles')
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
-    /* 🚨 CRITICAL FIX: Consistent Spacing System */
+    /* 🚨 CRITICAL FIX: MAIN CONTENT RESET - EXACTLY SAME AS FEATURES PAGE */
+    main#main.main-content-global.other-page-main {
+        padding-top: 0 !important;
+        margin-top: 0 !important;
+    }
+
     .demo-page-container {
-        margin: 0;
         padding: 0;
-        width: 100%;
+        margin: 0;
         min-height: calc(100vh - 200px);
         display: flex;
         flex-direction: column;
     }
     
+    /* 🚨 FIXED: DEMO HERO - EXACT SAME SPACING AS FEATURES PAGE HEADER */
     .demo-hero {
         text-align: center;
-        padding: 2.5rem 1.5rem;
         background: linear-gradient(135deg, var(--primary), var(--secondary));
         color: white;
+        padding: 2.5rem 1.5rem;
         border-radius: 1rem;
         box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
         max-width: 1000px;
         width: 90%;
+        
+        /* 🚨 EXACT SAME MARGIN AS FEATURES PAGE HEADER */
         margin: calc(var(--header-height, 70px) + 0.9rem) auto 1.5rem auto !important;
         position: relative;
         overflow: hidden;
@@ -566,9 +573,12 @@
         }
     }
 </style>
+@endpush
+
+@section('content')
 
 <div class="demo-page-container">
-    <!-- Hero Section - SAME SPACING AS FEATURES PAGE HEADER -->
+    <!-- Hero Section - EXACT SAME SPACING AS FEATURES PAGE HEADER -->
     <section class="demo-hero">
         <h1>HostelHub को डेमो हेर्नुहोस्</h1>
         <p>हाम्रो प्रणालीको सबै सुविधाहरू निःशुल्क परीक्षण गर्नुहोस्, कुनै पनि बाध्यता बिना</p>
@@ -615,9 +625,8 @@
         </div>
 
         <div class="video-suggestion animate-fade-in">
-            <p><strong>सुझाव:</strong> पूर्ण प्रभावको लागि HD मा हेर्नुहोस् र पूर्णस्क्रीन मोडमा स्विच गर्नुहोस्।</p>
-            <p><small><strong>नोट:</strong> लोकल डेमो भिडियो फाइलहरू <code>public/videos/</code> फोल्डरमा राख्नुहोस्।</small></p>
-        </div>
+    <p><strong>सुझाव:</strong> पूर्ण प्रभावको लागि HD मा हेर्नुहोस् र पूर्णस्क्रीन मोडमा स्विच गर्नुहोस्।</p>
+</div>
     </section>
 
     <!-- Key Features Section -->
@@ -740,6 +749,7 @@
     </div>
 </div>
 
+@push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Simple animation for cards
@@ -881,4 +891,6 @@
             });
     });
 </script>
+@endpush
+
 @endsection

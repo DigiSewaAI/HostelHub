@@ -459,28 +459,99 @@ body .gallery-content-wrapper {
         color: white;
     }
 
-    /* FIX #4: Reduced button size */
+    /* 🚨 FIXED: "होस्टल विवरण हेर्नुहोस्" बटनलाई सानो र तल राख्ने स्टाइल */
     .quick-view-btn {
         background: rgba(255, 255, 255, 0.9);
         color: var(--gallery-dark);
-        border: none;
-        padding: 0.3rem 0.8rem; /* FIX #4: Reduced from 0.6rem 1.2rem */
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        padding: 0.25rem 0.6rem; /* 🚨 थोरै सानो */
         border-radius: 4px;
-        font-size: 0.75rem; /* FIX #4: Reduced from 0.875rem */
+        font-size: 0.65rem; /* 🚨 थोरै सानो */
         font-weight: 600;
         cursor: pointer;
-        transition: all 0.3s ease;
+        transition: all 0.2s ease;
         display: inline-flex;
         align-items: center;
-        gap: 0.4rem;
+        gap: 0.3rem;
         text-decoration: none;
-        margin-top: 0.5rem;
+        margin-top: 0.25rem;
+        position: absolute;
+        bottom: 8px;
+        left: 50%;
+        transform: translateX(-50%);
+        white-space: nowrap;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        z-index: 5;
+        backdrop-filter: blur(4px);
     }
 
     .quick-view-btn:hover {
         background: white;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transform: translateX(-50%) translateY(-1px);
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+        color: var(--gallery-primary);
+        border-color: var(--gallery-primary);
+    }
+
+    /* 🚨 NEW: Media overlay को बेहतर स्टाइल */
+    .media-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.4) 40%, transparent 70%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        padding: 0.75rem;
+        z-index: 4;
+    }
+
+    .gallery-item:hover .media-overlay {
+        opacity: 1;
+    }
+
+    .media-title {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: white;
+        margin-bottom: 0.2rem;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+        line-height: 1.2;
+    }
+
+    .media-description {
+        font-size: 0.7rem;
+        color: rgba(255, 255, 255, 0.85);
+        margin-bottom: 0.3rem;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+        line-height: 1.2;
+    }
+
+    .media-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        margin-bottom: 0.4rem;
+        font-size: 0.65rem;
+    }
+
+    .media-category {
+        background: rgba(30, 58, 138, 0.8);
+        color: white;
+        padding: 0.15rem 0.4rem;
+        border-radius: 3px;
+        font-weight: 600;
+    }
+
+    .media-date {
+        background: rgba(0, 0, 0, 0.6);
+        color: rgba(255, 255, 255, 0.9);
+        padding: 0.15rem 0.4rem;
+        border-radius: 3px;
     }
 
     /* Enhanced Loading State for Videos */
@@ -770,6 +841,13 @@ body .gallery-content-wrapper {
         .tab-btn.active .tab-badge {
             background: rgba(255, 255, 255, 0.95) !important;
             color: #1e293b !important;
+        }
+
+        /* 🚨 MOBILE: "होस्टल विवरण हेर्नुहोस्" बटन सानो */
+        .quick-view-btn {
+            padding: 0.2rem 0.5rem;
+            font-size: 0.6rem;
+            bottom: 6px;
         }
     }
 
@@ -1063,7 +1141,7 @@ body .gallery-content-wrapper {
                                         <span class="media-category nepali">{{ $categoryNepali }}</span>
                                         <span class="media-date">{{ $createdAt->format('Y-m-d') }}</span>
                                     </div>
-                                    <!-- View Details Button - FIX #4: Reduced button size -->
+                                    <!-- 🚨 FIXED: "होस्टल विवरण हेर्नुहोस्" बटन सानो र तल राखिएको -->
                                     @if($hostelSlug)
                                     <a href="{{ route('hostels.show', $hostelSlug) }}" 
                                        class="quick-view-btn nepali">
