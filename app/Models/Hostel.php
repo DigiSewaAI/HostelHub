@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Storage;
 
 class Hostel extends Model
 {
@@ -62,7 +63,9 @@ class Hostel extends Model
     protected $appends = [
         'contact_phone_formatted',
         'contact_email_formatted',
-        'gender_detected'  // ✅ NEW: Added gender_detected attribute
+        'gender_detected',  // ✅ NEW: Added gender_detected attribute
+        'cover_image_url',   // ✅ NEW: Added for gallery background
+        'main_image_url'     // ✅ NEW: Added for gallery background
     ];
 
     /**
@@ -433,7 +436,56 @@ class Hostel extends Model
         return 'mixed';
     }
 
+    // ✅ NEW: Get cover image URL for gallery background
+    public function getCoverImageUrlAttribute()
+    {
+        // पहिलो image निकाल्ने
+        if ($this->images && $this->images->count() > 0) {
+            foreach ($this->images as $image) {
+                if ($image->file_path && Storage::disk('public')->exists($image->file_path)) {
+                    return Storage::disk('public')->url($image->file_path);
+                }
+            }
+        }
 
+        // Hostel को मुख्य image
+        if ($this->image && Storage::disk('public')->exists($this->image)) {
+            return Storage::disk('public')->url($this->image);
+        }
+
+        // Fallback
+        return asset('images/default-hostel-bg.jpg');
+    }
+
+    // ✅ NEW: Get main image URL for gallery background
+    public function getMainImageUrlAttribute()
+    {
+        // Hostel को मुख्य image
+        if ($this->image && Storage::disk('public')->exists($this->image)) {
+            return Storage::disk('public')->url($this->image);
+        }
+
+        // Gallery images बाट निकाल्ने
+        $galleryImage = $this->galleries()
+            ->where('media_type', 'photo')
+            ->whereNotNull('file_path')
+            ->first();
+
+        if ($galleryImage && Storage::disk('public')->exists($galleryImage->file_path)) {
+            return Storage::disk('public')->url($galleryImage->file_path);
+        }
+
+        // Images relationship बाट निकाल्ने
+        if ($this->images && $this->images->count() > 0) {
+            $image = $this->images->first();
+            if ($image && $image->file_path && Storage::disk('public')->exists($image->file_path)) {
+                return Storage::disk('public')->url($image->file_path);
+            }
+        }
+
+        // Fallback
+        return asset('images/default-hostel-bg.jpg');
+    }
 
     /**
      * Get available rooms for this hostel - FIXED: Only rooms with available beds

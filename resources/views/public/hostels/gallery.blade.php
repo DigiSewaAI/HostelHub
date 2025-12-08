@@ -49,6 +49,32 @@
     
     $hasRooms = $rooms->count() > 0;
 
+    // Hostel image for HERO section background
+    $hostelBgImage = asset('images/default-hostel-bg.jpg');
+    
+    // Try to get hostel's main image
+    if ($hostel->image && \Storage::disk('public')->exists($hostel->image)) {
+        $hostelBgImage = \Storage::disk('public')->url($hostel->image);
+    }
+    // Try from hostel images
+    elseif (isset($hostel->images) && $hostel->images->count() > 0) {
+        foreach ($hostel->images as $img) {
+            if ($img->file_path && \Storage::disk('public')->exists($img->file_path)) {
+                $hostelBgImage = \Storage::disk('public')->url($img->file_path);
+                break;
+            }
+        }
+    }
+    // Try from gallery images
+    elseif (isset($galleries) && $galleries->count() > 0) {
+        foreach ($galleries as $gallery) {
+            if ($gallery->file_path && Storage::disk('public')->exists($gallery->file_path)) {
+                $hostelBgImage = Storage::disk('public')->url($gallery->file_path);
+                break;
+            }
+        }
+    }
+
     function getRoomImageUrl($room) {
         if (method_exists($room, 'getImageUrlAttribute') && $room->image_url) {
             return $room->image_url;
@@ -226,67 +252,88 @@
         flex-wrap: wrap;
     }
     
-    /* 🚨 UPDATED: Combined Hero Section with Stats */
+    /* 🚨 UPDATED: HERO SECTION - FIXED STATS GRID */
     .hero-stats-section {
-        background: linear-gradient(135deg, var(--primary), var(--secondary));
         color: white;
         padding: 100px 0 40px;
         margin-top: 0;
+        position: relative;
+        min-height: 450px;
+        display: flex;
+        align-items: center;
+        overflow: hidden;
+        background-color: #1a1a2e;
+    }
+    
+    .hero-stats-section .container {
+        position: relative;
+        z-index: 2;
     }
     
     .hero-main-content {
         text-align: center;
         margin-bottom: 40px;
+        padding: 0 20px;
     }
     
     .hero-title {
         font-size: 2.5rem;
-        font-weight: 700;
+        font-weight: 800;
         margin-bottom: 20px;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
         line-height: 1.3;
     }
     
     .hero-subtitle {
         font-size: 1.2rem;
-        opacity: 0.9;
-        max-width: 600px;
+        opacity: 0.95;
+        max-width: 700px;
         margin: 0 auto;
         line-height: 1.6;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+        font-weight: 500;
     }
     
-    /* 🚨 UPDATED: Compact Stats Grid */
+    /* ✅ FIXED: 6 Stats in One Line */
     .stats-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-        gap: 10px;
-        margin-top: 20px;
+        grid-template-columns: repeat(6, minmax(130px, 1fr));
+        gap: 12px;
+        margin-top: 30px;
+        max-width: 1100px;
+        margin-left: auto;
+        margin-right: auto;
+        padding: 0 10px;
     }
     
     .stat-item {
-        background: rgba(255, 255, 255, 0.15);
-        padding: 12px 8px;
-        border-radius: 8px;
-        backdrop-filter: blur(10px);
+        background: rgba(255, 255, 255, 0.2);
+        padding: 16px 8px;
+        border-radius: 10px;
         transition: all 0.3s ease;
         text-align: center;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        height: 85px;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        height: 100px;
         display: flex;
         flex-direction: column;
         justify-content: center;
         cursor: pointer;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        min-width: 0;
+        overflow: hidden;
     }
 
     .stat-item:hover {
         transform: translateY(-3px);
-        background: rgba(255, 255, 255, 0.2);
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        background: rgba(255, 255, 255, 0.25);
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.35);
     }
 
     .stat-item.active {
-        background: rgba(255, 255, 255, 0.25);
+        background: rgba(255, 255, 255, 0.3);
         border: 1px solid rgba(255, 255, 255, 0.4);
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
     }
     
     .stat-count {
@@ -294,26 +341,32 @@
         font-weight: bold;
         color: white;
         display: block;
-        margin-bottom: 5px;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        margin-bottom: 6px;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
         line-height: 1;
     }
     
     .stat-label {
         color: rgba(255,255,255,0.95);
-        font-size: 0.9rem;
-        font-weight: 600;
+        font-size: 0.85rem;
+        font-weight: 700;
         display: block;
-        margin-bottom: 3px;
+        margin-bottom: 4px;
         line-height: 1.2;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .stat-subtext {
-        color: rgba(255,255,255,0.8);
-        font-size: 0.75rem;
+        color: rgba(255,255,255,0.85);
+        font-size: 0.7rem;
         display: block;
-        margin-top: 5px;
+        margin-top: 3px;
         line-height: 1.2;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
     
     /* Available Rooms Specific Styles */
@@ -521,7 +574,7 @@
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
     
-    /* 🚨 UPDATED: Room Gallery CTA */
+    /* 🚨 UPDATED: Room Gallery CTA - CLEAN */
     .gallery-cta-wrapper {
         width: 100%;
         display: flex;
@@ -700,10 +753,11 @@
         font-size: 0.9rem;
     }
     
-    /* Responsive Design */
+    /* Responsive Design for Stats */
     @media (max-width: 1200px) {
         .stats-grid {
-            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            grid-template-columns: repeat(3, minmax(140px, 1fr));
+            max-width: 800px;
         }
     }
     
@@ -723,6 +777,7 @@
         
         .hero-stats-section {
             padding: 80px 0 30px;
+            min-height: 450px;
         }
         
         .hero-title {
@@ -741,6 +796,25 @@
 
         .stats-grid {
             grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            max-width: 500px;
+        }
+        
+        .stat-item {
+            height: 95px;
+            padding: 14px 8px;
+        }
+        
+        .stat-count {
+            font-size: 1.6rem;
+        }
+        
+        .stat-label {
+            font-size: 0.8rem;
+        }
+        
+        .stat-subtext {
+            font-size: 0.65rem;
         }
 
         .available-rooms-section {
@@ -842,26 +916,28 @@
             font-size: 0.8rem;
         }
         
+        .hero-stats-section {
+            padding: 70px 0 20px;
+            min-height: 400px;
+        }
+        
         .hero-title {
-            font-size: 1.8rem;
+            font-size: 1.6rem;
         }
         
         .hero-subtitle {
-            font-size: 1rem;
-        }
-        
-        .hero-stats-section {
-            padding: 70px 0 20px;
+            font-size: 0.95rem;
         }
 
         .stats-grid {
             grid-template-columns: 1fr;
             gap: 8px;
+            max-width: 300px;
         }
         
         .stat-item {
             padding: 10px 6px;
-            height: 80px;
+            height: 85px;
         }
         
         .stat-count {
@@ -869,7 +945,7 @@
         }
         
         .stat-label {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
         }
         
         .stat-subtext {
@@ -936,8 +1012,13 @@
     }
 </style>
 
-<!-- 🚨 UPDATED: Combined Hero Section with Stats -->
-<section class="hero-stats-section">
+<!-- 🚨 UPDATED: HERO SECTION - LIGHT OVERLAY -->
+<section class="hero-stats-section" 
+         style="background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.4)), 
+                url('{{ $hostelBgImage }}');
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;">
     <div class="container">
         <div class="hero-main-content">
             <!-- ✅ FIXED: होस्टलको नाम केवल TOP मा (1/4) -->
@@ -947,7 +1028,7 @@
             </p>
         </div>
         
-        <!-- 🚨 UPDATED: Compact Stats Grid with REAL data -->
+        <!-- ✅ FIXED: 6 Stats in One Line -->
         <div class="stats-grid">
             @php
                 $totalAvailableBeds = $rooms->sum('available_beds');
@@ -1107,44 +1188,44 @@
             </a>
             
             <a href="{{ route('hostel.full-gallery', $hostel->slug) }}" 
-               class="gallery-outline-button nepali" style="border-color: white; color: white;">
+               class="gallery-outline-button nepali">
                 <i class="fas fa-images"></i> पूरा ग्यालरी हेर्नुहोस्
             </a>
             
             @if(routeExists('hostels.show'))
                 <a href="{{ route('hostels.show', $hostel->slug) }}" 
-                   class="gallery-outline-button nepali" style="border-color: white; color: white;">
+                   class="gallery-outline-button nepali">
                     <i class="fas fa-external-link-alt"></i> पृष्ठ भ्रमण गर्नुहोस्
                 </a>
             @else
                 <a href="/hostel/{{ $hostel->slug }}" 
-                   class="gallery-outline-button nepali" style="border-color: white; color: white;">
+                   class="gallery-outline-button nepali">
                     <i class="fas fa-external-link-alt"></i> पृष्ठ भ्रमण गर्नुहोस्
                 </a>
             @endif
         </div>
         
-       <!-- Contact info -->
-<div style="margin-top: 1.5rem; color: rgba(255,255,255,0.8);">
-    <!-- ✅ FIXED: होस्टलको नाम contact info मा (4/4) -->
-    <p class="nepali" style="margin-bottom: 0.5rem; font-weight: 600;">
-        <i class="fas fa-building"></i> {{ $hostel->name ?? 'होस्टल' }}
-    </p>
-    
-    <p class="nepali" style="margin-bottom: 0.5rem;">
-        <i class="fas fa-phone"></i> प्रत्यक्ष कल: {{ $hostel->contact_phone ?? 'उपलब्ध छैन' }}
-    </p>
-    
-    @if($hostel->contact_email)
-    <p class="nepali" style="margin-bottom: 0.5rem;">
-        <i class="fas fa-envelope"></i> इमेल: {{ $hostel->contact_email }}
-    </p>
-    @endif
-    
-    <p class="nepali">
-        <i class="fas fa-clock"></i> २४/७ सम्पर्क सेवा उपलब्ध
-    </p>
-</div>
+        <!-- Contact info -->
+        <div style="margin-top: 1.5rem; color: rgba(255,255,255,0.8);">
+            <!-- ✅ FIXED: होस्टलको नाम contact info मा (4/4) -->
+            <p class="nepali" style="margin-bottom: 0.5rem; font-weight: 600;">
+                <i class="fas fa-building"></i> {{ $hostel->name ?? 'होस्टल' }}
+            </p>
+            
+            <p class="nepali" style="margin-bottom: 0.5rem;">
+                <i class="fas fa-phone"></i> प्रत्यक्ष कल: {{ $hostel->contact_phone ?? 'उपलब्ध छैन' }}
+            </p>
+            
+            @if($hostel->contact_email)
+            <p class="nepali" style="margin-bottom: 0.5rem;">
+                <i class="fas fa-envelope"></i> इमेल: {{ $hostel->contact_email }}
+            </p>
+            @endif
+            
+            <p class="nepali">
+                <i class="fas fa-clock"></i> २४/७ सम्पर्क सेवा उपलब्ध
+            </p>
+        </div>
     </section>
 </div>
 
@@ -1167,6 +1248,55 @@
 </div>
 
 <script>
+    // ✅ FIXED: Page Load Complete Function
+    (function() {
+        // Mark page as interactive immediately
+        document.body.classList.add('page-interactive');
+        
+        // Track loaded images
+        let imagesLoaded = 0;
+        const totalImages = document.querySelectorAll('img').length;
+        
+        // Function to mark page as fully loaded
+        function markPageAsFullyLoaded() {
+            console.log('✅ Page fully loaded');
+            document.body.classList.add('page-loaded');
+            document.body.classList.remove('page-loading');
+            
+            // Dispatch event for any listeners
+            window.dispatchEvent(new Event('pageFullyLoaded'));
+        }
+        
+        // Handle image loading
+        document.querySelectorAll('img').forEach(img => {
+            if (img.complete) {
+                imagesLoaded++;
+            } else {
+                img.addEventListener('load', function() {
+                    imagesLoaded++;
+                    if (imagesLoaded >= totalImages - 1) { // -1 for safety
+                        markPageAsFullyLoaded();
+                    }
+                });
+                
+                img.addEventListener('error', function() {
+                    imagesLoaded++; // Count error as loaded
+                    if (imagesLoaded >= totalImages - 1) {
+                        markPageAsFullyLoaded();
+                    }
+                });
+            }
+        });
+        
+        // Fallback: mark page loaded after 3 seconds max
+        setTimeout(markPageAsFullyLoaded, 3000);
+        
+        // If no images, mark loaded immediately
+        if (totalImages === 0) {
+            setTimeout(markPageAsFullyLoaded, 500);
+        }
+    })();
+
     // ✅ FIXED: Room data
     const roomData = {
         @foreach($rooms as $room)
@@ -1278,7 +1408,10 @@
         }
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
+    // Initialize after page is loaded
+    window.addEventListener('pageFullyLoaded', function() {
+        console.log('Initializing gallery functionality...');
+        
         const statItems = document.querySelectorAll('.stat-item');
         
         statItems.forEach(item => {
@@ -1291,6 +1424,14 @@
             });
         });
 
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('view-details-btn')) {
+                const roomId = e.target.getAttribute('data-room-id');
+                openRoomModal(roomId);
+            }
+        });
+
+        // Handle image errors
         const galleryImages = document.querySelectorAll('.gallery-item img');
         galleryImages.forEach(img => {
             img.addEventListener('error', function() {
@@ -1300,43 +1441,24 @@
         });
 
         const modalImage = document.getElementById('modalRoomImage');
-        modalImage.addEventListener('error', function() {
-            this.src = '{{ asset("images/default-room.jpg") }}';
-        });
-
-        document.addEventListener('click', function(e) {
-            if (e.target.classList.contains('view-details-btn')) {
-                const roomId = e.target.getAttribute('data-room-id');
-                console.log('View details clicked for room:', roomId);
-                openRoomModal(roomId);
-            }
-        });
-
-        const viewDetailButtons = document.querySelectorAll('.gallery-item .btn-primary');
+        if (modalImage) {
+            modalImage.addEventListener('error', function() {
+                this.src = '{{ asset("images/default-room.jpg") }}';
+            });
+        }
         
-        viewDetailButtons.forEach(button => {
-            if (!button.classList.contains('view-details-btn')) {
-                button.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    const onclickAttr = this.getAttribute('onclick');
-                    const roomId = onclickAttr?.match(/'([^']+)'/)?.[1] || 
-                                   onclickAttr?.match(/"([^"]+)"/)?.[1];
-                    
-                    console.log('Legacy button clicked, roomId:', roomId);
-                    
-                    if (roomId) {
-                        openRoomModal(roomId);
-                    } else {
-                        console.error('Could not find room ID from button:', this);
-                        alert('Error: Could not load room details.');
-                    }
-                });
+        console.log('Gallery functionality initialized');
+    });
+    
+    // Fallback initialization
+    document.addEventListener('DOMContentLoaded', function() {
+        // If pageFullyLoaded hasn't fired in 2 seconds, initialize anyway
+        setTimeout(function() {
+            if (!document.body.classList.contains('page-loaded')) {
+                console.log('Fallback initialization');
+                window.dispatchEvent(new Event('pageFullyLoaded'));
             }
-        });
-        
-        console.log('View detail buttons initialized:', document.querySelectorAll('.view-details-btn').length);
+        }, 2000);
     });
 </script>
 @endsection
