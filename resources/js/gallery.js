@@ -3,7 +3,6 @@ class GalleryManager {
     constructor() {
         this.currentFilter = 'all';
         this.currentSearch = '';
-        this.currentHostelFilter = '';
         this.currentTab = 'photos';
         this.currentVideoCategory = 'all';
         this.visibleItems = 12;
@@ -168,11 +167,6 @@ class GalleryManager {
                     this.handleSearch(e);
                 }
             });
-        }
-        
-        // Hostel filter (works for all tabs)
-        if (this.elements.hostelFilter) {
-            this.elements.hostelFilter.addEventListener('change', (e) => this.handleHostelFilter(e));
         }
         
         // Load more (works for all tabs)
@@ -399,7 +393,6 @@ class GalleryManager {
         this.visibleItems = 12;
         this.currentFilter = 'all';
         this.currentSearch = '';
-        this.currentHostelFilter = '';
         this.currentVideoCategory = 'all';
         
         // Reset filter buttons
@@ -412,11 +405,6 @@ class GalleryManager {
         // Reset search input
         if (this.elements.searchInput) {
             this.elements.searchInput.value = '';
-        }
-        
-        // Reset hostel filter
-        if (this.elements.hostelFilter) {
-            this.elements.hostelFilter.value = '';
         }
         
         // ✅ FIXED: Hide spinners when switching tabs
@@ -452,27 +440,10 @@ class GalleryManager {
         this.applyFilters();
     }
     
-    handleHostelFilter(e) {
-        const value = e.target.value;
-        
-        // ✅ FIXED: Simplified gender detection
-        if (value === 'boys' || value === 'girls') {
-            this.currentHostelFilter = value;
-        } else if (value) {
-            this.currentHostelFilter = value; // Specific hostel ID
-        } else {
-            this.currentHostelFilter = '';
-        }
-        
-        this.visibleItems = 12;
-        this.applyFilters();
-    }
-    
     applyFilters() {
         console.log('Applying filters for tab:', this.currentTab, {
             filter: this.currentFilter,
             search: this.currentSearch,
-            hostelFilter: this.currentHostelFilter
         });
         
         let visibleCount = 0;
@@ -518,20 +489,6 @@ class GalleryManager {
                 (item.dataset.roomNumber && item.dataset.roomNumber.toLowerCase().includes(this.currentSearch)) ||
                 (item.getAttribute('data-room-number') && item.getAttribute('data-room-number').toLowerCase().includes(this.currentSearch));
             
-            // ✅ FIXED: SIMPLIFIED Gender filter logic
-            let matchesHostel = true;
-            if (this.currentHostelFilter) {
-                if (this.currentHostelFilter === 'boys' || this.currentHostelFilter === 'girls' || this.currentHostelFilter === 'mixed') {
-                    // Get the normalized gender value from data attribute
-                    const hostelGender = item.getAttribute('data-hostel-gender') || item.dataset.hostelGender;
-                    matchesHostel = hostelGender === this.currentHostelFilter;
-                } else {
-                    // Specific hostel by ID
-                    const hostelId = item.getAttribute('data-hostel-id') || item.dataset.hostelId;
-                    matchesHostel = hostelId == this.currentHostelFilter;
-                }
-            }
-            
             // ✅ FIXED: Virtual tour filter logic
             let matchesVirtualTour = true;
             if (this.currentTab === 'virtual-tours') {
@@ -540,7 +497,7 @@ class GalleryManager {
             }
             
             // ✅ FIXED: Apply filters correctly based on tab
-            let shouldShow = matchesSearch && matchesHostel;
+            let shouldShow = matchesSearch; // Hostel filter now server-side only
             
             if (this.currentTab === 'photos' || this.currentTab === 'videos') {
                 shouldShow = shouldShow && matchesFilter;
@@ -1028,7 +985,7 @@ class GalleryManager {
     }
 }
 
-// ✅ FIXED: Initialize gallery when DOM is loaded with better videos placeholder handling
+// ✅ FIXED: SIMPLE AND RELIABLE SERVER-SIDE HOSTEL FILTER FIX - UPDATED VERSION
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM loaded, initializing Enhanced GalleryManager');
     
@@ -1036,25 +993,51 @@ document.addEventListener('DOMContentLoaded', function() {
     const urlParams = new URLSearchParams(window.location.search);
     const tabParam = urlParams.get('tab');
     
-    // ✅ FIXED: Hide all spinners immediately
-    const hideSpinnersImmediately = () => {
-        const spinners = document.querySelectorAll('.spinner, .loading-spinner, .gallery-loading, .videos-loading');
-        spinners.forEach(spinner => {
-            spinner.style.display = 'none';
-            spinner.classList.add('hidden');
-        });
+    // ✅ CRITICAL FIX: Define the global function that HTML is calling - UPDATED VERSION
+    window.handleHostelFilterChange = function() {
+        const hostelFilter = document.getElementById('hostelFilter');
+        if (!hostelFilter) return false;
         
-        // Hide videos placeholder if videos exist
-        const videoCards = document.querySelectorAll('.video-card');
-        const placeholder = document.querySelector('.videos-placeholder');
-        if (videoCards.length > 0 && placeholder) {
-            placeholder.style.display = 'none';
-            placeholder.classList.add('hidden');
+        const selectedValue = hostelFilter.value;
+        const currentUrl = window.location.href;
+        const url = new URL(currentUrl);
+        const params = url.searchParams;
+        
+        // सबै hostel filters हटाउने
+        params.delete('hostel_gender');
+        params.delete('hostel_id');
+        
+        // नयाँ filter सेट गर्ने
+        if (selectedValue === 'boys' || selectedValue === 'girls') {
+            params.set('hostel_gender', selectedValue);
+        } else if (selectedValue && selectedValue !== '') {
+            params.set('hostel_id', selectedValue);
         }
+        
+        // page 1 मा फर्कने
+        params.delete('page');
+        
+        // navigate
+        window.location.href = url.toString();
+        return false;
     };
     
-    // Initial hide
-    hideSpinnersImmediately();
+    // ✅ FIXED: Set initial value from URL
+    const hostelFilter = document.getElementById('hostelFilter');
+    if (hostelFilter) {
+        const hostelGender = urlParams.get('hostel_gender');
+        const hostelId = urlParams.get('hostel_id');
+        
+        if (hostelGender === 'boys' || hostelGender === 'girls') {
+            hostelFilter.value = hostelGender;
+        } else if (hostelId) {
+            hostelFilter.value = hostelId;
+        }
+        
+        // ✅ NEW: Remove existing onchange attribute and attach event listener
+        hostelFilter.removeAttribute('onchange');
+        hostelFilter.addEventListener('change', window.handleHostelFilterChange);
+    }
     
     // Initialize gallery manager
     const galleryManager = new GalleryManager();
@@ -1071,61 +1054,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     }
-    
-    // ✅ FIXED: Additional check to hide videos placeholder with timeout cleanup
-    setTimeout(() => {
-        hideSpinnersImmediately();
-        galleryManager.hideAllSpinnersImmediately();
-        galleryManager.hideVideosPlaceholder();
-        
-        if (tabParam === 'videos' || tabParam === 'virtual-tours') {
-            console.log('Checking videos placeholder after timeout...');
-            galleryManager.hideVideosPlaceholder();
-        }
-    }, 300);
-    
-    // ✅ FIXED: Also hide on window load with proper cleanup
-    window.addEventListener('load', () => {
-        console.log('Window loaded, final spinner cleanup...');
-        
-        setTimeout(() => {
-            hideSpinnersImmediately();
-            galleryManager.hideAllSpinnersImmediately();
-            galleryManager.hideVideosPlaceholder();
-            
-            // Extra check for videos tab
-            if (tabParam === 'videos' || tabParam === 'virtual-tours') {
-                setTimeout(() => {
-                    galleryManager.hideAllSpinnersImmediately();
-                    galleryManager.hideVideosPlaceholder();
-                }, 500);
-            }
-        }, 500);
-    });
-    
-    // ✅ FIXED: Extra safety checks for videos placeholder
-    setTimeout(() => {
-        hideSpinnersImmediately();
-        galleryManager.hideAllSpinnersImmediately();
-        
-        if (tabParam === 'videos' || tabParam === 'virtual-tours') {
-            console.log('Final check for videos placeholder...');
-            galleryManager.hideVideosPlaceholder();
-            
-            // Force check by querying all video cards
-            const videoCards = document.querySelectorAll('.video-card');
-            const placeholder = document.querySelector('.videos-placeholder');
-            
-            if (videoCards.length > 0 && placeholder) {
-                console.log('Force hiding videos placeholder');
-                placeholder.style.display = 'none';
-                placeholder.classList.add('hidden');
-                placeholder.style.visibility = 'hidden';
-                placeholder.style.opacity = '0';
-                placeholder.style.height = '0';
-            }
-        }
-    }, 1000);
 });
 
 // Add CSS animation for modal and gallery items with enhanced placeholder fixes

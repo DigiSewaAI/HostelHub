@@ -27,27 +27,47 @@ class GalleryController extends Controller
     }
 
     /**
-     * ✅ FIXED: Added gender normalization method
+     * ✅ FIXED: Gender normalization method that works with both request and database values
      */
     private function normalizeGender($gender): string
     {
-        if (!$gender) return 'mixed';
+        if (!$gender || empty(trim($gender))) {
+            return 'mixed';
+        }
 
         $gender = strtolower(trim($gender));
 
-        if (
-            str_contains($gender, 'boy') || str_contains($gender, 'male') ||
-            str_contains($gender, 'ब्वाइ') || str_contains($gender, 'पुरुष')
-        ) {
+        // First, check for English variations (DATABASE VALUES ARE IN ENGLISH!)
+        if ($gender === 'boys' || $gender === 'boy' || str_contains($gender, 'boys') || str_contains($gender, 'male')) {
             return 'boys';
-        } elseif (
-            str_contains($gender, 'girl') || str_contains($gender, 'female') ||
-            str_contains($gender, 'गर्ल') || str_contains($gender, 'महिला')
-        ) {
+        }
+
+        if ($gender === 'girls' || $gender === 'girl' || str_contains($gender, 'girls') || str_contains($gender, 'female')) {
             return 'girls';
         }
 
-        return 'mixed';
+        // Check for Nepali variations (FOR UI DISPLAY)
+        if (str_contains($gender, 'ब्वाइ') || str_contains($gender, 'पुरुष') || str_contains($gender, 'पुर्ष')) {
+            return 'boys';
+        }
+
+        if (str_contains($gender, 'गर्ल') || str_contains($gender, 'महिला') || str_contains($gender, 'स्त्री')) {
+            return 'girls';
+        }
+
+        // Check for common database values
+        $genderMap = [
+            'पुरुष' => 'boys',
+            'महिला' => 'girls',
+            'male' => 'boys',
+            'female' => 'girls',
+            'mixed' => 'mixed',
+            'co-ed' => 'mixed',
+            'coed' => 'mixed',
+            'coeducational' => 'mixed',
+        ];
+
+        return $genderMap[$gender] ?? 'mixed';
     }
 
     /**
@@ -287,6 +307,14 @@ class GalleryController extends Controller
             // ✅ FIXED: Use normalized gender
             $normalizedGender = $this->normalizeGender($hostel->gender ?? 'mixed');
 
+            // LOG for debugging
+            Log::info('Processing hostel in gallery:', [
+                'name' => $hostel->name,
+                'db_gender' => $hostel->gender,
+                'normalized_gender' => $normalizedGender,
+                'room_count' => $hostel->rooms->count()
+            ]);
+
             foreach ($hostel->rooms as $room) {
                 // Check if image exists in storage
                 if ($room->image && Storage::disk('public')->exists($room->image)) {
@@ -325,8 +353,17 @@ class GalleryController extends Controller
             }
         }
 
+        // LOG total items by gender for debugging
+        $genderCounts = [];
+        foreach ($items as $item) {
+            $gender = $item->hostel_gender ?? 'unknown';
+            $genderCounts[$gender] = ($genderCounts[$gender] ?? 0) + 1;
+        }
+        Log::info('Gallery items by gender:', $genderCounts);
+
         return $items;
     }
+
     /**
      * ✅ NEW: Extract YouTube ID from URL
      */
@@ -388,29 +425,53 @@ class GalleryController extends Controller
     }
 
     /**
-     * ✅ FIXED: Apply filters to gallery items with video category support and gender filter
+     * ✅ CRITICAL FIX: Apply filters to gallery items with PROPER gender filtering
      */
     private function applyFilters($items, Request $request, $tab = 'photos')
     {
         $hostelId = $request->get('hostel_id');
-        $hostelGender = $request->get('hostel_gender'); // ✅ NEW: Gender filter
+        $hostelGender = $request->get('hostel_gender'); // 'boys' or 'girls'
         $search = $request->get('search');
         $category = $request->get('category', 'all');
         $videoCategory = $request->get('video_category', 'all');
 
         $filteredItems = $items;
 
-        // ✅ NEW: Filter by hostel gender (boys/girls/mixed)
+        // ✅ CRITICAL FIX: PROPER GENDER FILTERING - Check both request and database values
         if ($hostelGender) {
-            $filteredItems = array_filter($filteredItems, function ($item) use ($hostelGender) {
-                return isset($item->hostel_gender) && $item->hostel_gender === $hostelGender;
+            $normalizedGender = $this->normalizeGender($hostelGender);
+
+            Log::info('Applying gender filter:', [
+                'request_gender' => $hostelGender,
+                'normalized_gender' => $normalizedGender,
+                'total_items_before' => count($filteredItems)
+            ]);
+
+            $filteredItems = array_filter($filteredItems, function ($item) use ($normalizedGender) {
+                // Check if item has hostel_gender property
+                if (isset($item->hostel_gender)) {
+                    $itemGender = $item->hostel_gender;
+                    $matches = $itemGender === $normalizedGender;
+
+                    // Debug logging for boys hostels
+                    if ($normalizedGender === 'boys' && $itemGender === 'boys') {
+                        Log::debug('Boys hostel match found:', [
+                            'hostel' => $item->hostel_name,
+                            'item_gender' => $itemGender,
+                            'filter_gender' => $normalizedGender
+                        ]);
+                    }
+
+                    return $matches;
+                }
+                return false;
             });
         }
 
         // Filter by specific hostel ID
         if ($hostelId) {
             $filteredItems = array_filter($filteredItems, function ($item) use ($hostelId) {
-                return $item->hostel_id == $hostelId;
+                return isset($item->hostel_id) && $item->hostel_id == $hostelId;
             });
         }
 
@@ -418,30 +479,47 @@ class GalleryController extends Controller
         if ($search) {
             $searchLower = strtolower($search);
             $filteredItems = array_filter($filteredItems, function ($item) use ($searchLower) {
-                return str_contains(strtolower($item->title), $searchLower) ||
-                    str_contains(strtolower($item->description), $searchLower) ||
-                    str_contains(strtolower($item->hostel_name), $searchLower) ||
-                    str_contains(strtolower($item->category_nepali), $searchLower) ||
-                    ($item->room_number && str_contains(strtolower($item->room_number), $searchLower));
+                $title = isset($item->title) ? strtolower($item->title) : '';
+                $description = isset($item->description) ? strtolower($item->description) : '';
+                $hostelName = isset($item->hostel_name) ? strtolower($item->hostel_name) : '';
+                $categoryNepali = isset($item->category_nepali) ? strtolower($item->category_nepali) : '';
+                $roomNumber = isset($item->room_number) ? strtolower($item->room_number) : '';
+
+                return str_contains($title, $searchLower) ||
+                    str_contains($description, $searchLower) ||
+                    str_contains($hostelName, $searchLower) ||
+                    str_contains($categoryNepali, $searchLower) ||
+                    str_contains($roomNumber, $searchLower);
             });
         }
 
         // Filter by category (For photos tab)
         if ($category && $category !== 'all' && $tab === 'photos') {
             $filteredItems = array_filter($filteredItems, function ($item) use ($category) {
+                $itemCategory = isset($item->category) ? $item->category : '';
+                $itemCategoryNepali = isset($item->category_nepali) ? $item->category_nepali : '';
+
                 // Match both English and Nepali categories
-                return $item->category === $category ||
-                    $item->category_nepali === $category ||
-                    strtolower($item->category) === strtolower($category);
+                return $itemCategory === $category ||
+                    $itemCategoryNepali === $category ||
+                    strtolower($itemCategory) === strtolower($category);
             });
         }
 
         // For video tab, filter by video category
         if ($tab === 'videos' && $videoCategory && $videoCategory !== 'all') {
             $filteredItems = array_filter($filteredItems, function ($item) use ($videoCategory) {
-                return isset($item->category) && $item->category === $videoCategory;
+                $itemCategory = isset($item->category) ? $item->category : '';
+                return $itemCategory === $videoCategory;
             });
         }
+
+        Log::info('Filter results:', [
+            'gender_filter' => $hostelGender,
+            'hostel_id_filter' => $hostelId,
+            'total_items_after' => count($filteredItems),
+            'tab' => $tab
+        ]);
 
         return array_values($filteredItems);
     }
