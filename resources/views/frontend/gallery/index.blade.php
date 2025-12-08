@@ -803,6 +803,36 @@ body .gallery-content-wrapper {
             font-size: 0.9rem;
         }
     }
+
+    /* 🚨 NEW: Active filter indicator */
+    select[data-filter-active="true"] {
+        border: 2px solid var(--gallery-primary) !important;
+        background-color: rgba(30, 58, 138, 0.05) !important;
+        box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1) !important;
+    }
+
+    /* 🚨 NEW: Boys/Girls filter specific styles */
+    #hostelFilter option[value="boys"] {
+        color: #3b82f6;
+        font-weight: 600;
+    }
+
+    #hostelFilter option[value="girls"] {
+        color: #ec4899;
+        font-weight: 600;
+    }
+
+    #hostelFilter option[value="boys"]:checked,
+    #hostelFilter option[value="boys"]:selected {
+        background-color: #3b82f6;
+        color: white;
+    }
+
+    #hostelFilter option[value="girls"]:checked,
+    #hostelFilter option[value="girls"]:selected {
+        background-color: #ec4899;
+        color: white;
+    }
 </style>
 @endpush
 
@@ -863,7 +893,7 @@ body .gallery-content-wrapper {
     <label class="nepali" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
         <i class="fas fa-building"></i> होस्टल छान्नुहोस्:
     </label>
-    <select id="hostelFilter" class="form-control">
+    <select id="hostelFilter" class="form-control" onchange="handleHostelFilterChange()"> <!-- 🚨 ADDED ONCHANGE -->
         <option value="">सबै होस्टलहरू</option>
         <option value="boys" {{ request('hostel_gender') == 'boys' ? 'selected' : '' }}>
             ब्वाइज होस्टलहरू
@@ -1490,6 +1520,93 @@ function handleTabClick(event, tabName) {
         event.preventDefault();
     }
     return true;
+}
+
+// ✅ FIXED: SIMPLE AND RELIABLE SERVER-SIDE HOSTEL FILTER FIX
+window.handleHostelFilterChange = function() {
+    console.log('Hostel filter changed');
+    const hostelFilter = document.getElementById('hostelFilter');
+    if (!hostelFilter) {
+        console.error('Hostel filter not found');
+        return false;
+    }
+    
+    const selectedValue = hostelFilter.value;
+    console.log('Selected value:', selectedValue);
+    
+    // Get current URL and parameters
+    const currentUrl = window.location.href;
+    const url = new URL(currentUrl);
+    const params = url.searchParams;
+    
+    // Remove pagination when changing filters
+    params.delete('page');
+    
+    // Clear all existing hostel filters
+    params.delete('hostel_gender');
+    params.delete('hostel_id');
+    
+    // Apply new filter
+    if (selectedValue === 'boys' || selectedValue === 'girls') {
+        params.set('hostel_gender', selectedValue);
+        console.log('Setting hostel_gender to:', selectedValue);
+    } else if (selectedValue && selectedValue !== '') {
+        params.set('hostel_id', selectedValue);
+        console.log('Setting hostel_id to:', selectedValue);
+    }
+    
+    // Update tab parameter to stay on photos tab
+    if (!params.has('tab')) {
+        params.set('tab', 'photos');
+    }
+    
+    // Navigate to the new URL
+    console.log('Redirecting to:', url.toString());
+    window.location.href = url.toString();
+    return false;
+};
+
+// ✅ FIXED: Set initial value from URL when DOM loads
+document.addEventListener('DOMContentLoaded', function() {
+    const hostelFilter = document.getElementById('hostelFilter');
+    if (hostelFilter) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const hostelGender = urlParams.get('hostel_gender');
+        const hostelId = urlParams.get('hostel_id');
+        
+        console.log('Current URL params:', { hostelGender, hostelId });
+        
+        if (hostelGender === 'boys' || hostelGender === 'girls') {
+            hostelFilter.value = hostelGender;
+        } else if (hostelId) {
+            hostelFilter.value = hostelId;
+        }
+    }
+});
+
+// ✅ FIXED: Video category click handler
+function handleVideoCategoryClick(category) {
+    console.log('Video category clicked:', category);
+    
+    // Get current URL and parameters
+    const currentUrl = window.location.href;
+    const url = new URL(currentUrl);
+    const params = url.searchParams;
+    
+    // Remove pagination when changing filters
+    params.delete('page');
+    
+    // Update or remove video_category parameter
+    if (category === 'all') {
+        params.delete('video_category');
+    } else {
+        params.set('video_category', category);
+    }
+    
+    // Navigate to the new URL
+    console.log('Redirecting to:', url.toString());
+    window.location.href = url.toString();
+    return false;
 }
 </script>
 @endpush
