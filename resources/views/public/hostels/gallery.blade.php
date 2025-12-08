@@ -1,9 +1,8 @@
 @extends('layouts.frontend')
 
-@section('page-title', ($hostel->name ?? 'Sanctuary Girls Hostel') . ' - Available Rooms | HostelHub')
-
-@section('page-header', ($hostel->name ?? 'Sanctuary Girls Hostel') . ' - Available Rooms')
-@section('page-description', 'हाम्रो होस्टलमा उपलब्ध कोठाहरूको विवरण र तस्वीरहरू। तपाईंको रुचिको कोठा चयन गरी अहिलेै बुक गर्नुहोस्।')
+@section('page-title', ($hostel->name ?? 'Sanctuary Girls Hostel') . ' - Available Rooms Gallery | HostelHub')
+@section('page-header', ($hostel->name ?? 'Sanctuary Girls Hostel') . ' - Available Rooms Gallery')
+@section('page-description', ($hostel->name ?? 'होस्टल') . ' मा उपलब्ध कोठाहरूको विवरण र तस्वीरहरू। तपाईंको रुचिको कोठा चयन गरी अहिलेै बुक गर्नुहोस्।')
 
 @push('styles')
 @vite(['resources/css/gallery.css', 'resources/css/public-themes.css'])
@@ -11,10 +10,7 @@
 
 @section('content')
 @php
-    // ✅ FIXED: Use ACTUAL rooms passed from controller
     $rooms = $rooms ?? collect();
-    
-    // ✅ FIXED: Dynamic counting from actual rooms
     $availableRoomCounts = [];
     $availableBedsCounts = [];
 
@@ -30,7 +26,6 @@
         $availableBedsCounts[$type] += $room->available_beds;
     }
 
-    // Count items by category for stats
     $categoryCounts = [
         'rooms' => $galleries->whereIn('category', ['1 seater', '2 seater', '3 seater', '4 seater', 'other', 'साझा कोठा'])->count(),
         'kitchen' => $galleries->where('category', 'kitchen')->count(),
@@ -38,7 +33,6 @@
         'video' => $galleries->whereIn('media_type', ['local_video', 'external_video'])->count()
     ];
 
-    // PERMANENT FIX: Nepali room types with proper mapping
     $nepaliRoomTypes = [
         '1 seater' => '१ सिटर',
         '2 seater' => '२ सिटर', 
@@ -53,26 +47,20 @@
         'shared' => 'साझा कोठा'
     ];
     
-    // ✅ FIXED: Show available rooms section if ANY rooms exist
     $hasRooms = $rooms->count() > 0;
 
-    // ✅ FIXED: Image URL helper that checks storage first
     function getRoomImageUrl($room) {
-        // Check if room has image accessor
         if (method_exists($room, 'getImageUrlAttribute') && $room->image_url) {
             return $room->image_url;
         }
         
-        // Fallback: Check storage directly
         if ($room->image && \Storage::disk('public')->exists($room->image)) {
             return \Storage::disk('public')->url($room->image);
         }
         
-        // Final fallback
         return asset('images/default-room.jpg');
     }
 
-    // ✅ FIXED: Check if room has valid image
     function roomHasImage($room) {
         if (method_exists($room, 'getHasImageAttribute')) {
             return $room->has_image;
@@ -81,7 +69,6 @@
         return $room->image && \Storage::disk('public')->exists($room->image);
     }
     
-    // ✅ ADDED: Check if route exists
     function routeExists($name) {
         try {
             return \Route::has($name);
@@ -243,7 +230,7 @@
     .hero-stats-section {
         background: linear-gradient(135deg, var(--primary), var(--secondary));
         color: white;
-        padding: 100px 0 40px; /* Increased top padding for header */
+        padding: 100px 0 40px;
         margin-top: 0;
     }
     
@@ -268,7 +255,7 @@
         line-height: 1.6;
     }
     
-    /* 🚨 UPDATED: Compact Stats Grid - Better spacing and design */
+    /* 🚨 UPDATED: Compact Stats Grid */
     .stats-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -303,7 +290,7 @@
     }
     
     .stat-count {
-        font-size: 1.8rem; /* Reduced from 2.2rem */
+        font-size: 1.8rem;
         font-weight: bold;
         color: white;
         display: block;
@@ -314,7 +301,7 @@
     
     .stat-label {
         color: rgba(255,255,255,0.95);
-        font-size: 0.9rem; /* Reduced from 1rem */
+        font-size: 0.9rem;
         font-weight: 600;
         display: block;
         margin-bottom: 3px;
@@ -323,13 +310,13 @@
 
     .stat-subtext {
         color: rgba(255,255,255,0.8);
-        font-size: 0.75rem; /* Reduced from 0.85rem */
+        font-size: 0.75rem;
         display: block;
         margin-top: 5px;
         line-height: 1.2;
     }
     
-    /* Available Rooms Specific Styles - UPDATED */
+    /* Available Rooms Specific Styles */
     .available-rooms-section {
         padding: 60px 0 40px;
         background: var(--bg-light);
@@ -370,7 +357,6 @@
         box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
     }
 
-    /* 🚨 FIXED: Room status badge colors */
     .status-available {
         background: #10b981 !important;
     }
@@ -384,7 +370,6 @@
         background: #6b7280 !important;
     }
 
-    /* 🚨 FIXED: No Rooms Message Styles - Button color fixed */
     .no-rooms-message {
         text-align: center;
         padding: 80px 20px;
@@ -399,10 +384,9 @@
         margin-bottom: 20px;
     }
     
-    /* 🚨 FIXED: Contact button color in no-rooms section */
     .no-rooms-message .btn-outline {
         border-color: var(--primary);
-        color: var(--primary) !important; /* Force blue color */
+        color: var(--primary) !important;
         background: transparent;
     }
     
@@ -411,7 +395,6 @@
         color: white !important;
     }
     
-    /* 🚨 FIXED: Modal Styles - Compact and better layout */
     .gallery-modal {
         display: none;
         position: fixed;
@@ -430,7 +413,7 @@
     
     .modal-content {
         max-width: 800px;
-        max-height: 85vh; /* Reduced from 90vh to 85vh */
+        max-height: 85vh;
         width: 90%;
         position: relative;
         border-radius: 12px;
@@ -447,7 +430,7 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        max-height: 65vh; /* Increased image space */
+        max-height: 65vh;
         min-height: 50vh;
         overflow: hidden;
     }
@@ -484,48 +467,48 @@
     .modal-caption {
         background: white;
         color: #333;
-        padding: 20px; /* Reduced padding */
+        padding: 20px;
         border-top: 1px solid #e5e7eb;
-        max-height: 30vh; /* Limit caption height */
-        overflow-y: auto; /* Scroll if content is too long */
+        max-height: 30vh;
+        overflow-y: auto;
     }
     
     .modal-caption h3 {
         color: var(--text-dark);
-        margin-bottom: 8px; /* Reduced margin */
-        font-size: 1.3rem; /* Slightly smaller */
+        margin-bottom: 8px;
+        font-size: 1.3rem;
         font-weight: 600;
     }
     
     .modal-caption p {
         color: var(--text-dark);
-        margin-bottom: 12px; /* Reduced margin */
-        line-height: 1.4; /* Tighter line height */
-        font-size: 0.95rem; /* Slightly smaller font */
+        margin-bottom: 12px;
+        line-height: 1.4;
+        font-size: 0.95rem;
     }
     
     .modal-room-details {
         color: var(--text-dark);
-        margin-bottom: 15px; /* Reduced margin */
+        margin-bottom: 15px;
         line-height: 1.5;
         background: #f8f9fa;
-        padding: 12px; /* Reduced padding */
+        padding: 12px;
         border-radius: 6px;
         border-left: 4px solid var(--primary);
-        font-size: 0.9rem; /* Smaller font for details */
+        font-size: 0.9rem;
     }
     
     .modal-book-button {
         display: block;
         width: 100%;
-        padding: 10px 20px; /* Slightly reduced padding */
+        padding: 10px 20px;
         background: var(--primary);
         color: white;
         text-align: center;
         text-decoration: none;
         border-radius: 6px;
         font-weight: 600;
-        font-size: 0.95rem; /* Slightly smaller */
+        font-size: 0.95rem;
         transition: all 0.3s ease;
         border: none;
         cursor: pointer;
@@ -538,7 +521,7 @@
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
     
-    /* 🚨 UPDATED: Room Gallery CTA - STUDENT FOCUSED */
+    /* 🚨 UPDATED: Room Gallery CTA */
     .gallery-cta-wrapper {
         width: 100%;
         display: flex;
@@ -586,7 +569,7 @@
         text-decoration: underline;
     }
     
-    /* ✅ UPDATED: Attractive Book Now Button with shining effect */
+    /* ✅ UPDATED: Attractive Book Now Button */
     .gallery-trial-button {
         background: linear-gradient(135deg, #FF6B35, #FF8B3D) !important;
         color: white !important;
@@ -666,7 +649,6 @@
         width: 100%;
     }
 
-    /* Room Gallery CTA Specific Styles */
     .gallery-cta-section .gallery-outline-button {
         background-color: transparent;
         color: white;
@@ -691,7 +673,6 @@
         transform: translateY(-2px);
     }
     
-    /* ✅ ADDED: Image error handling styles */
     .image-fallback {
         width: 100%;
         height: 100%;
@@ -741,7 +722,7 @@
         }
         
         .hero-stats-section {
-            padding: 80px 0 30px; /* Adjusted for mobile */
+            padding: 80px 0 30px;
         }
         
         .hero-title {
@@ -766,19 +747,18 @@
             padding: 50px 0 30px;
         }
         
-        /* Modal responsive - More compact on mobile */
         .modal-content {
             width: 95%;
-            max-height: 90vh; /* Slightly smaller on mobile */
+            max-height: 90vh;
         }
         
         .modal-image-container {
-            max-height: 55vh; /* More space for image on mobile */
+            max-height: 55vh;
         }
         
         .modal-caption {
-            padding: 15px; /* Even more compact on mobile */
-            max-height: 35vh; /* Allow more space for content on mobile */
+            padding: 15px;
+            max-height: 35vh;
         }
         
         .modal-caption h3 {
@@ -803,7 +783,6 @@
             font-size: 0.9rem;
         }
         
-        /* CTA Responsive */
         .gallery-cta-wrapper {
             padding: 2rem 1rem 6rem 1rem;
         }
@@ -830,7 +809,6 @@
             min-width: 180px;
         }
         
-        /* Room Gallery CTA Responsive */
         .gallery-cta-buttons-container {
             flex-direction: column;
             gap: 1rem;
@@ -873,7 +851,7 @@
         }
         
         .hero-stats-section {
-            padding: 70px 0 20px; /* Adjusted for small mobile */
+            padding: 70px 0 20px;
         }
 
         .stats-grid {
@@ -898,7 +876,6 @@
             font-size: 0.7rem;
         }
         
-        /* Modal mobile - Ultra compact */
         .modal-content {
             width: 98%;
             max-height: 95vh;
@@ -910,7 +887,7 @@
         
         .modal-caption {
             padding: 12px;
-            max-height: 45vh; /* More space for content on small screens */
+            max-height: 45vh;
         }
         
         .modal-caption h3 {
@@ -931,7 +908,6 @@
             font-size: 0.85rem;
         }
         
-        /* CTA Mobile */
         .gallery-cta-wrapper {
             padding: 1.5rem 1rem 5rem 1rem;
         }
@@ -964,9 +940,10 @@
 <section class="hero-stats-section">
     <div class="container">
         <div class="hero-main-content">
-            <h1 class="hero-title nepali">🛏️ हाम्रो होस्टलमा उपलब्ध कोठाहरू</h1>
+            <!-- ✅ FIXED: होस्टलको नाम केवल TOP मा (1/4) -->
+            <h1 class="hero-title nepali">🛏️ {{ $hostel->name ?? 'होस्टल' }} मा उपलब्ध कोठाहरू</h1>
             <p class="hero-subtitle nepali">
-                हाम्रो होस्टलमा उपलब्ध कोठाहरूको विवरण र तस्वीरहरू। तपाईंको रुचिको कोठा चयन गरी अहिलेै बुक गर्नुहोस्।
+                यस होस्टलमा उपलब्ध कोठाहरूको विवरण र तस्वीरहरू। तपाईंको रुचिको कोठा चयन गरी अहिलेै बुक गर्नुहोस्।
             </p>
         </div>
         
@@ -999,20 +976,19 @@
     </div>
 </section>
 
-<!-- Available Rooms Section - ✅ FIXED: Shows ALL ROOMS with PROPER image handling -->
+<!-- Available Rooms Section -->
 <section class="available-rooms-section">
     <div class="container">
         @if($hasRooms)
-            <h2 class="section-title nepali">हाम्रा कोठाहरू</h2>
+            <!-- ✅ FIXED: होस्टलको नाम सेक्सन टाइटलमा (2/4) -->
+            <h2 class="section-title nepali">{{ $hostel->name ?? 'होस्टल' }} का कोठाहरू</h2>
             <p style="text-align: center; margin-bottom: 40px; color: var(--text-dark); opacity: 0.8; max-width: 700px; margin-left: auto; margin-right: auto;" class="nepali">
-                तल दिइएका कोठाहरू हाम्रो होस्टलमा उपलब्ध छन्। तपाईंको रुचिको कोठा चयन गरी अहिलेै बुक गर्नुहोस्।
+                तल दिइएका कोठाहरू यस होस्टलमा उपलब्ध छन्। तपाईंको रुचिको कोठा चयन गरी अहिलेै बुक गर्नुहोस्।
             </p>
             
-            <!-- ✅ FIXED: Room Gallery with PROPER image handling -->
             <div class="gallery-grid" id="roomsGrid">
                 @foreach($rooms as $room)
                     @php
-                        // Use room data as is from database
                         $availableBeds = $room->available_beds;
                         $roomId = $room->id;
                         $roomNumber = $room->room_number;
@@ -1021,7 +997,6 @@
                         
                         $displayRoomType = $nepaliRoomTypes[$room->type] ?? $room->type;
                         
-                        // ✅ CORRECTED: Status logic based on ACTUAL occupancy
                         if ($room->status === 'maintenance') {
                             $statusClass = 'status-maintenance';
                             $statusText = 'मर्मतमा';
@@ -1042,7 +1017,6 @@
                     @endphp
                     
                     <div class="gallery-item" data-room-type="{{ $room->type }}">
-                        <!-- ✅ STRICT FIX: Image with proper error handling - TIMRO SYSTEM -->
                         @if($room->has_image)
                             <img src="{{ $room->image_url }}" 
                                 alt="कोठा {{ $room->room_number }}" 
@@ -1059,12 +1033,10 @@
                             {{ $displayRoomType }}
                         </div>
                         
-                        <!-- ✅ FIXED: Show CORRECT status -->
                         <div class="available-badge nepali {{ $statusClass }}">
                             {{ $statusText }}
                         </div>
                         
-                        <!-- ✅ FIXED: Book Now button with CORRECT logic -->
                         @if($availableBeds > 0 && $room->status !== 'maintenance' && $currentOccupancy < $capacity)
                             <a href="{{ route('hostel.book.from.gallery', ['slug' => $hostel->slug, 'room_id' => $roomId]) }}" class="book-now-btn nepali">
                                 बुक गर्नुहोस्
@@ -1076,6 +1048,10 @@
                         @endif
                         
                         <div class="gallery-overlay">
+                            <!-- ✅ FIXED: होस्टलको नाम छोटो रूपमा (3/4) -->
+                            <p class="nepali" style="font-size: 0.8rem; color: rgba(255,255,255,0.8); margin-bottom: 5px;">
+                                {{ $hostel->name ?? 'होस्टल' }}
+                            </p>
                             <h3 class="gallery-title nepali">कोठा {{ $roomNumber }}</h3>
                             <p class="nepali">प्रकार: {{ $displayRoomType }}</p>
                             <p class="nepali" style="font-size: 0.9rem; margin-top: 5px;">
@@ -1094,13 +1070,11 @@
                 @endforeach
             </div>
             
-            <!-- ✅ REMOVED: Duplicate buttons above CTA section -->
-            
         @else
             <!-- No Rooms Message -->
             <div class="no-rooms-message">
                 <div class="no-rooms-icon">🏠</div>
-                <h3 class="nepali" style="color: var(--text-dark); margin-bottom: 15px;">हाल कुनै कोठा उपलब्ध छैन</h3>
+                <h3 class="nepali" style="color: var(--text-dark); margin-bottom: 15px;">यस होस्टलमा हाल कुनै कोठा उपलब्ध छैन</h3>
                 <p class="nepali" style="color: var(--text-dark); opacity: 0.8; margin-bottom: 25px;">
                     माफ गर्नुहोस्, हाल यस होस्टलमा कुनै कोठा उपलब्ध छैन।<br>
                     कृपया पछि फेरी जाँच गर्नुहोस् वा हाम्रो अन्य होस्टलहरू हेर्नुहोस्।
@@ -1118,33 +1092,31 @@
     </div>
 </section>
 
-<!-- 🚨 UPDATED: Room Gallery CTA - STUDENT FOCUSED -->
+<!-- 🚨 UPDATED: Room Gallery CTA - CLEAN -->
 <div class="gallery-cta-wrapper">
     <section class="gallery-cta-section">
-        <h2 class="nepali">कोठा बुक गर्न चाहनुहुन्छ?</h2>
-        <p class="nepali">अहिले नै कोठा सुरक्षित गर्नुहोस् वा होस्टलको बारेमा थप जानकारी लिनुहोस्</p>
+        <!-- ✅ FIXED: होस्टलको नाम CTA मा छैन -->
+        <h2 class="nepali">यस होस्टलमा कोठा बुक गर्न चाहनुहुन्छ?</h2>
+        <p class="nepali">अहिले नै कोठा सुरक्षित गर्नुहोस् वा थप जानकारी लिनुहोस्</p>
         
         <div class="gallery-cta-buttons-container">
-            <!-- ✅ UPDATED: Attractive Book Now Button with shining effect -->
+            <!-- ✅ FIXED: Buttons मा होस्टलको नाम छैन -->
             <a href="{{ route('hostel.book.all.rooms', ['slug' => $hostel->slug]) }}" 
                class="gallery-trial-button nepali">
-                <i class="fas fa-calendar-check"></i> अहिले बुक गर्नुहोस्
+                <i class="fas fa-calendar-check"></i> बुक गर्नुहोस्
             </a>
             
-            <!-- Gallery बटन -->
             <a href="{{ route('hostel.full-gallery', $hostel->slug) }}" 
                class="gallery-outline-button nepali" style="border-color: white; color: white;">
                 <i class="fas fa-images"></i> पूरा ग्यालरी हेर्नुहोस्
             </a>
             
-            <!-- 🆕 FIXED: होस्टल मुख्य पृष्ठ बटन - Using hostel.gallery route instead -->
             @if(routeExists('hostels.show'))
                 <a href="{{ route('hostels.show', $hostel->slug) }}" 
                    class="gallery-outline-button nepali" style="border-color: white; color: white;">
                     <i class="fas fa-external-link-alt"></i> पृष्ठ भ्रमण गर्नुहोस्
                 </a>
             @else
-                <!-- Fallback: Use hostel.gallery or direct URL -->
                 <a href="/hostel/{{ $hostel->slug }}" 
                    class="gallery-outline-button nepali" style="border-color: white; color: white;">
                     <i class="fas fa-external-link-alt"></i> पृष्ठ भ्रमण गर्नुहोस्
@@ -1154,13 +1126,18 @@
         
        <!-- Contact info -->
 <div style="margin-top: 1.5rem; color: rgba(255,255,255,0.8);">
-    <p class="nepali" style="margin-bottom: 0.5rem;">
-        <i class="fas fa-phone"></i> प्रत्यक्ष कल: {{ $hostel->contact_phone_formatted }}
+    <!-- ✅ FIXED: होस्टलको नाम contact info मा (4/4) -->
+    <p class="nepali" style="margin-bottom: 0.5rem; font-weight: 600;">
+        <i class="fas fa-building"></i> {{ $hostel->name ?? 'होस्टल' }}
     </p>
     
-    @if($hostel->contact_email_formatted)
     <p class="nepali" style="margin-bottom: 0.5rem;">
-        <i class="fas fa-envelope"></i> इमेल: {{ $hostel->contact_email_formatted }}
+        <i class="fas fa-phone"></i> प्रत्यक्ष कल: {{ $hostel->contact_phone ?? 'उपलब्ध छैन' }}
+    </p>
+    
+    @if($hostel->contact_email)
+    <p class="nepali" style="margin-bottom: 0.5rem;">
+        <i class="fas fa-envelope"></i> इमेल: {{ $hostel->contact_email }}
     </p>
     @endif
     
@@ -1171,7 +1148,7 @@
     </section>
 </div>
 
-<!-- ✅ FIXED: Room Detail Modal with PROPER image handling -->
+<!-- ✅ FIXED: Room Detail Modal -->
 <div class="gallery-modal" id="roomModal">
     <div class="modal-content">
         <button class="close-modal" onclick="closeModal()">&times;</button>
@@ -1182,7 +1159,6 @@
             <h3 id="modalRoomTitle" class="nepali"></h3>
             <p id="modalRoomDescription" class="nepali"></p>
             <div id="modalRoomDetails" class="modal-room-details nepali"></div>
-            <!-- ✅ FIXED: Modal book button with CORRECT route -->
             <a href="#" id="modalBookButton" class="modal-book-button nepali">
                 यो कोठा बुक गर्नुहोस्
             </a>
@@ -1191,13 +1167,13 @@
 </div>
 
 <script>
-    // ✅ FIXED: Room data with PROPER image handling
+    // ✅ FIXED: Room data
     const roomData = {
         @foreach($rooms as $room)
         '{{ $room->id }}': {
             title: `कोठा {{ $room->room_number }}`,
             description: `{{ $room->description ?? 'कोठा विवरण उपलब्ध छैन' }}`,
-            media_url: `{{ getRoomImageUrl($room) }}`, // ✅ Use the fixed helper function
+            media_url: `{{ getRoomImageUrl($room) }}`,
             room_type: `{{ $room->type }}`,
             available_beds: {{ $room->available_beds }},
             current_occupancy: {{ $room->current_occupancy }},
@@ -1206,12 +1182,12 @@
             price: {{ $room->price }},
             status: `{{ $room->status }}`,
             nepali_type: `{{ $nepaliRoomTypes[$room->type] ?? $room->type }}`,
-            room_id: `{{ $room->id }}`
+            room_id: `{{ $room->id }}`,
+            hostel_name: `{{ $hostel->name ?? 'होस्टल' }}`
         }@if(!$loop->last),@endif
         @endforeach
     };
 
-    // ✅ FIXED: Modal open function with PROPER error handling
     function openRoomModal(roomId) {
         console.log('Opening modal for room ID:', roomId);
         
@@ -1229,18 +1205,13 @@
         const modalDetails = document.getElementById('modalRoomDetails');
         const modalBookButton = document.getElementById('modalBookButton');
 
-        // Debug log
-        console.log('Room data:', room);
-        console.log('Modal elements found:', {modal, modalImage, modalTitle, modalDescription, modalDetails, modalBookButton});
-
-        // Set modal content
         modalImage.src = room.media_url;
         modalImage.alt = room.title;
-        modalTitle.textContent = room.title;
+        modalTitle.textContent = room.hostel_name + ' - ' + room.title;
         modalDescription.textContent = room.description;
         
-        // Room details with Nepali text
         const detailsHtml = `
+            <strong>होस्टल:</strong> ${room.hostel_name}<br>
             <strong>कोठाको प्रकार:</strong> ${room.nepali_type}<br>
             <strong>कोठा नम्बर:</strong> ${room.room_number}<br>
             <strong>क्षमता:</strong> ${room.capacity} बेड<br>
@@ -1251,7 +1222,6 @@
         `;
         modalDetails.innerHTML = detailsHtml;
         
-        // Book button logic
         if (room.available_beds > 0 && room.status !== 'maintenance') {
             modalBookButton.href = "{{ route('hostel.book.from.gallery', ['slug' => $hostel->slug, 'room_id' => '']) }}" + room.room_id;
             modalBookButton.style.display = 'block';
@@ -1260,17 +1230,14 @@
             modalBookButton.style.display = 'none';
         }
 
-        // Show modal with animation
         modal.style.display = 'flex';
         setTimeout(() => {
             modal.style.opacity = '1';
         }, 10);
         
-        // Prevent body scroll when modal is open
         document.body.style.overflow = 'hidden';
     }
     
-    // ✅ FIXED: Better modal close function
     function closeModal() {
         const modal = document.getElementById('roomModal');
         modal.style.opacity = '0';
@@ -1280,7 +1247,6 @@
         }, 300);
     }
     
-    // ✅ FIXED: Close modal when clicking outside
     document.addEventListener('click', function(event) {
         const modal = document.getElementById('roomModal');
         if (event.target === modal) {
@@ -1288,24 +1254,20 @@
         }
     });
     
-    // ✅ FIXED: Close modal with Escape key
     document.addEventListener('keydown', function(event) {
         if (event.key === 'Escape') {
             closeModal();
         }
     });
 
-    // ✅ ADDED: Room filtering functionality
     function filterRoomsByType(roomType) {
         const allRooms = document.querySelectorAll('.gallery-item');
         
         if (roomType === 'all') {
-            // Show all rooms
             allRooms.forEach(room => {
                 room.style.display = 'block';
             });
         } else {
-            // Show only rooms of selected type
             allRooms.forEach(room => {
                 if (room.getAttribute('data-room-type') === roomType) {
                     room.style.display = 'block';
@@ -1316,15 +1278,12 @@
         }
     }
 
-    // ✅ ADDED: Stats filtering functionality
     document.addEventListener('DOMContentLoaded', function() {
         const statItems = document.querySelectorAll('.stat-item');
         
         statItems.forEach(item => {
             item.addEventListener('click', function() {
-                // Remove active class from all
                 statItems.forEach(i => i.classList.remove('active'));
-                // Add active to clicked
                 this.classList.add('active');
                 
                 const roomType = this.getAttribute('data-room-type');
@@ -1332,7 +1291,6 @@
             });
         });
 
-        // Handle broken images
         const galleryImages = document.querySelectorAll('.gallery-item img');
         galleryImages.forEach(img => {
             img.addEventListener('error', function() {
@@ -1346,20 +1304,6 @@
             this.src = '{{ asset("images/default-room.jpg") }}';
         });
 
-        // Debug: Test if buttons are working
-        const buttons = document.querySelectorAll('.btn-primary');
-        console.log('Total buttons found:', buttons.length);
-        
-        buttons.forEach((btn, index) => {
-            btn.addEventListener('click', function(e) {
-                console.log('Button clicked:', index, this.textContent);
-            });
-        });
-    });
-
-    // ✅ FIXED: Using data attributes for view details buttons
-    document.addEventListener('DOMContentLoaded', function() {
-        // Use event delegation for view details buttons
         document.addEventListener('click', function(e) {
             if (e.target.classList.contains('view-details-btn')) {
                 const roomId = e.target.getAttribute('data-room-id');
@@ -1368,17 +1312,14 @@
             }
         });
 
-        // Also add click handlers for existing buttons with onclick attributes
         const viewDetailButtons = document.querySelectorAll('.gallery-item .btn-primary');
         
         viewDetailButtons.forEach(button => {
-            // Only add if it doesn't have the view-details-btn class
             if (!button.classList.contains('view-details-btn')) {
                 button.addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
                     
-                    // Try to extract room ID from onclick attribute
                     const onclickAttr = this.getAttribute('onclick');
                     const roomId = onclickAttr?.match(/'([^']+)'/)?.[1] || 
                                    onclickAttr?.match(/"([^"]+)"/)?.[1];
