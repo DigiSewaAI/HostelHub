@@ -627,6 +627,149 @@
         display: block !important;
     }
     
+    /* 🎥 VIDEO MODAL PLAY BUTTON STYLING */
+    .video-play-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 5;
+        opacity: 1;
+        transition: opacity 0.3s ease;
+    }
+
+    .video-play-overlay.hidden {
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .video-play-button {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #FF6B35, #FF8B3D);
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        box-shadow: 0 10px 30px rgba(255, 107, 53, 0.5);
+        transition: all 0.3s ease;
+        border: 3px solid white;
+    }
+
+    .video-play-button:hover {
+        transform: scale(1.1);
+        box-shadow: 0 15px 40px rgba(255, 107, 53, 0.7);
+    }
+
+    .video-play-button i {
+        color: white;
+        font-size: 2rem;
+        margin-left: 5px;
+    }
+
+    /* VIDEO MODAL CONTROLS */
+    .video-controls {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
+        padding: 20px;
+        z-index: 6;
+        opacity: 1;
+        transition: opacity 0.5s ease;
+    }
+
+    .video-controls.hidden {
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .video-controls.hover-visible {
+        opacity: 1;
+    }
+
+    .video-progress-bar {
+        width: 100%;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 2px;
+        margin-bottom: 15px;
+        overflow: hidden;
+    }
+
+    .video-progress-fill {
+        height: 100%;
+        background: var(--primary);
+        width: 0%;
+        transition: width 0.1s linear;
+    }
+
+    .video-control-buttons {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .video-control-left, .video-control-right {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .video-control-btn {
+        background: transparent;
+        border: none;
+        color: white;
+        font-size: 1.2rem;
+        cursor: pointer;
+        padding: 5px;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.3s;
+    }
+
+    .video-control-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    .video-time {
+        color: white;
+        font-size: 0.9rem;
+        font-family: monospace;
+    }
+
+    /* AUTO-HIDE CONTROLS */
+    .gallery-modal:hover .video-controls:not(.hidden) {
+        opacity: 1;
+    }
+
+    /* RESPONSIVE VIDEO CONTROLS */
+    @media (max-width: 768px) {
+        .video-play-button {
+            width: 70px;
+            height: 70px;
+        }
+        
+        .video-play-button i {
+            font-size: 1.8rem;
+        }
+        
+        .video-controls {
+            padding: 15px;
+        }
+    }
+    
     /* 🚨 UPDATED: CTA SECTION - LIKE AVAILABLE ROOMS GALLERY */
     .gallery-cta-wrapper {
         width: 100%;
@@ -1204,7 +1347,7 @@
                             <button class="btn btn-primary view-gallery-btn" 
                                     style="margin-top: 12px; padding: 10px 20px; font-size: 0.95rem;" 
                                     onclick="openModal('{{ $gallery->id }}', '{{ $gallery->media_type }}')">
-                                <i class="fas fa-play"></i> भिडियो हेर्नुहोस्
+                                <i class="fas fa-play-circle" style="margin-right: 8px;"></i> भिडियो हेर्नुहोस्
                             </button>
                         </div>
                     </div>
@@ -1364,7 +1507,7 @@
     </div>
 </section>
 
-<!-- Modals -->
+<!-- Image Modal -->
 <div class="gallery-modal" id="imageModal">
     <div class="modal-content">
         <button class="close-modal" onclick="closeModal()">&times;</button>
@@ -1376,20 +1519,60 @@
     </div>
 </div>
 
+<!-- 🎥 Video Modal with Play Button -->
 <div class="gallery-modal" id="videoModal">
     <div class="modal-content">
         <button class="close-modal" onclick="closeModal()">&times;</button>
-        <video id="modalVideo" controls>
+        
+        <!-- 🎥 Play Button Overlay -->
+        <div class="video-play-overlay" id="videoPlayOverlay">
+            <div class="video-play-button" onclick="playVideo()">
+                <i class="fas fa-play"></i>
+            </div>
+        </div>
+        
+        <!-- 🎥 Video Element -->
+        <video id="modalVideo" preload="metadata" playsinline>
             <source src="" type="video/mp4">
             तपाईंको ब्राउजरले भिडियो सपोर्ट गर्दैन।
         </video>
-        <div class="modal-caption">
+        
+        <!-- 🎥 Video Controls -->
+        <div class="video-controls" id="videoControls">
+            <div class="video-progress-bar">
+                <div class="video-progress-fill" id="videoProgress"></div>
+            </div>
+            
+            <div class="video-control-buttons">
+                <div class="video-control-left">
+                    <button class="video-control-btn" id="playPauseBtn" onclick="togglePlayPause()">
+                        <i class="fas fa-play"></i>
+                    </button>
+                    <button class="video-control-btn" onclick="muteVideo()">
+                        <i class="fas fa-volume-up" id="volumeIcon"></i>
+                    </button>
+                    <span class="video-time" id="currentTime">0:00</span>
+                    <span class="video-time">/</span>
+                    <span class="video-time" id="durationTime">0:00</span>
+                </div>
+                
+                <div class="video-control-right">
+                    <button class="video-control-btn" onclick="toggleFullscreen()">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 🎥 Video Caption (Auto-hides when playing) -->
+        <div class="modal-caption" id="videoCaption">
             <h3 id="videoTitle" class="nepali"></h3>
             <p id="videoDescription" class="nepali"></p>
         </div>
     </div>
 </div>
 
+<!-- YouTube Modal -->
 <div class="gallery-modal" id="youtubeModal">
     <div class="modal-content">
         <button class="close-modal" onclick="closeModal()">&times;</button>
@@ -1465,6 +1648,15 @@
         @endforeach
     };
 
+    // Video Modal Variables
+    let videoModal = null;
+    let videoPlayOverlay = null;
+    let videoControls = null;
+    let videoCaption = null;
+    let isVideoPlaying = false;
+    let hideControlsTimeout = null;
+    let hideCaptionTimeout = null;
+
     // Tab Functionality
     document.addEventListener('DOMContentLoaded', function() {
         const tabButtons = document.querySelectorAll('.tab-btn');
@@ -1526,6 +1718,53 @@
                 console.log(`Visible items: ${visibleCount}`);
             });
         });
+        
+        // Initialize video modal elements
+        videoModal = document.getElementById('modalVideo');
+        videoPlayOverlay = document.getElementById('videoPlayOverlay');
+        videoControls = document.getElementById('videoControls');
+        videoCaption = document.getElementById('videoCaption');
+        
+        if (videoModal) {
+            // Add event listeners for video
+            videoModal.addEventListener('play', function() {
+                isVideoPlaying = true;
+                updatePlayPauseButton(true);
+                hidePlayOverlay();
+                startHideCaptionTimer();
+                startHideControlsTimer();
+            });
+            
+            videoModal.addEventListener('pause', function() {
+                isVideoPlaying = false;
+                updatePlayPauseButton(false);
+                showVideoCaption();
+                showVideoControls();
+            });
+            
+            videoModal.addEventListener('timeupdate', updateVideoProgress);
+            videoModal.addEventListener('loadedmetadata', updateVideoDuration);
+            videoModal.addEventListener('ended', videoEnded);
+            videoModal.addEventListener('volumechange', updateVolumeIcon);
+            
+            // Touch/click events for showing controls
+            videoModal.addEventListener('click', function() {
+                togglePlayPause();
+            });
+            
+            videoModal.addEventListener('dblclick', function() {
+                toggleFullscreen();
+            });
+            
+            // Show controls on hover
+            const modalContent = document.querySelector('#videoModal .modal-content');
+            if (modalContent) {
+                modalContent.addEventListener('mousemove', function() {
+                    showVideoControls();
+                    startHideControlsTimer();
+                });
+            }
+        }
     });
     
     // Show More Gallery Functionality
@@ -1567,9 +1806,44 @@
             setTimeout(() => {
                 document.getElementById('videoModal').style.opacity = '1';
             }, 10);
-            document.getElementById('modalVideo').src = gallery.media_url;
+            
+            // Reset video state
+            if (videoModal) {
+                videoModal.pause();
+                videoModal.currentTime = 0;
+                videoModal.src = gallery.media_url;
+                videoModal.load();
+            }
+            
+            // Show play overlay
+            showPlayOverlay();
+            
+            // Show caption initially
+            showVideoCaption();
+            
+            // Update video info
             document.getElementById('videoTitle').textContent = gallery.title;
             document.getElementById('videoDescription').textContent = gallery.description;
+            
+            // Reset progress
+            const progressFill = document.getElementById('videoProgress');
+            if (progressFill) {
+                progressFill.style.width = '0%';
+            }
+            
+            // Reset time displays
+            document.getElementById('currentTime').textContent = '0:00';
+            document.getElementById('durationTime').textContent = '0:00';
+            
+            // Update play button
+            updatePlayPauseButton(false);
+            
+            // Reset volume icon
+            updateVolumeIcon();
+            
+            // Clear any existing timeouts
+            clearTimeout(hideControlsTimeout);
+            clearTimeout(hideCaptionTimeout);
         } else if (mediaType === 'external_video') {
             document.getElementById('youtubeModal').style.display = 'flex';
             setTimeout(() => {
@@ -1582,6 +1856,165 @@
         }
         
         document.body.style.overflow = 'hidden';
+    }
+    
+    // Video Functions
+    function playVideo() {
+        if (videoModal) {
+            videoModal.play().catch(function(error) {
+                console.error("Video play failed:", error);
+            });
+        }
+    }
+
+    function togglePlayPause() {
+        if (videoModal) {
+            if (videoModal.paused) {
+                playVideo();
+            } else {
+                videoModal.pause();
+            }
+        }
+    }
+
+    function updatePlayPauseButton(playing) {
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        if (playPauseBtn) {
+            if (playing) {
+                playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+            } else {
+                playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+            }
+        }
+    }
+
+    function hidePlayOverlay() {
+        if (videoPlayOverlay) {
+            videoPlayOverlay.classList.add('hidden');
+        }
+    }
+
+    function showPlayOverlay() {
+        if (videoPlayOverlay) {
+            videoPlayOverlay.classList.remove('hidden');
+        }
+    }
+
+    function showVideoControls() {
+        if (videoControls) {
+            videoControls.classList.remove('hidden');
+        }
+    }
+
+    function startHideControlsTimer() {
+        clearTimeout(hideControlsTimeout);
+        hideControlsTimeout = setTimeout(function() {
+            if (isVideoPlaying && videoControls) {
+                videoControls.classList.add('hidden');
+            }
+        }, 3000); // Hide after 3 seconds
+    }
+
+    function showVideoCaption() {
+        if (videoCaption) {
+            videoCaption.style.display = 'block';
+            clearTimeout(hideCaptionTimeout);
+        }
+    }
+
+    function startHideCaptionTimer() {
+        clearTimeout(hideCaptionTimeout);
+        hideCaptionTimeout = setTimeout(function() {
+            if (isVideoPlaying && videoCaption) {
+                videoCaption.style.display = 'none';
+            }
+        }, 5000); // Hide caption after 5 seconds of playing
+    }
+
+    function updateVideoProgress() {
+        const progressFill = document.getElementById('videoProgress');
+        const currentTimeEl = document.getElementById('currentTime');
+        
+        if (videoModal && progressFill && currentTimeEl) {
+            const progress = (videoModal.currentTime / videoModal.duration) * 100;
+            progressFill.style.width = progress + '%';
+            
+            // Update current time display
+            currentTimeEl.textContent = formatTime(videoModal.currentTime);
+        }
+    }
+
+    function updateVideoDuration() {
+        const durationEl = document.getElementById('durationTime');
+        if (videoModal && durationEl) {
+            durationEl.textContent = formatTime(videoModal.duration);
+        }
+    }
+
+    function formatTime(seconds) {
+        if (isNaN(seconds)) return "0:00";
+        
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return mins + ':' + (secs < 10 ? '0' : '') + secs;
+    }
+
+    function videoEnded() {
+        isVideoPlaying = false;
+        updatePlayPauseButton(false);
+        showPlayOverlay();
+        showVideoCaption();
+        showVideoControls();
+        
+        // Reset progress
+        const progressFill = document.getElementById('videoProgress');
+        if (progressFill) {
+            progressFill.style.width = '0%';
+        }
+        
+        const currentTimeEl = document.getElementById('currentTime');
+        if (currentTimeEl) {
+            currentTimeEl.textContent = '0:00';
+        }
+    }
+
+    function muteVideo() {
+        if (videoModal) {
+            videoModal.muted = !videoModal.muted;
+            updateVolumeIcon();
+        }
+    }
+
+    function updateVolumeIcon() {
+        const volumeIcon = document.getElementById('volumeIcon');
+        if (videoModal && volumeIcon) {
+            if (videoModal.muted || videoModal.volume === 0) {
+                volumeIcon.className = 'fas fa-volume-mute';
+            } else {
+                volumeIcon.className = 'fas fa-volume-up';
+            }
+        }
+    }
+
+    function toggleFullscreen() {
+        const modalContent = document.querySelector('#videoModal .modal-content');
+        if (!document.fullscreenElement && modalContent) {
+            if (modalContent.requestFullscreen) {
+                modalContent.requestFullscreen();
+            } else if (modalContent.webkitRequestFullscreen) {
+                modalContent.webkitRequestFullscreen();
+            } else if (modalContent.msRequestFullscreen) {
+                modalContent.msRequestFullscreen();
+            }
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            }
+        }
     }
     
     function closeModal() {
@@ -1598,11 +2031,22 @@
             }
         });
         
-        // Pause video when closing modal
-        const video = document.getElementById('modalVideo');
-        if (video) {
-            video.pause();
+        // Stop and reset video
+        if (videoModal) {
+            videoModal.pause();
+            videoModal.currentTime = 0;
+            isVideoPlaying = false;
         }
+        
+        // Show play overlay for next time
+        showPlayOverlay();
+        
+        // Show caption
+        showVideoCaption();
+        
+        // Clear timeouts
+        clearTimeout(hideControlsTimeout);
+        clearTimeout(hideCaptionTimeout);
         
         // Reset YouTube iframe
         const youtubeIframe = document.getElementById('modalYouTube');
