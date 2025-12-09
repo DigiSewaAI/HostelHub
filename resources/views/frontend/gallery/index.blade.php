@@ -95,7 +95,7 @@ body .gallery-content-wrapper {
     display: none !important;
 }
 
-/* ✅ Meal Gallery Button */
+/* ✅ MEAL GALLERY BUTTON - HERO SECTION */
 .gallery-hero-button {
     display: inline-flex;
     align-items: center;
@@ -143,6 +143,64 @@ body .gallery-content-wrapper {
     left: 100%;
 }
 
+/* ✅ ADDITIONAL BUTTON FOR MEAL GALLERY */
+.gallery-meal-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: linear-gradient(135deg, #10B981, #34D399);
+    color: white;
+    font-weight: 800;
+    padding: 1.3rem 3.5rem;
+    border-radius: 50px;
+    text-decoration: none;
+    font-size: 1.3rem;
+    transition: all 0.3s ease;
+    box-shadow: 
+        0 15px 35px rgba(16, 185, 129, 0.5),
+        0 0 20px rgba(255, 255, 255, 0.2) inset;
+    margin-top: 1.5rem;
+    margin-left: 1rem;
+    border: none;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.gallery-meal-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    transition: left 0.7s ease;
+    z-index: -1;
+}
+
+.gallery-meal-button:hover {
+    transform: translateY(-8px) scale(1.05);
+    box-shadow: 
+        0 25px 55px rgba(16, 185, 129, 0.8),
+        0 0 30px rgba(255, 255, 255, 0.3) inset;
+    color: white;
+}
+
+.gallery-meal-button:hover::before {
+    left: 100%;
+}
+
+/* ✅ HERO BUTTONS CONTAINER */
+.gallery-hero-buttons {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 2rem;
+}
+
 /* ✅ UPDATED: Tabs Navigation */
 .gallery-tabs-navigation {
     position: absolute;
@@ -168,6 +226,43 @@ body .gallery-content-wrapper {
     gap: 1rem;
     justify-content: center;
     flex-wrap: wrap;
+}
+
+/* 🚨 NEW: MEAL GALLERY TAB BUTTON */
+.meal-tab-btn {
+    padding: 1.2rem 2.5rem;
+    background: rgba(16, 185, 129, 0.7); /* Green color for meal gallery */
+    backdrop-filter: blur(20px);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 700;
+    color: white;
+    font-size: 1.1rem;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 200px;
+    justify-content: center;
+    margin-left: 1rem;
+}
+
+.meal-tab-btn:hover {
+    background: rgba(16, 185, 129, 0.9);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(16, 185, 129, 0.3);
+}
+
+.meal-tab-btn.active {
+    background: rgba(16, 185, 129, 0.95);
+    color: white;
+    border-color: rgba(255, 255, 255, 0.8);
+    box-shadow: 
+        0 15px 35px rgba(16, 185, 129, 0.4),
+        0 0 15px rgba(255, 255, 255, 0.2) inset;
 }
 
 .tab-btn {
@@ -221,6 +316,16 @@ body .gallery-content-wrapper {
     border-color: #0a1a44;
 }
 
+.meal-tab-btn .tab-badge {
+    background: rgba(255, 255, 255, 0.4);
+    color: white;
+}
+
+.meal-tab-btn.active .tab-badge {
+    background: rgba(0, 0, 0, 0.3);
+    color: white;
+}
+
 /* ✅ Rest of the page content spacing */
 .gallery-content-wrapper {
     padding-top: 0 !important;
@@ -252,12 +357,14 @@ body .gallery-content-wrapper {
         margin-bottom: 2.5rem;
     }
     
-    .gallery-hero-button {
+    .gallery-hero-button,
+    .gallery-meal-button {
         padding: 1.1rem 3rem;
         font-size: 1.2rem;
     }
     
-    .tab-btn {
+    .tab-btn,
+    .meal-tab-btn {
         padding: 1rem 2rem;
         min-width: 180px;
         font-size: 1rem;
@@ -289,10 +396,20 @@ body .gallery-content-wrapper {
         padding: 0.9rem 1.5rem;
     }
     
-    .gallery-hero-button {
+    .gallery-hero-buttons {
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .gallery-hero-button,
+    .gallery-meal-button {
         padding: 1rem 2.5rem;
         font-size: 1.1rem;
-        margin-top: 1rem;
+        margin-top: 0;
+        margin-left: 0;
+        width: 100%;
+        max-width: 300px;
     }
     
     .gallery-tabs-navigation {
@@ -304,11 +421,13 @@ body .gallery-content-wrapper {
         gap: 0.5rem;
     }
     
-    .tab-btn {
+    .tab-btn,
+    .meal-tab-btn {
         padding: 0.9rem 1.5rem;
         min-width: 160px;
         font-size: 0.95rem;
         gap: 0.5rem;
+        margin-left: 0;
     }
     
     .tab-badge {
@@ -337,10 +456,11 @@ body .gallery-content-wrapper {
         padding: 0.8rem 1rem;
     }
     
-    .gallery-hero-button {
+    .gallery-hero-button,
+    .gallery-meal-button {
         padding: 0.9rem 2rem;
         font-size: 1rem;
-        margin-top: 0.5rem;
+        max-width: 280px;
     }
     
     .gallery-tabs-navigation {
@@ -353,7 +473,8 @@ body .gallery-content-wrapper {
         align-items: center;
     }
     
-    .tab-btn {
+    .tab-btn,
+    .meal-tab-btn {
         width: 90%;
         max-width: 250px;
         justify-content: center;
@@ -897,6 +1018,34 @@ body .gallery-content-wrapper {
     transform: translateY(-2px);
 }
 
+/* MEAL GALLERY BUTTON IN CTA */
+.gallery-meal-cta-button {
+    background: linear-gradient(135deg, #10B981, #34D399);
+    color: white;
+    font-weight: 600;
+    padding: 0.75rem 2rem;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    min-width: 180px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+    text-align: center;
+}
+
+.gallery-meal-cta-button:hover {
+    background: linear-gradient(135deg, #059669, #10B981);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
+    color: white;
+}
+
 .gallery-cta-buttons-container {
     display: flex;
     gap: 1rem;
@@ -910,14 +1059,16 @@ body .gallery-content-wrapper {
 /* Loading states */
 .gallery-outline-button.loading,
 .gallery-trial-button.loading,
-.gallery-demo-button.loading {
+.gallery-demo-button.loading,
+.gallery-meal-cta-button.loading {
     position: relative;
     color: transparent;
 }
 
 .gallery-outline-button.loading::after,
 .gallery-trial-button.loading::after,
-.gallery-demo-button.loading::after {
+.gallery-demo-button.loading::after,
+.gallery-meal-cta-button.loading::after {
     content: '';
     position: absolute;
     width: 20px;
@@ -937,6 +1088,11 @@ body .gallery-content-wrapper {
 }
 
 .gallery-demo-button.loading::after {
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+}
+
+.gallery-meal-cta-button.loading::after {
     border: 2px solid rgba(255,255,255,0.3);
     border-top-color: white;
 }
@@ -1009,7 +1165,8 @@ body .gallery-content-wrapper {
 
     .gallery-demo-button,
     .gallery-trial-button,
-    .gallery-outline-button {
+    .gallery-outline-button,
+    .gallery-meal-cta-button {
         padding: 0.6rem 1.5rem;
         font-size: 0.9rem;
         min-width: 160px;
@@ -1150,11 +1307,20 @@ select[data-filter-active="true"] {
             हाम्रा विभिन्न होस्टलहरूको कोठा, सुविधा र आवासीय क्षेत्रहरूको वास्तविक झलकहरू अन्वेषण गर्नुहोस्
         </p>
         
-        <!-- Meal Gallery Button -->
-        <a href="{{ route('menu-gallery') }}" class="gallery-hero-button nepali">
-            <i class="fas fa-utensils"></i>
-            🍛 खानाको ग्यालरी हेर्नुहोस्
-        </a>
+        <!-- ✅ RESTORED: Hero Buttons Container -->
+        <div class="gallery-hero-buttons">
+            <!-- Main Gallery Button -->
+            <a href="{{ route('gallery.index') }}" class="gallery-hero-button nepali">
+                <i class="fas fa-images"></i>
+                ग्यालरी हेर्नुहोस्
+            </a>
+            
+            <!-- 🚨 RESTORED: Meal Gallery Button - GREEN COLOR -->
+            <a href="{{ route('menu-gallery') }}" class="gallery-meal-button nepali">
+                <i class="fas fa-utensils"></i>
+                🍛 खानाको ग्यालरी हेर्नुहोस्
+            </a>
+        </div>
     </div>
     
     <!-- ✅ Tabs Navigation -->
@@ -1180,6 +1346,14 @@ select[data-filter-active="true"] {
                    onclick="return handleTabClick(event, 'virtual-tours')">
                     <i class="fas fa-360-degrees"></i>
                     भर्चुअल टुर
+                </a>
+                
+                <!-- 🚨 NEW: MEAL GALLERY TAB BUTTON -->
+                <a href="{{ route('menu-gallery') }}" 
+                   class="meal-tab-btn nepali">
+                    <i class="fas fa-utensils"></i>
+                    खानाको ग्यालरी
+                    <span class="tab-badge">🍛</span>
                 </a>
             </div>
         </div>
@@ -1684,6 +1858,13 @@ select[data-filter-active="true"] {
                 <a href="{{ $pricingRoute }}" 
                    class="gallery-outline-button nepali">
                     <i class="fas fa-tags"></i> योजनाहरू हेर्नुहोस्
+                </a>
+                
+                <!-- 🚨 ADDED: BUTTON 4: MEAL GALLERY (Green with utensils icon) -->
+                <a href="{{ route('menu-gallery') }}" 
+                   class="gallery-meal-cta-button nepali">
+                    <i class="fas fa-utensils"></i>
+                    🍛 खानाको ग्यालरी
                 </a>
             </div>
         </section>
