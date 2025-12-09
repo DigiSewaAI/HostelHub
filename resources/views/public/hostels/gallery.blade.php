@@ -1151,6 +1151,15 @@
                 @endforeach
             </div>
             
+            <!-- 🚨 NEW: खानाको ग्यालरी बटन सेक्सन (रूम इमेजहरूको अन्त्यमा) -->
+            <div style="text-align: center; margin: 4rem 0 2rem 0;">
+                <a href="{{ route('hostel.full-gallery', $hostel->slug) }}#meal-gallery" 
+                   class="gallery-trial-button nepali" 
+                   style="background: linear-gradient(135deg, #10b981, #34d399) !important; min-width: 280px;">
+                    <i class="fas fa-utensils"></i> यस होस्टलको खानाको ग्यालरी हेर्नुहोस्
+                </a>
+            </div>
+            
         @else
             <!-- No Rooms Message -->
             <div class="no-rooms-message">
