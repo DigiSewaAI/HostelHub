@@ -362,6 +362,19 @@ body .gallery-content-wrapper {
     }
 }
 
+/* ✅ FIXED: No Results Message - ALWAYS HIDDEN FOR VIDEOS TAB */
+#videos-tab .no-results {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+
+/* ✅ FIXED: Pagination hidden for videos if less than 2 pages */
+#videos-tab .pagination-container:empty,
+#videos-tab .pagination-container:has(ul.pagination:only-child li:only-child) {
+    display: none !important;
+}
+
 /* The rest of the existing CSS remains exactly the same */
 
 /* ✅ Ensure filters section has proper spacing */
@@ -758,7 +771,7 @@ body .gallery-content-wrapper {
 .videos-placeholder .spinner {
     width: 40px;
     height: 40px;
-    border: 4px solid #f3f3f3;
+    border: 4px solid #f3f4f6;
     border-top: 4px solid var(--gallery-primary);
     border-radius: 50%;
     animation: spin 1s linear infinite;
@@ -1070,6 +1083,55 @@ select[data-filter-active="true"] {
     background-color: #ec4899;
     color: white;
 }
+
+/* 🚨 NEW: Gallery Button Styles */
+.gallery-button {
+    background: rgba(255, 107, 53, 0.9);
+    color: white;
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(4px);
+}
+
+.gallery-button:hover {
+    background: rgba(255, 107, 53, 1);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+    color: white;
+}
+
+/* Modal gallery button */
+.modal-gallery-link {
+    background: rgba(255, 107, 53, 0.9);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    margin-left: 1rem;
+}
+
+.modal-gallery-link:hover {
+    background: rgba(255, 107, 53, 1);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+    color: white;
+}
 </style>
 @endpush
 
@@ -1247,6 +1309,9 @@ select[data-filter-active="true"] {
                             $hostelGender = $isArray ? 
                                 ($gallery['hostel_gender'] ?? 'mixed') : 
                                 ($gallery->hostel_gender ?? 'mixed');
+                                
+                            // Generate hostel gallery URL
+                            $hostelGalleryUrl = $hostelSlug ? url('/hostel/' . $hostelSlug . '/gallery') : '#';
                         @endphp
                         
                         <div class="gallery-item" 
@@ -1264,6 +1329,7 @@ select[data-filter-active="true"] {
                              data-media-url="{{ $mediaUrl }}"
                              data-hd-url="{{ $hdUrl }}"
                              data-hd-available="{{ $hdAvailable ? 'true' : 'false' }}"
+                             data-gallery-url="{{ $hostelGalleryUrl }}"
                              data-id="{{ $isArray ? ($gallery['id'] ?? '') : ($gallery->id ?? '') }}">
 
                             <div class="gallery-media-container">
@@ -1273,6 +1339,15 @@ select[data-filter-active="true"] {
                                    title="{{ $hostelName }} मा जानुहोस्">
                                     <i class="fas fa-external-link-alt"></i>
                                     <span class="nepali">{{ $hostelName }}</span>
+                                </a>
+                                
+                                <!-- 🚨 NEW: Gallery Button on Image -->
+                                <a href="{{ $hostelGalleryUrl }}" 
+                                   class="gallery-button" 
+                                   style="position: absolute; top: 10px; right: 10px;"
+                                   title="{{ $hostelName }} को ग्यालरी हेर्नुहोस्">
+                                    <i class="fas fa-images"></i>
+                                    <span class="nepali">ग्यालरी</span>
                                 </a>
                                 @endif
 
@@ -1298,11 +1373,18 @@ select[data-filter-active="true"] {
                                         <span class="media-date">{{ $createdAt->format('Y-m-d') }}</span>
                                     </div>
                                     @if($hostelSlug)
-                                    <a href="{{ route('hostels.show', $hostelSlug) }}" 
-                                       class="quick-view-btn nepali">
-                                        <i class="fas fa-info-circle"></i>
-                                        होस्टल विवरण हेर्नुहोस्
-                                    </a>
+                                    <div style="display: flex; gap: 5px; justify-content: center; margin-top: 5px;">
+                                        <a href="{{ route('hostels.show', $hostelSlug) }}" 
+                                           class="quick-view-btn nepali">
+                                            <i class="fas fa-info-circle"></i>
+                                            होस्टल विवरण
+                                        </a>
+                                        <a href="{{ $hostelGalleryUrl }}" 
+                                           class="quick-view-btn nepali" style="background: rgba(255, 107, 53, 0.9); color: white;">
+                                            <i class="fas fa-images"></i>
+                                            ग्यालरी हेर्नुहोस्
+                                        </a>
+                                    </div>
                                     @endif
                                 </div>
                             </div>
@@ -1386,6 +1468,9 @@ select[data-filter-active="true"] {
                                 if (empty($thumbnailUrl) || $thumbnailUrl == asset('')) {
                                     $thumbnailUrl = asset('images/video-thumbnail.jpg');
                                 }
+                                
+                                // Generate hostel gallery URL
+                                $hostelGalleryUrl = $hostelSlug ? url('/hostel/' . $hostelSlug . '/gallery') : '#';
                             @endphp
                             
                             <div class="video-card server-loaded" 
@@ -1403,6 +1488,7 @@ select[data-filter-active="true"] {
                                  data-video-modal-url="{{ $videoModalUrl }}"
                                  data-video-duration="{{ $videoDuration }}"
                                  data-video-resolution="{{ $videoResolution }}"
+                                 data-gallery-url="{{ $hostelGalleryUrl }}"
                                  data-is-360="{{ $is360Video ? 'true' : 'false' }}"
                                  data-id="{{ $id }}">
 
@@ -1431,6 +1517,15 @@ select[data-filter-active="true"] {
                                         <i class="fas fa-external-link-alt"></i>
                                         <span class="nepali">{{ $hostelName }}</span>
                                     </a>
+                                    
+                                    <!-- 🚨 NEW: Gallery Button on Video Thumbnail -->
+                                    <a href="{{ $hostelGalleryUrl }}" 
+                                       class="gallery-button" 
+                                       style="position: absolute; top: 10px; right: 10px;"
+                                       title="{{ $hostelName }} को ग्यालरी हेर्नुहोस्">
+                                        <i class="fas fa-images"></i>
+                                        <span class="nepali">ग्यालरी</span>
+                                    </a>
                                     @endif
                                 </div>
 
@@ -1444,10 +1539,16 @@ select[data-filter-active="true"] {
                                     </div>
                                     <p class="video-description nepali">{{ Str::limit($description, 80) }}</p>
                                     @if($hostelSlug)
-                                    <a href="{{ route('hostels.show', $hostelSlug) }}" class="video-hostel-link nepali">
-                                        <i class="fas fa-building"></i>
-                                        {{ $hostelName }} को विवरण हेर्नुहोस्
-                                    </a>
+                                    <div style="display: flex; gap: 10px; margin-top: 0.5rem;">
+                                        <a href="{{ route('hostels.show', $hostelSlug) }}" class="video-hostel-link nepali">
+                                            <i class="fas fa-building"></i>
+                                            होस्टल विवरण
+                                        </a>
+                                        <a href="{{ $hostelGalleryUrl }}" class="video-hostel-link nepali" style="color: #FF6B35;">
+                                            <i class="fas fa-images"></i>
+                                            ग्यालरी हेर्नुहोस्
+                                        </a>
+                                    </div>
                                     @endif
                                 </div>
                             </div>
@@ -1619,6 +1720,10 @@ select[data-filter-active="true"] {
                 <i class="fas fa-external-link-alt"></i>
                 होस्टल विवरण हेर्नुहोस्
             </a>
+            <a href="#" class="modal-gallery-link nepali" style="display: none;">
+                <i class="fas fa-images"></i>
+                ग्यालरी हेर्नुहोस्
+            </a>
         </div>
     </div>
 </div>
@@ -1627,41 +1732,142 @@ select[data-filter-active="true"] {
 @push('scripts')
 @vite(['resources/js/gallery.js'])
 <script>
-// All JavaScript code remains exactly the same as before
-// Simple function to handle video modal
+// ✅ FIXED: Photo filter click handler - PHOTOS लागि मात्र
+function handlePhotoFilterClick(filter) {
+    console.log('Photo filter clicked:', filter);
+    
+    const currentUrl = window.location.href;
+    const url = new URL(currentUrl);
+    const params = url.searchParams;
+    
+    // ALWAYS SET TAB TO PHOTOS
+    params.set('tab', 'photos');
+    
+    // Clear other photo filters and page
+    params.delete('page');
+    params.delete('category'); // यो server-side parameter हो तस्बिर फिल्टरको लागि
+    
+    if (filter !== 'all') {
+        params.set('category', filter);
+    }
+    
+    console.log('Redirecting to:', url.toString());
+    window.location.href = url.toString();
+    return false;
+}
+
+// ✅ FIXED: Video filter click handler - VIDEOS लागि मात्र
+function handleVideoFilterClick(filter) {
+    console.log('Video filter clicked:', filter);
+    
+    const currentUrl = window.location.href;
+    const url = new URL(currentUrl);
+    const params = url.searchParams;
+    
+    // ALWAYS SET TAB TO VIDEOS
+    params.set('tab', 'videos');
+    
+    // Clear other video filters
+    params.delete('page');
+    params.delete('video_filter');
+    
+    if (filter !== 'all') {
+        params.set('video_filter', filter);
+    }
+    
+    console.log('Redirecting to:', url.toString());
+    window.location.href = url.toString();
+    return false;
+}
+
+// ✅ FIXED: Video modal function with proper event handling
 function openVideoModal(videoCard) {
     const modal = document.querySelector('.gallery-modal');
     const modalContent = modal.querySelector('.modal-content');
     const modalTitle = modal.querySelector('.modal-title');
     const modalDescription = modal.querySelector('.modal-description');
+    const modalCategory = modal.querySelector('.modal-category');
+    const modalDate = modal.querySelector('.modal-date');
+    const modalHostel = modal.querySelector('.modal-hostel');
+    const modalHostelLink = modal.querySelector('.modal-hostel-link');
+    const modalGalleryLink = modal.querySelector('.modal-gallery-link');
     
-    // Get video data
+    // Get video data from data attributes
     const videoModalUrl = videoCard.getAttribute('data-video-modal-url');
     const title = videoCard.getAttribute('data-title');
     const description = videoCard.getAttribute('data-description');
+    const category = videoCard.getAttribute('data-category');
+    const date = videoCard.getAttribute('data-date');
+    const hostel = videoCard.getAttribute('data-hostel');
+    const hostelSlug = videoCard.getAttribute('data-hostel-slug');
+    const galleryUrl = videoCard.getAttribute('data-gallery-url');
+    
+    console.log('Opening video modal with URL:', videoModalUrl);
+    console.log('Video data:', { title, description, category, date, hostel, hostelSlug, galleryUrl });
     
     // Set modal content
-    modalTitle.textContent = title;
-    modalDescription.textContent = description;
+    modalTitle.textContent = title || '';
+    modalDescription.textContent = description || '';
+    modalCategory.textContent = category || '';
+    modalDate.textContent = date || '';
+    modalHostel.textContent = hostel || '';
+    
+    // Set hostel link if available
+    if (hostelSlug) {
+        modalHostelLink.href = `/hostels/${hostelSlug}`;
+        modalHostelLink.style.display = 'inline-flex';
+    } else {
+        modalHostelLink.style.display = 'none';
+    }
+    
+    // Set gallery link if available
+    if (galleryUrl && galleryUrl !== '#') {
+        modalGalleryLink.href = galleryUrl;
+        modalGalleryLink.style.display = 'inline-flex';
+    } else {
+        modalGalleryLink.style.display = 'none';
+    }
     
     // Clear and add video
     modalContent.innerHTML = '';
     
-    if (videoModalUrl && videoModalUrl.includes('youtube.com')) {
+    if (videoModalUrl && videoModalUrl.includes('youtube.com') || videoModalUrl.includes('youtu.be')) {
+        // Fix YouTube URL
+        let embedUrl = videoModalUrl;
+        if (embedUrl.includes('youtu.be/')) {
+            // Convert youtu.be to youtube.com/embed
+            const videoId = embedUrl.split('youtu.be/')[1].split('?')[0];
+            embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&controls=1&showinfo=0`;
+        } else if (!embedUrl.includes('embed')) {
+            // Convert watch URL to embed URL
+            embedUrl = embedUrl.replace('watch?v=', 'embed/');
+            embedUrl = embedUrl.split('?')[0] + '?autoplay=1&rel=0&controls=1&showinfo=0';
+        }
+        
+        console.log('Creating YouTube iframe with URL:', embedUrl);
+        
         const iframe = document.createElement('iframe');
-        iframe.src = videoModalUrl;
+        iframe.src = embedUrl;
         iframe.width = '100%';
         iframe.height = '500';
+        iframe.allow = 'autoplay; encrypted-media; picture-in-picture';
         iframe.allowFullscreen = true;
         iframe.style.border = 'none';
+        iframe.style.borderRadius = '10px';
         modalContent.appendChild(iframe);
     } else if (videoModalUrl) {
+        console.log('Creating video element with URL:', videoModalUrl);
+        
         const video = document.createElement('video');
         video.src = videoModalUrl;
         video.controls = true;
         video.autoplay = true;
         video.style.width = '100%';
+        video.style.borderRadius = '10px';
         modalContent.appendChild(video);
+    } else {
+        console.error('No video URL found');
+        modalContent.innerHTML = '<p class="nepali" style="padding: 2rem; text-align: center;">भिडियो लोड गर्न सकिएन। कृपया पछि प्रयास गर्नुहोस्।</p>';
     }
     
     // Show modal
@@ -1669,9 +1875,118 @@ function openVideoModal(videoCard) {
     document.body.style.overflow = 'hidden';
 }
 
+// ✅ NEW: Photo modal function
+function openPhotoModal(galleryItem) {
+    const modal = document.querySelector('.gallery-modal');
+    const modalContent = modal.querySelector('.modal-content');
+    const modalTitle = modal.querySelector('.modal-title');
+    const modalDescription = modal.querySelector('.modal-description');
+    const modalCategory = modal.querySelector('.modal-category');
+    const modalDate = modal.querySelector('.modal-date');
+    const modalHostel = modal.querySelector('.modal-hostel');
+    const modalHostelLink = modal.querySelector('.modal-hostel-link');
+    const modalGalleryLink = modal.querySelector('.modal-gallery-link');
+
+    // Get data from the gallery item
+    const mediaUrl = galleryItem.getAttribute('data-media-url');
+    const hdUrl = galleryItem.getAttribute('data-hd-url');
+    const title = galleryItem.getAttribute('data-title');
+    const description = galleryItem.getAttribute('data-description');
+    const category = galleryItem.getAttribute('data-category');
+    const date = galleryItem.getAttribute('data-date');
+    const hostel = galleryItem.getAttribute('data-hostel');
+    const hostelSlug = galleryItem.getAttribute('data-hostel-slug');
+    const galleryUrl = galleryItem.getAttribute('data-gallery-url');
+
+    // Set modal info
+    modalTitle.textContent = title || '';
+    modalDescription.textContent = description || '';
+    modalCategory.textContent = category || '';
+    modalDate.textContent = date || '';
+    modalHostel.textContent = hostel || '';
+
+    // Set hostel link if available
+    if (hostelSlug) {
+        modalHostelLink.href = `/hostels/${hostelSlug}`;
+        modalHostelLink.style.display = 'inline-flex';
+    } else {
+        modalHostelLink.style.display = 'none';
+    }
+    
+    // Set gallery link if available
+    if (galleryUrl && galleryUrl !== '#') {
+        modalGalleryLink.href = galleryUrl;
+        modalGalleryLink.style.display = 'inline-flex';
+    } else {
+        modalGalleryLink.style.display = 'none';
+    }
+
+    // Clear modal content and add image
+    modalContent.innerHTML = '';
+    const img = document.createElement('img');
+    img.src = hdUrl || mediaUrl;
+    img.alt = title;
+    img.style.width = '100%';
+    img.style.borderRadius = '10px';
+    img.style.maxHeight = '80vh';
+    img.style.objectFit = 'contain';
+    modalContent.appendChild(img);
+
+    // Show modal
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+// ✅ NEW: Gallery item click handler
+function handleGalleryItemClick(event) {
+    // Don't open modal if clicking on links inside the item
+    if (event.target.closest('a') || event.target.tagName === 'A') {
+        return;
+    }
+    console.log('Gallery item clicked');
+    openPhotoModal(this);
+}
+
+// ✅ NEW: Initialize gallery item events
+function initGalleryItemEvents() {
+    const galleryItems = document.querySelectorAll('.gallery-item');
+    console.log(`Found ${galleryItems.length} gallery items`);
+    galleryItems.forEach(item => {
+        // Remove existing event listeners to avoid duplicates
+        item.removeEventListener('click', handleGalleryItemClick);
+        // Add new event listener
+        item.addEventListener('click', handleGalleryItemClick);
+    });
+}
+
+// ✅ FIXED: Close modal function
+function closeVideoModal() {
+    const modal = document.querySelector('.gallery-modal');
+    const modalContent = modal.querySelector('.modal-content');
+    
+    // Stop video/iframe
+    const iframe = modalContent.querySelector('iframe');
+    const video = modalContent.querySelector('video');
+    const img = modalContent.querySelector('img');
+    
+    if (iframe) {
+        iframe.src = '';
+    }
+    if (video) {
+        video.pause();
+        video.src = '';
+    }
+    if (img) {
+        img.src = '';
+    }
+    
+    modal.classList.remove('active');
+    document.body.style.overflow = 'auto';
+}
+
 // ✅ FIXED: Videos placeholder hide logic
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded - checking videos placeholder');
+    console.log('DOM loaded - initializing gallery');
     
     function hideAllSpinners() {
         const placeholder = document.querySelector('.videos-placeholder');
@@ -1691,7 +2006,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const tabParam = urlParams.get('tab');
     
     if (tabParam === 'videos') {
-        console.log('On videos tab');
+        console.log('On videos tab - checking videos');
         
         const videosCountElement = document.getElementById('videos-count');
         const serverVideoCount = videosCountElement ? parseInt(videosCountElement.getAttribute('data-count')) : 0;
@@ -1714,6 +2029,127 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(function() {
         hideAllSpinners();
     }, 100);
+    
+    // ✅ FIXED: Initialize all event listeners when DOM loads
+    console.log('Initializing event listeners...');
+    
+    // 1. Video card click events
+    function initVideoCardEvents() {
+        const videoCards = document.querySelectorAll('.video-card');
+        console.log(`Found ${videoCards.length} video cards`);
+        
+        videoCards.forEach(card => {
+            // Remove existing event listeners to avoid duplicates
+            card.removeEventListener('click', handleVideoCardClick);
+            
+            // Add new event listener
+            card.addEventListener('click', handleVideoCardClick);
+        });
+    }
+    
+    // Video card click handler
+    function handleVideoCardClick(event) {
+        // Don't open modal if clicking on links inside the card
+        if (event.target.closest('a') || event.target.tagName === 'A') {
+            return;
+        }
+        
+        console.log('Video card clicked');
+        openVideoModal(this);
+    }
+    
+    // 2. Modal close button
+    const modalClose = document.querySelector('.modal-close');
+    if (modalClose) {
+        modalClose.addEventListener('click', closeVideoModal);
+    }
+    
+    // 3. Close modal when clicking on backdrop
+    const modal = document.querySelector('.gallery-modal');
+    if (modal) {
+        modal.addEventListener('click', function(event) {
+            if (event.target === this) {
+                closeVideoModal();
+            }
+        });
+    }
+    
+    // 4. Close modal with Escape key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeVideoModal();
+        }
+    });
+    
+    // 5. CORRECTED: Filter buttons event listeners - PROPER SEPARATION
+    const currentTab = tabParam || 'photos';
+    const filterButtons = document.querySelectorAll('.filter-controls .filter-btn[data-filter]');
+    
+    filterButtons.forEach(btn => {
+        // Remove any existing event listeners
+        btn.removeEventListener('click', handlePhotoFilterClick);
+        btn.removeEventListener('click', handleVideoFilterClick);
+        
+        if (currentTab === 'videos') {
+            // Videos tab ma videos filter matra
+            btn.addEventListener('click', function(e) {
+                const filter = this.getAttribute('data-filter');
+                handleVideoFilterClick(filter);
+            });
+        } else {
+            // Photos tab ma photos filter matra
+            btn.addEventListener('click', function(e) {
+                const filter = this.getAttribute('data-filter');
+                handlePhotoFilterClick(filter);
+            });
+        }
+    });
+    
+    // 6. Initialize video card events
+    initVideoCardEvents();
+    
+    // 7. Initialize gallery item events for photos
+    initGalleryItemEvents();
+    
+    // 8. Re-initialize events after tab switch
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    tabButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            setTimeout(function() {
+                initVideoCardEvents();
+                initGalleryItemEvents();
+            }, 300);
+        });
+    });
+    
+    // 9. URL parameter check and tab activation
+    const currentTabFromURL = urlParams.get('tab') || 'photos';
+    
+    console.log('Current tab from URL:', currentTabFromURL);
+    
+    // Ensure the correct tab is active
+    const tabButtonsAll = document.querySelectorAll('.tab-btn');
+    tabButtonsAll.forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.href.includes(`tab=${currentTabFromURL}`)) {
+            btn.classList.add('active');
+        }
+    });
+    
+    // Ensure the correct tab content is shown
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabContents.forEach(content => {
+        content.classList.remove('active');
+        if (content.id === `${currentTabFromURL}-tab`) {
+            content.classList.add('active');
+        }
+    });
+    
+    // 10. Initialize events after a short delay (for dynamic content)
+    setTimeout(function() {
+        initVideoCardEvents();
+        initGalleryItemEvents();
+    }, 500);
 });
 
 window.addEventListener('load', function() {
@@ -1732,12 +2168,26 @@ window.addEventListener('load', function() {
     });
 });
 
-// ✅ FIXED: Tab click handler
+// ✅ FIXED: Tab click handler - FIXED URL ISSUE
 function handleTabClick(event, tabName) {
-    if (tabName === 'photos') {
-        event.preventDefault();
+    event.preventDefault();
+    
+    const currentUrl = window.location.href;
+    const url = new URL(currentUrl);
+    const params = url.searchParams;
+    
+    params.set('tab', tabName);
+    params.delete('page');
+    
+    // Clear video-specific filters when switching tabs
+    if (tabName !== 'videos') {
+        params.delete('video_category');
+        params.delete('video_filter');
     }
-    return true;
+    
+    console.log('Redirecting to:', url.toString());
+    window.location.href = url.toString();
+    return false;
 }
 
 // ✅ FIXED: SIMPLE AND RELIABLE SERVER-SIDE HOSTEL FILTER FIX
@@ -1768,6 +2218,7 @@ window.handleHostelFilterChange = function() {
         console.log('Setting hostel_id to:', selectedValue);
     }
     
+    // Keep current tab, if not set default to photos
     if (!params.has('tab')) {
         params.set('tab', 'photos');
     }
@@ -1793,9 +2244,30 @@ document.addEventListener('DOMContentLoaded', function() {
             hostelFilter.value = hostelId;
         }
     }
+    
+    // ✅ FIXED: Hide the global no-results message for videos tab
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabParam = urlParams.get('tab');
+    
+    if (tabParam === 'videos') {
+        const noResults = document.querySelector('.no-results');
+        if (noResults) {
+            noResults.classList.add('hidden');
+            noResults.style.display = 'none';
+        }
+        
+        // Also hide the pagination if only one page
+        const pagination = document.querySelector('.pagination-container');
+        if (pagination) {
+            const paginationItems = pagination.querySelectorAll('ul.pagination li');
+            if (paginationItems.length <= 3) { // Only showing 1 page
+                pagination.style.display = 'none';
+            }
+        }
+    }
 });
 
-// ✅ FIXED: Video category click handler
+// ✅ FIXED: Video category click handler - ALWAYS SETS TAB TO VIDEOS
 function handleVideoCategoryClick(category) {
     console.log('Video category clicked:', category);
     
@@ -1803,6 +2275,10 @@ function handleVideoCategoryClick(category) {
     const url = new URL(currentUrl);
     const params = url.searchParams;
     
+    // ✅ FIX: Always set tab to videos when clicking video category
+    params.set('tab', 'videos');
+    
+    // Clear other video filters
     params.delete('page');
     
     if (category === 'all') {
@@ -1814,6 +2290,36 @@ function handleVideoCategoryClick(category) {
     console.log('Redirecting to:', url.toString());
     window.location.href = url.toString();
     return false;
+}
+
+// ✅ FIXED: Re-initialize video cards when videos tab becomes active
+document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) {
+        setTimeout(function() {
+            const videoCards = document.querySelectorAll('.video-card');
+            videoCards.forEach(card => {
+                card.removeEventListener('click', handleVideoCardClick);
+                card.addEventListener('click', handleVideoCardClick);
+            });
+            
+            const galleryItems = document.querySelectorAll('.gallery-item');
+            galleryItems.forEach(item => {
+                item.removeEventListener('click', handleGalleryItemClick);
+                item.addEventListener('click', handleGalleryItemClick);
+            });
+        }, 100);
+    }
+});
+
+// ✅ FIXED: Handle video card click helper function
+function handleVideoCardClick(event) {
+    // Don't open modal if clicking on links inside the card
+    if (event.target.closest('a') || event.target.tagName === 'A') {
+        return;
+    }
+    
+    console.log('Video card clicked');
+    openVideoModal(this);
 }
 </script>
 @endpush

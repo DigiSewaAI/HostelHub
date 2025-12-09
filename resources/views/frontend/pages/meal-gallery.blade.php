@@ -32,11 +32,8 @@
 /* 🎯 ENHANCED HERO SECTION */
 .gallery-hero {
     text-align: center;
-    background: 
-        linear-gradient(rgba(1, 31, 91, 0.85), rgba(1, 31, 91, 0.9)),
-        url('https://images.unsplash.com/photo-1585937421612-6b2f0a1b45c8?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80') center center / cover no-repeat;
     color: white;
-    padding: 4rem 1.5rem;
+    padding: 3rem 1.5rem 2rem 1.5rem;
     border-radius: 1rem;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
     max-width: 1200px;
@@ -44,20 +41,35 @@
     margin: calc(var(--header-height, 70px) + 1rem) auto 2rem auto !important;
     position: relative;
     overflow: hidden;
+    min-height: 450px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.gallery-hero::before {
+/* Daily Food Image - Increased Clarity */
+.daily-food-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+    filter: brightness(1.25) contrast(1.35) saturate(1.15);
+    transition: opacity 0.8s ease-in-out;
+}
+
+.gallery-hero::after {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: 
-        radial-gradient(circle at 20% 80%, rgba(255, 215, 0, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(50, 205, 50, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 40% 40%, rgba(138, 43, 226, 0.08) 0%, transparent 50%);
-    pointer-events: none;
+    /* Reduced opacity for more clarity - 35% less overlay */
+    background: linear-gradient(rgba(1, 31, 91, 0.55), rgba(1, 31, 91, 0.6));
+    z-index: 2;
 }
 
 @keyframes float {
@@ -75,6 +87,8 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    position: relative;
+    z-index: 3;
 }
 
 .gallery-hero p {
@@ -83,6 +97,8 @@
     max-width: 700px;
     margin: 0 auto 2rem auto;
     line-height: 1.6;
+    position: relative;
+    z-index: 3;
 }
 
 /* Hero Badge */
@@ -96,6 +112,8 @@
     padding: 0.5rem 1.5rem;
     border-radius: 50px;
     margin-bottom: 1rem;
+    position: relative;
+    z-index: 3;
 }
 
 .hero-badge i {
@@ -107,43 +125,12 @@
     font-size: 0.9rem;
 }
 
-/* Hero Stats */
-.hero-stats {
-    display: flex;
-    justify-content: center;
-    gap: 2rem;
-    margin-bottom: 2rem;
-    flex-wrap: wrap;
-}
-
-.stat-bubble {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    padding: 0.5rem 1rem;
-    border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.stat-bubble i {
-    color: #FFD700;
-}
-
-.stat-bubble .stat-number {
-    font-size: 1.1rem;
-    font-weight: 700;
-}
-
-.stat-bubble .stat-label {
-    font-weight: 500;
-}
-
 /* Enhanced Search in Hero */
 .hero-search-container {
     max-width: 700px;
     margin: 0 auto;
+    position: relative;
+    z-index: 3;
 }
 
 .search-wrapper {
@@ -198,46 +185,6 @@
 .hero-search-btn:hover {
     background: linear-gradient(135deg, #1E3A8A, #2D4BA8);
     transform: scale(1.05);
-}
-
-/* Quick Filters */
-.quick-filters {
-    display: flex;
-    justify-content: center;
-    gap: 0.75rem;
-    margin-top: 1rem;
-    flex-wrap: wrap;
-}
-
-.quick-filter {
-    text-decoration: none;
-    font-size: 0.9rem;
-    color: rgba(255, 255, 255, 0.9);
-    background: rgba(255, 255, 255, 0.1);
-    padding: 0.4rem 1rem;
-    border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    transition: all 0.3s ease;
-}
-
-.quick-filter:hover {
-    background: rgba(255, 215, 0, 0.2);
-    color: #FFD700;
-}
-
-.quick-filter.breakfast:hover {
-    background: rgba(255, 215, 0, 0.2);
-    color: #FFD700;
-}
-
-.quick-filter.lunch:hover {
-    background: rgba(50, 205, 50, 0.2);
-    color: #32CD32;
-}
-
-.quick-filter.dinner:hover {
-    background: rgba(138, 43, 226, 0.2);
-    color: #8A2BE2;
 }
 
 /* Enhanced Filters */
@@ -639,6 +586,172 @@
     font-weight: 600;
 }
 
+/* ✅ NEW: Quick View Modal Styles */
+.quick-view-modal {
+    display: none;
+    position: fixed;
+    z-index: 1100;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.quick-view-modal-content {
+    background-color: white;
+    margin: 5% auto;
+    padding: 0;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 800px;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+.quick-view-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid #e9ecef;
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 1;
+}
+
+.quick-view-modal-header h3 {
+    margin: 0;
+    color: #2d3748;
+    font-size: 1.5rem;
+}
+
+.quick-view-modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #6c757d;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.quick-view-modal-close:hover {
+    background: #f8f9fa;
+    color: #2d3748;
+}
+
+.quick-view-modal-body {
+    padding: 1.5rem;
+}
+
+.quick-view-image-container {
+    width: 100%;
+    height: 300px;
+    overflow: hidden;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+}
+
+.quick-view-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.quick-view-details {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+}
+
+.quick-view-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.quick-view-meta {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.quick-view-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #6c757d;
+    font-size: 0.95rem;
+}
+
+.quick-view-items {
+    margin-top: 1rem;
+}
+
+.quick-view-hostel {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.hostel-info-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.hostel-logo-small {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid var(--primary);
+}
+
+.hostel-logo-small img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.hostel-details h4 {
+    margin: 0 0 0.25rem 0;
+    font-size: 1.1rem;
+}
+
+.hostel-details p {
+    margin: 0;
+    color: #6c757d;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.hostel-contact {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e9ecef;
+}
+
+.hostel-contact p {
+    margin: 0.25rem 0;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
 /* Empty State */
 .no-meals-found {
     grid-column: 1 / -1;
@@ -701,6 +814,7 @@
     font-size: 2rem;
     opacity: 0.1;
     animation: float 6s ease-in-out infinite;
+    z-index: 2;
 }
 
 .floating-icon:nth-child(1) {
@@ -723,12 +837,57 @@
     animation-delay: 2s;
 }
 
+/* Image of the day indicator */
+.image-of-day-badge {
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    backdrop-filter: blur(5px);
+}
+
+/* Food Slideshow */
+.food-slideshow {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+.slide-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 1.5s ease-in-out;
+    /* Increased contrast and clarity */
+    filter: brightness(1.3) contrast(1.4) saturate(1.2);
+}
+
+.slide-image.active {
+    opacity: 1;
+}
+
 /* 🚨 MOBILE ADJUSTMENTS - EXACT SAME AS FEATURES PAGE */
 @media (max-width: 768px) {
     .gallery-hero {
         margin: calc(60px + 0.25rem) auto 1rem auto !important;
         padding: 2rem 1rem;
         width: calc(100% - 2rem);
+        min-height: 400px;
     }
     
     .gallery-hero h1 {
@@ -738,11 +897,6 @@
     
     .gallery-hero p {
         font-size: 1.1rem;
-        margin-bottom: 1.5rem;
-    }
-    
-    .hero-stats {
-        gap: 1rem;
         margin-bottom: 1.5rem;
     }
     
@@ -810,6 +964,20 @@
     .share-options {
         grid-template-columns: 1fr;
     }
+    
+    .quick-view-details {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    
+    .quick-view-modal-content {
+        margin: 10% auto;
+        max-height: 90vh;
+    }
+    
+    .quick-view-image-container {
+        height: 250px;
+    }
 
     /* Responsive adjustments for CTA */
     [style*="font-size: 2.5rem"] { font-size: 2rem !important; }
@@ -819,6 +987,13 @@
     
     .floating-icon {
         display: none;
+    }
+    
+    .image-of-day-badge {
+        font-size: 0.7rem;
+        padding: 4px 8px;
+        bottom: 10px;
+        right: 10px;
     }
 }
 
@@ -830,11 +1005,6 @@
     .hero-badge {
         padding: 0.4rem 1rem;
         font-size: 0.8rem;
-    }
-    
-    .stat-bubble {
-        padding: 0.4rem 0.8rem;
-        font-size: 0.9rem;
     }
     
     .card-content {
@@ -859,15 +1029,106 @@
         margin: 20% auto;
         width: 95%;
     }
+    
+    .quick-view-modal-content {
+        margin: 5% auto;
+        width: 95%;
+    }
 }
 </style>
 @endpush
 
 @section('content')
 
+@php
+// Get current day in English (lowercase)
+$days = [
+    'sunday' => 'आइतबार',
+    'monday' => 'सोमबार', 
+    'tuesday' => 'मङ्गलबार',
+    'wednesday' => 'बुधबार',
+    'thursday' => 'बिहिबार',
+    'friday' => 'शुक्रबार',
+    'saturday' => 'शनिबार'
+];
+
+$englishDays = [
+    'आइतबार' => 'sunday',
+    'सोमबार' => 'monday',
+    'मङ्गलबार' => 'tuesday',
+    'बुधबार' => 'wednesday',
+    'बिहिबार' => 'thursday',
+    'शुक्रबार' => 'friday',
+    'शनिबार' => 'saturday'
+];
+
+// Get current Nepali day name
+$currentDate = new DateTime();
+$dayNumber = $currentDate->format('w'); // 0=Sunday, 1=Monday, etc.
+$nepaliDayNames = ['आइतबार', 'सोमबार', 'मङ्गलबार', 'बुधबार', 'बिहिबार', 'शुक्रबार', 'शनिबार'];
+$currentNepaliDay = $nepaliDayNames[$dayNumber];
+
+// Get English day name for filtering
+$englishDayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+$currentEnglishDay = $englishDayNames[$dayNumber];
+
+// Get today's meals from ALL meal menus (not filtered by type)
+// We need to filter $mealMenus by today's day and get images
+// But $mealMenus might already be filtered by type, so we need to get all meals from database
+// Since we can't modify controller, we'll work with what we have
+
+// First, let's get all meal images from the current $mealMenus collection
+$todayMealImages = [];
+
+foreach ($mealMenus as $menu) {
+    // Check if this meal is for today
+    $menuDayEnglish = strtolower($menu->day_of_week);
+    
+    // Convert Nepali day to English if needed
+    if (isset($englishDays[$menu->day_of_week])) {
+        $menuDayEnglish = $englishDays[$menu->day_of_week];
+    }
+    
+    if ($menuDayEnglish === $currentEnglishDay && $menu->image) {
+        $todayMealImages[] = asset('storage/'.$menu->image);
+    }
+}
+
+// If no images found for today, get any meal images from the gallery
+if (empty($todayMealImages)) {
+    foreach ($mealMenus as $menu) {
+        if ($menu->image) {
+            $todayMealImages[] = asset('storage/'.$menu->image);
+        }
+    }
+}
+
+// Limit to maximum 5 images for slideshow
+$todayMealImages = array_slice($todayMealImages, 0, 5);
+
+// If still no images, use a fallback image from your own assets
+if (empty($todayMealImages)) {
+    $todayMealImages = [asset('images/default-food.jpg')];
+}
+
+// Prepare data for JavaScript
+$todayImagesJson = json_encode($todayMealImages);
+@endphp
+
 <div class="gallery-page-wrapper">
-    <!-- 🎯 ENHANCED HERO SECTION WITH NEPALI FOOD BACKGROUND -->
+    <!-- 🎯 ENHANCED HERO SECTION WITH TODAY'S MEAL IMAGES FROM DATABASE -->
     <section class="gallery-hero">
+        <!-- Food Slideshow Container -->
+        <div class="food-slideshow" id="foodSlideshow" data-today-images="{{ $todayImagesJson }}">
+            <!-- Images will be dynamically added by JavaScript -->
+        </div>
+        
+        <!-- Image of the day badge -->
+        <div class="image-of-day-badge">
+            <i class="fas fa-calendar-day"></i>
+            <span class="nepali" id="dayName">{{ $currentNepaliDay }}को खाना</span>
+        </div>
+        
         <!-- Floating Icons -->
         <div class="floating-icon">
             <i class="fas fa-utensils"></i>
@@ -879,7 +1140,7 @@
             <i class="fas fa-mug-hot"></i>
         </div>
         
-        <div style="position: relative; z-index: 2;">
+        <div style="position: relative; z-index: 3; width: 100%;">
             <!-- Badge -->
             <div class="hero-badge">
                 <i class="fas fa-utensils"></i>
@@ -894,31 +1155,6 @@
                 ताजा, स्वस्थ र स्वादिष्ट खानाको अनुभव। 
                 नेपाली परम्परागत व्यञ्जनबाट आधुनिक व्यञ्जनसम्मको स्वाद यात्रा।
             </p>
-
-            <!-- Stats Row -->
-            <div class="hero-stats">
-                <div class="stat-bubble">
-                    <i class="fas fa-utensils"></i>
-                    <span class="nepali">
-                        <strong class="stat-number">१००+</strong>
-                        <span class="stat-label">व्यञ्जनहरू</span>
-                    </span>
-                </div>
-                <div class="stat-bubble">
-                    <i class="fas fa-hotel"></i>
-                    <span class="nepali">
-                        <strong class="stat-number">५०+</strong>
-                        <span class="stat-label">होस्टलहरू</span>
-                    </span>
-                </div>
-                <div class="stat-bubble">
-                    <i class="fas fa-star"></i>
-                    <span class="nepali">
-                        <strong class="stat-number">४.८</strong>
-                        <span class="stat-label">औसत रेटिङ</span>
-                    </span>
-                </div>
-            </div>
 
             <!-- Enhanced Search Bar -->
             <div class="hero-search-container">
@@ -938,22 +1174,6 @@
                         </button>
                     </div>
                 </form>
-                
-                <!-- Quick Filters -->
-                <div class="quick-filters">
-                    <a href="{{ route('menu-gallery', ['type' => 'breakfast']) }}" class="quick-filter breakfast">
-                        <i class="fas fa-sun"></i>
-                        <span class="nepali">विहानी</span>
-                    </a>
-                    <a href="{{ route('menu-gallery', ['type' => 'lunch']) }}" class="quick-filter lunch">
-                        <i class="fas fa-utensils"></i>
-                        <span class="nepali">दिउँसो</span>
-                    </a>
-                    <a href="{{ route('menu-gallery', ['type' => 'dinner']) }}" class="quick-filter dinner">
-                        <i class="fas fa-moon"></i>
-                        <span class="nepali">बेलुका</span>
-                    </a>
-                </div>
             </div>
         </div>
     </section>
@@ -1039,7 +1259,17 @@
                                         @endif
                                     </span>
                                 </div>
-                                <button class="quick-view-btn" data-meal-id="{{ $menu->id }}">
+                                <button class="quick-view-btn" data-meal-id="{{ $menu->id }}" data-meal-details="{{ json_encode([
+                                    'title' => $menu->description,
+                                    'image' => $menu->image ? asset('storage/'.$menu->image) : 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
+                                    'meal_type' => $menu->meal_type,
+                                    'day' => $menu->day_of_week,
+                                    'items' => $menu->formatted_items ?? $menu->description,
+                                    'hostel_name' => $menu->hostel->name ?? 'होस्टल',
+                                    'hostel_logo' => $menu->hostel->logo_path ? asset('storage/'.$menu->hostel->logo_path) : null,
+                                    'hostel_city' => $menu->hostel->city ?? 'काठमाडौं',
+                                    'hostel_contact' => $menu->hostel->contact ?? null,
+                                ]) }}">
                                     <i class="fas fa-eye"></i>
                                     <span class="nepali">हेर्नुहोस्</span>
                                 </button>
@@ -1213,7 +1443,7 @@
         </div>
     </section>
 
-    <!-- CTA Section -->
+    <!-- CTA Section - IMPROVED TO MATCH HOMEPAGE -->
     <section class="cta-section" style="padding: 4rem 0; background: white;">
         <div class="container">
             <div style="
@@ -1227,41 +1457,134 @@
                 margin: 0 auto;
             ">
                 <h2 class="nepali" style="font-size: 1.875rem; font-weight: bold; margin-bottom: 1rem;">
-                    के तपाईं पनि आफ्नो होस्टलका खानाहरू यसरी सार्वजनिक देखाउन चाहनुहुन्छ?
+                    तपाईंको होस्टलको स्वादिष्ट खानाहरूको प्रदर्शन गर्नुहोस्
                 </h2>
-                <p class="nepali" style="font-size: 1.25rem; margin-bottom: 2rem; opacity: 0.9;">
-                    HostelHub मा आफ्नो होस्टल दर्ता गर्नुहोस् र आफ्ना स्वादिष्ट खानाहरू सबैलाई देखाउनुहोस्
+                <p class="nepali" style="font-size: 1.25rem; margin-bottom: 1.5rem; opacity: 0.9;">
+                    आफ्नो होस्टल HostelHub मा दर्ता गर्नुहोस् र आफ्ना स्वादिष्ट खानाहरूको प्रदर्शन गर्नुहोस्
                 </p>
                 
+                <!-- Badges like homepage -->
+                <div style="
+                    display: flex;
+                    justify-content: center;
+                    gap: 1rem;
+                    margin-bottom: 2rem;
+                    flex-wrap: wrap;
+                ">
+                    <div style="
+                        background: rgba(255, 255, 255, 0.2);
+                        border: 1px solid rgba(255, 255, 255, 0.3);
+                        padding: 0.5rem 1rem;
+                        border-radius: 20px;
+                        font-size: 0.9rem;
+                        display: flex;
+                        align-items: center;
+                        gap: 0.5rem;
+                    ">
+                        <i class="fas fa-check-circle" style="color: #4ADE80;"></i>
+                        <span class="nepali">७ दिन निःशुल्क परीक्षण</span>
+                    </div>
+                    <div style="
+                        background: rgba(255, 255, 255, 0.2);
+                        border: 1px solid rgba(255, 255, 255, 0.3);
+                        padding: 0.5rem 1rem;
+                        border-radius: 20px;
+                        font-size: 0.9rem;
+                        display: flex;
+                        align-items: center;
+                        gap: 0.5rem;
+                    ">
+                        <i class="fas fa-credit-card" style="color: #60A5FA;"></i>
+                        <span class="nepali">कुनै क्रेडिट कार्ड आवश्यक छैन</span>
+                    </div>
+                    <div style="
+                        background: rgba(255, 255, 255, 0.2);
+                        border: 1px solid rgba(255, 255, 255, 0.3);
+                        padding: 0.5rem 1rem;
+                        border-radius: 20px;
+                        font-size: 0.9rem;
+                        display: flex;
+                        align-items: center;
+                        gap: 0.5rem;
+                    ">
+                        <i class="fas fa-handshake" style="color: #FBBF24;"></i>
+                        <span class="nepali">कुनै पनि प्रतिबद्धता छैन</span>
+                    </div>
+                </div>
+                
                 <div style="display: flex; flex-direction: column; gap: 1rem; align-items: center;">
-                    <a href="/register/organization" class="nepali" style="
-                        background-color: white;
-                        color: #001F5B;
-                        font-weight: 600;
-                        padding: 0.75rem 2rem;
-                        border-radius: 0.5rem;
-                        text-decoration: none;
-                        min-width: 180px;
-                        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-                        transition: all 0.3s ease;
-                    " onmouseover="this.style.backgroundColor='#f3f4f6'; this.style.transform='translateY(-2px)';"
-                       onmouseout="this.style.backgroundColor='white'; this.style.transform='none';">
-                        Hostel Owner बन्नुहोस्
-                    </a>
-                    <a href="/features" class="nepali" style="
-                        border: 2px solid white;
-                        color: white;
-                        font-weight: 600;
-                        padding: 0.75rem 2rem;
-                        border-radius: 0.5rem;
-                        text-decoration: none;
-                        min-width: 180px;
-                        background-color: transparent;
-                        transition: all 0.3s ease;
-                    " onmouseover="this.style.backgroundColor='white'; this.style.color='#001F5B'; this.style.transform='translateY(-2px)';"
-                       onmouseout="this.style.backgroundColor='transparent'; this.style.color='white'; this.style.transform='none';">
-                        विशेषताहरू हेर्नुहोस्
-                    </a>
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;">
+                        <a href="/register/organization" class="nepali" style="
+                            background-color: white;
+                            color: #001F5B;
+                            font-weight: 600;
+                            padding: 0.75rem 2rem;
+                            border-radius: 0.5rem;
+                            text-decoration: none;
+                            min-width: 180px;
+                            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+                            transition: all 0.3s ease;
+                            text-align: center;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 0.5rem;
+                        " onmouseover="this.style.backgroundColor='#f3f4f6'; this.style.transform='translateY(-2px)';"
+                           onmouseout="this.style.backgroundColor='white'; this.style.transform='none';">
+                            <i class="fas fa-rocket"></i>
+                            <span>निःशुल्क साइन अप गर्नुहोस्</span>
+                        </a>
+                        <a href="/demo" class="nepali" style="
+                            border: 2px solid white;
+                            color: white;
+                            font-weight: 600;
+                            padding: 0.75rem 2rem;
+                            border-radius: 0.5rem;
+                            text-decoration: none;
+                            min-width: 180px;
+                            background-color: transparent;
+                            transition: all 0.3s ease;
+                            text-align: center;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 0.5rem;
+                        " onmouseover="this.style.backgroundColor='white'; this.style.color='#001F5B'; this.style.transform='translateY(-2px)';"
+                           onmouseout="this.style.backgroundColor='transparent'; this.style.color='white'; this.style.transform='none';">
+                            <i class="fas fa-play-circle"></i>
+                            <span>डेमो हेर्नुहोस्</span>
+                        </a>
+                        <a href="/pricing" class="nepali" style="
+                            border: 2px solid white;
+                            color: white;
+                            font-weight: 600;
+                            padding: 0.75rem 2rem;
+                            border-radius: 0.5rem;
+                            text-decoration: none;
+                            min-width: 180px;
+                            background-color: transparent;
+                            transition: all 0.3s ease;
+                            text-align: center;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 0.5rem;
+                        " onmouseover="this.style.backgroundColor='white'; this.style.color='#001F5B'; this.style.transform='translateY(-2px)';"
+                           onmouseout="this.style.backgroundColor='transparent'; this.style.color='white'; this.style.transform='none';">
+                            <i class="fas fa-tags"></i>
+                            <span>योजनाहरू हेर्नुहोस्</span>
+                        </a>
+                    </div>
+                    
+                    <!-- Additional text like homepage -->
+                    <p class="nepali" style="
+                        font-size: 0.875rem;
+                        color: rgba(255, 255, 255, 0.8);
+                        margin-top: 1rem;
+                        font-style: italic;
+                    ">
+                        सबै सुविधाहरू ७ दिन निःशुल्क प्रयोग गर्नुहोस्, कुनै पनि बाध्यता बिना
+                    </p>
                 </div>
             </div>
         </div>
@@ -1291,6 +1614,19 @@
                     <i class="fas fa-link"></i>
                     <span class="nepali">लिङ्क कपी गर्नुहोस्</span>
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ✅ NEW: Quick View Modal -->
+    <div id="quickViewModal" class="quick-view-modal">
+        <div class="quick-view-modal-content">
+            <div class="quick-view-modal-header">
+                <h3 class="nepali" id="quickViewTitle">खानाको विवरण</h3>
+                <button class="quick-view-modal-close">&times;</button>
+            </div>
+            <div class="quick-view-modal-body" id="quickViewBody">
+                <!-- Content will be dynamically added by JavaScript -->
             </div>
         </div>
     </div>
@@ -1336,7 +1672,174 @@ document.addEventListener('DOMContentLoaded', function() {
         },
     });
 
-    // ✅ NEW: Share Functionality
+    // ✅ DYNAMIC DAILY FOOD SLIDESHOW FROM DATABASE
+    const foodSlideshow = document.getElementById('foodSlideshow');
+    const dayNameElement = document.getElementById('dayName');
+    
+    // Get today's meal images from data attribute
+    const todayImagesJson = foodSlideshow.getAttribute('data-today-images');
+    let todayMealImages = [];
+    
+    try {
+        todayMealImages = JSON.parse(todayImagesJson);
+    } catch (e) {
+        console.error('Error parsing today images:', e);
+        // Fallback to a default image
+        todayMealImages = ['/images/default-food.jpg'];
+    }
+    
+    // Create slideshow with today's meal images
+    if (foodSlideshow && todayMealImages.length > 0) {
+        todayMealImages.forEach((imageUrl, index) => {
+            const img = document.createElement('img');
+            img.src = imageUrl;
+            img.alt = 'आजको खाना - छवि ' + (index + 1);
+            img.className = 'slide-image';
+            // Increased clarity and contrast
+            img.style.filter = 'brightness(1.3) contrast(1.4) saturate(1.2)';
+            if (index === 0) {
+                img.classList.add('active');
+            }
+            foodSlideshow.appendChild(img);
+        });
+        
+        // Auto slide every 5 seconds if there are multiple images
+        const slides = document.querySelectorAll('.slide-image');
+        if (slides.length > 1) {
+            let currentSlide = 0;
+            setInterval(() => {
+                slides[currentSlide].classList.remove('active');
+                currentSlide = (currentSlide + 1) % slides.length;
+                slides[currentSlide].classList.add('active');
+            }, 5000);
+        }
+    }
+
+    // ✅ QUICK VIEW MODAL FUNCTIONALITY
+    const quickViewModal = document.getElementById('quickViewModal');
+    const quickViewButtons = document.querySelectorAll('.quick-view-btn');
+    const quickViewClose = document.querySelector('.quick-view-modal-close');
+    const quickViewTitle = document.getElementById('quickViewTitle');
+    const quickViewBody = document.getElementById('quickViewBody');
+    
+    // Open quick view modal
+    quickViewButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const mealDetails = JSON.parse(this.getAttribute('data-meal-details'));
+            
+            // Set modal title
+            quickViewTitle.textContent = mealDetails.title;
+            
+            // Nepali days mapping
+            const nepaliDays = {
+                'sunday': 'आइतबार',
+                'monday': 'सोमबार',
+                'tuesday': 'मङ्गलबार',
+                'wednesday': 'बुधबार',
+                'thursday': 'बिहिबार',
+                'friday': 'शुक्रबार',
+                'saturday': 'शनिबार'
+            };
+            
+            // Nepali meal types
+            const nepaliMealTypes = {
+                'breakfast': 'विहानको खाना',
+                'lunch': 'दिउसोको खाना',
+                'dinner': 'बेलुकाको खाना'
+            };
+            
+            // Nepali meal times
+            const nepaliMealTimes = {
+                'breakfast': '७:०० - ९:०० बिहान',
+                'lunch': '१२:०० - २:०० दिउँसो',
+                'dinner': '६:०० - ८:०० बेलुका'
+            };
+            
+            // Convert day to Nepali
+            const nepaliDay = nepaliDays[mealDetails.day.toLowerCase()] || mealDetails.day;
+            const nepaliMealType = nepaliMealTypes[mealDetails.meal_type] || mealDetails.meal_type;
+            const nepaliMealTime = nepaliMealTimes[mealDetails.meal_type] || '';
+            
+            // Create modal content
+            let modalContent = `
+                <div class="quick-view-image-container">
+                    <img src="${mealDetails.image}" alt="${mealDetails.title}" class="quick-view-image">
+                </div>
+                
+                <div class="quick-view-details">
+                    <div class="quick-view-info">
+                        <div class="quick-view-meta">
+                            <div class="quick-view-meta-item">
+                                <i class="fas fa-hotel"></i>
+                                <span class="nepali">${mealDetails.hostel_name}</span>
+                            </div>
+                            <div class="quick-view-meta-item">
+                                <i class="fas fa-calendar"></i>
+                                <span class="nepali">${nepaliDay}</span>
+                            </div>
+                            <div class="quick-view-meta-item">
+                                <i class="fas fa-utensils"></i>
+                                <span class="nepali">${nepaliMealType}</span>
+                            </div>
+                            <div class="quick-view-meta-item">
+                                <i class="fas fa-clock"></i>
+                                <span class="nepali">${nepaliMealTime}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="quick-view-items">
+                            <h4 class="nepali" style="font-size: 1.1rem; margin-bottom: 0.5rem; color: #2d3748;">खानाका वस्तुहरू:</h4>
+                            <p class="nepali" style="color: #6c757d; line-height: 1.5;">${mealDetails.items}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="quick-view-hostel">
+                        <div class="hostel-info-header">
+                            <div class="hostel-logo-small">
+                                <img src="${mealDetails.hostel_logo || 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80'}" alt="${mealDetails.hostel_name}">
+                            </div>
+                            <div class="hostel-details">
+                                <h4 class="nepali">${mealDetails.hostel_name}</h4>
+                                <p class="nepali">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    ${mealDetails.hostel_city}
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="hostel-contact">
+                            <p class="nepali"><i class="fas fa-info-circle"></i> यो होस्टल HostelHub मा दर्ता भएको छ</p>
+                            <p class="nepali"><i class="fas fa-utensils"></i> नियमित रूपमा खानाको मेनु अपडेट गर्दछ</p>
+                            ${mealDetails.hostel_contact ? `<p class="nepali"><i class="fas fa-phone"></i> सम्पर्क: ${mealDetails.hostel_contact}</p>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Set modal content
+            quickViewBody.innerHTML = modalContent;
+            
+            // Show modal
+            quickViewModal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        });
+    });
+    
+    // Close quick view modal
+    quickViewClose.addEventListener('click', function() {
+        quickViewModal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    });
+    
+    // Close quick view modal when clicking outside
+    window.addEventListener('click', function(event) {
+        if (event.target === quickViewModal) {
+            quickViewModal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+    });
+
+    // ✅ SHARE MODAL FUNCTIONALITY
     const shareModal = document.getElementById('shareModal');
     const shareButtons = document.querySelectorAll('.share-btn');
     const closeModal = document.querySelector('.share-modal-close');
@@ -1361,13 +1864,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Close modal
+    // Close share modal
     closeModal.addEventListener('click', function() {
         shareModal.style.display = 'none';
         document.body.style.overflow = 'auto';
     });
 
-    // Close modal when clicking outside
+    // Close share modal when clicking outside
     window.addEventListener('click', function(event) {
         if (event.target === shareModal) {
             shareModal.style.display = 'none';
@@ -1432,22 +1935,6 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Failed to copy: ', err);
             alert('लिङ्क कपी गर्न असफल भयो। कृपया हातले कपी गर्नुहोस्।');
         });
-    }
-
-    // Web Share API (for modern browsers)
-    function shareWithWebAPI(mealDescription) {
-        if (navigator.share) {
-            navigator.share({
-                title: 'HostelHub - खानाको ग्यालरी',
-                text: mealDescription,
-                url: window.location.href,
-            })
-            .then(() => console.log('Successful share'))
-            .catch((error) => console.log('Error sharing:', error));
-        } else {
-            // Fallback to modal
-            console.log('Web Share API not supported');
-        }
     }
 });
 </script>
