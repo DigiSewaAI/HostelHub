@@ -583,26 +583,12 @@ main#main-content {
     content: none !important;
 }
 
-/* Safe z-index for theme compatibility */
-.modern-theme .third-column {
-    z-index: 10;
-}
-
-.modern-theme .gallery-vertical-container {
-    z-index: 5;
-}
-
 /* Footer container protection */
 footer .max-w-7xl {
     max-width: 80rem !important;
     width: 100% !important;
     margin-left: auto !important;
     margin-right: auto !important;
-}
-
-/* Ensure theme z-index works properly */
-.sidebar-card.sticky {
-    z-index: 15;
 }
 
 /* 🚨 PROTECT AGAINST IMAGE HIDING */
