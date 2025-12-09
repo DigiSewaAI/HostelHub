@@ -107,3 +107,24 @@ a.text-accent:hover {
 ::-moz-selection {
   background-color: rgba(var(--primary-color-rgb), 0.2);
 }
+
+/* Modern Theme Overrides */
+.modern-theme .btn-primary {
+    background: linear-gradient(135deg, var(--primary-color), #7c3aed);
+    border: none;
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+/* Modern Theme Integration - REMOVED @apply rules */
+.modern-theme .text-accent {
+    background: linear-gradient(135deg, var(--primary-color), #7c3aed);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.modern-theme .hero-section {
+    background: var(--hero-gradient);
+}

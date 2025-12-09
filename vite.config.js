@@ -13,11 +13,12 @@ export default defineConfig({
                 'resources/css/gallery.css',
                 'resources/css/home.css',
                 'resources/css/dashboard.css',
+                'resources/css/themes/modern.css',
                 
                 // JS Files
                 'resources/js/app.js',
                 'resources/js/home.js',
-                'resources/js/gallery.js' // ← ADDED THIS LINE
+                'resources/js/gallery.js'
             ],
             refresh: true,
         }),

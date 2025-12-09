@@ -435,6 +435,7 @@
         position: relative;
         height: 220px;
         overflow: hidden;
+        cursor: pointer;
     }
     
     .meal-image img {
@@ -459,6 +460,7 @@
         font-size: 0.85rem;
         font-weight: 600;
         box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+        z-index: 3;
     }
     
     .meal-content {
@@ -554,6 +556,11 @@
         transition: opacity 0.3s ease;
     }
     
+    .gallery-modal.active {
+        display: flex;
+        opacity: 1;
+    }
+    
     .modal-content {
         max-width: 90%;
         max-height: 90%;
@@ -567,7 +574,9 @@
     .modal-content img, .modal-content video {
         width: 100%;
         height: auto;
+        max-height: 80vh;
         display: block;
+        object-fit: contain;
     }
     
     .close-modal {
@@ -601,9 +610,18 @@
         right: 0;
         background: rgba(0, 0, 0, 0.85);
         color: white;
-        padding: 25px;
+        padding: 20px;
         transform: translateY(0);
         transition: transform 0.3s;
+        max-height: 40%;
+        overflow-y: auto;
+        z-index: 5;
+    }
+    
+    .modal-caption.hidden {
+        transform: translateY(100%);
+        opacity: 0;
+        pointer-events: none;
     }
     
     .modal-caption h3 {
@@ -616,6 +634,7 @@
         font-size: 1rem;
         line-height: 1.5;
         opacity: 0.9;
+        margin-bottom: 10px;
     }
 
     /* Hidden items for view more functionality */
@@ -680,7 +699,7 @@
         left: 0;
         right: 0;
         background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
-        padding: 20px;
+        padding: 15px 20px;
         z-index: 6;
         opacity: 1;
         transition: opacity 0.5s ease;
@@ -700,7 +719,7 @@
         height: 4px;
         background: rgba(255, 255, 255, 0.3);
         border-radius: 2px;
-        margin-bottom: 15px;
+        margin-bottom: 12px;
         overflow: hidden;
     }
 
@@ -720,19 +739,19 @@
     .video-control-left, .video-control-right {
         display: flex;
         align-items: center;
-        gap: 20px;
+        gap: 15px;
     }
 
     .video-control-btn {
         background: transparent;
         border: none;
         color: white;
-        font-size: 1.2rem;
+        font-size: 1.1rem;
         cursor: pointer;
         padding: 5px;
         border-radius: 50%;
-        width: 40px;
-        height: 40px;
+        width: 36px;
+        height: 36px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -745,13 +764,30 @@
 
     .video-time {
         color: white;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         font-family: monospace;
     }
 
-    /* AUTO-HIDE CONTROLS */
+    /* AUTO-HIDE CONTROLS FOR MODALS */
     .gallery-modal:hover .video-controls:not(.hidden) {
         opacity: 1;
+    }
+    
+    .gallery-modal:hover .modal-caption:not(.hidden) {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* Show caption on modal hover */
+    .modal-caption.hover-show {
+        opacity: 0;
+        transform: translateY(100%);
+        transition: opacity 0.3s, transform 0.3s;
+    }
+    
+    .gallery-modal:hover .modal-caption.hover-show {
+        opacity: 1;
+        transform: translateY(0);
     }
 
     /* RESPONSIVE VIDEO CONTROLS */
@@ -766,7 +802,20 @@
         }
         
         .video-controls {
+            padding: 12px 15px;
+        }
+        
+        .modal-caption {
             padding: 15px;
+            max-height: 50%;
+        }
+        
+        .modal-caption h3 {
+            font-size: 1.3rem;
+        }
+        
+        .modal-caption p {
+            font-size: 0.9rem;
         }
     }
     
@@ -1286,7 +1335,7 @@
                             <p class="gallery-description nepali">{{ Str::limit($gallery->description, 120) }}</p>
                             <button class="btn btn-primary view-gallery-btn" 
                                     style="margin-top: 12px; padding: 10px 20px; font-size: 0.95rem;" 
-                                    onclick="openModal('{{ $gallery->id }}', '{{ $gallery->media_type }}')">
+                                    onclick="openGalleryModal('{{ $gallery->id }}', '{{ $gallery->media_type }}')">
                                 <i class="fas fa-search-plus"></i> विस्तृत हेर्नुहोस्
                             </button>
                         </div>
@@ -1346,7 +1395,7 @@
                             <p class="gallery-description nepali">{{ Str::limit($gallery->description, 120) }}</p>
                             <button class="btn btn-primary view-gallery-btn" 
                                     style="margin-top: 12px; padding: 10px 20px; font-size: 0.95rem;" 
-                                    onclick="openModal('{{ $gallery->id }}', '{{ $gallery->media_type }}')">
+                                    onclick="openGalleryModal('{{ $gallery->id }}', '{{ $gallery->media_type }}')">
                                 <i class="fas fa-play-circle" style="margin-right: 8px;"></i> भिडियो हेर्नुहोस्
                             </button>
                         </div>
@@ -1370,17 +1419,29 @@
             <div class="meal-gallery-grid">
                 @if(isset($mealMenus) && $mealMenus->count() > 0)
                     @foreach($mealMenus as $menu)
+                    @php
+                        // Determine Nepali meal type
+                        $mealTypeNepali = '';
+                        if($menu->meal_type == 'breakfast') {
+                            $mealTypeNepali = 'विहानको खाना';
+                        } elseif($menu->meal_type == 'lunch') {
+                            $mealTypeNepali = 'दिउसोको खाना';
+                        } else {
+                            $mealTypeNepali = 'बेलुकाको खाना';
+                        }
+                        
+                        // Get image URL
+                        $mealImageUrl = $menu->image ? asset('storage/'.$menu->image) : 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80';
+                        
+                        // Get meal items description
+                        $mealDescription = $menu->formatted_items ?? $menu->description;
+                    @endphp
                     <div class="meal-item-card">
-                        <div class="meal-image">
-                            @if($menu->image)
-                                <img src="{{ asset('storage/'.$menu->image) }}" 
-                                     alt="{{ $menu->description }}" 
-                                     loading="lazy">
-                            @else
-                                <img src="https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" 
-                                     alt="{{ $menu->description }}"
-                                     loading="lazy">
-                            @endif
+                        <div class="meal-image" onclick="openMealImageModal('{{ $mealTypeNepali }}', '{{ $menu->day_of_week }}', '{{ addslashes($mealDescription) }}', '{{ $mealImageUrl }}')">
+                            <img src="{{ $mealImageUrl }}" 
+                                 alt="{{ $menu->description }}" 
+                                 loading="lazy"
+                                 style="cursor: pointer;">
                             <span class="meal-type-badge nepali">
                                 @if($menu->meal_type == 'breakfast')
                                     <i class="fas fa-sun"></i> विहानको खाना
@@ -1393,19 +1454,13 @@
                         </div>
                         <div class="meal-content">
                             <h4 class="nepali">
-                                @if($menu->meal_type == 'breakfast')
-                                    विहानको खाना
-                                @elseif($menu->meal_type == 'lunch')
-                                    दिउसोको खाना
-                                @else
-                                    बेलुकाको खाना
-                                @endif
+                                {{ $mealTypeNepali }}
                             </h4>
                             <p class="meal-day nepali">
                                 <i class="fas fa-calendar-day"></i> {{ $menu->day_of_week }}
                             </p>
                             <p class="meal-items nepali">
-                                {{ $menu->formatted_items ?? $menu->description }}
+                                {{ $mealDescription }}
                             </p>
                             <div class="meal-time nepali">
                                 <i class="fas fa-clock"></i>
@@ -1507,12 +1562,13 @@
     </div>
 </section>
 
-<!-- Image Modal -->
+<!-- Image Modal with Auto-Hide Caption -->
 <div class="gallery-modal" id="imageModal">
     <div class="modal-content">
-        <button class="close-modal" onclick="closeModal()">&times;</button>
+        <button class="close-modal" onclick="closeGalleryModal()">&times;</button>
         <img id="modalImage" src="" alt="">
-        <div class="modal-caption">
+        <!-- 🖼️ Image Caption (Auto-hides after delay) -->
+        <div class="modal-caption hover-show" id="imageCaption">
             <h3 id="modalTitle" class="nepali"></h3>
             <p id="modalDescription" class="nepali"></p>
         </div>
@@ -1522,7 +1578,7 @@
 <!-- 🎥 Video Modal with Play Button -->
 <div class="gallery-modal" id="videoModal">
     <div class="modal-content">
-        <button class="close-modal" onclick="closeModal()">&times;</button>
+        <button class="close-modal" onclick="closeGalleryModal()">&times;</button>
         
         <!-- 🎥 Play Button Overlay -->
         <div class="video-play-overlay" id="videoPlayOverlay">
@@ -1565,7 +1621,7 @@
         </div>
         
         <!-- 🎥 Video Caption (Auto-hides when playing) -->
-        <div class="modal-caption" id="videoCaption">
+        <div class="modal-caption hover-show" id="videoCaption">
             <h3 id="videoTitle" class="nepali"></h3>
             <p id="videoDescription" class="nepali"></p>
         </div>
@@ -1575,9 +1631,9 @@
 <!-- YouTube Modal -->
 <div class="gallery-modal" id="youtubeModal">
     <div class="modal-content">
-        <button class="close-modal" onclick="closeModal()">&times;</button>
+        <button class="close-modal" onclick="closeGalleryModal()">&times;</button>
         <iframe id="modalYouTube" width="100%" height="400" frameborder="0" allowfullscreen></iframe>
-        <div class="modal-caption">
+        <div class="modal-caption hover-show" id="youtubeCaption">
             <h3 id="youtubeTitle" class="nepali"></h3>
             <p id="youtubeDescription" class="nepali"></p>
         </div>
@@ -1634,29 +1690,32 @@
         }
     })();
 
-    // Gallery data from backend
+    // Gallery data from backend - FIXED JSON ENCODING
     const galleryData = {
         @foreach($activeGalleries as $gallery)
         '{{ $gallery->id }}': {
-            title: '{{ addslashes($gallery->title) }}',
-            description: '{{ addslashes($gallery->description) }}',
-            media_type: '{{ $gallery->media_type }}',
-            media_url: '{{ $gallery->media_type === 'external_video' ? addslashes($gallery->external_link) : addslashes($gallery->media_url) }}',
-            thumbnail_url: '{{ addslashes($gallery->thumbnail_url) }}',
-            youtube_embed_url: '{{ addslashes($gallery->youtube_embed_url) }}'
+            title: {!! json_encode($gallery->title) !!},
+            description: {!! json_encode($gallery->description) !!},
+            media_type: {!! json_encode($gallery->media_type) !!},
+            media_url: {!! json_encode($gallery->media_type === 'external_video' ? $gallery->external_link : $gallery->media_url) !!},
+            thumbnail_url: {!! json_encode($gallery->thumbnail_url) !!},
+            youtube_embed_url: {!! json_encode($gallery->youtube_embed_url) !!}
         },
         @endforeach
     };
 
-    // Video Modal Variables
-    let videoModal = null;
-    let videoPlayOverlay = null;
-    let videoControls = null;
-    let videoCaption = null;
+    // Modal Variables
+    let currentVideoModal = null;
+    let currentVideoPlayOverlay = null;
+    let currentVideoControls = null;
     let isVideoPlaying = false;
     let hideControlsTimeout = null;
     let hideCaptionTimeout = null;
-
+    
+    // Image Modal Variables
+    let imageCaptionTimeout = null;
+    let imageModalHover = false;
+    
     // Tab Functionality
     document.addEventListener('DOMContentLoaded', function() {
         const tabButtons = document.querySelectorAll('.tab-btn');
@@ -1718,53 +1777,6 @@
                 console.log(`Visible items: ${visibleCount}`);
             });
         });
-        
-        // Initialize video modal elements
-        videoModal = document.getElementById('modalVideo');
-        videoPlayOverlay = document.getElementById('videoPlayOverlay');
-        videoControls = document.getElementById('videoControls');
-        videoCaption = document.getElementById('videoCaption');
-        
-        if (videoModal) {
-            // Add event listeners for video
-            videoModal.addEventListener('play', function() {
-                isVideoPlaying = true;
-                updatePlayPauseButton(true);
-                hidePlayOverlay();
-                startHideCaptionTimer();
-                startHideControlsTimer();
-            });
-            
-            videoModal.addEventListener('pause', function() {
-                isVideoPlaying = false;
-                updatePlayPauseButton(false);
-                showVideoCaption();
-                showVideoControls();
-            });
-            
-            videoModal.addEventListener('timeupdate', updateVideoProgress);
-            videoModal.addEventListener('loadedmetadata', updateVideoDuration);
-            videoModal.addEventListener('ended', videoEnded);
-            videoModal.addEventListener('volumechange', updateVolumeIcon);
-            
-            // Touch/click events for showing controls
-            videoModal.addEventListener('click', function() {
-                togglePlayPause();
-            });
-            
-            videoModal.addEventListener('dblclick', function() {
-                toggleFullscreen();
-            });
-            
-            // Show controls on hover
-            const modalContent = document.querySelector('#videoModal .modal-content');
-            if (modalContent) {
-                modalContent.addEventListener('mousemove', function() {
-                    showVideoControls();
-                    startHideControlsTimer();
-                });
-            }
-        }
     });
     
     // Show More Gallery Functionality
@@ -1783,43 +1795,72 @@
         }
     }
     
-    // Modal Functionality with Dynamic Content
-    function openModal(galleryId, mediaType) {
+    // ✅ FIXED: Modal Functionality with Dynamic Content
+    function openGalleryModal(galleryId, mediaType) {
+        console.log('Opening modal for:', galleryId, mediaType);
+        
         const gallery = galleryData[galleryId];
         if (!gallery) {
             console.error(`Gallery item ${galleryId} not found`);
             return;
         }
 
-        console.log(`Opening modal for ${mediaType}: ${gallery.title}`);
+        console.log('Gallery data:', gallery);
 
+        // Close any open modal first
+        closeGalleryModal();
+        
         if (mediaType === 'photo') {
-            document.getElementById('imageModal').style.display = 'flex';
-            setTimeout(() => {
-                document.getElementById('imageModal').style.opacity = '1';
-            }, 10);
+            const modal = document.getElementById('imageModal');
+            if (!modal) {
+                console.error('Image modal not found');
+                return;
+            }
+            
+            modal.classList.add('active');
             document.getElementById('modalImage').src = gallery.media_url;
             document.getElementById('modalTitle').textContent = gallery.title;
             document.getElementById('modalDescription').textContent = gallery.description;
-        } else if (mediaType === 'local_video') {
-            document.getElementById('videoModal').style.display = 'flex';
-            setTimeout(() => {
-                document.getElementById('videoModal').style.opacity = '1';
-            }, 10);
             
-            // Reset video state
-            if (videoModal) {
-                videoModal.pause();
-                videoModal.currentTime = 0;
-                videoModal.src = gallery.media_url;
-                videoModal.load();
+            // Show caption initially
+            showImageCaption();
+            // Start timer to hide caption
+            startImageCaptionTimer();
+            
+        } else if (mediaType === 'local_video') {
+            const modal = document.getElementById('videoModal');
+            if (!modal) {
+                console.error('Video modal not found');
+                return;
+            }
+            
+            modal.classList.add('active');
+            
+            // Get video elements
+            currentVideoModal = document.getElementById('modalVideo');
+            currentVideoPlayOverlay = document.getElementById('videoPlayOverlay');
+            currentVideoControls = document.getElementById('videoControls');
+            
+            if (currentVideoModal) {
+                currentVideoModal.pause();
+                currentVideoModal.currentTime = 0;
+                currentVideoModal.src = gallery.media_url;
+                currentVideoModal.load();
+                
+                // Setup video event listeners
+                setupVideoEventListeners();
             }
             
             // Show play overlay
-            showPlayOverlay();
+            if (currentVideoPlayOverlay) {
+                currentVideoPlayOverlay.classList.remove('hidden');
+            }
             
             // Show caption initially
-            showVideoCaption();
+            const videoCaption = document.getElementById('videoCaption');
+            if (videoCaption) {
+                videoCaption.classList.remove('hidden');
+            }
             
             // Update video info
             document.getElementById('videoTitle').textContent = gallery.title;
@@ -1844,11 +1885,16 @@
             // Clear any existing timeouts
             clearTimeout(hideControlsTimeout);
             clearTimeout(hideCaptionTimeout);
+            
         } else if (mediaType === 'external_video') {
-            document.getElementById('youtubeModal').style.display = 'flex';
-            setTimeout(() => {
-                document.getElementById('youtubeModal').style.opacity = '1';
-            }, 10);
+            const modal = document.getElementById('youtubeModal');
+            if (!modal) {
+                console.error('YouTube modal not found');
+                return;
+            }
+            
+            modal.classList.add('active');
+            
             const embedUrl = gallery.youtube_embed_url || gallery.media_url;
             document.getElementById('modalYouTube').src = embedUrl;
             document.getElementById('youtubeTitle').textContent = gallery.title;
@@ -1858,21 +1904,197 @@
         document.body.style.overflow = 'hidden';
     }
     
+    // ✅ NEW: Meal Image Modal Function
+    function openMealImageModal(mealType, day, description, imageUrl) {
+        console.log('Opening meal image modal:', mealType, day);
+        
+        // Close any open modal first
+        closeGalleryModal();
+        
+        const modal = document.getElementById('imageModal');
+        if (!modal) {
+            console.error('Image modal not found');
+            return;
+        }
+        
+        modal.classList.add('active');
+        document.getElementById('modalImage').src = imageUrl;
+        document.getElementById('modalTitle').textContent = mealType + ' - ' + day;
+        document.getElementById('modalDescription').textContent = description;
+        
+        // Show caption initially
+        showImageCaption();
+        // Start timer to hide caption
+        startImageCaptionTimer();
+        
+        document.body.style.overflow = 'hidden';
+    }
+    
+    // Setup video event listeners
+    function setupVideoEventListeners() {
+        if (!currentVideoModal) return;
+        
+        // Remove existing listeners first
+        currentVideoModal.removeEventListener('play', handleVideoPlay);
+        currentVideoModal.removeEventListener('pause', handleVideoPause);
+        currentVideoModal.removeEventListener('timeupdate', handleVideoTimeUpdate);
+        currentVideoModal.removeEventListener('loadedmetadata', handleVideoLoadedMetadata);
+        currentVideoModal.removeEventListener('ended', handleVideoEnded);
+        currentVideoModal.removeEventListener('volumechange', handleVolumeChange);
+        
+        // Add new listeners
+        currentVideoModal.addEventListener('play', handleVideoPlay);
+        currentVideoModal.addEventListener('pause', handleVideoPause);
+        currentVideoModal.addEventListener('timeupdate', handleVideoTimeUpdate);
+        currentVideoModal.addEventListener('loadedmetadata', handleVideoLoadedMetadata);
+        currentVideoModal.addEventListener('ended', handleVideoEnded);
+        currentVideoModal.addEventListener('volumechange', handleVolumeChange);
+        
+        // Touch/click events for showing controls
+        currentVideoModal.addEventListener('click', togglePlayPause);
+        currentVideoModal.addEventListener('dblclick', toggleFullscreen);
+        
+        // Show controls on hover
+        const modalContent = document.querySelector('#videoModal .modal-content');
+        if (modalContent) {
+            modalContent.addEventListener('mousemove', function() {
+                showVideoControls();
+                startHideControlsTimer();
+            });
+        }
+    }
+    
+    // Video event handlers
+    function handleVideoPlay() {
+        isVideoPlaying = true;
+        updatePlayPauseButton(true);
+        hidePlayOverlay();
+        startHideCaptionTimer();
+        startHideControlsTimer();
+    }
+    
+    function handleVideoPause() {
+        isVideoPlaying = false;
+        updatePlayPauseButton(false);
+        showVideoCaption();
+        showVideoControls();
+    }
+    
+    function handleVideoTimeUpdate() {
+        updateVideoProgress();
+    }
+    
+    function handleVideoLoadedMetadata() {
+        updateVideoDuration();
+    }
+    
+    function handleVideoEnded() {
+        videoEnded();
+    }
+    
+    function handleVolumeChange() {
+        updateVolumeIcon();
+    }
+    
+    // Image Modal Functions
+    function showImageCaption() {
+        const imageCaption = document.getElementById('imageCaption');
+        if (imageCaption) {
+            imageCaption.classList.remove('hidden');
+        }
+    }
+    
+    function hideImageCaption() {
+        if (!imageModalHover) {
+            const imageCaption = document.getElementById('imageCaption');
+            if (imageCaption) {
+                imageCaption.classList.add('hidden');
+            }
+        }
+    }
+    
+    function startImageCaptionTimer() {
+        clearTimeout(imageCaptionTimeout);
+        imageCaptionTimeout = setTimeout(hideImageCaption, 5000); // Hide after 5 seconds
+    }
+    
+    function resetImageCaptionTimer() {
+        clearTimeout(imageCaptionTimeout);
+        imageCaptionTimeout = setTimeout(hideImageCaption, 5000); // Hide after 5 seconds
+    }
+    
+    // Initialize image modal event listeners
+    document.addEventListener('DOMContentLoaded', function() {
+        const imageModalElement = document.getElementById('imageModal');
+        if (imageModalElement) {
+            const imageModalContent = imageModalElement.querySelector('.modal-content');
+            
+            if (imageModalContent) {
+                // Show caption on hover
+                imageModalContent.addEventListener('mouseenter', function() {
+                    imageModalHover = true;
+                    showImageCaption();
+                    resetImageCaptionTimer();
+                });
+                
+                imageModalContent.addEventListener('mouseleave', function() {
+                    imageModalHover = false;
+                    startImageCaptionTimer();
+                });
+                
+                // Show caption on mousemove
+                imageModalContent.addEventListener('mousemove', function() {
+                    showImageCaption();
+                    resetImageCaptionTimer();
+                });
+            }
+        }
+        
+        // Initialize YouTube modal event listeners
+        const youtubeModalElement = document.getElementById('youtubeModal');
+        if (youtubeModalElement) {
+            const youtubeModalContent = youtubeModalElement.querySelector('.modal-content');
+            
+            if (youtubeModalContent) {
+                youtubeModalContent.addEventListener('mouseenter', function() {
+                    showYouTubeCaption();
+                });
+            }
+        }
+        
+        // Add click event to meal images
+        document.querySelectorAll('.meal-image').forEach(mealImage => {
+            mealImage.addEventListener('click', function(e) {
+                if (e.target.classList.contains('meal-type-badge')) {
+                    return; // Don't open modal when clicking on badge
+                }
+            });
+        });
+    });
+    
+    // YouTube Modal Functions
+    function showYouTubeCaption() {
+        const youtubeCaption = document.getElementById('youtubeCaption');
+        if (youtubeCaption) {
+            youtubeCaption.classList.remove('hidden');
+        }
+    }
+    
     // Video Functions
     function playVideo() {
-        if (videoModal) {
-            videoModal.play().catch(function(error) {
+        if (currentVideoModal) {
+            currentVideoModal.play().catch(function(error) {
                 console.error("Video play failed:", error);
             });
         }
     }
 
     function togglePlayPause() {
-        if (videoModal) {
-            if (videoModal.paused) {
+        if (currentVideoModal) {
+            if (currentVideoModal.paused) {
                 playVideo();
             } else {
-                videoModal.pause();
+                currentVideoModal.pause();
             }
         }
     }
@@ -1889,44 +2111,47 @@
     }
 
     function hidePlayOverlay() {
-        if (videoPlayOverlay) {
-            videoPlayOverlay.classList.add('hidden');
+        if (currentVideoPlayOverlay) {
+            currentVideoPlayOverlay.classList.add('hidden');
         }
     }
 
     function showPlayOverlay() {
-        if (videoPlayOverlay) {
-            videoPlayOverlay.classList.remove('hidden');
+        if (currentVideoPlayOverlay) {
+            currentVideoPlayOverlay.classList.remove('hidden');
         }
     }
 
     function showVideoControls() {
-        if (videoControls) {
-            videoControls.classList.remove('hidden');
+        if (currentVideoControls) {
+            currentVideoControls.classList.remove('hidden');
         }
     }
 
     function startHideControlsTimer() {
         clearTimeout(hideControlsTimeout);
         hideControlsTimeout = setTimeout(function() {
-            if (isVideoPlaying && videoControls) {
-                videoControls.classList.add('hidden');
+            if (isVideoPlaying && currentVideoControls) {
+                currentVideoControls.classList.add('hidden');
             }
         }, 3000); // Hide after 3 seconds
     }
 
     function showVideoCaption() {
+        const videoCaption = document.getElementById('videoCaption');
         if (videoCaption) {
-            videoCaption.style.display = 'block';
-            clearTimeout(hideCaptionTimeout);
+            videoCaption.classList.remove('hidden');
         }
     }
 
     function startHideCaptionTimer() {
         clearTimeout(hideCaptionTimeout);
         hideCaptionTimeout = setTimeout(function() {
-            if (isVideoPlaying && videoCaption) {
-                videoCaption.style.display = 'none';
+            if (isVideoPlaying) {
+                const videoCaption = document.getElementById('videoCaption');
+                if (videoCaption) {
+                    videoCaption.classList.add('hidden');
+                }
             }
         }, 5000); // Hide caption after 5 seconds of playing
     }
@@ -1935,19 +2160,19 @@
         const progressFill = document.getElementById('videoProgress');
         const currentTimeEl = document.getElementById('currentTime');
         
-        if (videoModal && progressFill && currentTimeEl) {
-            const progress = (videoModal.currentTime / videoModal.duration) * 100;
+        if (currentVideoModal && progressFill && currentTimeEl) {
+            const progress = (currentVideoModal.currentTime / currentVideoModal.duration) * 100;
             progressFill.style.width = progress + '%';
             
             // Update current time display
-            currentTimeEl.textContent = formatTime(videoModal.currentTime);
+            currentTimeEl.textContent = formatTime(currentVideoModal.currentTime);
         }
     }
 
     function updateVideoDuration() {
         const durationEl = document.getElementById('durationTime');
-        if (videoModal && durationEl) {
-            durationEl.textContent = formatTime(videoModal.duration);
+        if (currentVideoModal && durationEl) {
+            durationEl.textContent = formatTime(currentVideoModal.duration);
         }
     }
 
@@ -1979,16 +2204,16 @@
     }
 
     function muteVideo() {
-        if (videoModal) {
-            videoModal.muted = !videoModal.muted;
+        if (currentVideoModal) {
+            currentVideoModal.muted = !currentVideoModal.muted;
             updateVolumeIcon();
         }
     }
 
     function updateVolumeIcon() {
         const volumeIcon = document.getElementById('volumeIcon');
-        if (videoModal && volumeIcon) {
-            if (videoModal.muted || videoModal.volume === 0) {
+        if (currentVideoModal && volumeIcon) {
+            if (currentVideoModal.muted || currentVideoModal.volume === 0) {
                 volumeIcon.className = 'fas fa-volume-mute';
             } else {
                 volumeIcon.className = 'fas fa-volume-up';
@@ -2017,36 +2242,35 @@
         }
     }
     
-    function closeModal() {
+    function closeGalleryModal() {
         console.log('Closing modal');
         
-        const modals = ['imageModal', 'videoModal', 'youtubeModal'];
-        modals.forEach(modalId => {
-            const modal = document.getElementById(modalId);
-            if (modal) {
-                modal.style.opacity = '0';
-                setTimeout(() => {
-                    modal.style.display = 'none';
-                }, 300);
-            }
+        // Close all modals
+        const modals = document.querySelectorAll('.gallery-modal');
+        modals.forEach(modal => {
+            modal.classList.remove('active');
         });
         
         // Stop and reset video
-        if (videoModal) {
-            videoModal.pause();
-            videoModal.currentTime = 0;
+        if (currentVideoModal) {
+            currentVideoModal.pause();
+            currentVideoModal.currentTime = 0;
             isVideoPlaying = false;
         }
         
         // Show play overlay for next time
-        showPlayOverlay();
+        if (currentVideoPlayOverlay) {
+            currentVideoPlayOverlay.classList.remove('hidden');
+        }
         
-        // Show caption
+        // Show captions
         showVideoCaption();
+        showImageCaption();
         
         // Clear timeouts
         clearTimeout(hideControlsTimeout);
         clearTimeout(hideCaptionTimeout);
+        clearTimeout(imageCaptionTimeout);
         
         // Reset YouTube iframe
         const youtubeIframe = document.getElementById('modalYouTube');
@@ -2055,15 +2279,15 @@
         }
         
         document.body.style.overflow = 'auto';
+        imageModalHover = false;
     }
     
     // Close modal when clicking outside the content
     window.addEventListener('click', function(event) {
-        const modals = ['imageModal', 'videoModal', 'youtubeModal'];
-        modals.forEach(modalId => {
-            const modal = document.getElementById(modalId);
+        const modals = document.querySelectorAll('.gallery-modal.active');
+        modals.forEach(modal => {
             if (event.target === modal) {
-                closeModal();
+                closeGalleryModal();
             }
         });
     });
@@ -2071,7 +2295,7 @@
     // Close modal with Escape key
     document.addEventListener('keydown', function(event) {
         if (event.key === 'Escape') {
-            closeModal();
+            closeGalleryModal();
         }
     });
     

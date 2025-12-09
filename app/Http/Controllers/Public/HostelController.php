@@ -33,7 +33,7 @@ class HostelController extends Controller
         $reviewCount = $hostel->approvedReviews()->count();
         $studentCount = $hostel->students()->count();
 
-        // Facilities processing (existing code from your show.blade.php)
+        // Facilities processing
         $facilities = $hostel->facilities;
         if (is_string($facilities)) {
             $decoded = json_decode($facilities, true);
@@ -44,13 +44,28 @@ class HostelController extends Controller
             }
         }
 
-        return view('public.hostels.show', compact(
+        // 🆕 THAPA: Logo URL normalize गर्ने (optional)
+        $logo = $hostel->logo_path ? asset('storage/' . $hostel->logo_path) : null;
+
+        // 🆕 THAPA: Theme अनुसार view select गर्ने
+        $theme = $hostel->theme ?? 'default';
+
+        // Theme file को path
+        $themeView = "public.hostels.themes.{$theme}";
+
+        // यदि theme file छैन भने default प्रयोग गर्ने
+        if (!view()->exists($themeView)) {
+            $themeView = 'public.hostels.show';
+        }
+
+        return view($themeView, compact(
             'hostel',
             'reviews',
             'avgRating',
             'reviewCount',
             'studentCount',
-            'facilities'
+            'facilities',
+            'logo' // 🆕 Logo variable पनि pass गर्ने
         ));
     }
 }

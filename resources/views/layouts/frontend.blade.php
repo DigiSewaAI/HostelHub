@@ -828,7 +828,7 @@
     </header>
 
     <!-- Main Content -->
-    <main id="main" class="main-content-global @if(Request::route()->getName() == 'home')home-page-main @else other-page-main @endif">
+    <main id="main" class="main-content-global @if(Request::route()->getName() == 'home')home-page-main @endif">
         <div class="content-container">
             @yield('content')
         </div>
