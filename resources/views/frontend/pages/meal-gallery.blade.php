@@ -29,34 +29,215 @@
     overflow: hidden;
 }
 
-/* 🚨 UPDATED: HERO SECTION - EXACT SAME SPACING AS FEATURES PAGE */
+/* 🎯 ENHANCED HERO SECTION */
 .gallery-hero {
     text-align: center;
-    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    background: 
+        linear-gradient(rgba(1, 31, 91, 0.85), rgba(1, 31, 91, 0.9)),
+        url('https://images.unsplash.com/photo-1585937421612-6b2f0a1b45c8?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80') center center / cover no-repeat;
     color: white;
-    padding: 2.5rem 1.5rem;
+    padding: 4rem 1.5rem;
     border-radius: 1rem;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
-    max-width: 1000px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
+    max-width: 1200px;
     width: 90%;
-    
-    /* 🚨 EXACT SAME MARGIN AS FEATURES PAGE HEADER */
-    margin: calc(var(--header-height, 70px) + 0.9rem) auto 1.5rem auto !important;
+    margin: calc(var(--header-height, 70px) + 1rem) auto 2rem auto !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.gallery-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 20% 80%, rgba(255, 215, 0, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(50, 205, 50, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(138, 43, 226, 0.08) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(10deg); }
 }
 
 .gallery-hero h1 {
-    font-size: 2.5rem;
+    font-size: 3rem;
     font-weight: 800;
     color: white;
-    margin-bottom: 0.75rem;
+    margin-bottom: 1rem;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    background: linear-gradient(135deg, #FFFFFF, #E2E8F0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .gallery-hero p {
-    font-size: 1.125rem;
+    font-size: 1.25rem;
     color: rgba(255, 255, 255, 0.9);
     max-width: 700px;
-    margin: 0 auto 0.75rem auto;
+    margin: 0 auto 2rem auto;
     line-height: 1.6;
+}
+
+/* Hero Badge */
+.hero-badge {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1.5rem;
+    border-radius: 50px;
+    margin-bottom: 1rem;
+}
+
+.hero-badge i {
+    font-size: 1rem;
+}
+
+.hero-badge span {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+/* Hero Stats */
+.hero-stats {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.stat-bubble {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.stat-bubble i {
+    color: #FFD700;
+}
+
+.stat-bubble .stat-number {
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.stat-bubble .stat-label {
+    font-weight: 500;
+}
+
+/* Enhanced Search in Hero */
+.hero-search-container {
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.search-wrapper {
+    display: flex;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 50px;
+    padding: 0.5rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.3s ease;
+}
+
+.search-wrapper:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+}
+
+.search-icon-container {
+    display: flex;
+    align-items: center;
+    padding: 0 1.25rem;
+    color: #001F5B;
+    font-size: 1.2rem;
+}
+
+.hero-search-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 1rem 0;
+    font-size: 1rem;
+    color: #333;
+    outline: none;
+}
+
+.hero-search-btn {
+    background: linear-gradient(135deg, #001F5B, #1E3A8A);
+    color: white;
+    border: none;
+    padding: 0.9rem 2.5rem;
+    border-radius: 50px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.hero-search-btn:hover {
+    background: linear-gradient(135deg, #1E3A8A, #2D4BA8);
+    transform: scale(1.05);
+}
+
+/* Quick Filters */
+.quick-filters {
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+}
+
+.quick-filter {
+    text-decoration: none;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+}
+
+.quick-filter:hover {
+    background: rgba(255, 215, 0, 0.2);
+    color: #FFD700;
+}
+
+.quick-filter.breakfast:hover {
+    background: rgba(255, 215, 0, 0.2);
+    color: #FFD700;
+}
+
+.quick-filter.lunch:hover {
+    background: rgba(50, 205, 50, 0.2);
+    color: #32CD32;
+}
+
+.quick-filter.dinner:hover {
+    background: rgba(138, 43, 226, 0.2);
+    color: #8A2BE2;
 }
 
 /* Enhanced Filters */
@@ -514,38 +695,77 @@
     background: var(--primary);
 }
 
+/* Floating Icons */
+.floating-icon {
+    position: absolute;
+    font-size: 2rem;
+    opacity: 0.1;
+    animation: float 6s ease-in-out infinite;
+}
+
+.floating-icon:nth-child(1) {
+    top: 10%;
+    left: 5%;
+    animation-delay: 0s;
+}
+
+.floating-icon:nth-child(2) {
+    top: 20%;
+    right: 8%;
+    font-size: 1.8rem;
+    animation-delay: 1s;
+}
+
+.floating-icon:nth-child(3) {
+    bottom: 15%;
+    left: 8%;
+    font-size: 2.2rem;
+    animation-delay: 2s;
+}
+
 /* 🚨 MOBILE ADJUSTMENTS - EXACT SAME AS FEATURES PAGE */
 @media (max-width: 768px) {
     .gallery-hero {
         margin: calc(60px + 0.25rem) auto 1rem auto !important;
-        padding: 1.75rem 1rem;
+        padding: 2rem 1rem;
         width: calc(100% - 2rem);
     }
     
     .gallery-hero h1 {
         font-size: 2rem;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.75rem;
     }
     
     .gallery-hero p {
-        font-size: 1rem;
-        margin-bottom: 0.5rem;
+        font-size: 1.1rem;
+        margin-bottom: 1.5rem;
     }
     
-    .search-container {
+    .hero-stats {
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .search-wrapper {
         flex-direction: column;
         border-radius: 15px;
         padding: 0;
     }
     
-    .search-input {
+    .search-icon-container {
+        display: none;
+    }
+    
+    .hero-search-input {
         padding: 15px 20px;
         border-bottom: 1px solid #e9ecef;
     }
     
-    .search-btn {
+    .hero-search-btn {
         width: 100%;
         border-radius: 0 0 15px 15px;
+        padding: 1rem;
+        justify-content: center;
     }
     
     .filter-tabs {
@@ -596,11 +816,25 @@
     [style*="font-size: 1.875rem"] { font-size: 1.5rem !important; }
     [style*="font-size: 1.25rem"] { font-size: 1.125rem !important; }
     [style*="font-size: 1.125rem"] { font-size: 1rem !important; }
+    
+    .floating-icon {
+        display: none;
+    }
 }
 
 @media (max-width: 480px) {
     .gallery-hero h1 {
         font-size: 1.75rem;
+    }
+    
+    .hero-badge {
+        padding: 0.4rem 1rem;
+        font-size: 0.8rem;
+    }
+    
+    .stat-bubble {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.9rem;
     }
     
     .card-content {
@@ -632,21 +866,95 @@
 @section('content')
 
 <div class="gallery-page-wrapper">
-    <!-- 🚨 UPDATED: Hero Section - EXACT SAME SPACING AS FEATURES PAGE -->
+    <!-- 🎯 ENHANCED HERO SECTION WITH NEPALI FOOD BACKGROUND -->
     <section class="gallery-hero">
-        <h1 class="nepali hero-title">विभिन्न होस्टलहरूको खानाको ग्यालरी</h1>
-        <p class="nepali hero-subtitle">ताजा, स्वस्थ र स्वादिष्ट खानाको अनुभव</p>
-        <div class="search-bar">
-            <form action="{{ route('menu-gallery') }}" method="GET">
-                <div class="search-container">
-                    <i class="fas fa-search search-icon"></i>
-                    <input type="text" name="search" placeholder="खाना वा होस्टलको नामले खोज्नुहोस्..." 
-                           class="nepali search-input" value="{{ request('search') }}">
-                    <button type="submit" class="search-btn">
-                        खोज्नुहोस्
-                    </button>
+        <!-- Floating Icons -->
+        <div class="floating-icon">
+            <i class="fas fa-utensils"></i>
+        </div>
+        <div class="floating-icon">
+            <i class="fas fa-bowl-rice"></i>
+        </div>
+        <div class="floating-icon">
+            <i class="fas fa-mug-hot"></i>
+        </div>
+        
+        <div style="position: relative; z-index: 2;">
+            <!-- Badge -->
+            <div class="hero-badge">
+                <i class="fas fa-utensils"></i>
+                <span class="nepali">नेपाली खानाको सम्पदा</span>
+            </div>
+
+            <!-- Main Title -->
+            <h1 class="nepali hero-title">विभिन्न होस्टलहरूको खानाको ग्यालरी</h1>
+
+            <!-- Subtitle -->
+            <p class="nepali hero-subtitle">
+                ताजा, स्वस्थ र स्वादिष्ट खानाको अनुभव। 
+                नेपाली परम्परागत व्यञ्जनबाट आधुनिक व्यञ्जनसम्मको स्वाद यात्रा।
+            </p>
+
+            <!-- Stats Row -->
+            <div class="hero-stats">
+                <div class="stat-bubble">
+                    <i class="fas fa-utensils"></i>
+                    <span class="nepali">
+                        <strong class="stat-number">१००+</strong>
+                        <span class="stat-label">व्यञ्जनहरू</span>
+                    </span>
                 </div>
-            </form>
+                <div class="stat-bubble">
+                    <i class="fas fa-hotel"></i>
+                    <span class="nepali">
+                        <strong class="stat-number">५०+</strong>
+                        <span class="stat-label">होस्टलहरू</span>
+                    </span>
+                </div>
+                <div class="stat-bubble">
+                    <i class="fas fa-star"></i>
+                    <span class="nepali">
+                        <strong class="stat-number">४.८</strong>
+                        <span class="stat-label">औसत रेटिङ</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Enhanced Search Bar -->
+            <div class="hero-search-container">
+                <form action="{{ route('menu-gallery') }}" method="GET">
+                    <div class="search-wrapper">
+                        <div class="search-icon-container">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <input type="text" 
+                               name="search" 
+                               placeholder="खाना वा होस्टलको नामले खोज्नुहोस्..." 
+                               class="nepali hero-search-input" 
+                               value="{{ request('search') }}">
+                        <button type="submit" class="hero-search-btn">
+                            <i class="fas fa-search"></i>
+                            <span class="nepali">खोज्नुहोस्</span>
+                        </button>
+                    </div>
+                </form>
+                
+                <!-- Quick Filters -->
+                <div class="quick-filters">
+                    <a href="{{ route('menu-gallery', ['type' => 'breakfast']) }}" class="quick-filter breakfast">
+                        <i class="fas fa-sun"></i>
+                        <span class="nepali">विहानी</span>
+                    </a>
+                    <a href="{{ route('menu-gallery', ['type' => 'lunch']) }}" class="quick-filter lunch">
+                        <i class="fas fa-utensils"></i>
+                        <span class="nepali">दिउँसो</span>
+                    </a>
+                    <a href="{{ route('menu-gallery', ['type' => 'dinner']) }}" class="quick-filter dinner">
+                        <i class="fas fa-moon"></i>
+                        <span class="nepali">बेलुका</span>
+                    </a>
+                </div>
+            </div>
         </div>
     </section>
 
