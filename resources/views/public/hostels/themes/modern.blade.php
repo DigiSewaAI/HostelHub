@@ -1,4 +1,6 @@
 @php 
+    use Illuminate\Support\Facades\Storage;
+    
     $theme = 'modern';
     $themeColor = $hostel->theme_color ?? '#3b82f6';
 @endphp
@@ -161,43 +163,35 @@
         box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
     }
     
-    /* Vertical Room Gallery Slider */
-    .room-gallery-vertical {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-        max-height: 550px;
-        overflow-y: auto;
-        padding-right: 8px;
-        scrollbar-width: thin;
-        scrollbar-color: #cbd5e1 #f1f5f9;
-        margin-bottom: 20px;
+    /* 🚨 CRITICAL FIX: Modern Theme Image Display */
+    .aspect-square {
+        aspect-ratio: 1 / 1;
+        position: relative;
     }
-    
-    .room-gallery-vertical::-webkit-scrollbar {
-        width: 6px;
+
+    .aspect-square img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block !important;
+        opacity: 1 !important;
+        visibility: visible !important;
     }
-    
-    .room-gallery-vertical::-webkit-scrollbar-track {
-        background: #f1f5f9;
-        border-radius: 3px;
+
+    /* Force image containers to show */
+    .bg-gray-100 {
+        background-color: #f3f4f6 !important;
     }
-    
-    .room-gallery-vertical::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
-        border-radius: 3px;
-    }
-    
-    .room-gallery-vertical::-webkit-scrollbar-thumb:hover {
-        background: #94a3b8;
-    }
-    
-    .room-gallery-item {
-        transition: all 0.2s ease;
-    }
-    
-    .room-gallery-item:hover {
-        transform: translateY(-2px);
+
+    /* Fix broken images */
+    img[src*="undefined"],
+    img[src*="null"],
+    img[src=""] {
+        content: url('{{ asset("images/default-room.png") }}') !important;
+        opacity: 0.7 !important;
     }
 </style>
 @endpush
@@ -493,90 +487,48 @@
                             कोठाको ग्यालरी
                         </h2>
                         @if($hostel->slug)
-    <a href="{{ route('hostels.full.gallery', $hostel->slug) }}" 
-       class="text-purple-600 hover:text-purple-800 text-sm font-medium flex items-center gap-1">
-        <i class="fas fa-external-link-alt mr-1"></i> सबै हेर्नुहोस्
-    </a>
-@endif
+                            <a href="{{ route('hostels.full.gallery', $hostel->slug) }}" 
+                               class="text-purple-600 hover:text-purple-800 text-sm font-medium flex items-center gap-1">
+                                <i class="fas fa-external-link-alt mr-1"></i> सबै हेर्नुहोस्
+                            </a>
+                        @endif
                     </div>
                     
-                    <!-- Vertical Room Gallery Slider -->
+                    <!-- ✅ FIXED: Simple Gallery Display - No complex filtering -->
                     @php
-                        // Get room galleries (10-15 images)
-                        $roomGalleries = $hostel->activeGalleries ?? collect();
-                        $roomCategories = ['1 seater', '2 seater', '3 seater', '4 seater', 'other', 'साझा कोठा'];
-                        
-                        $roomGalleries = $roomGalleries->filter(function($gallery) use ($roomCategories) {
-                            return in_array(strtolower($gallery->category), array_map('strtolower', $roomCategories)) || 
-                                   $gallery->room_id !== null;
-                        })->take(15);
+                        // Get ALL active galleries, not filtered
+                        $allGalleries = $hostel->galleries()->where('is_active', true)->take(8)->get();
                     @endphp
                     
-                    @if($roomGalleries->count() > 0)
-                        <div class="room-gallery-vertical">
-                            @foreach($roomGalleries as $gallery)
-                            <div class="room-gallery-item bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
-                                <div class="flex gap-4 p-4">
-                                    @if($gallery->media_type === 'image')
-                                        <div class="w-32 h-32 flex-shrink-0 rounded-lg overflow-hidden">
-                                            @php
-                                                // Safe image URL generation
-                                                $imageUrl = $gallery->thumbnail_url ?? asset('images/default-room.png');
-                                                
-                                                // Additional fallback check
-                                                if (empty($imageUrl) || str_contains($imageUrl, 'default-room.png')) {
-                                                    // Try to get from media_path
-                                                    if (!empty($gallery->media_path)) {
-                                                        if (filter_var($gallery->media_path, FILTER_VALIDATE_URL)) {
-                                                            $imageUrl = $gallery->media_path;
-                                                        } elseif (Storage::disk('public')->exists($gallery->media_path)) {
-                                                            $imageUrl = Storage::url($gallery->media_path);
-                                                        }
-                                                    }
+                    @if($allGalleries->count() > 0)
+                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                            @foreach($allGalleries as $gallery)
+                                <div class="bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+                                    <div class="aspect-square overflow-hidden bg-gray-100">
+                                        @php
+                                            // SIMPLE FIX: Direct image URL access
+                                            $imgUrl = $gallery->media_url ?? asset('images/default-room.png');
+                                            
+                                            // If media_url is empty, try to construct from media_path
+                                            if (empty($imgUrl) || str_contains($imgUrl, 'default-room.png')) {
+                                                if (!empty($gallery->media_path)) {
+                                                    $imgUrl = Storage::disk('public')->exists($gallery->media_path) 
+                                                              ? Storage::disk('public')->url($gallery->media_path)
+                                                              : asset('images/default-room.png');
                                                 }
-                                            @endphp
-                                            <img src="{{ $imageUrl }}" 
-                                                 alt="{{ $gallery->title }}"
-                                                 class="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
-                                                 onerror="this.src='{{ asset('images/default-room.png') }}'">
-                                        </div>
-                                    @elseif($gallery->media_type === 'external_video')
-                                        <div class="w-32 h-32 flex-shrink-0 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
-                                            <i class="fab fa-youtube text-white text-2xl"></i>
-                                        </div>
-                                    @else
-                                        <div class="w-32 h-32 flex-shrink-0 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
-                                            <i class="fas fa-video text-white text-2xl"></i>
-                                        </div>
-                                    @endif
-                                    
-                                    <div class="flex-1 min-w-0">
-                                        <div class="flex items-start justify-between gap-2 mb-2">
-                                            <h4 class="font-semibold text-gray-900 text-base">{{ $gallery->title }}</h4>
-                                            @if($gallery->is_featured)
-                                                <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full whitespace-nowrap">
-                                                    <i class="fas fa-star mr-1 text-xs"></i> फिचर्ड
-                                                </span>
-                                            @endif
-                                        </div>
+                                            }
+                                        @endphp
                                         
-                                        @if($gallery->description)
-                                            <p class="text-gray-600 text-sm mb-3">{{ Str::limit($gallery->description, 100) }}</p>
-                                        @endif
-                                        
-                                        <div class="flex items-center gap-3">
-                                            <span class="text-xs px-3 py-1 bg-blue-100 text-blue-800 rounded-full font-medium">
-                                                {{ $gallery->category }}
-                                            </span>
-                                            @if($gallery->room_id && $gallery->room)
-                                            <span class="text-xs text-gray-600">
-                                                <i class="fas fa-door-closed mr-1"></i> कोठा: {{ $gallery->room->room_number }}
-                                            </span>
-                                            @endif
-                                        </div>
+                                        <img src="{{ $imgUrl }}" 
+                                             alt="{{ $gallery->title }}"
+                                             class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                                             onerror="this.src='{{ asset('images/default-room.png') }}'; this.style.opacity='0.7';">
+                                    </div>
+                                    <div class="p-3">
+                                        <h4 class="font-semibold text-gray-900 text-sm truncate">{{ $gallery->title }}</h4>
+                                        <p class="text-gray-600 text-xs mt-1">{{ $gallery->category ?? 'कोठा' }}</p>
                                     </div>
                                 </div>
-                            </div>
                             @endforeach
                         </div>
                     @else
@@ -590,10 +542,10 @@
                         </div>
                     @endif
                     
-                    <!-- SINGLE View Full Gallery Button -->
-                    @if($hostel->slug)
+                    <!-- View Full Gallery Button -->
+                    @if($hostel->slug && $allGalleries->count() > 0)
                         <div class="mt-8 pt-6 border-t">
-                            <a href="{{ route('hostels.full.gallery', $hostel->slug) ?: url('/hostel/' . $hostel->slug . '/full-gallery') }}" 
+                            <a href="{{ route('hostels.full.gallery', $hostel->slug) }}" 
                                class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:opacity-90 transition-opacity">
                                 <i class="fas fa-images"></i>
                                 कोठाको पुरै ग्यालरी हेर्नुहोस्
