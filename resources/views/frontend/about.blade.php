@@ -4,13 +4,13 @@
 
 @push('styles')
 <style>
-    /* 🚨 CRITICAL: About page specific fixes */
+    /* 🚨 CRITICAL: About page specific fixes - EXACT SAME AS FEATURES PAGE */
     main#main.main-content-global.other-page-main {
         padding-top: 0 !important;
         margin-top: 0 !important;
     }
     
-    .about-content-wrapper {
+    .about-page-wrapper {
         padding: 0;
         margin: 0;
         min-height: calc(100vh - 200px);
@@ -23,7 +23,7 @@
         display: none !important;
     }
     
-    /* Updated Header Styles - EXACT SAME AS GALLERY PAGE */
+    /* Updated Header Styles - EXACT SAME AS FEATURES PAGE HEADER */
     .about-header {
         text-align: center;
         background: linear-gradient(135deg, var(--primary), var(--secondary));
@@ -34,7 +34,7 @@
         max-width: 1000px;
         width: 90%;
         
-        /* 🚨 EXACT SAME SPACING AS GALLERY PAGE */
+        /* 🚨 EXACT SAME SPACING AS FEATURES PAGE HEADER */
         margin: calc(var(--header-height, 70px) + 0.9rem) auto 1.5rem auto !important;
     }
     
@@ -50,27 +50,27 @@
         color: rgba(255, 255, 255, 0.9);
         max-width: 800px;
         margin: 0 auto 0.75rem auto;
+        line-height: 1.6;
     }
 
-    /* About Page Specific Styles */
-    .about-container {
-        padding: 0 0 2rem 0;
-        margin: 0 auto;
+    /* Main Content Section - EXACT SAME STRUCTURE AS FEATURES GRID SECTION */
+    .about-content-section {
+        padding-top: 0.5rem !important;
         max-width: 1200px;
-        width: 100%;
-        flex: 1;
+        margin: 0 auto 1.5rem auto;
+        width: 95%;
     }
     
+    /* Updated Intro Section - More Professional */
     .about-intro {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 3rem;
         margin-bottom: 4rem;
         align-items: center;
-        padding: 0 1.5rem;
-        max-width: 1200px;
+        padding: 0 1rem;
+        max-width: 1000px;
         margin: 0 auto 2rem auto;
-        width: 95%;
     }
     
     .intro-title {
@@ -98,18 +98,19 @@
     
     .intro-img {
         width: 100%;
-        height: auto;
+        height: 300px;
+        object-fit: cover;
         display: block;
     }
     
-    /* Platform Explanation Section */
+    /* Platform Explanation Section - Updated with SAME STRUCTURE */
     .platform-explanation {
         background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
         padding: 3rem 2rem;
         border-radius: 1rem;
         margin: 2rem auto 3rem auto;
         max-width: 1000px;
-        width: 95%;
+        width: 100%;
         text-align: center;
         box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
     }
@@ -155,29 +156,30 @@
         color: #4a5568;
     }
     
+    /* VALUES SECTION - UPDATED WITH SAME GRID STRUCTURE */
     .values-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 2rem;
+        gap: 1.5rem;
         margin-bottom: 4rem;
-        padding: 0 1.5rem;
-        max-width: 1200px;
+        max-width: 1000px;
         margin: 0 auto 2rem auto;
-        width: 95%;
     }
     
     .value-card {
         background: white;
-        padding: 2rem;
-        border-radius: var(--radius);
-        box-shadow: var(--shadow);
+        padding: 1.5rem;
+        border-radius: 0.75rem;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        border: 1px solid #f3f4f6;
+        transition: all 0.3s ease;
+        transform: translateY(0);
         text-align: center;
-        transition: var(--transition);
     }
     
     .value-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
     }
     
     .value-icon {
@@ -203,17 +205,19 @@
     .value-description {
         color: var(--text-dark);
         line-height: 1.6;
+        font-size: 1rem;
     }
     
+    /* STATS SECTION - UPDATED NUMBERS WITH SAME STRUCTURE */
     .stats-section {
         background: linear-gradient(to right, var(--primary), var(--secondary));
         color: white;
         padding: 3rem 0;
         margin-bottom: 4rem;
-        border-radius: var(--radius);
-        max-width: 1200px;
+        border-radius: 1rem;
+        max-width: 1000px;
         margin: 0 auto 2rem auto;
-        width: 95%;
+        width: 100%;
     }
     
     .stats-grid {
@@ -241,126 +245,88 @@
         opacity: 0.9;
     }
     
-    .team-section {
-        margin-bottom: 4rem;
-        padding: 0 1.5rem;
-        max-width: 1200px;
+    /* HOW IT WORKS SECTION - ADDED WITH SAME CARD STRUCTURE */
+    .how-it-works {
+        padding: 3rem 0;
+        max-width: 1000px;
         margin: 0 auto 2rem auto;
-        width: 95%;
+        width: 100%;
     }
     
-    .section-title {
+    .how-it-works h2 {
         text-align: center;
-        font-size: 2.2rem;
+        font-size: 2rem;
         color: var(--primary);
-        margin-bottom: 1rem;
+        margin-bottom: 2rem;
         font-weight: 700;
     }
     
-    .section-subtitle {
-        text-align: center;
-        font-size: 1.1rem;
-        color: var(--text-dark);
-        max-width: 600px;
-        margin: 0 auto 3rem;
-        line-height: 1.6;
-    }
-    
-    .team-grid {
+    .steps-grid {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 2rem;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
     }
     
-    .team-member {
+    .step-card {
         background: white;
-        border-radius: var(--radius);
-        overflow: hidden;
-        box-shadow: var(--shadow);
+        padding: 1.5rem;
+        border-radius: 0.75rem;
         text-align: center;
-        transition: var(--transition);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        border: 1px solid #f3f4f6;
+        transition: all 0.3s ease;
     }
     
-    .team-member:hover {
+    .step-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
     }
     
-    .member-image {
-        height: 250px;
-        overflow: hidden;
-    }
-    
-    .member-image img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: var(--transition);
-    }
-    
-    .team-member:hover .member-image img {
-        transform: scale(1.05);
-    }
-    
-    .member-name {
-        font-size: 1.3rem;
-        color: var(--primary);
-        margin: 1.5rem 0 0.5rem;
-        font-weight: 600;
-    }
-    
-    .member-role {
-        color: var(--secondary);
-        margin-bottom: 1.5rem;
-        font-weight: 500;
-    }
-    
-    .member-social {
-        display: flex;
-        justify-content: center;
-        gap: 0.8rem;
-        padding: 0 0 1.5rem;
-    }
-    
-    .member-social a {
+    .step-number {
+        width: 50px;
+        height: 50px;
+        background: var(--primary);
+        color: white;
+        border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 35px;
-        height: 35px;
-        background: var(--bg-light);
-        border-radius: 50%;
-        color: var(--primary);
-        transition: var(--transition);
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin: 0 auto 1rem;
     }
     
-    .member-social a:hover {
-        background: var(--secondary);
-        color: white;
+    .step-title {
+        font-size: 1.3rem;
+        color: var(--secondary);
+        margin-bottom: 1rem;
     }
     
-    /* 🚨 UPDATED CTA SECTION - PROFESSIONAL STRATEGY (FIXED BORDER ISSUE) */
+    .step-description {
+        color: var(--text-dark);
+        line-height: 1.6;
+        font-size: 1rem;
+    }
+    
+    /* 🚨 CTA SECTION - EXACT SAME AS FEATURES PAGE CTA */
     .about-cta-wrapper {
         width: 100%;
         display: flex;
         justify-content: center;
-        padding: 2rem 1.5rem 3rem 1.5rem;
-        margin-top: 2rem;
-        /* 🚨 BACKGROUND REMOVED - केवल सफेद ब्याकग्राउन्ड राख्ने */
-        background: transparent;
+        padding: 1.5rem 1.5rem 2rem 1.5rem;
+        margin-top: 1rem;
     }
     
     .about-cta-section {
         text-align: center;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
         color: white;
         padding: 2.5rem 2rem;
         border-radius: 1rem;
         box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
-        max-width: 900px;
+        max-width: 800px;
         width: 100%;
         margin: 0 auto;
-        /* 🚨 ग्रेडियन्ट केवल यो सेक्सनमा मात्र */
-        background: linear-gradient(135deg, var(--primary), var(--secondary));
     }
     
     .about-cta-section h2 {
@@ -385,20 +351,21 @@
         text-decoration: underline;
     }
     
-    /* CTA Buttons Container */
+    /* CTA Buttons Container - EXACT SAME AS FEATURES PAGE */
     .about-cta-buttons-container {
         display: flex;
-        gap: 1.5rem;
-        justify-content: center;
+        gap: 1rem;
         align-items: center;
-        margin-top: 2rem;
+        justify-content: center;
+        margin-top: 1rem;
         width: 100%;
+        flex-wrap: wrap;
     }
     
-    /* ABOUT CTA BUTTON STYLES */
+    /* TRIAL BUTTON (White Background) - SAME AS FEATURES PAGE */
     .about-trial-button {
         background-color: white;
-        color: var(--primary);
+        color: #001F5B;
         font-weight: 600;
         padding: 0.75rem 2rem;
         border-radius: 0.5rem;
@@ -407,31 +374,31 @@
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         transition: all 0.3s ease;
         border: none;
-        cursor: pointer;
+        cursor: button;
         display: inline-flex;
         align-items: center;
         justify-content: center;
         gap: 0.5rem;
         font-size: 1rem;
+        text-align: center;
     }
     
     .about-trial-button:hover:not(:disabled) {
         background-color: #f3f4f6;
         transform: translateY(-2px);
-        color: var(--primary);
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        color: #001F5B;
     }
     
+    /* OUTLINE PRICING BUTTON - SAME AS FEATURES PAGE */
     .about-outline-button {
-        background-color: transparent;
-        color: white;
+        background: transparent;
         border: 2px solid white;
+        color: white;
         font-weight: 600;
         padding: 0.75rem 2rem;
         border-radius: 0.5rem;
         text-decoration: none;
         min-width: 180px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         transition: all 0.3s ease;
         cursor: pointer;
         display: inline-flex;
@@ -439,13 +406,13 @@
         justify-content: center;
         gap: 0.5rem;
         font-size: 1rem;
+        text-align: center;
     }
     
     .about-outline-button:hover {
-        background-color: white;
-        color: var(--primary);
+        background: white;
+        color: #001F5B;
         transform: translateY(-2px);
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
     }
     
     .about-trial-button:disabled {
@@ -462,24 +429,7 @@
         transform: none;
     }
 
-    /* Mobile adjustments */
-    @media (max-width: 1024px) {
-        .values-grid,
-        .stats-grid,
-        .team-grid,
-        .platform-features {
-            grid-template-columns: repeat(2, 1fr);
-        }
-        
-        .about-container {
-            max-width: 95%;
-        }
-        
-        .about-cta-buttons-container {
-            gap: 1rem;
-        }
-    }
-    
+    /* Mobile adjustments - EXACT SAME AS FEATURES PAGE */
     @media (max-width: 768px) {
         .about-header {
             margin: calc(60px + 0.25rem) auto 1rem auto !important;
@@ -497,8 +447,14 @@
             margin-bottom: 0.5rem;
         }
 
+        .about-content-section {
+            padding-top: 0.25rem !important;
+            margin: 0 auto 1rem auto;
+        }
+
         .about-intro {
             grid-template-columns: 1fr;
+            padding: 0 1rem;
         }
         
         .intro-image {
@@ -507,9 +463,11 @@
         
         .values-grid,
         .stats-grid,
-        .team-grid,
+        .steps-grid,
         .platform-features {
             grid-template-columns: 1fr;
+            gap: 1rem;
+            padding: 0 1rem;
         }
         
         .stat-number {
@@ -520,19 +478,8 @@
             padding: 2rem 1rem;
         }
         
-        .about-cta-buttons-container {
-            flex-direction: column;
-            gap: 1rem;
-        }
-        
-        .about-trial-button,
-        .about-outline-button {
-            width: 100%;
-            max-width: 250px;
-        }
-
         .about-cta-wrapper {
-            padding: 1.5rem 1rem 2rem 1rem;
+            padding: 1rem 1rem 1.5rem 1rem;
         }
         
         .about-cta-section {
@@ -552,17 +499,26 @@
             font-size: 1.1rem;
         }
         
+        .about-cta-buttons-container {
+            margin-top: 0.75rem;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
         .about-trial-button,
         .about-outline-button {
             padding: 0.6rem 1.5rem;
             font-size: 0.9rem;
-            min-width: 180px;
+            min-width: 160px;
+            width: 100%;
+            max-width: 250px;
         }
         
         .about-intro,
         .values-grid,
-        .team-section,
-        .stats-section {
+        .how-it-works,
+        .stats-section,
+        .platform-explanation {
             padding-left: 1rem;
             padding-right: 1rem;
         }
@@ -574,7 +530,7 @@
         }
         
         .about-cta-wrapper {
-            padding: 1rem 1rem 1.5rem 1rem;
+            padding: 0.75rem 1rem 1.25rem 1rem;
         }
         
         .about-cta-section {
@@ -602,39 +558,34 @@
         .stat-number {
             font-size: 2rem;
         }
-        
-        .about-container {
-            padding-bottom: 1rem;
-        }
-        
-        .platform-explanation h3 {
-            font-size: 1.5rem;
-        }
     }
 </style>
 @endpush
 
 @section('content')
-<!-- Updated Hero Section -->
-<div class="about-header">
-    <h1>हाम्रो बारेमा</h1>
-    <p>HostelHub नेपालको अग्रणी Multi-Tenant होस्टल व्यवस्थापन SaaS प्लेटफर्म हो</p>
-    <p>हाम्रो कथा, हाम्रो टेक्नोलोजी र हाम्रो लक्ष्यहरू</p>
-</div>
+<!-- Updated Hero Section - EXACT SAME STRUCTURE AS FEATURES PAGE -->
+<div class="about-page-wrapper">
+    <!-- Page Header - EXACT SAME SPACING AS FEATURES PAGE -->
+    <div class="about-header">
+        <h1>हाम्रो बारेमा</h1>
+        <p>HostelHub नेपालको अग्रणी Multi-Tenant होस्टल व्यवस्थापन SaaS प्लेटफर्म हो</p>
+        <p>हाम्रो कथा, हाम्रो टेक्नोलोजी र हाम्रो लक्ष्यहरू</p>
+    </div>
 
-<div class="about-content-wrapper">
-    <div class="about-container">
+    <!-- Main Content Section - EXACT SAME STRUCTURE AS FEATURES GRID SECTION -->
+    <section class="about-content-section">
         <!-- Introduction Section -->
         <div class="about-intro">
             <div class="intro-content">
                 <h2 class="intro-title">हाम्रो कथा</h2>
                 <div class="intro-text">
                     <p>HostelHub नेपालको पहिलो Multi-Tenant होस्टल व्यवस्थापन SaaS प्लेटफर्म हो जसले होस्टलहरूको दैनिक कार्यहरूलाई डिजिटल रूपमा रूपान्तरण गर्दछ। हाम्रो उद्देश्य होस्टल व्यवस्थापनलाई सजिलो, द्रुत र विश्वसनीय बनाउनु हो।</p>
-                    <p>हामी २०२५ मा सुरु भएको स्टार्टअप हौं र नेपालभरि २४ भन्दा बढी होस्टलहरू हाम्रो प्लेटफर्ममा जडान भइसकेका छन्। हाम्रो टिममा प्राविधिक र व्यवसायिक क्षेत्रका अनुभवी विशेषज्ञहरू छन् जसको लक्ष्य नेपाली शिक्षा क्षेत्रमा सुधार ल्याउनु हो।</p>
+                    <p>हामी २०२५ मा सुरु भएको स्टार्टअप हौं जसले नेपाली शिक्षा क्षेत्रमा डिजिटल रूपान्तरण ल्याउने लक्ष्य राखेका छौं। हाम्रो प्लेटफर्मलाई विद्यार्थी र होस्टल मालिक दुवैको आवश्यकतालाई ध्यानमा राखेर डिजाइन गरिएको छ।</p>
+                    <p>हामी विश्वास गर्छौं कि उन्नत टेक्नोलोजी र सरल इन्टरफेसले होस्टल व्यवस्थापनलाई पूर्ण रूपमा बदल्न सक्छ।</p>
                 </div>
             </div>
             <div class="intro-image">
-                <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&q=80" alt="HostelHub Team" class="intro-img">
+                <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&q=80" alt="HostelHub Vision" class="intro-img">
             </div>
         </div>
 
@@ -684,7 +635,7 @@
             </div>
         </div>
 
-        <!-- Stats Section -->
+        <!-- Stats Section - Updated Numbers -->
         <div class="stats-section">
             <div class="stats-grid">
                 <div class="stat-item">
@@ -692,79 +643,44 @@
                     <div class="stat-label">होस्टलहरू</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-number" data-count="5000">0</div>
+                    <div class="stat-number" data-count="125">0</div>
                     <div class="stat-label">विद्यार्थीहरू</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-number" data-count="15">0</div>
-                    <div class="stat-label">टिम सदस्यहरू</div>
+                    <div class="stat-number" data-count="5">0</div>
+                    <div class="stat-label">शहरहरू</div>
                 </div>
                 <div class="stat-item">
-                    <div class="stat-number" data-count="3">0</div>
-                    <div class="stat-label">वर्षहरू</div>
+                    <div class="stat-number" data-count="1">0</div>
+                    <div class="stat-label">वर्ष अनुभव</div>
                 </div>
             </div>
         </div>
 
-        <!-- Team Section -->
-        <div class="team-section">
-            <h2 class="section-title">हाम्रो टिम</h2>
-            <p class="section-subtitle">हामी एक समर्पित टिम हौं जसले होस्टल व्यवस्थापनलाई नयाँ तहमा पुर्याउने लक्ष्य राखेका छौं</p>
-            
-            <div class="team-grid">
-                <div class="team-member">
-                    <div class="member-image">
-                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80" alt="रमेश श्रेष्ठ">
-                    </div>
-                    <h3 class="member-name">रमेश श्रेष्ठ</h3>
-                    <p class="member-role">संस्थापक & CEO</p>
-                    <div class="member-social">
-                        <a href="#"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#"><i class="fab fa-twitter"></i></a>
-                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                    </div>
+        <!-- How It Works Section - Added -->
+        <div class="how-it-works">
+            <h2>HostelHub कसरी काम गर्छ?</h2>
+            <div class="steps-grid">
+                <div class="step-card">
+                    <div class="step-number">१</div>
+                    <h3 class="step-title">होस्टल जोड्नुहोस्</h3>
+                    <p class="step-description">निःशुल्क खाता सिर्जना गर्नुहोस् र आफ्नो होस्टल विवरणहरू थप्नुहोस्</p>
                 </div>
-                <div class="team-member">
-                    <div class="member-image">
-                        <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80" alt="सीता अधिकारी">
-                    </div>
-                    <h3 class="member-name">सीता अधिकारी</h3>
-                    <p class="member-role">प्राविधिक प्रमुख</p>
-                    <div class="member-social">
-                        <a href="#"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#"><i class="fab fa-twitter"></i></a>
-                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                    </div>
+                <div class="step-card">
+                    <div class="step-number">२</div>
+                    <h3 class="step-title">ड्यासबोर्ड प्रयोग गर्नुहोस्</h3>
+                    <p class="step-description">विद्यार्थीहरू थप्नुहोस्, कोठा आवंटन गर्नुहोस्, र भुक्तानीहरू ट्र्याक गर्नुहोस्</p>
                 </div>
-                <div class="team-member">
-                    <div class="member-image">
-                        <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80" alt="हरि गुरुङ">
-                    </div>
-                    <h3 class="member-name">हरि गुरुङ</h3>
-                    <p class="member-role">व्यवसायिक विकास</p>
-                    <div class="member-social">
-                        <a href="#"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#"><i class="fab fa-twitter"></i></a>
-                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                    </div>
-                </div>
-                <div class="team-member">
-                    <div class="member-image">
-                        <img src="https://images.unsplash.com/photo-1567532939604-b6b5b0db1604?auto=format&fit=crop&q=80" alt="गीता शर्मा">
-                    </div>
-                    <h3 class="member-name">गीता शर्मा</h3>
-                    <p class="member-role">ग्राहक समर्थन</p>
-                    <div class="member-social">
-                        <a href="#"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#"><i class="fab fa-twitter"></i></a>
-                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                    </div>
+                <div class="step-card">
+                    <div class="step-number">३</div>
+                    <h3 class="step-title">विस्तार गर्नुहोस्</h3>
+                    <p class="step-description">हाम्रा उन्नत सुविधाहरू प्रयोग गरेर आफ्नो होस्टल व्यवसायलाई बढाउनुहोस्</p>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
-    <!-- 🚨 UPDATED CTA SECTION - FIXED BORDER ISSUE -->
+    <!-- 🚨 CTA SECTION - EXACT SAME AS FEATURES PAGE CTA -->
     <div class="about-cta-wrapper">
         <section class="about-cta-section">
             <h2>हामीलाई सम्पर्क गर्नुहोस्</h2>
@@ -796,7 +712,7 @@
                         <form action="{{ route('subscription.start-trial') }}" method="POST" style="display: inline;">
                             @csrf
                             <button type="submit" class="about-trial-button">
-                                <i class="fas fa-rocket"></i> ७ दिन निःशुल्क परीक्षण
+                                <i class="fas fa-rocket"></i> निःशुल्क परीक्षण
                             </button>
                         </form>
                     @endif
@@ -835,7 +751,7 @@
 
 @push('scripts')
 <script>
-    // Counter animation for stats
+    // Counter animation for stats - EXACT SAME AS FEATURES PAGE ANIMATION
     document.addEventListener('DOMContentLoaded', function() {
         const counters = document.querySelectorAll('.stat-number');
         const speed = 200;

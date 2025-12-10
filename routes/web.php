@@ -24,6 +24,13 @@ Route::get('/gallery/{tab}', [App\Http\Controllers\Frontend\GalleryController::c
     ->where('tab', 'photos|videos|virtual-tours')
     ->name('gallery.tab');
 
+// ✅ FIXED: Gallery and Booking Routes for Public Hostel Pages
+Route::get('/hostels/{slug}/full-gallery', [\App\Http\Controllers\Frontend\PublicController::class, 'hostelFullGallery'])
+    ->name('hostels.full.gallery');
+
+Route::get('/hostels/{slug}/book', [\App\Http\Controllers\BookingController::class, 'createFromGallery'])
+    ->name('hostels.book');
+
 // ✅ Booking routes
 Route::get('/book-all/{slug}', [BookingController::class, 'createFromGalleryAllRooms'])->name('hostel.book.all.rooms');
 Route::get('/book/{slug}', [BookingController::class, 'createFromGallery'])->name('hostel.book.from.gallery');
@@ -262,3 +269,21 @@ Route::get('/verify-boys', function () {
         'all_published' => $hostels->count()
     ]);
 });
+
+// ✅ EMERGENCY BACKUP ROUTES - GUARANTEED WORKING
+Route::get('/view/{slug}/full-gallery', function ($slug) {
+    return redirect()->route('hostels.full.gallery', $slug);
+})->name('emergency.full.gallery');
+
+Route::get('/book-now/{slug}', function ($slug) {
+    return redirect()->route('hostels.book', $slug);
+})->name('emergency.book.now');
+
+// Add these route definitions
+Route::get('/direct-gallery/{slug}', function ($slug) {
+    return redirect()->route('hostels.full.gallery', $slug);
+})->name('direct.hostel.gallery');
+
+Route::get('/direct-book/{slug}', function ($slug) {
+    return redirect()->route('hostels.book', $slug);
+})->name('direct.book.now');

@@ -59,7 +59,17 @@ class Gallery extends Model
         'room_number',           // ✅ Already exists but ensuring it's in appends
         'room_type',             // ✅ Already exists but ensuring it's in appends
         'formatted_date',        // ✅ Already exists but ensuring it's in appends
-        'short_description'      // ✅ Already exists but ensuring it's in appends
+        'short_description',     // ✅ Already exists but ensuring it's in appends
+        'video_player_type',     // ✅ NEW: Video player type
+        'aspect_ratio',          // ✅ NEW: Aspect ratio
+        'download_url',          // ✅ NEW: Download URL
+        'file_extension',        // ✅ NEW: File extension
+        'mime_type',             // ✅ NEW: MIME type
+        'video_resolution_class', // ✅ NEW: Video resolution badge class
+        'is_virtual_tour',       // ✅ NEW: Virtual tour check
+        'meal_gallery_url',      // ✅ NEW: Meal gallery URL
+        'optimized_thumbnail',   // ✅ NEW: Optimized thumbnail
+        'share_url'              // ✅ NEW: Social share URL
     ];
 
     /**
@@ -87,6 +97,76 @@ class Gallery extends Model
             'video_thumbnail' => 'nullable|string|max:500',    // ✅ NEW
             'hd_file_path' => 'nullable|string|max:500'        // ✅ NEW
         ];
+    }
+
+    /**
+     * ✅ FIXED: Get thumbnail URL attribute with proper fallbacks
+     */
+    public function getThumbnailUrlAttribute()
+    {
+        // If thumbnail exists and is not a URL
+        if (!empty($this->thumbnail)) {
+            // Check if it's already a URL
+            if (filter_var($this->thumbnail, FILTER_VALIDATE_URL)) {
+                return $this->thumbnail;
+            }
+
+            // Check if file exists in storage
+            if (Storage::disk('public')->exists($this->thumbnail)) {
+                return Storage::url($this->thumbnail);
+            }
+        }
+
+        // Fallback to file_path if thumbnail doesn't exist
+        if (!empty($this->file_path)) {
+            // Check if it's already a URL
+            if (filter_var($this->file_path, FILTER_VALIDATE_URL)) {
+                return $this->file_path;
+            }
+
+            if (Storage::disk('public')->exists($this->file_path)) {
+                return Storage::url($this->file_path);
+            }
+        }
+
+        // Ultimate fallback for images
+        if ($this->media_type === 'photo') {
+            return asset('images/default-room.png');
+        }
+
+        // Fallback for videos
+        if ($this->is_video) {
+            return asset('images/video-thumbnail.jpg');
+        }
+
+        // Default fallback
+        return asset('images/default-gallery.jpg');
+    }
+
+    /**
+     * ✅ FIXED: Get media URL attribute with proper fallbacks
+     */
+    public function getMediaUrlAttribute()
+    {
+        // External videos
+        if ($this->media_type === 'external_video' && $this->external_link) {
+            return $this->external_link;
+        }
+
+        // Local files
+        if (!empty($this->file_path)) {
+            // Check if it's already a URL
+            if (filter_var($this->file_path, FILTER_VALIDATE_URL)) {
+                return $this->file_path;
+            }
+
+            if (Storage::disk('public')->exists($this->file_path)) {
+                return Storage::url($this->file_path);
+            }
+        }
+
+        // Ultimate fallback
+        return asset('images/default-room.png');
     }
 
     /**
@@ -471,69 +551,6 @@ class Gallery extends Model
     }
 
     /**
-     * Get media URL with fallback
-     */
-    public function getMediaUrlAttribute(): string
-    {
-        if ($this->media_type === 'external_video' && $this->external_link) {
-            return $this->external_link;
-        }
-
-        if ($this->file_path) {
-            // FIXED: Use proper storage URL
-            return Storage::disk('public')->exists($this->file_path)
-                ? asset('storage/' . $this->file_path)
-                : asset('images/default-gallery.jpg');
-        }
-
-        return asset('images/default-gallery.jpg');
-    }
-
-    /**
-     * Get thumbnail URL with enhanced video support
-     */
-    public function getThumbnailUrlAttribute(): string
-    {
-        // Check for custom video thumbnail first
-        if ($this->is_video && $this->video_thumbnail) {
-            if (Storage::disk('public')->exists($this->video_thumbnail)) {
-                return asset('storage/' . $this->video_thumbnail);
-            }
-
-            // Check if it's a URL
-            if (filter_var($this->video_thumbnail, FILTER_VALIDATE_URL)) {
-                return $this->video_thumbnail;
-            }
-        }
-
-        // YouTube videos
-        if ($this->media_type === 'external_video' && $this->external_link) {
-            $youtubeId = $this->getYoutubeId($this->external_link);
-            if ($youtubeId) {
-                return 'https://img.youtube.com/vi/' . $youtubeId . '/hqdefault.jpg';
-            }
-            return asset('images/video-thumbnail.jpg');
-        }
-
-        // Local videos
-        if ($this->media_type === 'local_video') {
-            if ($this->thumbnail && Storage::disk('public')->exists($this->thumbnail)) {
-                return asset('storage/' . $this->thumbnail);
-            }
-            return asset('images/video-thumbnail.jpg');
-        }
-
-        // Images - FIXED: Check if file exists
-        if ($this->media_type === 'photo' && $this->file_path) {
-            return Storage::disk('public')->exists($this->file_path)
-                ? asset('storage/' . $this->file_path)
-                : asset('images/default-image.jpg');
-        }
-
-        return asset('images/default-image.jpg');
-    }
-
-    /**
      * Check if item is a video
      */
     public function getIsVideoAttribute(): bool
@@ -758,7 +775,7 @@ class Gallery extends Model
         if ($this->media_type === 'photo' && $this->file_path) {
             $thumbPath = str_replace('.', '-thumb.', $this->file_path);
             if (Storage::disk('public')->exists($thumbPath)) {
-                return asset('storage/' . $thumbPath);
+                return Storage::disk('public')->url($thumbPath);
             }
         }
 

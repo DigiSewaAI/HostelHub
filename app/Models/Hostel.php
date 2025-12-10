@@ -399,38 +399,49 @@ class Hostel extends Model
         return $this->contact_email_formatted;
     }
 
-    // ✅ NEW: Gender detection for gallery filters
+    // ✅ UPDATED: Gender detection for gallery filters - IMPROVED VERSION
     public function getGenderDetectedAttribute()
     {
-        // पहिले gender column check गर्ने
+        // 1. पहिले gender column check गर्ने
         if (!empty($this->attributes['gender'])) {
-            return $this->attributes['gender'];
+            $gender = strtolower(trim($this->attributes['gender']));
+            if (in_array($gender, ['boys', 'girls', 'mixed'])) {
+                return $gender;
+            }
         }
 
-        // Hostel name बाट gender detect गर्ने
+        // 2. Hostel name बाट gender detect गर्ने
         $name = strtolower($this->name);
 
-        // Boys hostels को लागि (अब सही नाममा "boys" छ)
-        if (
-            str_contains($name, 'boys') ||
-            str_contains($name, 'ब्वाइज') ||
-            str_contains($name, 'पुरुष') ||
-            str_contains($name, 'ब्वायज') ||
-            str_contains($name, 'male') ||
-            str_contains($name, 'mens')
-        ) {
-            return 'boys';
+        // Boys detection with more keywords
+        $boysKeywords = ['boys', 'ब्वाइज', 'पुरुष', 'ब्वायज', 'male', 'mens', 'पुरूष', 'पुर्खा'];
+        foreach ($boysKeywords as $keyword) {
+            if (str_contains($name, $keyword)) {
+                return 'boys';
+            }
         }
 
-        // Girls hostels को लागि
-        if (
-            str_contains($name, 'girls') ||
-            str_contains($name, 'गर्ल्स') ||
-            str_contains($name, 'महिला') ||
-            str_contains($name, 'female') ||
-            str_contains($name, 'womens')
-        ) {
-            return 'girls';
+        // Girls detection with more keywords  
+        $girlsKeywords = ['girls', 'गर्ल्स', 'महिला', 'female', 'womens', 'केटी', 'महिला'];
+        foreach ($girlsKeywords as $keyword) {
+            if (str_contains($name, $keyword)) {
+                return 'girls';
+            }
+        }
+
+        // 3. Description बाट पनि check गर्ने
+        if (!empty($this->description)) {
+            $desc = strtolower($this->description);
+            foreach ($boysKeywords as $keyword) {
+                if (str_contains($desc, $keyword)) {
+                    return 'boys';
+                }
+            }
+            foreach ($girlsKeywords as $keyword) {
+                if (str_contains($desc, $keyword)) {
+                    return 'girls';
+                }
+            }
         }
 
         return 'mixed';

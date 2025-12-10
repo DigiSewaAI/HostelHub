@@ -81,3 +81,273 @@
         font-size: 18px !important;
     }
 }
+
+/* ===========================================
+   VERTICAL GALLERY SLIDER STYLES
+   =========================================== */
+
+/* Vertical Room Gallery Styles */
+.room-gallery-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 550px;
+    overflow-y: auto;
+    padding-right: 8px;
+    margin-bottom: 20px;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 #f1f5f9;
+}
+
+.room-gallery-vertical::-webkit-scrollbar {
+    width: 6px;
+}
+
+.room-gallery-vertical::-webkit-scrollbar-track {
+    background: #f8fafc;
+    border-radius: 10px;
+}
+
+.room-gallery-vertical::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+
+.room-gallery-vertical::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+.room-gallery-item {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.room-gallery-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    border-color: var(--primary);
+}
+
+/* Gallery Section Spacing */
+.gallery-section {
+    margin-top: 3rem;
+    margin-bottom: 3rem;
+}
+
+/* Modern Card Spacing Adjustments */
+.modern-card {
+    margin-bottom: 2.5rem;
+}
+
+/* Ensure proper spacing between sections */
+.modern-layout-grid > * {
+    margin-bottom: 2.5rem;
+}
+
+/* Book Now Button Styling */
+.full-gallery-btn {
+    display: inline-block;
+    margin-top: 1.5rem;
+    padding: 12px 24px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%);
+    color: white;
+    font-weight: 600;
+    text-align: center;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.full-gallery-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+}
+
+/* Fix Invisible Text Issue */
+.availability-text {
+    color: #1A1A1A !important;
+    font-weight: 600 !important;
+}
+
+.room-count-text {
+    color: #374151 !important;
+    font-weight: 500 !important;
+}
+
+/* Availability Card Specific Styles */
+.availability-card-available {
+    background: linear-gradient(135deg, rgba(209, 250, 229, 0.8) 0%, rgba(167, 243, 208, 0.6) 100%);
+    border: 1px solid rgba(52, 211, 153, 0.3);
+}
+
+.availability-card-unavailable {
+    background: linear-gradient(135deg, rgba(243, 244, 246, 0.8) 0%, rgba(229, 231, 235, 0.6) 100%);
+    border: 1px solid rgba(209, 213, 219, 0.3);
+}
+
+/* Button Styles for Book Now */
+.book-now-button {
+    background: linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    text-align: center;
+    display: inline-block;
+    text-decoration: none;
+}
+
+.book-now-button:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+}
+
+/* Mobile Responsive Gallery */
+@media (max-width: 768px) {
+    .room-gallery-vertical {
+        max-height: 450px;
+        padding-right: 4px;
+    }
+    
+    .gallery-section {
+        margin-top: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .modern-card {
+        margin-bottom: 2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .room-gallery-vertical {
+        max-height: 400px;
+    }
+    
+    .book-now-button {
+        padding: 10px 20px;
+        font-size: 13px;
+    }
+}
+
+/* Consistent Section Spacing */
+.section-spacing {
+    margin-top: 3rem;
+    margin-bottom: 3rem;
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+}
+
+.gallery-spacing {
+    margin-top: 2.5rem;
+    margin-bottom: 2.5rem;
+}
+
+/* Ensure content flows properly */
+main#main-content {
+    padding-top: 80px;
+    padding-bottom: 40px;
+}
+
+/* Gallery Item Image Styling */
+.gallery-item-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+    transition: transform 0.3s ease;
+}
+
+.gallery-item-image:hover {
+    transform: scale(1.05);
+}
+
+/* Featured Gallery Badge */
+.featured-badge {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Category Badge Styling */
+.category-badge {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* Empty State for Gallery */
+.empty-gallery-state {
+    padding: 3rem 1.5rem;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    text-align: center;
+}
+
+.empty-gallery-icon {
+    width: 80px;
+    height: 80px;
+    background: #e2e8f0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+}
+
+/* Modern Theme Specific Enhancements */
+.modern-gradient-text {
+    background: linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Smooth transitions for all interactive elements */
+.modern-card,
+.room-gallery-item,
+.book-now-button,
+.full-gallery-btn {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+    .modern-card,
+    .room-gallery-item,
+    .book-now-button,
+    .full-gallery-btn,
+    .gallery-item-image {
+        transition: none !important;
+        transform: none !important;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .modern-card {
+        border: 2px solid #000;
+    }
+    
+    .availability-text {
+        color: #000 !important;
+    }
+}
