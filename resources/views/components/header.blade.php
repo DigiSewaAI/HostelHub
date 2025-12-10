@@ -12,7 +12,7 @@
                     <a href="{{ route('features') }}" class="text-white hover:text-blue-200 transition-colors {{ request()->routeIs('features') ? 'font-bold' : '' }}">सुविधाहरू</a>
                     <a href="{{ route('how-it-works') }}" class="text-white hover:text-blue-200 transition-colors {{ request()->routeIs('how-it-works') ? 'font-bold' : '' }}">कसरी काम गर्छ</a>
                     <a href="{{ route('pricing') }}" class="text-white hover:text-blue-200 transition-colors {{ request()->routeIs('pricing') ? 'font-bold' : '' }}">मूल्य</a>
-                    <a href="{{ route('gallery') }}" class="text-white hover:text-blue-200 transition-colors {{ request()->routeIs('gallery') ? 'font-bold' : '' }}">ग्यालरी</a>
+                    <a href="{{ route('gallery.index') }}" class="text-white hover:text-blue-200 transition-colors {{ request()->routeIs('gallery') ? 'font-bold' : '' }}">ग्यालरी</a>
                     <a href="{{ route('testimonials') }}" class="text-white hover:text-blue-200 transition-colors {{ request()->routeIs('testimonials') ? 'font-bold' : '' }}">प्रशंसापत्रहरू</a> {{-- Updated --}}
                 </div>
                 
@@ -44,7 +44,7 @@
             <a href="{{ route('features') }}" class="block text-white hover:text-blue-200 {{ request()->routeIs('features') ? 'font-bold' : '' }}">सुविधाहरू</a>
             <a href="{{ route('how-it-works') }}" class="block text-white hover:text-blue-200 {{ request()->routeIs('how-it-works') ? 'font-bold' : '' }}">कसरी काम गर्छ</a>
             <a href="{{ route('pricing') }}" class="block text-white hover:text-blue-200 {{ request()->routeIs('pricing') ? 'font-bold' : '' }}">मूल्य</a>
-            <a href="{{ route('gallery') }}" class="block text-white hover:text-blue-200 {{ request()->routeIs('gallery') ? 'font-bold' : '' }}">ग्यालरी</a>
+            <a href="{{ route('gallery.index') }}" class="block text-white hover:text-blue-200 {{ request()->routeIs('gallery') ? 'font-bold' : '' }}">ग्यालरी</a>
             <a href="{{ route('testimonials') }}" class="block text-white hover:text-blue-200 {{ request()->routeIs('testimonials') ? 'font-bold' : '' }}">प्रशंसापत्रहरू</a> {{-- Updated --}}
             
             <div class="pt-4 border-t border-indigo-700 space-y-4">
