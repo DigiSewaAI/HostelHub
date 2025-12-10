@@ -160,6 +160,45 @@
         transform: translateY(-4px) scale(1.05);
         box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
     }
+    
+    /* Vertical Room Gallery Slider */
+    .room-gallery-vertical {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        max-height: 550px;
+        overflow-y: auto;
+        padding-right: 8px;
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 #f1f5f9;
+        margin-bottom: 20px;
+    }
+    
+    .room-gallery-vertical::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .room-gallery-vertical::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 3px;
+    }
+    
+    .room-gallery-vertical::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 3px;
+    }
+    
+    .room-gallery-vertical::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+    
+    .room-gallery-item {
+        transition: all 0.2s ease;
+    }
+    
+    .room-gallery-item:hover {
+        transform: translateY(-2px);
+    }
 </style>
 @endpush
 
@@ -446,81 +485,121 @@
 
             <!-- MIDDLE COLUMN - Gallery -->
             <div class="space-y-8">
-                <!-- Gallery -->
-                <div class="modern-card">
+                <!-- Gallery Card -->
+                <div class="modern-card mb-10">
                     <div class="flex items-center justify-between mb-6 pb-4 border-b">
                         <h2 class="text-xl font-bold flex items-center gap-2">
                             <i class="fas fa-images text-purple-600"></i>
-                            हाम्रो ग्यालरी
+                            कोठाको ग्यालरी
                         </h2>
-                        <a href="#" class="text-purple-600 hover:text-purple-800 text-sm font-medium">
-                            <i class="fas fa-external-link-alt mr-1"></i> सबै हेर्नुहोस्
-                        </a>
+                        @if($hostel->slug)
+    <a href="{{ route('hostels.full.gallery', $hostel->slug) }}" 
+       class="text-purple-600 hover:text-purple-800 text-sm font-medium flex items-center gap-1">
+        <i class="fas fa-external-link-alt mr-1"></i> सबै हेर्नुहोस्
+    </a>
+@endif
                     </div>
                     
-                    <div>
-                        <p class="text-gray-600 text-center mb-4">
-                            हाम्रो होस्टलको वातावरण र सुविधाहरूको झलक
-                        </p>
+                    <!-- Vertical Room Gallery Slider -->
+                    @php
+                        // Get room galleries (10-15 images)
+                        $roomGalleries = $hostel->activeGalleries ?? collect();
+                        $roomCategories = ['1 seater', '2 seater', '3 seater', '4 seater', 'other', 'साझा कोठा'];
                         
-                        <div class="space-y-4 max-h-[400px] overflow-y-auto pr-2">
-                            @php
-                                $galleries = $hostel->activeGalleries ?? collect();
-                            @endphp
-                            
-                            @if($galleries->count() > 0)
-                                @foreach($galleries->take(4) as $gallery)
-                                <div class="group cursor-pointer">
+                        $roomGalleries = $roomGalleries->filter(function($gallery) use ($roomCategories) {
+                            return in_array(strtolower($gallery->category), array_map('strtolower', $roomCategories)) || 
+                                   $gallery->room_id !== null;
+                        })->take(15);
+                    @endphp
+                    
+                    @if($roomGalleries->count() > 0)
+                        <div class="room-gallery-vertical">
+                            @foreach($roomGalleries as $gallery)
+                            <div class="room-gallery-item bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+                                <div class="flex gap-4 p-4">
                                     @if($gallery->media_type === 'image')
-                                        <div class="relative overflow-hidden rounded-xl">
-                                            <img src="{{ $gallery->thumbnail_url }}" 
+                                        <div class="w-32 h-32 flex-shrink-0 rounded-lg overflow-hidden">
+                                            @php
+                                                // Safe image URL generation
+                                                $imageUrl = $gallery->thumbnail_url ?? asset('images/default-room.png');
+                                                
+                                                // Additional fallback check
+                                                if (empty($imageUrl) || str_contains($imageUrl, 'default-room.png')) {
+                                                    // Try to get from media_path
+                                                    if (!empty($gallery->media_path)) {
+                                                        if (filter_var($gallery->media_path, FILTER_VALIDATE_URL)) {
+                                                            $imageUrl = $gallery->media_path;
+                                                        } elseif (Storage::disk('public')->exists($gallery->media_path)) {
+                                                            $imageUrl = Storage::url($gallery->media_path);
+                                                        }
+                                                    }
+                                                }
+                                            @endphp
+                                            <img src="{{ $imageUrl }}" 
                                                  alt="{{ $gallery->title }}"
-                                                 class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300">
+                                                 class="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
+                                                 onerror="this.src='{{ asset('images/default-room.png') }}'">
                                         </div>
                                     @elseif($gallery->media_type === 'external_video')
-                                        <div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 h-48 flex items-center justify-center">
-                                            <i class="fab fa-youtube text-white text-4xl"></i>
+                                        <div class="w-32 h-32 flex-shrink-0 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                                            <i class="fab fa-youtube text-white text-2xl"></i>
                                         </div>
                                     @else
-                                        <div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 h-48 flex items-center justify-center">
-                                            <i class="fas fa-video text-white text-4xl"></i>
+                                        <div class="w-32 h-32 flex-shrink-0 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
+                                            <i class="fas fa-video text-white text-2xl"></i>
                                         </div>
                                     @endif
                                     
-                                    <div class="mt-3">
-                                        <h4 class="font-semibold text-gray-900 mb-1">{{ $gallery->title }}</h4>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-start justify-between gap-2 mb-2">
+                                            <h4 class="font-semibold text-gray-900 text-base">{{ $gallery->title }}</h4>
+                                            @if($gallery->is_featured)
+                                                <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full whitespace-nowrap">
+                                                    <i class="fas fa-star mr-1 text-xs"></i> फिचर्ड
+                                                </span>
+                                            @endif
+                                        </div>
+                                        
                                         @if($gallery->description)
-                                            <p class="text-gray-600 text-xs">{{ Str::limit($gallery->description, 60) }}</p>
+                                            <p class="text-gray-600 text-sm mb-3">{{ Str::limit($gallery->description, 100) }}</p>
                                         @endif
+                                        
+                                        <div class="flex items-center gap-3">
+                                            <span class="text-xs px-3 py-1 bg-blue-100 text-blue-800 rounded-full font-medium">
+                                                {{ $gallery->category }}
+                                            </span>
+                                            @if($gallery->room_id && $gallery->room)
+                                            <span class="text-xs text-gray-600">
+                                                <i class="fas fa-door-closed mr-1"></i> कोठा: {{ $gallery->room->room_number }}
+                                            </span>
+                                            @endif
+                                        </div>
                                     </div>
                                 </div>
-                                @endforeach
-                            @else
-                                <!-- Placeholder Gallery -->
-                                <div class="grid grid-cols-2 gap-4">
-                                    @foreach([
-                                        ['icon' => 'bed', 'label' => 'कोठा', 'color' => 'blue'],
-                                        ['icon' => 'utensils', 'label' => 'खाना', 'color' => 'green'],
-                                        ['icon' => 'wifi', 'label' => 'WiFi', 'color' => 'purple'],
-                                        ['icon' => 'book', 'label' => 'अध्ययन', 'color' => 'orange']
-                                    ] as $item)
-                                    <div class="aspect-square rounded-xl bg-gradient-to-br from-{{ $item['color'] }}-100 to-{{ $item['color'] }}-200 flex flex-col items-center justify-center p-4">
-                                        <i class="fas fa-{{ $item['icon'] }} text-{{ $item['color'] }}-600 text-2xl mb-2"></i>
-                                        <span class="text-gray-700 text-sm">{{ $item['label'] }}</span>
-                                    </div>
-                                    @endforeach
-                                </div>
-                            @endif
+                            </div>
+                            @endforeach
                         </div>
-                        
-                        <!-- View All Button -->
-                        <div class="text-center mt-6 pt-6 border-t">
-                            <a href="#" class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:opacity-90 transition-opacity">
+                    @else
+                        <!-- Empty State -->
+                        <div class="text-center py-12 bg-gray-50 rounded-xl border border-gray-200">
+                            <div class="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-images text-gray-400 text-2xl"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-600 mb-2">कोठाको ग्यालरी उपलब्ध छैन</h3>
+                            <p class="text-gray-500">यस होस्टलको कोठाको ग्यालरी सामग्री चाँहि उपलब्ध छैन।</p>
+                        </div>
+                    @endif
+                    
+                    <!-- SINGLE View Full Gallery Button -->
+                    @if($hostel->slug)
+                        <div class="mt-8 pt-6 border-t">
+                            <a href="{{ route('hostels.full.gallery', $hostel->slug) ?: url('/hostel/' . $hostel->slug . '/full-gallery') }}" 
+                               class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:opacity-90 transition-opacity">
                                 <i class="fas fa-images"></i>
-                                पूरै ग्यालरी हेर्नुहोस्
+                                कोठाको पुरै ग्यालरी हेर्नुहोस्
                             </a>
                         </div>
-                    </div>
+                    @endif
                 </div>
             </div>
 
@@ -591,11 +670,13 @@
                     </div>
                 </div>
 
-                <!-- Availability Card -->
-                <div class="modern-card {{ $hostel->available_rooms > 0 ? 'bg-gradient-to-br from-green-500 to-emerald-600' : 'bg-gradient-to-br from-gray-600 to-gray-700' }} text-white text-center">
+                <!-- Availability Card - FIXED TEXT COLOR -->
+                <div class="modern-card bg-gradient-to-br from-green-50 to-emerald-100 border border-green-200">
                     <div class="p-5">
-                        <i class="fas fa-bed text-3xl mb-3"></i>
-                        <h4 class="text-xl font-bold mb-2">
+                        <div class="flex items-center justify-center gap-3 mb-3">
+                            <i class="fas fa-bed text-2xl {{ $hostel->available_rooms > 0 ? 'text-green-600' : 'text-gray-500' }}"></i>
+                        </div>
+                        <h4 class="text-xl font-bold mb-2 text-gray-900" style="font-weight: 600;">
                             @if($hostel->available_rooms > 0)
                                 कोठा उपलब्ध!
                             @else
@@ -604,15 +685,18 @@
                         </h4>
                         
                         @if($hostel->available_rooms > 0)
-                            <p class="opacity-90 mb-4 text-sm">अहिले {{ $hostel->available_rooms }} कोठा खाली छन्</p>
-                            <a href="#contact-form" 
-                               class="inline-block bg-white text-green-600 hover:bg-gray-100 py-2 px-6 rounded-lg font-bold transition-all duration-300 text-sm">
+                            <p class="mb-4 text-sm text-gray-800" style="font-weight: 600;">
+                                अहिले {{ $hostel->available_rooms }} कोठा खाली छन्
+                            </p>
+                            <!-- FIXED: Button redirects to booking route -->
+                            <a href="{{ route('hostels.book', $hostel->slug) ?: url('/hostels/' . $hostel->slug . '/book') }}"  
+                               class="inline-block w-full text-center bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 px-6 rounded-lg font-bold transition-all duration-300 text-sm">
                                 <i class="fas fa-calendar-check mr-2"></i>
                                 अहिले बुक गर्नुहोस्
                             </a>
                         @else
-                            <p class="text-sm opacity-90 mb-4">अहिले कुनै कोठा उपलब्ध छैन</p>
-                            <button class="bg-white/20 hover:bg-white/30 text-white border border-white/30 px-4 py-2 rounded-lg text-sm">
+                            <p class="text-sm mb-4 text-gray-700">अहिले कुनै कोठा उपलब्ध छैन</p>
+                            <button class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 border border-gray-300 px-4 py-3 rounded-lg text-sm transition-colors">
                                 <i class="fas fa-bell mr-2"></i>
                                 नोटिफिकेशन दर्ता
                             </button>
@@ -682,8 +766,8 @@
             </div>
         </div>
 
-        <!-- Reviews Section -->
-        <div class="modern-card mt-8">
+        <!-- Reviews Section - WITH PROPER SPACING -->
+        <div class="modern-card mt-12">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 pb-4 border-b">
                 <h2 class="text-xl font-bold flex items-center gap-2">
                     <i class="fas fa-star text-yellow-600"></i>
@@ -785,4 +869,32 @@
         <i class="fas fa-arrow-up"></i>
     </button>
 </div>
+
+<!-- Emergency Backup Buttons (Hidden by default) -->
+<div class="fixed bottom-4 left-4 z-50 hidden">
+    <!-- Test links for debugging -->
+    <a href="{{ route('direct.hostel.gallery', $hostel->slug) }}" 
+       class="bg-red-500 text-white p-2 rounded">DEBUG: Gallery</a>
+    <a href="{{ route('direct.book.now', $hostel->slug) }}" 
+       class="bg-green-500 text-white p-2 rounded">DEBUG: Book Now</a>
+</div>
+
+<!-- JavaScript to fix image URLs -->
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Fix all gallery images
+    document.querySelectorAll('img[src*="thumbnail"]').forEach(img => {
+        if (img.src.includes('undefined') || img.src.includes('null')) {
+            img.src = '/images/default-room.png';
+        }
+    });
+    
+    // Log current routes for debugging
+    console.log('Hostel Slug:', '{{ $hostel->slug }}');
+    console.log('Gallery Route:', '{{ route("hostels.full.gallery", $hostel->slug) }}');
+    console.log('Book Route:', '{{ route("hostels.book", $hostel->slug) }}');
+});
+</script>
+@endpush
 @endsection
