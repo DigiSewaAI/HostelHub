@@ -637,4 +637,173 @@ class HostelController extends Controller
 
         return $slug;
     }
+
+    /**
+     * ✅ STEP 7: Hostel Messages Page
+     */
+    public function messages($hostelId)
+    {
+        \Log::info("=== HOSTEL MESSAGES START ===", [
+            'user_id' => auth()->id(),
+            'hostel_id' => $hostelId
+        ]);
+
+        // ✅ ENHANCED: Owner authorization
+        $user = Auth::user();
+        if ($user->hasRole('hostel_manager')) {
+            $this->authorizeHostelAccess(Hostel::find($hostelId));
+        }
+
+        $organizationId = session('current_organization_id');
+        $user = auth()->user();
+
+        // Get hostel with messages (with pagination)
+        $hostel = Hostel::where('organization_id', $organizationId)
+            ->where(function ($query) use ($user) {
+                $query->where('owner_id', $user->id)
+                    ->orWhere('manager_id', $user->id);
+            })
+            ->with(['messages' => function ($query) {
+                $query->latest()->paginate(20);
+            }])
+            ->findOrFail($hostelId);
+
+        // Get statistics
+        $totalMessages = $hostel->messages()->count();
+        $unreadMessages = $hostel->messages()->where('status', 'unread')->count();
+        $todayMessages = $hostel->messages()->whereDate('created_at', today())->count();
+
+        \Log::info("Messages loaded", [
+            'hostel_id' => $hostel->id,
+            'total_messages' => $totalMessages,
+            'unread_messages' => $unreadMessages,
+            'today_messages' => $todayMessages
+        ]);
+
+        return view('owner.messages.index', compact(
+            'hostel',
+            'totalMessages',
+            'unreadMessages',
+            'todayMessages'
+        ));
+    }
+
+    /**
+     * ✅ STEP 7: Mark message as read
+     */
+    public function markAsRead($messageId)
+    {
+        \Log::info("=== MARK AS READ START ===", [
+            'message_id' => $messageId,
+            'user_id' => auth()->id()
+        ]);
+
+        try {
+            $user = auth()->user();
+            $organizationId = session('current_organization_id');
+
+            // Find message with hostel relationship
+            $message = \App\Models\HostelMessage::whereHas('hostel', function ($query) use ($user, $organizationId) {
+                $query->where('organization_id', $organizationId)
+                    ->where(function ($q) use ($user) {
+                        $q->where('owner_id', $user->id)
+                            ->orWhere('manager_id', $user->id);
+                    });
+            })->findOrFail($messageId);
+
+            // Mark as read
+            $message->status = 'read';
+            $message->save();
+
+            \Log::info("Message marked as read", [
+                'message_id' => $message->id,
+                'hostel_id' => $message->hostel_id
+            ]);
+
+            return back()->with('success', 'सन्देश पढिएको रूपमा चिन्ह लगाइयो');
+        } catch (\Exception $e) {
+            \Log::error('Mark as read error: ' . $e->getMessage());
+            return back()->with('error', 'सन्देश अपडेट गर्दा त्रुटि: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * ✅ STEP 7: Delete message
+     */
+    public function deleteMessage($messageId)
+    {
+        \Log::info("=== DELETE MESSAGE START ===", [
+            'message_id' => $messageId,
+            'user_id' => auth()->id()
+        ]);
+
+        try {
+            $user = auth()->user();
+            $organizationId = session('current_organization_id');
+
+            // Find message with hostel relationship
+            $message = \App\Models\HostelMessage::whereHas('hostel', function ($query) use ($user, $organizationId) {
+                $query->where('organization_id', $organizationId)
+                    ->where(function ($q) use ($user) {
+                        $q->where('owner_id', $user->id)
+                            ->orWhere('manager_id', $user->id);
+                    });
+            })->findOrFail($messageId);
+
+            // Delete message
+            $message->delete();
+
+            \Log::info("Message deleted", [
+                'message_id' => $messageId,
+                'hostel_name' => $message->hostel->name ?? 'Unknown'
+            ]);
+
+            return back()->with('success', 'सन्देश सफलतापूर्वक मेटाइयो');
+        } catch (\Exception $e) {
+            \Log::error('Delete message error: ' . $e->getMessage());
+            return back()->with('error', 'सन्देश मेटाउँदा त्रुटि: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * ✅ STEP 7: Bulk mark as read
+     */
+    public function bulkMarkAsRead(Request $request)
+    {
+        \Log::info("=== BULK MARK AS READ ===", [
+            'message_ids' => $request->message_ids ?? [],
+            'user_id' => auth()->id()
+        ]);
+
+        try {
+            $user = auth()->user();
+            $organizationId = session('current_organization_id');
+
+            // Get messages that belong to user's hostels
+            $messages = \App\Models\HostelMessage::whereIn('id', $request->message_ids ?? [])
+                ->whereHas('hostel', function ($query) use ($user, $organizationId) {
+                    $query->where('organization_id', $organizationId)
+                        ->where(function ($q) use ($user) {
+                            $q->where('owner_id', $user->id)
+                                ->orWhere('manager_id', $user->id);
+                        });
+                })
+                ->get();
+
+            // Mark all as read
+            foreach ($messages as $message) {
+                $message->status = 'read';
+                $message->save();
+            }
+
+            \Log::info("Bulk mark as read completed", [
+                'count' => $messages->count()
+            ]);
+
+            return back()->with('success', $messages->count() . ' सन्देशहरू पढिएको रूपमा चिन्ह लगाइयो');
+        } catch (\Exception $e) {
+            \Log::error('Bulk mark as read error: ' . $e->getMessage());
+            return back()->with('error', 'बल्क अपडेट गर्दा त्रुटि: ' . $e->getMessage());
+        }
+    }
 }

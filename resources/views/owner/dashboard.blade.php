@@ -602,8 +602,8 @@
                         </form>
                     @endif
                     
-                    <!-- 🚨 FIX 2: DELETE BUTTON - WORKING FIX -->
-                    <form action="{{ url('/owner/contacts/' . $contact->id) }}" method="POST" class="inline">
+                    <!-- ✅ FIXED: CORRECTED DELETE BUTTON WITH NAMED ROUTE -->
+                    <form action="{{ route('owner.contacts.destroy', $contact) }}" method="POST" class="inline">
                         @csrf
                         @method('DELETE')
                         <button type="submit" 

@@ -31,6 +31,9 @@ Route::get('/hostels/{slug}/full-gallery', [\App\Http\Controllers\Frontend\Publi
 Route::get('/hostels/{slug}/book', [\App\Http\Controllers\BookingController::class, 'createFromGallery'])
     ->name('hostels.book');
 
+// ✅ Hostel Contact Form Route
+Route::post('/hostels/{hostel}/contact', [\App\Http\Controllers\Frontend\PublicController::class, 'hostelContact'])->name('hostels.contact');
+
 // ✅ Booking routes
 Route::get('/book-all/{slug}', [BookingController::class, 'createFromGalleryAllRooms'])->name('hostel.book.all.rooms');
 Route::get('/book/{slug}', [BookingController::class, 'createFromGallery'])->name('hostel.book.from.gallery');
@@ -166,6 +169,13 @@ Route::prefix('owner')
         Route::put('/galleries/{gallery}', [\App\Http\Controllers\Owner\GalleryController::class, 'update'])->name('owner.galleries.update');
         Route::delete('/galleries/{gallery}', [\App\Http\Controllers\Owner\GalleryController::class, 'destroy'])->name('owner.galleries.destroy');
         Route::get('/hostel/{hostel}/galleries', [\App\Http\Controllers\Owner\GalleryController::class, 'hostelGalleries'])->name('owner.hostel.galleries');
+
+        // Owner message routes
+        Route::get('/hostels/{hostel}/messages', [\App\Http\Controllers\Owner\HostelController::class, 'messages'])
+            ->name('owner.hostel.messages');
+
+        Route::post('/messages/{message}/mark-read', [\App\Http\Controllers\Owner\HostelController::class, 'markAsRead'])
+            ->name('owner.messages.mark-read');
     });
 
 // ✅ Student routes

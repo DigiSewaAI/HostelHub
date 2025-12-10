@@ -2,6 +2,10 @@
 
 @extends('layouts.public')
 
+@php
+    use Illuminate\Support\Facades\Storage;
+@endphp
+
 @push('head')
 @vite(['resources/css/public-themes.css'])
 <style>
@@ -423,7 +427,7 @@
         padding: 2rem;
     }
 
-    /* Cyber Gallery */
+    /* ✅ FIXED: Cyber Gallery - Simplified and Working */
     .cyber-gallery {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -438,6 +442,7 @@
         aspect-ratio: 1;
         transition: all 0.3s ease;
         background: var(--dark-2);
+        min-height: 300px;
     }
 
     .cyber-gallery-item::before {
@@ -462,6 +467,9 @@
         height: 100%;
         object-fit: cover;
         transition: transform 0.3s ease;
+        display: block !important;
+        opacity: 1 !important;
+        visibility: visible !important;
     }
 
     .cyber-gallery-item:hover {
@@ -473,6 +481,45 @@
 
     .cyber-gallery-item:hover img {
         transform: scale(1.1);
+    }
+
+    /* 🚨 CRITICAL FIX: Dark Theme Image Display */
+    .aspect-square {
+        aspect-ratio: 1 / 1;
+        position: relative;
+    }
+
+    .aspect-square img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+    }
+
+    /* Fix broken images */
+    img[src*="undefined"],
+    img[src*="null"],
+    img[src=""],
+    img:not([src]) {
+        content: url('{{ asset("images/default-room.png") }}') !important;
+        opacity: 0.7 !important;
+    }
+
+    /* Force image containers to show */
+    .bg-gray-100 {
+        background-color: var(--dark-3) !important;
+    }
+
+    /* Ensure gallery images are visible */
+    .w-full.h-full.object-cover {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
     }
 
     /* Cyber Facilities */
@@ -839,8 +886,8 @@
             <!-- Logo and Title -->
             <div style="text-align: center; margin-bottom: 2rem;">
                 <div class="cyber-logo">
-                    @if($logo)
-                        <img src="{{ $logo }}" alt="{{ $hostel->name }}">
+                    @if($hostel->logo_url)
+                        <img src="{{ $hostel->logo_url }}" alt="{{ $hostel->name }}">
                     @else
                         <div style="width: 100%; height: 100%; background: linear-gradient(135deg, var(--neon-cyan), var(--neon-pink), var(--neon-purple)); display: flex; align-items: center; justify-content: center;">
                             <i class="fas fa-building" style="color: var(--dark-1); font-size: 3rem;"></i>
@@ -943,50 +990,89 @@
             </div>
         </section>
 
-        <!-- Gallery Section -->
+        <!-- ✅ FIXED: Gallery Section -->
         <section class="cyber-container">
             <div class="cyber-section-header">
                 <h2 class="cyber-section-title nepali-font">हाम्रो ग्यालरी</h2>
                 <p class="cyber-subtitle nepali-font" style="color: var(--text-secondary);">हाम्रो होस्टलको सुन्दर तस्बिरहरू र भिडियोहरू हेर्नुहोस्</p>
             </div>
             
-            <div class="cyber-gallery">
-                @php
-                    $galleries = $hostel->activeGalleries ?? collect();
-                @endphp
+            @php
+                // ✅ BULLETPROOF GALLERY FETCHING
+                $galleries = collect();
                 
-                @if($galleries->count() > 0)
-                    @foreach($galleries as $gallery)
-                    <div class="cyber-gallery-item group">
-                        @if($gallery->media_type === 'image')
-                            <img src="{{ $gallery->thumbnail_url }}" 
-                                 alt="{{ $gallery->title }}"
-                                 class="w-full h-full object-cover">
-                        @elseif($gallery->media_type === 'external_video')
-                            <div class="w-full h-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center relative">
-                                <i class="fab fa-youtube text-white text-3xl"></i>
-                            </div>
-                        @else
-                            <div class="w-full h-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center relative">
-                                <i class="fas fa-video text-white text-3xl"></i>
-                            </div>
-                        @endif
+                // Method 1: Try Modern theme's working method
+                if(method_exists($hostel, 'galleries')) {
+                    $galleries = $hostel->galleries()->where('is_active', 1)->get();
+                }
+                
+                // Method 2: If empty, try direct database query (from your log)
+                if($galleries->isEmpty() && isset($hostel->id)) {
+                    $galleries = \App\Models\Gallery::where('hostel_id', $hostel->id)
+                                                    ->where('is_active', 1)
+                                                    ->get();
+                }
+                
+                // Method 3: Last resort - any galleries regardless of status
+                if($galleries->isEmpty() && isset($hostel->id)) {
+                    $galleries = \App\Models\Gallery::where('hostel_id', $hostel->id)->get();
+                }
+                
+                // Limit to 12 for display
+                $displayGalleries = $galleries->take(12);
+            @endphp
+            
+            @if($displayGalleries->count() > 0)
+                <div class="cyber-gallery">
+                    @foreach($displayGalleries as $gallery)
+                        @php
+                            // ✅ BULLETPROOF IMAGE URL RESOLUTION
+                            $imageUrl = asset('images/default-room.png');
+                            
+                            // Priority 1: media_url from database
+                            if(!empty($gallery->media_url)) {
+                                $imageUrl = $gallery->media_url;
+                            }
+                            // Priority 2: Build from media_path (like in your log)
+                            elseif(!empty($gallery->media_path)) {
+                                // Check if it's already a full URL
+                                if(filter_var($gallery->media_path, FILTER_VALIDATE_URL)) {
+                                    $imageUrl = $gallery->media_path;
+                                }
+                                // Build storage URL (like your log shows: http://localhost:8000/storage/...)
+                                else {
+                                    $imageUrl = Storage::disk('public')->url($gallery->media_path);
+                                }
+                            }
+                            // Priority 3: thumbnail_url as last resort
+                            elseif(!empty($gallery->thumbnail_url)) {
+                                $imageUrl = $gallery->thumbnail_url;
+                            }
+                        @endphp
                         
-                        <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-70 transition-all duration-300 flex items-center justify-center p-4">
-                            <div class="text-white text-center transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                                <h4 class="font-semibold text-sm mb-1 nepali-font">{{ $gallery->title }}</h4>
-                                @if($gallery->description)
-                                    <p class="text-xs opacity-90 nepali-font">{{ Str::limit($gallery->description, 60) }}</p>
-                                @endif
-                                @if($gallery->is_featured)
-                                    <span class="inline-block bg-yellow-500 text-white text-xs px-2 py-1 rounded-full mt-2 nepali-font">फिचर्ड</span>
-                                @endif
+                        <div class="cyber-gallery-item group">
+                            <img src="{{ $imageUrl }}" 
+                                 alt="{{ $gallery->title }}"
+                                 class="w-full h-full object-cover"
+                                 onerror="this.src='{{ asset('images/default-room.png') }}'; this.style.opacity='0.7';">
+                            
+                            <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-70 transition-all duration-300 flex items-center justify-center p-4">
+                                <div class="text-white text-center transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                                    <h4 class="font-semibold text-sm mb-1 nepali-font">{{ $gallery->title }}</h4>
+                                    @if($gallery->description)
+                                        <p class="text-xs opacity-90 nepali-font">{{ Str::limit($gallery->description, 60) }}</p>
+                                    @endif
+                                    @if($gallery->is_featured)
+                                        <span class="inline-block bg-yellow-500 text-white text-xs px-2 py-1 rounded-full mt-2 nepali-font">फिचर्ड</span>
+                                    @endif
+                                </div>
                             </div>
                         </div>
-                    </div>
                     @endforeach
-                @else
-                    <!-- Placeholder for empty gallery -->
+                </div>
+            @else
+                <!-- Placeholder for empty gallery -->
+                <div class="cyber-gallery">
                     <div class="cyber-gallery-item">
                         <div style="width: 100%; height: 100%; background: var(--dark-3); border: 2px solid var(--neon-purple); display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--neon-purple);">
                             <i class="fas fa-images" style="font-size: 3rem; margin-bottom: 1rem;"></i>
@@ -999,8 +1085,20 @@
                             <span class="nepali-font" style="font-size: 0.9rem;">भिडियोहरू थपिने...</span>
                         </div>
                     </div>
-                @endif
-            </div>
+                </div>
+            @endif
+
+            <!-- View All Gallery Button -->
+            @if($galleries->count() > 0 && $hostel->slug)
+                <div style="text-align: center; margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--neon-cyan);">
+                    <a href="{{ route('hostels.full.gallery', $hostel->slug) }}" 
+                       class="cyber-btn btn-cyber-green"
+                       style="padding: 1rem 3rem; font-size: 1.2rem;">
+                        <i class="fas fa-images"></i>
+                        <span class="nepali-font">सबै ग्यालरी हेर्नुहोस्</span>
+                    </a>
+                </div>
+            @endif
         </section>
 
         <!-- Facilities Section -->
@@ -1309,6 +1407,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255}, 0.03) 2px, rgba(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255}, 0.03) 4px)`;
         }, 3000);
     }
+
+    // Fix gallery images
+    document.querySelectorAll('.cyber-gallery-item img').forEach(img => {
+        if (img.src.includes('undefined') || img.src.includes('null') || !img.src) {
+            img.src = '{{ asset("images/default-room.png") }}';
+            img.style.opacity = '0.7';
+        }
+    });
 });
 </script>
 @endpush

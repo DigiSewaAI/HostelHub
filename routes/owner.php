@@ -213,7 +213,7 @@ Route::middleware(['auth', 'hasOrganization', 'role:owner,hostel_manager'])
         Route::get('students/search', [StudentController::class, 'search'])->name('students.search');
         Route::get('students/export/csv', [StudentController::class, 'exportCSV'])->name('students.export-csv');
 
-        // Contact routes
+        // ✅ FIXED: Contact routes with all required methods
         Route::resource('contacts', ContactController::class);
         Route::get('contacts/search', [ContactController::class, 'search'])->name('contacts.search');
         Route::post('contacts/bulk-delete', [ContactController::class, 'bulkDestroy'])->name('contacts.bulk-delete');
@@ -221,17 +221,25 @@ Route::middleware(['auth', 'hasOrganization', 'role:owner,hostel_manager'])
         // ✅ FIXED: Contact update status route - CORRECT NAME AND PARAMETER
         Route::post('contacts/{contact}/update-status', [ContactController::class, 'updateStatus'])->name('contacts.update-status');
 
+        // ✅ FIXED: Added missing contacts destroy route inside owner group
+        Route::delete('contacts/{contact}', [ContactController::class, 'destroy'])->name('contacts.destroy');
+
         Route::get('contacts/export/csv', [ContactController::class, 'exportCSV'])->name('contacts.export-csv');
 
         // ✅ FIXED: Missing Contact Routes for Owner Dashboard Features
         Route::post('contacts/{contact}/mark-read', [ContactController::class, 'markAsRead'])->name('contacts.mark-read');
         Route::post('contacts/{contact}/mark-unread', [ContactController::class, 'markAsUnread'])->name('contacts.mark-unread');
         Route::post('contacts/bulk-action', [ContactController::class, 'bulkAction'])->name('contacts.bulk-action');
+
+        // ✅ FIXED: Gallery Feature Toggle Routes - INSIDE OWNER GROUP
+        Route::patch('/galleries/{gallery}/toggle-featured', [OwnerGalleryController::class, 'toggleFeatured'])->name('galleries.toggle-featured');
+        Route::patch('/galleries/{gallery}/toggle-active', [OwnerGalleryController::class, 'toggleActive'])->name('galleries.toggle-active');
     });
 
+// ❌ REMOVED: Duplicate routes outside the group (they were causing errors)
 // Add this to the contact routes section
-Route::delete('contacts/{contact}', [ContactController::class, 'destroy'])->name('contacts.destroy');
+// Route::delete('contacts/{contact}', [ContactController::class, 'destroy'])->name('contacts.destroy');
 
 // Gallery Feature Toggle Routes - PATCH method प्रयोग गर्ने
-Route::patch('/galleries/{gallery}/toggle-featured', [OwnerGalleryController::class, 'toggleFeatured'])->name('galleries.toggle-featured');
-Route::patch('/galleries/{gallery}/toggle-active', [OwnerGalleryController::class, 'toggleActive'])->name('galleries.toggle-active');
+// Route::patch('/galleries/{gallery}/toggle-featured', [OwnerGalleryController::class, 'toggleFeatured'])->name('galleries.toggle-featured');
+// Route::patch('/galleries/{gallery}/toggle-active', [OwnerGalleryController::class, 'toggleActive'])->name('galleries.toggle-active');
