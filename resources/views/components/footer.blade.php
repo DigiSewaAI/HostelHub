@@ -14,7 +14,7 @@
                     <li><a href="/" class="hover:text-blue-200 nepali">होम</a></li>
                     <li><a href="{{ route('features') }}" class="hover:text-blue-200 nepali">सुविधाहरू</a></li>
                     <li><a href="{{ route('how-it-works') }}" class="hover:text-blue-200 nepali">कसरी काम गर्छ</a></li>
-                    <li><a href="{{ route('gallery') }}" class="hover:text-blue-200 nepali">ग्यालरी</a></li>
+                    <li><a href="{{ route('gallery.index') }}" class="hover:text-blue-200 nepali">ग्यालरी</a></li>
                     <li><a href="{{ route('pricing') }}" class="hover:text-blue-200 nepali">मूल्य</a></li>
                     <li><a href="{{ route('testimonials') }}" class="hover:text-blue-200 nepali">प्रशंसापत्रहरू</a></li>
                 </ul>
