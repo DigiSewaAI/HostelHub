@@ -25,6 +25,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Mail;
 
 class PublicController extends Controller
 {
@@ -782,6 +783,8 @@ class PublicController extends Controller
                 ->with('error', 'खोजी प्रक्रिया असफल: ' . $e->getMessage());
         }
     }
+
+
 
     /**
      * ✅ FIXED: Show only available rooms gallery
@@ -2125,6 +2128,158 @@ class PublicController extends Controller
         } catch (\Exception $e) {
             \Log::error('Booking success page error: ' . $e->getMessage());
             abort(404, 'बुकिंग फेला परेन।');
+        }
+    }
+    /**
+     * Hostel Contact Form Process
+     */
+    public function hostelContact(Request $request, $hostelId)
+    {
+        try {
+            // Validate form data
+            $validated = $request->validate([
+                'name' => 'required|string|max:100',
+                'email' => 'required|email|max:100',
+                'phone' => 'nullable|string|max:20',
+                'message' => 'required|string|max:2000',
+            ]);
+
+            // Find hostel
+            $hostel = Hostel::find($hostelId);
+
+            if (!$hostel) {
+                return back()->with('error', 'होस्टल फेला परेन!');
+            }
+
+            // ✅ TEMPORARY SOLUTION: Save to database table (if exists)
+            // तपाईंले पहिले "hostel_messages" table बनाउनु भएको छैन भने,
+            // यो काम गर्नेछ:
+
+            // Option 1: Try to save to hostel_messages table
+            try {
+                // Check if table exists
+                if (Schema::hasTable('hostel_messages')) {
+                    DB::table('hostel_messages')->insert([
+                        'hostel_id' => $hostel->id,
+                        'name' => $validated['name'],
+                        'email' => $validated['email'],
+                        'phone' => $validated['phone'] ?? null,
+                        'message' => $validated['message'],
+                        'status' => 'unread',
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+                // Option 2: Save to contact_requests table (if exists)
+                else if (Schema::hasTable('contact_requests')) {
+                    DB::table('contact_requests')->insert([
+                        'hostel_id' => $hostel->id,
+                        'name' => $validated['name'],
+                        'email' => $validated['email'],
+                        'phone' => $validated['phone'] ?? null,
+                        'message' => $validated['message'],
+                        'type' => 'hostel_contact',
+                        'status' => 'pending',
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+                // Option 3: Save to messages table (if exists)
+                else if (Schema::hasTable('messages')) {
+                    DB::table('messages')->insert([
+                        'hostel_id' => $hostel->id,
+                        'sender_name' => $validated['name'],
+                        'sender_email' => $validated['email'],
+                        'sender_phone' => $validated['phone'] ?? null,
+                        'content' => $validated['message'],
+                        'status' => 'unread',
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+                // Option 4: Just log the message
+                else {
+                    \Log::info('Hostel Contact Form Submission:', [
+                        'hostel_id' => $hostel->id,
+                        'hostel_name' => $hostel->name,
+                        'name' => $validated['name'],
+                        'email' => $validated['email'],
+                        'phone' => $validated['phone'] ?? null,
+                        'message' => $validated['message'],
+                        'ip' => $request->ip(),
+                    ]);
+                }
+
+                // Log for debugging
+                \Log::info('Contact form submitted for hostel: ' . $hostel->name, $validated);
+            } catch (\Exception $e) {
+                \Log::error('Failed to save contact message: ' . $e->getMessage());
+                // Continue anyway - don't show error to user
+            }
+
+            // ✅ BONUS: Send email notification (if email is configured)
+            try {
+                // Check if hostel owner has email
+                if ($hostel->owner && $hostel->owner->email) {
+                    Mail::raw(
+                        "नयाँ सन्देश तपाईंको होस्टेल '{$hostel->name}' बाट:\n\n" .
+                            "नाम: {$validated['name']}\n" .
+                            "ईमेल: {$validated['email']}\n" .
+                            "फोन: " . ($validated['phone'] ?? 'नभएको') . "\n\n" .
+                            "सन्देश:\n{$validated['message']}\n\n" .
+                            "मिति: " . now()->format('Y-m-d H:i:s'),
+                        function ($message) use ($hostel, $validated) {
+                            $message->to($hostel->owner->email)
+                                ->subject("नयाँ सन्देश: {$hostel->name} होस्टेल");
+                        }
+                    );
+                }
+            } catch (\Exception $e) {
+                \Log::error('Email send failed: ' . $e->getMessage());
+                // Continue - email failure shouldn't break form
+            }
+
+            // Success message in Nepali
+            return back()->with([
+                'success' => 'धन्यवाद! तपाईंको सन्देश सफलतापूर्वक पठाइयो। ' .
+                    'होस्टेल प्रबन्धकले चाँडै नै तपाईंसँग सम्पर्क गर्नेछन्।',
+                'contact_submitted' => true
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Hostel contact form error: ' . $e->getMessage());
+            return back()->with('error', 'सन्देश पठाउँदा त्रुटि भयो। कृपया पुनः प्रयास गर्नुहोस्।');
+        }
+    }
+
+    /**
+     * Quick Contact Form (for homepage)
+     */
+    public function quickContact(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:100',
+            'email' => 'required|email|max:100',
+            'subject' => 'required|string|max:200',
+            'message' => 'required|string|max:1000',
+        ]);
+
+        try {
+            // Save to database
+            DB::table('contact_requests')->insert([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'subject' => $validated['subject'],
+                'message' => $validated['message'],
+                'type' => 'general_contact',
+                'status' => 'pending',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            return back()->with('success', 'तपाईंको सन्देश पठाइयो! हामी चाँडै नै सम्पर्क गर्नेछौं।');
+        } catch (\Exception $e) {
+            \Log::error('Quick contact form error: ' . $e->getMessage());
+            return back()->with('error', 'त्रुटि भयो। कृपया पुनः प्रयास गर्नुहोस्।');
         }
     }
 }

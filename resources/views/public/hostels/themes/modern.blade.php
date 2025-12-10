@@ -163,6 +163,153 @@
         box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
     }
     
+    /* 🚨 UPDATED: Vertical Room Gallery Slider */
+    .room-gallery-vertical {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        max-height: 600px;
+        overflow-y: auto;
+        padding-right: 12px;
+        margin-bottom: 20px;
+        scrollbar-width: thin;
+        scrollbar-color: var(--primary) #f1f5f9;
+        animation: slideUp 0.5s ease-out;
+    }
+    
+    .room-gallery-vertical::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .room-gallery-vertical::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 10px;
+    }
+    
+    .room-gallery-vertical::-webkit-scrollbar-thumb {
+        background: linear-gradient(to bottom, var(--primary), #7c3aed);
+        border-radius: 10px;
+    }
+    
+    .room-gallery-vertical::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(to bottom, #1d4ed8, #6d28d9);
+    }
+    
+    .room-gallery-item {
+        background: white;
+        border-radius: 12px;
+        padding: 16px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        animation: fadeInUp 0.5s ease-out;
+        animation-fill-mode: both;
+        opacity: 0;
+    }
+    
+    /* Staggered animation for each item */
+        .room-gallery-item:nth-child(1)  { animation-delay: 0s; }
+        .room-gallery-item:nth-child(2)  { animation-delay: 0.1s; }
+        .room-gallery-item:nth-child(3)  { animation-delay: 0.2s; }
+        .room-gallery-item:nth-child(4)  { animation-delay: 0.3s; }
+        .room-gallery-item:nth-child(5)  { animation-delay: 0.4s; }
+        .room-gallery-item:nth-child(6)  { animation-delay: 0.5s; }
+        .room-gallery-item:nth-child(7)  { animation-delay: 0.6s; }
+        .room-gallery-item:nth-child(8)  { animation-delay: 0.7s; }
+        .room-gallery-item:nth-child(9)  { animation-delay: 0.8s; }
+        .room-gallery-item:nth-child(10) { animation-delay: 0.9s; }
+        .room-gallery-item:nth-child(11) { animation-delay: 1.0s; }
+        .room-gallery-item:nth-child(12) { animation-delay: 1.1s; }
+        .room-gallery-item:nth-child(13) { animation-delay: 1.2s; }
+        .room-gallery-item:nth-child(14) { animation-delay: 1.3s; }
+        .room-gallery-item:nth-child(15) { animation-delay: 1.4s; }
+
+    
+    .room-gallery-item:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        border-color: var(--primary);
+    }
+    
+    .room-gallery-image {
+        width: 120px;
+        height: 120px;
+        border-radius: 10px;
+        overflow: hidden;
+        flex-shrink: 0;
+        border: 2px solid white;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+    
+    .room-gallery-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.4s ease;
+    }
+    
+    .room-gallery-item:hover .room-gallery-image img {
+        transform: scale(1.08);
+    }
+    
+    .room-gallery-content {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    /* Animations */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    /* Auto-scroll animation container */
+    .auto-scroll-container {
+        position: relative;
+        overflow: hidden;
+        height: 600px;
+        border-radius: 12px;
+        background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+        border: 1px solid #e2e8f0;
+    }
+    
+    .auto-scroll-content {
+        position: absolute;
+        width: 100%;
+        animation: autoScroll 30s linear infinite;
+        animation-play-state: running;
+    }
+    
+    .auto-scroll-content:hover {
+        animation-play-state: paused;
+    }
+    
+    @keyframes autoScroll {
+        0% {
+            transform: translateY(0);
+        }
+        100% {
+            transform: translateY(calc(-100% + 600px));
+        }
+    }
+    
     /* 🚨 CRITICAL FIX: Modern Theme Image Display */
     .aspect-square {
         aspect-ratio: 1 / 1;
@@ -335,47 +482,43 @@
             <!-- LEFT COLUMN - Main Content -->
             <div class="space-y-8">
                 <!-- About Section -->
-                <div class="modern-card">
-                    <div class="flex items-center justify-between mb-6 pb-4 border-b">
-                        <h2 class="text-xl font-bold flex items-center gap-2">
-                            <i class="fas fa-info-circle text-blue-600"></i>
-                            हाम्रो बारेमा
-                        </h2>
-                        <div class="inline-flex items-center gap-2 bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
-                            <i class="fas fa-history"></i>
-                            <span>{{ $hostel->established_year ?? '२०२०' }} देखि</span>
-                        </div>
-                    </div>
-                    
-                    @if($hostel->description)
-                        <div class="text-gray-700 leading-relaxed whitespace-pre-line">
-                            {{ $hostel->description }}
-                        </div>
-                    @else
-                        <div class="text-center py-8 text-gray-500">
-                            <i class="fas fa-file-alt text-4xl mb-3 opacity-30"></i>
-                            <p class="italic text-sm">यस होस्टलको बारेमा विवरण उपलब्ध छैन।</p>
-                        </div>
-                    @endif
-                    
-                    <!-- Additional Info -->
-                    <div class="border-t pt-6 mt-6">
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            @foreach([
-                                ['icon' => 'user-friends', 'label' => 'विद्यार्थी क्षमता', 'value' => $hostel->max_capacity ?? '५०+'],
-                                ['icon' => 'wifi', 'label' => 'WiFi गति', 'value' => '१०० Mbps'],
-                                ['icon' => 'shield-alt', 'label' => 'सुरक्षा', 'value' => '२४/७'],
-                                ['icon' => 'utensils', 'label' => 'भोजन', 'value' => 'समावेश']
-                            ] as $info)
-                            <div class="text-center p-3 bg-blue-50 rounded-xl">
-                                <i class="fas fa-{{ $info['icon'] }} text-blue-600 text-lg mb-2"></i>
-                                <div class="font-bold text-gray-900 text-sm">{{ $info['value'] }}</div>
-                                <div class="text-gray-600 text-xs mt-1">{{ $info['label'] }}</div>
-                            </div>
-                            @endforeach
-                        </div>
-                    </div>
-                </div>
+<div class="modern-card">
+    <div class="flex items-center justify-between mb-6 pb-4 border-b">
+        <h2 class="text-xl font-bold flex items-center gap-2">
+            <i class="fas fa-info-circle text-blue-600"></i>
+            हाम्रो बारेमा
+        </h2>
+    </div>
+    
+    @if($hostel->description)
+        <div class="text-gray-700 leading-relaxed whitespace-pre-line">
+            {{ $hostel->description }}
+        </div>
+    @else
+        <div class="text-center py-8 text-gray-500">
+            <i class="fas fa-file-alt text-4xl mb-3 opacity-30"></i>
+            <p class="italic text-sm">यस होस्टलको बारेमा विवरण उपलब्ध छैन।</p>
+        </div>
+    @endif
+    
+    <!-- Additional Info -->
+    <div class="border-t pt-6 mt-6">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            @foreach([
+                ['icon' => 'user-friends', 'label' => 'विद्यार्थी क्षमता', 'value' => $hostel->max_capacity ?? '५०+'],
+                ['icon' => 'wifi', 'label' => 'WiFi गति', 'value' => '१०० Mbps'],
+                ['icon' => 'shield-alt', 'label' => 'सुरक्षा', 'value' => '२४/७'],
+                ['icon' => 'utensils', 'label' => 'भोजन', 'value' => 'समावेश']
+            ] as $info)
+            <div class="text-center p-3 bg-blue-50 rounded-xl">
+                <i class="fas fa-{{ $info['icon'] }} text-blue-600 text-lg mb-2"></i>
+                <div class="font-bold text-gray-900 text-sm">{{ $info['value'] }}</div>
+                <div class="text-gray-600 text-xs mt-1">{{ $info['label'] }}</div>
+            </div>
+            @endforeach
+        </div>
+    </div>
+</div>
 
                 <!-- Contact Form -->
                 <div class="modern-card">
@@ -494,17 +637,18 @@
                         @endif
                     </div>
                     
-                    <!-- ✅ FIXED: Simple Gallery Display - No complex filtering -->
+                    <!-- ✅ UPDATED: Vertical Sliding Gallery -->
                     @php
-                        // Get ALL active galleries, not filtered
-                        $allGalleries = $hostel->galleries()->where('is_active', true)->take(8)->get();
+                        // Get ALL active galleries, maximum 15
+                        $allGalleries = $hostel->galleries()->where('is_active', true)->take(15)->get();
                     @endphp
                     
                     @if($allGalleries->count() > 0)
-                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                            @foreach($allGalleries as $gallery)
-                                <div class="bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
-                                    <div class="aspect-square overflow-hidden bg-gray-100">
+                        <!-- Vertical Scroll Container -->
+                        <div class="room-gallery-vertical">
+                            @foreach($allGalleries as $index => $gallery)
+                                <div class="room-gallery-item flex gap-4">
+                                    <div class="room-gallery-image">
                                         @php
                                             // SIMPLE FIX: Direct image URL access
                                             $imgUrl = $gallery->media_url ?? asset('images/default-room.png');
@@ -521,15 +665,56 @@
                                         
                                         <img src="{{ $imgUrl }}" 
                                              alt="{{ $gallery->title }}"
-                                             class="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                                              onerror="this.src='{{ asset('images/default-room.png') }}'; this.style.opacity='0.7';">
                                     </div>
-                                    <div class="p-3">
-                                        <h4 class="font-semibold text-gray-900 text-sm truncate">{{ $gallery->title }}</h4>
-                                        <p class="text-gray-600 text-xs mt-1">{{ $gallery->category ?? 'कोठा' }}</p>
+                                    
+                                    <div class="room-gallery-content">
+                                        <div class="flex items-start justify-between mb-2">
+                                            <h4 class="font-bold text-gray-900">{{ $gallery->title }}</h4>
+                                            @if($gallery->is_featured)
+                                                <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">
+                                                    <i class="fas fa-star mr-1"></i> फिचर्ड
+                                                </span>
+                                            @endif
+                                        </div>
+                                        
+                                        @if($gallery->description)
+                                            <p class="text-gray-600 text-sm mb-3">{{ Str::limit($gallery->description, 80) }}</p>
+                                        @endif
+                                        
+                                        <div class="flex items-center gap-3">
+                                            <span class="inline-flex items-center gap-1 bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full">
+                                                <i class="fas fa-tag"></i>
+                                                {{ $gallery->category ?? 'कोठा' }}
+                                            </span>
+                                            
+                                            @if($gallery->room_id && $gallery->room)
+                                                <span class="inline-flex items-center gap-1 bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full">
+                                                    <i class="fas fa-door-open"></i>
+                                                    कोठा: {{ $gallery->room->room_number ?? 'N/A' }}
+                                                </span>
+                                            @endif
+                                        </div>
+                                        
+                                        <div class="mt-3 text-xs text-gray-500">
+                                            <i class="fas fa-clock mr-1"></i>
+                                            {{ $gallery->created_at->format('Y-m-d') ?? '२०२५-०१-०१' }}
+                                        </div>
                                     </div>
                                 </div>
                             @endforeach
+                        </div>
+                        
+                        <!-- Gallery Counter -->
+                        <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+                            <div class="text-sm text-gray-600">
+                                <i class="fas fa-image mr-1"></i>
+                                <span class="font-medium">{{ $allGalleries->count() }}</span> वटा तस्बिरहरू
+                            </div>
+                            <div class="text-xs text-gray-500">
+                                <i class="fas fa-mouse-pointer mr-1"></i>
+                                तलबाट माथि स्क्रोल गर्नुहोस्
+                            </div>
                         </div>
                     @else
                         <!-- Empty State -->
@@ -542,13 +727,27 @@
                         </div>
                     @endif
                     
+                    <!-- ✅ नयाँ बटन: कोठाका फोटो र बुकिंग -->
+@if($hostel->slug)
+    <div class="mt-8 mb-4 pt-4">
+        <a href="{{ route('hostel.gallery', $hostel->slug) }}"
+           class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg font-semibold hover:from-green-700 hover:to-emerald-700 transition-all transform hover:-translate-y-0.5 hover:shadow-lg">
+            <i class="fas fa-camera mr-2"></i>
+            कोठाका फोटो र बुकिंग
+        </a>
+        <p class="text-xs text-center text-gray-600 mt-2">
+            (प्रत्येक कोठाका फोटोहरू हेरेर सिधै बुक गर्नुहोस्)
+        </p>
+    </div>
+@endif
+
                     <!-- View Full Gallery Button -->
                     @if($hostel->slug && $allGalleries->count() > 0)
-                        <div class="mt-8 pt-6 border-t">
+                        <div class="pt-6 border-t">
                             <a href="{{ route('hostels.full.gallery', $hostel->slug) }}" 
                                class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:opacity-90 transition-opacity">
-                                <i class="fas fa-images"></i>
-                                कोठाको पुरै ग्यालरी हेर्नुहोस्
+                                <i class="fas fa-images mr-2"></i>
+                                पुरै ग्यालरी हेर्नुहोस्
                             </a>
                         </div>
                     @endif
@@ -822,16 +1021,7 @@
     </button>
 </div>
 
-<!-- Emergency Backup Buttons (Hidden by default) -->
-<div class="fixed bottom-4 left-4 z-50 hidden">
-    <!-- Test links for debugging -->
-    <a href="{{ route('direct.hostel.gallery', $hostel->slug) }}" 
-       class="bg-red-500 text-white p-2 rounded">DEBUG: Gallery</a>
-    <a href="{{ route('direct.book.now', $hostel->slug) }}" 
-       class="bg-green-500 text-white p-2 rounded">DEBUG: Book Now</a>
-</div>
-
-<!-- JavaScript to fix image URLs -->
+<!-- JavaScript for Gallery Auto Scroll (Optional) -->
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -841,6 +1031,44 @@ document.addEventListener('DOMContentLoaded', function() {
             img.src = '/images/default-room.png';
         }
     });
+    
+    // Optional: Auto-scroll effect for vertical gallery
+    const galleryContainer = document.querySelector('.room-gallery-vertical');
+    if (galleryContainer) {
+        let isPaused = false;
+        
+        galleryContainer.addEventListener('mouseenter', () => {
+            isPaused = true;
+        });
+        
+        galleryContainer.addEventListener('mouseleave', () => {
+            isPaused = false;
+            startAutoScroll();
+        });
+        
+        function startAutoScroll() {
+            if (isPaused) return;
+            
+            const scrollHeight = galleryContainer.scrollHeight;
+            const clientHeight = galleryContainer.clientHeight;
+            
+            if (scrollHeight > clientHeight) {
+                galleryContainer.scrollTop += 1;
+                
+                if (galleryContainer.scrollTop >= (scrollHeight - clientHeight)) {
+                    // Reset to top when reaching bottom
+                    setTimeout(() => {
+                        galleryContainer.scrollTop = 0;
+                    }, 2000);
+                }
+                
+                setTimeout(startAutoScroll, 30);
+            }
+        }
+        
+        // Start auto-scroll after 3 seconds
+        setTimeout(startAutoScroll, 3000);
+    }
     
     // Log current routes for debugging
     console.log('Hostel Slug:', '{{ $hostel->slug }}');

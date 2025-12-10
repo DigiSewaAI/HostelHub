@@ -845,4 +845,64 @@ class Hostel extends Model
             $user->id === $this->manager_id ||
             ($this->organization && $this->organization->users()->where('user_id', $user->id)->exists());
     }
+
+    /**
+     * ✅ STEP 4: Hostel messages relationship
+     * यो HostelMessage model सँगको connection हो
+     */
+    public function messages()
+    {
+        return $this->hasMany(HostelMessage::class);
+    }
+
+    /**
+     * ✅ STEP 4: Unread messages relationship
+     */
+    public function unreadMessages()
+    {
+        return $this->hasMany(HostelMessage::class)->where('status', 'unread');
+    }
+
+    /**
+     * ✅ STEP 4: Get unread messages count (सजिलो पहुँचको लागि)
+     */
+    public function getUnreadMessagesCountAttribute()
+    {
+        // Option 1: Relationship बाट count निकाल्ने
+        if ($this->relationLoaded('messages')) {
+            return $this->messages->where('status', 'unread')->count();
+        }
+
+        // Option 2: Database query गर्ने
+        return $this->messages()->where('status', 'unread')->count();
+    }
+
+    /**
+     * ✅ STEP 4: Get latest messages (dashboard को लागि)
+     */
+    public function getLatestMessagesAttribute()
+    {
+        return $this->messages()
+            ->latest()
+            ->take(5)
+            ->get();
+    }
+
+    /**
+     * ✅ STEP 4: Get today's messages
+     */
+    public function getTodaysMessagesAttribute()
+    {
+        return $this->messages()
+            ->whereDate('created_at', today())
+            ->get();
+    }
+
+    /**
+     * ✅ STEP 4: Check if has new messages
+     */
+    public function getHasNewMessagesAttribute()
+    {
+        return $this->unreadMessages()->exists();
+    }
 }
