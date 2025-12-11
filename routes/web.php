@@ -297,3 +297,33 @@ Route::get('/direct-gallery/{slug}', function ($slug) {
 Route::get('/direct-book/{slug}', function ($slug) {
     return redirect()->route('hostels.book', $slug);
 })->name('direct.book.now');
+
+// web.php मा थप्नुहोस्:
+Route::get('/test-pdf', function () {
+    $html = '
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body { font-family: "NotoSansDevanagari", Arial; }
+        </style>
+    </head>
+    <body>
+        <h1>PDF टेस्ट</h1>
+        <p>English Text: Hello World</p>
+        <p>Nepali Text: नमस्ते संसार</p>
+        <p>Numbers: १ २ ३ ४ ५</p>
+        <p><strong>Bold Text: बोल्ड टेक्स्ट</strong></p>
+    </body>
+    </html>';
+
+    $pdf = Barryvdh\DomPDF\Facade\Pdf::loadHTML($html)
+        ->setPaper('a4', 'portrait')
+        ->setOptions([
+            'defaultFont' => 'NotoSansDevanagari',
+            'isHtml5ParserEnabled' => true,
+            'isRemoteEnabled' => true,
+        ]);
+
+    return $pdf->stream('test.pdf');
+});

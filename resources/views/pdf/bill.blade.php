@@ -2,42 +2,134 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>बिल</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>Payment Bill</title>
     <style>
-        body { font-family: Arial; margin: 20px; }
-        .header { text-align: center; margin-bottom: 20px; }
-        .details { margin: 20px 0; }
-        .amount { text-align: center; font-size: 24px; font-weight: bold; margin: 20px 0; color: #f59e0b; }
-        .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #666; }
+        /* Simple and clean styles */
+        body { 
+            font-family: Arial, Helvetica, sans-serif; 
+            margin: 20px;
+            line-height: 1.6;
+            font-size: 14px;
+            color: #333;
+        }
+        
+        .header { 
+            text-align: center; 
+            margin-bottom: 20px; 
+            border-bottom: 2px solid #dc2626;
+            padding-bottom: 15px;
+        }
+        
+        .details { 
+            margin: 20px 0; 
+            padding: 15px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            background-color: #f9fafb;
+        }
+        
+        .details p {
+            margin: 10px 0;
+        }
+        
+        .amount { 
+            text-align: center; 
+            font-size: 22px; 
+            font-weight: bold; 
+            margin: 20px 0; 
+            color: #f59e0b;
+            padding: 15px;
+            background-color: #fffbeb;
+            border-radius: 8px;
+            border: 2px solid #f59e0b;
+        }
+        
+        .footer { 
+            text-align: center; 
+            margin-top: 30px; 
+            font-size: 12px; 
+            color: #666;
+            padding-top: 15px;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        /* Table-like layout for better alignment */
+        .row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .label {
+            font-weight: bold;
+            width: 50%;
+        }
+        
+        .value {
+            width: 50%;
+            text-align: right;
+        }
+        
+        /* Print styles */
+        @media print {
+            body { 
+                margin: 0; 
+                padding: 15px;
+                font-size: 13px;
+            }
+            .amount { 
+                color: #000 !important;
+                border: 2px solid #000;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="header">
-        <h2 style="color: #dc2626;">भुक्तानी बिल</h2>
-        <p><strong>बिल नम्बर:</strong> BILL-{{ $payment->id ?? 'N/A' }}</p>
+        <h2 style="color: #dc2626; margin-bottom: 5px;">PAYMENT BILL</h2>
+        <p><strong>Bill No:</strong> BILL-{{ $payment->id ?? 'N/A' }}</p>
     </div>
     
     <div class="details">
-        <p><strong>विद्यार्थी:</strong> {{ $student->name ?? 'विद्यार्थी छैन' }}</p>
-        <p><strong>होस्टल:</strong> {{ $hostel->name ?? 'होस्टल छैन' }}</p>
-        <p><strong>तिर्न बाँकी रकम:</strong> रु. {{ number_format($payment->amount ?? 0, 2) }}</p>
-        <p><strong>बिल मिति:</strong> {{ $payment->payment_date ? $payment->payment_date->format('Y-m-d') : 'N/A' }}</p>
-        <p><strong>तिर्ने अन्तिम मिति:</strong> 
-            @if(isset($payment->due_date) && $payment->due_date)
-                {{ $payment->due_date->format('Y-m-d') }}
-            @else
-                N/A
-            @endif
-        </p>
+        <div class="row">
+            <div class="label">Student:</div>
+            <div class="value">{{ $student->name ?? 'No Student' }}</div>
+        </div>
+        <div class="row">
+            <div class="label">Hostel:</div>
+            <div class="value">{{ $hostel->name ?? 'No Hostel' }}</div>
+        </div>
+        <div class="row">
+            <div class="label">Due Amount:</div>
+            <div class="value">Rs. {{ number_format($payment->amount ?? 0, 2) }}</div>
+        </div>
+        <div class="row">
+            <div class="label">Bill Date:</div>
+            <div class="value">{{ $payment->payment_date ? $payment->payment_date->format('Y-m-d') : 'N/A' }}</div>
+        </div>
+        <div class="row">
+            <div class="label">Last Due Date:</div>
+            <div class="value">
+                @if(isset($payment->due_date) && $payment->due_date)
+                    {{ $payment->due_date->format('Y-m-d') }}
+                @else
+                    N/A
+                @endif
+            </div>
+        </div>
     </div>
     
     <div class="amount">
-        जम्मा तिर्न बाँकी: रु. {{ number_format($payment->amount ?? 0, 2) }}
+        TOTAL DUE AMOUNT: Rs. {{ number_format($payment->amount ?? 0, 2) }}
     </div>
     
     <div class="footer">
-        <p>यो बिल निम्न मिति मा सिर्जना गरियो: {{ now()->format('Y-m-d H:i:s') }}</p>
-        <p>कृपया अन्तिम मिति भन्दा अगाडि भुक्तान गर्नुहोला</p>
+        <p>This bill was created on: {{ now()->format('Y-m-d H:i:s') }}</p>
+        <p><strong>Please make payment before the last due date</strong></p>
+        <p style="margin-top: 10px; font-size: 10px; color: #999;">
+            Generated by Hostel Management System
+        </p>
     </div>
 </body>
 </html>
