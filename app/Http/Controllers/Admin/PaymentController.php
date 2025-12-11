@@ -17,7 +17,7 @@ use App\Models\Booking;
 use App\Models\User;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\PaymentsExport;
-use PDF;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class PaymentController extends Controller
 {
@@ -994,66 +994,75 @@ class PaymentController extends Controller
     }
 
     /**
-     * Generate Receipt PDF - SIMPLE WORKING VERSION
+     * Generate Receipt PDF - FIXED VERSION
      */
     public function generateReceipt($id)
     {
         try {
-            $payment = Payment::with(['student', 'hostel'])->find($id);
+            \Log::info('Admin: Generating receipt for payment: ' . $id);
 
-            if (!$payment) {
-                return redirect()->back()->with('error', 'Payment not found');
-            }
+            $payment = Payment::with(['student', 'hostel'])->findOrFail($id);
 
-            // SECURITY FIX: Enhanced permission check
+            // Check permission
             $this->checkPaymentPermission($payment);
+
+            \Log::info('Payment found: ' . $payment->id);
 
             $data = [
                 'payment' => $payment,
                 'hostel' => $payment->hostel,
                 'student' => $payment->student,
-                'logoUrl' => $payment->hostel && $payment->hostel->logo_path ?
-                    Storage::disk('public')->url($payment->hostel->logo_path) : null,
-                'receipt_number' => 'R-' . $payment->id,
-                'description' => $payment->remarks ?: 'No description'
+                'receipt_number' => 'REC-' . $payment->id,
             ];
 
-            return PDF::loadView('pdf.simple_receipt', $data)
-                ->download('receipt_' . $payment->id . '.pdf');
+            // Use Pdf facade
+            $pdf = Pdf::loadView('pdf.receipt', $data)
+                ->setPaper('a4', 'portrait');
+
+            \Log::info('PDF generated successfully');
+            return $pdf->stream('receipt_' . $payment->id . '.pdf');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Receipt generation failed');
+            \Log::error('Admin Receipt PDF Error: ' . $e->getMessage());
+            \Log::error('Stack Trace: ' . $e->getTraceAsString());
+
+            return redirect()->back()->with('error', 'रसिद जनरेसन असफल भयो: ' . $e->getMessage());
         }
     }
 
+
     /**
-     * Simple Bill PDF - WORKING VERSION  
+     * Generate Bill PDF - FIXED VERSION
      */
     public function generateBill($id)
     {
         try {
-            $payment = Payment::with(['student', 'hostel'])->find($id);
+            \Log::info('Admin: Generating bill for payment: ' . $id);
 
-            if (!$payment) {
-                return redirect()->back()->with('error', 'Payment not found');
-            }
+            $payment = Payment::with(['student', 'hostel'])->findOrFail($id);
 
-            // SECURITY FIX: Enhanced permission check
+            // Check permission
             $this->checkPaymentPermission($payment);
+
+            \Log::info('Payment found: ' . $payment->id);
 
             $data = [
                 'payment' => $payment,
                 'hostel' => $payment->hostel,
                 'student' => $payment->student,
-                'logoUrl' => $payment->hostel && $payment->hostel->logo_path ?
-                    Storage::disk('public')->url($payment->hostel->logo_path) : null,
-                'bill_number' => 'B-' . $payment->id,
-                'description' => $payment->remarks ?: 'No description'
+                'bill_number' => 'BILL-' . $payment->id,
             ];
 
-            return PDF::loadView('pdf.simple_bill', $data)
-                ->download('bill_' . $payment->id . '.pdf');
+            // Use Pdf facade (with capital P to match your alias)
+            $pdf = Pdf::loadView('pdf.bill', $data)
+                ->setPaper('a4', 'portrait');
+
+            \Log::info('PDF generated successfully');
+            return $pdf->stream('bill_' . $payment->id . '.pdf');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Bill generation failed');
+            \Log::error('Admin Bill PDF Error: ' . $e->getMessage());
+            \Log::error('Stack Trace: ' . $e->getTraceAsString());
+
+            return redirect()->back()->with('error', 'बिल जनरेसन असफल भयो: ' . $e->getMessage());
         }
     }
 

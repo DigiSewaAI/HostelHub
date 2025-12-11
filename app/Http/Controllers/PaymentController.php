@@ -855,4 +855,44 @@ class PaymentController extends Controller
 
         return $pdf->download('भुक्तानी-रसिद-' . $payment->id . '.pdf');
     }
+
+    /**
+     * Generate bill PDF for owner
+     */
+    public function generateBill($id)
+    {
+        try {
+            $payment = Payment::with(['organization', 'user', 'booking'])->findOrFail($id);
+
+            // Authorization check
+            $this->authorizePaymentAccess($payment);
+
+            // Check if payment belongs to owner's organization
+            if ($payment->organization_id != session('selected_organization_id')) {
+                abort(403, 'तपाईंले यो बिल हेर्न पाउनुहुन्न।');
+            }
+
+            $data = [
+                'payment' => $payment,
+                'organization' => $payment->organization,
+                'user' => $payment->user,
+                'booking' => $payment->booking
+            ];
+
+            $pdf = PDF::loadView('payment.bill-pdf', $data);
+
+            return $pdf->download('भुक्तानी-बिल-' . $payment->id . '.pdf');
+        } catch (\Exception $e) {
+            Log::error('Bill generation failed: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'बिल जारी गर्न असफल: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Generate receipt PDF for owner (alias for downloadReceipt)
+     */
+    public function generateReceipt($id)
+    {
+        return $this->downloadReceipt($id);
+    }
 }

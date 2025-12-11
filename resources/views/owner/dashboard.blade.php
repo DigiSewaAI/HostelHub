@@ -24,6 +24,17 @@
             ->count();
             
         $totalPending = $pendingBookingsCount + $pendingBookingRequests;
+        
+        // ✅ FIXED: Filter contacts for owner's hostels only
+        $ownerContacts = \App\Models\Contact::whereIn('hostel_id', $hostelIds)->get();
+        
+        // Calculate contact statistics for owner only
+        $totalContacts = $ownerContacts->count();
+        $unreadContacts = $ownerContacts->where('is_read', false)->count();
+        $todayContacts = $ownerContacts->filter(function($contact) {
+            return $contact->created_at->isToday();
+        })->count();
+        $recentContacts = $ownerContacts->take(6)->sortByDesc('created_at');
     @endphp
 
     <!-- Welcome Section -->
@@ -527,7 +538,7 @@
             <div class="flex justify-between items-center">
                 <div>
                     <h3 class="text-sm font-semibold text-blue-800">कुल सन्देशहरू</h3>
-                    <p class="text-2xl font-bold text-blue-600">{{ $totalContacts ?? 0 }}</p>
+                    <p class="text-2xl font-bold text-blue-600">{{ $totalContacts }}</p>
                 </div>
                 <div class="bg-blue-600 text-white p-3 rounded-xl">
                     <i class="fas fa-envelope-open text-xl"></i>
@@ -539,7 +550,7 @@
             <div class="flex justify-between items-center">
                 <div>
                     <h3 class="text-sm font-semibold text-red-800">नपढिएका</h3>
-                    <p class="text-2xl font-bold text-red-600">{{ $unreadContacts ?? 0 }}</p>
+                    <p class="text-2xl font-bold text-red-600">{{ $unreadContacts }}</p>
                 </div>
                 <div class="bg-red-600 text-white p-3 rounded-xl">
                     <i class="fas fa-envelope text-xl"></i>
@@ -551,7 +562,7 @@
             <div class="flex justify-between items-center">
                 <div>
                     <h3 class="text-sm font-semibold text-green-800">आजको सन्देश</h3>
-                    <p class="text-2xl font-bold text-green-600">{{ $todayContacts ?? 0 }}</p>
+                    <p class="text-2xl font-bold text-green-600">{{ $todayContacts }}</p>
                 </div>
                 <div class="bg-green-600 text-white p-3 rounded-xl">
                     <i class="fas fa-calendar-day text-xl"></i>
@@ -562,7 +573,7 @@
 
     <!-- Recent Contacts -->
     <div class="space-y-3">
-        @forelse($recentContacts ?? [] as $contact)
+        @forelse($recentContacts as $contact)
             <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-200 hover:bg-gray-100 transition-colors">
                 <div class="flex items-center flex-1">
                     <div class="bg-blue-100 p-2 rounded-lg mr-3">
