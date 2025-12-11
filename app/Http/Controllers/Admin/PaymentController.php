@@ -1015,9 +1015,14 @@ class PaymentController extends Controller
                 'receipt_number' => 'REC-' . $payment->id,
             ];
 
-            // Use Pdf facade
+            // Use Pdf facade with Nepali font settings
             $pdf = Pdf::loadView('pdf.receipt', $data)
-                ->setPaper('a4', 'portrait');
+                ->setPaper('a4', 'portrait')
+                ->setOptions([
+                    'defaultFont' => 'helvetica',
+                    'isHtml5ParserEnabled' => true,
+                    'isRemoteEnabled' => true,
+                ]);
 
             \Log::info('PDF generated successfully');
             return $pdf->stream('receipt_' . $payment->id . '.pdf');
@@ -1028,6 +1033,7 @@ class PaymentController extends Controller
             return redirect()->back()->with('error', 'रसिद जनरेसन असफल भयो: ' . $e->getMessage());
         }
     }
+
 
 
     /**
@@ -1052,9 +1058,14 @@ class PaymentController extends Controller
                 'bill_number' => 'BILL-' . $payment->id,
             ];
 
-            // Use Pdf facade (with capital P to match your alias)
+            // Use Pdf facade with Nepali font settings
             $pdf = Pdf::loadView('pdf.bill', $data)
-                ->setPaper('a4', 'portrait');
+                ->setPaper('a4', 'portrait')
+                ->setOptions([
+                    'defaultFont' => 'helvetica',
+                    'isHtml5ParserEnabled' => true,
+                    'isRemoteEnabled' => true,
+                ]);
 
             \Log::info('PDF generated successfully');
             return $pdf->stream('bill_' . $payment->id . '.pdf');
@@ -1065,6 +1076,7 @@ class PaymentController extends Controller
             return redirect()->back()->with('error', 'बिल जनरेसन असफल भयो: ' . $e->getMessage());
         }
     }
+
 
     /**
      * Convert amount to Nepali words - IMPROVED VERSION
