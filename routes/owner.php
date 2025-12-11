@@ -15,7 +15,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\RoomController as AdminRoomController; // ✅ FIXED: Added alias
 use App\Http\Controllers\Admin\StudentController;
-use App\Http\Controllers\Admin\ContactController;
+use App\Http\Controllers\Owner\ContactController as OwnerContactController; // ✅ CHANGED: Admin to Owner with alias
 use App\Http\Controllers\Admin\DocumentController;
 
 /*|--------------------------------------------------------------------------
@@ -86,11 +86,41 @@ Route::middleware(['auth', 'hasOrganization', 'role:owner,hostel_manager'])
             Route::get('/{gallery}/video', [OwnerGalleryController::class, 'getVideoUrl'])->name('video-url');
         });
 
+        // Debug PDF route
+        Route::get('/debug/pdf', [\App\Http\Controllers\Owner\PaymentController::class, 'debugPDF'])->name('debug.pdf');
+
+        // ✅ ADDED: Test view routes for debugging PDF views
+        Route::get('/test/bill-view/{id}', function ($id) {
+            $payment = \App\Models\Payment::with(['student', 'hostel'])->findOrFail($id);
+
+            return view('pdf.bill', [
+                'payment' => $payment,
+                'hostel' => $payment->hostel,
+                'student' => $payment->student,
+                'bill_number' => 'BILL-' . $payment->id,
+            ]);
+        })->name('test.bill-view');
+
+        Route::get('/test/receipt-view/{id}', function ($id) {
+            $payment = \App\Models\Payment::with(['student', 'hostel'])->findOrFail($id);
+
+            return view('pdf.receipt', [
+                'payment' => $payment,
+                'hostel' => $payment->hostel,
+                'student' => $payment->student,
+                'receipt_number' => 'REC-' . $payment->id,
+            ]);
+        })->name('test.receipt-view');
+
         // ✅ FIXED: Owner Payment Management Routes
         Route::prefix('payments')->name('payments.')->group(function () {
             // Payment report and manual payment
             Route::get('/report', [PaymentController::class, 'ownerReport'])->name('report');
             Route::post('/manual', [PaymentController::class, 'createManualPayment'])->name('manual');
+
+            // ✅ यी दुई routes थप्नुहोस्:
+            Route::get('/{payment}/bill', [PaymentController::class, 'generateBill'])->name('bill');
+            Route::get('/{payment}/receipt', [PaymentController::class, 'generateReceipt'])->name('receipt');
 
             // Bank transfer approval routes
             Route::post('/{payment}/approve', [PaymentController::class, 'approveBankTransfer'])->name('approve');
@@ -213,23 +243,16 @@ Route::middleware(['auth', 'hasOrganization', 'role:owner,hostel_manager'])
         Route::get('students/search', [StudentController::class, 'search'])->name('students.search');
         Route::get('students/export/csv', [StudentController::class, 'exportCSV'])->name('students.export-csv');
 
-        // ✅ FIXED: Contact routes with all required methods
-        Route::resource('contacts', ContactController::class);
-        Route::get('contacts/search', [ContactController::class, 'search'])->name('contacts.search');
-        Route::post('contacts/bulk-delete', [ContactController::class, 'bulkDestroy'])->name('contacts.bulk-delete');
-
-        // ✅ FIXED: Contact update status route - CORRECT NAME AND PARAMETER
-        Route::post('contacts/{contact}/update-status', [ContactController::class, 'updateStatus'])->name('contacts.update-status');
-
-        // ✅ FIXED: Added missing contacts destroy route inside owner group
-        Route::delete('contacts/{contact}', [ContactController::class, 'destroy'])->name('contacts.destroy');
-
-        Route::get('contacts/export/csv', [ContactController::class, 'exportCSV'])->name('contacts.export-csv');
-
-        // ✅ FIXED: Missing Contact Routes for Owner Dashboard Features
-        Route::post('contacts/{contact}/mark-read', [ContactController::class, 'markAsRead'])->name('contacts.mark-read');
-        Route::post('contacts/{contact}/mark-unread', [ContactController::class, 'markAsUnread'])->name('contacts.mark-unread');
-        Route::post('contacts/bulk-action', [ContactController::class, 'bulkAction'])->name('contacts.bulk-action');
+        // ✅ CHANGED: Contact routes with OwnerContactController (updated all routes)
+        Route::resource('contacts', OwnerContactController::class);
+        Route::get('contacts/search', [OwnerContactController::class, 'search'])->name('contacts.search');
+        Route::post('contacts/bulk-delete', [OwnerContactController::class, 'bulkDestroy'])->name('contacts.bulk-delete');
+        Route::post('contacts/{contact}/update-status', [OwnerContactController::class, 'updateStatus'])->name('contacts.update-status');
+        Route::delete('contacts/{contact}', [OwnerContactController::class, 'destroy'])->name('contacts.destroy');
+        Route::get('contacts/export/csv', [OwnerContactController::class, 'exportCSV'])->name('contacts.export-csv');
+        Route::post('contacts/{contact}/mark-read', [OwnerContactController::class, 'markAsRead'])->name('contacts.mark-read');
+        Route::post('contacts/{contact}/mark-unread', [OwnerContactController::class, 'markAsUnread'])->name('contacts.mark-unread');
+        Route::post('contacts/bulk-action', [OwnerContactController::class, 'bulkAction'])->name('contacts.bulk-action');
 
         // ✅ FIXED: Gallery Feature Toggle Routes - INSIDE OWNER GROUP
         Route::patch('/galleries/{gallery}/toggle-featured', [OwnerGalleryController::class, 'toggleFeatured'])->name('galleries.toggle-featured');

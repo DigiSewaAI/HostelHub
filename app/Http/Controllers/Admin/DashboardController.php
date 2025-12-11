@@ -498,14 +498,11 @@ class DashboardController extends Controller
                     'todayCirculars' => 0,
                     'circularReadRate' => 0,
                     'studentEngagement' => 0,
-                    // ✅ FIXED: Contact Statistics - Remove hostel filtering
-                    'totalContacts' => Contact::count(),
-                    'unreadContacts' => Contact::where('is_read', false)->count(),
-                    'todayContacts' => Contact::whereDate('created_at', today())->count(),
-                    'recentContacts' => Contact::select('id', 'name', 'email', 'subject', 'message', 'is_read', 'created_at')
-                        ->latest('created_at')
-                        ->take(6)
-                        ->get(),
+                    // ✅ FIXED: Contact Statistics - Now filtered by owner's hostels (none in this case)
+                    'totalContacts' => 0,
+                    'unreadContacts' => 0,
+                    'todayContacts' => 0,
+                    'recentContacts' => collect(),
                 ]);
             }
 
@@ -551,13 +548,14 @@ class DashboardController extends Controller
             $circularReadRate = $this->calculateOrganizationReadRate($organization->id);
             $studentEngagement = $this->calculateStudentEngagement($organization->id);
 
-            // ✅ FIXED: Contact Statistics for Owner Dashboard - CORRECT QUERY
-            $totalContacts = Contact::count();
-            $unreadContacts = Contact::where('is_read', false)->count();
-            $todayContacts = Contact::whereDate('created_at', today())->count();
+            // ✅ FIXED: Contact Statistics for Owner Dashboard - Now filtered by owner's hostels
+            $totalContacts = Contact::whereIn('hostel_id', $hostelIds)->count();
+            $unreadContacts = Contact::whereIn('hostel_id', $hostelIds)->where('is_read', false)->count();
+            $todayContacts = Contact::whereIn('hostel_id', $hostelIds)->whereDate('created_at', today())->count();
 
-            // ✅ CRITICAL FIX: Ensure recentContacts is properly defined
+            // ✅ CRITICAL FIX: Ensure recentContacts is properly defined and filtered by owner's hostels
             $recentContacts = Contact::select('id', 'name', 'email', 'subject', 'message', 'is_read', 'created_at')
+                ->whereIn('hostel_id', $hostelIds)
                 ->latest('created_at')
                 ->take(6)
                 ->get();
@@ -613,7 +611,7 @@ class DashboardController extends Controller
                 'todayCirculars',
                 'circularReadRate',
                 'studentEngagement',
-                // ✅ FIXED: Contact Statistics - PROPERLY DEFINED
+                // ✅ FIXED: Contact Statistics - PROPERLY DEFINED AND FILTERED
                 'totalContacts',
                 'unreadContacts',
                 'todayContacts',
@@ -625,7 +623,21 @@ class DashboardController extends Controller
                 'organization_id' => $organization->id ?? null
             ]);
 
-            // ✅ FIXED: Ensure recentContacts is defined even in error case
+            // Get the organization again for the catch block
+            $user = auth()->user();
+            $org = $organization ?? $user->organizations()->wherePivot('role', 'owner')->first();
+            $hostelIds = $org ? $org->hostels()->pluck('id') : [];
+
+            // ✅ FIXED: Contact Statistics with PROPER DATA and filtered by owner's hostels
+            $totalContacts = $org ? Contact::whereIn('hostel_id', $hostelIds)->count() : 0;
+            $unreadContacts = $org ? Contact::whereIn('hostel_id', $hostelIds)->where('is_read', false)->count() : 0;
+            $todayContacts = $org ? Contact::whereIn('hostel_id', $hostelIds)->whereDate('created_at', today())->count() : 0;
+            $recentContacts = $org ? Contact::select('id', 'name', 'email', 'subject', 'message', 'is_read', 'created_at')
+                ->whereIn('hostel_id', $hostelIds)
+                ->latest('created_at')
+                ->take(6)
+                ->get() : collect();
+
             return view('owner.dashboard', [
                 'error' => 'डाटा लोड गर्न असफल भयो',
                 'hostel' => null,
@@ -652,14 +664,11 @@ class DashboardController extends Controller
                 'todayCirculars' => 0,
                 'circularReadRate' => 0,
                 'studentEngagement' => 0,
-                // ✅ FIXED: Contact Statistics with PROPER DATA
-                'totalContacts' => Contact::count(),
-                'unreadContacts' => Contact::where('is_read', false)->count(),
-                'todayContacts' => Contact::whereDate('created_at', today())->count(),
-                'recentContacts' => Contact::select('id', 'name', 'email', 'subject', 'message', 'is_read', 'created_at')
-                    ->latest('created_at')
-                    ->take(6)
-                    ->get(),
+                // ✅ FIXED: Contact Statistics with PROPER DATA and filtered by owner's hostels
+                'totalContacts' => $totalContacts,
+                'unreadContacts' => $unreadContacts,
+                'todayContacts' => $todayContacts,
+                'recentContacts' => $recentContacts,
             ]);
         }
     }
