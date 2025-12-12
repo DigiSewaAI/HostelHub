@@ -204,30 +204,12 @@
                     <div class="row mt-4">
                         <div class="col-12">
                             <div class="d-flex justify-content-end gap-2 flex-wrap">
-                                <!-- 🆕 NEW: Bill/Receipt Dropdown -->
-                                <div class="btn-group me-2">
-                                    <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" 
-                                            aria-expanded="false">
-                                        <i class="fas fa-file-pdf me-2"></i>बिल / रसिद
-                                    </button>
-                                    <div class="dropdown-menu">
-                                        <a class="dropdown-item" href="{{ route('owner.payments.bill', $payment) }}" target="_blank">
-                                            <i class="fas fa-file-invoice text-primary me-2"></i>बिल डाउनलोड गर्नुहोस्
-                                        </a>
-                                        <a class="dropdown-item" href="{{ route('owner.payments.receipt', $payment) }}" target="_blank">
-                                            <i class="fas fa-receipt text-success me-2"></i>रसिद डाउनलोड गर्नुहोस्
-                                        </a>
-                                        <div class="dropdown-divider"></div>
-                                        <a class="dropdown-item" href="#" onclick="showLogoModal()">
-                                            <i class="fas fa-upload text-info me-2"></i>लोगो अपलोड गर्नुहोस्
-                                        </a>
-                                    </div>
-                                </div>
-
-                                <!-- Existing buttons -->
+                                <!-- Edit Button -->
                                 <a href="{{ route('owner.payments.edit', $payment) }}" class="btn btn-warning">
                                     <i class="fas fa-edit me-2"></i>सम्पादन गर्नुहोस्
                                 </a>
+                                
+                                <!-- Delete Button -->
                                 <form action="{{ route('owner.payments.destroy', $payment) }}" method="POST" class="d-inline">
                                     @csrf
                                     @method('DELETE')
@@ -241,75 +223,6 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
-
-<!-- 🆕 NEW: Logo Upload Modal -->
-<div class="modal fade" id="logoUploadModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title">
-                    <i class="fas fa-upload mr-2"></i>होस्टल लोगो अपलोड गर्नुहोस्
-                </h5>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            @php
-                // Get the hostel for this payment or the first hostel of the owner
-                $hostel = $payment->hostel ?? App\Models\Hostel::where('owner_id', auth()->id())
-                    ->orWhere('manager_id', auth()->id())
-                    ->first();
-            @endphp
-            @if($hostel)
-            <form action="{{ route('owner.hostels.logo.upload', $hostel->id) }}" method="POST" enctype="multipart/form-data" id="logoUploadForm">
-                @csrf
-                <div class="modal-body">
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle mr-2"></i>
-                        बिल र रसिद जारी गर्नका लागि होस्टलको लोगो आवश्यक छ।
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="logo" class="form-label">लोगो छनौट गर्नुहोस्</label>
-                        <input type="file" class="form-control" id="logo" name="logo" accept="image/*" required>
-                        <div class="form-text">
-                            स्वीकार्य फाइलहरू: JPEG, PNG, JPG, GIF। अधिकतम साइज: 2MB
-                        </div>
-                    </div>
-
-                    <div class="logo-preview mb-3 text-center" style="display: none;">
-                        <img id="logoPreview" src="#" alt="Logo Preview" class="img-thumbnail" style="max-height: 150px;">
-                    </div>
-
-                    @if($hostel->logo_path && Storage::disk('public')->exists($hostel->logo_path))
-                    <div class="current-logo text-center mb-3">
-                        <p class="text-muted">हालको लोगो:</p>
-                        <img src="{{ Storage::disk('public')->url($hostel->logo_path) }}" alt="Current Logo" class="img-thumbnail" style="max-height: 100px;">
-                    </div>
-                    @endif
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">रद्द गर्नुहोस्</button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-upload mr-2"></i>अपलोड गर्नुहोस्
-                    </button>
-                </div>
-            </form>
-            @else
-            <div class="modal-body">
-                <div class="alert alert-warning text-center">
-                    <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
-                    <h5>कुनै होस्टल भेटिएन</h5>
-                    <p class="mb-0">कृपया पहिले होस्टल सिर्जना गर्नुहोस्।</p>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">बन्द गर्नुहोस्</button>
-            </div>
-            @endif
         </div>
     </div>
 </div>
@@ -360,54 +273,6 @@
 
 @push('scripts')
 <script>
-// 🆕 NEW: Logo preview functionality
-document.addEventListener('DOMContentLoaded', function() {
-    const logoInput = document.getElementById('logo');
-    const logoPreview = document.getElementById('logoPreview');
-    const logoPreviewContainer = document.querySelector('.logo-preview');
-    
-    if (logoInput) {
-        logoInput.addEventListener('change', function() {
-            const file = this.files[0];
-            if (file) {
-                // Validate file size (2MB)
-                if (file.size > 2 * 1024 * 1024) {
-                    alert('फाइल साइज 2MB भन्दा ठूलो छ। कृपया सानो फाइल छनौट गर्नुहोस्।');
-                    this.value = '';
-                    return;
-                }
-                
-                // Validate file type
-                const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'];
-                if (!validTypes.includes(file.type)) {
-                    alert('कृपया JPEG, PNG, JPG, वा GIF प्रकारको फाइल मात्र छनौट गर्नुहोस्।');
-                    this.value = '';
-                    return;
-                }
-                
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    logoPreview.src = e.target.result;
-                    logoPreviewContainer.style.display = 'block';
-                }
-                reader.readAsDataURL(file);
-            } else {
-                logoPreviewContainer.style.display = 'none';
-            }
-        });
-    }
-    
-    // Show modal if triggered by session
-    @if(session('show_logo_modal'))
-        $('#logoUploadModal').modal('show');
-    @endif
-});
-
-// 🆕 NEW: Function to show logo modal
-function showLogoModal() {
-    $('#logoUploadModal').modal('show');
-}
-
 // 🆕 NEW: Handle bill/receipt download with error handling
 document.addEventListener('DOMContentLoaded', function() {
     const billLinks = document.querySelectorAll('a[href*="bill"], a[href*="receipt"]');
