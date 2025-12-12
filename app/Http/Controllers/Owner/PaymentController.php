@@ -89,6 +89,48 @@ class PaymentController extends Controller
     }
 
     /**
+     * Simple method to get logo as base64
+     */
+    private function getHostelLogoBase64($hostelId)
+    {
+        try {
+            $hostel = Hostel::find($hostelId);
+
+            if (!$hostel || !$hostel->logo_path) {
+                return null;
+            }
+
+            // Try storage path
+            $storagePath = storage_path('app/public/' . $hostel->logo_path);
+
+            if (file_exists($storagePath)) {
+                $mimeType = mime_content_type($storagePath);
+                $imageData = file_get_contents($storagePath);
+
+                if ($imageData) {
+                    return 'data:' . $mimeType . ';base64,' . base64_encode($imageData);
+                }
+            }
+
+            // Try public path
+            $publicPath = public_path('storage/' . $hostel->logo_path);
+            if (file_exists($publicPath)) {
+                $mimeType = mime_content_type($publicPath);
+                $imageData = file_get_contents($publicPath);
+
+                if ($imageData) {
+                    return 'data:' . $mimeType . ';base64,' . base64_encode($imageData);
+                }
+            }
+
+            return null;
+        } catch (\Exception $e) {
+            Log::error('Logo base64 error: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
      * Image to Base64 Converter (Robust Version)
      */
     private function imageToBase64($path)
@@ -343,7 +385,7 @@ class PaymentController extends Controller
     }
 
     /**
-     * Generate Bill PDF
+     * Generate Bill PDF - USING SIMPLE TEMPLATE
      */
     public function generateBill($id)
     {
@@ -353,27 +395,25 @@ class PaymentController extends Controller
             $payment = Payment::with(['student.room', 'hostel'])->findOrFail($id);
             $this->checkPaymentPermission($payment);
 
-            // ✅ NEW: Temporary file system use गर्ने
-            $logoPath = $this->getLogoForPDF($payment->hostel_id);
-            $logoBase64 = $this->getHostelLogo($payment->hostel_id);
+            // Get logo as base64
+            $logoBase64 = $this->getHostelLogoBase64($payment->hostel_id);
 
-            // File path to absolute URL convert गर्ने
-            $logoUrl = 'file://' . str_replace('\\', '/', $logoPath);
-
-            $pdf = Pdf::loadView('pdf.bill', [
+            $data = [
                 'payment' => $payment,
                 'hostel' => $payment->hostel,
                 'student' => $payment->student,
                 'bill_number' => 'BILL-' . str_pad($payment->id, 6, '0', STR_PAD_LEFT),
-                'logo_path' => $logoUrl, // ✅ यो नयाँ variable
-                'logo_base64' => $logoBase64, // ✅ Fallback को लागि
-            ])
+                'logo_base64' => $logoBase64,
+            ];
+
+            // ✅ USE SIMPLE TEMPLATE (DOMPDF compatible)
+            $pdf = Pdf::loadView('pdf.bill', $data)
                 ->setPaper('a4', 'portrait')
                 ->setOptions([
                     'defaultFont' => 'helvetica',
                     'isHtml5ParserEnabled' => true,
                     'isRemoteEnabled' => true,
-                    'chroot' => storage_path('app/temp_logos'), // ✅ यो important छ
+                    'enable_css_float' => false, // Disable CSS float
                 ]);
 
             Log::info('Bill PDF generated successfully');
@@ -382,16 +422,12 @@ class PaymentController extends Controller
             Log::error('Owner Bill PDF Error: ' . $e->getMessage());
             Log::error('Stack Trace: ' . $e->getTraceAsString());
 
-            return response()->json([
-                'success' => false,
-                'message' => 'बिल जनरेसन असफल भयो',
-                'error' => $e->getMessage(),
-            ], 500);
+            return redirect()->back()->with('error', 'बिल जनरेसन असफल भयो: ' . $e->getMessage());
         }
     }
 
     /**
-     * Generate Receipt PDF
+     * Generate Receipt PDF - USING SIMPLE TEMPLATE
      */
     public function generateReceipt($id)
     {
@@ -401,25 +437,25 @@ class PaymentController extends Controller
             $payment = Payment::with(['student.room', 'hostel', 'verifiedBy'])->findOrFail($id);
             $this->checkPaymentPermission($payment);
 
-            // ✅ NEW: Temporary file system use गर्ने
-            $logoPath = $this->getLogoForPDF($payment->hostel_id);
-            $logoBase64 = $this->getHostelLogo($payment->hostel_id);
-            $logoUrl = 'file://' . str_replace('\\', '/', $logoPath);
+            // Get logo as base64
+            $logoBase64 = $this->getHostelLogoBase64($payment->hostel_id);
 
-            $pdf = Pdf::loadView('pdf.receipt', [
+            $data = [
                 'payment' => $payment,
                 'hostel' => $payment->hostel,
                 'student' => $payment->student,
                 'receipt_number' => 'REC-' . str_pad($payment->id, 6, '0', STR_PAD_LEFT),
-                'logo_path' => $logoUrl, // ✅ यो नयाँ variable
-                'logo_base64' => $logoBase64, // ✅ Fallback को लागि
-            ])
+                'logo_base64' => $logoBase64,
+            ];
+
+            // ✅ USE SIMPLE TEMPLATE (DOMPDF compatible)
+            $pdf = Pdf::loadView('pdf.receipt', $data)
                 ->setPaper('a4', 'portrait')
                 ->setOptions([
                     'defaultFont' => 'helvetica',
                     'isHtml5ParserEnabled' => true,
                     'isRemoteEnabled' => true,
-                    'chroot' => storage_path('app/temp_logos'), // ✅ यो important छ
+                    'enable_css_float' => false, // Disable CSS float
                 ]);
 
             Log::info('Receipt PDF generated successfully');
@@ -428,11 +464,7 @@ class PaymentController extends Controller
             Log::error('Owner Receipt PDF Error: ' . $e->getMessage());
             Log::error('Stack Trace: ' . $e->getTraceAsString());
 
-            return response()->json([
-                'success' => false,
-                'message' => 'रसिद जनरेसन असफल भयो',
-                'error' => $e->getMessage(),
-            ], 500);
+            return redirect()->back()->with('error', 'रसिद जनरेसन असफल भयो: ' . $e->getMessage());
         }
     }
 
