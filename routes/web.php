@@ -327,3 +327,9 @@ Route::get('/test-pdf', function () {
 
     return $pdf->stream('test.pdf');
 });
+
+// Logo debug routes
+Route::get('/debug-logo', [\App\Http\Controllers\Owner\PaymentController::class, 'debugLogo']);
+Route::get('/debug-logo/{hostelId}', [\App\Http\Controllers\Owner\PaymentController::class, 'debugLogo']);
+
+Route::get('/test-logo-pdf/{id}', [\App\Http\Controllers\Owner\PaymentController::class, 'testLogoPDF']);

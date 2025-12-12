@@ -1001,7 +1001,8 @@ class PaymentController extends Controller
         try {
             \Log::info('Admin: Generating receipt for payment: ' . $id);
 
-            $payment = Payment::with(['student', 'hostel'])->findOrFail($id);
+            // Load payment with student's room relationship
+            $payment = Payment::with(['student.room', 'hostel', 'verifiedBy'])->findOrFail($id);
 
             // Check permission
             $this->checkPaymentPermission($payment);
@@ -1012,10 +1013,9 @@ class PaymentController extends Controller
                 'payment' => $payment,
                 'hostel' => $payment->hostel,
                 'student' => $payment->student,
-                'receipt_number' => 'REC-' . $payment->id,
+                'receipt_number' => 'REC-' . str_pad($payment->id, 6, '0', STR_PAD_LEFT),
             ];
 
-            // Use Pdf facade with Nepali font settings
             $pdf = Pdf::loadView('pdf.receipt', $data)
                 ->setPaper('a4', 'portrait')
                 ->setOptions([
@@ -1024,7 +1024,7 @@ class PaymentController extends Controller
                     'isRemoteEnabled' => true,
                 ]);
 
-            \Log::info('PDF generated successfully');
+            \Log::info('Receipt PDF generated successfully');
             return $pdf->stream('receipt_' . $payment->id . '.pdf');
         } catch (\Exception $e) {
             \Log::error('Admin Receipt PDF Error: ' . $e->getMessage());
@@ -1034,8 +1034,6 @@ class PaymentController extends Controller
         }
     }
 
-
-
     /**
      * Generate Bill PDF - FIXED VERSION
      */
@@ -1044,7 +1042,8 @@ class PaymentController extends Controller
         try {
             \Log::info('Admin: Generating bill for payment: ' . $id);
 
-            $payment = Payment::with(['student', 'hostel'])->findOrFail($id);
+            // Load payment with student's room relationship
+            $payment = Payment::with(['student.room', 'hostel'])->findOrFail($id);
 
             // Check permission
             $this->checkPaymentPermission($payment);
@@ -1055,10 +1054,9 @@ class PaymentController extends Controller
                 'payment' => $payment,
                 'hostel' => $payment->hostel,
                 'student' => $payment->student,
-                'bill_number' => 'BILL-' . $payment->id,
+                'bill_number' => 'BILL-' . str_pad($payment->id, 6, '0', STR_PAD_LEFT),
             ];
 
-            // Use Pdf facade with Nepali font settings
             $pdf = Pdf::loadView('pdf.bill', $data)
                 ->setPaper('a4', 'portrait')
                 ->setOptions([
@@ -1067,7 +1065,7 @@ class PaymentController extends Controller
                     'isRemoteEnabled' => true,
                 ]);
 
-            \Log::info('PDF generated successfully');
+            \Log::info('Bill PDF generated successfully');
             return $pdf->stream('bill_' . $payment->id . '.pdf');
         } catch (\Exception $e) {
             \Log::error('Admin Bill PDF Error: ' . $e->getMessage());
