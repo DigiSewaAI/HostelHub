@@ -174,38 +174,8 @@
         </div>
     </div>
 
-    <!-- 🔍 NEW: Student Search for Invoice Generation -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card shadow">
-                <div class="card-header">
-                    <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="fas fa-search me-2"></i>विद्यार्थी खोजेर बिल तयार गर्नुहोस्
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <form action="{{ route('owner.payments.student.search') }}" method="GET" class="form-inline">
-                        <div class="row">
-                            <div class="col-md-8 mb-2">
-                                <input type="text" name="query" class="form-control" 
-                                       placeholder="विद्यार्थीको नाम, इमेल वा आईडी लेख्नुहोस्..." 
-                                       value="{{ old('query') }}" required style="width: 100%;">
-                            </div>
-                            <div class="col-md-4 mb-2">
-                                <button type="submit" class="btn btn-primary w-100">
-                                    <i class="fas fa-search me-2"></i>विद्यार्थी खोज्नुहोस्
-                                </button>
-                            </div>
-                        </div>
-                        <small class="text-muted">
-                            तपाईंले कुनै पनि विद्यार्थीको नाम, इमेल वा आईडीले खोजेर सिधै बिल वा रसिद तयार गर्न सक्नुहुन्छ।
-                        </small>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
+    <!-- ❌ REMOVED: Student Search for Invoice Generation section -->
+    
     <!-- म्यानुअल भुक्तानी फर्म -->
     <div class="row mb-4">
         <div class="col-12">
@@ -393,22 +363,6 @@
                                                class="btn btn-sm btn-info action-btn" title="विवरण हेर्नुहोस्">
                                                 <i class="fas fa-eye"></i>
                                             </a>
-                                            <!-- 🔍 NEW: Bill/Receipt Buttons -->
-                                            <div class="btn-group">
-                                                <button type="button" class="btn btn-sm btn-success dropdown-toggle action-btn" 
-                                                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
-                                                        title="बिल / रसिद">
-                                                    <i class="fas fa-file-pdf"></i>
-                                                </button>
-                                                <div class="dropdown-menu dropdown-menu-right">
-                                                    <a class="dropdown-item" href="{{ route('owner.payments.bill', $payment) }}" target="_blank">
-                                                        <i class="fas fa-file-invoice text-primary mr-2"></i>बिल डाउनलोड
-                                                    </a>
-                                                    <a class="dropdown-item" href="{{ route('owner.payments.receipt', $payment) }}" target="_blank">
-                                                        <i class="fas fa-receipt text-success mr-2"></i>रसिद डाउनलोड
-                                                    </a>
-                                                </div>
-                                            </div>
                                         </div>
                                     </td>
                                 </tr>
@@ -614,13 +568,6 @@
     .form-inline .form-control {
         margin-bottom: 0.5rem;
     }
-
-    /* Improved dropdown for mobile */
-    .dropdown-menu {
-        position: absolute;
-        right: 0;
-        left: auto;
-    }
 }
 
 /* 🔍 NEW: Student search form improvements */
@@ -681,7 +628,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // 🔍 NEW: Logo preview functionality
-document.addEventListener('DOMContentLoaded', function() {
+$(document).ready(function() {
     const logoInput = document.getElementById('logo');
     const logoPreview = document.getElementById('logoPreview');
     const logoPreviewContainer = document.querySelector('.logo-preview');
@@ -706,14 +653,6 @@ document.addEventListener('DOMContentLoaded', function() {
     @if(session('show_logo_modal'))
         $('#logoUploadModal').modal('show');
     @endif
-
-    // Show modal when bill/receipt buttons are clicked and logo is missing
-    document.querySelectorAll('[href*="bill"], [href*="receipt"]').forEach(link => {
-        link.addEventListener('click', function(e) {
-            // Check if we need to show logo modal (this would typically be set by the server)
-            // For now, we'll let the server handle the logo check and redirect back with 'show_logo_modal'
-        });
-    });
 });
 
 // 🔍 NEW: Show logo modal manually if needed

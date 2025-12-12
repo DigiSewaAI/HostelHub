@@ -459,11 +459,12 @@ class PaymentController extends Controller
         }
     }
 
-    /**
-     * Update the specified payment in storage.
-     */
     public function update(Request $request, Payment $payment)
     {
+        // update method को सुरुमा यो थप्नुहोस्:
+        \Log::info('Auth user:', Auth::user() ? ['id' => Auth::id(), 'name' => Auth::user()->name] : ['user' => 'not authenticated']);
+        \Log::info('Update request:', $request->all());
+        \Log::info('Payment ID:', ['id' => $payment->id]);
         $this->checkPaymentPermission($payment);
 
         // Students can't update payments
@@ -526,8 +527,15 @@ class PaymentController extends Controller
                 'payment_method' => $request->payment_method,
                 'status' => $request->status,
                 'remarks' => $request->notes,
-                'updated_by' => $user->id,
+                'updated_at' => now(), // ✅ यो थप्नुहोस्
             ];
+
+            // ✅ सुरक्षित तरिकाले updated_by set गर्ने
+            if (Auth::check()) {
+                $paymentData['updated_by'] = Auth::id();
+            } else {
+                $paymentData['updated_by'] = null;
+            }
 
             // Set hostel_id based on role
             if ($user->hasRole('admin')) {
