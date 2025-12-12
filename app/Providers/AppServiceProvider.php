@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Services\PlanLimitService;
+use App\Services\ImageOptimizer; // ✅ ADDED: For image optimization service
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
@@ -34,6 +35,11 @@ class AppServiceProvider extends ServiceProvider
         // Register PlanLimitService as a singleton
         $this->app->singleton(PlanLimitService::class, function ($app) {
             return new PlanLimitService();
+        });
+
+        // ✅ ADDED: Register ImageOptimizer Service as a singleton
+        $this->app->singleton(ImageOptimizer::class, function ($app) {
+            return new ImageOptimizer();
         });
 
         // Register other services if needed

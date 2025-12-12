@@ -2282,4 +2282,26 @@ class PublicController extends Controller
             return back()->with('error', 'त्रुटि भयो। कृपया पुनः प्रयास गर्नुहोस्।');
         }
     }
+
+    // Method add garnu paryo:
+    protected function optimizeGalleryImages($galleries)
+    {
+        $optimizer = app(\App\Services\ImageOptimizer::class);
+
+        return $galleries->map(function ($gallery) use ($optimizer) {
+            if ($gallery->media_type === 'image' && $gallery->media_url) {
+                // Extract local path from URL
+                $path = str_replace(asset('storage/'), '', $gallery->media_url);
+                $path = str_replace(asset(''), '', $path);
+
+                $gallery->optimized = $optimizer->optimizeForGallery($path);
+                $gallery->placeholder = $optimizer->createPlaceholder(280, 280);
+            } else {
+                $gallery->optimized = null;
+                $gallery->placeholder = $optimizer->createPlaceholder(280, 280, '#6366F1');
+            }
+
+            return $gallery;
+        });
+    }
 }
