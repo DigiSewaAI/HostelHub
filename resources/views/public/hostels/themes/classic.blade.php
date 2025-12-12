@@ -2,6 +2,11 @@
 
 @extends('layouts.public')
 
+@php
+    use Illuminate\Support\Facades\Storage;
+    use Illuminate\Support\Str;
+@endphp
+
 @push('head')
 @vite(['resources/css/public-themes.css'])
 <style>
@@ -219,7 +224,7 @@
         color: #5C4033;
     }
 
-    /* UPDATED: Gallery Section - Added proper styling */
+    /* ✅ FIXED: UPDATED Gallery Section - BULLETPROOF SOLUTION */
     .classic-gallery {
         margin: 2rem 0;
     }
@@ -239,6 +244,8 @@
         transition: all 0.3s ease;
         background: white;
         position: relative;
+        aspect-ratio: 1;
+        height: 250px;
     }
 
     .classic-gallery-item:hover {
@@ -248,7 +255,7 @@
 
     .classic-gallery-item img {
         width: 100%;
-        height: 200px;
+        height: 100%;
         object-fit: cover;
         display: block;
         transition: transform 0.3s ease;
@@ -256,6 +263,28 @@
 
     .classic-gallery-item:hover img {
         transform: scale(1.1);
+    }
+
+    /* ✅ FIXED: Ensure images display properly */
+    .classic-gallery-item img {
+        display: block !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* Fix broken images */
+    img[src*="undefined"],
+    img[src*="null"],
+    img[src=""],
+    img:not([src]) {
+        content: url('{{ asset("images/default-room.png") }}') !important;
+        opacity: 0.7 !important;
     }
 
     /* Gallery Overlay Styles */
@@ -269,6 +298,7 @@
         opacity: 0;
         transition: all 0.3s ease;
         padding: 1rem;
+        z-index: 2;
     }
 
     .classic-gallery-item:hover .classic-gallery-overlay {
@@ -284,6 +314,36 @@
 
     .classic-gallery-item:hover .classic-gallery-overlay-content {
         transform: translateY(0);
+    }
+
+    /* Video Icon Overlay */
+    .classic-video-overlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1;
+        background: rgba(0, 0, 0, 0.7);
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 3px solid var(--gold-color);
+    }
+
+    .classic-video-overlay i {
+        color: white;
+        font-size: 1.5rem;
+    }
+
+    .classic-gallery-item.youtube-video .classic-video-overlay {
+        background: rgba(255, 0, 0, 0.8);
+    }
+
+    .classic-gallery-item.uploaded-video .classic-video-overlay {
+        background: rgba(0, 0, 0, 0.8);
     }
 
     /* Facilities Grid */
@@ -738,44 +798,90 @@
             </div>
         </section>
 
-        <!-- UPDATED: Dynamic Gallery Section -->
+        <!-- ✅ FIXED: Dynamic Gallery Section - BULLETPROOF SOLUTION -->
         <section class="classic-section">
             <h2 class="classic-section-title nepali-font">ग्यालरी</h2>
             <div class="classic-gallery">
                 @php
-                    $galleries = $hostel->activeGalleries ?? collect();
+                    // ✅ BULLETPROOF GALLERY FETCHING
+                    $galleries = collect();
+                    
+                    // Method 1: Try Modern theme's working method
+                    if(method_exists($hostel, 'galleries')) {
+                        $galleries = $hostel->galleries()->where('is_active', 1)->get();
+                    }
+                    
+                    // Method 2: If empty, try direct database query
+                    if($galleries->isEmpty() && isset($hostel->id)) {
+                        $galleries = \App\Models\Gallery::where('hostel_id', $hostel->id)
+                                                        ->where('is_active', 1)
+                                                        ->get();
+                    }
+                    
+                    // Method 3: Last resort - any galleries regardless of status
+                    if($galleries->isEmpty() && isset($hostel->id)) {
+                        $galleries = \App\Models\Gallery::where('hostel_id', $hostel->id)->get();
+                    }
+                    
+                    // Limit to 12 for display
+                    $displayGalleries = $galleries->take(12);
                 @endphp
                 
-                @if($galleries->count() > 0)
+                @if($displayGalleries->count() > 0)
                     <div class="classic-gallery-grid">
-                        @foreach($galleries as $gallery)
-                        <div class="classic-gallery-item">
-                            @if($gallery->media_type === 'image')
-                                <img src="{{ $gallery->thumbnail_url }}" 
-                                     alt="{{ $gallery->title }}"
-                                     style="width: 100%; height: 200px; object-fit: cover;">
-                            @elseif($gallery->media_type === 'external_video')
-                                <div style="width: 100%; height: 200px; background: linear-gradient(135deg, var(--deep-red) 0%, var(--dark-brown) 100%); display: flex; align-items: center; justify-content: center;">
-                                    <i class="fab fa-youtube text-white text-3xl"></i>
-                                </div>
-                            @else
-                                <div style="width: 100%; height: 200px; background: linear-gradient(135deg, var(--gold-color) 0%, var(--deep-red) 100%); display: flex; align-items: center; justify-content: center;">
-                                    <i class="fas fa-video text-white text-3xl"></i>
-                                </div>
-                            @endif
+                        @foreach($displayGalleries as $gallery)
+                            @php
+                                // ✅ BULLETPROOF IMAGE URL RESOLUTION
+                                $imageUrl = asset('images/default-room.png');
+                                
+                                // Priority 1: media_url from database
+                                if(!empty($gallery->media_url)) {
+                                    $imageUrl = $gallery->media_url;
+                                }
+                                // Priority 2: Build from media_path
+                                elseif(!empty($gallery->media_path)) {
+                                    // Check if it's already a full URL
+                                    if(filter_var($gallery->media_path, FILTER_VALIDATE_URL)) {
+                                        $imageUrl = $gallery->media_path;
+                                    }
+                                    // Build storage URL
+                                    else {
+                                        $imageUrl = Storage::disk('public')->url($gallery->media_path);
+                                    }
+                                }
+                                // Priority 3: thumbnail_url as last resort
+                                elseif(!empty($gallery->thumbnail_url)) {
+                                    $imageUrl = $gallery->thumbnail_url;
+                                }
+                            @endphp
                             
-                            <div class="classic-gallery-overlay">
-                                <div class="classic-gallery-overlay-content">
-                                    <h4 class="nepali-font" style="font-size: 1.1rem; font-weight: bold; margin-bottom: 0.5rem;">{{ $gallery->title }}</h4>
-                                    @if($gallery->description)
-                                        <p class="nepali-font" style="font-size: 0.9rem; opacity: 0.9;">{{ Str::limit($gallery->description, 60) }}</p>
-                                    @endif
-                                    @if($gallery->is_featured)
-                                        <span class="nepali-font" style="display: inline-block; background: var(--gold-color); color: var(--deep-red); font-size: 0.8rem; padding: 0.2rem 0.5rem; border-radius: 1rem; margin-top: 0.5rem; font-weight: bold;">फिचर्ड</span>
-                                    @endif
+                            <div class="classic-gallery-item @if($gallery->media_type === 'external_video') youtube-video @elseif($gallery->media_type === 'video') uploaded-video @endif">
+                                <img src="{{ $imageUrl }}" 
+                                     alt="{{ $gallery->title }}"
+                                     onerror="this.src='{{ asset('images/default-room.png') }}'; this.style.opacity='0.7';">
+                                
+                                @if($gallery->media_type === 'external_video')
+                                    <div class="classic-video-overlay">
+                                        <i class="fab fa-youtube"></i>
+                                    </div>
+                                @elseif($gallery->media_type === 'video')
+                                    <div class="classic-video-overlay">
+                                        <i class="fas fa-video"></i>
+                                    </div>
+                                @endif
+                                
+                                <div class="classic-gallery-overlay">
+                                    <div class="classic-gallery-overlay-content">
+                                        <h4 class="nepali-font" style="font-size: 1.1rem; font-weight: bold; margin-bottom: 0.5rem;">{{ $gallery->title }}</h4>
+                                        @if($gallery->description)
+                                            <p class="nepali-font" style="font-size: 0.9rem; opacity: 0.9;">{{ Str::limit($gallery->description, 60) }}</p>
+                                        @endif
+                                        @if($gallery->is_featured)
+                                            <span class="nepali-font" style="display: inline-block; background: var(--gold-color); color: var(--deep-red); font-size: 0.8rem; padding: 0.2rem 0.5rem; border-radius: 1rem; margin-top: 0.5rem; font-weight: bold;">फिचर्ड</span>
+                                        @endif
+                                    </div>
                                 </div>
                             </div>
-                        </div>
                         @endforeach
                     </div>
                 @else
@@ -946,4 +1052,19 @@
         </section>
     </div>
 </div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Fix gallery images
+    document.querySelectorAll('.classic-gallery-item img').forEach(img => {
+        if (img.src.includes('undefined') || img.src.includes('null') || !img.src) {
+            img.src = '{{ asset("images/default-room.png") }}';
+            img.style.opacity = '0.7';
+        }
+    });
+});
+</script>
+@endpush
+
 @endsection
