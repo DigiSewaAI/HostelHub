@@ -298,38 +298,72 @@ Route::get('/direct-book/{slug}', function ($slug) {
     return redirect()->route('hostels.book', $slug);
 })->name('direct.book.now');
 
-// web.php मा थप्नुहोस्:
-Route::get('/test-pdf', function () {
-    $html = '
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <style>
-            body { font-family: "NotoSansDevanagari", Arial; }
-        </style>
-    </head>
-    <body>
-        <h1>PDF टेस्ट</h1>
-        <p>English Text: Hello World</p>
-        <p>Nepali Text: नमस्ते संसार</p>
-        <p>Numbers: १ २ ३ ४ ५</p>
-        <p><strong>Bold Text: बोल्ड टेक्स्ट</strong></p>
-    </body>
-    </html>';
+Route::get('/create-svg-logo/{hostelId}', function ($hostelId = 15) {
+    $hostel = \App\Models\Hostel::find($hostelId);
 
-    $pdf = Barryvdh\DomPDF\Facade\Pdf::loadHTML($html)
-        ->setPaper('a4', 'portrait')
-        ->setOptions([
-            'defaultFont' => 'NotoSansDevanagari',
-            'isHtml5ParserEnabled' => true,
-            'isRemoteEnabled' => true,
-        ]);
+    if (!$hostel) {
+        return "Hostel not found";
+    }
 
-    return $pdf->stream('test.pdf');
+    $name = $hostel->name;
+    $initial = strtoupper(substr(trim($name), 0, 1));
+    if (empty($initial)) $initial = 'H';
+
+    // Create SVG
+    $svg = '<?xml version="1.0" encoding="UTF-8"?>
+    <svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
+        <rect width="400" height="300" fill="#3b82f6" rx="20"/>
+        <text x="200" y="150" font-family="Arial, sans-serif" font-size="80" 
+              fill="white" text-anchor="middle" dy=".3em" font-weight="bold">
+            ' . $initial . '
+        </text>
+        <text x="200" y="220" font-family="Arial, sans-serif" font-size="24" 
+              fill="white" text-anchor="middle">
+            ' . htmlspecialchars($name) . '
+        </text>
+    </svg>';
+
+    // Save as SVG
+    $filename = 'hostel_logos/logo_' . $hostelId . '.svg';
+    $path = storage_path('app/public/' . $filename);
+
+    // Ensure directory exists
+    if (!file_exists(dirname($path))) {
+        mkdir(dirname($path), 0777, true);
+    }
+
+    file_put_contents($path, $svg);
+
+    // Update database
+    $hostel->logo_path = $filename;
+    $hostel->save();
+
+    return "<h2>✅ SVG Logo Created!</h2>
+            <p>Saved as: {$filename}</p>
+            <div style='width: 200px; height: 150px; border: 2px solid green;'>
+                " . $svg . "
+            </div>
+            <p><a href='/test-logo-system/{$hostelId}' target='_blank'>Test Logo System</a></p>";
 });
 
-// Logo debug routes
-Route::get('/debug-logo', [\App\Http\Controllers\Owner\PaymentController::class, 'debugLogo']);
-Route::get('/debug-logo/{hostelId}', [\App\Http\Controllers\Owner\PaymentController::class, 'debugLogo']);
+// In routes/web.php
+Route::get('/debug-logo/{hostelId}', function ($hostelId) {
+    $hostel = \App\Models\Hostel::find($hostelId);
 
-Route::get('/test-logo-pdf/{id}', [\App\Http\Controllers\Owner\PaymentController::class, 'testLogoPDF']);
+    if (!$hostel) {
+        return 'Hostel not found';
+    }
+
+    $storagePath = storage_path('app/public/' . $hostel->logo_path);
+    $publicPath = public_path('storage/' . $hostel->logo_path);
+
+    return [
+        'hostel' => $hostel->name,
+        'logo_path_in_db' => $hostel->logo_path,
+        'storage_path' => $storagePath,
+        'storage_exists' => file_exists($storagePath),
+        'public_path' => $publicPath,
+        'public_exists' => file_exists($publicPath),
+        'url' => asset('storage/' . $hostel->logo_path),
+    ];
+});

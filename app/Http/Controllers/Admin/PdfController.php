@@ -54,18 +54,31 @@ class PdfController extends Controller
                 abort(404, 'भुक्तानी सम्बन्धित डाटा फेला परेन');
             }
 
-            // ✅ SECURITY FIX: Secure logo URL generation
-            $logoUrl = null;
+            // ✅ FIXED: Enhanced logo URL generation for DOMPDF compatibility
+            $logo_url = null;
+            $logo_path = null;
             if ($hostel->logo_path && Storage::disk('public')->exists($hostel->logo_path)) {
-                $logoUrl = Storage::disk('public')->url($hostel->logo_path);
+                // Get absolute file path for DOMPDF
+                $absolutePath = storage_path('app/public/' . $hostel->logo_path);
+                if (file_exists($absolutePath)) {
+                    // Use file:// protocol for DOMPDF local file access
+                    $logo_url = 'file://' . str_replace('\\', '/', $absolutePath);
+                    $logo_path = $logo_url; // For compatibility with views
+                }
             }
+
+            // ✅ FIXED: Generate receipt number
+            $receipt_number = 'REC-' . str_pad($payment->id, 6, '0', STR_PAD_LEFT);
 
             // Simple HTML with proper error handling
             $html = view('pdf.simple_receipt', [
                 'payment' => $payment,
                 'hostel' => $hostel,
                 'student' => $student,
-                'logoUrl' => $logoUrl
+                'receipt_number' => $receipt_number,
+                'logo_url' => $logo_url, // ✅ Added for universal solution
+                'logo_path' => $logo_path, // ✅ Added for compatibility
+                'logoUrl' => $logo_url, // ✅ Also add camelCase for compatibility
             ])->render();
 
             // Generate PDF with secure configuration
@@ -129,18 +142,31 @@ class PdfController extends Controller
                 abort(404, 'भुक्तानी सम्बन्धित डाटा फेला परेन');
             }
 
-            // ✅ SECURITY FIX: Secure logo URL generation
-            $logoUrl = null;
+            // ✅ FIXED: Enhanced logo URL generation for DOMPDF compatibility
+            $logo_url = null;
+            $logo_path = null;
             if ($hostel->logo_path && Storage::disk('public')->exists($hostel->logo_path)) {
-                $logoUrl = Storage::disk('public')->url($hostel->logo_path);
+                // Get absolute file path for DOMPDF
+                $absolutePath = storage_path('app/public/' . $hostel->logo_path);
+                if (file_exists($absolutePath)) {
+                    // Use file:// protocol for DOMPDF local file access
+                    $logo_url = 'file://' . str_replace('\\', '/', $absolutePath);
+                    $logo_path = $logo_url; // For compatibility with views
+                }
             }
+
+            // ✅ FIXED: Generate bill number
+            $bill_number = 'BILL-' . str_pad($payment->id, 6, '0', STR_PAD_LEFT);
 
             // Simple HTML with proper error handling
             $html = view('pdf.simple_bill', [
                 'payment' => $payment,
                 'hostel' => $hostel,
                 'student' => $student,
-                'logoUrl' => $logoUrl
+                'bill_number' => $bill_number,
+                'logo_url' => $logo_url, // ✅ Added for universal solution
+                'logo_path' => $logo_path, // ✅ Added for compatibility
+                'logoUrl' => $logo_url, // ✅ Also add camelCase for compatibility
             ])->render();
 
             // Generate PDF with secure configuration
@@ -217,8 +243,21 @@ class PdfController extends Controller
             $hostel = Hostel::with(['rooms', 'students.user', 'organization'])
                 ->findOrFail($hostelId);
 
+            // ✅ FIXED: Add logo URL for the report if needed
+            $logo_url = null;
+            if ($hostel->logo_path && Storage::disk('public')->exists($hostel->logo_path)) {
+                $absolutePath = storage_path('app/public/' . $hostel->logo_path);
+                if (file_exists($absolutePath)) {
+                    $logo_url = 'file://' . str_replace('\\', '/', $absolutePath);
+                }
+            }
+
             // Generate PDF
-            $html = view('pdf.hostel_report', compact('hostel'))->render();
+            $html = view('pdf.hostel_report', [
+                'hostel' => $hostel,
+                'logo_url' => $logo_url,
+                'logo_path' => $logo_url,
+            ])->render();
 
             $pdf = PDF::loadHTML($html)
                 ->setPaper('a4', 'portrait')
@@ -268,8 +307,25 @@ class PdfController extends Controller
                 ->latest()
                 ->get();
 
+            // ✅ FIXED: Get logo URL from first payment's hostel if exists
+            $logo_url = null;
+            if ($payments->isNotEmpty() && $payments->first()->hostel) {
+                $hostel = $payments->first()->hostel;
+                if ($hostel->logo_path && Storage::disk('public')->exists($hostel->logo_path)) {
+                    $absolutePath = storage_path('app/public/' . $hostel->logo_path);
+                    if (file_exists($absolutePath)) {
+                        $logo_url = 'file://' . str_replace('\\', '/', $absolutePath);
+                    }
+                }
+            }
+
             // Generate PDF
-            $html = view('pdf.student_payment_history', compact('student', 'payments'))->render();
+            $html = view('pdf.student_payment_history', [
+                'student' => $student,
+                'payments' => $payments,
+                'logo_url' => $logo_url,
+                'logo_path' => $logo_url,
+            ])->render();
 
             $pdf = PDF::loadHTML($html)
                 ->setPaper('a4', 'portrait')
@@ -284,6 +340,36 @@ class PdfController extends Controller
         } catch (\Exception $e) {
             \Log::error('PDF Payment History Error: ' . $e->getMessage());
             return response()->json(['error' => 'भुक्तानी इतिहास जनरेसन असफल भयो'], 500);
+        }
+    }
+
+    /**
+     * ✅ NEW: Helper method to get logo URL for DOMPDF
+     * This method can be used by all PDF generation methods
+     */
+    private function getLogoUrlForDompdf($hostel)
+    {
+        if (!$hostel || !$hostel->logo_path) {
+            return null;
+        }
+
+        try {
+            // Check if file exists in storage
+            if (Storage::disk('public')->exists($hostel->logo_path)) {
+                // Get absolute path
+                $absolutePath = storage_path('app/public/' . $hostel->logo_path);
+
+                // Verify file exists and is readable
+                if (file_exists($absolutePath) && is_readable($absolutePath)) {
+                    // Use file:// protocol for DOMPDF
+                    return 'file://' . str_replace('\\', '/', $absolutePath);
+                }
+            }
+
+            return null;
+        } catch (\Exception $e) {
+            \Log::warning('Failed to get logo URL for hostel ' . $hostel->id . ': ' . $e->getMessage());
+            return null;
         }
     }
 }

@@ -18,6 +18,8 @@ use App\Models\User;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\PaymentsExport;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Services\PdfImageService;
+
 
 class PaymentController extends Controller
 {
@@ -994,7 +996,41 @@ class PaymentController extends Controller
     }
 
     /**
-     * Generate Receipt PDF - FIXED VERSION
+     * Get logo URL for PDF generation
+     */
+    private function getLogoForPDF($hostelId)
+    {
+        try {
+            $hostel = Hostel::find($hostelId);
+            if (!$hostel || !$hostel->logo_path) {
+                return null;
+            }
+
+            // Check if logo exists in storage
+            $logoPath = storage_path('app/public/' . $hostel->logo_path);
+            if (!file_exists($logoPath)) {
+                return null;
+            }
+
+            // Check file extension
+            $extension = strtolower(pathinfo($logoPath, PATHINFO_EXTENSION));
+
+            if ($extension === 'svg') {
+                // For SVG, read content and return as base64
+                $svgContent = file_get_contents($logoPath);
+                return 'data:image/svg+xml;base64,' . base64_encode($svgContent);
+            } else {
+                // For other images, use file:// protocol
+                return 'file://' . str_replace('\\', '/', $logoPath);
+            }
+        } catch (\Exception $e) {
+            Log::error('Logo URL Error: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Generate Receipt PDF - FIXED VERSION WITH BASE64 LOGO
      */
     public function generateReceipt($id)
     {
@@ -1009,11 +1045,16 @@ class PaymentController extends Controller
 
             \Log::info('Payment found: ' . $payment->id);
 
+            // ✅ USE BASE64 LOGO - WORKS 100%
+            $pdfImageService = new PdfImageService();
+            $logoBase64 = $pdfImageService->getHostelLogoForPdf($payment->hostel_id, 150);
+
             $data = [
                 'payment' => $payment,
                 'hostel' => $payment->hostel,
                 'student' => $payment->student,
                 'receipt_number' => 'REC-' . str_pad($payment->id, 6, '0', STR_PAD_LEFT),
+                'logo_base64' => $logoBase64, // ✅ Pass base64 logo
             ];
 
             $pdf = Pdf::loadView('pdf.receipt', $data)
@@ -1022,6 +1063,7 @@ class PaymentController extends Controller
                     'defaultFont' => 'helvetica',
                     'isHtml5ParserEnabled' => true,
                     'isRemoteEnabled' => true,
+                    'enable_css_float' => true,
                 ]);
 
             \Log::info('Receipt PDF generated successfully');
@@ -1035,7 +1077,7 @@ class PaymentController extends Controller
     }
 
     /**
-     * Generate Bill PDF - FIXED VERSION
+     * Generate Bill PDF - FIXED VERSION WITH BASE64 LOGO
      */
     public function generateBill($id)
     {
@@ -1050,11 +1092,16 @@ class PaymentController extends Controller
 
             \Log::info('Payment found: ' . $payment->id);
 
+            // ✅ USE BASE64 LOGO - WORKS 100%
+            $pdfImageService = new PdfImageService();
+            $logoBase64 = $pdfImageService->getHostelLogoForPdf($payment->hostel_id, 150);
+
             $data = [
                 'payment' => $payment,
                 'hostel' => $payment->hostel,
                 'student' => $payment->student,
                 'bill_number' => 'BILL-' . str_pad($payment->id, 6, '0', STR_PAD_LEFT),
+                'logo_base64' => $logoBase64, // ✅ Pass base64 logo
             ];
 
             $pdf = Pdf::loadView('pdf.bill', $data)
@@ -1063,6 +1110,7 @@ class PaymentController extends Controller
                     'defaultFont' => 'helvetica',
                     'isHtml5ParserEnabled' => true,
                     'isRemoteEnabled' => true,
+                    'enable_css_float' => true,
                 ]);
 
             \Log::info('Bill PDF generated successfully');
@@ -1074,6 +1122,7 @@ class PaymentController extends Controller
             return redirect()->back()->with('error', 'बिल जनरेसन असफल भयो: ' . $e->getMessage());
         }
     }
+
 
 
     /**
