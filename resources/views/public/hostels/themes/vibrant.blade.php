@@ -69,7 +69,7 @@
         100% { transform: rotate(360deg); }
     }
 
-    /* ✅ FIXED: Modal for Image/Video Viewing */
+    /* ✅ FIXED: Modal for Image/Video Viewing - COMPLETELY UPDATED WITH VISIBLE CLOSE BUTTON */
     .vibrant-modal {
         display: none;
         position: fixed;
@@ -78,56 +78,81 @@
         width: 100%;
         height: 100%;
         background: rgba(0, 0, 0, 0.95);
-        z-index: 9998;
+        z-index: 10000;
         align-items: center;
         justify-content: center;
-        padding: 2rem;
+        padding: 20px;
         opacity: 0;
-        transition: opacity 0.3s ease;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
     }
 
     .vibrant-modal.active {
         display: flex;
         opacity: 1;
+        visibility: visible;
     }
 
     .modal-content {
-        max-width: 90%;
-        max-height: 90%;
-        position: relative;
+        width: 90%;
+        max-width: 900px;
+        max-height: 90vh;
         background: var(--dark-bg);
         border-radius: 20px;
         overflow: hidden;
         border: 2px solid var(--vibrant-pink);
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
-        animation: modalAppear 0.3s ease;
+        transform: scale(0.9);
+        transition: transform 0.3s ease;
+        position: relative;
     }
 
-    @keyframes modalAppear {
-        from {
-            transform: scale(0.9);
-            opacity: 0;
-        }
-        to {
-            transform: scale(1);
-            opacity: 1;
-        }
+    .vibrant-modal.active .modal-content {
+        transform: scale(1);
+    }
+
+    .modal-media-container {
+        width: 100%;
+        height: 70vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #000;
+        position: relative;
+        overflow: hidden;
     }
 
     .modal-media {
-        width: 100%;
-        height: auto;
-        max-height: 70vh;
+        max-width: 100%;
+        max-height: 100%;
         object-fit: contain;
-        display: block;
     }
 
     .modal-video {
         width: 100%;
-        height: 70vh;
+        height: 100%;
         border: none;
     }
 
+    .external-video-link {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        padding: 2rem;
+        text-align: center;
+        color: white;
+        text-decoration: none;
+        background: #000;
+    }
+
+    .external-video-link:hover {
+        color: var(--vibrant-pink);
+    }
+
+    /* ✅ FIXED: Modal Close Button - Now VISIBLE and WORKING */
     .modal-close {
         position: absolute;
         top: 15px;
@@ -135,27 +160,37 @@
         background: var(--vibrant-pink);
         color: white;
         border: none;
-        width: 40px;
-        height: 40px;
+        width: 45px;
+        height: 45px;
         border-radius: 50%;
-        font-size: 1.2rem;
+        font-size: 1.8rem;
         cursor: pointer;
-        z-index: 10;
+        z-index: 10002;
         display: flex;
         align-items: center;
         justify-content: center;
         transition: all 0.3s ease;
+        line-height: 1;
+        padding: 0;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+        font-weight: bold;
     }
 
     .modal-close:hover {
-        background: var(--vibrant-purple);
-        transform: rotate(90deg);
+        background: #ff2b9e;
+        transform: rotate(90deg) scale(1.1);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.8);
+    }
+
+    .modal-close:active {
+        transform: rotate(90deg) scale(0.95);
     }
 
     .modal-info {
         padding: 1.5rem;
-        background: rgba(0, 0, 0, 0.8);
+        background: rgba(0, 0, 0, 0.9);
         color: white;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .modal-title {
@@ -168,30 +203,6 @@
         color: #E2E8F0;
         font-size: 1rem;
         line-height: 1.5;
-    }
-
-    /* ✅ FIXED: Video Player Styles */
-    .video-player-container {
-        width: 100%;
-        height: 400px;
-        background: #000;
-        position: relative;
-    }
-
-    .external-video-link {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 3rem;
-        text-align: center;
-        color: white;
-        text-decoration: none;
-        height: 100%;
-    }
-
-    .external-video-link:hover {
-        color: var(--vibrant-pink);
     }
 
     /* ✅ FIXED: Gallery Clickable Area */
@@ -211,6 +222,7 @@
     .gallery-item:hover {
         transform: translateY(-10px) scale(1.05);
         box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        border-color: var(--vibrant-pink);
     }
 
     .gallery-item img {
@@ -221,9 +233,6 @@
         display: block !important;
         opacity: 1 !important;
         visibility: visible !important;
-        position: absolute;
-        top: 0;
-        left: 0;
     }
 
     .gallery-item:hover img {
@@ -245,7 +254,7 @@
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        z-index: 1;
+        z-index: 2;
         background: rgba(0, 0, 0, 0.8);
         width: 60px;
         height: 60px;
@@ -282,7 +291,7 @@
         opacity: 0;
         transition: all 0.3s ease;
         padding: 1rem;
-        z-index: 2;
+        z-index: 3;
     }
 
     .gallery-item:hover .gallery-overlay {
@@ -292,12 +301,60 @@
     .gallery-overlay-content {
         color: white;
         text-align: center;
-        transform: translateY(1rem);
+        transform: translateY(20px);
         transition: transform 0.3s ease;
     }
 
     .gallery-item:hover .gallery-overlay-content {
         transform: translateY(0);
+    }
+
+    /* NEW: View Full Gallery Button Styles */
+    .full-gallery-btn-container {
+        text-align: center;
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--glass-border);
+    }
+
+    .full-gallery-btn {
+        background: linear-gradient(135deg, var(--vibrant-purple), var(--vibrant-pink));
+        color: white;
+        border: none;
+        border-radius: 50px;
+        padding: 1rem 2.5rem;
+        font-weight: 700;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.8rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+        position: relative;
+        overflow: hidden;
+        font-size: 1.1rem;
+    }
+
+    .full-gallery-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: 0.5s;
+    }
+
+    .full-gallery-btn:hover::before {
+        left: 100%;
+    }
+
+    .full-gallery-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(139, 92, 246, 0.6);
+        color: white;
+        background: linear-gradient(135deg, var(--vibrant-pink), var(--vibrant-purple));
     }
 
     /* Rest of the existing CSS remains the same */
@@ -983,7 +1040,7 @@
         position: fixed;
         bottom: 25px;
         right: 25px;
-        z-index: 1000;
+        z-index: 9999;
         width: 60px;
         height: 60px;
         background: linear-gradient(135deg, var(--vibrant-green), #059669);
@@ -1069,16 +1126,30 @@
 
         /* Mobile modal */
         .modal-content {
-            max-width: 95%;
-            max-height: 80%;
+            width: 95%;
+            max-height: 85vh;
         }
 
-        .modal-media {
-            max-height: 50vh;
+        .modal-media-container {
+            height: 50vh;
         }
 
         .modal-video {
             height: 50vh;
+        }
+        
+        .full-gallery-btn {
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+        }
+
+        /* Mobile modal close button */
+        .modal-close {
+            width: 40px;
+            height: 40px;
+            font-size: 1.5rem;
+            top: 10px;
+            right: 10px;
         }
     }
 
@@ -1107,7 +1178,7 @@
 </style>
 
 <!-- Add Poppins Font for Vibrant Theme -->
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 @endpush
 
 @section('content')
@@ -1116,11 +1187,11 @@
     <div class="loading-spinner"></div>
 </div>
 
-<!-- ✅ FIXED: Modal for Image/Video Viewing -->
+<!-- ✅ FIXED: Modal for Image/Video Viewing - UPDATED STRUCTURE WITH WORKING CLOSE BUTTON -->
 <div class="vibrant-modal" id="vibrantModal">
     <div class="modal-content">
-        <button class="modal-close" id="modalClose">&times;</button>
-        <div id="modalMediaContainer">
+        <button class="modal-close" id="modalClose" title="बन्द गर्नुहोस्">&times;</button>
+        <div class="modal-media-container" id="modalMediaContainer">
             <!-- Content will be inserted here by JavaScript -->
         </div>
         <div class="modal-info">
@@ -1380,6 +1451,21 @@
                     <p style="font-size: 1.1rem;" class="nepali-font">यस होस्टलको ग्यालरी तस्बिरहरू चाँहि उपलब्ध छैनन्।</p>
                 </div>
             @endif
+
+            <!-- ✅ NEW: View Full Gallery Button -->
+            <div class="full-gallery-btn-container">
+                @php
+                    // Generate hostel slug for the URL
+                    $hostelSlug = Str::slug($hostel->name);
+                @endphp
+                <a href="{{ url("/hostel/{$hostelSlug}/full-gallery") }}" class="full-gallery-btn">
+                    <i class="fas fa-external-link-alt"></i>
+                    <span class="nepali-font">पूरै ग्यालरी हेर्नुहोस्</span>
+                </a>
+                <p style="color: #94A3B8; margin-top: 1rem; font-size: 0.9rem;" class="nepali-font">
+                    यस होस्टलका सबै कोठा, सुविधाहरू र भिडियोहरूको विस्तृत ग्यालरी हेर्नुहोस्
+                </p>
+            </div>
         </section>
 
         <!-- Facilities Section -->
@@ -1637,7 +1723,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Animate stats and gallery after page loads
         animateElements();
-    }, 300); // Reduced from 500ms to 300ms
+    }, 300);
     
     // ✅ FIXED: Animate elements with staggered delay
     function animateElements() {
@@ -1710,7 +1796,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 5000);
     }
 
-    // ✅ FIXED: Image Modal Functionality
+    // ✅ FIXED: Image Modal Functionality - COMPLETELY REWRITTEN
     const modal = document.getElementById('vibrantModal');
     const modalClose = document.getElementById('modalClose');
     const modalMediaContainer = document.getElementById('modalMediaContainer');
@@ -1719,17 +1805,22 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Function to open modal with media
     window.openVibrantMediaModal = function(element) {
-        const mediaType = element.getAttribute('data-media-type');
+        console.log('Opening modal for:', element);
+        
+        const mediaType = element.getAttribute('data-media-type') || 'image';
         const mediaUrl = element.getAttribute('data-media-url');
-        const title = element.getAttribute('data-title');
-        const description = element.getAttribute('data-description');
+        const title = element.getAttribute('data-title') || 'ग्यालरी';
+        const description = element.getAttribute('data-description') || '';
         
         // Clear previous content
         modalMediaContainer.innerHTML = '';
         
         // Set title and description
         if (modalTitle) modalTitle.textContent = title;
-        if (modalDescription) modalDescription.textContent = description;
+        if (modalDescription) {
+            modalDescription.textContent = description;
+            modalDescription.style.display = description ? 'block' : 'none';
+        }
         
         // Create media element based on type
         if (mediaType === 'image') {
@@ -1738,18 +1829,23 @@ document.addEventListener('DOMContentLoaded', function() {
             img.alt = title;
             img.className = 'modal-media';
             img.loading = 'eager';
+            img.onerror = function() {
+                this.src = '{{ asset("images/default-room.png") }}';
+                this.style.opacity = '0.7';
+            };
             modalMediaContainer.appendChild(img);
         } 
         else if (mediaType === 'external_video') {
-            // For YouTube videos
+            // For YouTube videos - create link to YouTube
             const videoLink = document.createElement('a');
             videoLink.href = mediaUrl;
             videoLink.target = '_blank';
             videoLink.className = 'external-video-link';
             videoLink.innerHTML = `
                 <i class="fab fa-youtube" style="font-size: 4rem; color: #FF0000; margin-bottom: 1rem;"></i>
-                <h3 style="color: white; margin-bottom: 1rem;">YouTube भिडियो</h3>
-                <p style="color: #E2E8F0;">यो भिडियो YouTube मा हेर्न क्लिक गर्नुहोस्</p>
+                <h3 style="color: white; margin-bottom: 1rem; font-size: 1.5rem;" class="nepali-font">YouTube भिडियो</h3>
+                <p style="color: #E2E8F0; font-size: 1.1rem;" class="nepali-font">यो भिडियो YouTube मा हेर्न क्लिक गर्नुहोस्</p>
+                <p style="color: #94A3B8; margin-top: 1rem; font-size: 0.9rem;" class="nepali-font">${title}</p>
             `;
             modalMediaContainer.appendChild(videoLink);
         }
@@ -1760,22 +1856,44 @@ document.addEventListener('DOMContentLoaded', function() {
             video.controls = true;
             video.autoplay = true;
             video.className = 'modal-video';
+            video.onerror = function() {
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'external-video-link';
+                errorDiv.innerHTML = `
+                    <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--vibrant-orange); margin-bottom: 1rem;"></i>
+                    <p style="color: #E2E8F0;" class="nepali-font">भिडियो लोड गर्न असफल भयो</p>
+                `;
+                modalMediaContainer.innerHTML = '';
+                modalMediaContainer.appendChild(errorDiv);
+            };
             modalMediaContainer.appendChild(video);
+        }
+        else {
+            // Default to image
+            const img = document.createElement('img');
+            img.src = mediaUrl || '{{ asset("images/default-room.png") }}';
+            img.alt = title;
+            img.className = 'modal-media';
+            modalMediaContainer.appendChild(img);
         }
         
         // Show modal
         if (modal) {
             modal.classList.add('active');
             document.body.style.overflow = 'hidden';
+            document.body.style.paddingRight = '8px'; // Prevent layout shift
         }
     };
     
-    // Close modal
+    // ✅ FIXED: Close modal with button - WORKING PROPERLY
     if (modalClose) {
-        modalClose.addEventListener('click', function() {
+        modalClose.addEventListener('click', function(e) {
+            e.stopPropagation(); // Prevent event bubbling
+            console.log('Close button clicked');
             if (modal) {
                 modal.classList.remove('active');
                 document.body.style.overflow = 'auto';
+                document.body.style.paddingRight = '';
             }
         });
     }
@@ -1786,6 +1904,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (e.target === modal) {
                 modal.classList.remove('active');
                 document.body.style.overflow = 'auto';
+                document.body.style.paddingRight = '';
             }
         });
     }
@@ -1795,12 +1914,13 @@ document.addEventListener('DOMContentLoaded', function() {
         if (e.key === 'Escape' && modal && modal.classList.contains('active')) {
             modal.classList.remove('active');
             document.body.style.overflow = 'auto';
+            document.body.style.paddingRight = '';
         }
     });
     
     // ✅ FIXED: Fix gallery images
     document.querySelectorAll('.gallery-item img').forEach(img => {
-        if (img.src.includes('undefined') || img.src.includes('null') || !img.src) {
+        if (img.src.includes('undefined') || img.src.includes('null') || !img.src || img.src === window.location.origin + '/') {
             img.src = '{{ asset("images/default-room.png") }}';
             img.style.opacity = '0.7';
         }
@@ -1814,7 +1934,9 @@ document.addEventListener('DOMContentLoaded', function() {
             entries.forEach((entry) => {
                 if (entry.isIntersecting) {
                     const img = entry.target;
-                    img.src = img.dataset.src || img.src;
+                    if (img.dataset.src) {
+                        img.src = img.dataset.src;
+                    }
                     imageObserver.unobserve(img);
                 }
             });

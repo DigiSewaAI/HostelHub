@@ -2304,4 +2304,29 @@ class PublicController extends Controller
             return $gallery;
         });
     }
+
+    /**
+     * Optimize gallery images specifically for Dark Theme
+     */
+    protected function optimizeDarkGalleryImages($galleries)
+    {
+        $optimizer = app(\App\Services\ImageOptimizer::class);
+
+        return $galleries->map(function ($gallery) use ($optimizer) {
+            if ($gallery->media_type === 'image' && $gallery->media_url) {
+                // Extract local path from URL
+                $path = str_replace(asset('storage/'), '', $gallery->media_url);
+                $path = str_replace(asset(''), '', $path);
+
+                // Use dark theme optimization
+                $gallery->optimized = $optimizer->optimizeForDarkTheme($path);
+                $gallery->placeholder = $optimizer->createCyberPlaceholder(300, 300);
+            } else {
+                $gallery->optimized = null;
+                $gallery->placeholder = $optimizer->createCyberPlaceholder(300, 300, 'video');
+            }
+
+            return $gallery;
+        });
+    }
 }

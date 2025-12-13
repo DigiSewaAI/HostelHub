@@ -7,8 +7,10 @@
 @endphp
 
 @push('head')
-@vite(['resources/css/public-themes.css'])
+{{-- Remove Vite for now to prevent loading issues --}}
+{{-- @vite(['resources/css/public-themes.css']) --}}
 <style>
+    /* MINIMAL CRITICAL CSS - Optimized for performance */
     :root {
         --theme-color: {{ $hostel->theme_color ?? '#00D4FF' }};
         --neon-cyan: #00D4FF;
@@ -24,17 +26,18 @@
         --text-secondary: #B0B0B0;
     }
 
-    /* Dark Theme - Completely Unique & Futuristic */
+    /* Dark Theme - Optimized */
     .dark-body {
-        background: linear-gradient(135deg, var(--dark-1) 0%, var(--dark-2) 50%, var(--dark-3) 100%);
-        font-family: 'Orbitron', 'Rajdhani', sans-serif;
+        background: var(--dark-1);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         color: var(--text-primary);
         min-height: 100vh;
         overflow-x: hidden;
-        position: relative;
+        margin: 0;
+        padding: 0;
     }
 
-    /* Matrix Background Effect */
+    /* Simple Matrix Background - Less resource intensive */
     .matrix-bg {
         position: fixed;
         top: 0;
@@ -42,79 +45,18 @@
         width: 100%;
         height: 100%;
         background: 
-            radial-gradient(circle at 20% 80%, rgba(0, 212, 255, 0.1) 0%, transparent 50%),
-            radial-gradient(circle at 80% 20%, rgba(255, 0, 255, 0.1) 0%, transparent 50%),
-            radial-gradient(circle at 40% 40%, rgba(0, 255, 136, 0.05) 0%, transparent 50%);
+            radial-gradient(circle at 20% 80%, rgba(0, 212, 255, 0.05) 0%, transparent 50%),
+            radial-gradient(circle at 80% 20%, rgba(255, 0, 255, 0.05) 0%, transparent 50%);
         z-index: -1;
     }
 
-    .matrix-code {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: 
-            repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 212, 255, 0.03) 2px, rgba(0, 212, 255, 0.03) 4px),
-            repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(255, 0, 255, 0.03) 2px, rgba(255, 0, 255, 0.03) 4px);
-        z-index: -1;
-        animation: matrixMove 20s linear infinite;
-    }
-
-    @keyframes matrixMove {
-        0% { transform: translateY(0) translateX(0); }
-        100% { transform: translateY(-100px) translateX(-50px); }
-    }
-
-    /* Cyber Container */
+    /* Cyber Container - Simplified */
     .cyber-container {
-        background: rgba(10, 10, 10, 0.8);
+        background: rgba(17, 17, 17, 0.95);
         border: 1px solid var(--neon-cyan);
-        border-radius: 0;
         position: relative;
-        margin-bottom: 3rem;
-        backdrop-filter: blur(10px);
-        box-shadow: 
-            0 0 20px rgba(0, 212, 255, 0.3),
-            inset 0 0 20px rgba(0, 212, 255, 0.1);
+        margin-bottom: 2rem;
         overflow: hidden;
-    }
-
-    .cyber-container::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 2px;
-        background: linear-gradient(90deg, 
-            transparent, 
-            var(--neon-cyan), 
-            var(--neon-pink), 
-            var(--neon-green), 
-            transparent);
-        animation: scanline 3s linear infinite;
-    }
-
-    .cyber-container::after {
-        content: '';
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 2px;
-        background: linear-gradient(90deg, 
-            transparent, 
-            var(--neon-green), 
-            var(--neon-pink), 
-            var(--neon-cyan), 
-            transparent);
-        animation: scanline 3s linear infinite reverse;
-    }
-
-    @keyframes scanline {
-        0% { transform: translateX(-100%); }
-        100% { transform: translateX(100%); }
     }
 
     /* Cyber Header */
@@ -123,59 +65,23 @@
             rgba(0, 212, 255, 0.1) 0%, 
             rgba(157, 0, 255, 0.1) 50%, 
             rgba(255, 0, 255, 0.1) 100%);
-        padding: 4rem 0;
+        padding: 2rem 0;
         position: relative;
         overflow: hidden;
-        margin-bottom: 3rem;
-        border-bottom: 3px solid var(--neon-cyan);
-    }
-
-    .cyber-header::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: 
-            radial-gradient(circle at 30% 20%, rgba(0, 212, 255, 0.2) 0%, transparent 50%),
-            radial-gradient(circle at 70% 80%, rgba(255, 0, 255, 0.2) 0%, transparent 50%);
-        animation: pulse 4s ease-in-out infinite alternate;
-    }
-
-    @keyframes pulse {
-        0% { opacity: 0.3; }
-        100% { opacity: 0.7; }
+        margin-bottom: 2rem;
+        border-bottom: 2px solid var(--neon-cyan);
     }
 
     /* Cyber Logo */
     .cyber-logo {
-        width: 150px;
-        height: 150px;
-        border: 3px solid var(--neon-cyan);
+        width: 120px;
+        height: 120px;
+        border: 2px solid var(--neon-cyan);
         border-radius: 50%;
         overflow: hidden;
         background: var(--dark-2);
-        margin: 0 auto 2rem;
+        margin: 0 auto 1.5rem;
         position: relative;
-        box-shadow: 
-            0 0 30px rgba(0, 212, 255, 0.5),
-            inset 0 0 30px rgba(0, 212, 255, 0.2);
-        animation: logoGlow 2s ease-in-out infinite alternate;
-    }
-
-    @keyframes logoGlow {
-        0% { 
-            box-shadow: 
-                0 0 20px rgba(0, 212, 255, 0.5),
-                inset 0 0 20px rgba(0, 212, 255, 0.2);
-        }
-        100% { 
-            box-shadow: 
-                0 0 40px rgba(0, 212, 255, 0.8),
-                0 0 60px rgba(255, 0, 255, 0.4),
-                inset 0 0 30px rgba(0, 212, 255, 0.3);
-        }
     }
 
     .cyber-logo img {
@@ -183,88 +89,53 @@
         height: 100%;
         object-fit: cover;
         border-radius: 50%;
-        filter: brightness(1.2) contrast(1.1);
     }
 
     /* Cyber Typography */
     .cyber-title {
-        font-size: 4rem;
-        font-weight: 900;
+        font-size: 3rem;
+        font-weight: 700;
         text-align: center;
-        margin-bottom: 1rem;
-        background: linear-gradient(135deg, var(--neon-cyan), var(--neon-pink), var(--neon-green));
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        text-shadow: 0 0 30px rgba(0, 212, 255, 0.5);
-        letter-spacing: 2px;
-        text-transform: uppercase;
+        margin-bottom: 0.5rem;
+        color: var(--neon-cyan);
+        text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
     }
 
     .cyber-subtitle {
-        font-size: 1.4rem;
+        font-size: 1.2rem;
         color: var(--text-secondary);
         text-align: center;
-        margin-bottom: 2rem;
-        letter-spacing: 1px;
+        margin-bottom: 1.5rem;
     }
 
     /* Cyber Stats */
     .cyber-stats {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 2rem;
-        margin: 3rem 0;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1rem;
+        margin: 2rem 0;
     }
 
     .cyber-stat {
         background: rgba(17, 17, 17, 0.9);
         border: 1px solid var(--neon-green);
-        padding: 2rem;
+        padding: 1.5rem;
         text-align: center;
         position: relative;
-        overflow: hidden;
-        transition: all 0.3s ease;
-    }
-
-    .cyber-stat::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.2), transparent);
-        transition: 0.5s;
-    }
-
-    .cyber-stat:hover::before {
-        left: 100%;
-    }
-
-    .cyber-stat:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
     }
 
     .cyber-number {
-        font-size: 3.5rem;
-        font-weight: 900;
-        background: linear-gradient(135deg, var(--neon-cyan), var(--neon-green));
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--neon-cyan);
         display: block;
         margin-bottom: 0.5rem;
-        text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
     }
 
     .cyber-label {
-        font-size: 1rem;
+        font-size: 0.9rem;
         color: var(--text-secondary);
         text-transform: uppercase;
-        letter-spacing: 2px;
-        font-weight: 600;
     }
 
     /* Cyber Buttons */
@@ -272,42 +143,23 @@
         background: transparent;
         color: var(--neon-cyan);
         border: 2px solid var(--neon-cyan);
-        padding: 1.2rem 2.5rem;
-        font-size: 1.1rem;
-        font-weight: 700;
+        padding: 1rem 2rem;
+        font-size: 1rem;
+        font-weight: 600;
         text-decoration: none;
         text-transform: uppercase;
-        letter-spacing: 2px;
+        letter-spacing: 1px;
         position: relative;
-        overflow: hidden;
-        transition: all 0.3s ease;
+        transition: all 0.2s ease;
         display: inline-flex;
         align-items: center;
-        gap: 1rem;
+        gap: 0.5rem;
         margin: 0.5rem;
-    }
-
-    .cyber-btn::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.3), transparent);
-        transition: 0.5s;
-    }
-
-    .cyber-btn:hover::before {
-        left: 100%;
+        cursor: pointer;
     }
 
     .cyber-btn:hover {
         background: rgba(0, 212, 255, 0.1);
-        box-shadow: 
-            0 0 20px rgba(0, 212, 255, 0.5),
-            inset 0 0 20px rgba(0, 212, 255, 0.1);
-        color: var(--text-primary);
         transform: translateY(-2px);
     }
 
@@ -318,9 +170,6 @@
 
     .btn-cyber-pink:hover {
         background: rgba(255, 0, 255, 0.1);
-        box-shadow: 
-            0 0 20px rgba(255, 0, 255, 0.5),
-            inset 0 0 20px rgba(255, 0, 255, 0.1);
     }
 
     .btn-cyber-green {
@@ -330,79 +179,22 @@
 
     .btn-cyber-green:hover {
         background: rgba(0, 255, 136, 0.1);
-        box-shadow: 
-            0 0 20px rgba(0, 255, 136, 0.5),
-            inset 0 0 20px rgba(0, 255, 136, 0.1);
-    }
-
-    /* Cyber Social */
-    .cyber-social {
-        display: flex;
-        justify-content: center;
-        gap: 1.5rem;
-        margin: 2rem 0;
-    }
-
-    .cyber-social-icon {
-        width: 60px;
-        height: 60px;
-        border: 2px solid var(--neon-purple);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--neon-purple);
-        text-decoration: none;
-        font-size: 1.4rem;
-        transition: all 0.3s ease;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .cyber-social-icon::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: conic-gradient(from 0deg, var(--neon-cyan), var(--neon-pink), var(--neon-green), var(--neon-cyan));
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    }
-
-    .cyber-social-icon:hover::before {
-        opacity: 1;
-    }
-
-    .cyber-social-icon:hover {
-        transform: scale(1.1) rotate(10deg);
-        box-shadow: 0 0 20px rgba(157, 0, 255, 0.5);
-    }
-
-    .cyber-social-icon i {
-        position: relative;
-        z-index: 1;
     }
 
     /* Section Headers */
     .cyber-section-header {
         text-align: center;
-        margin-bottom: 3rem;
+        margin-bottom: 2rem;
         position: relative;
-        padding: 2rem 0;
+        padding: 1.5rem 0;
     }
 
     .cyber-section-title {
-        font-size: 3rem;
-        font-weight: 800;
-        background: linear-gradient(135deg, var(--neon-cyan), var(--neon-pink));
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        margin-bottom: 1rem;
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--neon-cyan);
+        margin-bottom: 0.5rem;
         text-transform: uppercase;
-        letter-spacing: 3px;
         position: relative;
         display: inline-block;
     }
@@ -413,387 +205,229 @@
         bottom: -10px;
         left: 50%;
         transform: translateX(-50%);
-        width: 100px;
-        height: 3px;
-        background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink));
+        width: 80px;
+        height: 2px;
+        background: var(--neon-cyan);
     }
 
-    /* About Section */
-    .cyber-about-content {
-        font-size: 1.2rem;
-        line-height: 1.8;
-        color: var(--text-secondary);
-        text-align: justify;
-        padding: 2rem;
-    }
-
-    /* ✅ FIXED: Cyber Gallery - Simplified and Working */
+    /* ✅ FIXED: Cyber Gallery - Images only */
     .cyber-gallery {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 2rem;
-        margin-top: 2rem;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1rem;
+        margin-top: 1.5rem;
     }
 
     .cyber-gallery-item {
         position: relative;
         border: 2px solid var(--neon-cyan);
         overflow: hidden;
-        aspect-ratio: 1;
-        transition: all 0.3s ease;
+        aspect-ratio: 4/3;
+        transition: all 0.2s ease;
         background: var(--dark-2);
-        min-height: 300px;
-    }
-
-    .cyber-gallery-item::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: linear-gradient(45deg, rgba(0, 212, 255, 0.2), rgba(255, 0, 255, 0.2));
-        opacity: 0;
-        transition: opacity 0.3s ease;
-        z-index: 1;
-    }
-
-    .cyber-gallery-item:hover::before {
-        opacity: 1;
+        cursor: pointer;
     }
 
     .cyber-gallery-item img {
         width: 100%;
         height: 100%;
         object-fit: cover;
-        transition: transform 0.3s ease;
-        display: block !important;
-        opacity: 1 !important;
-        visibility: visible !important;
+        display: block;
     }
 
     .cyber-gallery-item:hover {
-        transform: translateY(-10px) scale(1.05);
-        box-shadow: 
-            0 10px 30px rgba(0, 212, 255, 0.5),
-            0 0 50px rgba(255, 0, 255, 0.3);
+        transform: translateY(-5px);
+        box-shadow: 0 5px 20px rgba(0, 212, 255, 0.3);
     }
 
-    .cyber-gallery-item:hover img {
-        transform: scale(1.1);
-    }
-
-    /* 🚨 CRITICAL FIX: Dark Theme Image Display */
-    .aspect-square {
-        aspect-ratio: 1 / 1;
+    /* Gallery button section - WITH ADDED TEXT */
+    .gallery-button-section {
+        text-align: center;
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--neon-cyan);
         position: relative;
     }
 
-    .aspect-square img {
+    .gallery-button-section::before {
+        content: '';
         position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block !important;
-        opacity: 1 !important;
-        visibility: visible !important;
+        top: -1px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100px;
+        height: 2px;
+        background: var(--neon-cyan);
     }
 
-    /* Fix broken images */
-    img[src*="undefined"],
-    img[src*="null"],
-    img[src=""],
-    img:not([src]) {
-        content: url('{{ asset("images/default-room.png") }}') !important;
-        opacity: 0.7 !important;
-    }
-
-    /* Force image containers to show */
-    .bg-gray-100 {
-        background-color: var(--dark-3) !important;
-    }
-
-    /* Ensure gallery images are visible */
-    .w-full.h-full.object-cover {
-        display: block !important;
-        visibility: visible !important;
-        opacity: 1 !important;
+    /* THIS IS THE ADDED TEXT LINE */
+    .gallery-note-text {
+        color: var(--text-secondary);
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+        text-align: center;
+        font-style: italic;
     }
 
     /* Cyber Facilities */
     .cyber-facilities {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-        gap: 2rem;
-        margin-top: 2rem;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1rem;
+        margin-top: 1.5rem;
     }
 
     .cyber-facility {
         background: rgba(17, 17, 17, 0.9);
         border: 1px solid var(--neon-green);
-        padding: 2rem;
+        padding: 1.5rem;
         display: flex;
         align-items: center;
-        gap: 1.5rem;
-        transition: all 0.3s ease;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .cyber-facility::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 4px;
-        height: 100%;
-        background: linear-gradient(135deg, var(--neon-green), var(--neon-cyan));
+        gap: 1rem;
+        transition: all 0.2s ease;
     }
 
     .cyber-facility:hover {
-        transform: translateX(10px);
-        box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
+        transform: translateX(5px);
     }
 
     .cyber-facility-icon {
-        width: 60px;
-        height: 60px;
-        background: linear-gradient(135deg, var(--neon-green), var(--neon-cyan));
+        width: 50px;
+        height: 50px;
+        background: var(--neon-green);
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         color: var(--dark-1);
-        font-size: 1.5rem;
+        font-size: 1.2rem;
         flex-shrink: 0;
     }
 
-    /* Cyber Reviews Carousel */
-    .cyber-reviews-container {
-        position: relative;
-        margin: 3rem 0;
-        overflow: hidden;
-    }
-
-    .cyber-reviews-track {
-        display: flex;
-        transition: transform 0.5s ease-in-out;
-        gap: 2rem;
-    }
-
+    /* Cyber Reviews */
     .cyber-review {
-        min-width: 100%;
         background: rgba(17, 17, 17, 0.9);
         border: 1px solid var(--neon-purple);
-        padding: 3rem;
+        padding: 2rem;
         position: relative;
-        transition: all 0.3s ease;
-    }
-
-    .cyber-review::before {
-        content: '"';
-        position: absolute;
-        top: -20px;
-        left: 30px;
-        font-size: 6rem;
-        color: var(--neon-purple);
-        opacity: 0.3;
-    }
-
-    .cyber-review-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 2rem;
-    }
-
-    .cyber-reviewer {
-        font-size: 1.4rem;
-        font-weight: 700;
-        color: var(--text-primary);
-    }
-
-    .cyber-review-date {
-        color: var(--text-secondary);
-        font-size: 1rem;
-    }
-
-    .cyber-review-rating {
-        color: var(--neon-orange);
-        margin: 1rem 0;
-        font-size: 1.2rem;
-    }
-
-    .cyber-review-content {
-        color: var(--text-secondary);
-        line-height: 1.8;
-        font-size: 1.1rem;
-    }
-
-    .cyber-review-controls {
-        display: flex;
-        justify-content: center;
-        gap: 2rem;
-        margin-top: 2rem;
+        margin-bottom: 1rem;
     }
 
     /* Cyber Contact */
     .cyber-contact-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 2rem;
-        margin-top: 2rem;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1.5rem;
     }
 
     .cyber-contact-card {
         background: rgba(17, 17, 17, 0.9);
         border: 1px solid var(--neon-cyan);
-        padding: 2.5rem;
+        padding: 2rem;
         text-align: center;
-        transition: all 0.3s ease;
-        position: relative;
-        overflow: hidden;
+        transition: all 0.2s ease;
     }
 
     .cyber-contact-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
-    }
-
-    .cyber-contact-icon {
-        width: 80px;
-        height: 80px;
-        background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--dark-1);
-        font-size: 2rem;
-        margin: 0 auto 1.5rem;
-        box-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+        transform: translateY(-3px);
     }
 
     /* Cyber Form */
     .cyber-form {
         background: rgba(17, 17, 17, 0.9);
         border: 1px solid var(--neon-pink);
-        padding: 3rem;
-        margin-top: 2rem;
-    }
-
-    .cyber-form-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 2rem;
-        margin-bottom: 2rem;
+        padding: 2rem;
+        margin-top: 1.5rem;
     }
 
     .cyber-form-input {
         background: transparent;
         border: 1px solid var(--neon-cyan);
         border-radius: 0;
-        padding: 1.2rem;
+        padding: 1rem;
         color: var(--text-primary);
-        font-size: 1.1rem;
-        transition: all 0.3s ease;
-        font-family: 'Orbitron', sans-serif;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+        width: 100%;
+        margin-bottom: 1rem;
     }
 
     .cyber-form-input:focus {
         outline: none;
         border-color: var(--neon-pink);
-        box-shadow: 0 0 20px rgba(255, 0, 255, 0.3);
     }
 
     .cyber-form-textarea {
         background: transparent;
         border: 1px solid var(--neon-cyan);
         border-radius: 0;
-        padding: 1.2rem;
+        padding: 1rem;
         color: var(--text-primary);
-        font-size: 1.1rem;
+        font-size: 1rem;
         width: 100%;
-        min-height: 150px;
+        min-height: 120px;
         resize: vertical;
-        margin-bottom: 2rem;
-        transition: all 0.3s ease;
-        font-family: 'Orbitron', sans-serif;
+        margin-bottom: 1.5rem;
+        transition: all 0.2s ease;
     }
 
     .cyber-form-textarea:focus {
         outline: none;
         border-color: var(--neon-pink);
-        box-shadow: 0 0 20px rgba(255, 0, 255, 0.3);
     }
 
     /* Action Buttons */
     .cyber-action-buttons {
         display: flex;
         justify-content: center;
-        gap: 2rem;
-        margin: 4rem 0;
+        gap: 1rem;
+        margin: 3rem 0;
         flex-wrap: wrap;
     }
 
     /* WhatsApp Floating Button */
     .cyber-whatsapp-btn {
         position: fixed;
-        bottom: 30px;
-        right: 30px;
+        bottom: 20px;
+        right: 20px;
         z-index: 1000;
-        width: 70px;
-        height: 70px;
-        background: linear-gradient(135deg, #25D366, #128C7E);
+        width: 60px;
+        height: 60px;
+        background: #25D366;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        color: var(--dark-1);
+        color: white;
         text-decoration: none;
-        box-shadow: 
-            0 0 20px rgba(37, 211, 102, 0.5),
-            0 0 40px rgba(18, 140, 126, 0.3);
-        transition: all 0.3s ease;
-        border: 2px solid var(--dark-1);
-        animation: whatsappPulse 2s ease-in-out infinite;
-    }
-
-    @keyframes whatsappPulse {
-        0%, 100% { 
-            box-shadow: 
-                0 0 20px rgba(37, 211, 102, 0.5),
-                0 0 40px rgba(18, 140, 126, 0.3);
-        }
-        50% { 
-            box-shadow: 
-                0 0 30px rgba(37, 211, 102, 0.8),
-                0 0 60px rgba(18, 140, 126, 0.5);
-        }
+        box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
+        transition: all 0.2s ease;
+        border: none;
     }
 
     .cyber-whatsapp-btn:hover {
-        transform: scale(1.1) rotate(10deg);
+        transform: scale(1.1);
     }
 
-    .cyber-whatsapp-btn i {
-        font-size: 1.8rem;
+    /* Nepali Font */
+    .nepali-font {
+        font-family: 'Mangal', 'Arial', sans-serif;
+        line-height: 1.6;
     }
 
     /* Responsive Design */
     @media (max-width: 768px) {
         .cyber-title {
-            font-size: 2.5rem;
+            font-size: 2rem;
         }
         
         .cyber-stats {
             grid-template-columns: repeat(2, 1fr);
         }
         
-        .cyber-form-grid {
-            grid-template-columns: 1fr;
+        .cyber-section-title {
+            font-size: 2rem;
         }
         
         .cyber-action-buttons {
@@ -818,64 +452,40 @@
         .cyber-contact-grid {
             grid-template-columns: 1fr;
         }
-
-        .cyber-whatsapp-btn {
-            width: 60px;
-            height: 60px;
-            bottom: 20px;
-            right: 20px;
-        }
     }
 
-    .nepali-font {
-        font-family: 'Mangal', 'Arial', sans-serif;
-        line-height: 1.6;
-        color: var(--text-primary);
-    }
-
-    /* Custom Scrollbar */
-    ::-webkit-scrollbar {
-        width: 12px;
-    }
-
-    ::-webkit-scrollbar-track {
-        background: var(--dark-2);
-    }
-
-    ::-webkit-scrollbar-thumb {
-        background: linear-gradient(135deg, var(--neon-cyan), var(--neon-pink));
-        border-radius: 0;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-        background: linear-gradient(135deg, var(--neon-green), var(--neon-purple));
+    /* Container */
+    .container-1200 {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
     }
 </style>
 
-<!-- Add Cyber Fonts -->
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<!-- Add Cyber Fonts - Load asynchronously -->
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
 @endpush
 
 @section('content')
 <div class="dark-body">
-    <!-- Matrix Background -->
+    <!-- Simple Matrix Background -->
     <div class="matrix-bg"></div>
-    <div class="matrix-code"></div>
 
     <!-- Cyber Header -->
     <header class="cyber-header">
-        <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px; position: relative; z-index: 2;">
+        <div class="container-1200">
             <!-- Preview Alert -->
             @if(isset($preview) && $preview)
-            <div class="cyber-container" style="margin-bottom: 2rem;">
-                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; padding: 1.5rem;">
+            <div class="cyber-container" style="margin-bottom: 1.5rem;">
+                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; padding: 1rem;">
                     <div style="display: flex; align-items: center; gap: 1rem;">
-                        <div style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--neon-orange), #FF8C00); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-eye" style="color: var(--dark-1); font-size: 1rem;"></i>
+                        <div style="width: 30px; height: 30px; background: var(--neon-orange); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-eye" style="color: var(--dark-1); font-size: 0.9rem;"></i>
                         </div>
-                        <span style="color: var(--text-primary); font-weight: 700; font-size: 1.1rem;" class="nepali-font">यो पूर्वावलोकन मोडमा हो</span>
+                        <span style="color: var(--text-primary); font-weight: 600; font-size: 1rem;" class="nepali-font">यो पूर्वावलोकन मोडमा हो</span>
                     </div>
-                    <a href="{{ route('owner.public-page.edit') }}" class="cyber-btn btn-cyber-pink">
+                    <a href="{{ route('owner.public-page.edit') }}" class="cyber-btn btn-cyber-pink" style="padding: 0.5rem 1.5rem; font-size: 0.9rem;">
                         <i class="fas fa-edit"></i>
                         <span class="nepali-font">सम्पादन गर्नुहोस्</span>
                     </a>
@@ -884,13 +494,13 @@
             @endif
 
             <!-- Logo and Title -->
-            <div style="text-align: center; margin-bottom: 2rem;">
+            <div style="text-align: center; margin-bottom: 1.5rem;">
                 <div class="cyber-logo">
                     @if($hostel->logo_url)
-                        <img src="{{ $hostel->logo_url }}" alt="{{ $hostel->name }}">
+                        <img src="{{ $hostel->logo_url }}" alt="{{ $hostel->name }}" loading="lazy">
                     @else
-                        <div style="width: 100%; height: 100%; background: linear-gradient(135deg, var(--neon-cyan), var(--neon-pink), var(--neon-purple)); display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-building" style="color: var(--dark-1); font-size: 3rem;"></i>
+                        <div style="width: 100%; height: 100%; background: linear-gradient(135deg, var(--neon-cyan), var(--neon-pink)); display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-building" style="color: var(--dark-1); font-size: 2rem;"></i>
                         </div>
                     @endif
                 </div>
@@ -903,7 +513,7 @@
                     
                     @if($reviewCount > 0 && $avgRating > 0)
                     <span style="margin-left: 1rem;">
-                        <i class="fas fa-star" style="color: var(--neon-orange);"></i>
+                        <i class="fas fa-star" style="color: var(--neon-orange;"></i>
                         {{ number_format($avgRating, 1) }} ({{ $reviewCount }} समीक्षा)
                     </span>
                     @endif
@@ -929,30 +539,11 @@
                     <span class="cyber-label nepali-font">समीक्षा</span>
                 </div>
             </div>
-
-            <!-- Cyber Social -->
-            <div class="cyber-social">
-                @if($hostel->facebook_url)
-                    <a href="{{ $hostel->facebook_url }}" target="_blank" class="cyber-social-icon">
-                        <i class="fab fa-facebook-f"></i>
-                    </a>
-                @endif
-                @if($hostel->instagram_url)
-                    <a href="{{ $hostel->instagram_url }}" target="_blank" class="cyber-social-icon">
-                        <i class="fab fa-instagram"></i>
-                    </a>
-                @endif
-                @if($hostel->whatsapp_number)
-                    <a href="https://wa.me/{{ $hostel->whatsapp_number }}" target="_blank" class="cyber-social-icon">
-                        <i class="fab fa-whatsapp"></i>
-                    </a>
-                @endif
-            </div>
         </div>
     </header>
 
     <!-- Main Content -->
-    <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+    <div class="container-1200">
         <!-- Action Buttons -->
         <div class="cyber-action-buttons">
             @if($hostel->contact_phone)
@@ -976,124 +567,105 @@
             <div class="cyber-section-header">
                 <h2 class="cyber-section-title nepali-font">हाम्रो बारेमा</h2>
             </div>
-            <div class="cyber-about-content nepali-font">
+            <div style="padding: 1.5rem; color: var(--text-secondary); font-size: 1.1rem;" class="nepali-font">
                 @if($hostel->description)
                     {{ $hostel->description }}
                 @else
-                    <div style="text-align: center; padding: 3rem; color: var(--text-secondary);">
-                        <div style="width: 100px; height: 100px; background: var(--dark-3); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; border: 2px solid var(--neon-cyan);">
-                            <i class="fas fa-file-alt" style="font-size: 2.5rem; color: var(--neon-cyan);"></i>
+                    <div style="text-align: center; padding: 2rem;">
+                        <div style="width: 80px; height: 80px; background: var(--dark-3); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; border: 1px solid var(--neon-cyan);">
+                            <i class="fas fa-file-alt" style="font-size: 2rem; color: var(--neon-cyan);"></i>
                         </div>
-                        <p style="font-size: 1.2rem; font-style: italic;">यस होस्टलको बारेमा विवरण उपलब्ध छैन।</p>
+                        <p style="font-style: italic;">यस होस्टलको बारेमा विवरण उपलब्ध छैन।</p>
                     </div>
                 @endif
             </div>
         </section>
 
-        <!-- ✅ FIXED: Gallery Section -->
+        <!-- ✅ FIXED: Gallery Section - IMAGES ONLY -->
         <section class="cyber-container">
             <div class="cyber-section-header">
                 <h2 class="cyber-section-title nepali-font">हाम्रो ग्यालरी</h2>
-                <p class="cyber-subtitle nepali-font" style="color: var(--text-secondary);">हाम्रो होस्टलको सुन्दर तस्बिरहरू र भिडियोहरू हेर्नुहोस्</p>
+                <p class="cyber-subtitle nepali-font" style="color: var(--text-secondary);">हाम्रो होस्टलको तस्बिरहरू</p>
             </div>
             
             @php
-                // ✅ BULLETPROOF GALLERY FETCHING
                 $galleries = collect();
                 
-                // Method 1: Try Modern theme's working method
                 if(method_exists($hostel, 'galleries')) {
                     $galleries = $hostel->galleries()->where('is_active', 1)->get();
                 }
                 
-                // Method 2: If empty, try direct database query (from your log)
                 if($galleries->isEmpty() && isset($hostel->id)) {
                     $galleries = \App\Models\Gallery::where('hostel_id', $hostel->id)
                                                     ->where('is_active', 1)
                                                     ->get();
                 }
                 
-                // Method 3: Last resort - any galleries regardless of status
-                if($galleries->isEmpty() && isset($hostel->id)) {
-                    $galleries = \App\Models\Gallery::where('hostel_id', $hostel->id)->get();
-                }
+                // FILTER ONLY IMAGES (not videos)
+                $imageGalleries = $galleries->filter(function($gallery) {
+                    // Check if it's an image by file extension or type
+                    $url = $gallery->media_url ?? $gallery->media_path ?? '';
+                    $ext = strtolower(pathinfo($url, PATHINFO_EXTENSION));
+                    $imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'];
+                    
+                    return in_array($ext, $imageExtensions);
+                });
                 
-                // Limit to 12 for display
-                $displayGalleries = $galleries->take(12);
+                $displayGalleries = $imageGalleries->take(8);
             @endphp
             
             @if($displayGalleries->count() > 0)
                 <div class="cyber-gallery">
                     @foreach($displayGalleries as $gallery)
                         @php
-                            // ✅ BULLETPROOF IMAGE URL RESOLUTION
                             $imageUrl = asset('images/default-room.png');
                             
-                            // Priority 1: media_url from database
                             if(!empty($gallery->media_url)) {
                                 $imageUrl = $gallery->media_url;
                             }
-                            // Priority 2: Build from media_path (like in your log)
                             elseif(!empty($gallery->media_path)) {
-                                // Check if it's already a full URL
                                 if(filter_var($gallery->media_path, FILTER_VALIDATE_URL)) {
                                     $imageUrl = $gallery->media_path;
                                 }
-                                // Build storage URL (like your log shows: http://localhost:8000/storage/...)
                                 else {
                                     $imageUrl = Storage::disk('public')->url($gallery->media_path);
                                 }
                             }
-                            // Priority 3: thumbnail_url as last resort
                             elseif(!empty($gallery->thumbnail_url)) {
                                 $imageUrl = $gallery->thumbnail_url;
                             }
                         @endphp
                         
-                        <div class="cyber-gallery-item group">
+                        <div class="cyber-gallery-item" onclick="openImageModal('{{ $imageUrl }}')">
                             <img src="{{ $imageUrl }}" 
                                  alt="{{ $gallery->title }}"
-                                 class="w-full h-full object-cover"
-                                 onerror="this.src='{{ asset('images/default-room.png') }}'; this.style.opacity='0.7';">
-                            
-                            <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-70 transition-all duration-300 flex items-center justify-center p-4">
-                                <div class="text-white text-center transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                                    <h4 class="font-semibold text-sm mb-1 nepali-font">{{ $gallery->title }}</h4>
-                                    @if($gallery->description)
-                                        <p class="text-xs opacity-90 nepali-font">{{ Str::limit($gallery->description, 60) }}</p>
-                                    @endif
-                                    @if($gallery->is_featured)
-                                        <span class="inline-block bg-yellow-500 text-white text-xs px-2 py-1 rounded-full mt-2 nepali-font">फिचर्ड</span>
-                                    @endif
-                                </div>
-                            </div>
+                                 loading="lazy"
+                                 onerror="this.src='{{ asset('images/default-room.png') }}'">
                         </div>
                     @endforeach
                 </div>
             @else
-                <!-- Placeholder for empty gallery -->
                 <div class="cyber-gallery">
-                    <div class="cyber-gallery-item">
-                        <div style="width: 100%; height: 100%; background: var(--dark-3); border: 2px solid var(--neon-purple); display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--neon-purple);">
-                            <i class="fas fa-images" style="font-size: 3rem; margin-bottom: 1rem;"></i>
-                            <span class="nepali-font" style="font-size: 0.9rem;">तस्बिरहरू थपिने...</span>
+                    @for($i = 0; $i < 4; $i++)
+                        <div class="cyber-gallery-item">
+                            <div style="width: 100%; height: 100%; background: var(--dark-2); display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-images" style="font-size: 2rem; color: var(--neon-cyan);"></i>
+                            </div>
                         </div>
-                    </div>
-                    <div class="cyber-gallery-item">
-                        <div style="width: 100%; height: 100%; background: var(--dark-3); border: 2px solid var(--neon-cyan); display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--neon-cyan);">
-                            <i class="fas fa-video" style="font-size: 3rem; margin-bottom: 1rem;"></i>
-                            <span class="nepali-font" style="font-size: 0.9rem;">भिडियोहरू थपिने...</span>
-                        </div>
-                    </div>
+                    @endfor
                 </div>
             @endif
 
-            <!-- View All Gallery Button -->
             @if($galleries->count() > 0 && $hostel->slug)
-                <div style="text-align: center; margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--neon-cyan);">
+                <div class="gallery-button-section">
+                    <!-- ✅ ADDED TEXT LINE AS REQUESTED -->
+                    <p class="gallery-note-text nepali-font">
+                        हाम्रा अन्य फोटो र भिडियोको लागि
+                    </p>
+                    
                     <a href="{{ route('hostels.full.gallery', $hostel->slug) }}" 
                        class="cyber-btn btn-cyber-green"
-                       style="padding: 1rem 3rem; font-size: 1.2rem;">
+                       style="padding: 0.8rem 2.5rem;">
                         <i class="fas fa-images"></i>
                         <span class="nepali-font">सबै ग्यालरी हेर्नुहोस्</span>
                     </a>
@@ -1114,7 +686,7 @@
                         <div class="cyber-facility-icon">
                             <i class="fas fa-check"></i>
                         </div>
-                        <span class="nepali-font" style="color: var(--text-primary); font-weight: 500; font-size: 1.1rem;">{{ trim($facility) }}</span>
+                        <span class="nepali-font" style="color: var(--text-primary); font-size: 1rem;">{{ trim($facility) }}</span>
                     </div>
                     @endif
                 @endforeach
@@ -1127,12 +699,12 @@
             <div class="cyber-section-header">
                 <h2 class="cyber-section-title nepali-font">हाम्रो स्थान</h2>
             </div>
-            <div style="padding: 2rem;">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: start;">
+            <div style="padding: 1.5rem;">
+                <div style="display: grid; grid-template-columns: 1fr; gap: 2rem;">
                     <div>
-                        <h3 style="color: var(--text-primary); margin-bottom: 1.5rem; font-size: 1.5rem;" class="nepali-font">ठेगाना विवरण</h3>
+                        <h3 style="color: var(--text-primary); margin-bottom: 1rem; font-size: 1.3rem;" class="nepali-font">ठेगाना विवरण</h3>
                         @if($hostel->address)
-                            <p style="color: var(--text-secondary); line-height: 1.8; margin-bottom: 2rem; font-size: 1.1rem;" class="nepali-font">{{ $hostel->address }}</p>
+                            <p style="color: var(--text-secondary); line-height: 1.6; margin-bottom: 1.5rem; font-size: 1rem;" class="nepali-font">{{ $hostel->address }}</p>
                         @endif
                         
                         <div style="display: flex; flex-direction: column; gap: 1rem;">
@@ -1143,70 +715,6 @@
                                 <i class="fas fa-directions"></i>
                                 <span class="nepali-font">नक्सामा दिशा निर्देशन</span>
                             </a>
-                            
-                            <a href="https://www.google.com/maps/search/?api=1&query={{ urlencode($hostel->address) }}" 
-                               target="_blank" 
-                               class="cyber-btn"
-                               style="text-align: center;">
-                                <i class="fas fa-external-link-alt"></i>
-                                <span class="nepali-font">Google Map मा खोल्नुहोस्</span>
-                            </a>
-                        </div>
-                    </div>
-                    
-                    <!-- UPDATED: Actual Google Map Embed -->
-                    <div style="background: var(--dark-3); border: 2px solid var(--neon-cyan); padding: 0; overflow: hidden; height: 400px; position: relative;">
-                        <iframe 
-                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3532.8340378072015!2d85.3171482753358!3d27.69389037618937!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39eb1965f5ec93a7%3A0xf2a74108721b8b9e!2sKalikasthan%20Mandir!5e0!3m2!1sen!2snp!4v1699876543210!5m2!1sen!2snp" 
-                            width="100%" 
-                            height="100%" 
-                            style="border:0; filter: invert(90%) hue-rotate(180deg) contrast(85%);" 
-                            allowfullscreen="" 
-                            loading="lazy" 
-                            referrerpolicy="no-referrer-when-downgrade"
-                            title="Kalikasthan Mandir Location Map">
-                        </iframe>
-                        
-                        <!-- Cyber overlay effect -->
-                        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; background: linear-gradient(45deg, rgba(0,212,255,0.1) 0%, rgba(255,0,255,0.1) 100%);"></div>
-                        
-                        <!-- Scan line effect -->
-                        <div style="position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent); animation: scanline 3s linear infinite;"></div>
-                    </div>
-                </div>
-                
-                <!-- Additional Location Info -->
-                <div style="margin-top: 3rem; padding: 2rem; background: rgba(17, 17, 17, 0.6); border: 1px solid var(--neon-green);">
-                    <h4 style="color: var(--text-primary); margin-bottom: 1rem; font-size: 1.3rem;" class="nepali-font">स्थानको बारेमा</h4>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
-                        <div style="display: flex; align-items: center; gap: 1rem;">
-                            <div style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple)); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                                <i class="fas fa-landmark" style="color: var(--dark-1); font-size: 1rem;"></i>
-                            </div>
-                            <div>
-                                <div style="color: var(--neon-cyan); font-size: 0.9rem; font-weight: 600;" class="nepali-font">नजिकैको मन्दिर</div>
-                                <div style="color: var(--text-secondary); font-size: 0.9rem;" class="nepali-font">कालिकास्थान मन्दिर</div>
-                            </div>
-                        </div>
-                        
-                        <div style="display: flex; align-items: center; gap: 1rem;">
-                            <div style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--neon-green), var(--neon-cyan)); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                                <i class="fas fa-bus" style="color: var(--dark-1); font-size: 1rem;"></i>
-                            </div>
-                            <div>
-                                <div style="color: var(--neon-green); font-size: 0.9rem; font-weight: 600;" class="nepali-font">यातायात</div>
-                                <div style="color: var(--text-secondary); font-size: 0.9rem;" class="nepali-font">सजिलो पहुँच</div>
-                            </div>
-                        </div>
-                        
-                        <div style="display: flex; align-items: center; gap: 1rem;">
-                            <div style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple)); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                                <i class="fas fa-university" style="color: var(--dark-1); font-size: 1rem;"></i>
-                            </div>
-                            <div>
-                                <div style="color: var(--neon-pink); font-size: 0.9rem; font-weight: 600;" class="nepali-font">क्षेत्र</div>
-                                <div style="color: var(--text-secondary); font-size: 0.9rem;" class="nepali-font">दिल्लीबजार, काठमाडौं</div>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -1220,57 +728,30 @@
             </div>
             
             @if($reviewCount > 0)
-                <div class="cyber-reviews-container">
-                    <div class="cyber-reviews-track" id="cyberReviewsTrack">
-                        @foreach($reviews as $review)
-                        <div class="cyber-review">
-                            <div class="cyber-review-header">
-                                <div class="cyber-reviewer nepali-font">{{ $review->student->user->name ?? 'अज्ञात विद्यार्थी' }}</div>
-                                <div class="cyber-review-date">{{ $review->created_at->format('Y-m-d') }}</div>
-                            </div>
-                            <div class="cyber-review-rating">
-                                @for($i = 1; $i <= 5; $i++)
-                                    <i class="fas fa-star {{ $i <= $review->rating ? '' : 'far' }}"></i>
-                                @endfor
-                                <span style="margin-left: 1rem; color: var(--neon-orange); font-weight: 700;">{{ $review->rating }}/5</span>
-                            </div>
-                            <div class="cyber-review-content nepali-font">{{ $review->comment }}</div>
-                            
-                            @if($review->reply)
-                            <div style="background: rgba(157, 0, 255, 0.1); border-left: 4px solid var(--neon-purple); padding: 1.5rem; margin-top: 1.5rem;">
-                                <div style="display: flex; align-items: start; gap: 1rem;">
-                                    <i class="fas fa-reply" style="color: var(--neon-purple); margin-top: 0.3rem;"></i>
-                                    <div>
-                                        <strong style="color: var(--neon-purple); font-size: 1rem;" class="nepali-font">होस्टलको जवाफ:</strong>
-                                        <p style="color: var(--text-secondary); margin-top: 0.8rem; font-size: 1rem;" class="nepali-font">{{ $review->reply }}</p>
-                                    </div>
-                                </div>
-                            </div>
-                            @endif
+                <div style="padding: 1.5rem;">
+                    @foreach($reviews as $review)
+                    <div class="cyber-review" style="margin-bottom: 1rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; flex-wrap: wrap;">
+                            <div class="cyber-reviewer nepali-font" style="font-weight: 600;">{{ $review->student->user->name ?? 'अज्ञात विद्यार्थी' }}</div>
+                            <div class="cyber-review-date" style="color: var(--text-secondary); font-size: 0.9rem;">{{ $review->created_at->format('Y-m-d') }}</div>
                         </div>
-                        @endforeach
+                        <div style="color: var(--neon-orange); margin-bottom: 1rem;">
+                            @for($i = 1; $i <= 5; $i++)
+                                <i class="fas fa-star {{ $i <= $review->rating ? '' : 'far' }}"></i>
+                            @endfor
+                            <span style="margin-left: 0.5rem; color: var(--neon-orange); font-weight: 600;">{{ $review->rating }}/5</span>
+                        </div>
+                        <div class="cyber-review-content nepali-font" style="color: var(--text-secondary); line-height: 1.6;">{{ $review->comment }}</div>
                     </div>
-
-                    @if($reviewCount > 1)
-                    <div class="cyber-review-controls">
-                        <button class="cyber-btn prev-cyber-review">
-                            <i class="fas fa-chevron-left"></i>
-                            <span>अघिल्लो</span>
-                        </button>
-                        <button class="cyber-btn next-cyber-review">
-                            <span>अर्को</span>
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
-                    </div>
-                    @endif
+                    @endforeach
                 </div>
             @else
-                <div style="text-align: center; padding: 3rem;">
-                    <div style="width: 120px; height: 120px; background: var(--dark-3); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; border: 2px solid var(--neon-cyan);">
-                        <i class="fas fa-comment-slash" style="font-size: 3rem; color: var(--neon-cyan);"></i>
+                <div style="text-align: center; padding: 2rem;">
+                    <div style="width: 80px; height: 80px; background: var(--dark-3); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; border: 1px solid var(--neon-cyan);">
+                        <i class="fas fa-comment-slash" style="font-size: 2rem; color: var(--neon-cyan);"></i>
                     </div>
-                    <h3 style="font-size: 1.5rem; color: var(--text-primary); margin-bottom: 0.8rem;" class="nepali-font">अहिलेसम्म कुनै समीक्षा छैन</h3>
-                    <p style="font-size: 1.1rem; color: var(--text-secondary);" class="nepali-font">यो होस्टलको पहिलो समीक्षा दिनुहोस्!</p>
+                    <h3 style="font-size: 1.3rem; color: var(--text-primary); margin-bottom: 0.5rem;" class="nepali-font">अहिलेसम्म कुनै समीक्षा छैन</h3>
+                    <p style="font-size: 1rem; color: var(--text-secondary);" class="nepali-font">यो होस्टलको पहिलो समीक्षा दिनुहोस्!</p>
                 </div>
             @endif
         </section>
@@ -1283,21 +764,21 @@
             <div class="cyber-contact-grid">
                 @if($hostel->contact_person)
                 <div class="cyber-contact-card">
-                    <div class="cyber-contact-icon">
+                    <div style="width: 60px; height: 60px; background: var(--neon-cyan); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: var(--dark-1); font-size: 1.5rem;">
                         <i class="fas fa-user"></i>
                     </div>
-                    <h3 style="color: var(--text-primary); margin-bottom: 0.5rem; font-size: 1.2rem;" class="nepali-font">सम्पर्क व्यक्ति</h3>
-                    <p style="color: var(--text-secondary); font-weight: 500; font-size: 1.1rem;">{{ $hostel->contact_person }}</p>
+                    <h3 style="color: var(--text-primary); margin-bottom: 0.5rem; font-size: 1.1rem;" class="nepali-font">सम्पर्क व्यक्ति</h3>
+                    <p style="color: var(--text-secondary); font-weight: 500; font-size: 1rem;">{{ $hostel->contact_person }}</p>
                 </div>
                 @endif
                 
                 @if($hostel->contact_phone)
                 <div class="cyber-contact-card">
-                    <div class="cyber-contact-icon">
+                    <div style="width: 60px; height: 60px; background: var(--neon-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: var(--dark-1); font-size: 1.5rem;">
                         <i class="fas fa-phone"></i>
                     </div>
-                    <h3 style="color: var(--text-primary); margin-bottom: 0.5rem; font-size: 1.2rem;" class="nepali-font">फोन नम्बर</h3>
-                    <a href="tel:{{ $hostel->contact_phone }}" style="color: var(--text-secondary); font-weight: 500; font-size: 1.1rem; text-decoration: none;">
+                    <h3 style="color: var(--text-primary); margin-bottom: 0.5rem; font-size: 1.1rem;" class="nepali-font">फोन नम्बर</h3>
+                    <a href="tel:{{ $hostel->contact_phone }}" style="color: var(--text-secondary); font-weight: 500; font-size: 1rem; text-decoration: none;">
                         {{ $hostel->contact_phone }}
                     </a>
                 </div>
@@ -1305,11 +786,11 @@
                 
                 @if($hostel->contact_email)
                 <div class="cyber-contact-card">
-                    <div class="cyber-contact-icon">
+                    <div style="width: 60px; height: 60px; background: var(--neon-pink); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: var(--dark-1); font-size: 1.5rem;">
                         <i class="fas fa-envelope"></i>
                     </div>
-                    <h3 style="color: var(--text-primary); margin-bottom: 0.5rem; font-size: 1.2rem;" class="nepali-font">इमेल</h3>
-                    <a href="mailto:{{ $hostel->contact_email }}" style="color: var(--text-secondary); font-weight: 500; font-size: 1.1rem; text-decoration: none;">
+                    <h3 style="color: var(--text-primary); margin-bottom: 0.5rem; font-size: 1.1rem;" class="nepali-font">इमेल</h3>
+                    <a href="mailto:{{ $hostel->contact_email }}" style="color: var(--text-secondary); font-weight: 500; font-size: 1rem; text-decoration: none;">
                         {{ $hostel->contact_email }}
                     </a>
                 </div>
@@ -1317,11 +798,11 @@
                 
                 @if($hostel->address)
                 <div class="cyber-contact-card">
-                    <div class="cyber-contact-icon">
+                    <div style="width: 60px; height: 60px; background: var(--neon-purple); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: var(--dark-1); font-size: 1.5rem;">
                         <i class="fas fa-map-marker-alt"></i>
                     </div>
-                    <h3 style="color: var(--text-primary); margin-bottom: 0.5rem; font-size: 1.2rem;" class="nepali-font">ठेगाना</h3>
-                    <p style="color: var(--text-secondary); font-weight: 500; font-size: 1.1rem;" class="nepali-font">{{ $hostel->address }}</p>
+                    <h3 style="color: var(--text-primary); margin-bottom: 0.5rem; font-size: 1.1rem;" class="nepali-font">ठेगाना</h3>
+                    <p style="color: var(--text-secondary); font-weight: 500; font-size: 1rem;" class="nepali-font">{{ $hostel->address }}</p>
                 </div>
                 @endif
             </div>
@@ -1335,7 +816,7 @@
             <div class="cyber-form">
                 <form action="{{ route('hostel.contact', $hostel->id) }}" method="POST">
                     @csrf
-                    <div class="cyber-form-grid">
+                    <div style="margin-bottom: 1.5rem;">
                         <input type="text" name="name" required placeholder="तपाईंको नाम" class="cyber-form-input nepali-font">
                         <input type="email" name="email" required placeholder="इमेल ठेगाना" class="cyber-form-input">
                     </div>
@@ -1359,67 +840,61 @@
     </a>
 @endif
 
+<!-- Simple Image Modal -->
+<div id="imageModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
+    <div style="position: relative; max-width: 90%; max-height: 90%;">
+        <button onclick="closeImageModal()" style="position: absolute; top: 10px; right: 10px; background: var(--neon-cyan); color: var(--dark-1); border: none; width: 40px; height: 40px; font-size: 1.5rem; cursor: pointer; z-index: 10; border-radius: 50%;">&times;</button>
+        <img id="modalImage" src="" alt="" style="max-width: 100%; max-height: 100%; display: block; margin: 0 auto;">
+    </div>
+</div>
+
 @push('scripts')
-@vite(['resources/js/app.js'])
-<!-- Cyber JavaScript -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Reviews Carousel
-    const track = document.getElementById('cyberReviewsTrack');
-    const slides = document.querySelectorAll('.cyber-review');
-    const prevBtn = document.querySelector('.prev-cyber-review');
-    const nextBtn = document.querySelector('.next-cyber-review');
+    console.log('Dark theme page loaded successfully');
     
-    if (slides.length > 1 && track) {
-        let currentSlide = 0;
-
-        function updateCarousel() {
-            track.style.transform = `translateX(-${currentSlide * 100}%)`;
-        }
-
-        if (nextBtn) {
-            nextBtn.addEventListener('click', function() {
-                currentSlide = (currentSlide + 1) % slides.length;
-                updateCarousel();
-            });
-        }
-
-        if (prevBtn) {
-            prevBtn.addEventListener('click', function() {
-                currentSlide = (currentSlide - 1 + slides.length) % slides.length;
-                updateCarousel();
-            });
-        }
-
-        // Auto slide
-        setInterval(function() {
-            currentSlide = (currentSlide + 1) % slides.length;
-            updateCarousel();
-        }, 6000);
-    }
-
-    // Matrix effect enhancement
-    const matrixCode = document.querySelector('.matrix-code');
-    if (matrixCode) {
-        setInterval(() => {
-            matrixCode.style.background = 
-                `repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255}, 0.03) 2px, rgba(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255}, 0.03) 4px),
-                repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255}, 0.03) 2px, rgba(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255}, 0.03) 4px)`;
-        }, 3000);
-    }
-
-    // Fix gallery images
-    document.querySelectorAll('.cyber-gallery-item img').forEach(img => {
-        if (img.src.includes('undefined') || img.src.includes('null') || !img.src) {
-            img.src = '{{ asset("images/default-room.png") }}';
-            img.style.opacity = '0.7';
-        }
+    // Simple image error handling
+    document.querySelectorAll('img').forEach(img => {
+        img.addEventListener('error', function() {
+            if (!this.src.includes('default-room.png')) {
+                this.src = '{{ asset("images/default-room.png") }}';
+            }
+        });
     });
+});
+
+// Image Modal Functions
+function openImageModal(imageUrl) {
+    const modal = document.getElementById('imageModal');
+    const modalImage = document.getElementById('modalImage');
+    
+    modalImage.src = imageUrl;
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function closeImageModal() {
+    const modal = document.getElementById('imageModal');
+    modal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+}
+
+// Close modal on background click
+document.getElementById('imageModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeImageModal();
+    }
+});
+
+// Close modal with Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const modal = document.getElementById('imageModal');
+        if (modal.style.display === 'flex') {
+            closeImageModal();
+        }
+    }
 });
 </script>
 @endpush
-
-<!-- External Dependencies -->
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 @endsection

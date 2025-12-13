@@ -1,0 +1,846 @@
+/* public/css/themes/dark.css - COMPLETE CYBERPUNK DARK THEME */
+
+/* Matrix Background Effect */
+.matrix-code {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 212, 255, 0.03) 2px, rgba(0, 212, 255, 0.03) 4px),
+        repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(255, 0, 255, 0.03) 2px, rgba(255, 0, 255, 0.03) 4px);
+    z-index: -1;
+    animation: matrixMove 20s linear infinite;
+}
+
+@keyframes matrixMove {
+    0% { transform: translateY(0) translateX(0); }
+    100% { transform: translateY(-100px) translateX(-50px); }
+}
+
+/* Cyber Container Effects */
+.cyber-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, 
+        transparent, 
+        var(--neon-cyan), 
+        var(--neon-pink), 
+        var(--neon-green), 
+        transparent);
+    animation: scanline 3s linear infinite;
+}
+
+.cyber-container::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, 
+        transparent, 
+        var(--neon-green), 
+        var(--neon-pink), 
+        var(--neon-cyan), 
+        transparent);
+    animation: scanline 3s linear infinite reverse;
+}
+
+@keyframes scanline {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+.cyber-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 30% 20%, rgba(0, 212, 255, 0.2) 0%, transparent 50%),
+        radial-gradient(circle at 70% 80%, rgba(255, 0, 255, 0.2) 0%, transparent 50%);
+    animation: pulse 4s ease-in-out infinite alternate;
+}
+
+@keyframes pulse {
+    0% { opacity: 0.3; }
+    100% { opacity: 0.7; }
+}
+
+/* Cyber Logo Glow */
+@keyframes logoGlow {
+    0% { 
+        box-shadow: 
+            0 0 20px rgba(0, 212, 255, 0.5),
+            inset 0 0 20px rgba(0, 212, 255, 0.2);
+    }
+    100% { 
+        box-shadow: 
+            0 0 40px rgba(0, 212, 255, 0.8),
+            0 0 60px rgba(255, 0, 255, 0.4),
+            inset 0 0 30px rgba(0, 212, 255, 0.3);
+    }
+}
+
+/* Cyber Typography */
+.cyber-title {
+    font-size: 4rem;
+    font-weight: 900;
+    text-align: center;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, var(--neon-cyan), var(--neon-pink), var(--neon-green));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 0 30px rgba(0, 212, 255, 0.5);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.cyber-subtitle {
+    font-size: 1.4rem;
+    color: var(--text-secondary);
+    text-align: center;
+    margin-bottom: 2rem;
+    letter-spacing: 1px;
+}
+
+/* Cyber Stat Items */
+.cyber-stat {
+    background: rgba(17, 17, 17, 0.9);
+    border: 1px solid var(--neon-green);
+    padding: 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.cyber-stat::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.2), transparent);
+    transition: 0.5s;
+}
+
+.cyber-stat:hover::before {
+    left: 100%;
+}
+
+.cyber-stat:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
+}
+
+.cyber-number {
+    font-size: 3.5rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--neon-cyan), var(--neon-green));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    display: block;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+}
+
+.cyber-label {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: 600;
+}
+
+/* Cyber Buttons */
+.cyber-btn {
+    background: transparent;
+    color: var(--neon-cyan);
+    border: 2px solid var(--neon-cyan);
+    padding: 1.2rem 2.5rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 0.5rem;
+}
+
+.cyber-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.3), transparent);
+    transition: 0.5s;
+}
+
+.cyber-btn:hover::before {
+    left: 100%;
+}
+
+.cyber-btn:hover {
+    background: rgba(0, 212, 255, 0.1);
+    box-shadow: 
+        0 0 20px rgba(0, 212, 255, 0.5),
+        inset 0 0 20px rgba(0, 212, 255, 0.1);
+    color: var(--text-primary);
+    transform: translateY(-2px);
+}
+
+.btn-cyber-pink {
+    border-color: var(--neon-pink);
+    color: var(--neon-pink);
+}
+
+.btn-cyber-pink:hover {
+    background: rgba(255, 0, 255, 0.1);
+    box-shadow: 
+        0 0 20px rgba(255, 0, 255, 0.5),
+        inset 0 0 20px rgba(255, 0, 255, 0.1);
+}
+
+.btn-cyber-green {
+    border-color: var(--neon-green);
+    color: var(--neon-green);
+}
+
+.btn-cyber-green:hover {
+    background: rgba(0, 255, 136, 0.1);
+    box-shadow: 
+        0 0 20px rgba(0, 255, 136, 0.5),
+        inset 0 0 20px rgba(0, 255, 136, 0.1);
+}
+
+/* Cyber Social Icons */
+.cyber-social {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.cyber-social-icon {
+    width: 60px;
+    height: 60px;
+    border: 2px solid var(--neon-purple);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--neon-purple);
+    text-decoration: none;
+    font-size: 1.4rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.cyber-social-icon::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: conic-gradient(from 0deg, var(--neon-cyan), var(--neon-pink), var(--neon-green), var(--neon-cyan));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.cyber-social-icon:hover::before {
+    opacity: 1;
+}
+
+.cyber-social-icon:hover {
+    transform: scale(1.1) rotate(10deg);
+    box-shadow: 0 0 20px rgba(157, 0, 255, 0.5);
+}
+
+.cyber-social-icon i {
+    position: relative;
+    z-index: 1;
+}
+
+/* Section Headers */
+.cyber-section-header {
+    text-align: center;
+    margin-bottom: 3rem;
+    position: relative;
+    padding: 2rem 0;
+}
+
+.cyber-section-title {
+    font-size: 3rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--neon-cyan), var(--neon-pink));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    position: relative;
+    display: inline-block;
+}
+
+.cyber-section-title::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink));
+}
+
+/* Cyber Gallery Hover Effects */
+.cyber-gallery-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, rgba(0, 212, 255, 0.2), rgba(255, 0, 255, 0.2));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 1;
+}
+
+.cyber-gallery-item:hover::before {
+    opacity: 1;
+}
+
+.cyber-gallery-item:hover {
+    transform: translateY(-10px) scale(1.05);
+    box-shadow: 
+        0 10px 30px rgba(0, 212, 255, 0.5),
+        0 0 50px rgba(255, 0, 255, 0.3);
+}
+
+.cyber-gallery-item:hover img {
+    transform: scale(1.1);
+}
+
+/* Cyber Facilities */
+.cyber-facilities {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.cyber-facility {
+    background: rgba(17, 17, 17, 0.9);
+    border: 1px solid var(--neon-green);
+    padding: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.cyber-facility::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(135deg, var(--neon-green), var(--neon-cyan));
+}
+
+.cyber-facility:hover {
+    transform: translateX(10px);
+    box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
+}
+
+.cyber-facility-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, var(--neon-green), var(--neon-cyan));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--dark-1);
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+/* Cyber Reviews */
+.cyber-reviews-container {
+    position: relative;
+    margin: 3rem 0;
+    overflow: hidden;
+}
+
+.cyber-reviews-track {
+    display: flex;
+    transition: transform 0.5s ease-in-out;
+    gap: 2rem;
+}
+
+.cyber-review {
+    min-width: 100%;
+    background: rgba(17, 17, 17, 0.9);
+    border: 1px solid var(--neon-purple);
+    padding: 3rem;
+    position: relative;
+}
+
+.cyber-review::before {
+    content: '"';
+    position: absolute;
+    top: -20px;
+    left: 30px;
+    font-size: 6rem;
+    color: var(--neon-purple);
+    opacity: 0.3;
+}
+
+.cyber-review-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+}
+
+.cyber-reviewer {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.cyber-review-date {
+    color: var(--text-secondary);
+    font-size: 1rem;
+}
+
+.cyber-review-rating {
+    color: var(--neon-orange);
+    margin: 1rem 0;
+    font-size: 1.2rem;
+}
+
+.cyber-review-content {
+    color: var(--text-secondary);
+    line-height: 1.8;
+    font-size: 1.1rem;
+}
+
+/* Cyber Contact */
+.cyber-contact-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.cyber-contact-card {
+    background: rgba(17, 17, 17, 0.9);
+    border: 1px solid var(--neon-cyan);
+    padding: 2.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.cyber-contact-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
+}
+
+.cyber-contact-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--dark-1);
+    font-size: 2rem;
+    margin: 0 auto 1.5rem;
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+}
+
+/* Cyber Form */
+.cyber-form {
+    background: rgba(17, 17, 17, 0.9);
+    border: 1px solid var(--neon-pink);
+    padding: 3rem;
+    margin-top: 2rem;
+}
+
+.cyber-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.cyber-form-input {
+    background: transparent;
+    border: 1px solid var(--neon-cyan);
+    border-radius: 0;
+    padding: 1.2rem;
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    font-family: 'Orbitron', sans-serif;
+}
+
+.cyber-form-input:focus {
+    outline: none;
+    border-color: var(--neon-pink);
+    box-shadow: 0 0 20px rgba(255, 0, 255, 0.3);
+}
+
+.cyber-form-textarea {
+    background: transparent;
+    border: 1px solid var(--neon-cyan);
+    border-radius: 0;
+    padding: 1.2rem;
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    width: 100%;
+    min-height: 150px;
+    resize: vertical;
+    margin-bottom: 2rem;
+    transition: all 0.3s ease;
+    font-family: 'Orbitron', sans-serif;
+}
+
+.cyber-form-textarea:focus {
+    outline: none;
+    border-color: var(--neon-pink);
+    box-shadow: 0 0 20px rgba(255, 0, 255, 0.3);
+}
+
+/* WhatsApp Button */
+.cyber-whatsapp-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 1000;
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, #25D366, #128C7E);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--dark-1);
+    text-decoration: none;
+    box-shadow: 
+        0 0 20px rgba(37, 211, 102, 0.5),
+        0 0 40px rgba(18, 140, 126, 0.3);
+    transition: all 0.3s ease;
+    border: 2px solid var(--dark-1);
+    animation: whatsappPulse 2s ease-in-out infinite;
+}
+
+@keyframes whatsappPulse {
+    0%, 100% { 
+        box-shadow: 
+            0 0 20px rgba(37, 211, 102, 0.5),
+            0 0 40px rgba(18, 140, 126, 0.3);
+    }
+    50% { 
+        box-shadow: 
+            0 0 30px rgba(37, 211, 102, 0.8),
+            0 0 60px rgba(18, 140, 126, 0.5);
+    }
+}
+
+.cyber-whatsapp-btn:hover {
+    transform: scale(1.1) rotate(10deg);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--dark-2);
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, var(--neon-cyan), var(--neon-pink));
+    border-radius: 0;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, var(--neon-green), var(--neon-purple));
+}
+
+/* Nepali Font Styling */
+.nepali-font {
+    font-family: 'Mangal', 'Arial', sans-serif !important;
+    line-height: 1.6 !important;
+}
+
+/* Responsive Design - More Detailed */
+@media (max-width: 768px) {
+    .cyber-title {
+        font-size: 2.5rem !important;
+        line-height: 1.2;
+    }
+    
+    .cyber-subtitle {
+        font-size: 1rem !important;
+    }
+    
+    .cyber-stats {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 1rem !important;
+    }
+    
+    .cyber-number {
+        font-size: 2.5rem !important;
+    }
+    
+    .cyber-gallery {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+    
+    .cyber-gallery-item {
+        height: 250px !important;
+    }
+    
+    .cyber-container {
+        padding: 1.5rem !important;
+        margin-bottom: 1.5rem !important;
+    }
+    
+    .cyber-action-buttons {
+        flex-direction: column !important;
+        gap: 1rem !important;
+    }
+    
+    .cyber-btn {
+        width: 100% !important;
+        justify-content: center !important;
+        padding: 1rem 1.5rem !important;
+        font-size: 1rem !important;
+    }
+    
+    .cyber-contact-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .cyber-facilities {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .cyber-form-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .cyber-whatsapp-btn {
+        width: 60px !important;
+        height: 60px !important;
+        bottom: 20px !important;
+        right: 20px !important;
+    }
+    
+    .cyber-review {
+        padding: 2rem !important;
+    }
+    
+    /* Touch-friendly buttons */
+    button, .cyber-btn, .cyber-social-icon {
+        min-height: 44px !important;
+        min-width: 44px !important;
+    }
+    
+    /* Improve form inputs for mobile */
+    .cyber-form-input, .cyber-form-textarea {
+        font-size: 16px !important;
+        padding: 1rem !important;
+    }
+}
+
+/* Tablet Optimization */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .cyber-gallery {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    
+    .cyber-stats {
+        grid-template-columns: repeat(4, 1fr) !important;
+    }
+    
+    .cyber-facilities {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+/* Cyber Mobile Optimization */
+@media (max-width: 480px) {
+    .cyber-title {
+        font-size: 1.8rem !important;
+        letter-spacing: 1px !important;
+    }
+    
+    .cyber-subtitle {
+        font-size: 0.9rem !important;
+    }
+    
+    .cyber-stats {
+        grid-template-columns: 1fr !important;
+        gap: 0.5rem !important;
+    }
+    
+    .cyber-stat {
+        padding: 1rem !important;
+    }
+    
+    .cyber-number {
+        font-size: 2rem !important;
+    }
+    
+    .cyber-gallery-item {
+        height: 200px !important;
+    }
+    
+    .cyber-btn {
+        padding: 0.8rem 1rem !important;
+        font-size: 0.9rem !important;
+        letter-spacing: 1px !important;
+    }
+    
+    /* Simplify animations for mobile */
+    .matrix-code,
+    .cyber-container::before,
+    .cyber-container::after {
+        animation-duration: 6s !important;
+    }
+    
+    /* Reduce blur effects for performance */
+    .cyber-container,
+    .cyber-header::before {
+        backdrop-filter: blur(5px) !important;
+    }
+    
+    /* Hide heavy effects on mobile */
+    .matrix-bg {
+        opacity: 0.5 !important;
+    }
+    
+    /* Reduce glow effects */
+    .cyber-logo,
+    .cyber-contact-icon {
+        box-shadow: 0 0 10px rgba(0, 212, 255, 0.3) !important;
+    }
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+    .matrix-code,
+    .cyber-container::before,
+    .cyber-container::after,
+    .cyber-logo,
+    .cyber-stat::before,
+    .cyber-btn::before,
+    .cyber-social-icon,
+    .cyber-gallery-item,
+    .cyber-facility,
+    .cyber-contact-card {
+        animation: none !important;
+        transition: none !important;
+    }
+    
+    .matrix-code {
+        background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 212, 255, 0.03) 2px, rgba(0, 212, 255, 0.03) 4px) !important;
+    }
+    
+    .cyber-container::before,
+    .cyber-container::after {
+        background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent) !important;
+        animation: none !important;
+    }
+}
+
+/* Image Loading States */
+.img-loading {
+    background: linear-gradient(90deg, var(--dark-2) 25%, var(--dark-3) 50%, var(--dark-2) 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Cyber Modal for Images */
+.cyber-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+}
+
+.cyber-modal-content {
+    max-width: 90%;
+    max-height: 90%;
+    border: 2px solid var(--neon-cyan);
+    background: var(--dark-1);
+    position: relative;
+}
+
+.cyber-modal-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: var(--neon-cyan);
+    color: var(--dark-1);
+    border: none;
+    width: 40px;
+    height: 40px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cyber-modal-close:hover {
+    background: var(--neon-pink);
+}
