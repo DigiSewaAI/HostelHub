@@ -185,17 +185,22 @@
                                                             <td>{{ $breakdown->total }}</td>
                                                             <td>{{ $breakdown->read_count }}</td>
                                                             <td>
-                                                                @php
-                                                                    $rate = $breakdown->total > 0 ? 
-                                                                        round(($breakdown->read_count / $breakdown->total) * 100, 1) : 0;
-                                                                @endphp
-                                                                <span class="badge 
-                                                                    @if($rate >= 80) badge-success
-                                                                    @elseif($rate >= 50) badge-warning
-                                                                    @else badge-danger @endif">
-                                                                    {{ $rate }}%
-                                                                </span>
-                                                            </td>
+    @php
+        $rate = $breakdown->total > 0 ? 
+            round(($breakdown->read_count / $breakdown->total) * 100, 1) : 0;
+    @endphp
+    <span class="badge 
+        @if($rate >= 80) badge-success
+        @elseif($rate >= 50) badge-warning
+        @else badge-danger @endif"
+        style="background-color: @if($rate >= 80) #28a745 @elseif($rate >= 50) #ffc107 @else #dc3545 @endif !important; 
+               color: white !important; 
+               font-size: 0.9em; 
+               padding: 0.4em 0.8em; 
+               font-weight: bold;">
+        {{ $rate }}%
+    </span>
+</td>
                                                         </tr>
                                                     @endforeach
                                                 </tbody>

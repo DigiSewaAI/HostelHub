@@ -226,7 +226,7 @@
         color: #5C4033;
     }
 
-    /* ✅ FIXED: UPDATED Gallery Section - BULLETPROOF SOLUTION */
+    /* ✅ FIXED: UPDATED Gallery Section - IMAGES ONLY */
     .classic-gallery {
         margin: 2rem 0;
     }
@@ -246,8 +246,8 @@
         transition: all 0.3s ease;
         background: white;
         position: relative;
-        aspect-ratio: 1;
-        height: 250px;
+        aspect-ratio: 4/3;
+        height: 200px;
     }
 
     .classic-gallery-item:hover {
@@ -318,34 +318,35 @@
         transform: translateY(0);
     }
 
-    /* Video Icon Overlay */
-    .classic-video-overlay {
+    /* ✅ REMOVED: Video Icon Overlay (No videos in gallery) */
+    
+    /* Gallery Button Section */
+    .gallery-button-section {
+        text-align: center;
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--gold-color);
+        position: relative;
+    }
+
+    .gallery-button-section::before {
+        content: '';
         position: absolute;
-        top: 50%;
+        top: -1px;
         left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 1;
-        background: rgba(0, 0, 0, 0.7);
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border: 3px solid var(--gold-color);
+        transform: translateX(-50%);
+        width: 100px;
+        height: 2px;
+        background: var(--gold-color);
     }
 
-    .classic-video-overlay i {
-        color: white;
-        font-size: 1.5rem;
-    }
-
-    .classic-gallery-item.youtube-video .classic-video-overlay {
-        background: rgba(255, 0, 0, 0.8);
-    }
-
-    .classic-gallery-item.uploaded-video .classic-video-overlay {
-        background: rgba(0, 0, 0, 0.8);
+    /* THIS IS THE ADDED TEXT LINE */
+    .gallery-note-text {
+        color: var(--dark-brown);
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+        text-align: center;
+        font-style: italic;
     }
 
     /* Facilities Grid */
@@ -800,7 +801,7 @@
             </div>
         </section>
 
-        <!-- ✅ FIXED: Dynamic Gallery Section - BULLETPROOF SOLUTION -->
+        <!-- ✅ FIXED: Dynamic Gallery Section - IMAGES ONLY -->
         <section class="classic-section">
             <h2 class="classic-section-title nepali-font">ग्यालरी</h2>
             <div class="classic-gallery">
@@ -825,8 +826,45 @@
                         $galleries = \App\Models\Gallery::where('hostel_id', $hostel->id)->get();
                     }
                     
+                    // ✅ STRICT FILTERING: ONLY IMAGES (exclude all videos)
+                    $imageGalleries = $galleries->filter(function($gallery) {
+                        // Check if it's an image by file extension or media type
+                        $url = $gallery->media_url ?? $gallery->media_path ?? $gallery->thumbnail_url ?? '';
+                        
+                        // Check for common video extensions
+                        $videoExtensions = ['mp4', 'mov', 'avi', 'mkv', 'webm', 'flv', 'wmv', 'm4v', 'mpg', 'mpeg'];
+                        $extension = strtolower(pathinfo($url, PATHINFO_EXTENSION));
+                        
+                        // Also check if title contains video-related words
+                        $title = strtolower($gallery->title ?? '');
+                        $videoKeywords = ['video', 'tour', 'memory', 'celebration', 'testing'];
+                        
+                        $isVideo = false;
+                        
+                        // Check by extension
+                        if (in_array($extension, $videoExtensions)) {
+                            $isVideo = true;
+                        }
+                        
+                        // Check by title keywords
+                        foreach ($videoKeywords as $keyword) {
+                            if (str_contains($title, $keyword)) {
+                                $isVideo = true;
+                                break;
+                            }
+                        }
+                        
+                        // Also check media_type
+                        if (in_array($gallery->media_type ?? '', ['video', 'external_video'])) {
+                            $isVideo = true;
+                        }
+                        
+                        // Return only if NOT a video
+                        return !$isVideo;
+                    });
+                    
                     // Limit to 12 for display
-                    $displayGalleries = $galleries->take(12);
+                    $displayGalleries = $imageGalleries->take(12);
                 @endphp
                 
                 @if($displayGalleries->count() > 0)
@@ -857,20 +895,10 @@
                                 }
                             @endphp
                             
-                            <div class="classic-gallery-item @if($gallery->media_type === 'external_video') youtube-video @elseif($gallery->media_type === 'video') uploaded-video @endif">
+                            <div class="classic-gallery-item">
                                 <img src="{{ $imageUrl }}" 
                                      alt="{{ $gallery->title }}"
                                      onerror="this.src='{{ asset('images/default-room.png') }}'; this.style.opacity='0.7';">
-                                
-                                @if($gallery->media_type === 'external_video')
-                                    <div class="classic-video-overlay">
-                                        <i class="fab fa-youtube"></i>
-                                    </div>
-                                @elseif($gallery->media_type === 'video')
-                                    <div class="classic-video-overlay">
-                                        <i class="fas fa-video"></i>
-                                    </div>
-                                @endif
                                 
                                 <div class="classic-gallery-overlay">
                                     <div class="classic-gallery-overlay-content">
@@ -893,6 +921,23 @@
                         </div>
                         <h3 style="font-size: 1.5rem; color: var(--deep-red); margin-bottom: 0.8rem;" class="nepali-font">कुनै तस्बिर उपलब्ध छैन</h3>
                         <p style="font-size: 1.1rem; color: #7D5D3B;" class="nepali-font">यस होस्टलको ग्यालरी तस्बिरहरू चाँहि उपलब्ध छैनन्।</p>
+                    </div>
+                @endif
+
+                <!-- ✅ ADDED: Full Gallery Button with Text -->
+                @if($galleries->count() > 0 && $hostel->slug)
+                    <div class="gallery-button-section">
+                        <!-- ✅ ADDED TEXT LINE AS REQUESTED -->
+                        <p class="gallery-note-text nepali-font">
+                            हाम्रा अन्य फोटो र भिडियोको लागि
+                        </p>
+                        
+                        <a href="{{ route('hostels.full.gallery', $hostel->slug) }}" 
+                           class="classic-action-btn"
+                           style="display: inline-flex; padding: 0.8rem 2rem;">
+                            <i class="fas fa-images"></i>
+                            <span class="nepali-font">पुरै ग्यालरी हेर्नुहोस्</span>
+                        </a>
                     </div>
                 @endif
             </div>
