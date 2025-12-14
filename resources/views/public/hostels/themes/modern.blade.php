@@ -1,8 +1,63 @@
+{{-- modern.blade.php - COMPLETE FIXED FILE WITH ALL ISSUES RESOLVED --}}
 @php 
     use Illuminate\Support\Facades\Storage;
     
     $theme = 'modern';
     $themeColor = $hostel->theme_color ?? '#3b82f6';
+    
+    // ✅ FIXED: Structured data preparation
+    $structuredData = [
+        '@context' => 'https://schema.org',
+        '@type' => 'Hotel',
+        'name' => $hostel->name,
+        'description' => $hostel->description,
+        'image' => $hostel->logo_url ?? asset('images/modern-default.jpg'),
+        'address' => [
+            '@type' => 'PostalAddress',
+            'streetAddress' => $hostel->address,
+            'addressLocality' => $hostel->city,
+            'addressCountry' => 'NP'
+        ],
+        'telephone' => $hostel->contact_phone,
+        'priceRange' => 'रु ' . ($hostel->min_price ?? 0) . ' - रु ' . ($hostel->max_price ?? 0),
+        'checkinTime' => '14:00',
+        'checkoutTime' => '12:00',
+        'currenciesAccepted' => 'NPR',
+        'paymentAccepted' => 'Cash, Credit Card, Mobile Payment',
+        'aggregateRating' => [
+            '@type' => 'AggregateRating',
+            'ratingValue' => $avgRating ?? 4.5,
+            'reviewCount' => $reviewCount ?? 0,
+            'bestRating' => '5',
+            'worstRating' => '1'
+        ],
+        'amenityFeature' => []
+    ];
+
+    // Base amenities
+    $structuredData['amenityFeature'][] = [
+        '@type' => 'LocationFeatureSpecification',
+        'name' => 'Modern Design',
+        'value' => true
+    ];
+    $structuredData['amenityFeature'][] = [
+        '@type' => 'LocationFeatureSpecification',
+        'name' => 'High-speed WiFi',
+        'value' => true
+    ];
+
+    // Facilities add gareko
+    if(!empty($facilities)) {
+        foreach($facilities as $facility) {
+            $cleanFacility = trim($facility, ' ,"\'[]');
+            if(!empty($cleanFacility)) {
+                $structuredData['amenityFeature'][] = [
+                    '@type' => 'LocationFeatureSpecification',
+                    'name' => $cleanFacility
+                ];
+            }
+        }
+    }
 @endphp
 
 @extends('layouts.public')
@@ -11,339 +66,336 @@
 @section('page-description', Str::limit($hostel->description ?? 'आधुनिक होस्टल अनुभव', 160))
 
 @push('head')
-    <meta name="theme-color" content="{{ $themeColor }}">
-@endpush
+{{-- ✅ FIX 1: Nepali fonts loaded via HTML link instead of CSS @import --}}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-@push('styles')
+<meta name="theme-color" content="{{ $themeColor }}">
+
+{{-- Modern Theme SEO --}}
+@if(!isset($preview) || !$preview)
+    <title>{{ $hostel->name }} - Modern Hostel | {{ $hostel->city ?? 'City' }}</title>
+    <meta name="description" content="🏨 {{ Str::limit($hostel->description, 155) }} | Modern student hostel with premium amenities">
+    <meta name="keywords" content="modern hostel, {{ $hostel->city }}, student accommodation, {{ $hostel->name }}, premium hostel">
+    <meta name="theme-color" content="#3b82f6">
+    <meta name="color-scheme" content="light dark">
+    
+    {{-- Open Graph --}}
+    <meta property="og:title" content="🏨 {{ $hostel->name }} | Modern Hostel">
+    <meta property="og:description" content="{{ Str::limit($hostel->description, 155) }}">
+    <meta property="og:image" content="{{ $hostel->logo_url ?? asset('images/modern-hostel-og.jpg') }}">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Modern Hostel">
+    
+    {{-- Twitter Card --}}
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="🏨 {{ $hostel->name }} | Modern Design">
+    <meta name="twitter:description" content="{{ Str::limit($hostel->description, 155) }}">
+    <meta name="twitter:image" content="{{ $hostel->logo_url ?? asset('images/modern-twitter-card.jpg') }}">
+    
+    {{-- Canonical --}}
+    <link rel="canonical" href="{{ url()->current() }}">
+@else
+    <title>Preview: {{ $hostel->name }} | Modern Theme</title>
+    <meta name="robots" content="noindex, nofollow">
+@endif
+
+{{-- CRITICAL MODERN THEME CSS (inline for fast loading) --}}
 <style>
-    /* Modern Theme Variables */
-    .modern-theme {
+    /* CRITICAL MODERN THEME CSS - NO @import HERE */
+    :root {
         --primary: {{ $themeColor }};
         --primary-gradient: linear-gradient(135deg, {{ $themeColor }} 0%, #7c3aed 100%);
         --sidebar-width: 340px;
-        --card-radius: 16px;
+        --card-radius: 12px;
         --transition: cubic-bezier(0.4, 0, 0.2, 1);
     }
-    
-    /* Modern Theme Styles */
+
+    .modern-theme {
+        font-family: 'Noto Sans Devanagari', 'Inter', 'Segoe UI', system-ui, sans-serif;
+        color: #1f2937;
+        line-height: 1.6;
+    }
+
+    /* Above-the-fold styling */
     .modern-container {
         max-width: 1200px !important;
         margin: 0 auto !important;
         padding: 0 20px !important;
         width: 100% !important;
     }
-    
-    @media (min-width: 768px) {
-        .modern-container {
-            padding: 0 30px !important;
-        }
-    }
-    
-    @media (min-width: 1024px) {
-        .modern-container {
-            padding: 0 40px !important;
-        }
-    }
-    
-    /* Hero Section */
+
     .modern-hero {
         background: linear-gradient(135deg, {{ $themeColor }} 0%, #7c3aed 100%);
         color: white;
         padding: 2rem 0;
         width: 100%;
     }
-    
-    /* Card Styles */
+
     .modern-card {
         background: white;
-        border-radius: 16px;
-        padding: 24px;
+        border-radius: var(--card-radius);
+        padding: 1.5rem;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        border: 1px solid rgba(229, 231, 235, 0.8);
-        margin-bottom: 24px;
-        transition: all 0.3s ease;
+        border: 1px solid #e5e7eb;
+        margin-bottom: 1.5rem;
     }
-    
-    .modern-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+
+    .hero-header {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+        margin-bottom: 2rem;
     }
-    
-    /* Stats Grid */
-    .modern-stats-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 16px;
-        margin-top: 24px;
+
+    .logo-container {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 3px solid var(--primary);
     }
-    
+
+    /* Mobile-first responsive */
     @media (max-width: 768px) {
-        .modern-stats-grid {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
+        .hero-header {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 1rem;
+        }
+        
+        .logo-container {
+            width: 60px;
+            height: 60px;
         }
     }
+
+    .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
+
+    /* Skip to main content link */
+    .skip-link {
+        position: absolute;
+        top: -40px;
+        left: 0;
+        background: var(--primary);
+        color: white;
+        padding: 8px;
+        z-index: 1000;
+        text-decoration: none;
+    }
     
+    .skip-link:focus {
+        top: 0;
+    }
+
+    /* Modern Stats Grid */
+    .modern-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
     .modern-stat-card {
         background: rgba(255, 255, 255, 0.2);
         backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.25);
         border-radius: 12px;
-        padding: 20px 16px;
+        padding: 1rem;
         text-align: center;
         color: white;
-        transition: all 0.3s ease;
+        border: 1px solid rgba(255, 255, 255, 0.3);
     }
-    
-    /* Layout Grid */
+
     .modern-layout-grid {
         display: grid;
-        grid-template-columns: 1.8fr 1.5fr 1.2fr;
-        gap: 32px;
-        align-items: start;
+        grid-template-columns: 1fr;
+        gap: 2rem;
     }
-    
-    @media (max-width: 1024px) {
+
+    @media (min-width: 1024px) {
         .modern-layout-grid {
-            grid-template-columns: 1.5fr 1.2fr;
-        }
-        
-        .modern-layout-grid > *:nth-child(2) {
-            grid-column: span 2;
+            grid-template-columns: 1fr 1fr 300px;
         }
     }
-    
-    @media (max-width: 768px) {
-        .modern-layout-grid {
-            grid-template-columns: 1fr;
-        }
-    }
-    
+
     /* Floating Actions */
     .modern-floating-actions {
         position: fixed;
-        bottom: 24px;
-        right: 24px;
-        z-index: 1000;
+        bottom: 2rem;
+        right: 2rem;
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 0.5rem;
+        z-index: 1000;
     }
-    
+
     .floating-btn {
-        width: 56px;
-        height: 56px;
+        width: 50px;
+        height: 50px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         color: white;
-        font-size: 20px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.16);
+        font-size: 1.2rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         transition: all 0.3s ease;
-        text-decoration: none;
         border: none;
         cursor: pointer;
     }
-    
-    .floating-btn.whatsapp {
-        background: linear-gradient(135deg, #25d366, #128c7e);
-    }
-    
-    .floating-btn.phone {
-        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-    }
-    
-    .floating-btn.scroll-top {
-        background: linear-gradient(135deg, #6b7280, #4b5563);
-    }
-    
-    .floating-btn:hover {
-        transform: translateY(-4px) scale(1.05);
-        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
-    }
-    
-    /* 🚨 UPDATED: Vertical Room Gallery Slider */
-    .room-gallery-vertical {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-        max-height: 600px;
-        overflow-y: auto;
-        padding-right: 12px;
-        margin-bottom: 20px;
-        scrollbar-width: thin;
-        scrollbar-color: var(--primary) #f1f5f9;
-        animation: slideUp 0.5s ease-out;
-    }
-    
-    .room-gallery-vertical::-webkit-scrollbar {
-        width: 6px;
-    }
-    
-    .room-gallery-vertical::-webkit-scrollbar-track {
-        background: #f1f5f9;
-        border-radius: 10px;
-    }
-    
-    .room-gallery-vertical::-webkit-scrollbar-thumb {
-        background: linear-gradient(to bottom, var(--primary), #7c3aed);
-        border-radius: 10px;
-    }
-    
-    .room-gallery-vertical::-webkit-scrollbar-thumb:hover {
-        background: linear-gradient(to bottom, #1d4ed8, #6d28d9);
-    }
-    
-    .room-gallery-item {
-        background: white;
-        border-radius: 12px;
-        padding: 16px;
-        border: 1px solid #e5e7eb;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        transition: all 0.3s ease;
-        animation: fadeInUp 0.5s ease-out;
-        animation-fill-mode: both;
-        opacity: 0;
-    }
-    
-    /* Staggered animation for each item */
-        .room-gallery-item:nth-child(1)  { animation-delay: 0s; }
-        .room-gallery-item:nth-child(2)  { animation-delay: 0.1s; }
-        .room-gallery-item:nth-child(3)  { animation-delay: 0.2s; }
-        .room-gallery-item:nth-child(4)  { animation-delay: 0.3s; }
-        .room-gallery-item:nth-child(5)  { animation-delay: 0.4s; }
-        .room-gallery-item:nth-child(6)  { animation-delay: 0.5s; }
-        .room-gallery-item:nth-child(7)  { animation-delay: 0.6s; }
-        .room-gallery-item:nth-child(8)  { animation-delay: 0.7s; }
-        .room-gallery-item:nth-child(9)  { animation-delay: 0.8s; }
-        .room-gallery-item:nth-child(10) { animation-delay: 0.9s; }
-        .room-gallery-item:nth-child(11) { animation-delay: 1.0s; }
-        .room-gallery-item:nth-child(12) { animation-delay: 1.1s; }
-        .room-gallery-item:nth-child(13) { animation-delay: 1.2s; }
-        .room-gallery-item:nth-child(14) { animation-delay: 1.3s; }
-        .room-gallery-item:nth-child(15) { animation-delay: 1.4s; }
 
-    
-    .room-gallery-item:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-        border-color: var(--primary);
+    .floating-btn.whatsapp {
+        background: #25D366;
     }
-    
+
+    .floating-btn.phone {
+        background: #3b82f6;
+    }
+
+    .floating-btn.scroll-top {
+        background: #6b7280;
+    }
+
+    .floating-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Book Now Button */
+    .book-now-button {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        display: inline-block;
+        text-align: center;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+    .book-now-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(16, 185, 129, 0.3);
+        color: white;
+    }
+
+    /* Gallery Styles */
+    .room-gallery-vertical {
+        max-height: 500px;
+        overflow-y: auto;
+        padding-right: 0.5rem;
+    }
+
+    .room-gallery-item {
+        padding: 1rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .room-gallery-item:hover {
+        border-color: #3b82f6;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+        transform: translateY(-2px);
+    }
+
     .room-gallery-image {
         width: 120px;
         height: 120px;
-        border-radius: 10px;
+        border-radius: 8px;
         overflow: hidden;
         flex-shrink: 0;
-        border: 2px solid white;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     }
-    
+
     .room-gallery-image img {
         width: 100%;
         height: 100%;
         object-fit: cover;
-        transition: transform 0.4s ease;
     }
-    
-    .room-gallery-item:hover .room-gallery-image img {
-        transform: scale(1.08);
-    }
-    
+
     .room-gallery-content {
         flex: 1;
-        min-width: 0;
-    }
-    
-    /* Animations */
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-    
-    @keyframes slideUp {
-        from {
-            opacity: 0;
-            transform: translateY(30px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-    
-    /* Auto-scroll animation container */
-    .auto-scroll-container {
-        position: relative;
-        overflow: hidden;
-        height: 600px;
-        border-radius: 12px;
-        background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
-        border: 1px solid #e2e8f0;
-    }
-    
-    .auto-scroll-content {
-        position: absolute;
-        width: 100%;
-        animation: autoScroll 30s linear infinite;
-        animation-play-state: running;
-    }
-    
-    .auto-scroll-content:hover {
-        animation-play-state: paused;
-    }
-    
-    @keyframes autoScroll {
-        0% {
-            transform: translateY(0);
-        }
-        100% {
-            transform: translateY(calc(-100% + 600px));
-        }
-    }
-    
-    /* 🚨 CRITICAL FIX: Modern Theme Image Display */
-    .aspect-square {
-        aspect-ratio: 1 / 1;
-        position: relative;
     }
 
-    .aspect-square img {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block !important;
-        opacity: 1 !important;
-        visibility: visible !important;
+    .featured-badge {
+        background: #fef3c7;
+        color: #92400e;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 600;
     }
 
-    /* Force image containers to show */
-    .bg-gray-100 {
-        background-color: #f3f4f6 !important;
+    .category-badge {
+        background: #dbeafe;
+        color: #1e40af;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
     }
 
-    /* Fix broken images */
-    img[src*="undefined"],
-    img[src*="null"],
-    img[src=""] {
-        content: url('{{ asset("images/default-room.png") }}') !important;
-        opacity: 0.7 !important;
+    /* Empty States */
+    .empty-gallery-state {
+        text-align: center;
+        padding: 3rem 1rem;
+    }
+
+    .empty-gallery-icon {
+        width: 64px;
+        height: 64px;
+        background: #f3f4f6;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+    }
+
+    /* Lazy Loading Images */
+    .lazy-image {
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .lazy-image.loaded {
+        opacity: 1;
     }
 </style>
+
+{{-- Load non-critical CSS deferred --}}
+<link rel="preload" href="{{ asset('css/themes/modern.css') }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="{{ asset('css/themes/modern.css') }}"></noscript>
+
+{{-- ✅ FIXED: Structured Data for SEO --}}
+<script type="application/ld+json">
+{!! json_encode($structuredData, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
+</script>
 @endpush
 
 @section('content')
+<!-- Skip to main content -->
+<a href="#main-content" class="sr-only skip-link" 
+   onclick="this.style.top='0'">
+   Skip to main content
+</a>
+
 <div class="modern-theme">
     <!-- Hero Section -->
     <section class="modern-hero">
@@ -377,8 +429,11 @@
                     <div class="w-20 h-20 md:w-24 md:h-24 rounded-xl overflow-hidden border-4 border-white shadow-lg bg-white flex-shrink-0">
                         @if($hostel->logo_url)
                             <img src="{{ $hostel->logo_url }}" 
-                                 alt="{{ $hostel->name }}"
+                                 alt="{{ $hostel->name }} - Modern Hostel Logo"
                                  class="w-full h-full object-cover"
+                                 width="96"
+                                 height="96"
+                                 loading="eager"
                                  onerror="this.src='{{ asset('images/default-hostel.png') }}'">
                         @else
                             <div class="w-full h-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
@@ -417,21 +472,24 @@
                         <div class="flex gap-1">
                             @if($hostel->facebook_url)
                             <a href="{{ $hostel->facebook_url }}" target="_blank" 
-                               class="w-8 h-8 rounded-lg flex items-center justify-center bg-white/10 hover:bg-white/20 transition-colors">
+                               class="w-8 h-8 rounded-lg flex items-center justify-center bg-white/10 hover:bg-white/20 transition-colors"
+                               aria-label="Facebook">
                                 <i class="fab fa-facebook-f text-white text-sm"></i>
                             </a>
                             @endif
                             
                             @if($hostel->instagram_url)
                             <a href="{{ $hostel->instagram_url }}" target="_blank" 
-                               class="w-8 h-8 rounded-lg flex items-center justify-center bg-white/10 hover:bg-white/20 transition-colors">
+                               class="w-8 h-8 rounded-lg flex items-center justify-center bg-white/10 hover:bg-white/20 transition-colors"
+                               aria-label="Instagram">
                                 <i class="fab fa-instagram text-white text-sm"></i>
                             </a>
                             @endif
                             
                             @if($hostel->whatsapp_number)
                             <a href="https://wa.me/{{ $hostel->whatsapp_number }}" target="_blank" 
-                               class="w-8 h-8 rounded-lg flex items-center justify-center bg-white/10 hover:bg-white/20 transition-colors">
+                               class="w-8 h-8 rounded-lg flex items-center justify-center bg-white/10 hover:bg-white/20 transition-colors"
+                               aria-label="WhatsApp">
                                 <i class="fab fa-whatsapp text-white text-sm"></i>
                             </a>
                             @endif
@@ -442,7 +500,8 @@
                     @if($hostel->contact_phone)
                     <div>
                         <a href="tel:{{ $hostel->contact_phone }}" 
-                           class="inline-flex items-center gap-2 bg-white/20 hover:bg-white/30 px-4 py-2 rounded-xl text-white font-semibold transition-all duration-300 backdrop-blur-sm">
+                           class="inline-flex items-center gap-2 bg-white/20 hover:bg-white/30 px-4 py-2 rounded-xl text-white font-semibold transition-all duration-300 backdrop-blur-sm"
+                           aria-label="फोन गर्नुहोस्">
                             <i class="fas fa-phone text-green-300"></i>
                             <div class="text-left">
                                 <div class="text-xs">फोन गर्नुहोस्</div>
@@ -457,19 +516,19 @@
             <!-- Stats Grid -->
             <div class="modern-stats-grid">
                 <div class="modern-stat-card">
-                    <div class="text-2xl font-bold mb-1">{{ $hostel->total_rooms ?? 0 }}</div>
+                    <div class="text-2xl font-bold mb-1 stat-number">{{ $hostel->total_rooms ?? 0 }}</div>
                     <div class="opacity-90 text-sm">कुल कोठा</div>
                 </div>
                 <div class="modern-stat-card">
-                    <div class="text-2xl font-bold mb-1">{{ $hostel->available_rooms ?? 0 }}</div>
+                    <div class="text-2xl font-bold mb-1 stat-number">{{ $hostel->available_rooms ?? 0 }}</div>
                     <div class="opacity-90 text-sm">उपलब्ध कोठा</div>
                 </div>
                 <div class="modern-stat-card">
-                    <div class="text-2xl font-bold mb-1">{{ $studentCount ?? 0 }}</div>
+                    <div class="text-2xl font-bold mb-1 stat-number">{{ $studentCount ?? 0 }}</div>
                     <div class="opacity-90 text-sm">विद्यार्थी</div>
                 </div>
                 <div class="modern-stat-card">
-                    <div class="text-2xl font-bold mb-1">{{ $reviewCount ?? 0 }}</div>
+                    <div class="text-2xl font-bold mb-1 stat-number">{{ $reviewCount ?? 0 }}</div>
                     <div class="opacity-90 text-sm">समीक्षाहरू</div>
                 </div>
             </div>
@@ -477,48 +536,48 @@
     </section>
 
     <!-- Main Content -->
-    <div class="modern-container py-8">
+    <main id="main-content" class="modern-container py-8">
         <div class="modern-layout-grid">
             <!-- LEFT COLUMN - Main Content -->
             <div class="space-y-8">
                 <!-- About Section -->
-<div class="modern-card">
-    <div class="flex items-center justify-between mb-6 pb-4 border-b">
-        <h2 class="text-xl font-bold flex items-center gap-2">
-            <i class="fas fa-info-circle text-blue-600"></i>
-            हाम्रो बारेमा
-        </h2>
-    </div>
-    
-    @if($hostel->description)
-        <div class="text-gray-700 leading-relaxed whitespace-pre-line">
-            {{ $hostel->description }}
-        </div>
-    @else
-        <div class="text-center py-8 text-gray-500">
-            <i class="fas fa-file-alt text-4xl mb-3 opacity-30"></i>
-            <p class="italic text-sm">यस होस्टलको बारेमा विवरण उपलब्ध छैन।</p>
-        </div>
-    @endif
-    
-    <!-- Additional Info -->
-    <div class="border-t pt-6 mt-6">
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            @foreach([
-                ['icon' => 'user-friends', 'label' => 'विद्यार्थी क्षमता', 'value' => $hostel->max_capacity ?? '५०+'],
-                ['icon' => 'wifi', 'label' => 'WiFi गति', 'value' => '१०० Mbps'],
-                ['icon' => 'shield-alt', 'label' => 'सुरक्षा', 'value' => '२४/७'],
-                ['icon' => 'utensils', 'label' => 'भोजन', 'value' => 'समावेश']
-            ] as $info)
-            <div class="text-center p-3 bg-blue-50 rounded-xl">
-                <i class="fas fa-{{ $info['icon'] }} text-blue-600 text-lg mb-2"></i>
-                <div class="font-bold text-gray-900 text-sm">{{ $info['value'] }}</div>
-                <div class="text-gray-600 text-xs mt-1">{{ $info['label'] }}</div>
-            </div>
-            @endforeach
-        </div>
-    </div>
-</div>
+                <div class="modern-card">
+                    <div class="flex items-center justify-between mb-6 pb-4 border-b">
+                        <h2 class="text-xl font-bold flex items-center gap-2">
+                            <i class="fas fa-info-circle text-blue-600"></i>
+                            हाम्रो बारेमा
+                        </h2>
+                    </div>
+                    
+                    @if($hostel->description)
+                        <div class="text-gray-700 leading-relaxed whitespace-pre-line">
+                            {{ $hostel->description }}
+                        </div>
+                    @else
+                        <div class="text-center py-8 text-gray-500">
+                            <i class="fas fa-file-alt text-4xl mb-3 opacity-30"></i>
+                            <p class="italic text-sm">यस होस्टलको बारेमा विवरण उपलब्ध छैन।</p>
+                        </div>
+                    @endif
+                    
+                    <!-- Additional Info -->
+                    <div class="border-t pt-6 mt-6">
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            @foreach([
+                                ['icon' => 'user-friends', 'label' => 'विद्यार्थी क्षमता', 'value' => $hostel->max_capacity ?? '५०+'],
+                                ['icon' => 'wifi', 'label' => 'WiFi गति', 'value' => '१०० Mbps'],
+                                ['icon' => 'shield-alt', 'label' => 'सुरक्षा', 'value' => '२४/७'],
+                                ['icon' => 'utensils', 'label' => 'भोजन', 'value' => 'समावेश']
+                            ] as $info)
+                            <div class="text-center p-3 bg-blue-50 rounded-xl">
+                                <i class="fas fa-{{ $info['icon'] }} text-blue-600 text-lg mb-2"></i>
+                                <div class="font-bold text-gray-900 text-sm">{{ $info['value'] }}</div>
+                                <div class="text-gray-600 text-xs mt-1">{{ $info['label'] }}</div>
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Contact Form -->
                 <div class="modern-card">
@@ -536,18 +595,27 @@
                             <p class="text-gray-600 mb-4">सम्पर्क फर्म यहाँ हुनेछ</p>
                             <form class="space-y-4">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">तपाईंको नाम</label>
-                                    <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <label for="contactName" class="block text-sm font-medium text-gray-700 mb-1">तपाईंको नाम</label>
+                                    <input type="text" id="contactName" name="name" required
+                                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                           aria-required="true">
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">इमेल ठेगाना</label>
-                                    <input type="email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                    <label for="contactEmail" class="block text-sm font-medium text-gray-700 mb-1">इमेल ठेगाना</label>
+                                    <input type="email" id="contactEmail" name="email" required
+                                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                           aria-required="true">
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">सन्देश</label>
-                                    <textarea rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="तपाईंको सन्देश यहाँ लेख्नुहोस्..."></textarea>
+                                    <label for="contactMessage" class="block text-sm font-medium text-gray-700 mb-1">सन्देश</label>
+                                    <textarea id="contactMessage" rows="4" name="message"
+                                              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                                              placeholder="तपाईंको सन्देश यहाँ लेख्नुहोस्..."
+                                              aria-required="true"></textarea>
                                 </div>
-                                <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+                                <button type="submit" 
+                                        class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors book-now-button"
+                                        aria-label="सन्देश पठाउनुहोस्">
                                     सन्देश पठाउनुहोस्
                                 </button>
                             </form>
@@ -571,7 +639,8 @@
                                         style="border:0;" 
                                         allowfullscreen 
                                         loading="lazy"
-                                        referrerpolicy="no-referrer-when-downgrade">
+                                        referrerpolicy="no-referrer-when-downgrade"
+                                        title="{{ $hostel->name }} Location Map">
                                 </iframe>
                             @else
                                 <div class="w-full h-full flex items-center justify-center">
@@ -631,7 +700,8 @@
                         </h2>
                         @if($hostel->slug)
                             <a href="{{ route('hostels.full.gallery', $hostel->slug) }}" 
-                               class="text-purple-600 hover:text-purple-800 text-sm font-medium flex items-center gap-1">
+                               class="text-purple-600 hover:text-purple-800 text-sm font-medium flex items-center gap-1"
+                               aria-label="सबै ग्यालरी हेर्नुहोस्">
                                 <i class="fas fa-external-link-alt mr-1"></i> सबै हेर्नुहोस्
                             </a>
                         @endif
@@ -647,7 +717,12 @@
                         <!-- Vertical Scroll Container -->
                         <div class="room-gallery-vertical">
                             @foreach($allGalleries as $index => $gallery)
-                                <div class="room-gallery-item flex gap-4">
+                                <div class="room-gallery-item flex gap-4"
+                                     role="button"
+                                     tabindex="0"
+                                     aria-label="View {{ $gallery->title }}"
+                                     onclick="window.openModernLightbox(this, {{ $index }})"
+                                     onkeydown="if(event.key === 'Enter' || event.key === ' ') { window.openModernLightbox(this, {{ $index }}); }">
                                     <div class="room-gallery-image">
                                         @php
                                             // SIMPLE FIX: Direct image URL access
@@ -663,27 +738,32 @@
                                             }
                                         @endphp
                                         
-                                        <img src="{{ $imgUrl }}" 
+                                        <img class="gallery-item-image lazy-image"
+                                             data-src="{{ $imgUrl }}"
+                                             src="{{ asset('images/modern-placeholder.svg') }}"
                                              alt="{{ $gallery->title }}"
+                                             width="120"
+                                             height="120"
+                                             loading="lazy"
                                              onerror="this.src='{{ asset('images/default-room.png') }}'; this.style.opacity='0.7';">
                                     </div>
                                     
                                     <div class="room-gallery-content">
                                         <div class="flex items-start justify-between mb-2">
-                                            <h4 class="font-bold text-gray-900">{{ $gallery->title }}</h4>
+                                            <h4 class="font-bold text-gray-900 gallery-item-title">{{ $gallery->title }}</h4>
                                             @if($gallery->is_featured)
-                                                <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">
+                                                <span class="featured-badge">
                                                     <i class="fas fa-star mr-1"></i> फिचर्ड
                                                 </span>
                                             @endif
                                         </div>
                                         
                                         @if($gallery->description)
-                                            <p class="text-gray-600 text-sm mb-3">{{ Str::limit($gallery->description, 80) }}</p>
+                                            <p class="text-gray-600 text-sm mb-3 gallery-item-desc">{{ Str::limit($gallery->description, 80) }}</p>
                                         @endif
                                         
                                         <div class="flex items-center gap-3">
-                                            <span class="inline-flex items-center gap-1 bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full">
+                                            <span class="category-badge">
                                                 <i class="fas fa-tag"></i>
                                                 {{ $gallery->category ?? 'कोठा' }}
                                             </span>
@@ -718,8 +798,8 @@
                         </div>
                     @else
                         <!-- Empty State -->
-                        <div class="text-center py-12 bg-gray-50 rounded-xl border border-gray-200">
-                            <div class="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <div class="empty-gallery-state">
+                            <div class="empty-gallery-icon">
                                 <i class="fas fa-images text-gray-400 text-2xl"></i>
                             </div>
                             <h3 class="text-lg font-semibold text-gray-600 mb-2">कोठाको ग्यालरी उपलब्ध छैन</h3>
@@ -728,24 +808,26 @@
                     @endif
                     
                     <!-- ✅ नयाँ बटन: कोठाका फोटो र बुकिंग -->
-@if($hostel->slug)
-    <div class="mt-8 mb-4 pt-4">
-        <a href="{{ route('hostel.gallery', $hostel->slug) }}"
-           class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg font-semibold hover:from-green-700 hover:to-emerald-700 transition-all transform hover:-translate-y-0.5 hover:shadow-lg">
-            <i class="fas fa-camera mr-2"></i>
-            कोठाका फोटो र बुकिंग
-        </a>
-        <p class="text-xs text-center text-gray-600 mt-2">
-            (प्रत्येक कोठाका फोटोहरू हेरेर सिधै बुक गर्नुहोस्)
-        </p>
-    </div>
-@endif
+                    @if($hostel->slug)
+                        <div class="mt-8 mb-4 pt-4">
+                            <a href="{{ route('hostel.gallery', $hostel->slug) }}"
+                               class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg font-semibold hover:from-green-700 hover:to-emerald-700 transition-all transform hover:-translate-y-0.5 hover:shadow-lg book-now-button"
+                               aria-label="कोठाका फोटो र बुकिंग">
+                                <i class="fas fa-camera mr-2"></i>
+                                कोठाका फोटो र बुकिंग
+                            </a>
+                            <p class="text-xs text-center text-gray-600 mt-2">
+                                (प्रत्येक कोठाका फोटोहरू हेरेर सिधै बुक गर्नुहोस्)
+                            </p>
+                        </div>
+                    @endif
 
                     <!-- View Full Gallery Button -->
                     @if($hostel->slug && $allGalleries->count() > 0)
                         <div class="pt-6 border-t">
                             <a href="{{ route('hostels.full.gallery', $hostel->slug) }}" 
-                               class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:opacity-90 transition-opacity">
+                               class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:opacity-90 transition-opacity full-gallery-btn"
+                               aria-label="पुरै ग्यालरी हेर्नुहोस्">
                                 <i class="fas fa-images mr-2"></i>
                                 पुरै ग्यालरी हेर्नुहोस्
                             </a>
@@ -783,7 +865,8 @@
                                 <div>
                                     <div class="text-xs text-gray-500 mb-1">फोन नम्बर</div>
                                     <a href="tel:{{ $hostel->contact_phone }}" 
-                                       class="font-medium hover:text-blue-600 transition-colors">
+                                       class="font-medium hover:text-blue-600 transition-colors"
+                                       aria-label="फोन गर्नुहोस् {{ $hostel->contact_phone }}">
                                         {{ $hostel->contact_phone }}
                                     </a>
                                 </div>
@@ -798,7 +881,8 @@
                                 <div>
                                     <div class="text-xs text-gray-500 mb-1">इमेल ठेगाना</div>
                                     <a href="mailto:{{ $hostel->contact_email }}" 
-                                       class="font-medium hover:text-blue-600 transition-colors text-sm break-all">
+                                       class="font-medium hover:text-blue-600 transition-colors text-sm break-all"
+                                       aria-label="इमेल पठाउनुहोस् {{ $hostel->contact_email }}">
                                         {{ $hostel->contact_email }}
                                     </a>
                                 </div>
@@ -822,12 +906,12 @@
                 </div>
 
                 <!-- Availability Card - FIXED TEXT COLOR -->
-                <div class="modern-card bg-gradient-to-br from-green-50 to-emerald-100 border border-green-200">
+                <div class="modern-card availability-card-{{ $hostel->available_rooms > 0 ? 'available' : 'unavailable' }}">
                     <div class="p-5">
                         <div class="flex items-center justify-center gap-3 mb-3">
                             <i class="fas fa-bed text-2xl {{ $hostel->available_rooms > 0 ? 'text-green-600' : 'text-gray-500' }}"></i>
                         </div>
-                        <h4 class="text-xl font-bold mb-2 text-gray-900" style="font-weight: 600;">
+                        <h4 class="text-xl font-bold mb-2 availability-text">
                             @if($hostel->available_rooms > 0)
                                 कोठा उपलब्ध!
                             @else
@@ -836,18 +920,20 @@
                         </h4>
                         
                         @if($hostel->available_rooms > 0)
-                            <p class="mb-4 text-sm text-gray-800" style="font-weight: 600;">
+                            <p class="mb-4 text-sm room-count-text">
                                 अहिले {{ $hostel->available_rooms }} कोठा खाली छन्
                             </p>
                             <!-- FIXED: Button redirects to booking route -->
                             <a href="{{ route('hostels.book', $hostel->slug) ?: url('/hostels/' . $hostel->slug . '/book') }}"  
-                               class="inline-block w-full text-center bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 px-6 rounded-lg font-bold transition-all duration-300 text-sm">
+                               class="inline-block w-full text-center book-now-button"
+                               aria-label="अहिले बुक गर्नुहोस्">
                                 <i class="fas fa-calendar-check mr-2"></i>
                                 अहिले बुक गर्नुहोस्
                             </a>
                         @else
                             <p class="text-sm mb-4 text-gray-700">अहिले कुनै कोठा उपलब्ध छैन</p>
-                            <button class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 border border-gray-300 px-4 py-3 rounded-lg text-sm transition-colors">
+                            <button class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 border border-gray-300 px-4 py-3 rounded-lg text-sm transition-colors"
+                                    aria-label="नोटिफिकेशन दर्ता">
                                 <i class="fas fa-bell mr-2"></i>
                                 नोटिफिकेशन दर्ता
                             </button>
@@ -907,7 +993,8 @@
                         
                         <div class="text-center mt-4">
                             <a href="#contact-form" 
-                               class="text-blue-600 hover:text-blue-800 font-medium inline-flex items-center gap-1 text-sm">
+                               class="text-blue-600 hover:text-blue-800 font-medium inline-flex items-center gap-1 text-sm"
+                               aria-label="विस्तृत मूल्य जानकारीको लागि सम्पर्क गर्नुहोस्">
                                 <i class="fas fa-info-circle"></i>
                                 विस्तृत मूल्य जानकारीको लागि सम्पर्क गर्नुहोस्
                             </a>
@@ -973,7 +1060,8 @@
 
                 @if($reviewCount > 4)
                     <div class="text-center mt-8">
-                        <a href="#" class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:opacity-90 transition-opacity">
+                        <a href="#" class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:opacity-90 transition-opacity full-gallery-btn"
+                           aria-label="सबै समीक्षाहरू हेर्नुहोस्">
                             <i class="fas fa-comments mr-2"></i>
                             सबै समीक्षाहरू हेर्नुहोस् ({{ $reviewCount }})
                         </a>
@@ -986,13 +1074,14 @@
                     </div>
                     <h3 class="text-lg font-bold text-gray-600 mb-2">अहिलेसम्म कुनै समीक्षा छैन</h3>
                     <p class="text-gray-500 mb-4 text-sm">यो होस्टलको पहिलो समीक्षा दिनुहोस्!</p>
-                    <button class="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:opacity-90 transition-opacity text-sm">
+                    <button class="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:opacity-90 transition-opacity text-sm book-now-button"
+                            aria-label="पहिलो समीक्षा लेख्नुहोस्">
                         <i class="fas fa-pen mr-2"></i>पहिलो समीक्षा लेख्नुहोस्
                     </button>
                 </div>
             @endif
         </div>
-    </div>
+    </main>
 </div>
 
 <!-- Floating Actions -->
@@ -1001,6 +1090,8 @@
         <a href="https://wa.me/{{ $hostel->whatsapp_number }}" 
            target="_blank" 
            class="floating-btn whatsapp"
+           data-action="whatsapp"
+           data-href="https://wa.me/{{ $hostel->whatsapp_number }}"
            aria-label="WhatsApp">
             <i class="fab fa-whatsapp"></i>
         </a>
@@ -1009,6 +1100,8 @@
     @if($hostel->contact_phone)
         <a href="tel:{{ $hostel->contact_phone }}" 
            class="floating-btn phone"
+           data-action="phone"
+           data-href="tel:{{ $hostel->contact_phone }}"
            aria-label="फोन गर्नुहोस्">
             <i class="fas fa-phone"></i>
         </a>
@@ -1016,65 +1109,23 @@
     
     <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" 
             class="floating-btn scroll-top"
+            data-action="scroll-top"
             aria-label="माथि जानुहोस्">
         <i class="fas fa-arrow-up"></i>
     </button>
 </div>
 
-<!-- JavaScript for Gallery Auto Scroll (Optional) -->
-@push('scripts')
+{{-- ✅ FIXED: JavaScript configuration moved outside @push --}}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Fix all gallery images
-    document.querySelectorAll('img[src*="thumbnail"]').forEach(img => {
-        if (img.src.includes('undefined') || img.src.includes('null')) {
-            img.src = '/images/default-room.png';
-        }
-    });
-    
-    // Optional: Auto-scroll effect for vertical gallery
-    const galleryContainer = document.querySelector('.room-gallery-vertical');
-    if (galleryContainer) {
-        let isPaused = false;
-        
-        galleryContainer.addEventListener('mouseenter', () => {
-            isPaused = true;
-        });
-        
-        galleryContainer.addEventListener('mouseleave', () => {
-            isPaused = false;
-            startAutoScroll();
-        });
-        
-        function startAutoScroll() {
-            if (isPaused) return;
-            
-            const scrollHeight = galleryContainer.scrollHeight;
-            const clientHeight = galleryContainer.clientHeight;
-            
-            if (scrollHeight > clientHeight) {
-                galleryContainer.scrollTop += 1;
-                
-                if (galleryContainer.scrollTop >= (scrollHeight - clientHeight)) {
-                    // Reset to top when reaching bottom
-                    setTimeout(() => {
-                        galleryContainer.scrollTop = 0;
-                    }, 2000);
-                }
-                
-                setTimeout(startAutoScroll, 30);
-            }
-        }
-        
-        // Start auto-scroll after 3 seconds
-        setTimeout(startAutoScroll, 3000);
-    }
-    
-    // Log current routes for debugging
-    console.log('Hostel Slug:', '{{ $hostel->slug }}');
-    console.log('Gallery Route:', '{{ route("hostels.full.gallery", $hostel->slug) }}');
-    console.log('Book Route:', '{{ route("hostels.book", $hostel->slug) }}');
-});
+    // Pass configuration to external JS
+    window.MODERN_THEME_CONFIG = {
+        defaultImage: '{{ asset("images/default-room.png") }}',
+        hostelSlug: '{{ $hostel->slug }}',
+        galleryRoute: '{{ route("hostels.full.gallery", $hostel->slug) }}',
+        bookRoute: '{{ route("hostels.book", $hostel->slug) }}'
+    };
 </script>
-@endpush
+
+<!-- Load modern theme JavaScript -->
+<script defer src="{{ asset('js/themes/modern.js') }}"></script>
 @endsection

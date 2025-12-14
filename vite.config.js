@@ -14,13 +14,15 @@ export default defineConfig({
                 'resources/css/home.css',
                 'resources/css/dashboard.css',
                 'resources/css/themes/modern.css',
-                'resources/css/themes/classic.css', // ✅ ADDED: Classic theme CSS
+                'resources/css/themes/classic.css',
                 
                 // JS Files
                 'resources/js/app.js',
                 'resources/js/home.js',
                 'resources/js/gallery.js',
-                'resources/js/themes/classic.js' // ✅ ADDED: Classic theme JS
+                'resources/js/themes/classic.js',
+                'resources/js/themes/modern.js'
+
             ],
             refresh: true,
         }),
@@ -33,19 +35,34 @@ export default defineConfig({
                 entryFileNames: `assets/[name].js`,
                 chunkFileNames: `assets/[name].js`,
                 assetFileNames: `assets/[name].[ext]`,
-                manualChunks: undefined
+                manualChunks: {
+                    // ✅ ADDED: Modern theme chunk optimization
+                    'modern-theme': [
+                        './public/css/themes/modern.css',
+                        './public/js/themes/modern.js'
+                    ]
+                }
             }
         },
         // Additional build optimizations for Laravel
         assetsInlineLimit: 0,
         chunkSizeWarningLimit: 1000,
-        // CSS optimization
+        // ✅ ADDED: CSS optimization for modern theme
         css: {
             devSourcemap: true
         },
         // Prevent vendor chunk splitting issues
         commonjsOptions: {
             transformMixedEsModules: true
+        },
+        // ✅ ADDED: Modern theme build optimizations
+        cssCodeSplit: true,
+        minify: 'terser',
+        terserOptions: {
+            compress: {
+                drop_console: true,
+                drop_debugger: true
+            }
         }
     },
     // Server configuration for development

@@ -1217,6 +1217,8 @@ class PublicController extends Controller
             $roomGalleries = $this->optimizeClassicGalleryImages($roomGalleries);
         } elseif ($hostel->theme === 'dark') {
             $roomGalleries = $this->optimizeDarkGalleryImages($roomGalleries);
+        } elseif ($hostel->theme === 'modern') {
+            $roomGalleries = $this->optimizeModernGalleryImages($roomGalleries);
         } else {
             $roomGalleries = $this->optimizeGalleryImages($roomGalleries);
         }
@@ -2334,6 +2336,39 @@ class PublicController extends Controller
             } else {
                 $gallery->optimized = null;
                 $gallery->placeholder = $optimizer->createCyberPlaceholder(300, 300, 'video');
+            }
+
+            return $gallery;
+        });
+    }
+
+    /**
+     * Optimize images for Modern Theme with enhanced effects
+     */
+    protected function optimizeModernGalleryImages($galleries)
+    {
+        $optimizer = app(\App\Services\ModernImageOptimizer::class);
+
+        return $galleries->map(function ($gallery) use ($optimizer) {
+            if ($gallery->media_type === 'image' && $gallery->media_url) {
+                // Extract local path from URL
+                $path = str_replace(asset('storage/'), '', $gallery->media_url);
+                $path = str_replace(asset(''), '', $path);
+
+                // Use modern theme optimization
+                $gallery->modern_optimized = $optimizer->optimizeForModernTheme($path);
+                $gallery->modern_placeholder = $optimizer->createModernPlaceholder(300, 300);
+
+                // Add modern theme metadata
+                $gallery->modern_metadata = [
+                    'enhanced' => true,
+                    'sharpness' => 1.1,
+                    'vibrance' => 1.05,
+                    'border_style' => 'gradient'
+                ];
+            } else {
+                $gallery->modern_optimized = null;
+                $gallery->modern_placeholder = $optimizer->createModernPlaceholder(300, 300, 'video');
             }
 
             return $gallery;
