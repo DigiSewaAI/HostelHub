@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Services\PlanLimitService;
 use App\Services\ImageOptimizer; // ✅ ADDED: For image optimization service
+use App\Services\ClassicImageOptimizer; // ✅ NEW: Classic theme image optimizer
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
@@ -40,6 +41,11 @@ class AppServiceProvider extends ServiceProvider
         // ✅ ADDED: Register ImageOptimizer Service as a singleton
         $this->app->singleton(ImageOptimizer::class, function ($app) {
             return new ImageOptimizer();
+        });
+
+        // ✅ NEW: Register ClassicImageOptimizer Service as a singleton
+        $this->app->singleton(ClassicImageOptimizer::class, function ($app) {
+            return new ClassicImageOptimizer();
         });
 
         // Register other services if needed

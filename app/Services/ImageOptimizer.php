@@ -341,4 +341,69 @@ class ImageOptimizer
 
         return 'data:image/svg+xml;base64,' . base64_encode($svg);
     }
+
+    /**
+     * Create classic placeholder with vintage style
+     */
+    public function createClassicPlaceholder($width, $height, $type = 'image')
+    {
+        $colors = [
+            'primary' => ['#8B4513', '#654321'],
+            'secondary' => ['#D4AF37', '#B8860B'],
+            'accent' => ['#8B0000', '#660000']
+        ];
+
+        $colorSet = $type === 'video' ? $colors['accent'] : $colors['primary'];
+
+        $svg = '<?xml version="1.0" encoding="UTF-8"?>
+        <svg xmlns="http://www.w3.org/2000/svg" width="' . $width . '" height="' . $height . '" viewBox="0 0 ' . $width . ' ' . $height . '">
+            <!-- Vintage Background -->
+            <rect width="100%" height="100%" fill="#F8F4E9"/>
+            
+            <!-- Pattern Overlay -->
+            <defs>
+                <pattern id="vintagePattern' . $width . '" width="40" height="40" patternUnits="userSpaceOnUse">
+                    <circle cx="20" cy="20" r="1" fill="' . $colorSet[0] . '" opacity="0.1"/>
+                    <path d="M20,0 L20,40 M0,20 L40,20" fill="none" stroke="' . $colorSet[1] . '" stroke-width="0.5" opacity="0.05"/>
+                </pattern>
+            </defs>
+            
+            <rect width="100%" height="100%" fill="url(#vintagePattern' . $width . ')"/>
+            
+            <!-- Main Border -->
+            <rect x="10" y="10" width="' . ($width - 20) . '" height="' . ($height - 20) . '" 
+                  fill="#FFF8E1" stroke="' . $colorSet[0] . '" stroke-width="3" opacity="0.8"/>
+            
+            <!-- Inner Border -->
+            <rect x="20" y="20" width="' . ($width - 40) . '" height="' . ($height - 40) . '" 
+                  fill="none" stroke="' . $colorSet[1] . '" stroke-width="2" opacity="0.5"/>
+            
+            <!-- Ornamental Corners -->
+            <path d="M10,10 L30,10 L10,30 Z" fill="' . $colorSet[0] . '" opacity="0.3"/>
+            <path d="M' . ($width - 10) . ',10 L' . ($width - 30) . ',10 L' . ($width - 10) . ',30 Z" fill="' . $colorSet[0] . '" opacity="0.3"/>
+            <path d="M10,' . ($height - 10) . ' L30,' . ($height - 10) . ' L10,' . ($height - 30) . ' Z" fill="' . $colorSet[0] . '" opacity="0.3"/>
+            <path d="M' . ($width - 10) . ',' . ($height - 10) . ' L' . ($width - 30) . ',' . ($height - 10) . ' L' . ($width - 10) . ',' . ($height - 30) . ' Z" fill="' . $colorSet[0] . '" opacity="0.3"/>
+            
+            <!-- Center Content -->
+            <g transform="translate(' . ($width / 2) . ', ' . ($height / 2) . ')">
+                <circle r="40" fill="' . $colorSet[0] . '" opacity="0.1"/>
+                <text text-anchor="middle" dy="0.3em" fill="' . $colorSet[0] . '" 
+                      font-family="Georgia" font-size="16" font-weight="bold">
+                    ' . ($type === 'video' ? '▶' : '🏛️') . '
+                </text>
+                <text text-anchor="middle" dy="2.5em" fill="' . $colorSet[1] . '" 
+                      font-family="Georgia" font-size="12" opacity="0.8">
+                    ' . ($type === 'video' ? 'Classic Video' : 'Classic Image') . '
+                </text>
+            </g>
+            
+            <!-- Subtle Shadow -->
+            <rect x="10" y="10" width="' . ($width - 20) . '" height="' . ($height - 20) . '" 
+                  fill="none" stroke="' . $colorSet[0] . '" stroke-width="1" opacity="0.2">
+                <animate attributeName="opacity" values="0.2;0.4;0.2" dur="3s" repeatCount="indefinite"/>
+            </rect>
+        </svg>';
+
+        return 'data:image/svg+xml;base64,' . base64_encode($svg);
+    }
 }

@@ -8,7 +8,9 @@
 @endphp
 
 @push('head')
-@vite(['resources/css/public-themes.css'])
+{{-- Load the theme CSS via Vite --}}
+@vite(['resources/css/themes/classic.css'])
+
 <style>
     :root {
         --theme-color: {{ $hostel->theme_color ?? '#8B4513' }};
@@ -1065,6 +1067,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+{{-- Load the theme JS via Vite --}}
+@vite(['resources/js/themes/classic.js'])
 @endpush
 
 @endsection

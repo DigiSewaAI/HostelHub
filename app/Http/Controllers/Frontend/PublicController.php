@@ -1212,6 +1212,15 @@ class PublicController extends Controller
 
         $roomGalleries = $hostel->publicRoomGalleries;
 
+        // ✅ NEW: Apply theme-specific optimization
+        if ($hostel->theme === 'classic') {
+            $roomGalleries = $this->optimizeClassicGalleryImages($roomGalleries);
+        } elseif ($hostel->theme === 'dark') {
+            $roomGalleries = $this->optimizeDarkGalleryImages($roomGalleries);
+        } else {
+            $roomGalleries = $this->optimizeGalleryImages($roomGalleries);
+        }
+
         $mealMenus = MealMenu::where('hostel_id', $hostel->id)
             ->where('is_active', true)
             ->orderBy('day_of_week')
@@ -1224,7 +1233,8 @@ class PublicController extends Controller
             'facilities_raw' => $hostel->facilities,
             'facilities_parsed' => $facilities,
             'room_galleries_count' => $roomGalleries->count(),
-            'meal_menus_count' => $mealMenus->count()
+            'meal_menus_count' => $mealMenus->count(),
+            'theme' => $hostel->theme // ✅ Log the theme
         ]);
 
         $theme = $hostel->theme ?? 'modern';
@@ -2324,6 +2334,39 @@ class PublicController extends Controller
             } else {
                 $gallery->optimized = null;
                 $gallery->placeholder = $optimizer->createCyberPlaceholder(300, 300, 'video');
+            }
+
+            return $gallery;
+        });
+    }
+
+    /**
+     * Optimize gallery images specifically for Classic Theme with vintage effects
+     */
+    protected function optimizeClassicGalleryImages($galleries)
+    {
+        $optimizer = app(\App\Services\ClassicImageOptimizer::class);
+
+        return $galleries->map(function ($gallery) use ($optimizer) {
+            if ($gallery->media_type === 'image' && $gallery->media_url) {
+                // Extract local path from URL
+                $path = str_replace(asset('storage/'), '', $gallery->media_url);
+                $path = str_replace(asset(''), '', $path);
+
+                // Use classic theme optimization with vintage effects
+                $gallery->classic_optimized = $optimizer->optimizeForClassicTheme($path);
+                $gallery->classic_placeholder = $optimizer->createClassicPlaceholder(300, 300);
+
+                // Add classic theme metadata
+                $gallery->classic_metadata = [
+                    'vintage_effect' => true,
+                    'warm_tone' => true,
+                    'border_style' => 'traditional',
+                    'color_scheme' => 'classic'
+                ];
+            } else {
+                $gallery->classic_optimized = null;
+                $gallery->classic_placeholder = $optimizer->createClassicPlaceholder(300, 300, 'video');
             }
 
             return $gallery;
