@@ -377,6 +377,168 @@
     .lazy-image.loaded {
         opacity: 1;
     }
+
+    /* ✅ ENHANCED: Vertical Gallery Styles */
+    .room-gallery-vertical-enhanced {
+        max-height: 700px;
+        overflow-y: auto;
+        padding-right: 10px;
+        scroll-behavior: smooth;
+    }
+
+    .room-gallery-vertical-enhanced::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .room-gallery-vertical-enhanced::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 4px;
+    }
+
+    .room-gallery-vertical-enhanced::-webkit-scrollbar-thumb {
+        background: #94a3b8;
+        border-radius: 4px;
+    }
+
+    .room-gallery-vertical-enhanced::-webkit-scrollbar-thumb:hover {
+        background: #64748b;
+    }
+
+    .room-gallery-item-enhanced {
+        background: white;
+        border-radius: 12px;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+        border: 1px solid #e2e8f0;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .room-gallery-item-enhanced:hover {
+        border-color: #3b82f6;
+        box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15);
+        transform: translateY(-3px);
+    }
+
+    .room-gallery-image-enhanced {
+        width: 200px;
+        height: 200px;
+        border-radius: 10px;
+        overflow: hidden;
+        flex-shrink: 0;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .room-gallery-image-enhanced img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .room-gallery-item-enhanced:hover .room-gallery-image-enhanced img {
+        transform: scale(1.05);
+    }
+
+    .room-gallery-content-enhanced {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .featured-badge-enhanced {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: white;
+        padding: 0.375rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .category-badge-enhanced {
+        background: #dbeafe;
+        color: #1e40af;
+        padding: 0.375rem 0.75rem;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+    }
+
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .view-details-btn {
+        transition: all 0.2s ease;
+    }
+
+    .view-details-btn:hover {
+        gap: 0.5rem;
+    }
+
+    /* Enhanced Empty State */
+    .empty-gallery-state-enhanced {
+        padding: 3rem 1.5rem;
+        border-radius: 16px;
+    }
+
+    .empty-gallery-icon-enhanced {
+        width: 5rem;
+        height: 5rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        box-shadow: 0 8px 20px rgba(59, 130, 246, 0.15);
+    }
+
+    /* Auto scroll animation */
+    @keyframes pulse-glow {
+        0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+        70% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+    }
+
+    .auto-scroll-active {
+        animation: pulse-glow 2s infinite;
+    }
+
+    /* Gallery controls */
+    .gallery-controls {
+        position: sticky;
+        bottom: 0;
+        background: white;
+        padding: 1rem;
+        border-top: 1px solid #e5e7eb;
+        border-radius: 0 0 12px 12px;
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+        .room-gallery-item-enhanced {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .room-gallery-image-enhanced {
+            width: 100%;
+            height: 200px;
+        }
+        
+        .room-gallery-vertical-enhanced {
+            max-height: 600px;
+        }
+    }
 </style>
 
 {{-- Load non-critical CSS deferred --}}
@@ -666,7 +828,7 @@
 
                     <!-- Trust Badges -->
                     <div class="modern-card">
-                        <h3 class="text-lg font-bold mb-4">किन हामीलाई छान्ने?</h3>
+                        <h3 class="text-lg font-bold mb-4">किन हामीलाई रोज्ने?</h3>
                         <div class="space-y-4">
                             @foreach([
                                 ['icon' => 'shield-check', 'color' => 'blue', 'title' => 'सत्यापित सुरक्षा', 'desc' => 'CCTV र २४/७ सुरक्षा गार्ड'],
@@ -707,130 +869,217 @@
                         @endif
                     </div>
                     
-                    <!-- ✅ UPDATED: Vertical Sliding Gallery -->
+                    <!-- ✅ ENHANCED: Vertical Sliding Gallery with 12-14 images -->
                     @php
-                        // Get ALL active galleries, maximum 15
-                        $allGalleries = $hostel->galleries()->where('is_active', true)->take(15)->get();
+                        // Get ALL active galleries, maximum 14 for vertical slider
+                        $allGalleries = $hostel->galleries()->where('is_active', true)->take(14)->get();
+                        
+                        // Room categories for filtering
+                        $roomCategories = ['1 seater', '2 seater', '3 seater', '4 seater', 'other', 'साझा कोठा'];
+                        
+                        // Filter room galleries
+                        $roomGalleries = $allGalleries->filter(function($gallery) use ($roomCategories) {
+                            return in_array(strtolower($gallery->category), array_map('strtolower', $roomCategories)) || 
+                                   $gallery->room_id !== null;
+                        })->take(14);
                     @endphp
                     
-                    @if($allGalleries->count() > 0)
-                        <!-- Vertical Scroll Container -->
-                        <div class="room-gallery-vertical">
-                            @foreach($allGalleries as $index => $gallery)
-                                <div class="room-gallery-item flex gap-4"
+                    @if($roomGalleries->count() > 0)
+                        <!-- Enhanced Vertical Scroll Container -->
+                        <div class="room-gallery-vertical-enhanced" 
+                             id="verticalGallery"
+                             data-auto-scroll="true">
+                            @foreach($roomGalleries as $index => $gallery)
+                                <div class="room-gallery-item-enhanced flex gap-4 p-4 mb-3 bg-white rounded-xl border border-gray-200 hover:border-blue-400 hover:shadow-lg transition-all duration-300"
                                      role="button"
                                      tabindex="0"
                                      aria-label="View {{ $gallery->title }}"
                                      onclick="window.openModernLightbox(this, {{ $index }})"
-                                     onkeydown="if(event.key === 'Enter' || event.key === ' ') { window.openModernLightbox(this, {{ $index }}); }">
-                                    <div class="room-gallery-image">
+                                     onkeydown="if(event.key === 'Enter' || event.key === ' ') { window.openModernLightbox(this, {{ $index }}); }"
+                                     data-gallery-index="{{ $index }}">
+                                    
+                                    <!-- ✅ ENHANCED: Bigger Image Container (200x200) -->
+                                    <div class="room-gallery-image-enhanced flex-shrink-0">
                                         @php
-                                            // SIMPLE FIX: Direct image URL access
+                                            // Get high-quality image URL
                                             $imgUrl = $gallery->media_url ?? asset('images/default-room.png');
                                             
-                                            // If media_url is empty, try to construct from media_path
+                                            // Try to get original/high quality image
+                                            if (!empty($gallery->media_path)) {
+                                                $originalPath = $gallery->media_path;
+                                                $imgUrl = Storage::disk('public')->exists($originalPath) 
+                                                          ? Storage::disk('public')->url($originalPath)
+                                                          : $imgUrl;
+                                            }
+                                            
+                                            // Fallback for thumbnails
                                             if (empty($imgUrl) || str_contains($imgUrl, 'default-room.png')) {
-                                                if (!empty($gallery->media_path)) {
-                                                    $imgUrl = Storage::disk('public')->exists($gallery->media_path) 
-                                                              ? Storage::disk('public')->url($gallery->media_path)
-                                                              : asset('images/default-room.png');
-                                                }
+                                                $imgUrl = $gallery->thumbnail_url ?? asset('images/default-room.png');
                                             }
                                         @endphp
                                         
-                                        <img class="gallery-item-image lazy-image"
+                                        <!-- High-quality image with eager loading for first 3 -->
+                                        <img class="gallery-item-image-enhanced rounded-lg shadow-md w-full h-full object-cover"
+                                             src="{{ $imgUrl }}"
                                              data-src="{{ $imgUrl }}"
-                                             src="{{ asset('images/modern-placeholder.svg') }}"
                                              alt="{{ $gallery->title }}"
-                                             width="120"
-                                             height="120"
-                                             loading="lazy"
-                                             onerror="this.src='{{ asset('images/default-room.png') }}'; this.style.opacity='0.7';">
+                                             width="200"
+                                             height="200"
+                                             loading="{{ $index < 3 ? 'eager' : 'lazy' }}"
+                                             onerror="this.onerror=null; this.src='{{ asset('images/default-room.png') }}'; this.classList.add('error-fallback');">
                                     </div>
                                     
-                                    <div class="room-gallery-content">
-                                        <div class="flex items-start justify-between mb-2">
-                                            <h4 class="font-bold text-gray-900 gallery-item-title">{{ $gallery->title }}</h4>
+                                    <!-- Enhanced Content Area -->
+                                    <div class="room-gallery-content-enhanced flex-1 min-w-0">
+                                        <div class="flex items-start justify-between mb-3">
+                                            <h4 class="font-bold text-gray-900 text-lg gallery-item-title truncate">
+                                                {{ $gallery->title }}
+                                            </h4>
                                             @if($gallery->is_featured)
-                                                <span class="featured-badge">
-                                                    <i class="fas fa-star mr-1"></i> फिचर्ड
+                                                <span class="featured-badge-enhanced bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 flex-shrink-0">
+                                                    <i class="fas fa-star text-xs"></i> फिचर्ड
                                                 </span>
                                             @endif
                                         </div>
                                         
                                         @if($gallery->description)
-                                            <p class="text-gray-600 text-sm mb-3 gallery-item-desc">{{ Str::limit($gallery->description, 80) }}</p>
+                                            <p class="text-gray-700 text-sm mb-4 gallery-item-desc line-clamp-2 leading-relaxed">
+                                                {{ $gallery->description }}
+                                            </p>
                                         @endif
                                         
-                                        <div class="flex items-center gap-3">
-                                            <span class="category-badge">
-                                                <i class="fas fa-tag"></i>
-                                                {{ $gallery->category ?? 'कोठा' }}
+                                        <!-- Enhanced Badges -->
+                                        <div class="flex flex-wrap items-center gap-3 mb-3">
+                                            <!-- Room Type Badge -->
+                                            <span class="category-badge-enhanced bg-blue-100 text-blue-800 px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-2">
+                                                <i class="fas fa-tag text-xs"></i>
+                                                {{ $gallery->category_nepali ?? $gallery->category ?? 'कोठा' }}
                                             </span>
                                             
+                                            <!-- Room Number Badge -->
                                             @if($gallery->room_id && $gallery->room)
-                                                <span class="inline-flex items-center gap-1 bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full">
+                                                <span class="inline-flex items-center gap-2 bg-green-100 text-green-800 px-3 py-1.5 rounded-lg text-sm font-medium">
                                                     <i class="fas fa-door-open"></i>
                                                     कोठा: {{ $gallery->room->room_number ?? 'N/A' }}
                                                 </span>
                                             @endif
+                                            
+                                            <!-- Capacity Badge -->
+                                            @if(str_contains(strtolower($gallery->category ?? ''), 'seater'))
+                                                @php
+                                                    $capacity = explode(' ', strtolower($gallery->category))[0] ?? '1';
+                                                @endphp
+                                                <span class="inline-flex items-center gap-2 bg-purple-100 text-purple-800 px-3 py-1.5 rounded-lg text-sm font-medium">
+                                                    <i class="fas fa-user-friends"></i>
+                                                    {{ $capacity }} जना
+                                                </span>
+                                            @endif
                                         </div>
                                         
-                                        <div class="mt-3 text-xs text-gray-500">
-                                            <i class="fas fa-clock mr-1"></i>
-                                            {{ $gallery->created_at->format('Y-m-d') ?? '२०२५-०१-०१' }}
+                                        <!-- ✅ FIXED: "विस्तृत हेर्नुहोस्" button REMOVED per instructions -->
+                                        <div class="pt-3 border-t border-gray-100">
+                                            <div class="text-xs text-gray-500 flex items-center gap-2">
+                                                <i class="fas fa-calendar-alt"></i>
+                                                {{ $gallery->created_at->format('Y-m-d') ?? '२०२५-०१-०१' }}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             @endforeach
                         </div>
                         
-                        <!-- Gallery Counter -->
-                        <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
-                            <div class="text-sm text-gray-600">
-                                <i class="fas fa-image mr-1"></i>
-                                <span class="font-medium">{{ $allGalleries->count() }}</span> वटा तस्बिरहरू
+                        <!-- Gallery Stats & Controls -->
+                        <div class="flex flex-col sm:flex-row items-center justify-between mt-6 pt-6 border-t border-gray-200 bg-gray-50 p-4 rounded-xl">
+                            <div class="flex items-center gap-4 mb-3 sm:mb-0">
+                                <div class="text-sm text-gray-700">
+                                    <i class="fas fa-image text-blue-600 mr-1"></i>
+                                    <span class="font-bold text-lg">{{ $roomGalleries->count() }}</span> वटा कोठाका तस्बिरहरू
+                                </div>
+                                
+                                <!-- Auto-scroll toggle -->
+                                <div class="flex items-center gap-2">
+                                    <button id="toggleAutoScroll" 
+                                            class="text-xs px-3 py-1 bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200 transition-colors flex items-center gap-1"
+                                            onclick="toggleAutoScroll()">
+                                        <i class="fas fa-play" id="autoScrollIcon"></i>
+                                        <span id="autoScrollText">स्वत: स्लाइड</span>
+                                    </button>
+                                </div>
                             </div>
-                            <div class="text-xs text-gray-500">
-                                <i class="fas fa-mouse-pointer mr-1"></i>
-                                तलबाट माथि स्क्रोल गर्नुहोस्
+                            
+                            <div class="flex items-center gap-4">
+                                <!-- Scroll instructions -->
+                                <div class="text-xs text-gray-600 flex items-center gap-2">
+                                    <i class="fas fa-mouse-pointer text-gray-500"></i>
+                                    <span>माथि तल स्क्रोल गर्नुहोस्</span>
+                                </div>
+                                
+                                <!-- Manual scroll buttons -->
+                                <div class="flex gap-2">
+                                    <button onclick="scrollGallery('up')" 
+                                            class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 transition-colors"
+                                            aria-label="माथि स्क्रोल">
+                                        <i class="fas fa-chevron-up text-xs"></i>
+                                    </button>
+                                    <button onclick="scrollGallery('down')" 
+                                            class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 transition-colors"
+                                            aria-label="तल स्क्रोल">
+                                        <i class="fas fa-chevron-down text-xs"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     @else
-                        <!-- Empty State -->
-                        <div class="empty-gallery-state">
-                            <div class="empty-gallery-icon">
-                                <i class="fas fa-images text-gray-400 text-2xl"></i>
+                        <!-- Enhanced Empty State -->
+                        <div class="empty-gallery-state-enhanced text-center py-12 bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl border-2 border-dashed border-gray-300">
+                            <div class="empty-gallery-icon-enhanced w-20 h-20 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                                <i class="fas fa-images text-blue-500 text-3xl"></i>
                             </div>
-                            <h3 class="text-lg font-semibold text-gray-600 mb-2">कोठाको ग्यालरी उपलब्ध छैन</h3>
-                            <p class="text-gray-500">यस होस्टलको कोठाको ग्यालरी सामग्री चाँहि उपलब्ध छैन।</p>
+                            <h3 class="text-xl font-bold text-gray-700 mb-2">कोठाको ग्यालरी उपलब्ध छैन</h3>
+                            <p class="text-gray-600 mb-6 max-w-md mx-auto">यस होस्टलका कोठाका तस्बिरहरू चाँहि थपिएको छैन। तपाईं सिधै कोठा बुक गर्न सक्नुहुन्छ।</p>
+                            
+                            @if($hostel->slug)
+                                <a href="{{ route('hostels.book', $hostel->slug) }}"
+                                   class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg font-semibold hover:from-green-700 hover:to-emerald-700 transition-all transform hover:-translate-y-0.5 hover:shadow-lg"
+                                   aria-label="सिधै बुक गर्नुहोस्">
+                                    <i class="fas fa-bed mr-2"></i>
+                                    सिधै कोठा बुक गर्नुहोस्
+                                </a>
+                            @endif
                         </div>
                     @endif
                     
-                    <!-- ✅ नयाँ बटन: कोठाका फोटो र बुकिंग -->
-                    @if($hostel->slug)
-                        <div class="mt-8 mb-4 pt-4">
-                            <a href="{{ route('hostel.gallery', $hostel->slug) }}"
-                               class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg font-semibold hover:from-green-700 hover:to-emerald-700 transition-all transform hover:-translate-y-0.5 hover:shadow-lg book-now-button"
-                               aria-label="कोठाका फोटो र बुकिंग">
-                                <i class="fas fa-camera mr-2"></i>
-                                कोठाका फोटो र बुकिंग
-                            </a>
-                            <p class="text-xs text-center text-gray-600 mt-2">
-                                (प्रत्येक कोठाका फोटोहरू हेरेर सिधै बुक गर्नुहोस्)
-                            </p>
-                        </div>
-                    @endif
-
-                    <!-- View Full Gallery Button -->
-                    @if($hostel->slug && $allGalleries->count() > 0)
-                        <div class="pt-6 border-t">
-                            <a href="{{ route('hostels.full.gallery', $hostel->slug) }}" 
-                               class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold hover:opacity-90 transition-opacity full-gallery-btn"
-                               aria-label="पुरै ग्यालरी हेर्नुहोस्">
-                                <i class="fas fa-images mr-2"></i>
-                                पुरै ग्यालरी हेर्नुहोस्
-                            </a>
+                    <!-- ✅ FIXED: Room Photos Button - Text changed to "कोठा हेर्दै बुक गर्नुहोस्" with improved subtext -->
+                    @if($hostel->slug && $roomGalleries->count() > 0)
+                        <div class="mt-8 pt-6 border-t border-gray-200">
+                            <div class="grid grid-cols-1 gap-4">
+                                <!-- ✅ FIXED: "कोठा हेर्दै बुक गर्नुहोस्" Button with updated user-friendly text -->
+                                <a href="{{ route('hostel.gallery', $hostel->slug) }}"
+                                   class="flex items-center justify-center gap-3 px-4 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all transform hover:-translate-y-0.5 hover:shadow-xl"
+                                   aria-label="कोठा हेर्दै बुक गर्नुहोस्">
+                                    <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-camera text-xl"></i>
+                                    </div>
+                                    <div class="text-left">
+                                        <div class="font-bold text-lg">कोठा हेर्दै बुक गर्नुहोस्</div>
+                                        <!-- ✅ FIXED: Changed from "({{ $roomGalleries->count() }} तस्बिरहरू हेर्नुहोस्)" to "(आफूलाई मनपर्ने कोठा)" -->
+                                        <div class="text-sm opacity-90">(आफूलाई मनपर्ने कोठा)</div>
+                                    </div>
+                                    <i class="fas fa-arrow-right ml-auto"></i>
+                                </a>
+                                
+                                <!-- ✅ FIXED: "पुरै ग्यालरी हेर्नुहोस्" Button RECOVERED -->
+                                @if($hostel->slug)
+                                    <div class="mt-4">
+                                        <a href="{{ route('hostels.full.gallery', $hostel->slug) }}" 
+                                           class="inline-flex items-center justify-center gap-2 w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg font-semibold hover:from-purple-700 hover:to-indigo-700 transition-all transform hover:-translate-y-0.5 hover:shadow-xl full-gallery-btn"
+                                           aria-label="पुरै ग्यालरी हेर्नुहोस्">
+                                            <i class="fas fa-images mr-2"></i>
+                                            पुरै ग्यालरी हेर्नुहोस्
+                                        </a>
+                                    </div>
+                                @endif
+                            </div>
                         </div>
                     @endif
                 </div>
@@ -991,6 +1240,17 @@
                             </div>
                         @endif
                         
+                        <!-- ✅ FIXED: "सिधै बुक गर्नुहोस्" button MOVED here (Gallery section बाट सारिएको) -->
+                        <div class="mt-6">
+                            <a href="{{ route('hostels.book', $hostel->slug) }}"
+                               class="inline-flex items-center justify-center w-full px-4 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg font-semibold hover:from-green-700 hover:to-emerald-700 transition-all transform hover:-translate-y-0.5 hover:shadow-xl"
+                               aria-label="सिधै बुक गर्नुहोस्">
+                                <i class="fas fa-calendar-check mr-2"></i>
+                                सिधै बुक गर्नुहोस्
+                            </a>
+                            
+                        </div>
+                        
                         <div class="text-center mt-4">
                             <a href="#contact-form" 
                                class="text-blue-600 hover:text-blue-800 font-medium inline-flex items-center gap-1 text-sm"
@@ -1123,6 +1383,108 @@
         hostelSlug: '{{ $hostel->slug }}',
         galleryRoute: '{{ route("hostels.full.gallery", $hostel->slug) }}',
         bookRoute: '{{ route("hostels.book", $hostel->slug) }}'
+    };
+</script>
+
+<!-- ✅ ENHANCED: Vertical Gallery Auto-Scroll Functionality -->
+<script>
+    let autoScrollInterval = null;
+    let isAutoScrollEnabled = true;
+
+    function startAutoScroll() {
+        const gallery = document.getElementById('verticalGallery');
+        if (!gallery || !isAutoScrollEnabled) return;
+        
+        autoScrollInterval = setInterval(() => {
+            // Check if we've reached the bottom
+            const isAtBottom = gallery.scrollHeight - gallery.scrollTop <= gallery.clientHeight + 10;
+            
+            if (isAtBottom) {
+                // Scroll back to top
+                gallery.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                // Scroll down
+                gallery.scrollBy({ top: 300, behavior: 'smooth' });
+            }
+        }, 4000); // Scroll every 4 seconds
+    }
+
+    function stopAutoScroll() {
+        if (autoScrollInterval) {
+            clearInterval(autoScrollInterval);
+            autoScrollInterval = null;
+        }
+    }
+
+    function toggleAutoScroll() {
+        isAutoScrollEnabled = !isAutoScrollEnabled;
+        const toggleBtn = document.getElementById('toggleAutoScroll');
+        const icon = document.getElementById('autoScrollIcon');
+        const text = document.getElementById('autoScrollText');
+        
+        if (isAutoScrollEnabled) {
+            icon.className = 'fas fa-play';
+            text.textContent = 'स्वत: स्लाइड';
+            toggleBtn.classList.remove('bg-red-100', 'text-red-700');
+            toggleBtn.classList.add('bg-blue-100', 'text-blue-700');
+            startAutoScroll();
+        } else {
+            icon.className = 'fas fa-pause';
+            text.textContent = 'रोकिएको';
+            toggleBtn.classList.remove('bg-blue-100', 'text-blue-700');
+            toggleBtn.classList.add('bg-red-100', 'text-red-700');
+            stopAutoScroll();
+        }
+    }
+
+    function scrollGallery(direction) {
+        const gallery = document.getElementById('verticalGallery');
+        if (!gallery) return;
+        
+        const scrollAmount = 400;
+        
+        if (direction === 'up') {
+            gallery.scrollBy({ top: -scrollAmount, behavior: 'smooth' });
+        } else {
+            gallery.scrollBy({ top: scrollAmount, behavior: 'smooth' });
+        }
+    }
+
+    // Initialize auto-scroll when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        // Start auto-scroll after 2 seconds
+        setTimeout(() => {
+            if (document.getElementById('verticalGallery')) {
+                startAutoScroll();
+            }
+        }, 2000);
+        
+        // Pause auto-scroll when user interacts
+        const gallery = document.getElementById('verticalGallery');
+        if (gallery) {
+            gallery.addEventListener('mouseenter', stopAutoScroll);
+            gallery.addEventListener('mouseleave', () => {
+                if (isAutoScrollEnabled) {
+                    startAutoScroll();
+                }
+            });
+            
+            gallery.addEventListener('touchstart', stopAutoScroll);
+            gallery.addEventListener('touchend', () => {
+                setTimeout(() => {
+                    if (isAutoScrollEnabled) {
+                        startAutoScroll();
+                    }
+                }, 3000);
+            });
+        }
+    });
+
+    // Lightbox function
+    window.openModernLightbox = function(element, index) {
+        // Your lightbox implementation here
+        console.log('Opening gallery item:', index);
+        // You can integrate with any lightbox library like Fancybox, Lightbox2, etc.
     };
 </script>
 
