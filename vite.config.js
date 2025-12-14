@@ -14,11 +14,13 @@ export default defineConfig({
                 'resources/css/home.css',
                 'resources/css/dashboard.css',
                 'resources/css/themes/modern.css',
+                'resources/css/themes/classic.css', // ✅ ADDED: Classic theme CSS
                 
                 // JS Files
                 'resources/js/app.js',
                 'resources/js/home.js',
-                'resources/js/gallery.js'
+                'resources/js/gallery.js',
+                'resources/js/themes/classic.js' // ✅ ADDED: Classic theme JS
             ],
             refresh: true,
         }),
