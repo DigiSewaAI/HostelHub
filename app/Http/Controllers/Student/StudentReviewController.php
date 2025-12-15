@@ -128,7 +128,7 @@ class StudentReviewController extends Controller
             }
 
             // ✅ FIXED: Complete data with proper defaults
-            Review::create([
+            $review = Review::create([ // ✅ CHANGED: Assigned to variable
                 'name' => $student->user->name, // Student's name
                 'position' => 'Student', // Default position
                 'student_id' => $student->id,
@@ -141,6 +141,9 @@ class StudentReviewController extends Controller
             ]);
 
             DB::commit();
+
+            // ✅ TRIGGER EVENT: Trigger event for admin notification (Added as per instructions)
+            event(new \App\Events\ReviewSubmitted($review));
 
             return redirect()->route('student.reviews.index')
                 ->with('success', 'तपाईंको समीक्षा सफलतापूर्वक पेश गरियो। प्रशासकद्वारा स्वीकृत पछि प्रदर्शित हुनेछ।');

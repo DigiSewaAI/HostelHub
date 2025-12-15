@@ -18,6 +18,23 @@ class EventServiceProvider extends ServiceProvider
         Registered::class => [
             SendEmailVerificationNotification::class,
         ],
+
+        // ✅ ADDED: Review Events for Admin Notifications
+        \App\Events\ReviewSubmitted::class => [
+            \App\Listeners\SendReviewSubmittedNotification::class,
+        ],
+
+        \App\Events\ReviewApproved::class => [
+            \App\Listeners\SendReviewApprovedNotification::class,
+        ],
+
+        \App\Events\ReviewRejected::class => [
+            \App\Listeners\SendReviewRejectedNotification::class,
+        ],
+
+        \App\Events\OwnerRepliedToReview::class => [
+            \App\Listeners\SendOwnerReplyNotification::class,
+        ],
     ];
 
     /**

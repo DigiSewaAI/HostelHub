@@ -228,6 +228,24 @@
                             सबै हेर्नुहोस् <i class="fas fa-arrow-circle-right ml-1"></i>
                         </a>
                     </div>
+                    
+                    <!-- Pending Reviews Card -->
+                    <div class="stat-card bg-gradient-to-r from-yellow-50 to-yellow-100 border-l-4 border-yellow-500 p-4 rounded-lg shadow-sm card-hover">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="text-lg font-bold text-gray-800">पेन्डिङ समीक्षाहरू</h3>
+                                <p class="text-3xl font-bold mt-2 text-gray-900">{{ $pending_reviews_count ?? 0 }}</p>
+                            </div>
+                            <div class="bg-yellow-500 text-white p-3 rounded-lg">
+                                <i class="fas fa-clock text-xl"></i>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-600 mt-2">स्वीकृतिको लागि पर्खिरहेका</p>
+                        <a href="{{ route('admin.reviews.index', ['status' => 'pending']) }}" 
+                           class="text-xs text-yellow-600 hover:text-yellow-800 font-medium mt-2 inline-block">
+                            सबै हेर्नुहोस् <i class="fas fa-arrow-circle-right ml-1"></i>
+                        </a>
+                    </div>
                 </div>
 
                 <!-- Organization Request Statistics -->
@@ -367,6 +385,45 @@
                         <div class="text-sm text-red-800 font-medium">मर्मतकोठाहरू</div>
                     </div>
                 </div>
+
+                <!-- Recently Approved Reviews Section -->
+                @if(isset($recent_approved_reviews) && $recent_approved_reviews->count() > 0)
+                <div class="bg-white rounded-lg shadow-sm p-4">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold text-gray-800">हालै स्वीकृत समीक्षाहरू</h2>
+                        <a href="{{ route('admin.reviews.index', ['status' => 'approved']) }}" 
+                           class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                            सबै हेर्नुहोस्
+                        </a>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        @foreach($recent_approved_reviews as $review)
+                        <div class="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors">
+                            <div class="flex items-center flex-1">
+                                <div class="bg-green-100 p-2 rounded-lg mr-3">
+                                    <i class="fas fa-check text-green-600"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center justify-between">
+                                        <p class="font-medium text-gray-800 text-sm">{{ $review->name }}</p>
+                                        <span class="text-xs text-gray-500">{{ $review->created_at->diffForHumans() }}</span>
+                                    </div>
+                                    <p class="text-sm text-gray-600 mt-1">{{ \Illuminate\Support\Str::limit($review->content, 60) }}</p>
+                                </div>
+                            </div>
+                            <div class="flex space-x-2 ml-4">
+                                <a href="{{ route('admin.reviews.show', $review) }}" 
+                                   class="text-blue-600 hover:text-blue-800 p-2 transition-colors" 
+                                   title="हेर्नुहोस्">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
 
                 <!-- Recent Activities -->
                 <div class="bg-white rounded-lg shadow-sm p-4">

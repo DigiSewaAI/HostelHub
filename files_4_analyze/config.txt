@@ -1,0 +1,21 @@
+ Volume in drive C has no label.
+ Volume Serial Number is 160C-9711
+
+ Directory of C:\laragon\www\HostelHub\config
+
+12/14/2025  08:23 PM    <DIR>          .
+12/14/2025  08:23 PM    <DIR>          ..
+08/16/2025  07:35 PM             7,294 app.php
+12/03/2025  09:05 AM             3,897 auth.php
+08/26/2025  01:58 PM             3,478 cache.php
+07/11/2025  03:10 PM             6,262 database.php
+12/14/2025  08:23 PM             1,501 dompdf.php
+09/03/2025  04:52 PM             2,671 filesystems.php
+07/11/2025  03:10 PM             4,327 logging.php
+07/11/2025  03:10 PM             3,614 mail.php
+09/01/2025  09:28 PM             7,051 permission.php
+07/11/2025  03:10 PM             3,824 queue.php
+12/03/2025  09:05 AM             2,306 services.php
+12/03/2025  09:05 AM             7,993 session.php
+              12 File(s)         54,218 bytes
+               2 Dir(s)  51,471,093,760 bytes free

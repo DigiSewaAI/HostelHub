@@ -1,0 +1,719 @@
+ Volume in drive C has no label.
+ Volume Serial Number is 160C-9711
+
+ Directory of C:\laragon\www\HostelHub\resources\views
+
+12/14/2025  08:23 PM    <DIR>          .
+12/14/2025  08:23 PM    <DIR>          ..
+12/03/2025  09:05 AM    <DIR>          admin
+12/03/2025  09:05 AM    <DIR>          auth
+12/14/2025  07:37 PM    <DIR>          components
+12/03/2025  09:05 AM    <DIR>          emails
+12/03/2025  09:05 AM    <DIR>          errors
+12/14/2025  08:13 PM    <DIR>          frontend
+12/14/2025  08:13 PM    <DIR>          layouts
+12/14/2025  08:23 PM             2,788 logo-test.blade.php
+10/30/2025  09:35 AM    <DIR>          onboarding
+12/14/2025  08:23 PM    <DIR>          owner
+12/03/2025  09:05 AM    <DIR>          payment
+12/14/2025  08:23 PM    <DIR>          pdf
+10/30/2025  09:35 AM    <DIR>          profile
+12/03/2025  09:05 AM    <DIR>          public
+12/03/2025  09:05 AM    <DIR>          reviews
+12/03/2025  09:05 AM    <DIR>          student
+12/03/2025  09:05 AM    <DIR>          subscription
+               1 File(s)          2,788 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\admin
+
+12/03/2025  09:05 AM    <DIR>          .
+12/03/2025  09:05 AM    <DIR>          ..
+12/03/2025  09:05 AM    <DIR>          bookings
+12/03/2025  09:05 AM    <DIR>          circulars
+12/03/2025  09:05 AM    <DIR>          contacts
+12/03/2025  09:05 AM            63,095 dashboard.blade.php
+12/03/2025  09:05 AM    <DIR>          documents
+12/03/2025  09:05 AM    <DIR>          galleries
+12/08/2025  02:31 PM    <DIR>          hostels
+12/03/2025  09:05 AM    <DIR>          meal-menus
+12/03/2025  09:05 AM    <DIR>          meals
+12/03/2025  09:05 AM    <DIR>          organization-requests
+12/03/2025  09:05 AM    <DIR>          payments
+12/03/2025  09:05 AM    <DIR>          reports
+12/03/2025  09:05 AM    <DIR>          reviews
+12/03/2025  09:05 AM    <DIR>          rooms
+12/03/2025  09:05 AM    <DIR>          settings
+12/03/2025  09:05 AM    <DIR>          students
+               1 File(s)         63,095 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\admin\bookings
+
+12/03/2025  09:05 AM    <DIR>          .
+12/03/2025  09:05 AM    <DIR>          ..
+12/03/2025  09:05 AM            17,595 index.blade.php
+12/03/2025  09:05 AM            13,084 pending.blade.php
+               2 File(s)         30,679 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\admin\circulars
+
+12/03/2025  09:05 AM    <DIR>          .
+12/03/2025  09:05 AM    <DIR>          ..
+12/03/2025  09:05 AM             8,931 analytics.blade.php
+12/03/2025  09:05 AM            12,781 create.blade.php
+12/03/2025  09:05 AM            15,002 edit.blade.php
+12/03/2025  09:05 AM            10,244 index.blade.php
+12/03/2025  09:05 AM             8,076 show.blade.php
+12/03/2025  09:05 AM             5,448 templetes.blade.php
+               6 File(s)         60,482 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\admin\contacts
+
+12/03/2025  09:05 AM    <DIR>          .
+12/03/2025  09:05 AM    <DIR>          ..
+12/03/2025  09:05 AM             2,894 create.blade.php
+12/03/2025  09:05 AM             4,352 edit.blade.php
+12/03/2025  09:05 AM            24,083 index.blade.php
+12/03/2025  09:05 AM             4,401 show.blade.php
+               4 File(s)         35,730 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\admin\documents
+
+12/03/2025  09:05 AM    <DIR>          .
+12/03/2025  09:05 AM    <DIR>          ..
+12/03/2025  09:05 AM            11,873 create.blade.php
+12/03/2025  09:05 AM            20,144 edit.blad.php
+12/03/2025  09:05 AM             7,601 index.blade.php
+12/03/2025  09:05 AM             8,643 search.blade.php
+12/03/2025  09:05 AM             8,439 show.blade.php
+               5 File(s)         56,700 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\admin\galleries
+
+12/03/2025  09:05 AM    <DIR>          .
+12/03/2025  09:05 AM    <DIR>          ..
+12/03/2025  09:05 AM             1,687 create.blade.php
+12/03/2025  09:05 AM             1,161 edit.blade.php
+12/03/2025  09:05 AM             9,348 index.blade.php
+12/03/2025  09:05 AM             2,487 show.blade.php
+12/03/2025  09:05 AM            10,069 _form.blade.php
+               5 File(s)         24,752 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\admin\hostels
+
+12/08/2025  02:31 PM    <DIR>          .
+12/08/2025  02:31 PM    <DIR>          ..
+12/03/2025  09:05 AM            11,438 availability.blade.php
+12/03/2025  09:05 AM            12,875 create.blade.php
+12/03/2025  09:05 AM            16,743 edit.blade.php
+12/08/2025  02:31 PM             7,925 featured.blade.php
+12/08/2025  02:31 PM            36,907 index.blade.php
+12/03/2025  09:05 AM            25,591 show.blade.php
+               6 File(s)        111,479 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\admin\meal-menus
+
+12/03/2025  09:05 AM    <DIR>          .
+12/03/2025  09:05 AM    <DIR>          ..
+12/03/2025  09:05 AM             5,051 create.blade.php
+12/03/2025  09:05 AM             4,811 edit.blade.php
+12/03/2025  09:05 AM             3,488 index.blade.php
+               3 File(s)         13,350 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\admin\meals
+
+12/03/2025  09:05 AM    <DIR>          .
+12/03/2025  09:05 AM    <DIR>          ..
+12/03/2025  09:05 AM             2,161 create.blade.php
+09/01/2025  12:14 PM             4,170 edit.blade.php
+12/03/2025  09:05 AM             3,851 index.blade.php
+               3 File(s)         10,182 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\admin\organization-requests
+
+12/03/2025  09:05 AM    <DIR>          .
+12/03/2025  09:05 AM    <DIR>          ..
+12/03/2025  09:05 AM             5,351 index.blade.php
+12/03/2025  09:05 AM             7,064 show.blade.php
+               2 File(s)         12,415 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\admin\payments
+
+12/03/2025  09:05 AM    <DIR>          .
+12/03/2025  09:05 AM    <DIR>          ..
+12/03/2025  09:05 AM             6,532 create.blade.php
+12/03/2025  09:05 AM             6,629 edit.blade.php
+12/03/2025  09:05 AM            19,266 index.blade.php
+12/03/2025  09:05 AM             8,659 report.blade.php
+12/03/2025  09:05 AM            14,649 show.blade.php
+12/03/2025  09:05 AM            12,623 verification.blade.php
+               6 File(s)         68,358 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\admin\reports
+
+12/03/2025  09:05 AM    <DIR>          .
+12/03/2025  09:05 AM    <DIR>          ..
+12/03/2025  09:05 AM            18,276 index.blade.php
+12/03/2025  09:05 AM             6,044 pdf.blade.php
+               2 File(s)         24,320 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\admin\reviews
+
+12/03/2025  09:05 AM    <DIR>          .
+12/03/2025  09:05 AM    <DIR>          ..
+12/03/2025  09:05 AM            11,332 index.blade.php
+               1 File(s)         11,332 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\admin\rooms
+
+12/03/2025  09:05 AM    <DIR>          .
+12/03/2025  09:05 AM    <DIR>          ..
+12/03/2025  09:05 AM            21,196 create.blade.php
+12/03/2025  09:05 AM            28,136 edit.blade.php
+12/03/2025  09:05 AM            12,075 index.blade.php
+12/03/2025  09:05 AM            10,095 show.blade.php
+               4 File(s)         71,502 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\admin\settings
+
+12/03/2025  09:05 AM    <DIR>          .
+12/03/2025  09:05 AM    <DIR>          ..
+12/03/2025  09:05 AM             6,227 create.blade.php
+12/03/2025  09:05 AM             6,222 edit.blade.php
+12/03/2025  09:05 AM             5,374 index.blade.php
+12/03/2025  09:05 AM             4,376 show.blade.php
+               4 File(s)         22,199 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\admin\students
+
+12/03/2025  09:05 AM    <DIR>          .
+12/03/2025  09:05 AM    <DIR>          ..
+12/03/2025  09:05 AM            24,259 create.blade.php
+08/18/2025  04:04 PM             9,664 edit.blade.php
+12/03/2025  09:05 AM             6,102 index.blade.php
+08/18/2025  04:07 PM             3,638 show.blade.php
+               4 File(s)         43,663 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\auth
+
+12/03/2025  09:05 AM    <DIR>          .
+12/03/2025  09:05 AM    <DIR>          ..
+12/03/2025  09:05 AM             2,007 confirm-password.blade.php
+12/03/2025  09:05 AM             2,110 forgot-password.blade.php
+12/03/2025  09:05 AM             4,225 login.blade.php
+12/03/2025  09:05 AM    <DIR>          organization
+12/03/2025  09:05 AM             4,332 register_user.blade.php
+12/03/2025  09:05 AM             3,295 reset-password.blade.php
+               5 File(s)         15,969 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\auth\organization
+
+12/03/2025  09:05 AM    <DIR>          .
+12/03/2025  09:05 AM    <DIR>          ..
+12/03/2025  09:05 AM            16,164 register.blade.php
+               1 File(s)         16,164 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\components
+
+12/14/2025  07:37 PM    <DIR>          .
+12/14/2025  07:37 PM    <DIR>          ..
+08/06/2025  12:54 PM               474 admin-nav-link.blade.php
+08/24/2025  04:37 PM               139 application-logo.blade.php
+08/05/2025  07:08 PM               160 auth-session-status.blade.php
+12/03/2025  09:05 AM             1,396 booking-card.blade.php
+08/05/2025  07:08 PM               380 danger-button.blade.php
+08/05/2025  07:08 PM               217 dropdown-link.blade.php
+08/05/2025  07:08 PM             1,244 dropdown.blade.php
+12/14/2025  07:37 PM             5,008 footer.blade.php
+12/14/2025  07:37 PM             6,006 header.blade.php
+08/05/2025  07:08 PM               241 input-error.blade.php
+08/05/2025  07:08 PM               143 input-label.blade.php
+09/04/2025  08:34 AM               118 logo.blade.php
+08/05/2025  07:08 PM             3,205 modal.blade.php
+08/05/2025  07:08 PM               605 nav-link.blade.php
+08/16/2025  12:24 PM             1,272 plan-card.blade.php
+08/05/2025  07:08 PM               404 primary-button.blade.php
+12/03/2025  09:05 AM             1,360 quick-action.blade.php
+08/05/2025  07:08 PM               688 responsive-nav-link.blade.php
+08/05/2025  08:43 PM             3,220 room-card.blade.php
+08/05/2025  07:08 PM               393 secondary-button.blade.php
+12/03/2025  09:05 AM             1,431 stat-card.blade.php
+12/03/2025  09:05 AM               647 status-badge.blade.php
+08/05/2025  07:08 PM               184 text-input.blade.php
+              23 File(s)         28,935 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\emails
+
+12/03/2025  09:05 AM    <DIR>          .
+12/03/2025  09:05 AM    <DIR>          ..
+12/03/2025  09:05 AM             9,265 booking-created.blade.php
+12/03/2025  09:05 AM    <DIR>          bookings
+11/11/2025  12:32 PM               178 contact.blade.php
+               2 File(s)          9,443 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\emails\bookings
+
+12/03/2025  09:05 AM    <DIR>          .
+12/03/2025  09:05 AM    <DIR>          ..
+12/03/2025  09:05 AM            22,503 my-bookings.blade.php
+               1 File(s)         22,503 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\errors
+
+12/03/2025  09:05 AM    <DIR>          .
+12/03/2025  09:05 AM    <DIR>          ..
+12/03/2025  09:05 AM             1,524 gallery-unavailable.blade.php
+               1 File(s)          1,524 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\frontend
+
+12/14/2025  08:13 PM    <DIR>          .
+12/14/2025  08:13 PM    <DIR>          ..
+12/14/2025  08:13 PM            26,830 about.blade.php
+12/08/2025  02:31 PM    <DIR>          booking
+12/03/2025  09:05 AM            13,708 contact.blade.php
+12/08/2025  02:31 PM            22,291 features.blade.php
+12/14/2025  07:33 PM    <DIR>          gallery
+12/14/2025  07:19 PM            79,201 home.blade.php
+12/08/2025  02:31 PM            19,732 how-it-works.blade.php
+12/08/2025  02:31 PM    <DIR>          legal
+12/14/2025  07:31 PM    <DIR>          pages
+12/08/2025  02:31 PM    <DIR>          partials
+12/08/2025  02:31 PM    <DIR>          rooms
+12/08/2025  02:31 PM            37,336 search-results.blade.php
+10/30/2025  09:35 AM    <DIR>          seo
+12/08/2025  02:31 PM            18,163 testimonials.blade.php
+               7 File(s)        217,261 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\frontend\booking
+
+12/08/2025  02:31 PM    <DIR>          .
+12/08/2025  02:31 PM    <DIR>          ..
+12/08/2025  02:31 PM            35,395 form.blade.php
+12/08/2025  02:31 PM            14,867 success.blade.php
+               2 File(s)         50,262 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\frontend\gallery
+
+12/14/2025  07:33 PM    <DIR>          .
+12/14/2025  07:33 PM    <DIR>          ..
+12/15/2025  12:59 PM            91,681 index.blade.php
+               1 File(s)         91,681 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\frontend\legal
+
+12/08/2025  02:31 PM    <DIR>          .
+12/08/2025  02:31 PM    <DIR>          ..
+09/04/2025  10:25 AM            11,550 cookies.blade.php
+12/08/2025  02:31 PM            17,141 privacy.blade.php
+12/08/2025  02:31 PM            16,223 terms.blade.php
+               3 File(s)         44,914 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\frontend\pages
+
+12/14/2025  07:31 PM    <DIR>          .
+12/14/2025  07:31 PM    <DIR>          ..
+12/08/2025  02:31 PM            30,365 demo.blade.php
+12/14/2025  07:31 PM            63,448 meal-gallery.blade.php
+               2 File(s)         93,813 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\frontend\partials
+
+12/08/2025  02:31 PM    <DIR>          .
+12/08/2025  02:31 PM    <DIR>          ..
+08/16/2025  12:23 PM             1,984 footer.blade.php
+11/01/2025  04:22 PM             1,232 gallery-item.blade.php
+12/08/2025  02:31 PM            13,990 hostel-card.blade.php
+12/08/2025  02:31 PM    <DIR>          pricing
+               3 File(s)         17,206 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\frontend\partials\pricing
+
+12/08/2025  02:31 PM    <DIR>          .
+12/08/2025  02:31 PM    <DIR>          ..
+12/08/2025  02:31 PM            30,062 index.blade.php
+               1 File(s)         30,062 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\frontend\rooms
+
+12/08/2025  02:31 PM    <DIR>          .
+12/08/2025  02:31 PM    <DIR>          ..
+12/08/2025  02:31 PM             9,306 room-detail.blade.php
+12/08/2025  02:31 PM             9,686 rooms.blade.php
+               2 File(s)         18,992 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\frontend\seo
+
+10/30/2025  09:35 AM    <DIR>          .
+10/30/2025  09:35 AM    <DIR>          ..
+08/16/2025  12:43 PM                56 robots.blade.php
+08/16/2025  12:43 PM               611 sitemap.blade.php
+               2 File(s)            667 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\layouts
+
+12/14/2025  08:13 PM    <DIR>          .
+12/14/2025  08:13 PM    <DIR>          ..
+12/08/2025  02:31 PM            71,359 admin.blade.php
+08/27/2025  05:34 PM            19,978 app.blade.php
+12/14/2025  07:35 PM            40,322 frontend.blade.php
+08/05/2025  07:08 PM             1,144 guest.blade.php
+12/03/2025  09:05 AM            23,687 navigation.blade.php
+12/12/2025  02:01 PM            47,903 owner.blade.php
+12/14/2025  08:13 PM            23,579 public.blade.php
+12/03/2025  09:05 AM            45,100 student.blade.php
+               8 File(s)        273,072 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\onboarding
+
+10/30/2025  09:35 AM    <DIR>          .
+10/30/2025  09:35 AM    <DIR>          ..
+08/15/2025  06:13 PM             2,721 index.blade.php
+10/30/2025  09:35 AM    <DIR>          steps
+               1 File(s)          2,721 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\onboarding\steps
+
+10/30/2025  09:35 AM    <DIR>          .
+10/30/2025  09:35 AM    <DIR>          ..
+08/15/2025  06:14 PM             2,554 step1.blade.php
+08/15/2025  06:15 PM             2,137 step2.blade.php
+               2 File(s)          4,691 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\owner
+
+12/14/2025  08:23 PM    <DIR>          .
+12/14/2025  08:23 PM    <DIR>          ..
+12/08/2025  02:31 PM    <DIR>          booking-requests
+12/03/2025  09:05 AM    <DIR>          bookings
+12/14/2025  08:23 PM    <DIR>          circulars
+12/14/2025  08:23 PM    <DIR>          contacts
+12/14/2025  08:23 PM            37,878 dashboard.blade.php
+12/03/2025  09:05 AM    <DIR>          documents
+12/03/2025  09:05 AM    <DIR>          galleries
+12/03/2025  09:05 AM    <DIR>          hostels
+12/03/2025  09:05 AM    <DIR>          meal-menus
+12/03/2025  09:05 AM    <DIR>          meals
+12/14/2025  08:23 PM    <DIR>          messages
+12/14/2025  08:23 PM    <DIR>          payments
+12/03/2025  09:05 AM    <DIR>          public-page
+12/03/2025  09:05 AM    <DIR>          reviews
+12/08/2025  02:31 PM    <DIR>          rooms
+12/03/2025  09:05 AM    <DIR>          settings
+12/03/2025  09:05 AM    <DIR>          students
+12/03/2025  09:05 AM    <DIR>          subscription
+               1 File(s)         37,878 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\owner\booking-requests
+
+12/08/2025  02:31 PM    <DIR>          .
+12/08/2025  02:31 PM    <DIR>          ..
+12/08/2025  02:31 PM            19,845 index.blade.php
+12/08/2025  02:31 PM            13,072 show.blade.php
+               2 File(s)         32,917 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\owner\bookings
+
+12/03/2025  09:05 AM    <DIR>          .
+12/03/2025  09:05 AM    <DIR>          ..
+12/03/2025  09:05 AM             2,907 approved.blade.php
+12/03/2025  09:05 AM             3,715 pending.blade.php
+12/03/2025  09:05 AM             3,222 rejected.blade.php
+               3 File(s)          9,844 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\owner\circulars
+
+12/14/2025  08:23 PM    <DIR>          .
+12/14/2025  08:23 PM    <DIR>          ..
+12/14/2025  08:23 PM            17,129 analytics-single.blade.php
+12/03/2025  09:05 AM            10,461 analytics.blade.php
+12/03/2025  09:05 AM            13,061 create.blade.php
+12/03/2025  09:05 AM            12,352 edit.blade.php
+12/03/2025  09:05 AM            12,506 index.blade.php
+12/14/2025  03:07 PM             9,238 show.blade.php
+               6 File(s)         74,747 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\owner\contacts
+
+12/14/2025  08:23 PM    <DIR>          .
+12/14/2025  08:23 PM    <DIR>          ..
+12/14/2025  08:23 PM            19,147 index.blade.php
+12/14/2025  08:23 PM            14,505 show.blade.php
+               2 File(s)         33,652 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\owner\documents
+
+12/03/2025  09:05 AM    <DIR>          .
+12/03/2025  09:05 AM    <DIR>          ..
+12/03/2025  09:05 AM            12,834 create.blade.php
+12/03/2025  09:05 AM            12,013 edit.blade.php
+12/03/2025  09:05 AM             9,376 index.blade.php
+12/03/2025  09:05 AM             7,994 search.blade.php
+12/03/2025  09:05 AM             9,409 show.blade.php
+               5 File(s)         51,626 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\owner\galleries
+
+12/03/2025  09:05 AM    <DIR>          .
+12/03/2025  09:05 AM    <DIR>          ..
+12/03/2025  09:05 AM            17,638 create.blade.php
+12/03/2025  09:05 AM            14,028 edit.blade.php
+12/03/2025  09:05 AM            26,245 index.blade.php
+12/03/2025  09:05 AM            11,886 show.blade.php
+               4 File(s)         69,797 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\owner\hostels
+
+12/03/2025  09:05 AM    <DIR>          .
+12/03/2025  09:05 AM    <DIR>          ..
+12/03/2025  09:05 AM             9,310 create.blade.php
+12/03/2025  09:05 AM            12,767 edit.blade.php
+12/03/2025  09:05 AM            17,467 index.blade.php
+12/03/2025  09:05 AM            16,984 show.blade.php
+               4 File(s)         56,528 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\owner\meal-menus
+
+12/03/2025  09:05 AM    <DIR>          .
+12/03/2025  09:05 AM    <DIR>          ..
+12/03/2025  09:05 AM             7,457 create.blade.php
+12/03/2025  09:05 AM             8,253 edit.blade.php
+12/03/2025  09:05 AM             7,828 index.blade.php
+               3 File(s)         23,538 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\owner\meals
+
+12/03/2025  09:05 AM    <DIR>          .
+12/03/2025  09:05 AM    <DIR>          ..
+12/03/2025  09:05 AM             5,823 create.blade.php
+12/03/2025  09:05 AM             5,959 edit.blade.php
+12/03/2025  09:05 AM             5,967 index.blade.php
+12/03/2025  09:05 AM             5,431 show.blade.php
+               4 File(s)         23,180 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\owner\messages
+
+12/14/2025  08:23 PM    <DIR>          .
+12/14/2025  08:23 PM    <DIR>          ..
+12/14/2025  08:23 PM            13,445 index.blade.php
+               1 File(s)         13,445 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\owner\payments
+
+12/14/2025  08:23 PM    <DIR>          .
+12/14/2025  08:23 PM    <DIR>          ..
+12/03/2025  09:05 AM             6,939 bill.blade.php
+12/03/2025  09:05 AM            11,364 create.blade.php
+12/03/2025  09:05 AM             9,382 edit.blade.php
+12/03/2025  09:05 AM            18,653 index.blade.php
+12/03/2025  09:05 AM             6,686 receipt.blade.php
+12/14/2025  08:23 PM            31,578 report.blade.php
+12/03/2025  09:05 AM             8,893 search_results.blade.php
+12/14/2025  08:23 PM            15,360 show.blade.php
+12/03/2025  09:05 AM             3,382 _logo_modal.blade.php
+               9 File(s)        112,237 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\owner\public-page
+
+12/03/2025  09:05 AM    <DIR>          .
+12/03/2025  09:05 AM    <DIR>          ..
+12/03/2025  09:05 AM            18,208 edit.blade.php
+               1 File(s)         18,208 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\owner\reviews
+
+12/03/2025  09:05 AM    <DIR>          .
+12/03/2025  09:05 AM    <DIR>          ..
+10/06/2025  10:02 AM             3,009 create.blade.php
+10/06/2025  10:02 AM             3,126 edit.blade.php
+12/03/2025  09:05 AM             4,915 index.blade.php
+12/03/2025  09:05 AM             5,706 reply.blade.php
+10/06/2025  10:02 AM             3,042 show.blade.php
+               5 File(s)         19,798 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\owner\rooms
+
+12/08/2025  02:31 PM    <DIR>          .
+12/08/2025  02:31 PM    <DIR>          ..
+12/03/2025  09:05 AM            24,011 create.blade.php
+12/03/2025  09:05 AM            28,136 edit.blade.php
+12/03/2025  09:05 AM            12,074 index.blade.php
+12/08/2025  02:31 PM            14,920 show.blade.php
+               4 File(s)         79,141 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\owner\settings
+
+12/03/2025  09:05 AM    <DIR>          .
+12/03/2025  09:05 AM    <DIR>          ..
+12/03/2025  09:05 AM            13,363 index.blade.php
+               1 File(s)         13,363 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\owner\students
+
+12/03/2025  09:05 AM    <DIR>          .
+12/03/2025  09:05 AM    <DIR>          ..
+12/03/2025  09:05 AM            24,592 create.blade.php
+12/03/2025  09:05 AM            12,196 edit.blade.php
+12/03/2025  09:05 AM             6,106 index.blade.php
+12/03/2025  09:05 AM             3,560 show.blade.php
+               4 File(s)         46,454 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\owner\subscription
+
+12/03/2025  09:05 AM    <DIR>          .
+12/03/2025  09:05 AM    <DIR>          ..
+12/03/2025  09:05 AM             2,853 extra-hostel.blade.php
+12/03/2025  09:05 AM             5,981 limits.blade.php
+               2 File(s)          8,834 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\payment
+
+12/03/2025  09:05 AM    <DIR>          .
+12/03/2025  09:05 AM    <DIR>          ..
+12/03/2025  09:05 AM             5,394 bank_form.blade.php
+12/03/2025  09:05 AM             5,701 checkout.blade.php
+12/03/2025  09:05 AM             9,322 receipt.blade.php
+               3 File(s)         20,417 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\pdf
+
+12/14/2025  08:23 PM    <DIR>          .
+12/14/2025  08:23 PM    <DIR>          ..
+12/14/2025  08:23 PM            11,557 bill.blade.php
+12/14/2025  08:23 PM            10,621 receipt.blade.php
+12/14/2025  08:23 PM             1,460 test_bill.blade.php
+               3 File(s)         23,638 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\profile
+
+10/30/2025  09:35 AM    <DIR>          .
+10/30/2025  09:35 AM    <DIR>          ..
+08/05/2025  07:08 PM               969 edit.blade.php
+10/30/2025  09:35 AM    <DIR>          partials
+               1 File(s)            969 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\profile\partials
+
+10/30/2025  09:35 AM    <DIR>          .
+10/30/2025  09:35 AM    <DIR>          ..
+08/05/2025  07:08 PM             2,140 delete-user-form.blade.php
+08/05/2025  07:08 PM             2,118 update-password-form.blade.php
+08/05/2025  07:08 PM             2,674 update-profile-information-form.blade.php
+               3 File(s)          6,932 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\public
+
+12/03/2025  09:05 AM    <DIR>          .
+12/03/2025  09:05 AM    <DIR>          ..
+12/14/2025  07:35 PM    <DIR>          hostels
+               0 File(s)              0 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\public\hostels
+
+12/14/2025  07:35 PM    <DIR>          .
+12/14/2025  07:35 PM    <DIR>          ..
+12/14/2025  07:35 PM            78,284 full-gallery.blade.php
+12/15/2025  01:21 PM            47,773 gallery.blade.php
+12/03/2025  09:05 AM             8,203 index.blade.php
+12/14/2025  08:13 PM    <DIR>          partials
+12/03/2025  09:05 AM            30,544 show.blade.php
+12/14/2025  08:23 PM    <DIR>          themes
+               4 File(s)        164,804 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\public\hostels\partials
+
+12/14/2025  08:13 PM    <DIR>          .
+12/14/2025  08:13 PM    <DIR>          ..
+12/03/2025  09:05 AM             1,932 contact-form.blade.php
+12/14/2025  08:13 PM            10,177 gallery.blade.php
+               2 File(s)         12,109 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\public\hostels\themes
+
+12/14/2025  08:23 PM    <DIR>          .
+12/14/2025  08:23 PM    <DIR>          ..
+12/14/2025  08:23 PM            42,825 classic.blade.php
+12/14/2025  08:23 PM            38,590 dark.blade.php
+12/14/2025  08:23 PM            73,795 modern.blade.php
+12/14/2025  08:23 PM            69,879 vibrant.blade.php
+               4 File(s)        225,089 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\reviews
+
+12/03/2025  09:05 AM    <DIR>          .
+12/03/2025  09:05 AM    <DIR>          ..
+12/03/2025  09:05 AM             7,525 create.blade.php
+12/03/2025  09:05 AM             4,993 index.blade.php
+               2 File(s)         12,518 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\student
+
+12/03/2025  09:05 AM    <DIR>          .
+12/03/2025  09:05 AM    <DIR>          ..
+12/03/2025  09:05 AM    <DIR>          bookings
+12/03/2025  09:05 AM    <DIR>          circulars
+12/03/2025  09:05 AM            30,066 dashboard.blade.php
+12/03/2025  09:05 AM    <DIR>          modals
+12/03/2025  09:05 AM    <DIR>          payments
+12/03/2025  09:05 AM             8,428 profile.blade.php
+12/03/2025  09:05 AM    <DIR>          reviews
+12/03/2025  09:05 AM            17,791 welcome.blade.php
+               3 File(s)         56,285 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\student\bookings
+
+12/03/2025  09:05 AM    <DIR>          .
+12/03/2025  09:05 AM    <DIR>          ..
+12/03/2025  09:05 AM             7,127 create.blade.php
+12/03/2025  09:05 AM             3,797 index.blade.php
+12/03/2025  09:05 AM             6,097 show.blade.php
+               3 File(s)         17,021 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\student\circulars
+
+12/03/2025  09:05 AM    <DIR>          .
+12/03/2025  09:05 AM    <DIR>          ..
+12/03/2025  09:05 AM            11,638 index.blade.php
+12/03/2025  09:05 AM             5,376 show.blade.php
+               2 File(s)         17,014 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\student\modals
+
+12/03/2025  09:05 AM    <DIR>          .
+12/03/2025  09:05 AM    <DIR>          ..
+12/03/2025  09:05 AM             3,237 gallery-view.blade.php
+12/03/2025  09:05 AM             5,381 maintenance.blade.php
+12/03/2025  09:05 AM               797 meal-details.blade.php
+12/03/2025  09:05 AM               799 notification-details.blade.php
+12/03/2025  09:05 AM             7,232 payment.blade.php
+12/03/2025  09:05 AM             3,971 room-details.blade.php
+               6 File(s)         21,417 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\student\payments
+
+12/03/2025  09:05 AM    <DIR>          .
+12/03/2025  09:05 AM    <DIR>          ..
+12/03/2025  09:05 AM             3,859 history.blade.php
+12/03/2025  09:05 AM             5,364 receipt.blade.php
+               2 File(s)          9,223 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\student\reviews
+
+12/03/2025  09:05 AM    <DIR>          .
+12/03/2025  09:05 AM    <DIR>          ..
+12/03/2025  09:05 AM             4,992 create.blade.php
+12/03/2025  09:05 AM             4,951 edit.blade.php
+12/03/2025  09:05 AM            14,132 index.blade.php
+12/03/2025  09:05 AM             5,382 show.blade.php
+               4 File(s)         29,457 bytes
+
+ Directory of C:\laragon\www\HostelHub\resources\views\subscription
+
+12/03/2025  09:05 AM    <DIR>          .
+12/03/2025  09:05 AM    <DIR>          ..
+12/03/2025  09:05 AM            12,759 limits.blade.php
+12/03/2025  09:05 AM            19,529 show.blade.php
+               2 File(s)         32,288 bytes
+
+     Total Files Listed:
+             231 File(s)      2,977,274 bytes
+             206 Dir(s)  51,472,257,024 bytes free

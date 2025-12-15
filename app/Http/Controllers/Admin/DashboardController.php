@@ -14,6 +14,7 @@ use App\Models\StudentDocument;
 use App\Models\Circular;
 use App\Models\CircularRecipient;
 use App\Models\OrganizationRequest;
+use App\Models\Review; // ✅ ADDED: Import Review model
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Log;
@@ -76,6 +77,23 @@ class DashboardController extends Controller
     }
 
     /**
+     * ✅ NEW: Get review statistics for dashboard
+     */
+    private function getReviewStats()
+    {
+        return [
+            'pending_reviews_count' => Review::where('status', 'pending')->count(),
+            'approved_reviews_count' => Review::where('status', 'approved')->count(),
+            'featured_reviews_count' => Review::where('is_featured', true)->count(),
+            'recent_approved_reviews' => Review::where('status', 'approved')
+                ->with('student.user')
+                ->latest()
+                ->take(5)
+                ->get()
+        ];
+    }
+
+    /**
      * Admin dashboard with system-wide metrics
      */
     public function adminDashboard()
@@ -106,6 +124,9 @@ class DashboardController extends Controller
 
                 $totalDocuments = StudentDocument::count();
                 $totalCirculars = Circular::count();
+
+                // ✅ NEW: Review Statistics
+                $reviewStats = $this->getReviewStats();
 
                 // ✅ NEW: Circular Statistics
                 $publishedCirculars = Circular::where('status', 'published')->count();
@@ -181,7 +202,7 @@ class DashboardController extends Controller
                     ->take(5)
                     ->get();
 
-                return [
+                return array_merge([
                     'total_students' => $totalStudents,
                     'total_rooms' => $totalRooms,
                     'total_hostels' => $totalHostels,
@@ -212,7 +233,7 @@ class DashboardController extends Controller
                     'total_organization_requests' => $totalOrganizationRequests,
                     'today_organization_requests' => $todayOrganizationRequests,
                     'recent_organization_requests' => $recentOrganizationRequests,
-                ];
+                ], $reviewStats);
             });
 
             // Pass all data to view
@@ -221,6 +242,12 @@ class DashboardController extends Controller
             $urgentCirculars = $metrics['urgent_circulars'] ?? 0;
             $circularReadRate = $metrics['circular_read_rate'] ?? 0;
             $recentCirculars = $metrics['recent_circulars'] ?? collect();
+
+            // ✅ NEW: Review statistics for view
+            $pending_reviews_count = $metrics['pending_reviews_count'] ?? 0;
+            $approved_reviews_count = $metrics['approved_reviews_count'] ?? 0;
+            $featured_reviews_count = $metrics['featured_reviews_count'] ?? 0;
+            $recent_approved_reviews = $metrics['recent_approved_reviews'] ?? collect();
 
             // ✅ FIXED: Contact data for view
             $totalContacts = $metrics['total_contacts'] ?? 0;
@@ -246,6 +273,11 @@ class DashboardController extends Controller
                 'circularReadRate',
                 'recentCirculars',
                 'recentActivities',
+                // ✅ NEW: Review statistics
+                'pending_reviews_count',
+                'approved_reviews_count',
+                'featured_reviews_count',
+                'recent_approved_reviews',
                 // ✅ FIXED: Contact variables
                 'totalContacts',
                 'unreadContacts',
@@ -295,6 +327,11 @@ class DashboardController extends Controller
                     'published_circulars' => 0,
                     'urgent_circulars' => 0,
                     'circular_read_rate' => 0,
+                    // ✅ NEW: Review statistics defaults
+                    'pending_reviews_count' => 0,
+                    'approved_reviews_count' => 0,
+                    'featured_reviews_count' => 0,
+                    'recent_approved_reviews' => collect(),
                     // ✅ ADDED: Organization Request Statistics with defaults
                     'pending_organization_requests' => 0,
                     'approved_organization_requests' => 0,
@@ -309,6 +346,11 @@ class DashboardController extends Controller
                 'circularReadRate' => 0,
                 'recentCirculars' => collect(),
                 'recentActivities' => collect(),
+                // ✅ NEW: Review statistics defaults
+                'pending_reviews_count' => 0,
+                'approved_reviews_count' => 0,
+                'featured_reviews_count' => 0,
+                'recent_approved_reviews' => collect(),
                 // ✅ FIXED: Contact variables with defaults
                 'totalContacts' => 0,
                 'unreadContacts' => 0,
@@ -437,6 +479,18 @@ class DashboardController extends Controller
                 'time' => $document->created_at->diffForHumans(),
                 'icon' => 'file-upload',
                 'color' => 'purple'
+            ]);
+        }
+
+        // ✅ ADDED: Recent approved reviews
+        foreach ($metrics['recent_approved_reviews'] ?? [] as $review) {
+            $activities->push([
+                'type' => 'review',
+                'title' => 'नयाँ समीक्षा स्वीकृत',
+                'description' => ($review->student->user->name ?? $review->name) . ' - ' . Str::limit($review->content, 50),
+                'time' => $review->created_at->diffForHumans(),
+                'icon' => 'star',
+                'color' => 'green'
             ]);
         }
 
@@ -860,6 +914,9 @@ class DashboardController extends Controller
             // ✅ NEW: Contact statistics for date range
             $newContacts = Contact::whereBetween('created_at', [$startDate, $endDate])->count();
 
+            // ✅ NEW: Review statistics for date range
+            $newReviews = Review::whereBetween('created_at', [$startDate, $endDate])->count();
+
             // ✅ ADDED: Organization Request statistics for date range
             $newOrganizationRequests = OrganizationRequest::whereBetween('created_at', [$startDate, $endDate])->count();
 
@@ -902,6 +959,16 @@ class DashboardController extends Controller
                 ->orderBy('date')
                 ->get();
 
+            // ✅ NEW: Review trend data
+            $reviewTrend = Review::select(
+                DB::raw('DATE(created_at) as date'),
+                DB::raw('COUNT(*) as count')
+            )
+                ->whereBetween('created_at', [$startDate, $endDate])
+                ->groupBy('date')
+                ->orderBy('date')
+                ->get();
+
             // ✅ ADDED: Organization Request trend data
             $organizationRequestTrend = OrganizationRequest::select(
                 DB::raw('DATE(created_at) as date'),
@@ -919,10 +986,12 @@ class DashboardController extends Controller
                     'new_rooms' => $newRooms,
                     'new_hostels' => $newHostels,
                     'new_contacts' => $newContacts,
+                    'new_reviews' => $newReviews,
                     'new_organization_requests' => $newOrganizationRequests,
                     'occupancy_trend' => $occupancyTrend,
                     'student_trend' => $studentTrend,
                     'contact_trend' => $contactTrend,
+                    'review_trend' => $reviewTrend,
                     'organization_request_trend' => $organizationRequestTrend,
                 ]
             ]);
