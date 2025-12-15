@@ -937,7 +937,7 @@ body .gallery-content-wrapper {
     opacity: 0.9;
 }
 
-/* DEMO BUTTON (Orange Gradient) */
+/* DEMO BUTTON (Orange Gradient with play icon) */
 .gallery-demo-button {
     background: linear-gradient(135deg, #FF6B6B, #FF8E53);
     color: white;
@@ -1288,6 +1288,137 @@ select[data-filter-active="true"] {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
     color: white;
+}
+
+/* 🚨 NEW: Gallery Modal Styles */
+.gallery-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.gallery-modal.active {
+    display: block;
+    opacity: 1;
+}
+
+.gallery-modal .modal-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    font-size: 24px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10001;
+    transition: background 0.3s ease;
+}
+
+.gallery-modal .modal-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.gallery-modal .modal-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    font-size: 24px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10001;
+    transition: background 0.3s ease;
+}
+
+.gallery-modal .modal-nav:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.gallery-modal .modal-prev {
+    left: 20px;
+}
+
+.gallery-modal .modal-next {
+    right: 20px;
+}
+
+.gallery-modal .modal-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    max-width: 90%;
+    max-height: 90%;
+    width: auto;
+    height: auto;
+}
+
+.gallery-modal .modal-content img,
+.gallery-modal .modal-content video,
+.gallery-modal .modal-content iframe {
+    max-width: 100%;
+    max-height: 80vh;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.gallery-modal .modal-info {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.gallery-modal .modal-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.gallery-modal .modal-description {
+    font-size: 1rem;
+    margin-bottom: 15px;
+    opacity: 0.9;
+}
+
+.gallery-modal .modal-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 15px;
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+.gallery-modal .modal-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 </style>
 @endpush
@@ -1913,6 +2044,11 @@ select[data-filter-active="true"] {
 @push('scripts')
 @vite(['resources/js/gallery.js'])
 <script>
+// ✅ GLOBAL VARIABLES for modal navigation
+let currentModalIndex = 0;
+let currentModalItems = [];
+let currentModalType = null; // 'photo' or 'video'
+
 // ✅ FIXED: Photo filter click handler - PHOTOS लागि मात्र
 function handlePhotoFilterClick(filter) {
     console.log('Photo filter clicked:', filter);
@@ -2051,6 +2187,13 @@ function openVideoModal(videoCard) {
         modalContent.innerHTML = '<p class="nepali" style="padding: 2rem; text-align: center;">भिडियो लोड गर्न सकिएन। कृपया पछि प्रयास गर्नुहोस्।</p>';
     }
     
+    // Set modal type and items for navigation
+    currentModalType = 'video';
+    currentModalItems = Array.from(document.querySelectorAll('.video-card'));
+    currentModalIndex = currentModalItems.indexOf(videoCard);
+    
+    console.log(`Modal navigation: ${currentModalItems.length} items, current index: ${currentModalIndex}`);
+    
     // Show modal
     modal.classList.add('active');
     document.body.style.overflow = 'hidden';
@@ -2113,9 +2256,74 @@ function openPhotoModal(galleryItem) {
     img.style.objectFit = 'contain';
     modalContent.appendChild(img);
 
+    // Set modal type and items for navigation
+    currentModalType = 'photo';
+    currentModalItems = Array.from(document.querySelectorAll('.gallery-item'));
+    currentModalIndex = currentModalItems.indexOf(galleryItem);
+    
+    console.log(`Modal navigation: ${currentModalItems.length} items, current index: ${currentModalIndex}`);
+
     // Show modal
     modal.classList.add('active');
     document.body.style.overflow = 'hidden';
+}
+
+// ✅ NEW: Update modal with next/previous item
+function updateModal() {
+    if (currentModalItems.length === 0 || currentModalIndex < 0 || currentModalIndex >= currentModalItems.length) {
+        console.error('Invalid modal state');
+        return;
+    }
+    
+    const currentItem = currentModalItems[currentModalIndex];
+    
+    if (currentModalType === 'photo') {
+        openPhotoModal(currentItem);
+    } else if (currentModalType === 'video') {
+        openVideoModal(currentItem);
+    }
+}
+
+// ✅ NEW: Navigate to next item
+function navigateNext() {
+    if (currentModalItems.length === 0) return;
+    
+    currentModalIndex++;
+    if (currentModalIndex >= currentModalItems.length) {
+        currentModalIndex = 0; // Loop back to first
+    }
+    
+    updateModal();
+}
+
+// ✅ NEW: Navigate to previous item
+function navigatePrev() {
+    if (currentModalItems.length === 0) return;
+    
+    currentModalIndex--;
+    if (currentModalIndex < 0) {
+        currentModalIndex = currentModalItems.length - 1; // Loop to last
+    }
+    
+    updateModal();
+}
+
+// ✅ NEW: Close modal
+function closeModal() {
+    const modal = document.querySelector('.gallery-modal');
+    const modalContent = modal.querySelector('.modal-content');
+    
+    // Clear modal content
+    modalContent.innerHTML = '';
+    
+    // Hide modal
+    modal.classList.remove('active');
+    document.body.style.overflow = 'auto';
+    
+    // Reset navigation variables
+    currentModalItems = [];
+    currentModalIndex = 0;
+    currentModalType = null;
 }
 
 // ✅ NEW: Gallery item click handler
@@ -2138,31 +2346,6 @@ function initGalleryItemEvents() {
         // Add new event listener
         item.addEventListener('click', handleGalleryItemClick);
     });
-}
-
-// ✅ FIXED: Close modal function
-function closeVideoModal() {
-    const modal = document.querySelector('.gallery-modal');
-    const modalContent = modal.querySelector('.modal-content');
-    
-    // Stop video/iframe
-    const iframe = modalContent.querySelector('iframe');
-    const video = modalContent.querySelector('video');
-    const img = modalContent.querySelector('img');
-    
-    if (iframe) {
-        iframe.src = '';
-    }
-    if (video) {
-        video.pause();
-        video.src = '';
-    }
-    if (img) {
-        img.src = '';
-    }
-    
-    modal.classList.remove('active');
-    document.body.style.overflow = 'auto';
 }
 
 // ✅ FIXED: Videos placeholder hide logic
@@ -2242,27 +2425,46 @@ document.addEventListener('DOMContentLoaded', function() {
     // 2. Modal close button
     const modalClose = document.querySelector('.modal-close');
     if (modalClose) {
-        modalClose.addEventListener('click', closeVideoModal);
+        modalClose.addEventListener('click', closeModal);
     }
     
-    // 3. Close modal when clicking on backdrop
+    // 3. Modal navigation buttons
+    const modalPrev = document.querySelector('.modal-prev');
+    const modalNext = document.querySelector('.modal-next');
+    
+    if (modalPrev) {
+        modalPrev.addEventListener('click', navigatePrev);
+    }
+    
+    if (modalNext) {
+        modalNext.addEventListener('click', navigateNext);
+    }
+    
+    // 4. Close modal when clicking on backdrop
     const modal = document.querySelector('.gallery-modal');
     if (modal) {
         modal.addEventListener('click', function(event) {
             if (event.target === this) {
-                closeVideoModal();
+                closeModal();
             }
         });
     }
     
-    // 4. Close modal with Escape key
+    // 5. Close modal with Escape key
     document.addEventListener('keydown', function(event) {
         if (event.key === 'Escape') {
-            closeVideoModal();
+            closeModal();
+        }
+        // Arrow key navigation
+        else if (event.key === 'ArrowLeft') {
+            navigatePrev();
+        }
+        else if (event.key === 'ArrowRight') {
+            navigateNext();
         }
     });
     
-    // 5. CORRECTED: Filter buttons event listeners - PROPER SEPARATION
+    // 6. CORRECTED: Filter buttons event listeners - PROPER SEPARATION
     const currentTab = tabParam || 'photos';
     const filterButtons = document.querySelectorAll('.filter-controls .filter-btn[data-filter]');
     
@@ -2286,13 +2488,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // 6. Initialize video card events
+    // 7. Initialize video card events
     initVideoCardEvents();
     
-    // 7. Initialize gallery item events for photos
+    // 8. Initialize gallery item events for photos
     initGalleryItemEvents();
     
-    // 8. Re-initialize events after tab switch
+    // 9. Re-initialize events after tab switch
     const tabButtons = document.querySelectorAll('.tab-btn');
     tabButtons.forEach(btn => {
         btn.addEventListener('click', function() {
@@ -2303,7 +2505,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // 9. URL parameter check and tab activation
+    // 10. URL parameter check and tab activation
     const currentTabFromURL = urlParams.get('tab') || 'photos';
     
     console.log('Current tab from URL:', currentTabFromURL);
@@ -2326,7 +2528,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // 10. Initialize events after a short delay (for dynamic content)
+    // 11. Initialize events after a short delay (for dynamic content)
     setTimeout(function() {
         initVideoCardEvents();
         initGalleryItemEvents();
