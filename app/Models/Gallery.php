@@ -100,73 +100,185 @@ class Gallery extends Model
     }
 
     /**
-     * ✅ FIXED: Get thumbnail URL attribute with proper fallbacks
+     * ✅ COMPATIBILITY LAYER: Try multiple directories for legacy data
+     * This method checks if a file exists in multiple possible directories
+     * Only used when file_path is filename-only (no directory)
      */
-    public function getThumbnailUrlAttribute()
+    private function findFileInDirectories($filename)
     {
-        // If thumbnail exists and is not a URL
-        if (!empty($this->thumbnail)) {
-            // Check if it's already a URL
-            if (filter_var($this->thumbnail, FILTER_VALIDATE_URL)) {
-                return $this->thumbnail;
-            }
-
-            // Check if file exists in storage
-            if (Storage::disk('public')->exists($this->thumbnail)) {
-                return Storage::url($this->thumbnail);
-            }
+        if (empty($filename)) {
+            return null;
         }
 
-        // Fallback to file_path if thumbnail doesn't exist
-        if (!empty($this->file_path)) {
-            // Check if it's already a URL
-            if (filter_var($this->file_path, FILTER_VALIDATE_URL)) {
-                return $this->file_path;
-            }
+        // List of directories to search (in priority order)
+        $directories = [
+            'galleries/images/',
+            'galleries/thumbnails/',
+            'galleries/videos/',
+            'galleries/',
+            'room_images/',
+            'hostels/',
+            'meals/'
+        ];
 
-            if (Storage::disk('public')->exists($this->file_path)) {
-                return Storage::url($this->file_path);
+        foreach ($directories as $directory) {
+            $fullPath = $directory . $filename;
+            if (Storage::disk('public')->exists($fullPath)) {
+                return $fullPath;
             }
         }
 
-        // Ultimate fallback for images
-        if ($this->media_type === 'photo') {
-            return asset('images/default-room.png');
-        }
-
-        // Fallback for videos
-        if ($this->is_video) {
-            return asset('images/video-thumbnail.jpg');
-        }
-
-        // Default fallback
-        return asset('images/default-gallery.jpg');
+        return null;
     }
 
     /**
-     * ✅ FIXED: Get media URL attribute with proper fallbacks
+     * ✅ COMPATIBILITY LAYER: Resolve media path with legacy support
+     */
+    private function resolveMediaPath($path)
+    {
+        if (empty($path)) {
+            return null;
+        }
+
+        // If it's already a URL, return as is
+        if (filter_var($path, FILTER_VALIDATE_URL)) {
+            return $path;
+        }
+
+        // If path contains '/', it's already a relative path - check directly
+        if (str_contains($path, '/')) {
+            if (Storage::disk('public')->exists($path)) {
+                return $path;
+            }
+        } else {
+            // Filename-only: try multiple directories
+            $foundPath = $this->findFileInDirectories($path);
+            if ($foundPath) {
+                return $foundPath;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * ✅ SIMPLE FIX: Get thumbnail URL without double /storage/
+     */
+    public function getThumbnailUrlAttribute()
+    {
+        // पहिले thumbnail check गर्ने
+        if (!empty($this->thumbnail)) {
+            // यदि thumbnail URL हो भने
+            if (str_starts_with($this->thumbnail, 'http')) {
+                return $this->thumbnail;
+            }
+
+            // DIRECT FIX: /storage/ नथप्ने, सिधै file path बाट URL बनाउने
+            $pathsToCheck = [
+                $this->thumbnail,
+                'galleries/thumbnails/' . $this->thumbnail,
+                'galleries/' . $this->thumbnail,
+                'room_images/' . $this->thumbnail,
+                'hostels/' . $this->thumbnail,
+                'meals/' . $this->thumbnail
+            ];
+
+            foreach ($pathsToCheck as $path) {
+                if (Storage::disk('public')->exists($path)) {
+                    // FIX: storage_path बाट सिधै URL बनाउने
+                    return $this->storagePathToUrl($path);
+                }
+            }
+        }
+
+        // त्यसपछि file_path check गर्ने
+        if (!empty($this->file_path)) {
+            if (str_starts_with($this->file_path, 'http')) {
+                return $this->file_path;
+            }
+
+            $pathsToCheck = [
+                $this->file_path,
+                'galleries/images/' . $this->file_path,
+                'galleries/' . $this->file_path,
+                'room_images/' . $this->file_path,
+                'hostels/' . $this->file_path,
+                'meals/' . $this->file_path
+            ];
+
+            foreach ($pathsToCheck as $path) {
+                if (Storage::disk('public')->exists($path)) {
+                    return $this->storagePathToUrl($path);
+                }
+            }
+        }
+
+        // Default images (404 नहुने)
+        $defaultImages = [
+            'default-gallery.jpg',
+            'default-room.jpg',
+            'video-thumbnail.jpg',
+            'placeholder.jpg'
+        ];
+
+        foreach ($defaultImages as $image) {
+            $imagePath = 'images/' . $image;
+            if (file_exists(public_path($imagePath))) {
+                return asset($imagePath);
+            }
+        }
+
+        // Blank image
+        return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2VlZWVlZSIvPjwvc3ZnPg==';
+    }
+
+    /**
+     * ✅ NEW: Convert storage path to URL without double /storage/
+     */
+    private function storagePathToUrl($path)
+    {
+        // /storage/ prefix हटाउने
+        $path = ltrim($path, '/');
+        $path = preg_replace('#^storage/#', '', $path);
+
+        // सिधै URL बनाउने
+        return url('storage/' . $path);
+    }
+
+    /**
+     * ✅ SIMPLE FIX: Get media URL without double /storage/
      */
     public function getMediaUrlAttribute()
     {
-        // External videos
+        // YouTube video
         if ($this->media_type === 'external_video' && $this->external_link) {
             return $this->external_link;
         }
 
         // Local files
         if (!empty($this->file_path)) {
-            // Check if it's already a URL
-            if (filter_var($this->file_path, FILTER_VALIDATE_URL)) {
+            if (str_starts_with($this->file_path, 'http')) {
                 return $this->file_path;
             }
 
-            if (Storage::disk('public')->exists($this->file_path)) {
-                return Storage::url($this->file_path);
+            $pathsToCheck = [
+                $this->file_path,
+                'galleries/images/' . $this->file_path,
+                'galleries/videos/' . $this->file_path,
+                'galleries/' . $this->file_path,
+                'room_images/' . $this->file_path,
+                'hostels/' . $this->file_path,
+                'meals/' . $this->file_path
+            ];
+
+            foreach ($pathsToCheck as $path) {
+                if (Storage::disk('public')->exists($path)) {
+                    return $this->storagePathToUrl($path);
+                }
             }
         }
 
-        // Ultimate fallback
-        return asset('images/default-room.png');
+        return asset('images/default-gallery.jpg');
     }
 
     /**
@@ -192,12 +304,47 @@ class Gallery extends Model
         ]);
     }
 
-    /**
-     * ✅ ENHANCED: Auto-sync with better room type handling
-     */
     protected static function boot()
     {
         parent::boot();
+
+        // ✅ NEW: Check if default images exist, if not create placeholder (only in local)
+        static::retrieved(function ($gallery) {
+            // यो मात्र development मा helper को लागि हो
+            if (app()->environment('local')) {
+                $defaultImages = [
+                    public_path('images/default-gallery.jpg'),
+                    public_path('images/default-room.jpg'),
+                    public_path('images/video-thumbnail.jpg'),
+                ];
+
+                foreach ($defaultImages as $imagePath) {
+                    if (!file_exists($imagePath)) {
+                        // Create directory if not exists
+                        if (!is_dir(dirname($imagePath))) {
+                            mkdir(dirname($imagePath), 0755, true);
+                        }
+
+                        // Create a simple colored image
+                        $im = imagecreate(100, 100);
+                        $backgroundColor = imagecolorallocate($im, 238, 238, 238); // Light gray
+                        imagefilledrectangle($im, 0, 0, 99, 99, $backgroundColor);
+
+                        if (str_contains($imagePath, 'video')) {
+                            // Blue for video thumbnails
+                            $color = imagecolorallocate($im, 66, 133, 244); // YouTube blue
+                        } else {
+                            // Green for gallery images
+                            $color = imagecolorallocate($im, 52, 168, 83); // Google green
+                        }
+
+                        imagefilledrectangle($im, 25, 25, 75, 75, $color);
+                        imagejpeg($im, $imagePath, 80);
+                        imagedestroy($im);
+                    }
+                }
+            }
+        });
 
         static::saving(function ($gallery) {
             // Auto-set hostel name when hostel_id is set/changed
@@ -497,7 +644,13 @@ class Gallery extends Model
             return '';
         }
 
-        $pathInfo = pathinfo($this->file_path);
+        // First try to resolve the original file path
+        $resolvedPath = $this->resolveMediaPath($this->file_path);
+        if (!$resolvedPath) {
+            return '';
+        }
+
+        $pathInfo = pathinfo($resolvedPath);
         $extension = $pathInfo['extension'] ?? '';
         $filename = $pathInfo['filename'] ?? '';
         $dirname = $pathInfo['dirname'] ?? '';
@@ -637,13 +790,30 @@ class Gallery extends Model
     }
 
     /**
-     * Check if file exists in storage
+     * ✅ SIMPLE FIX: Check if file exists
      */
     public function fileExists(): bool
     {
         if (!$this->file_path) return false;
 
-        return Storage::disk('public')->exists($this->file_path);
+        if (str_starts_with($this->file_path, 'http')) {
+            return true;
+        }
+
+        $pathsToCheck = [
+            $this->file_path,
+            'galleries/images/' . $this->file_path,
+            'galleries/' . $this->file_path,
+            'room_images/' . $this->file_path
+        ];
+
+        foreach ($pathsToCheck as $path) {
+            if (Storage::disk('public')->exists($path)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -651,11 +821,12 @@ class Gallery extends Model
      */
     public function getFileSizeAttribute(): string
     {
-        if (!$this->file_path || !Storage::disk('public')->exists($this->file_path)) {
+        $resolvedPath = $this->resolveMediaPath($this->file_path);
+        if (!$resolvedPath || !Storage::disk('public')->exists($resolvedPath)) {
             return '0 KB';
         }
 
-        $size = Storage::disk('public')->size($this->file_path);
+        $size = Storage::disk('public')->size($resolvedPath);
 
         if ($size >= 1048576) {
             return round($size / 1048576, 2) . ' MB';
@@ -773,9 +944,12 @@ class Gallery extends Model
 
         // For photos, use smaller version if available
         if ($this->media_type === 'photo' && $this->file_path) {
-            $thumbPath = str_replace('.', '-thumb.', $this->file_path);
-            if (Storage::disk('public')->exists($thumbPath)) {
-                return Storage::disk('public')->url($thumbPath);
+            $resolvedPath = $this->resolveMediaPath($this->file_path);
+            if ($resolvedPath) {
+                $thumbPath = str_replace('.', '-thumb.', $resolvedPath);
+                if (Storage::disk('public')->exists($thumbPath)) {
+                    return Storage::disk('public')->url($thumbPath);
+                }
             }
         }
 
@@ -813,7 +987,8 @@ class Gallery extends Model
      */
     public function getDownloadUrlAttribute(): ?string
     {
-        if (!$this->file_path || !Storage::disk('public')->exists($this->file_path)) {
+        $resolvedPath = $this->resolveMediaPath($this->file_path);
+        if (!$resolvedPath || !Storage::disk('public')->exists($resolvedPath)) {
             return null;
         }
 
@@ -829,7 +1004,12 @@ class Gallery extends Model
             return null;
         }
 
-        return pathinfo($this->file_path, PATHINFO_EXTENSION);
+        $resolvedPath = $this->resolveMediaPath($this->file_path);
+        if (!$resolvedPath) {
+            return null;
+        }
+
+        return pathinfo($resolvedPath, PATHINFO_EXTENSION);
     }
 
     /**
@@ -837,11 +1017,12 @@ class Gallery extends Model
      */
     public function getMimeTypeAttribute(): ?string
     {
-        if (!$this->file_path || !Storage::disk('public')->exists($this->file_path)) {
+        $resolvedPath = $this->resolveMediaPath($this->file_path);
+        if (!$resolvedPath || !Storage::disk('public')->exists($resolvedPath)) {
             return null;
         }
 
-        return Storage::disk('public')->mimeType($this->file_path);
+        return Storage::disk('public')->mimeType($resolvedPath);
     }
 
     /**
