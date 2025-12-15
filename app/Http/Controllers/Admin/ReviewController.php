@@ -11,18 +11,80 @@ use Illuminate\Support\Facades\Auth;
 
 class ReviewController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    // ✅ NEW: Approve a review
+    public function approve(Review $review)
     {
-        // ✅ SECURITY FIX: Authorization check
+        $user = auth()->user();
+        if (!$user->hasRole('admin')) {
+            abort(403, 'तपाईंसँग समीक्षा स्वीकृत गर्ने अनुमति छैन');
+        }
+
+        $review->update([
+            'status' => 'approved',
+            'is_approved' => true
+        ]);
+
+        return back()->with('success', '✅ समीक्षा स्वीकृत गरियो!');
+    }
+
+    // ✅ NEW: Reject a review
+    public function reject(Review $review)
+    {
+        $user = auth()->user();
+        if (!$user->hasRole('admin')) {
+            abort(403, 'तपाईंसँग समीक्षा अस्वीकृत गर्ने अनुमति छैन');
+        }
+
+        $review->update([
+            'status' => 'rejected',
+            'is_approved' => false
+        ]);
+
+        return back()->with('success', '❌ समीक्षा अस्वीकृत गरियो!');
+    }
+
+    // ✅ NEW: Feature a review
+    public function feature(Review $review)
+    {
+        $user = auth()->user();
+        if (!$user->hasRole('admin')) {
+            abort(403, 'तपाईंसँग समीक्षा फिचर गर्ने अनुमति छैन');
+        }
+
+        $review->update(['is_featured' => true]);
+
+        return back()->with('success', '⭐ समीक्षा फिचर गरियो!');
+    }
+
+    // ✅ ENHANCED: Index with filters
+    public function index(Request $request)
+    {
         $user = auth()->user();
         if (!$user->hasRole('admin')) {
             abort(403, 'तपाईंसँग समीक्षाहरू हेर्ने अनुमति छैन');
         }
 
-        $reviews = Review::latest()->paginate(10);
+        $query = Review::query();
+
+        // Add filters
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
+        }
+
+        if ($request->filled('search')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->search . '%')
+                    ->orWhere('content', 'like', '%' . $request->search . '%')
+                    ->orWhere('position', 'like', '%' . $request->search . '%');
+            });
+        }
+
+        $reviews = $query->latest()->paginate(20);
+
         return view('admin.reviews.index', compact('reviews'));
     }
 

@@ -1,0 +1,513 @@
+
+  GET|HEAD        / ............................................................ home › Frontend\PublicController@home
+  GET|HEAD        about ...................................................... about › Frontend\PublicController@about
+  GET|HEAD        admin/bookings/pending ................. admin.bookings.pending › BookingController@pendingApprovals
+  POST            admin/bookings/{id}/approve ..................... admin.bookings.approve › BookingController@approve
+  POST            admin/bookings/{id}/reject ........................ admin.bookings.reject › BookingController@reject
+  POST            admin/bulk-operations ............. admin.bulk-operations › Admin\DashboardController@bulkOperations
+  GET|HEAD        admin/circulars ............................. admin.circulars.index › Admin\CircularController@index
+  POST            admin/circulars ............................. admin.circulars.store › Admin\CircularController@store
+  GET|HEAD        admin/circulars/analytics ........... admin.circulars.analytics › Admin\CircularController@analytics
+  POST            admin/circulars/bulk-operations admin.circulars.bulk-operations › Admin\CircularController@bulkOper…
+  GET|HEAD        admin/circulars/categories ........ admin.circulars.categories › Admin\CircularController@categories
+  POST            admin/circulars/categories admin.circulars.categories.store › Admin\CircularController@storeCategory
+  DELETE          admin/circulars/categories/{category} admin.circulars.categories.destroy › Admin\CircularController…
+  GET|HEAD        admin/circulars/create .................... admin.circulars.create › Admin\CircularController@create
+  GET|HEAD        admin/circulars/global/create admin.circulars.global.create › Admin\CircularController@createGlobal
+  POST            admin/circulars/global/send ...... admin.circulars.send-global › Admin\CircularController@sendGlobal
+  GET|HEAD        admin/circulars/templates ........... admin.circulars.templates › Admin\CircularController@templates
+  POST            admin/circulars/templates . admin.circulars.templates.store › Admin\CircularController@storeTemplate
+  DELETE          admin/circulars/templates/{template} admin.circulars.templates.destroy › Admin\CircularController@d…
+  GET|HEAD        admin/circulars/{circular} .................... admin.circulars.show › Admin\CircularController@show
+  PUT             admin/circulars/{circular} ................ admin.circulars.update › Admin\CircularController@update
+  DELETE          admin/circulars/{circular} .............. admin.circulars.destroy › Admin\CircularController@destroy
+  GET|HEAD        admin/circulars/{circular}/analytics admin.circulars.analytics.single › Admin\CircularController@si…
+  POST            admin/circulars/{circular}/duplicate admin.circulars.duplicate › Admin\CircularController@duplicate
+  GET|HEAD        admin/circulars/{circular}/edit ............... admin.circulars.edit › Admin\CircularController@edit
+  POST            admin/circulars/{circular}/mark-read admin.circulars.mark-read › Admin\CircularController@markAsRead
+  POST            admin/circulars/{circular}/publish ...... admin.circulars.publish › Admin\CircularController@publish
+  GET|HEAD        admin/circulars/{circular}/recipients admin.circulars.recipients › Admin\CircularController@recipie…
+  POST            admin/circulars/{circular}/resend ......... admin.circulars.resend › Admin\CircularController@resend
+  GET|HEAD        admin/contacts ................................ admin.contacts.index › Admin\ContactController@index
+  POST            admin/contacts ................................ admin.contacts.store › Admin\ContactController@store
+  POST            admin/contacts/bulk-action ......... admin.contacts.bulk-action › Admin\ContactController@bulkAction
+  POST            admin/contacts/bulk-delete ........ admin.contacts.bulk-delete › Admin\ContactController@bulkDestroy
+  GET|HEAD        admin/contacts/create ....................... admin.contacts.create › Admin\ContactController@create
+  GET|HEAD        admin/contacts/export/csv ............ admin.contacts.export-csv › Admin\ContactController@exportCSV
+  GET|HEAD        admin/contacts/filter .......... admin.contacts.filter › Admin\ContactController@getFilteredContacts
+  GET|HEAD        admin/contacts/search ....................... admin.contacts.search › Admin\ContactController@search
+  GET|HEAD        admin/contacts/{contact} ........................ admin.contacts.show › Admin\ContactController@show
+  PUT|PATCH       admin/contacts/{contact} .................... admin.contacts.update › Admin\ContactController@update
+  DELETE          admin/contacts/{contact} .................. admin.contacts.destroy › Admin\ContactController@destroy
+  GET|HEAD        admin/contacts/{contact}/edit ................... admin.contacts.edit › Admin\ContactController@edit
+  POST            admin/contacts/{contact}/mark-read ... admin.contacts.mark-read › Admin\ContactController@markAsRead
+  POST            admin/contacts/{contact}/mark-unread admin.contacts.mark-unread › Admin\ContactController@markAsUnr…
+  POST            admin/contacts/{id}/update-status admin.contacts.update-status › Admin\ContactController@updateStat…
+  GET|HEAD        admin/dashboard ......................... admin.dashboard › Admin\DashboardController@adminDashboard
+  POST            admin/dashboard/clear-cache ..... admin.dashboard.clear-cache › Admin\DashboardController@clearCache
+  GET|HEAD        admin/dashboard/contacts-count admin.dashboard.contacts-count › Admin\DashboardController@getContac…
+  GET|HEAD        admin/documents ............................. admin.documents.index › Admin\DocumentController@index
+  POST            admin/documents ............................. admin.documents.store › Admin\DocumentController@store
+  GET|HEAD        admin/documents/create .................... admin.documents.create › Admin\DocumentController@create
+  GET|HEAD        admin/documents/search .................... admin.documents.search › Admin\DocumentController@search
+  GET|HEAD        admin/documents/{document} .................... admin.documents.show › Admin\DocumentController@show
+  PUT             admin/documents/{document} ................ admin.documents.update › Admin\DocumentController@update
+  DELETE          admin/documents/{document} .............. admin.documents.destroy › Admin\DocumentController@destroy
+  GET|HEAD        admin/documents/{document}/download ... admin.documents.download › Admin\DocumentController@download
+  GET|HEAD        admin/documents/{document}/edit ............... admin.documents.edit › Admin\DocumentController@edit
+  GET|HEAD        admin/galleries .............................. admin.galleries.index › Admin\GalleryController@index
+  POST            admin/galleries .............................. admin.galleries.store › Admin\GalleryController@store
+  GET|HEAD        admin/galleries/create ..................... admin.galleries.create › Admin\GalleryController@create
+  GET|HEAD        admin/galleries/{gallery} ...................... admin.galleries.show › Admin\GalleryController@show
+  PUT|PATCH       admin/galleries/{gallery} .................. admin.galleries.update › Admin\GalleryController@update
+  DELETE          admin/galleries/{gallery} ................ admin.galleries.destroy › Admin\GalleryController@destroy
+  PUT             admin/galleries/{gallery} .................. admin.galleries.update › Admin\GalleryController@update
+  GET|HEAD        admin/galleries/{gallery}/edit ................. admin.galleries.edit › Admin\GalleryController@edit
+  POST            admin/galleries/{gallery}/toggle-featured admin.galleries.toggle-featured › Admin\GalleryController…
+  POST            admin/galleries/{gallery}/toggle-status admin.galleries.toggle-status › Admin\GalleryController@tog…
+  GET|HEAD        admin/gallery/refresh-cache .................................................. gallery.refresh.cache
+  GET|HEAD        admin/gallery/stats ...................... gallery.stats › Frontend\PublicController@getGalleryStats
+  GET|HEAD        admin/hostels ................................... admin.hostels.index › Admin\HostelController@index
+  POST            admin/hostels ................................... admin.hostels.store › Admin\HostelController@store
+  POST            admin/hostels/bulk-operations admin.hostels.bulk-operations › Admin\HostelController@bulkOperations
+  GET|HEAD        admin/hostels/create .......................... admin.hostels.create › Admin\HostelController@create
+  GET|HEAD        admin/hostels/export .......................... admin.hostels.export › Admin\HostelController@export
+  GET|HEAD        admin/hostels/featured ............. admin.hostels.featured › Admin\HostelController@featuredHostels
+  POST            admin/hostels/featured/update admin.hostels.featured.update › Admin\HostelController@updateFeatured…
+  GET|HEAD        admin/hostels/fix-room-counts . admin.hostels.fix-room-counts › Admin\HostelController@fixRoomCounts
+  GET|HEAD        admin/hostels/search .......................... admin.hostels.search › Admin\HostelController@search
+  POST            admin/hostels/update-all-counts admin.hostels.update-all-counts › Admin\HostelController@updateAllR…
+  GET|HEAD        admin/hostels/{hostel} ............................ admin.hostels.show › Admin\HostelController@show
+  PUT|PATCH       admin/hostels/{hostel} ........................ admin.hostels.update › Admin\HostelController@update
+  DELETE          admin/hostels/{hostel} ...................... admin.hostels.destroy › Admin\HostelController@destroy
+  GET|HEAD        admin/hostels/{hostel}/availability admin.hostels.availability › Admin\HostelController@showAvailab…
+  PUT             admin/hostels/{hostel}/availability admin.hostels.availability.update › Admin\HostelController@upda…
+  GET|HEAD        admin/hostels/{hostel}/edit ....................... admin.hostels.edit › Admin\HostelController@edit
+  POST            admin/hostels/{hostel}/publish .............. admin.hostels.publish › Admin\HostelController@publish
+  POST            admin/hostels/{hostel}/unpublish ........ admin.hostels.unpublish › Admin\HostelController@unpublish
+  POST            admin/hostels/{id}/publish-now ........................................... admin.hostels.publish.now
+  POST            admin/hostels/{id}/unpublish-now ....................................... admin.hostels.unpublish.now
+  GET|HEAD        admin/meal-menus ........................... admin.meal-menus.index › Admin\MealMenuController@index
+  GET|HEAD        admin/meal-menus/search .................. admin.meal-menus.search › Admin\MealMenuController@search
+  GET|HEAD        admin/meal-menus/{meal_menu} ................. admin.meal-menus.show › Admin\MealMenuController@show
+  GET|HEAD        admin/meals ......................................... admin.meals.index › Admin\MealController@index
+  POST            admin/meals ......................................... admin.meals.store › Admin\MealController@store
+  GET|HEAD        admin/meals/create ................................ admin.meals.create › Admin\MealController@create
+  GET|HEAD        admin/meals/search ................................ admin.meals.search › Admin\MealController@search
+  GET|HEAD        admin/meals/{meal} .................................... admin.meals.show › Admin\MealController@show
+  PUT|PATCH       admin/meals/{meal} ................................ admin.meals.update › Admin\MealController@update
+  DELETE          admin/meals/{meal} .............................. admin.meals.destroy › Admin\MealController@destroy
+  GET|HEAD        admin/meals/{meal}/edit ............................... admin.meals.edit › Admin\MealController@edit
+  GET|HEAD        admin/organization-requests admin.organization-requests.index › Admin\OrganizationRequestController…
+  GET|HEAD        admin/organization-requests/{organizationRequest} admin.organization-requests.show › Admin\Organiza…
+  POST            admin/organization-requests/{organizationRequest}/approve admin.organization-requests.approve › Adm…
+  POST            admin/organization-requests/{organizationRequest}/reject admin.organization-requests.reject › Admin…
+  GET|HEAD        admin/payments ................................ admin.payments.index › Admin\PaymentController@index
+  POST            admin/payments ................................ admin.payments.store › Admin\PaymentController@store
+  GET|HEAD        admin/payments/create ....................... admin.payments.create › Admin\PaymentController@create
+  GET|HEAD        admin/payments/export ....................... admin.payments.export › Admin\PaymentController@export
+  GET|HEAD        admin/payments/report ....................... admin.payments.report › Admin\PaymentController@report
+  GET|HEAD        admin/payments/search ....................... admin.payments.search › Admin\PaymentController@search
+  GET|HEAD        admin/payments/verification ..... admin.payments.verification › Admin\PaymentController@verification
+  GET|HEAD        admin/payments/{payment} ........................ admin.payments.show › Admin\PaymentController@show
+  PUT             admin/payments/{payment} .................... admin.payments.update › Admin\PaymentController@update
+  DELETE          admin/payments/{payment} .................. admin.payments.destroy › Admin\PaymentController@destroy
+  POST            admin/payments/{payment}/approve-bank admin.payments.approve-bank › Admin\PaymentController@approve…
+  GET|HEAD        admin/payments/{payment}/edit ................... admin.payments.edit › Admin\PaymentController@edit
+  GET|HEAD        admin/payments/{payment}/proof ............ admin.payments.proof › Admin\PaymentController@viewProof
+  POST            admin/payments/{payment}/reject-bank admin.payments.reject-bank › Admin\PaymentController@rejectBan…
+  POST            admin/payments/{payment}/update-status admin.payments.update-status › Admin\PaymentController@updat…
+  PUT             admin/payments/{payment}/verify ............. admin.payments.verify › Admin\PaymentController@verify
+  GET|HEAD        admin/reports ................................... admin.reports.index › Admin\ReportController@index
+  POST            admin/reports/custom ................ admin.reports.custom › Admin\ReportController@customDateReport
+  POST            admin/reports/download-excel ... admin.reports.download.excel › Admin\ReportController@downloadExcel
+  POST            admin/reports/download-pdf ......... admin.reports.download.pdf › Admin\ReportController@downloadPdf
+  POST            admin/reports/filter .................... admin.reports.filter › Admin\ReportController@filterReport
+  POST            admin/reports/monthly ................. admin.reports.monthly › Admin\ReportController@monthlyReport
+  POST            admin/reports/yearly .................... admin.reports.yearly › Admin\ReportController@yearlyReport
+  GET|HEAD        admin/reviews ................................... admin.reviews.index › Admin\ReviewController@index
+  POST            admin/reviews ................................... admin.reviews.store › Admin\ReviewController@store
+  GET|HEAD        admin/reviews/create .......................... admin.reviews.create › Admin\ReviewController@create
+  GET|HEAD        admin/reviews/{review} ............................ admin.reviews.show › Admin\ReviewController@show
+  PUT|PATCH       admin/reviews/{review} ........................ admin.reviews.update › Admin\ReviewController@update
+  DELETE          admin/reviews/{review} ...................... admin.reviews.destroy › Admin\ReviewController@destroy
+  GET|HEAD        admin/reviews/{review}/edit ....................... admin.reviews.edit › Admin\ReviewController@edit
+  GET|HEAD        admin/rooms ......................................... admin.rooms.index › Admin\RoomController@index
+  POST            admin/rooms ......................................... admin.rooms.store › Admin\RoomController@store
+  GET|HEAD        admin/rooms/create ................................ admin.rooms.create › Admin\RoomController@create
+  GET|HEAD        admin/rooms/export/csv ..................... admin.rooms.export-csv › Admin\RoomController@exportCSV
+  GET|HEAD        admin/rooms/search ................................ admin.rooms.search › Admin\RoomController@search
+  GET|HEAD        admin/rooms/{room} .................................... admin.rooms.show › Admin\RoomController@show
+  PUT|PATCH       admin/rooms/{room} ................................ admin.rooms.update › Admin\RoomController@update
+  DELETE          admin/rooms/{room} .............................. admin.rooms.destroy › Admin\RoomController@destroy
+  POST            admin/rooms/{room}/change-status ..... admin.rooms.change-status › Admin\RoomController@changeStatus
+  GET|HEAD        admin/rooms/{room}/edit ............................... admin.rooms.edit › Admin\RoomController@edit
+  GET|HEAD        admin/settings ............................... admin.settings.index › Admin\SettingsController@index
+  POST            admin/settings ............................... admin.settings.store › Admin\SettingsController@store
+  POST            admin/settings/bulk-update ........ admin.settings.bulk-update › Admin\SettingsController@bulkUpdate
+  GET|HEAD        admin/settings/create ...................... admin.settings.create › Admin\SettingsController@create
+  GET|HEAD        admin/settings/{setting} ....................... admin.settings.show › Admin\SettingsController@show
+  PUT             admin/settings/{setting} ................... admin.settings.update › Admin\SettingsController@update
+  DELETE          admin/settings/{setting} ................. admin.settings.destroy › Admin\SettingsController@destroy
+  GET|HEAD        admin/settings/{setting}/edit .................. admin.settings.edit › Admin\SettingsController@edit
+  GET|HEAD        admin/statistics ........................... admin.statistics › Admin\DashboardController@statistics
+  GET|HEAD        admin/students ................................ admin.students.index › Admin\StudentController@index
+  POST            admin/students ................................ admin.students.store › Admin\StudentController@store
+  POST            admin/students/bulk-operations admin.students.bulk-operations › Admin\StudentController@bulkOperati…
+  GET|HEAD        admin/students/create ....................... admin.students.create › Admin\StudentController@create
+  GET|HEAD        admin/students/export/csv ................ admin.students.export › Admin\StudentController@exportCSV
+  GET|HEAD        admin/students/search ....................... admin.students.search › Admin\StudentController@search
+  GET|HEAD        admin/students/{student} ........................ admin.students.show › Admin\StudentController@show
+  PUT|PATCH       admin/students/{student} .................... admin.students.update › Admin\StudentController@update
+  DELETE          admin/students/{student} .................. admin.students.destroy › Admin\StudentController@destroy
+  GET|HEAD        admin/students/{student}/edit ................... admin.students.edit › Admin\StudentController@edit
+  GET|HEAD        api/dashboard/contacts-count ............................ Admin\DashboardController@getContactCounts
+  GET|HEAD        api/gallery/categories .................................... Frontend\GalleryController@getCategories
+  GET|HEAD        api/gallery/data ......................................... Frontend\GalleryController@getGalleryData
+  GET|HEAD        api/gallery/featured ............................... Frontend\GalleryController@getFeaturedGalleries
+  GET|HEAD        api/gallery/hostel/{slug} .......................... Frontend\GalleryController@getHostelGalleryData
+  GET|HEAD        api/gallery/stats .............................................. Frontend\GalleryController@getStats
+  GET|HEAD        api/gallery/videos ............................................ Frontend\GalleryController@getVideos
+  GET|HEAD        api/gallery/{id}/hd .......................................... Frontend\GalleryController@getHdImage
+  GET|HEAD        api/homepage/gallery ........... api.homepage.gallery › Frontend\PublicController@getHomepageGallery
+  GET|HEAD        api/hostel/{hostel}/available-rooms ... hostel.available-rooms › BookingController@getAvailableRooms
+  GET|HEAD        api/hostel/{slug}/rooms ................ api.hostel.rooms › Frontend\PublicController@getHostelRooms
+  GET|HEAD        api/room/{room}/check-availability room.check-availability › BookingController@checkRoomAvailability
+  GET|HEAD        assign-role/{role} ................................................................................. 
+  GET|HEAD        book-all/{slug} ................ hostel.book.all.rooms › BookingController@createFromGalleryAllRooms
+  GET|HEAD        book-now/{slug} ................................................................. emergency.book.now
+  GET|HEAD        book/{slug} ......................... hostel.book.from.gallery › BookingController@createFromGallery
+  POST            booking .................................................... booking.store › BookingController@store
+  GET|HEAD        booking-request/success/{bookingRequest} hostel.book.success › Frontend\PublicController@bookingSuc…
+  GET|HEAD        booking-success/{id} ........ frontend.booking.success › Frontend\PublicController@bookingSuccessNew
+  GET|HEAD        booking/guest-success/{id} ........... booking.guest-success › BookingController@guestBookingSuccess
+  GET|HEAD        booking/stats .................................... booking.stats › WelcomeController@getBookingStats
+  GET|HEAD        booking/success/{id} .................... booking.success › Frontend\PublicController@bookingSuccess
+  POST            booking/{id}/convert-to-student booking.convert-to-student › BookingController@convertToStudentBook…
+  GET|HEAD        bookings/pending ............................. bookings.pending › BookingController@pendingApprovals
+  GET|HEAD        bookings/{id} ............................................... bookings.show › BookingController@show
+  POST            bookings/{id}/approve ................................. bookings.approve › BookingController@approve
+  POST            bookings/{id}/cancel .................................... bookings.cancel › BookingController@cancel
+  POST            bookings/{id}/reject .................................... bookings.reject › BookingController@reject
+  GET|POST|HEAD   broadcasting/auth ....................... Illuminate\Broadcasting › BroadcastController@authenticate
+  GET|HEAD        check-duplicates ................................................................................... 
+  GET|HEAD        check-gallery-structure ............................................................................ 
+  GET|HEAD        check-hostel-data/{slug} ........................................................................... 
+  GET|HEAD        check-pending-bookings ................. user.check-pending › WelcomeController@checkPendingBookings
+  GET|HEAD        checkout ............................................. payment.checkout › PaymentController@checkout
+  POST            complete-student-registration user.complete-registration › WelcomeController@completeStudentRegistr…
+  GET|HEAD        confirm-password ........................ password.confirm › Auth\ConfirmablePasswordController@show
+  POST            confirm-password ................. password.confirm.store › Auth\ConfirmablePasswordController@store
+  GET|HEAD        contact ........................................... contact › Frontend\PublicContactController@index
+  POST            contact ..................................... contact.store › Frontend\PublicContactController@store
+  POST            convert-booking/{id} .................. user.convert-booking › WelcomeController@convertGuestBooking
+  POST            convert-guest-booking/{bookingId} user.convert.guest.booking › WelcomeController@convertGuestBooking
+  GET|HEAD        cookies ................................................ cookies › Frontend\PublicController@cookies
+  GET|HEAD        create-svg-logo/{hostelId} ......................................................................... 
+  GET|HEAD        dashboard ................................................................................ dashboard
+  GET|HEAD        debug-admin-routes ................................................................................. 
+  GET|HEAD        debug-gallery/{slug} ............................................................................... 
+  GET|HEAD        debug-hostel-data/{slug} ........................................................................... 
+  GET|HEAD        debug-hostel/{slug} ................................................................................ 
+  GET|HEAD        debug-hostels ...................................................................................... 
+  GET|HEAD        debug-logo/{hostelId} .............................................................................. 
+  GET|HEAD        debug-permissions .................................................................................. 
+  GET|HEAD        debug-view-path .................................................................................... 
+  GET|HEAD        demo .......................................................................................... demo
+  GET|HEAD        direct-book/{slug} ................................................................. direct.book.now
+  GET|HEAD        direct-gallery/{slug} ........................................................ direct.hostel.gallery
+  POST            email/verification-notification verification.send › Auth\EmailVerificationNotificationController@st…
+  GET|HEAD        features ............................................. features › Frontend\PublicController@features
+  GET|HEAD        fix-hostel-counts .................................................................................. 
+  GET|HEAD        force-publish/{id} ................................................................................. 
+  GET|HEAD        force-unpublish/{id} ............................................................................... 
+  GET|HEAD        forgot-password ......................... password.request › Auth\PasswordResetLinkController@create
+  POST            forgot-password ............................ password.email › Auth\PasswordResetLinkController@store
+  GET|HEAD        gallery ........................................... gallery.index › Frontend\GalleryController@index
+  POST            gallery/filter ....................... gallery.filter › Frontend\GalleryController@filteredGalleries
+  GET|HEAD        gallery/hostel/{slug} .................... gallery.hostel › Frontend\GalleryController@hostelGallery
+  GET|HEAD        gallery/{id}/download ....................... gallery.download › Frontend\GalleryController@download
+  GET|HEAD        gallery/{id}/share ................................ gallery.share › Frontend\GalleryController@share
+  GET|HEAD        gallery/{tab} ....................................... gallery.tab › Frontend\GalleryController@index
+  GET|HEAD        hostel/{slug}/book ................................ hostel.book › Frontend\PublicController@bookForm
+  POST            hostel/{slug}/book ...................... hostel.book.store › Frontend\PublicController@storeBooking
+  GET|HEAD        hostel/{slug}/book-room ........................................................... hostel.book-room
+  GET|HEAD        hostel/{slug}/full-gallery ....... hostel.full-gallery › Frontend\PublicController@hostelFullGallery
+  GET|HEAD        hostel/{slug}/gallery ..................... hostel.gallery › Frontend\PublicController@hostelGallery
+  GET|HEAD        hostel/{slug}/room/{roomId}/gallery hostel.room.gallery › Frontend\PublicController@hostelRoomGalle…
+  GET|HEAD        hostel/{slug}/videos ........................ hostel.videos › Frontend\PublicController@hostelVideos
+  GET|HEAD        hostels ......................................... all.hostels › Frontend\PublicController@allHostels
+  GET|HEAD        hostels-list .................................. hostels.index › Frontend\PublicController@allHostels
+  GET|HEAD        hostels/search ............................. hostels.search › Frontend\PublicController@hostelSearch
+  POST            hostels/{hostel}/contact .................. hostel.contact › Frontend\PublicController@hostelContact
+  GET|HEAD        hostels/{slug} ................................. hostels.show › Frontend\PublicController@hostelShow
+  GET|HEAD        hostels/{slug}/book ............................. hostels.book › BookingController@createFromGallery
+  GET|HEAD        hostels/{slug}/full-gallery ..... hostels.full.gallery › Frontend\PublicController@hostelFullGallery
+  GET|HEAD        how-it-works ................................... how-it-works › Frontend\PublicController@howItWorks
+  GET|HEAD        login ................................................... login › Auth\LoginController@showLoginForm
+  POST            login .................................................... login.submit › Auth\LoginController@login
+  POST            logout ........................................................ logout › Auth\LoginController@logout
+  GET|HEAD        menu-gallery ................................... menu-gallery › Frontend\MealGalleryController@index
+  GET|HEAD        my-bookings ............................................. bookings.my › BookingController@myBookings
+  POST            newsletter/subscribe .......... newsletter.subscribe › Frontend\PublicController@subscribeNewsletter
+  GET|HEAD        onboarding ........................................... onboarding.index › OnboardingController@index
+  POST            onboarding/complete ............................ onboarding.complete › OnboardingController@complete
+  POST            onboarding/skip/{step} ................................. onboarding.skip › OnboardingController@skip
+  POST            onboarding/step/{step} ............................... onboarding.store › OnboardingController@store
+  GET|HEAD        organizations/select .......................................................... organizations.select
+  GET|HEAD        owner/booking-requests ......... owner.booking-requests.index › Owner\BookingRequestController@index
+  GET|HEAD        owner/booking-requests/api/counts owner.booking-requests.counts › Owner\BookingRequestController@ge…
+  GET|HEAD        owner/booking-requests/{bookingRequest} owner.booking-requests.show › Owner\BookingRequestControlle…
+  POST            owner/booking-requests/{bookingRequest}/approve owner.booking-requests.approve › Owner\BookingReque…
+  POST            owner/booking-requests/{bookingRequest}/reject owner.booking-requests.reject › Owner\BookingRequest…
+  GET|HEAD        owner/bookings/create ............................. owner.bookings.create › BookingController@create
+  GET|HEAD        owner/bookings/pending ................. owner.bookings.pending › BookingController@pendingApprovals
+  POST            owner/bookings/{id}/approve ..................... owner.bookings.approve › BookingController@approve
+  POST            owner/bookings/{id}/reject ........................ owner.bookings.reject › BookingController@reject
+  GET|HEAD        owner/circulars ............................. owner.circulars.index › Owner\CircularController@index
+  POST            owner/circulars ............................. owner.circulars.store › Owner\CircularController@store
+  GET|HEAD        owner/circulars/analytics ........... owner.circulars.analytics › Owner\CircularController@analytics
+  GET|HEAD        owner/circulars/create .................... owner.circulars.create › Owner\CircularController@create
+  GET|HEAD        owner/circulars/templates ........... owner.circulars.templates › Owner\CircularController@templates
+  GET|HEAD        owner/circulars/{circular} .................... owner.circulars.show › Owner\CircularController@show
+  PUT             owner/circulars/{circular} ................ owner.circulars.update › Owner\CircularController@update
+  DELETE          owner/circulars/{circular} .............. owner.circulars.destroy › Owner\CircularController@destroy
+  GET|HEAD        owner/circulars/{circular}/analytics owner.circulars.analytics.single › Owner\CircularController@an…
+  GET|HEAD        owner/circulars/{circular}/edit ............... owner.circulars.edit › Owner\CircularController@edit
+  POST            owner/circulars/{circular}/mark-read owner.circulars.mark-read › Owner\CircularController@markAsRead
+  POST            owner/circulars/{circular}/publish ...... owner.circulars.publish › Owner\CircularController@publish
+  POST            owner/clear-form-flag ........................................................ owner.clear.form.flag
+  GET|HEAD        owner/contacts ................................ owner.contacts.index › Owner\ContactController@index
+  POST            owner/contacts ................................ owner.contacts.store › Owner\ContactController@store
+  POST            owner/contacts/bulk-action ......... owner.contacts.bulk-action › Owner\ContactController@bulkAction
+  POST            owner/contacts/bulk-delete ........ owner.contacts.bulk-delete › Owner\ContactController@bulkDestroy
+  GET|HEAD        owner/contacts/create ....................... owner.contacts.create › Owner\ContactController@create
+  GET|HEAD        owner/contacts/export/csv ............ owner.contacts.export-csv › Owner\ContactController@exportCSV
+  GET|HEAD        owner/contacts/search ....................... owner.contacts.search › Owner\ContactController@search
+  GET|HEAD        owner/contacts/{contact} ........................ owner.contacts.show › Owner\ContactController@show
+  PUT|PATCH       owner/contacts/{contact} .................... owner.contacts.update › Owner\ContactController@update
+  DELETE          owner/contacts/{contact} .................. owner.contacts.destroy › Owner\ContactController@destroy
+  GET|HEAD        owner/contacts/{contact}/edit ................... owner.contacts.edit › Owner\ContactController@edit
+  POST            owner/contacts/{contact}/mark-read ... owner.contacts.mark-read › Owner\ContactController@markAsRead
+  POST            owner/contacts/{contact}/mark-unread owner.contacts.mark-unread › Owner\ContactController@markAsUnr…
+  POST            owner/contacts/{contact}/update-status owner.contacts.update-status › Owner\ContactController@updat…
+  GET|HEAD        owner/dashboard ......................... owner.dashboard › Admin\DashboardController@ownerDashboard
+  GET|HEAD        owner/dashboard/booking-requests-count owner.dashboard.booking-requests-count › Owner\BookingReques…
+  GET|HEAD        owner/dashboard/contacts-count owner.dashboard.contact-counts › Admin\DashboardController@getContac…
+  GET|HEAD        owner/debug/pdf ................................. owner.debug.pdf › Owner\PaymentController@debugPDF
+  GET|HEAD        owner/documents ............................. owner.documents.index › Admin\DocumentController@index
+  POST            owner/documents ............................. owner.documents.store › Admin\DocumentController@store
+  GET|HEAD        owner/documents/create .................... owner.documents.create › Admin\DocumentController@create
+  GET|HEAD        owner/documents/search .................... owner.documents.search › Admin\DocumentController@search
+  GET|HEAD        owner/documents/{document} .................... owner.documents.show › Admin\DocumentController@show
+  PUT             owner/documents/{document} ................ owner.documents.update › Admin\DocumentController@update
+  DELETE          owner/documents/{document} .............. owner.documents.destroy › Admin\DocumentController@destroy
+  GET|HEAD        owner/documents/{document}/download ... owner.documents.download › Admin\DocumentController@download
+  GET|HEAD        owner/documents/{document}/edit ............... owner.documents.edit › Admin\DocumentController@edit
+  GET|HEAD        owner/galleries .............................. owner.galleries.index › Owner\GalleryController@index
+  POST            owner/galleries .............................. owner.galleries.store › Owner\GalleryController@store
+  GET|HEAD        owner/galleries/create ..................... owner.galleries.create › Owner\GalleryController@create
+  GET|HEAD        owner/galleries/{gallery} ...................... owner.galleries.show › Owner\GalleryController@show
+  PUT             owner/galleries/{gallery} .................. owner.galleries.update › Owner\GalleryController@update
+  DELETE          owner/galleries/{gallery} ................ owner.galleries.destroy › Owner\GalleryController@destroy
+  GET|HEAD        owner/galleries/{gallery}/edit ................. owner.galleries.edit › Owner\GalleryController@edit
+  POST            owner/galleries/{gallery}/toggle-active owner.galleries.toggle-active › Owner\GalleryController@tog…
+  PATCH           owner/galleries/{gallery}/toggle-active owner.galleries.toggle-active › Owner\GalleryController@tog…
+  POST            owner/galleries/{gallery}/toggle-featured owner.galleries.toggle-featured › Owner\GalleryController…
+  PATCH           owner/galleries/{gallery}/toggle-featured owner.galleries.toggle-featured › Owner\GalleryController…
+  POST            owner/galleries/{gallery}/toggle-status owner.galleries.toggle-status › Owner\GalleryController@tog…
+  GET|HEAD        owner/galleries/{gallery}/video .... owner.galleries.video-url › Owner\GalleryController@getVideoUrl
+  GET|HEAD        owner/hostel/{hostelId}/bookings .......... owner.hostel.bookings › BookingController@hostelBookings
+  GET|HEAD        owner/hostel/{hostel}/galleries ... owner.hostel.galleries › Owner\GalleryController@hostelGalleries
+  GET|HEAD        owner/hostels ................................... owner.hostels.index › Owner\HostelController@index
+  POST            owner/hostels ................................... owner.hostels.store › Owner\HostelController@store
+  GET|HEAD        owner/hostels/create .......................... owner.hostels.create › Owner\HostelController@create
+  GET|HEAD        owner/hostels/{hostelId}/bookings ........ owner.hostels.bookings › BookingController@hostelBookings
+  GET|HEAD        owner/hostels/{hostel} ............................ owner.hostels.show › Owner\HostelController@show
+  PUT             owner/hostels/{hostel} ........................ owner.hostels.update › Owner\HostelController@update
+  DELETE          owner/hostels/{hostel} ...................... owner.hostels.destroy › Owner\HostelController@destroy
+  GET|HEAD        owner/hostels/{hostel}/edit ....................... owner.hostels.edit › Owner\HostelController@edit
+  POST            owner/hostels/{hostel}/logo/upload owner.hostels.logo.upload › Admin\PaymentController@uploadHostel…
+  GET|HEAD        owner/hostels/{hostel}/messages ............ owner.hostel.messages › Owner\HostelController@messages
+  PATCH           owner/hostels/{hostel}/toggle-status owner.hostels.toggle-status › Owner\HostelController@toggleSta…
+  GET|HEAD        owner/meal-menus ........................... owner.meal-menus.index › Owner\MealMenuController@index
+  POST            owner/meal-menus ........................... owner.meal-menus.store › Owner\MealMenuController@store
+  GET|HEAD        owner/meal-menus/create .................. owner.meal-menus.create › Owner\MealMenuController@create
+  GET|HEAD        owner/meal-menus/{meal_menu} ................. owner.meal-menus.show › Owner\MealMenuController@show
+  PUT|PATCH       owner/meal-menus/{meal_menu} ............. owner.meal-menus.update › Owner\MealMenuController@update
+  DELETE          owner/meal-menus/{meal_menu} ........... owner.meal-menus.destroy › Owner\MealMenuController@destroy
+  GET|HEAD        owner/meal-menus/{meal_menu}/edit ............ owner.meal-menus.edit › Owner\MealMenuController@edit
+  GET|HEAD        owner/meals ......................................... owner.meals.index › Owner\MealController@index
+  POST            owner/meals ......................................... owner.meals.store › Owner\MealController@store
+  GET|HEAD        owner/meals/create ................................ owner.meals.create › Owner\MealController@create
+  GET|HEAD        owner/meals/search ................................ owner.meals.search › Owner\MealController@search
+  GET|HEAD        owner/meals/{meal} .................................... owner.meals.show › Owner\MealController@show
+  PUT|PATCH       owner/meals/{meal} ................................ owner.meals.update › Owner\MealController@update
+  DELETE          owner/meals/{meal} .............................. owner.meals.destroy › Owner\MealController@destroy
+  GET|HEAD        owner/meals/{meal}/edit ............................... owner.meals.edit › Owner\MealController@edit
+  POST            owner/messages/{message}/mark-read .... owner.messages.mark-read › Owner\HostelController@markAsRead
+  GET|HEAD        owner/payments ................................ owner.payments.index › Admin\PaymentController@index
+  POST            owner/payments ................................ owner.payments.store › Admin\PaymentController@store
+  GET|HEAD        owner/payments/create ....................... owner.payments.create › Admin\PaymentController@create
+  POST            owner/payments/export ....................... owner.payments.export › Admin\PaymentController@export
+  POST            owner/payments/manual .......... owner.payments.manual › Admin\PaymentController@createManualPayment
+  GET|HEAD        owner/payments/report .................. owner.payments.report › Admin\PaymentController@ownerReport
+  GET|HEAD        owner/payments/search ....................... owner.payments.search › Admin\PaymentController@search
+  GET|HEAD        owner/payments/student/search owner.payments.student.search › Admin\PaymentController@studentSearch…
+  GET|HEAD        owner/payments/{payment} ........................ owner.payments.show › Admin\PaymentController@show
+  PUT             owner/payments/{payment} .................... owner.payments.update › Admin\PaymentController@update
+  DELETE          owner/payments/{payment} .................. owner.payments.destroy › Admin\PaymentController@destroy
+  POST            owner/payments/{payment}/approve owner.payments.approve › Admin\PaymentController@approveBankTransf…
+  GET|HEAD        owner/payments/{payment}/bill ........... owner.payments.bill › Admin\PaymentController@generateBill
+  GET|HEAD        owner/payments/{payment}/edit ................... owner.payments.edit › Admin\PaymentController@edit
+  GET|HEAD        owner/payments/{payment}/proof ............ owner.payments.proof › Admin\PaymentController@viewProof
+  GET|HEAD        owner/payments/{payment}/receipt .. owner.payments.receipt › Admin\PaymentController@generateReceipt
+  POST            owner/payments/{payment}/reject . owner.payments.reject › Admin\PaymentController@rejectBankTransfer
+  POST            owner/payments/{payment}/update-status owner.payments.update-status › Admin\PaymentController@updat…
+  GET|HEAD        owner/profile ............................................... owner.profile › ProfileController@edit
+  PATCH           owner/profile ...................................... owner.profile.update › ProfileController@update
+  GET|HEAD        owner/public-page/edit ............... owner.public-page.edit › Owner\OwnerPublicPageController@edit
+  POST            owner/public-page/preview owner.public-page.preview › Owner\OwnerPublicPageController@updateAndPrev…
+  POST            owner/public-page/publish ...... owner.public-page.publish › Owner\OwnerPublicPageController@publish
+  POST            owner/public-page/unpublish owner.public-page.unpublish › Owner\OwnerPublicPageController@unpublish
+  GET|HEAD        owner/reviews ................................... owner.reviews.index › Owner\ReviewController@index
+  POST            owner/reviews ................................... owner.reviews.store › Owner\ReviewController@store
+  GET|HEAD        owner/reviews/create .......................... owner.reviews.create › Owner\ReviewController@create
+  GET|HEAD        owner/reviews/{review} ............................ owner.reviews.show › Owner\ReviewController@show
+  PUT|PATCH       owner/reviews/{review} ........................ owner.reviews.update › Owner\ReviewController@update
+  DELETE          owner/reviews/{review} ...................... owner.reviews.destroy › Owner\ReviewController@destroy
+  GET|HEAD        owner/reviews/{review}/edit ....................... owner.reviews.edit › Owner\ReviewController@edit
+  POST            owner/reviews/{review}/reply .................... owner.reviews.reply › Owner\ReviewController@reply
+  GET|HEAD        owner/rooms ......................................... owner.rooms.index › Admin\RoomController@index
+  POST            owner/rooms ......................................... owner.rooms.store › Admin\RoomController@store
+  GET|HEAD        owner/rooms/create ................................ owner.rooms.create › Admin\RoomController@create
+  GET|HEAD        owner/rooms/export/csv ..................... owner.rooms.export-csv › Admin\RoomController@exportCSV
+  GET|HEAD        owner/rooms/search ................................ owner.rooms.search › Admin\RoomController@search
+  GET|HEAD        owner/rooms/{room} .................................... owner.rooms.show › Admin\RoomController@show
+  PUT             owner/rooms/{room} ................................ owner.rooms.update › Admin\RoomController@update
+  DELETE          owner/rooms/{room} .............................. owner.rooms.destroy › Admin\RoomController@destroy
+  POST            owner/rooms/{room}/change-status ..... owner.rooms.change-status › Admin\RoomController@changeStatus
+  GET|HEAD        owner/rooms/{room}/edit ............................... owner.rooms.edit › Admin\RoomController@edit
+  GET|HEAD        owner/settings ............................... owner.settings.index › Owner\SettingsController@index
+  POST            owner/settings/general ...... owner.settings.general.update › Owner\SettingsController@updateGeneral
+  POST            owner/settings/notification owner.settings.notification.update › Owner\SettingsController@updateNot…
+  POST            owner/settings/payment ...... owner.settings.payment.update › Owner\SettingsController@updatePayment
+  POST            owner/settings/security ... owner.settings.security.update › Owner\SettingsController@updateSecurity
+  GET|HEAD        owner/students ................................ owner.students.index › Admin\StudentController@index
+  POST            owner/students ................................ owner.students.store › Admin\StudentController@store
+  GET|HEAD        owner/students/create ....................... owner.students.create › Admin\StudentController@create
+  GET|HEAD        owner/students/export/csv ............ owner.students.export-csv › Admin\StudentController@exportCSV
+  GET|HEAD        owner/students/search ....................... owner.students.search › Admin\StudentController@search
+  GET|HEAD        owner/students/{student} ........................ owner.students.show › Admin\StudentController@show
+  PUT             owner/students/{student} .................... owner.students.update › Admin\StudentController@update
+  DELETE          owner/students/{student} .................. owner.students.destroy › Admin\StudentController@destroy
+  GET|HEAD        owner/students/{student}/edit ................... owner.students.edit › Admin\StudentController@edit
+  GET|HEAD        owner/test/bill-view/{id} ..................................................... owner.test.bill-view
+  GET|HEAD        owner/test/receipt-view/{id} ............................................... owner.test.receipt-view
+  PUT             password .......................................... password.update › Auth\PasswordController@update
+  GET|HEAD        payment/bank/request ..................... payment.bank.form › PaymentController@bankTransferRequest
+  POST            payment/bank/request .................... payment.bank.request › PaymentController@storeBankTransfer
+  POST            payment/esewa/callback ............... payment.esewa.callback › PaymentController@verifyEsewaPayment
+  POST            payment/esewa/pay ............................... payment.esewa.pay › PaymentController@payWithEsewa
+  GET|HEAD        payment/failure/{payment?} ...................... payment.failure › PaymentController@paymentFailure
+  POST            payment/khalti/callback ............ payment.khalti.callback › PaymentController@verifyKhaltiPayment
+  POST            payment/khalti/pay ............................ payment.khalti.pay › PaymentController@payWithKhalti
+  GET|HEAD        payment/success/{payment} ....................... payment.success › PaymentController@paymentSuccess
+  GET|HEAD        payment/verify/{paymentId} ........................ payment.verify › PaymentController@verifyPayment
+  GET|HEAD        preview/{slug} ........................... hostels.preview › Owner\OwnerPublicPageController@preview
+  GET|HEAD        pricing ................................................. pricing › Frontend\PricingController@index
+  GET|HEAD        privacy-policy ......................................... privacy › Frontend\PublicController@privacy
+  GET|HEAD        profile ...................................................... profile.edit › ProfileController@edit
+  PATCH           profile .................................................. profile.update › ProfileController@update
+  DELETE          profile ................................................ profile.destroy › ProfileController@destroy
+  GET|HEAD        publish-hostel/{slug} .............................................................................. 
+  GET|HEAD        register ........................................... register › Auth\RegisteredUserController@create
+  POST            register ..................................... register.submit › Auth\RegisteredUserController@store
+  POST            register/organization ................... register.organization.store › RegistrationController@store
+  GET|HEAD        register/organization/{plan?} .................. register.organization › RegistrationController@show
+  POST            reset-password ............................. password.reset.store › Auth\NewPasswordController@store
+  GET|HEAD        reset-password/{token} .......................... password.reset › Auth\NewPasswordController@create
+  GET|HEAD        reviews .................................................. reviews › Frontend\ReviewController@index
+  GET|HEAD        rooms .......................................... rooms.search › Frontend\PublicController@roomSearch
+  GET|HEAD        search ................................................... search › Frontend\PublicController@search
+  GET|HEAD        storage/{path} ....................................................................... storage.local
+  GET|HEAD        stripe/payment/{id} ..................... cashier.payment › Laravel\Cashier › PaymentController@show
+  POST            stripe/webhook ................. cashier.webhook › Laravel\Cashier › WebhookController@handleWebhook
+  GET|HEAD        student/bookings .................................. student.bookings.index › BookingController@index
+  POST            student/bookings .................................. student.bookings.store › BookingController@store
+  GET|HEAD        student/bookings/create ......................... student.bookings.create › BookingController@create
+  GET|HEAD        student/bookings/my ............................. student.bookings.my › BookingController@myBookings
+  GET|HEAD        student/bookings/{id} ............................... student.bookings.show › BookingController@show
+  POST            student/bookings/{id}/cancel .................... student.bookings.cancel › BookingController@cancel
+  GET|HEAD        student/circulars ....................... student.circulars.index › Student\CircularController@index
+  POST            student/circulars/bulk-mark-read student.circulars.bulk-mark-read › Student\CircularController@bulk…
+  GET|HEAD        student/circulars/category/{category} student.circulars.filter.category › Student\CircularControlle…
+  GET|HEAD        student/circulars/filter/priority/{priority} student.circulars.filter.priority › Student\CircularCo…
+  GET|HEAD        student/circulars/notifications/latest student.circulars.notifications.latest › Student\CircularCon…
+  POST            student/circulars/notifications/mark-all-read student.circulars.notifications.mark-all-read › Stude…
+  GET|HEAD        student/circulars/search .............. student.circulars.search › Student\CircularController@search
+  GET|HEAD        student/circulars/unread/count student.circulars.unread.count › Student\CircularController@unreadCo…
+  GET|HEAD        student/circulars/{circular} .............. student.circulars.show › Student\CircularController@show
+  GET|HEAD        student/circulars/{circular}/download student.circulars.download › Student\CircularController@downl…
+  POST            student/circulars/{circular}/mark-read student.circulars.mark-read › Student\CircularController@mar…
+  GET|HEAD        student/dashboard .................................. student.dashboard › StudentController@dashboard
+  GET|HEAD        student/documents ......................... student.documents.index › Admin\DocumentController@index
+  POST            student/documents ......................... student.documents.store › Admin\DocumentController@store
+  GET|HEAD        student/documents/create ................ student.documents.create › Admin\DocumentController@create
+  GET|HEAD        student/documents/search ................ student.documents.search › Admin\DocumentController@search
+  GET|HEAD        student/documents/{document} ................ student.documents.show › Admin\DocumentController@show
+  PUT             student/documents/{document} ............ student.documents.update › Admin\DocumentController@update
+  DELETE          student/documents/{document} .......... student.documents.destroy › Admin\DocumentController@destroy
+  GET|HEAD        student/documents/{document}/download student.documents.download › Admin\DocumentController@download
+  GET|HEAD        student/documents/{document}/edit ........... student.documents.edit › Admin\DocumentController@edit
+  GET|HEAD        student/events ........................................... student.events › StudentController@events
+  GET|HEAD        student/gallery ........................................ student.gallery › StudentController@gallery
+  GET|HEAD        student/hostel/join ..................... student.hostel.join › Frontend\PublicController@hostelJoin
+  GET|HEAD        student/hostel/search ............... student.hostel.search › Frontend\PublicController@hostelSearch
+  POST            student/hostel/{hostel}/join ..... student.hostel.join.submit › Frontend\PublicController@joinHostel
+  POST            student/maintenance-request ....... student.maintenance.submit › StudentController@submitMaintenance
+  GET|HEAD        student/meal-menus ................................ student.meal-menus › StudentController@mealMenus
+  GET|HEAD        student/meal-menus/{mealMenu} ............. student.meal-menus.show › StudentController@showMealMenu
+  GET|HEAD        student/notifications ...................... student.notifications › StudentController@notifications
+  GET|HEAD        student/payments ........................ student.payments.index › PaymentController@studentPayments
+  GET|HEAD        student/payments/{paymentId}/receipt ...... student.payments.receipt › PaymentController@showReceipt
+  GET|HEAD        student/payments/{paymentId}/receipt/download student.payments.receipt.download › PaymentController…
+  GET|HEAD        student/profile ........................................ student.profile › StudentController@profile
+  PATCH           student/profile/update .................... student.profile.update › StudentController@updateProfile
+  POST            student/quick-register ......... student.quick-register › WelcomeController@quickStudentRegistration
+  GET|HEAD        student/reviews ...................... student.reviews.index › Student\StudentReviewController@index
+  POST            student/reviews ...................... student.reviews.store › Student\StudentReviewController@store
+  GET|HEAD        student/reviews/create ............. student.reviews.create › Student\StudentReviewController@create
+  GET|HEAD        student/reviews/hostel/{hostelId} student.reviews.hostel › Student\StudentReviewController@hostelRe…
+  GET|HEAD        student/reviews/{review} ............... student.reviews.show › Student\StudentReviewController@show
+  PUT             student/reviews/{review} ........... student.reviews.update › Student\StudentReviewController@update
+  DELETE          student/reviews/{review} ......... student.reviews.destroy › Student\StudentReviewController@destroy
+  GET|HEAD        student/reviews/{review}/edit .......... student.reviews.edit › Student\StudentReviewController@edit
+  GET|HEAD        student/rooms .............................. student.rooms.index › Admin\RoomController@studentIndex
+  GET|HEAD        student/rooms/search ............................ student.rooms.search › Admin\RoomController@search
+  GET|HEAD        student/rooms/{room} ......................... student.rooms.show › Admin\RoomController@studentShow
+  GET|HEAD        subscription ....................................... subscription.show › SubscriptionController@show
+  POST            subscription/cancel ............................ subscription.cancel › SubscriptionController@cancel
+  GET|HEAD        subscription/limits ........................ subscription.limits › SubscriptionController@showLimits
+  POST            subscription/purchase-extra-hostel subscription.purchase-extra-hostel › SubscriptionController@purc…
+  POST            subscription/start-trial .............. subscription.start-trial › SubscriptionController@startTrial
+  POST            subscription/upgrade ......................... subscription.upgrade › SubscriptionController@upgrade
+  GET|HEAD        terms-of-service ........................................... terms › Frontend\PublicController@terms
+  GET|HEAD        test-admin-rooms-create ............................................................................ 
+  GET|HEAD        test-dashboard-cache ............................................................................... 
+  GET|HEAD        test-db ............................................................................................ 
+  POST            test-hostel-update/{id} ............................................................................ 
+  GET|HEAD        test-pdf ........................................................................................... 
+  GET|HEAD        test-roles ......................................................................................... 
+  GET|HEAD        test-route .............................................................................. test.route
+  GET|HEAD        testimonials ........................................ testimonials › Frontend\ReviewController@index
+  GET|HEAD        up ................................................................................................. 
+  GET|HEAD        update-hostel-data/{slug} .......................................................................... 
+  GET|HEAD        verify-boys ........................................................................................ 
+  GET|HEAD        verify-email ................. verification.notice › Auth\EmailVerificationPromptController@__invoke
+  GET|HEAD        verify-email/{id}/{hash} ................. verification.verify › Auth\VerifyEmailController@__invoke
+  GET|HEAD        view/{slug}/full-gallery .................................................... emergency.full.gallery
+  GET|HEAD        welcome ............................................... user.welcome › WelcomeController@showWelcome
+
+                                                                                                  Showing [509] routes
+

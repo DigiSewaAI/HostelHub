@@ -69,7 +69,13 @@ Route::name('admin.')  // ✅ KEEP only the name prefix
         // ✅ FIXED: Corrected meal search route to use MealController instead of ContactController
         Route::get('/meals/search', [MealController::class, 'search'])->name('meals.search');
 
+        // ✅ ENHANCED: Review Routes with approval actions (Added as per instructions)
         Route::resource('reviews', AdminReviewController::class);
+        Route::post('/reviews/{review}/approve', [AdminReviewController::class, 'approve'])->name('reviews.approve');
+        Route::post('/reviews/{review}/reject', [AdminReviewController::class, 'reject'])->name('reviews.reject');
+        Route::post('/reviews/{review}/feature', [AdminReviewController::class, 'feature'])->name('reviews.feature');
+        Route::post('/reviews/bulk-action', [AdminReviewController::class, 'bulkAction'])->name('reviews.bulk-action');
+        Route::get('/reviews/search', [AdminReviewController::class, 'search'])->name('reviews.search');
 
         // ✅ FIXED: Room Routes with correct AdminRoomController alias
         Route::resource('rooms', AdminRoomController::class);

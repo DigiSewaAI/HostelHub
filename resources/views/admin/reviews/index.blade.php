@@ -43,6 +43,9 @@
                         <label for="status" class="form-label">स्थिति</label>
                         <select name="status" id="status" class="form-select">
                             <option value="">सबै स्थिति</option>
+                            <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>पेन्डिंग</option>
+                            <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>स्वीकृत</option>
+                            <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>अस्वीकृत</option>
                             <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>सक्रिय</option>
                             <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>निष्क्रिय</option>
                         </select>
@@ -50,7 +53,7 @@
                     <div class="col-md-3 mb-2">
                         <label for="search" class="form-label">खोज्नुहोस्</label>
                         <input type="text" name="search" id="search" class="form-control" 
-                               placeholder="नाम वा पद" value="{{ request('search') }}">
+                               placeholder="नाम, पद वा समीक्षा खोज्नुहोस्" value="{{ request('search') }}">
                     </div>
                     <div class="col-md-3 mb-2 d-flex align-items-end">
                         <button type="submit" class="btn btn-primary me-2">
@@ -79,7 +82,7 @@
                             <th>प्रकार</th>
                             <th>मूल्याङ्कन</th>
                             <th>स्थिति</th>
-                            <th width="150">कार्यहरू</th>
+                            <th width="200">कार्यहरू</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -128,28 +131,68 @@
                                 @endif
                             </td>
                             <td>
-                                @if($review->status == 'active')
+                                @if($review->status == 'pending')
+                                    <span class="badge bg-warning">पेन्डिंग</span>
+                                @elseif($review->status == 'approved')
+                                    <span class="badge bg-success">स्वीकृत</span>
+                                @elseif($review->status == 'rejected')
+                                    <span class="badge bg-danger">अस्वीकृत</span>
+                                @elseif($review->status == 'active')
                                     <span class="badge bg-success">सक्रिय</span>
                                 @else
                                     <span class="badge bg-secondary">निष्क्रिय</span>
                                 @endif
+                                @if($review->is_featured)
+                                    <span class="badge bg-warning ms-1">फिचर</span>
+                                @endif
                             </td>
                             <td>
-                                <div class="btn-group" role="group">
-                                    <a href="{{ route('admin.reviews.show', $review) }}" class="btn btn-sm btn-info" 
-                                       data-bs-toggle="tooltip" title="हेर्नुहोस्">
+                                <div class="btn-group">
+                                    {{-- View Button --}}
+                                    <a href="{{ route('admin.reviews.show', $review) }}" class="btn btn-sm btn-info">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                    <a href="{{ route('admin.reviews.edit', $review) }}" class="btn btn-sm btn-primary" 
-                                       data-bs-toggle="tooltip" title="सम्पादन गर्नुहोस्">
+                                    
+                                    {{-- Edit Button --}}
+                                    <a href="{{ route('admin.reviews.edit', $review) }}" class="btn btn-sm btn-primary">
                                         <i class="fas fa-edit"></i>
                                     </a>
+                                    
+                                    {{-- ✅ NEW: Approve/Reject Buttons for Pending Reviews --}}
+                                    @if($review->status == 'pending')
+                                        <form action="{{ route('admin.reviews.approve', $review) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            <button type="submit" class="btn btn-sm btn-success" 
+                                                    onclick="return confirm('समीक्षा स्वीकृत गर्नुहुन्छ?')">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        </form>
+                                        
+                                        <form action="{{ route('admin.reviews.reject', $review) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            <button type="submit" class="btn btn-sm btn-danger" 
+                                                    onclick="return confirm('समीक्षा अस्वीकृत गर्नुहुन्छ?')">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </form>
+                                    @endif
+                                    
+                                    {{-- ✅ NEW: Feature Button for Approved Reviews --}}
+                                    @if($review->status == 'approved' && isset($review->is_featured) && !$review->is_featured)
+                                        <form action="{{ route('admin.reviews.feature', $review) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            <button type="submit" class="btn btn-sm btn-warning">
+                                                <i class="fas fa-star"></i>
+                                            </button>
+                                        </form>
+                                    @endif
+                                    
+                                    {{-- Delete Button --}}
                                     <form action="{{ route('admin.reviews.destroy', $review) }}" method="POST" class="d-inline">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-sm btn-danger" 
-                                                onclick="return confirm('के तपाईं यो समीक्षा हटाउन चाहनुहुन्छ?')"
-                                                data-bs-toggle="tooltip" title="हटाउनुहोस्">
+                                                onclick="return confirm('समीक्षा हटाउनुहुन्छ?')">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </form>
