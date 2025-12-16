@@ -9,7 +9,10 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev \
     zip \
     unzip \
-    libzip-dev
+    libzip-dev \
+    libicu-dev \
+    && docker-php-ext-configure intl \
+    && docker-php-ext-install intl
 
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -26,9 +29,20 @@ WORKDIR /var/www
 # Copy application files
 COPY . /var/www
 
-# Create ALL Laravel storage directories with correct permissions
+# USER ko fix garnu
+RUN groupadd -g 1000 www && \
+    useradd -u 1000 -ms /bin/bash -g www www
+
+# Sabai file ownership change garnu
+RUN chown -R www:www /var/www
+
+# Switch to non-root user
+USER www
+
+# Storage directories create garnu with proper permissions
 RUN mkdir -p storage/framework/{sessions,views,cache} \
     && mkdir -p storage/framework/cache/data \
+    && mkdir -p storage/logs \
     && chmod -R 775 storage \
     && chmod -R 775 bootstrap/cache
 
