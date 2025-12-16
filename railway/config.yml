@@ -2,7 +2,9 @@ services:
   - name: HostelHub
     build:
       builder: railpack
-      build_command: "COMPOSER_IGNORE_PLATFORM_REQS=1 composer install --no-dev --optimize-autoloader"
+      build_command: |
+        install-php-extensions bcmath gd pdo_mysql redis sodium zip &&
+        COMPOSER_IGNORE_PLATFORM_REQS=1 composer install --no-dev --optimize-autoloader
     start_command: "php artisan serve --host=0.0.0.0 --port=$PORT"
     deploy:
       runtime: V2
