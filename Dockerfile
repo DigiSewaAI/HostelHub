@@ -1,4 +1,4 @@
-FROM php:8.2-fpm
+FROM php:8.3-fpm
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -8,13 +8,14 @@ RUN apt-get update && apt-get install -y \
     libonig-dev \
     libxml2-dev \
     zip \
-    unzip
+    unzip \
+    libzip-dev
 
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install PHP extensions
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
+# Install PHP extensions (zip extension पनि थप्नुहोस्)
+RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
 
 # Get latest Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -30,8 +31,8 @@ RUN mkdir -p storage/framework/{sessions,views,cache} \
     && chmod -R 775 storage \
     && chown -R www-data:www-data storage
 
-# Install dependencies
-RUN composer install --no-dev --optimize-autoloader
+# Install dependencies (platform requirements ignore गर्ने)
+RUN composer install --no-dev --optimize-autoloader --ignore-platform-req=ext-zip
 
 # Expose port
 EXPOSE 8000
