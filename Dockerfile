@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y \
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install PHP extensions (zip extension पनि थप्नुहोस्)
+# Install PHP extensions
 RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip
 
 # Get latest Composer
@@ -26,12 +26,13 @@ WORKDIR /var/www
 # Copy application files
 COPY . /var/www
 
-# Create Laravel storage directories with correct permissions
+# Create ALL Laravel storage directories with correct permissions
 RUN mkdir -p storage/framework/{sessions,views,cache} \
+    && mkdir -p storage/framework/cache/data \
     && chmod -R 775 storage \
-    && chown -R www-data:www-data storage
+    && chmod -R 775 bootstrap/cache
 
-# Install dependencies (platform requirements ignore गर्ने)
+# Install dependencies
 RUN composer install --no-dev --optimize-autoloader --ignore-platform-req=ext-zip
 
 # Expose port
