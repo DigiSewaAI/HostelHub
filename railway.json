@@ -1,5 +1,8 @@
 {
   "build": {
     "builder": "NIXPACKS"
+  },
+  "deploy": {
+    "runtime": "php-8.3"
   }
 }
