@@ -3,8 +3,7 @@ services:
     build:
       builder: railpack
       build_command: |
-        install-php-extensions bcmath gd pdo_mysql redis sodium zip
         COMPOSER_IGNORE_PLATFORM_REQS=1 composer install --no-dev --optimize-autoloader
-    start_command: "php artisan serve --host=0.0.0.0 --port=$PORT"
+    start_command: php -S 0.0.0.0:$PORT -t public
     deploy:
       runtime: V2
