@@ -1,9 +1,0 @@
-/node_modules
-/vendor
-.git
-.gitignore
-.env
-Dockerfile
-README.md
-/storage/logs
-/storage/framework/cache
