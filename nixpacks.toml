@@ -1,0 +1,5 @@
+[phps]
+version = "8.2"
+
+[build.php]
+extensions = ["bcmath", "gd", "pdo_mysql", "redis", "sodium", "zip"]
