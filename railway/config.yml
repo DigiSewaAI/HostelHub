@@ -2,7 +2,7 @@ services:
   - name: HostelHub
     build:
       builder: railpack
-      build_command: "composer install --no-dev --optimize-autoloader --ignore-platform-req=ext-bcmath --ignore-platform-req=ext-gd --ignore-platform-req=ext-sodium"
+      build_command: "COMPOSER_IGNORE_PLATFORM_REQS=1 composer install --no-dev --optimize-autoloader"
     start_command: "php artisan serve --host=0.0.0.0 --port=$PORT"
     deploy:
       runtime: V2
