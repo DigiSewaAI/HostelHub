@@ -72,13 +72,8 @@
                                 </a>
                                 @endif
                                 
-                                <form action="{{ route('owner.reviews.destroy', $review) }}" method="POST" class="d-inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('के तपाईं यो समीक्षा हटाउन चाहनुहुन्छ?')" title="हटाउनुहोस्">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </form>
+                                <!-- 🚫 DELETED: Delete button removed from owner panel -->
+                                <!-- Owners can only view and reply to reviews, not delete them -->
                             </td>
                         </tr>
                         @empty
