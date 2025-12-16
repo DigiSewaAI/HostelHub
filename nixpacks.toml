@@ -3,12 +3,3 @@ version = "8.3"
 
 [build.php]
 extensions = ["bcmath", "gd", "pdo_mysql", "redis", "sodium", "zip"]
-
-[build]
-install = ["./build.sh"]
-
-[phps.ini]
-date.timezone = "Asia/Kathmandu"
-memory_limit = "256M"
-upload_max_filesize = "10M"
-post_max_size = "10M"
