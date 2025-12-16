@@ -1,3 +1,0 @@
-echo Dockerfile > .railwayignore
-echo docker-compose.yml >> .railwayignore
-echo .dockerignore >> .railwayignore
