@@ -1,0 +1,7 @@
+services:
+  - name: HostelHub
+    build:
+      builder: docker
+    start_command: apache2-foreground
+    deploy:
+      runtime: V2

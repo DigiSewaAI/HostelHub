@@ -1,9 +1,7 @@
 services:
   - name: HostelHub
     build:
-      builder: railpack
-      build_command: |
-        COMPOSER_IGNORE_PLATFORM_REQS=1 composer install --no-dev --optimize-autoloader
-    start_command: php -S 0.0.0.0:$PORT -t public
+      builder: docker
+    start_command: "php artisan serve --host=0.0.0.0 --port=$PORT"
     deploy:
       runtime: V2
