@@ -79,10 +79,12 @@
     },
 
     "extra": {
-        "laravel": {
-            "dont-discover": []
-        }
-    },
+  "laravel": {
+    "dont-discover": [
+      "laravel/pail"
+    ]
+  }
+},
 
     "config": {
         "platform": {
