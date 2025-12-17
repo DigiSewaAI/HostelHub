@@ -7,19 +7,23 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
-        Schema::table('subscriptions', function (Blueprint $table) {
-            if (Schema::hasColumn('subscriptions', 'org_id')) {
+        // Check if the column 'org_id' exists before trying to rename it
+        if (Schema::hasColumn('subscriptions', 'org_id')) {
+            Schema::table('subscriptions', function (Blueprint $table) {
                 $table->renameColumn('org_id', 'organization_id');
-            }
-        });
+            });
+        }
+        // If 'org_id' doesn't exist, but 'organization_id' already does, do nothing.
     }
 
     public function down(): void
     {
-        Schema::table('subscriptions', function (Blueprint $table) {
-            if (Schema::hasColumn('subscriptions', 'organization_id')) {
+        // Check if the column 'organization_id' exists before trying to rename it back
+        if (Schema::hasColumn('subscriptions', 'organization_id')) {
+            Schema::table('subscriptions', function (Blueprint $table) {
                 $table->renameColumn('organization_id', 'org_id');
-            }
-        });
+            });
+        }
+        // If 'organization_id' doesn't exist, but 'org_id' already does, do nothing.
     }
 };
