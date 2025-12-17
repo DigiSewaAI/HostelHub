@@ -7,63 +7,49 @@ use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
-    public function up()
+    public function up(): void
     {
-        Schema::table('subscriptions', function (Blueprint $table) {
-            // पहिले existing Cashier-related columns हरू drop गर्ने
-            if (Schema::hasColumn('subscriptions', 'type')) {
-                $table->dropColumn('type');
-            }
-            if (Schema::hasColumn('subscriptions', 'stripe_id')) {
-                $table->dropColumn('stripe_id');
-            }
-            if (Schema::hasColumn('subscriptions', 'stripe_status')) {
-                $table->dropColumn('stripe_status');
-            }
-            if (Schema::hasColumn('subscriptions', 'stripe_price')) {
-                $table->dropColumn('stripe_price');
-            }
-            if (Schema::hasColumn('subscriptions', 'quantity')) {
-                $table->dropColumn('quantity');
-            }
-            if (Schema::hasColumn('subscriptions', 'ends_at')) {
-                $table->dropColumn('ends_at');
+        // FIRST: Check if the user_id column actually exists
+        if (!Schema::hasColumn('subscriptions', 'user_id')) {
+            // If the column doesn't exist, we should create it.
+            // You need to decide if this should be nullable from the start.
+            Schema::table('subscriptions', function (Blueprint $table) {
+                $table->foreignId('user_id')->nullable()->constrained()->after('id');
+            });
+            return; // Exit early since we've created the column
+        }
+
+        // SECOND: If the column DOES exist, check for foreign key
+        $foreignKeys = DB::select("
+            SELECT CONSTRAINT_NAME 
+            FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE 
+            WHERE TABLE_SCHEMA = DATABASE() 
+            AND TABLE_NAME = 'subscriptions' 
+            AND COLUMN_NAME = 'user_id' 
+            AND CONSTRAINT_NAME <> 'PRIMARY'
+        ");
+
+        Schema::table('subscriptions', function (Blueprint $table) use ($foreignKeys) {
+            // Drop foreign key only if it exists
+            if (count($foreignKeys) > 0) {
+                $table->dropForeign([$foreignKeys[0]->CONSTRAINT_NAME]);
             }
 
-            // नयाँ columns थप्ने
-            if (!Schema::hasColumn('subscriptions', 'organization_id')) {
-                $table->foreignId('organization_id')->after('id')->constrained()->onDelete('cascade');
-            }
-            if (!Schema::hasColumn('subscriptions', 'plan_id')) {
-                $table->foreignId('plan_id')->after('organization_id')->constrained()->onDelete('cascade');
-            }
-            if (!Schema::hasColumn('subscriptions', 'status')) {
-                $table->string('status')->default('active');
-            }
-            if (!Schema::hasColumn('subscriptions', 'renews_at')) {
-                $table->datetime('renews_at')->nullable();
-            }
-            if (!Schema::hasColumn('subscriptions', 'notes')) {
-                $table->text('notes')->nullable();
-            }
+            // Make user_id nullable - safe because we checked it exists
+            $table->foreignId('user_id')->nullable()->change();
+
+            // Optionally, re-add the foreign key constraint if needed
+            // $table->foreign('user_id')->references('id')->on('users');
         });
     }
 
-    public function down()
+    public function down(): void
     {
-        Schema::table('subscriptions', function (Blueprint $table) {
-            // नयाँ columns हटाउने
-            $table->dropForeign(['organization_id']);
-            $table->dropForeign(['plan_id']);
-            $table->dropColumn(['organization_id', 'plan_id', 'status', 'renews_at', 'notes']);
-
-            // मूल columns फिर्ता थप्ने
-            $table->string('type')->nullable();
-            $table->string('stripe_id')->nullable();
-            $table->string('stripe_status')->nullable();
-            $table->string('stripe_price')->nullable();
-            $table->integer('quantity')->nullable();
-            $table->timestamp('ends_at')->nullable();
-        });
+        // Only try to revert if the column exists
+        if (Schema::hasColumn('subscriptions', 'user_id')) {
+            Schema::table('subscriptions', function (Blueprint $table) {
+                $table->foreignId('user_id')->nullable(false)->change();
+            });
+        }
     }
 };
