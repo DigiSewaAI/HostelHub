@@ -12,55 +12,22 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Step 1: Default organization ensure गर्ने
-        // if (!DB::table('organizations')->where('id', 1)->exists()) {
-        //     DB::table('organizations')->insert([
-        //         'id' => 1,
-        //         'name' => 'Default Organization',
-        //         'created_at' => now(),
-        //         'updated_at' => now(),
-        //     ]);
-        // }
+        // कुनै INSERT नगर्ने
+        // कुनै UPDATE नगर्ने
 
-        // Step 2: अहिले नै column छ कि छैन भनेर जाँच गर्ने
-        if (!Schema::hasColumn('users', 'organization_id')) {
-            Schema::table('users', function (Blueprint $table) {
+        Schema::table('users', function (Blueprint $table) {
+            // पहिले column छ कि छैन
+            if (!Schema::hasColumn('users', 'organization_id')) {
+                // नयाँ column बनाउने
                 $table->foreignId('organization_id')
-                    ->default(1)  // default value set गर्ने
-                    ->constrained()
-                    ->onDelete('cascade');
-            });
-        } else {
-            // Step 3: NULL users लाई default organization मा set गर्ने
-            DB::table('users')->whereNull('organization_id')->update(['organization_id' => 1]);
-
-            // Step 4: existing column लाई modify गर्ने
-            Schema::table('users', function (Blueprint $table) {
-                // foreign key हटाउनुहोस् (यदि छ भने)
-                $sm = Schema::getConnection()->getDoctrineSchemaManager();
-                $doctrineTable = $sm->listTableDetails('users');
-                $foreignKeys = $doctrineTable->getForeignKeys();
-
-                foreach ($foreignKeys as $constraint) {
-                    if (in_array('organization_id', $constraint->getColumns())) {
-                        $table->dropForeign([$constraint->getName()]);
-                        break;
-                    }
-                }
-
-                // column modify गर्ने
-                $table->unsignedBigInteger('organization_id')
-                    ->nullable(false)
                     ->default(1)
-                    ->change();
-
-                // नयाँ foreign key add गर्ने
-                $table->foreign('organization_id')
-                    ->references('id')
-                    ->on('organizations')
+                    ->constrained('organizations')
                     ->onDelete('cascade');
-            });
-        }
+            } else {
+                // column छ भने केहि नगर्ने
+                // यो migration ले केहि नगरोस्
+            }
+        });
     }
 
     /**
@@ -69,26 +36,26 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            // foreign key हटाउने
-            $sm = Schema::getConnection()->getDoctrineSchemaManager();
-            $doctrineTable = $sm->listTableDetails('users');
-            $foreignKeys = $doctrineTable->getForeignKeys();
-
-            foreach ($foreignKeys as $constraint) {
-                if (in_array('organization_id', $constraint->getColumns())) {
-                    $table->dropForeign([$constraint->getName()]);
-                    break;
-                }
+            // foreign key छ भने drop गर्ने try गर्ने
+            $foreignKeyExists = false;
+            try {
+                $foreignKeyExists = DB::select("
+                    SELECT 1 
+                    FROM information_schema.table_constraints 
+                    WHERE table_name = 'users' 
+                    AND constraint_name = 'users_organization_id_foreign'
+                    AND constraint_type = 'FOREIGN KEY'
+                ");
+            } catch (\Exception $e) {
+                // ignore
             }
 
-            // column लाई nullable फर्काउने
-            $table->unsignedBigInteger('organization_id')
-                ->nullable()
-                ->default(null)
-                ->change();
-        });
+            if ($foreignKeyExists) {
+                $table->dropForeign(['organization_id']);
+            }
 
-        // Optional: Default organization हटाउने यदि तपाईं चाहनुहुन्छ भने
-        // DB::table('organizations')->where('id', 1)->delete();
+            // column नहटाउने, just nullable गर्ने
+            $table->unsignedBigInteger('organization_id')->nullable()->change();
+        });
     }
 };
