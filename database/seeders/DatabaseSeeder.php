@@ -20,10 +20,11 @@ class DatabaseSeeder extends Seeder
             app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
         }
 
-        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        // Disable foreign key checks safely
         Schema::disableForeignKeyConstraints();
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
 
-        // Truncate tables safely with proper order to respect foreign key constraints
+        // Truncate tables safely with proper order
         $tables = [
             'model_has_roles',
             'model_has_permissions',
@@ -36,8 +37,8 @@ class DatabaseSeeder extends Seeder
             'rooms',
             'room_types',
             'hostels',
-            'organizations',
             'organization_user',
+            'organizations',
             'users',
         ];
 
@@ -47,8 +48,8 @@ class DatabaseSeeder extends Seeder
             }
         }
 
-        Schema::enableForeignKeyConstraints();
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+        Schema::enableForeignKeyConstraints();
 
         // Create permissions
         $models = ['payments', 'students', 'hostels', 'rooms', 'galleries', 'contacts', 'reviews', 'meals', 'organizations'];
@@ -87,59 +88,62 @@ class DatabaseSeeder extends Seeder
         }
         $studentRole->syncPermissions($studentPermissions);
 
-        // Create organizations
+        // ✅ **FIXED: Create organizations with proper slug**
         $organizations = [
-            Organization::firstOrCreate(
-                ['name' => 'Default Organization'],
-                [
-                    'slug' => 'default-organization',
-                    'is_ready' => true,
-                    'settings' => [
-                        'city' => 'Kathmandu',
-                        'address' => 'Kathmandu, Nepal',
-                        'contact_phone' => '+977-1-1234567',
-                        'monthly_fee' => 5000,
-                        'deposit' => 10000,
-                        'meal_plan' => true,
-                        'meal_price' => 2000,
-                    ]
+            [
+                'name' => 'Default Organization',
+                'slug' => 'default-organization',
+                'is_ready' => true,
+                'settings' => [
+                    'city' => 'Kathmandu',
+                    'address' => 'Kathmandu, Nepal',
+                    'contact_phone' => '+977-1-1234567',
+                    'monthly_fee' => 5000,
+                    'deposit' => 10000,
+                    'meal_plan' => true,
+                    'meal_price' => 2000,
                 ]
-            ),
-            Organization::firstOrCreate(
-                ['name' => 'Hostel A'],
-                [
-                    'slug' => 'hostel-a',
-                    'is_ready' => true,
-                    'settings' => [
-                        'city' => 'Kathmandu',
-                        'address' => 'Kathmandu, Nepal',
-                        'contact_phone' => '+977-1-1111111',
-                        'monthly_fee' => 6000,
-                        'deposit' => 12000,
-                        'meal_plan' => true,
-                        'meal_price' => 2500,
-                    ]
+            ],
+            [
+                'name' => 'Hostel A',
+                'slug' => 'hostel-a',
+                'is_ready' => true,
+                'settings' => [
+                    'city' => 'Kathmandu',
+                    'address' => 'Kathmandu, Nepal',
+                    'contact_phone' => '+977-1-1111111',
+                    'monthly_fee' => 6000,
+                    'deposit' => 12000,
+                    'meal_plan' => true,
+                    'meal_price' => 2500,
                 ]
-            ),
-            Organization::firstOrCreate(
-                ['name' => 'Hostel B'],
-                [
-                    'slug' => 'hostel-b',
-                    'is_ready' => true,
-                    'settings' => [
-                        'city' => 'Pokhara',
-                        'address' => 'Pokhara, Nepal',
-                        'contact_phone' => '+977-1-2222222',
-                        'monthly_fee' => 5500,
-                        'deposit' => 11000,
-                        'meal_plan' => true,
-                        'meal_price' => 2300,
-                    ]
+            ],
+            [
+                'name' => 'Hostel B',
+                'slug' => 'hostel-b',
+                'is_ready' => true,
+                'settings' => [
+                    'city' => 'Pokhara',
+                    'address' => 'Pokhara, Nepal',
+                    'contact_phone' => '+977-1-2222222',
+                    'monthly_fee' => 5500,
+                    'deposit' => 11000,
+                    'meal_plan' => true,
+                    'meal_price' => 2300,
                 ]
-            )
+            ]
         ];
 
-        // Create users WITHOUT organization_id - ORIGINAL PASSWORDS RESTORED
+        $organizationModels = [];
+        foreach ($organizations as $orgData) {
+            $org = Organization::firstOrCreate(
+                ['slug' => $orgData['slug']], // Use slug as unique identifier
+                $orgData
+            );
+            $organizationModels[] = $org;
+        }
+
+        // Create users WITHOUT organization_id
         $admin = User::firstOrCreate(
             ['email' => 'parasharregmi@gmail.com'],
             [
@@ -192,34 +196,37 @@ class DatabaseSeeder extends Seeder
             ]
         )->assignRole('student');
 
-        // Create organization-user relationships using sync to avoid duplicates
+        // Create organization-user relationships
         $admin->organizations()->sync([
-            $organizations[0]->id => ['role' => 'admin'],
-            $organizations[1]->id => ['role' => 'admin'],
-            $organizations[2]->id => ['role' => 'admin']
+            $organizationModels[0]->id => ['role' => 'admin'],
+            $organizationModels[1]->id => ['role' => 'admin'],
+            $organizationModels[2]->id => ['role' => 'admin']
         ]);
 
         $manager->organizations()->sync([
-            $organizations[0]->id => ['role' => 'manager'],
-            $organizations[1]->id => ['role' => 'manager']
+            $organizationModels[0]->id => ['role' => 'manager'],
+            $organizationModels[1]->id => ['role' => 'manager']
         ]);
 
         $student->organizations()->sync([
-            $organizations[0]->id => ['role' => 'student']
+            $organizationModels[0]->id => ['role' => 'student']
         ]);
 
-        // Run other seeders only if they exist
-        $seeders = [
-            'CollegeSeeder',
-            'CourseSeeder', 
-            'HostelSeeder',
-            'RoomSeeder',
-            'StudentSeeder',
-        ];
+        // ✅ **FIXED: Check if seeders exist before calling**
+        if ($this->shouldSeedWithData()) {
+            $seeders = [
+                'CollegeSeeder',
+                'CourseSeeder',
+                'HostelSeeder',
+                'RoomSeeder',
+                'StudentSeeder',
+            ];
 
-        foreach ($seeders as $seeder) {
-            if (class_exists("Database\\Seeders\\{$seeder}")) {
-                $this->call($seeder);
+            foreach ($seeders as $seeder) {
+                $seederClass = "Database\\Seeders\\{$seeder}";
+                if (class_exists($seederClass)) {
+                    $this->call($seederClass);
+                }
             }
         }
 
@@ -232,9 +239,25 @@ class DatabaseSeeder extends Seeder
         echo "\n\n🎉 DEFAULT LOGIN CREDENTIALS:\n";
         echo "==============================\n";
         echo "👑 Admin: parasharregmi@gmail.com / Himalayan@1980\n";
-        echo "👨‍💼 Manager: regmiashish629@gmail.com / Himalayan@1980\n"; 
+        echo "👨‍💼 Manager: regmiashish629@gmail.com / Himalayan@1980\n";
         echo "🎓 Student: shresthaxok@gmail.com / Himalayan@1980\n";
         echo "🧪 Test Student: student@hostelhub.com / password123\n";
         echo "==============================\n\n";
+    }
+
+    /**
+     * Determine if we should seed with sample data
+     * - Always seed in local/development
+     * - Only seed in production if explicitly allowed
+     */
+    private function shouldSeedWithData(): bool
+    {
+        // In local/development, always seed
+        if (app()->environment('local', 'development', 'testing')) {
+            return true;
+        }
+
+        // In production, only seed if explicitly allowed via env
+        return env('SEED_WITH_SAMPLE_DATA', false) === true;
     }
 }

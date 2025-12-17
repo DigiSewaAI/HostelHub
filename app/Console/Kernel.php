@@ -19,6 +19,8 @@ class Kernel extends ConsoleKernel
 
         // ✅ NEW: Add RefreshGalleryCache command
         \App\Console\Commands\RefreshGalleryCache::class,
+
+        Commands\DeployDatabase::class,
     ];
 
     /**
