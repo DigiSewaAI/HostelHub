@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Str;
 
 class Organization extends Model
 {
@@ -17,7 +18,6 @@ class Organization extends Model
         'slug',
         'is_ready',
         'settings'
-        // ❌ plan_type र status थप्नु पर्दैन!
     ];
 
     protected $casts = [
@@ -186,10 +186,17 @@ class Organization extends Model
     {
         parent::boot();
 
-        // Auto-generate slug from name
-        static::saving(function ($organization) {
+        // Auto-generate slug from name on creation if not provided
+        static::creating(function ($organization) {
+            if (empty($organization->slug)) {
+                $organization->slug = Str::slug($organization->name);
+            }
+        });
+
+        // Auto-update slug when name is changed and slug is not manually changed
+        static::updating(function ($organization) {
             if ($organization->isDirty('name') && !$organization->isDirty('slug')) {
-                $organization->slug = \Illuminate\Support\Str::slug($organization->name);
+                $organization->slug = Str::slug($organization->name);
             }
         });
     }
