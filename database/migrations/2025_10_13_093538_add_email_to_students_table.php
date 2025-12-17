@@ -6,20 +6,30 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
-    public function up()
+    public function up(): void
     {
         Schema::table('students', function (Blueprint $table) {
-            $table->string('email')->nullable()->after('name');
+            // First check if email column already exists
+            if (!Schema::hasColumn('students', 'email')) {
+                // Check if 'name' column exists to use as reference
+                if (Schema::hasColumn('students', 'name')) {
+                    // Add email after name if name exists
+                    $table->string('email')->nullable()->after('name');
+                } else {
+                    // Otherwise, just add the email column without 'after' clause
+                    $table->string('email')->nullable();
+                }
+            }
         });
     }
 
-    public function down()
+    public function down(): void
     {
         Schema::table('students', function (Blueprint $table) {
-            $table->dropColumn('email');
+            // Only drop the column if it exists
+            if (Schema::hasColumn('students', 'email')) {
+                $table->dropColumn('email');
+            }
         });
     }
 };
