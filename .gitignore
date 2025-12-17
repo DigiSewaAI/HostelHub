@@ -10,17 +10,20 @@
 .env.testing
 .env.staging
 
-# Laravel framework files
+# Laravel framework cache & storage
 bootstrap/cache/*
 !bootstrap/cache/.gitkeep
+
 storage/framework/cache/*
 !storage/framework/cache/.gitkeep
 storage/framework/sessions/*
 !storage/framework/sessions/.gitkeep
 storage/framework/views/*
 !storage/framework/views/.gitkeep
+
 storage/logs/*
 !storage/logs/.gitkeep
+
 storage/app/public/*
 !storage/app/public/.gitkeep
 
@@ -28,21 +31,30 @@ storage/app/public/*
 /vendor/
 composer.lock
 
-# Node.js dependencies
-/node_modules/
+# -------------------------------
+# Node.js & Frontend
+# -------------------------------
+
+# Node modules (NEVER commit)
+node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 package-lock.json
 yarn.lock
 
-# Build assets
-/public/build/
-/public/hot
-/public/storage
-/public/mix-manifest.json
 
-# Application key
+
+# Vite dev server file
+/public/hot
+
+# Old Laravel Mix (not used)
+public/mix-manifest.json
+
+# -------------------------------
+# Application Keys & Security
+# -------------------------------
+
 /storage/*.key
 /storage/pail
 
@@ -56,8 +68,6 @@ yarn.lock
 .LSOverride
 .Spotlight-V100
 .Trashes
-ehthumbs.db
-Thumbs.db
 
 # Windows
 Thumbs.db
@@ -74,102 +84,88 @@ $RECYCLE.BIN/
 # -------------------------------
 
 # PHPStorm
-/.idea/
+.idea/
 *.iws
 
 # VS Code
-/.vscode/
+.vscode/
 *.swp
 *.swo
 
 # Fleet
-/.fleet/
+.fleet/
 
 # Nova
-/.nova/
+.nova/
 
 # Zed
-/.zed/
-
-# PHPUnit
-/.phpunit.result.cache
-/.phpunit.cache
-
-# PHP Actor
-/.phpactor.json
+.zed/
 
 # -------------------------------
-# 🐳 Docker and Development
+# 🧪 Testing
 # -------------------------------
 
-# Docker
-docker-compose.override.yml
-.dockerignore
-
-# Homestead
-Homestead.json
-Homestead.yaml
-
-# Laravel Sail
-/.env.sail
-
-# -------------------------------
-# 📦 Package Manager Files
-# -------------------------------
-
-# Composer
-/auth.json
-
-# NPM
-/.npm
-/.node_repl_history
-
-# -------------------------------
-# 🧪 Testing and Temporary Files
-# -------------------------------
-
-# PHPUnit
+.phpunit.result.cache
+.phpunit.cache
 phpunit.xml
 
 # Laravel Dusk
 /database/database.sqlite
 /database/database.sqlite-journal
 
-# Temporary files
+# -------------------------------
+# 🐳 Docker & Dev Tools
+# -------------------------------
+
+docker-compose.override.yml
+.dockerignore
+Homestead.json
+Homestead.yaml
+.env.sail
+
+# -------------------------------
+# 📦 Package Manager Auth
+# -------------------------------
+
+auth.json
+.npm
+.node_repl_history
+
+# -------------------------------
+# 🧪 Temporary / Cache
+# -------------------------------
+
 *.tmp
 *.temp
 .cache/
 
 # -------------------------------
-# 🔐 Security and Sensitive Files
+# 🔐 Security & Backups
 # -------------------------------
 
-# SSL certificates
 *.pem
 *.crt
 *.key
-
-# Backups
 *.backup
 *.bak
 
 # -------------------------------
-# 📝 Custom Rules for HostelHub
+# 📝 HostelHub Custom Rules
 # -------------------------------
 
-# Payment gateway test files
-/payment-logs/
-/test-transactions/
+payment-logs/
+test-transactions/
 
-# Uploaded files (if stored locally)
-/public/uploads/
-/storage/uploads/
+# Uploaded files (local only)
+public/uploads/
+storage/uploads/
 
-# Database dumps (if any)
+# Database dumps
 *.sql
 *.dump
 
-# Render specific (if any)
+# Railway / Render (optional)
 .render/
 
+# Extra safety
 /bootstrap/cache/*.php
