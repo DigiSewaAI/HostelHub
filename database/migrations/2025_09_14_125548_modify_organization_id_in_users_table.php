@@ -12,15 +12,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Step 1: Default organization सुनिश्चित गर्ने
-        if (!DB::table('organizations')->where('id', 1)->exists()) {
-            DB::table('organizations')->insert([
-                'id' => 1,
-                'name' => 'Default Organization',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-        }
+        // Step 1: Default organization ensure गर्ने
+        // if (!DB::table('organizations')->where('id', 1)->exists()) {
+        //     DB::table('organizations')->insert([
+        //         'id' => 1,
+        //         'name' => 'Default Organization',
+        //         'created_at' => now(),
+        //         'updated_at' => now(),
+        //     ]);
+        // }
 
         // Step 2: अहिले नै column छ कि छैन भनेर जाँच गर्ने
         if (!Schema::hasColumn('users', 'organization_id')) {
