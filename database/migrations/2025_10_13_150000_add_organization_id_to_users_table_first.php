@@ -9,71 +9,64 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // Step 1: Ensure organizations table has default organization
+        // Step 1: Ensure organizations table has default organization (handle slug safely)
         if (!DB::table('organizations')->where('id', 1)->exists()) {
-            DB::table('organizations')->insert([
+            // Check if organizations table has slug column
+            $hasSlug = false;
+            try {
+                $hasSlug = Schema::hasColumn('organizations', 'slug');
+            } catch (\Exception $e) {
+                // Table might not exist yet, that's okay
+            }
+
+            $orgData = [
                 'id' => 1,
                 'name' => 'Default Organization',
                 'created_at' => now(),
                 'updated_at' => now(),
-            ]);
+            ];
+
+            // Only add slug if the column exists
+            if ($hasSlug) {
+                $orgData['slug'] = 'default-organization';
+            }
+
+            DB::table('organizations')->insert($orgData);
         }
 
-        // Step 2: Add organization_id column if it doesn't exist
-        if (!Schema::hasColumn('users', 'organization_id')) {
+        // Step 2: Add organization_id to users if it doesn't exist
+        if (Schema::hasTable('users') && !Schema::hasColumn('users', 'organization_id')) {
             Schema::table('users', function (Blueprint $table) {
                 $table->unsignedBigInteger('organization_id')
-                    ->nullable()
+                    ->default(1)
                     ->after('id');
             });
 
-            // Set default value for existing users
-            DB::table('users')->update(['organization_id' => 1]);
+            // Step 3: Try to add foreign key (will fail gracefully if exists)
+            try {
+                Schema::table('users', function (Blueprint $table) {
+                    $table->foreign('organization_id')
+                        ->references('id')
+                        ->on('organizations')
+                        ->onDelete('cascade');
+                });
+            } catch (\Exception $e) {
+                // Foreign key might already exist, ignore
+            }
         }
-
-        // Step 3: Add foreign key constraint
-        Schema::table('users', function (Blueprint $table) {
-            // Check if foreign key already exists
-            $foreignKeys = DB::select("
-                SELECT CONSTRAINT_NAME 
-                FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE 
-                WHERE TABLE_SCHEMA = DATABASE() 
-                AND TABLE_NAME = 'users' 
-                AND COLUMN_NAME = 'organization_id' 
-                AND CONSTRAINT_NAME <> 'PRIMARY'
-                AND CONSTRAINT_TYPE = 'FOREIGN KEY'
-            ");
-
-            if (empty($foreignKeys)) {
-                $table->foreign('organization_id')
-                    ->references('id')
-                    ->on('organizations')
-                    ->onDelete('cascade');
-            }
-        });
-
-        // Step 4: Make the column NOT NULL
-        Schema::table('users', function (Blueprint $table) {
-            if (Schema::hasColumn('users', 'organization_id')) {
-                $table->unsignedBigInteger('organization_id')->nullable(false)->change();
-            }
-        });
     }
 
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            // Remove foreign key first
+        // Only remove foreign key if column exists
+        if (Schema::hasColumn('users', 'organization_id')) {
             try {
-                $table->dropForeign(['organization_id']);
+                Schema::table('users', function (Blueprint $table) {
+                    $table->dropForeign(['organization_id']);
+                });
             } catch (\Exception $e) {
                 // Ignore if foreign key doesn't exist
             }
-
-            // Remove column
-            if (Schema::hasColumn('users', 'organization_id')) {
-                $table->dropColumn('organization_id');
-            }
-        });
+        }
     }
 };
