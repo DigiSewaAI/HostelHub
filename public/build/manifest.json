@@ -1,0 +1,117 @@
+{
+  "_modern-theme.css": {
+    "file": "assets/modern-theme.css",
+    "src": "_modern-theme.css"
+  },
+  "resources/css/app.css": {
+    "file": "assets/app.css",
+    "src": "resources/css/app.css",
+    "isEntry": true,
+    "name": "app",
+    "names": [
+      "app.css"
+    ]
+  },
+  "resources/css/dashboard.css": {
+    "file": "assets/dashboard.css",
+    "src": "resources/css/dashboard.css",
+    "isEntry": true,
+    "name": "dashboard",
+    "names": [
+      "dashboard.css"
+    ]
+  },
+  "resources/css/gallery.css": {
+    "file": "assets/gallery.css",
+    "src": "resources/css/gallery.css",
+    "isEntry": true,
+    "name": "gallery",
+    "names": [
+      "gallery.css"
+    ]
+  },
+  "resources/css/home.css": {
+    "file": "assets/home.css",
+    "src": "resources/css/home.css",
+    "isEntry": true,
+    "name": "home",
+    "names": [
+      "home.css"
+    ]
+  },
+  "resources/css/hostelhub.css": {
+    "file": "assets/hostelhub.css",
+    "src": "resources/css/hostelhub.css",
+    "isEntry": true,
+    "name": "hostelhub",
+    "names": [
+      "hostelhub.css"
+    ]
+  },
+  "resources/css/public-themes.css": {
+    "file": "assets/public-themes.css",
+    "src": "resources/css/public-themes.css",
+    "isEntry": true,
+    "name": "public-themes",
+    "names": [
+      "public-themes.css"
+    ]
+  },
+  "resources/css/themes.css": {
+    "file": "assets/themes.css",
+    "src": "resources/css/themes.css",
+    "isEntry": true,
+    "name": "themes",
+    "names": [
+      "themes.css"
+    ]
+  },
+  "resources/css/themes/classic.css": {
+    "file": "assets/classic.css",
+    "src": "resources/css/themes/classic.css",
+    "isEntry": true,
+    "name": "classic",
+    "names": [
+      "classic.css"
+    ]
+  },
+  "resources/css/themes/modern.css": {
+    "file": "assets/modern.css",
+    "src": "resources/css/themes/modern.css",
+    "isEntry": true,
+    "name": "modern",
+    "names": [
+      "modern.css"
+    ]
+  },
+  "resources/js/app.js": {
+    "file": "assets/app2.js",
+    "name": "app",
+    "src": "resources/js/app.js",
+    "isEntry": true
+  },
+  "resources/js/gallery.js": {
+    "file": "assets/gallery2.js",
+    "name": "gallery",
+    "src": "resources/js/gallery.js",
+    "isEntry": true
+  },
+  "resources/js/home.js": {
+    "file": "assets/home2.js",
+    "name": "home",
+    "src": "resources/js/home.js",
+    "isEntry": true
+  },
+  "resources/js/themes/classic.js": {
+    "file": "assets/classic2.js",
+    "name": "classic",
+    "src": "resources/js/themes/classic.js",
+    "isEntry": true
+  },
+  "resources/js/themes/modern.js": {
+    "file": "assets/modern2.js",
+    "name": "modern",
+    "src": "resources/js/themes/modern.js",
+    "isEntry": true
+  }
+}
