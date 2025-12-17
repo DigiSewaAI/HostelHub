@@ -1,5 +1,0 @@
-[phps]
-version = "8.3"
-
-[build.php]
-extensions = ["bcmath", "gd", "pdo_mysql", "redis", "sodium", "zip"]
