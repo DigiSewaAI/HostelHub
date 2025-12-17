@@ -171,3 +171,5 @@ phpunit.xml
 
 # Render specific (if any)
 .render/
+
+/bootstrap/cache/*.php
