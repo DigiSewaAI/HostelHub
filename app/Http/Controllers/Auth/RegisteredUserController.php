@@ -38,6 +38,9 @@ class RegisteredUserController extends Controller
     public function store(Request $request): RedirectResponse
     {
         try {
+            // Set central database connection (Railway fix)
+            config(['database.default' => 'mysql']);
+
             $request->validate([
                 'name' => ['required', 'string', 'max:255'],
                 'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
@@ -56,6 +59,7 @@ class RegisteredUserController extends Controller
                     'name' => $request->name,
                     'password' => Hash::make($request->password),
                     'role_id' => 3, // Student role
+                    'email_verified_at' => now(), // ✅ Auto verify email (Temporary fix)
                 ]);
 
                 $user = $existingUser;
@@ -76,13 +80,14 @@ class RegisteredUserController extends Controller
                     $user->assignRole('student');
                 }
             } else {
-                // Create new student user
+                // Create new student user with auto-verified email
                 $user = User::create([
                     'name' => $request->name,
                     'email' => $request->email,
                     'password' => Hash::make($request->password),
                     'organization_id' => null, // Students don't have organization initially
                     'role_id' => 3, // Student role
+                    'email_verified_at' => now(), // ✅ Auto verify email (Temporary fix)
                 ]);
 
                 // ✅ Link to existing student record if found
@@ -100,20 +105,39 @@ class RegisteredUserController extends Controller
                 $user->assignRole('student');
             }
 
-            event(new Registered($user));
+            // ✅ COMMENTED OUT: Temporarily disable Registered event to avoid email verification issues
+            // event(new Registered($user));
 
             Auth::login($user);
+
+            Log::info('User registered successfully', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'hostel_id' => $user->hostel_id,
+                'is_student' => $user->isStudent()
+            ]);
 
             // ✅ FIXED: Simplified redirect logic - check only hostel_id for students
             if ($user->isStudent() && $user->hostel_id) {
                 // Student is connected to a hostel - redirect to dashboard
-                return redirect()->route('student.dashboard');
+                return redirect()->route('student.dashboard')
+                    ->with('success', 'Registration successful! Welcome to HostelHub.');
             } else {
                 // New student without hostel - redirect to setup/welcome page
-                return redirect()->route('student.welcome');
+                return redirect()->route('student.welcome')
+                    ->with('success', 'Registration successful! Please complete your profile.');
             }
         } catch (\Exception $e) {
             Log::error('Student registration error: ' . $e->getMessage());
+            Log::error('Registration error trace: ' . $e->getTraceAsString());
+
+            // Check if it's a database connection error
+            if (str_contains($e->getMessage(), 'SQLSTATE')) {
+                return back()->withInput()
+                    ->withErrors([
+                        'error' => 'Database connection issue. Please try again or contact support.'
+                    ]);
+            }
 
             return back()->withInput()
                 ->withErrors(['error' => 'Registration failed. Please try again.']);

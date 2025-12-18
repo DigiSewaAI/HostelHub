@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'default' => env('FILESYSTEM_DISK', 'local'),
+    'default' => env('FILESYSTEM_DISK', 'public'), // Changed from 'local' to env('FILESYSTEM_DISK', 'public')
 
     /*
     |--------------------------------------------------------------------------
@@ -32,7 +32,7 @@ return [
 
         'local' => [
             'driver' => 'local',
-            'root' => storage_path('app/private'),
+            'root' => storage_path('app'), // Updated root path
             'serve' => true,
             'throw' => false,
         ],
@@ -40,6 +40,14 @@ return [
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
+            'url' => env('APP_URL', 'http://localhost:8000') . '/storage', // Added url for proper asset links
+            'visibility' => 'public',
+        ],
+
+        // Railway को लागि special disk (Newly Added)
+        'railway' => [
+            'driver' => 'local',
+            'root' => public_path('storage'),
             'url' => env('APP_URL') . '/storage',
             'visibility' => 'public',
         ],
