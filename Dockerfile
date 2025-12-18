@@ -1,19 +1,14 @@
-FROM php:8.3-apache-bookworm
+FROM php:8.3-cli
 
-# System deps
+# Install system deps
 RUN apt-get update && apt-get install -y \
     git curl unzip zip \
     libpng-dev libjpeg-dev libfreetype6-dev \
-    libzip-dev libonig-dev libpq-dev \
+    libzip-dev libonig-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install \
         bcmath gd pdo_mysql mbstring zip exif pcntl \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# Apache config
-RUN a2enmod rewrite
-RUN sed -ri 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/*.conf
-RUN sed -ri 's!/var/www/!/var/www/html/public!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
 WORKDIR /var/www/html
 
@@ -23,23 +18,13 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 # App files
 COPY . .
 
-# 🔥 CRITICAL: Laravel required dirs
-RUN mkdir -p \
-    bootstrap/cache \
-    storage/framework/cache \
-    storage/framework/sessions \
-    storage/framework/views
+# Laravel dirs
+RUN mkdir -p bootstrap/cache storage/framework/{sessions,views,cache} \
+    && chmod -R 775 bootstrap/cache storage
 
-# Permissions
-RUN chown -R www-data:www-data storage bootstrap/cache \
-    && chmod -R 775 storage bootstrap/cache
-
-# Install deps WITHOUT scripts
-RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
+# Install deps
+RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 EXPOSE 8080
 
-# 🚀 CLEAN START (NO artisan here)
-CMD sed -i "s/Listen 80/Listen ${PORT:-8080}/g" /etc/apache2/ports.conf \
- && sed -i "s/:80/:${PORT:-8080}/g" /etc/apache2/sites-enabled/*.conf \
- && apache2-foreground
+CMD php artisan serve --host=0.0.0.0 --port=${PORT}
