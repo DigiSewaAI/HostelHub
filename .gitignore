@@ -24,8 +24,13 @@ storage/framework/views/*
 storage/logs/*
 !storage/logs/.gitkeep
 
+# 🔴 IMPORTANT CHANGE: Step 1.1 मा भने अनुसार
 storage/app/public/*
 !storage/app/public/.gitkeep
+/storage/app/public/.gitignore
+/public/storage/.gitignore
+/public/storage/*
+!/public/storage/.gitkeep
 
 # Composer dependencies
 /vendor/
@@ -43,13 +48,11 @@ yarn-error.log*
 package-lock.json
 yarn.lock
 
-
-
 # Vite dev server file
 /public/hot
 
 # Old Laravel Mix (not used)
-public/mix-manifest.json
+/public/mix-manifest.json
 
 # -------------------------------
 # Application Keys & Security
@@ -156,9 +159,9 @@ auth.json
 payment-logs/
 test-transactions/
 
-# Uploaded files (local only)
-public/uploads/
-storage/uploads/
+# Uploaded files (local only) - Step 1.1 मा भने अनुसार हटाउने
+# public/uploads/  # 🔴 यो लाइन हटाउनुस् - किनभने public/storage/* ले पहिले नै ignore गरिसकेको छ
+# storage/uploads/ # 🔴 यो लाइन हटाउनुस् - किनभने storage/app/public/* ले पहिले नै ignore गरिसकेको छ
 
 # Database dumps
 *.sql
