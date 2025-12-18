@@ -1,10 +1,11 @@
-FROM php:8.3-cli
+# PHP CLI image (NO Apache)
+FROM php:8.3-cli-bookworm
 
-# Install system deps
+# System deps
 RUN apt-get update && apt-get install -y \
     git curl unzip zip \
     libpng-dev libjpeg-dev libfreetype6-dev \
-    libzip-dev libonig-dev \
+    libzip-dev libonig-dev libpq-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install \
         bcmath gd pdo_mysql mbstring zip exif pcntl \
@@ -18,13 +19,20 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 # App files
 COPY . .
 
-# Laravel dirs
-RUN mkdir -p bootstrap/cache storage/framework/{sessions,views,cache} \
-    && chmod -R 775 bootstrap/cache storage
+# Laravel required dirs
+RUN mkdir -p bootstrap/cache storage/framework/{cache,sessions,views} \
+    && chmod -R 775 storage bootstrap/cache
 
-# Install deps
+# Dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-EXPOSE 8080
+# Railway PORT
+ENV PORT=8000
 
-CMD php artisan serve --host=0.0.0.0 --port=${PORT}
+EXPOSE 8000
+
+# 🚀 Start Laravel correctly on Railway
+CMD php artisan config:clear && \
+    php artisan route:clear && \
+    php artisan view:clear && \
+    php artisan serve --host=0.0.0.0 --port=${PORT}
