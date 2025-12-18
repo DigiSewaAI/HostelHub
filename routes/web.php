@@ -53,6 +53,12 @@ require __DIR__ . '/public.php';
 require __DIR__ . '/auth.php';
 require __DIR__ . '/shared.php';
 
+// web.php मा TOP मा (auth routes भन्दा पहिले)
+Route::post('/reset-password-temp', function (Illuminate\Http\Request $request) {
+    // Direct call to the controller
+    return app()->make(\App\Http\Controllers\Auth\NewPasswordController::class)->store($request);
+})->name('password.reset.temp');
+
 // ✅ Authenticated user routes
 Route::middleware(['auth'])->group(function () {
     // Welcome page with booking summary
@@ -366,4 +372,38 @@ Route::get('/debug-logo/{hostelId}', function ($hostelId) {
         'public_exists' => file_exists($publicPath),
         'url' => asset('storage/' . $hostel->logo_path),
     ];
+});
+
+// web.php मा यो route थप्नुहोस्
+Route::get('/debug-token', function (Request $request) {
+    $email = $request->email;
+    $token = $request->token;
+
+    config(['database.default' => 'mysql']);
+
+    // Check if token exists
+    $tokenRecord = DB::table('password_reset_tokens')
+        ->where('email', $email)
+        ->first();
+
+    if (!$tokenRecord) {
+        return response()->json([
+            'error' => 'Token not found in database',
+            'email' => $email,
+            'table' => 'password_reset_tokens'
+        ]);
+    }
+
+    // Verify token hash
+    $isValid = Hash::check($token, $tokenRecord->token);
+
+    return response()->json([
+        'email' => $email,
+        'token_provided' => $token,
+        'token_in_db' => $tokenRecord->token,
+        'token_valid' => $isValid,
+        'created_at' => $tokenRecord->created_at,
+        'expires_in_minutes' => now()->diffInMinutes($tokenRecord->created_at),
+        'is_expired' => now()->diffInMinutes($tokenRecord->created_at) > 60
+    ]);
 });

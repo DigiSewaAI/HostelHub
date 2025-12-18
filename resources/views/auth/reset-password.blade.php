@@ -7,75 +7,59 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-gray-100">
-    <div class="min-h-screen flex items-center justify-center">
-        <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-            <h2 class="text-2xl font-bold mb-6 text-center">Reset Password</h2>
+<div class="min-h-screen flex items-center justify-center">
+    <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+        <h2 class="text-2xl font-bold mb-6 text-center">Reset Password</h2>
 
-            @if ($errors->any())
-                <div class="mb-4 p-3 bg-red-100 text-red-700 rounded">
-                    <ul>
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
+        @if ($errors->any())
+            <div class="mb-4 p-3 bg-red-100 text-red-700 rounded">
+                <ul>
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
 
-            <form method="POST" action="{{ route('password.update') }}">
-                @csrf
-                <input type="hidden" name="token" value="{{ $token }}">
+        <!-- ✅ CORRECT ROUTE + METHOD -->
+        <form method="POST" action="{{ route('password.reset.store') }}">
+    @csrf
 
-                <div class="mb-4">
-                    <label for="email" class="block text-gray-700 mb-2">Email Address</label>
-                    <input
-                        type="email"
-                        name="email"
-                        id="email"
-                        value="{{ $email ?? old('email') }}"
-                        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        required
-                        readonly
-                    >
-                    @error('email')
-                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
+    <input type="hidden" name="token" value="{{ $token }}">
+    <input type="hidden" name="email" value="{{ $email ?? old('email') }}">
 
-                <div class="mb-4">
-                    <label for="password" class="block text-gray-700 mb-2">New Password</label>
-                    <input
-                        type="password"
-                        name="password"
-                        id="password"
-                        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        required
-                        autocomplete="new-password"
-                        autofocus
-                    >
-                    @error('password')
-                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div class="mb-6">
-                    <label for="password_confirmation" class="block text-gray-700 mb-2">Confirm Password</label>
-                    <input
-                        type="password"
-                        name="password_confirmation"
-                        id="password_confirmation"
-                        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        required
-                        autocomplete="new-password"
-                    >
-                </div>
-
-                <div class="mb-4">
-                    <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition">
-                        Reset Password
-                    </button>
-                </div>
-            </form>
-        </div>
+    <div class="mb-4">
+        <label>Email</label>
+        <input type="email"
+               value="{{ $email ?? old('email') }}"
+               readonly
+               class="w-full px-4 py-2 border bg-gray-100">
     </div>
+
+    <div class="mb-4">
+        <label>New Password</label>
+        <input type="password" name="password" required class="w-full px-4 py-2 border">
+    </div>
+
+    <div class="mb-6">
+        <label>Confirm Password</label>
+        <input type="password" name="password_confirmation" required class="w-full px-4 py-2 border">
+    </div>
+
+    <button type="submit"
+            class="w-full bg-blue-600 text-white py-2 rounded">
+        Reset Password
+    </button>
+</form>
+
+
+        <!-- Optional debug (remove in production) -->
+        <div class="mt-4 p-2 bg-gray-100 text-xs text-gray-600 rounded">
+            <p>Token: {{ isset($token) ? substr($token, 0, 20).'...' : 'N/A' }}</p>
+            <p>Email: {{ $email ?? 'N/A' }}</p>
+        </div>
+
+    </div>
+</div>
 </body>
 </html>
