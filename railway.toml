@@ -1,18 +1,17 @@
 [build]
 builder = "nixpacks"
-builderConfig = { 
-    "buildCommand": "composer install --no-dev --optimize-autoloader && npm ci && npm run build", 
-    "startCommand": "./safe_deploy.sh" 
-}
+
+[build.builderConfig]
+buildCommand = "composer install --no-dev --optimize-autoloader && npm ci && npm run build"
 
 [deploy]
+startCommand = "bash safe_deploy.sh"
 healthcheckPath = "/"
 healthcheckTimeout = 100
 
 [[services]]
 name = "hostelhub-nepal"
 runtime = "heroku-22"
-startCommand = "bash safe_deploy.sh"
 memory = 1024
 disk = 2048
 
