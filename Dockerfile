@@ -20,20 +20,26 @@ WORKDIR /var/www/html
 # Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# App code
+# App files
 COPY . .
 
-# 🔥 CRITICAL: move Laravel runtime storage to /tmp
-RUN rm -rf storage/framework && \
-    mkdir -p /tmp/framework/{cache,views,sessions} && \
-    ln -s /tmp/framework storage/framework && \
-    chown -R www-data:www-data storage /tmp
+# 🔥 CRITICAL: Laravel required dirs
+RUN mkdir -p \
+    bootstrap/cache \
+    storage/framework/cache \
+    storage/framework/sessions \
+    storage/framework/views
 
-# Install deps
+# Permissions
+RUN chown -R www-data:www-data storage bootstrap/cache \
+    && chmod -R 775 storage bootstrap/cache
+
+# Install deps WITHOUT scripts
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
 EXPOSE 8080
 
-CMD sed -i "s/Listen 80/Listen ${PORT:-8080}/g" /etc/apache2/ports.conf && \
-    sed -i "s/:80/:${PORT:-8080}/g" /etc/apache2/sites-enabled/*.conf && \
-    apache2-foreground
+# 🚀 CLEAN START (NO artisan here)
+CMD sed -i "s/Listen 80/Listen ${PORT:-8080}/g" /etc/apache2/ports.conf \
+ && sed -i "s/:80/:${PORT:-8080}/g" /etc/apache2/sites-enabled/*.conf \
+ && apache2-foreground
