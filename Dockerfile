@@ -32,7 +32,6 @@ RUN chmod -R 775 storage bootstrap/cache
 
 # 7. Install PHP dependencies (excluding dev dependencies)
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
-RUN php artisan optimize:clear
 
 # 8. The port Railway will use internally
 EXPOSE 8080
