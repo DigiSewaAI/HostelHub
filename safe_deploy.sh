@@ -11,7 +11,8 @@ folders=("classic_optimized" "dark_optimized" "documents" "galleries" "gallery" 
 for folder in "${folders[@]}"; do
     if [ -d "storage/app/public/$folder" ]; then
         echo "  Copying: $folder"
-        cp -r "storage/app/public/$folder" "public/storage/" 2>/dev/null || :
+        mkdir -p "public/storage/$folder"
+        cp -r "storage/app/public/$folder/"* "public/storage/$folder/" 2>/dev/null || :
     fi
 done
 
@@ -25,5 +26,9 @@ php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 
-# 5. Start server
-php artisan serve --host=0.0.0.0 --port=${PORT:-8000}
+# 5. Start Apache server (Railway uses PORT environment variable)
+echo "Starting Apache server on port ${PORT:-8080}..."
+# Configure Apache to use Railway's PORT
+sed -i "s/Listen 8080/Listen ${PORT:-8080}/g" /etc/apache2/ports.conf
+sed -i "s/:8080/:${PORT:-8080}/g" /etc/apache2/sites-enabled/*.conf
+exec apache2-foreground
