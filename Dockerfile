@@ -36,8 +36,11 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction --no-script
 # 8. The port Railway will use internally
 EXPOSE 8080
 
-# 9. FIX: बिना कुनै Laravel command को Apache मात्र सुरु गर्ने
-CMD mkdir -p bootstrap/cache && chmod 775 bootstrap/cache && \
+# 9. FIX: Ensure everything works in Railway without breaking local
+CMD mkdir -p bootstrap/cache && \
+    chown -R www-data:www-data /var/www/html && \
+    chmod -R 775 bootstrap/cache storage && \
+    php artisan package:discover --quiet && \
     sed -i "s/Listen 80/Listen ${PORT:-8080}/g" /etc/apache2/ports.conf && \
     sed -i "s/:80/:${PORT:-8080}/g" /etc/apache2/sites-enabled/*.conf && \
     apache2-foreground
