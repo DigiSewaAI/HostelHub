@@ -407,3 +407,49 @@ Route::get('/debug-token', function (Request $request) {
         'is_expired' => now()->diffInMinutes($tokenRecord->created_at) > 60
     ]);
 });
+
+// Debug route for Railway
+Route::get('/debug-env', function () {
+    return [
+        'app_env' => config('app.env'),
+        'app_debug' => config('app.debug'),
+        'app_url' => config('app.url'),
+        'db_connection' => config('database.default'),
+        'db_host' => config('database.connections.mysql.host'),
+        'db_database' => config('database.connections.mysql.database'),
+        'mail_mailer' => config('mail.default'),
+        'mail_host' => config('mail.mailers.smtp.host'),
+        'mail_port' => config('mail.mailers.smtp.port'),
+        'mail_username' => config('mail.mailers.smtp.username'),
+        'mail_password_set' => !empty(config('mail.mailers.smtp.password')),
+        'filesystem_disk' => config('filesystems.default'),
+        'storage_url' => Storage::disk('public')->url('test'),
+    ];
+});
+
+// Test registration without email verification
+Route::get('/test-register/{email}/{password}', function ($email, $password) {
+    try {
+        $user = \App\Models\User::create([
+            'name' => 'Test User',
+            'email' => $email,
+            'password' => \Illuminate\Support\Facades\Hash::make($password),
+            'email_verified_at' => now(),
+        ]);
+
+        $user->assignRole('student');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'User created successfully',
+            'user_id' => $user->id,
+            'email' => $user->email
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ], 500);
+    }
+});
