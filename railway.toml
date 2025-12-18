@@ -1,8 +1,5 @@
 [build]
-builder = "nixpacks"
-
-[build.builderConfig]
-buildCommand = "composer install --no-dev --optimize-autoloader && npm ci && npm run build"
+builder = "dockerfile"
 
 [deploy]
 startCommand = "bash safe_deploy.sh"

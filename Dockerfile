@@ -28,6 +28,9 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www/html
 COPY . .
 
+# Make deployment script executable
+RUN chmod +x safe_deploy.sh
+
 # Laravel permissions
 RUN mkdir -p bootstrap/cache \
     storage/framework/cache \
@@ -45,4 +48,5 @@ RUN COMPOSER_ALLOW_SUPERUSER=1 composer install \
 
 EXPOSE 8080
 
-CMD ["apache2-foreground"]
+# ✅ FIX: Run the deployment script instead of direct Apache
+CMD ["bash", "safe_deploy.sh"]
