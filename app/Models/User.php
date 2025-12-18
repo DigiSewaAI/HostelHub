@@ -16,6 +16,9 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable, HasRoles;
 
+    // 🔥 CRITICAL: Explicitly set central DB connection
+    protected $connection = 'mysql';
+
     protected $fillable = [
         'name',
         'email',
