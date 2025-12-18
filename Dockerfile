@@ -31,12 +31,15 @@ RUN chown -R www-data:www-data storage bootstrap/cache
 RUN chmod -R 775 storage bootstrap/cache
 
 # 7. Install PHP dependencies (excluding dev dependencies)
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
+RUN php artisan optimize:clear
 
 # 8. The port Railway will use internally
 EXPOSE 8080
 
-# 9. Command to start Apache, configured for Railway's dynamic port
-CMD sed -i "s/Listen 80/Listen ${PORT:-8080}/g" /etc/apache2/ports.conf && \
+CMD php artisan config:cache && \
+    php artisan route:cache && \
+    php artisan view:cache && \
+    sed -i "s/Listen 80/Listen ${PORT:-8080}/g" /etc/apache2/ports.conf && \
     sed -i "s/:80/:${PORT:-8080}/g" /etc/apache2/sites-available/*.conf && \
     apache2-foreground
