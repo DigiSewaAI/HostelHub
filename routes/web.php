@@ -454,8 +454,13 @@ Route::get('/test-register/{email}/{password}', function ($email, $password) {
     }
 });
 
-// Health check route for Railway
+// ✅ FIX: Main homepage (HTML response) - THIS FIXES THE 502 ERROR
 Route::get('/', function () {
+    return 'HostelHub - Your Perfect Student Accommodation Platform';
+});
+
+// ✅ Health check for Railway / monitoring (separate route)
+Route::get('/health', function () {
     return response()->json([
         'status' => 'healthy',
         'message' => 'HostelHub is running',
