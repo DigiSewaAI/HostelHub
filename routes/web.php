@@ -453,3 +453,13 @@ Route::get('/test-register/{email}/{password}', function ($email, $password) {
         ], 500);
     }
 });
+
+// Health check route for Railway
+Route::get('/', function () {
+    return response()->json([
+        'status' => 'healthy',
+        'message' => 'HostelHub is running',
+        'timestamp' => now(),
+        'version' => '1.0.0'
+    ]);
+});
