@@ -17,7 +17,7 @@ RUN a2enmod mpm_prefork
 
 # Force single MPM (FIXED SYNTAX)
 RUN echo "LoadModule mpm_prefork_module /usr/lib/apache2/modules/mod_mpm_prefork.so" > /etc/apache2/mods-enabled/mpm.load
-RUN echo -e '<IfModule mpm_prefork_module>\n    StartServers            5\n    MinSpareServers         5\n    MaxSpareServers        10\n    MaxRequestWorkers      150\n    MaxConnectionsPerChild   0\n</IfModule>' > /etc/apache2/mods-enabled/mpm.conf
+RUN printf '<IfModule mpm_prefork_module>\n    StartServers            5\n    MinSpareServers         5\n    MaxSpareServers        10\n    MaxRequestWorkers      150\n    MaxConnectionsPerChild   0\n</IfModule>\n' > /etc/apache2/mods-enabled/mpm.conf
 
 # 3️⃣ Laravel public directory
 RUN sed -ri 's!/var/www/html!/var/www/html/public!g' \
