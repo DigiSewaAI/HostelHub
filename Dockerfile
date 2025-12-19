@@ -10,16 +10,22 @@ RUN apt-get update && apt-get install -y \
         bcmath gd pdo_mysql mbstring zip exif pcntl \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# 2️⃣ Apache config - FIX MPM DURING BUILD
+# 2️⃣ Apache config - FIX MPM
 RUN a2enmod rewrite
 RUN a2dismod mpm_event mpm_worker
 RUN a2enmod mpm_prefork
 
-# 3️⃣ Force single MPM by editing config directly
+# Force single MPM
 RUN echo "LoadModule mpm_prefork_module /usr/lib/apache2/modules/mod_mpm_prefork.so" > /etc/apache2/mods-enabled/mpm.load
-RUN echo "<IfModule mpm_prefork_module>\n    StartServers            5\n    MinSpareServers         5\n    MaxSpareServers        10\n    MaxRequestWorkers      150\n    MaxConnectionsPerChild   0\n</IfModule>" > /etc/apache2/mods-enabled/mpm.conf
+RUN echo "<IfModule mpm_prefork_module>
+    StartServers            5
+    MinSpareServers         5
+    MaxSpareServers        10
+    MaxRequestWorkers      150
+    MaxConnectionsPerChild   0
+</IfModule>" > /etc/apache2/mods-enabled/mpm.conf
 
-# 4️⃣ Laravel public directory
+# 3️⃣ Laravel public directory
 RUN sed -ri 's!/var/www/html!/var/www/html/public!g' \
     /etc/apache2/sites-available/*.conf
 
@@ -27,46 +33,55 @@ RUN sed -ri 's!/var/www/!/var/www/html/public!g' \
     /etc/apache2/apache2.conf \
     /etc/apache2/conf-available/*.conf
 
-# 5️⃣ Set port to 8080 for Railway
+# 4️⃣ Set port to 8080 for Railway
 RUN sed -ri 's/Listen 80/Listen 8080/g' /etc/apache2/ports.conf
 
-# 6️⃣ Workdir
+# 5️⃣ Workdir
 WORKDIR /var/www/html
 
-# 7️⃣ Composer
+# 6️⃣ Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# 8️⃣ Copy package files first for better caching
+# 7️⃣ TEMPORARY: Create dummy artisan file for composer install
+RUN touch artisan && echo "<?php echo 'Dummy artisan';" > artisan
+
+# 8️⃣ Copy package files for caching
 COPY composer.json composer.lock ./
 
-# 9️⃣ Install dependencies
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+# 9️⃣ Install dependencies WITH NO SCRIPTS
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
-# 🔟 Copy the rest of the app
+# 🔟 Remove dummy artisan
+RUN rm -f artisan
+
+# 1️⃣1️⃣ Copy ALL application files
 COPY . .
 
-# 1️⃣1️⃣ Fix permissions
+# 1️⃣2️⃣ Fix permissions
 RUN mkdir -p bootstrap/cache storage/framework/sessions storage/framework/views storage/framework/cache \
     && chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
-# 1️⃣2️⃣ Create .env with APP_KEY during build
-RUN touch .env && \
-    echo "APP_NAME=HostelHub" >> .env && \
-    echo "APP_ENV=production" >> .env && \
-    echo "APP_DEBUG=false" >> .env && \
-    echo "APP_KEY=base64:$(openssl rand -base64 32)" >> .env && \
-    echo "APP_URL=http://localhost" >> .env
+# 1️⃣3️⃣ Run package discover manually
+RUN php artisan package:discover --no-interaction || echo "Package discovery warning"
 
-# 1️⃣3️⃣ Copy and setup scripts
+# 1️⃣4️⃣ Create .env with APP_KEY
+RUN touch .env
+RUN echo "APP_NAME=HostelHub" >> .env
+RUN echo "APP_ENV=production" >> .env
+RUN echo "APP_DEBUG=false" >> .env
+RUN echo "APP_KEY=base64:$(openssl rand -base64 32)" >> .env
+RUN echo "APP_URL=http://localhost" >> .env
+
+# 1️⃣5️⃣ Copy deployment scripts
 COPY safe_deploy.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/safe_deploy.sh
 
 COPY docker-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
-# 1️⃣4️⃣ Expose Railway port
+# 1️⃣6️⃣ Expose port
 EXPOSE 8080
 
-# 1️⃣5️⃣ Start with entrypoint
+# 1️⃣7️⃣ Start with entrypoint
 CMD ["/usr/local/bin/docker-entrypoint.sh"]
