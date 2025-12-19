@@ -10,20 +10,19 @@ RUN apt-get update && apt-get install -y \
         bcmath gd pdo_mysql mbstring zip exif pcntl \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# 2️⃣ Apache config (rewrite + Laravel public)
+# 2️⃣ Apache config
 RUN a2enmod rewrite
 
-# DocumentRoot → /public
+# Laravel public directory
 RUN sed -ri 's!/var/www/html!/var/www/html/public!g' \
     /etc/apache2/sites-available/*.conf
 
-# Apache main config fix
 RUN sed -ri 's!/var/www/!/var/www/html/public!g' \
     /etc/apache2/apache2.conf \
     /etc/apache2/conf-available/*.conf
 
-# 🔥 IMPORTANT: Apache listen on Railway PORT
-RUN sed -ri 's/Listen 80/Listen ${PORT}/g' /etc/apache2/ports.conf
+# 🔥 FIXED PORT — NO VARIABLES
+RUN sed -ri 's/Listen 80/Listen 8080/g' /etc/apache2/ports.conf
 
 # 3️⃣ Workdir
 WORKDIR /var/www/html
@@ -34,15 +33,15 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 # 5️⃣ App files
 COPY . .
 
-# 6️⃣ Laravel dirs + permissions
+# 6️⃣ Permissions
 RUN mkdir -p bootstrap/cache storage/framework/sessions storage/framework/views storage/framework/cache \
     && chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
-# 7️⃣ Install PHP dependencies
+# 7️⃣ Install deps
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-# 8️⃣ Expose Railway port (safe practice)
+# 8️⃣ Expose fixed port
 EXPOSE 8080
 
 # 9️⃣ Start Apache
