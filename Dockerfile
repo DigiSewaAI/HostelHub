@@ -22,10 +22,11 @@ RUN echo '<Directory /var/www/html>' >> /etc/apache2/apache2.conf && \
     echo '    Require all granted' >> /etc/apache2/apache2.conf && \
     echo '</Directory>' >> /etc/apache2/apache2.conf
 
-# 2.2️⃣ Create health check endpoint
-RUN echo '<?php' > /var/www/html/health.php && \
-    echo 'http_response_code(200);' >> /var/www/html/health.php && \
-    echo 'echo "OK";' >> /var/www/html/health.php
+# Health check endpoint Laravel को public folder मा बनाउने
+RUN echo '<?php' > /var/www/html/public/health.php && \
+    echo 'http_response_code(200);' >> /var/www/html/public/health.php && \
+    echo 'header("Content-Type: text/plain");' >> /var/www/html/public/health.php && \
+    echo 'echo "OK";' >> /var/www/html/public/health.php
 
 # 3️⃣ MPM configuration
 RUN printf '<IfModule mpm_prefork_module>\n    StartServers            5\n    MinSpareServers         5\n    MaxSpareServers        10\n    MaxRequestWorkers      150\n    MaxConnectionsPerChild   0\n</IfModule>\n' > /etc/apache2/mods-enabled/mpm.conf
