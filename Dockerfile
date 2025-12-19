@@ -10,11 +10,22 @@ RUN apt-get update && apt-get install -y \
         bcmath gd pdo_mysql mbstring zip exif pcntl \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# 2️⃣ Apache config - MPM FIX (यो SIMPLE तरिका)
-# पुरानो code हटाउनुहोस्, यो नयाँ code राख्नुहोस्:
+# 2️⃣ Apache config - MPM FIX
 RUN a2dismod mpm_event mpm_worker 2>/dev/null || true && \
     a2enmod mpm_prefork && \
     a2enmod rewrite
+
+# 2.1️⃣ Create custom Apache config for health check
+RUN echo '<Directory /var/www/html>' >> /etc/apache2/apache2.conf && \
+    echo '    Options Indexes FollowSymLinks' >> /etc/apache2/apache2.conf && \
+    echo '    AllowOverride All' >> /etc/apache2/apache2.conf && \
+    echo '    Require all granted' >> /etc/apache2/apache2.conf && \
+    echo '</Directory>' >> /etc/apache2/apache2.conf
+
+# 2.2️⃣ Create health check endpoint
+RUN echo '<?php' > /var/www/html/health.php && \
+    echo 'http_response_code(200);' >> /var/www/html/health.php && \
+    echo 'echo "OK";' >> /var/www/html/health.php
 
 # 3️⃣ MPM configuration
 RUN printf '<IfModule mpm_prefork_module>\n    StartServers            5\n    MinSpareServers         5\n    MaxSpareServers        10\n    MaxRequestWorkers      150\n    MaxConnectionsPerChild   0\n</IfModule>\n' > /etc/apache2/mods-enabled/mpm.conf
@@ -27,7 +38,7 @@ RUN sed -ri 's!/var/www/!/var/www/html/public!g' \
     /etc/apache2/apache2.conf \
     /etc/apache2/conf-available/*.conf
 
-# 5️⃣ Set port to 8080 for Railway (यो राख्नुहोस्, entrypoint मा override हुनेछ)
+# 5️⃣ Set port to 8080 for Railway
 RUN sed -ri 's/Listen 80/Listen 8080/g' /etc/apache2/ports.conf
 
 # 6️⃣ Workdir
