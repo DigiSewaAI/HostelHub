@@ -10,20 +10,16 @@ RUN apt-get update && apt-get install -y \
         bcmath gd pdo_mysql mbstring zip exif pcntl \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# 2️⃣ Apache config - FIX MPM
-RUN a2enmod rewrite
-#RUN a2dismod mpm_event mpm_worker
-#RUN a2enmod mpm_prefork
+# 2️⃣ Apache config - MPM FIX (यो SIMPLE तरिका)
+# पुरानो code हटाउनुहोस्, यो नयाँ code राख्नुहोस्:
+RUN a2dismod mpm_event mpm_worker 2>/dev/null || true && \
+    a2enmod mpm_prefork && \
+    a2enmod rewrite
 
-# यसको सट्टा यो SIMPLE लाइन मात्र राख्नुहोस्:
-RUN a2dismod mpm_event mpm_worker && a2enmod mpm_prefork
-
-
-# Force single MPM (FIXED SYNTAX)
-#RUN echo "LoadModule mpm_prefork_module /usr/lib/apache2/modules/mod_mpm_prefork.so" > /etc/apache2/mods-enabled/mpm.load
+# 3️⃣ MPM configuration
 RUN printf '<IfModule mpm_prefork_module>\n    StartServers            5\n    MinSpareServers         5\n    MaxSpareServers        10\n    MaxRequestWorkers      150\n    MaxConnectionsPerChild   0\n</IfModule>\n' > /etc/apache2/mods-enabled/mpm.conf
 
-# 3️⃣ Laravel public directory
+# 4️⃣ Laravel public directory को लागि Apache configuration
 RUN sed -ri 's!/var/www/html!/var/www/html/public!g' \
     /etc/apache2/sites-available/*.conf
 
@@ -31,39 +27,39 @@ RUN sed -ri 's!/var/www/!/var/www/html/public!g' \
     /etc/apache2/apache2.conf \
     /etc/apache2/conf-available/*.conf
 
-# 4️⃣ Set port to 8080 for Railway
+# 5️⃣ Set port to 8080 for Railway (यो राख्नुहोस्, entrypoint मा override हुनेछ)
 RUN sed -ri 's/Listen 80/Listen 8080/g' /etc/apache2/ports.conf
 
-# 5️⃣ Workdir
+# 6️⃣ Workdir
 WORKDIR /var/www/html
 
-# 6️⃣ Composer
+# 7️⃣ Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# 7️⃣ TEMPORARY: Create dummy artisan file for composer install
+# 8️⃣ TEMPORARY: Create dummy artisan file for composer install
 RUN touch artisan && echo "<?php echo 'Dummy artisan';" > artisan
 
-# 8️⃣ Copy package files for caching
+# 9️⃣ Copy package files for caching
 COPY composer.json composer.lock ./
 
-# 9️⃣ Install dependencies WITH NO SCRIPTS
+# 🔟 Install dependencies WITH NO SCRIPTS
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
-# 🔟 Remove dummy artisan
+# 1️⃣1️⃣ Remove dummy artisan
 RUN rm -f artisan
 
-# 1️⃣1️⃣ Copy ALL application files
+# 1️⃣2️⃣ Copy ALL application files
 COPY . .
 
-# 1️⃣2️⃣ Fix permissions
+# 1️⃣3️⃣ Fix permissions
 RUN mkdir -p bootstrap/cache storage/framework/sessions storage/framework/views storage/framework/cache \
     && chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
-# 1️⃣3️⃣ Run package discover manually (optional)
+# 1️⃣4️⃣ Run package discover manually (optional)
 RUN php artisan package:discover --no-interaction 2>/dev/null || true
 
-# 1️⃣4️⃣ Create .env with APP_KEY
+# 1️⃣5️⃣ Create .env with APP_KEY
 RUN touch .env
 RUN echo "APP_NAME=HostelHub" >> .env
 RUN echo "APP_ENV=production" >> .env  
@@ -71,15 +67,15 @@ RUN echo "APP_DEBUG=false" >> .env
 RUN echo "APP_KEY=base64:$(openssl rand -base64 32 | tr -d '\n')" >> .env
 RUN echo "APP_URL=http://localhost" >> .env
 
-# 1️⃣5️⃣ Copy deployment scripts
+# 1️⃣6️⃣ Copy deployment scripts
 COPY safe_deploy.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/safe_deploy.sh
 
 COPY docker-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
-# 1️⃣6️⃣ Expose port
+# 1️⃣7️⃣ Expose port
 EXPOSE 8080
 
-# 1️⃣7️⃣ Start with entrypoint
-CMD ["apache2-foreground"]
+# 1️⃣8️⃣ Start with entrypoint
+CMD ["/usr/local/bin/docker-entrypoint.sh"]
