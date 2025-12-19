@@ -64,7 +64,7 @@ RUN touch .env
 RUN echo "APP_NAME=HostelHub" >> .env
 RUN echo "APP_ENV=production" >> .env  
 RUN echo "APP_DEBUG=false" >> .env
-RUN echo "APP_KEY=base64:\$(openssl rand -base64 32)" >> .env
+RUN echo "APP_KEY=base64:$(openssl rand -base64 32 | tr -d '\n')" >> .env
 RUN echo "APP_URL=http://localhost" >> .env
 
 # 1️⃣5️⃣ Copy deployment scripts
