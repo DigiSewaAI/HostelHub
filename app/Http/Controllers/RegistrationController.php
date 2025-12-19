@@ -28,27 +28,40 @@ class RegistrationController extends Controller
         try {
             // Use plan from route parameter or fallback to query string
             $planSlug = $plan ?: $request->query('plan', 'starter');
-            $plan = Plan::where('slug', $planSlug)->first();
+
+            // Get active plan
+            $plan = Plan::where('slug', $planSlug)
+                ->where('is_active', true)
+                ->first();
 
             if (!$plan) {
-                $plan = Plan::where('slug', 'starter')->first();
+                // Try to get starter plan as fallback
+                $plan = Plan::where('slug', 'starter')
+                    ->where('is_active', true)
+                    ->first();
 
                 if (!$plan) {
+                    // Get any active plan
                     $plan = Plan::where('is_active', true)->first();
 
                     if (!$plan) {
-                        // Return empty data instead of aborting
-                        Log::warning('No active plans found, using fallback');
-                        $plan = null;
+                        // No active plans - show error
+                        Log::error('No active plans found in system');
+                        return redirect()->route('pricing')
+                            ->with('error', 'Currently no subscription plans are available. Please contact support.');
                     }
                 }
             }
 
+            // ✅ IMPORTANT: Store plan slug in session as backup
+            session(['registration_plan' => $plan->slug]);
+
             return view('auth.organization.register', compact('plan'));
         } catch (\Exception $e) {
             Log::error('Organization registration form error: ' . $e->getMessage());
-            // Emergency fallback - return form without plan data
-            return view('auth.organization.register', ['plan' => null]);
+            // Redirect to pricing page with error
+            return redirect()->route('pricing')
+                ->with('error', 'Unable to load registration form. Please try selecting a plan again.');
         }
     }
 
@@ -58,9 +71,24 @@ class RegistrationController extends Controller
     public function store(Request $request)
     {
         try {
+            // ✅ FIXED: Get plan from multiple possible sources
+            $planSlug = $request->plan ??
+                session('registration_plan') ??
+                'starter';
+
+            // Validate the plan exists and is active
+            $plan = Plan::where('slug', $planSlug)
+                ->where('is_active', true)
+                ->first();
+
+            if (!$plan) {
+                return back()->withInput()
+                    ->withErrors(['plan' => 'Selected plan is not available. Please choose a valid plan.']);
+            }
+
             // ✅ IMPROVED: Enhanced validation with better error messages
             $validatedData = $request->validate([
-                'plan' => 'required|in:starter,pro,enterprise',
+                'plan' => 'required|in:starter,pro,enterprise', // ✅ Now plan will always be present
                 'organization_name' => 'required|string|max:255',
                 'owner_name' => 'required|string|max:255',
                 'email' => 'required|string|email|max:255|unique:users',
@@ -69,6 +97,8 @@ class RegistrationController extends Controller
                 'address' => 'required|string|max:500',
                 'pan_no' => 'nullable|string|max:50',
             ], [
+                'plan.required' => 'Please select a subscription plan.',
+                'plan.in' => 'Please select a valid subscription plan.',
                 'email.unique' => 'यो इमेल ठेगाना पहिले नै प्रयोगमा छ।',
                 'password.confirmed' => 'पासवर्ड मेल खाएन।',
                 'password.min' => 'पासवर्ड कम्तिमा ८ अक्षरको हुनुपर्छ।',
@@ -77,6 +107,14 @@ class RegistrationController extends Controller
                 'phone.required' => 'फोन नम्बर आवश्यक छ।',
                 'address.required' => 'ठेगाना आवश्यक छ।',
             ]);
+
+            // ✅ Ensure plan is in validated data
+            if (!isset($validatedData['plan'])) {
+                $validatedData['plan'] = $planSlug;
+            }
+
+            // ✅ Clear registration plan from session
+            session()->forget('registration_plan');
 
             DB::beginTransaction();
 

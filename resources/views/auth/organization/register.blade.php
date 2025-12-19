@@ -42,8 +42,12 @@
                 <!-- Explicit CSRF token field as a backup -->
                 <input type="hidden" name="_token" value="{{ csrf_token() }}">
                 
-                <!-- Plan Type -->
-                <input type="hidden" name="plan" value="{{ $plan->slug ?? '' }}">
+                <!-- Plan Type - FIXED: Always ensure plan is passed -->
+@php
+    $planSlug = $plan->slug ?? request()->route('plan') ?? request()->query('plan') ?? 'starter';
+@endphp
+<input type="hidden" name="plan" value="{{ $planSlug }}">
+<input type="hidden" name="plan_slug" value="{{ $planSlug }}">
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div>
@@ -218,6 +222,30 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('registration-form');
+    
+    // ✅ STEP 4: Ensure plan is not empty before submission
+    form.addEventListener('submit', function(e) {
+        const planInput = document.querySelector('input[name="plan"]');
+        if (!planInput || !planInput.value) {
+            e.preventDefault();
+            
+            // Try to get plan from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const planFromUrl = urlParams.get('plan');
+            const planFromRoute = window.location.pathname.split('/').pop();
+            
+            if (planFromUrl) {
+                planInput.value = planFromUrl;
+                form.submit();
+            } else if (planFromRoute && ['starter', 'pro', 'enterprise'].includes(planFromRoute)) {
+                planInput.value = planFromRoute;
+                form.submit();
+            } else {
+                alert('Please select a subscription plan. Redirecting to pricing page...');
+                window.location.href = '/pricing';
+            }
+        }
+    });
     
     // Form validation
     form.addEventListener('submit', function(e) {
