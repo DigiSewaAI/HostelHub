@@ -3,5 +3,5 @@ builder = "dockerfile"
 
 [deploy]
 startCommand = "/usr/local/bin/docker-entrypoint.sh"
-healthcheckPath = "/"  # /health को सट्टा / प्रयोग गर्ने
-healthcheckTimeout = 30
+healthcheckPath = "/health"  # ✅ /health नै रहन दिनुहोस्
+healthcheckTimeout = 60
