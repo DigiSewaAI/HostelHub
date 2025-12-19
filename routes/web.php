@@ -462,3 +462,36 @@ Route::get('/test-register/{email}/{password}', function ($email, $password) {
         ], 500);
     }
 });
+
+// ✅ STEP 5: EMERGENCY - Direct registration route with plan parameter
+Route::get('/register-org/{plan}', function ($plan) {
+    // Validate plan
+    $validPlans = ['starter', 'pro', 'enterprise'];
+    if (!in_array($plan, $validPlans)) {
+        return redirect()->route('pricing')->with('error', 'Invalid plan selected.');
+    }
+
+    // Store plan in session
+    session(['registration_plan' => $plan]);
+
+    // Redirect to registration with plan parameter
+    return redirect()->route('register.organization', ['plan' => $plan]);
+})->name('register.organization.direct');
+
+// ✅ STEP 6: Test routes for registration debugging
+Route::get('/test-registration/{plan}', function ($plan) {
+    return response()->json([
+        'plan_from_route' => $plan,
+        'plan_in_session' => session('registration_plan'),
+        'valid_plans' => ['starter', 'pro', 'enterprise'],
+        'is_valid' => in_array($plan, ['starter', 'pro', 'enterprise'])
+    ]);
+});
+
+Route::post('/test-registration-submit', function (Request $request) {
+    return response()->json([
+        'received_plan' => $request->plan,
+        'all_data' => $request->all(),
+        'session_plan' => session('registration_plan')
+    ]);
+});
