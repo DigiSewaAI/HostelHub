@@ -1,10 +1,7 @@
 [build]
 builder = "dockerfile"
-dockerfilePath = "./Dockerfile"
 
 [deploy]
-startCommand = "/usr/local/bin/safe_deploy.sh"
-healthcheckPath = "/health"
-healthcheckTimeout = 60
-restartPolicyType = "always"
-restartPolicyMaxRetries = 10
+startCommand = "/usr/local/bin/docker-entrypoint.sh"
+healthcheckPath = "/"  # /health को सट्टा / प्रयोग गर्ने
+healthcheckTimeout = 30
