@@ -3,8 +3,8 @@ builder = "dockerfile"
 dockerfilePath = "./Dockerfile"
 
 [deploy]
-+startCommand = "/usr/local/bin/safe_deploy.sh"
+startCommand = "/usr/local/bin/safe_deploy.sh"
 healthcheckPath = "/"
 healthcheckTimeout = 30
-+restartPolicyType = "always"
-+restartPolicyMaxRetries = 10
+restartPolicyType = "always"
+restartPolicyMaxRetries = 10
