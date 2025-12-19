@@ -41,12 +41,16 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction
 # 8️⃣ Clear cache
 RUN php artisan optimize:clear
 
-# 9️⃣ Copy deployment script
+# 9️⃣ Copy deployment scripts
 COPY safe_deploy.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/safe_deploy.sh
 
-# 🔟 Expose port (Railway will handle port)
+# 🔟 NEW: Copy and set up the entrypoint script to fix MPM
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+# Expose port (Railway will handle port)
 EXPOSE 8080
 
-# Start with deployment script
-CMD ["/usr/local/bin/safe_deploy.sh"]
+# ✅ FIXED: Start with the new entrypoint script (this fixes the MPM error)
+CMD ["/usr/local/bin/docker-entrypoint.sh"]
