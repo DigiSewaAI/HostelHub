@@ -36,5 +36,9 @@ php artisan optimize:clear || true
 # Fix permissions
 chown -R www-data:www-data storage bootstrap/cache public/storage || true
 
+# Add this line BEFORE "Starting Apache..."
+echo "Testing if Laravel is working..."
+curl -s http://localhost:$PORT/health >/dev/null && echo "✅ Health check passed" || echo "⚠️  Health check failed but continuing..."
+
 echo "Starting Apache..."
 exec apache2-foreground
