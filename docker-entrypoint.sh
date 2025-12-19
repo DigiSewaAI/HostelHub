@@ -4,36 +4,41 @@ echo "🚀 HostelHub Starting..."
 PORT=${PORT:-8080}
 echo "Port: $PORT"
 
-# MPM conflict fix
-echo "Ensuring only prefork MPM is enabled..."
+# 1️⃣ Apache MPM र modules setup
+echo "Configuring Apache modules..."
 a2dismod mpm_event mpm_worker 2>/dev/null || true
-a2enmod mpm_prefork 2>/dev/null || true
+a2enmod mpm_prefork rewrite expires headers 2>/dev/null || true
 
-# Apache port सेट गर्ने
+# 2️⃣ Apache port सेट गर्ने
 echo "Listen ${PORT}" > /etc/apache2/ports.conf
 
-# ✅✅✅ CRITICAL: Apache Alias configuration
+# 3️⃣ Health check alias configuration
 echo "Configuring Apache health check alias..."
-echo "Alias /health /var/www/html/public/health.php" > /etc/apache2/conf-available/health.conf
-echo "<Location /health>" >> /etc/apache2/conf-available/health.conf
-echo "    Require all granted" >> /etc/apache2/conf-available/health.conf
-echo "</Location>" >> /etc/apache2/conf-available/health.conf
-a2enconf health
+cat > /etc/apache2/conf-available/health.conf << 'EOF'
+Alias /health /var/www/html/public/health.php
+<Directory /var/www/html/public>
+    Require all granted
+</Directory>
+<Location /health>
+    Require all granted
+</Location>
+EOF
+a2enconf health 2>/dev/null || true
 
-# Laravel setup
+# 4️⃣ Laravel setup
 cd /var/www/html
+echo "Running Laravel setup..."
 php artisan storage:link --force 2>/dev/null || true
 
-# ✅✅✅ Create health.php in public folder
+# 5️⃣ Health check endpoint बनाउने
 echo "Creating health check endpoint..."
-echo '<?php' > public/health.php
-echo 'http_response_code(200);' >> public/health.php
-echo 'header("Content-Type: text/plain");' >> public/health.php
-echo 'echo "OK";' >> public/health.php
+cat > public/health.php << 'EOF'
+<?php
+http_response_code(200);
+header("Content-Type: text/plain");
+echo "OK";
+EOF
 
-# Disable the .htaccess file causing the 500 error
-mv /var/www/html/public/.htaccess /var/www/html/public/.htaccess.disabled 2>/dev/null || true
-
-# Apache सुरु गर्ने
+# 6️⃣ Apache सुरु गर्ने
 echo "Starting Apache..."
 exec apache2-foreground
