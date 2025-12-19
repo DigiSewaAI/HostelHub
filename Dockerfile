@@ -34,7 +34,7 @@ RUN sed -ri 's/Listen 80/Listen 8080/g' /etc/apache2/ports.conf
 WORKDIR /var/www/html
 
 # 6️⃣ Composer
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # 7️⃣ TEMPORARY: Create dummy artisan file for composer install
 RUN touch artisan && echo "<?php echo 'Dummy artisan';" > artisan
@@ -78,4 +78,4 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 EXPOSE 8080
 
 # 1️⃣7️⃣ Start with entrypoint
-CMD ["/usr/local/bin/docker-entrypoint.sh"]
+CMD ["apache2-foreground"]
