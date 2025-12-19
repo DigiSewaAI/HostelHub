@@ -18,6 +18,15 @@ if (app()->environment('production')) {
     URL::forceScheme('https');
 }
 
+// ✅ FIX: Add this simple health check at TOP of web.php
+Route::get('/health', function () {
+    return response()->json(['status' => 'healthy', 'time' => now()]);
+});
+
+Route::get('/', function () {
+    return 'HostelHub is running! Go to /health for status.';
+});
+
 // ✅ FIXED: CORRECT GALLERY ROUTES - Added at top as requested
 Route::get('/gallery', [App\Http\Controllers\Frontend\GalleryController::class, 'index'])->name('gallery.index');
 Route::get('/gallery/{tab}', [App\Http\Controllers\Frontend\GalleryController::class, 'index'])
@@ -452,13 +461,4 @@ Route::get('/test-register/{email}/{password}', function ($email, $password) {
             'trace' => $e->getTraceAsString()
         ], 500);
     }
-});
-
-// ✅ FIX: Add this simple health check at TOP of web.php
-Route::get('/health', function () {
-    return 'OK';
-});
-
-Route::get('/', function () {
-    return 'HostelHub - Your Perfect Student Accommodation Platform';
 });

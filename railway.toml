@@ -4,7 +4,7 @@ dockerfilePath = "./Dockerfile"
 
 [deploy]
 startCommand = "/usr/local/bin/safe_deploy.sh"
-healthcheckPath = "/"
-healthcheckTimeout = 30
+healthcheckPath = "/health"
+healthcheckTimeout = 60
 restartPolicyType = "always"
 restartPolicyMaxRetries = 10
