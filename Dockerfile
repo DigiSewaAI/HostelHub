@@ -15,15 +15,9 @@ RUN a2enmod rewrite
 RUN a2dismod mpm_event mpm_worker
 RUN a2enmod mpm_prefork
 
-# Force single MPM
+# Force single MPM (FIXED SYNTAX)
 RUN echo "LoadModule mpm_prefork_module /usr/lib/apache2/modules/mod_mpm_prefork.so" > /etc/apache2/mods-enabled/mpm.load
-RUN echo "<IfModule mpm_prefork_module>
-    StartServers            5
-    MinSpareServers         5
-    MaxSpareServers        10
-    MaxRequestWorkers      150
-    MaxConnectionsPerChild   0
-</IfModule>" > /etc/apache2/mods-enabled/mpm.conf
+RUN echo -e '<IfModule mpm_prefork_module>\n    StartServers            5\n    MinSpareServers         5\n    MaxSpareServers        10\n    MaxRequestWorkers      150\n    MaxConnectionsPerChild   0\n</IfModule>' > /etc/apache2/mods-enabled/mpm.conf
 
 # 3️⃣ Laravel public directory
 RUN sed -ri 's!/var/www/html!/var/www/html/public!g' \
@@ -62,15 +56,15 @@ RUN mkdir -p bootstrap/cache storage/framework/sessions storage/framework/views 
     && chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
-# 1️⃣3️⃣ Run package discover manually
-RUN php artisan package:discover --no-interaction || echo "Package discovery warning"
+# 1️⃣3️⃣ Run package discover manually (optional)
+RUN php artisan package:discover --no-interaction 2>/dev/null || true
 
 # 1️⃣4️⃣ Create .env with APP_KEY
 RUN touch .env
 RUN echo "APP_NAME=HostelHub" >> .env
-RUN echo "APP_ENV=production" >> .env
+RUN echo "APP_ENV=production" >> .env  
 RUN echo "APP_DEBUG=false" >> .env
-RUN echo "APP_KEY=base64:$(openssl rand -base64 32)" >> .env
+RUN echo "APP_KEY=base64:\$(openssl rand -base64 32)" >> .env
 RUN echo "APP_URL=http://localhost" >> .env
 
 # 1️⃣5️⃣ Copy deployment scripts
