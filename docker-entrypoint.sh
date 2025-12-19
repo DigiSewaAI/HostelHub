@@ -1,4 +1,3 @@
-# पूरै फाइल यसरी REPLACE गर्नुहोस्:
 #!/bin/bash
 
 echo "🚀 HostelHub Railway मा सुरु हुदैछ..."
@@ -7,9 +6,10 @@ echo "🚀 HostelHub Railway मा सुरु हुदैछ..."
 PORT=${PORT:-8080}
 echo "Port: $PORT"
 
-# Apache लाई यही PORT मा चलाउने
-sed -i "s/Listen 80/Listen $PORT/g" /etc/apache2/ports.conf
-sed -i "s/:80/:$PORT/g" /etc/apache2/sites-available/*.conf 2>/dev/null || true
+# ✅✅✅ यो CRITICAL FIX हो: Apache लाई सिधै PORT मा चलाउने
+echo "Listen ${PORT}" > /etc/apache2/ports.conf
+sed -i "s/:80/:${PORT}/g" /etc/apache2/sites-available/*.conf 2>/dev/null || true
+sed -i "s/<VirtualHost \*:80>/<VirtualHost \*:${PORT}>/g" /etc/apache2/sites-available/*.conf 2>/dev/null || true
 
 # Laravel setup
 cd /var/www/html
@@ -20,7 +20,7 @@ if [ ! -f ".env" ]; then
     php artisan key:generate --force
 fi
 
-# Database configuration
+# ✅ Database configuration
 if [ ! -z "$MYSQLHOST" ]; then
     echo "DB_CONNECTION=mysql" >> .env
     echo "DB_HOST=$MYSQLHOST" >> .env
@@ -28,12 +28,19 @@ if [ ! -z "$MYSQLHOST" ]; then
     echo "DB_DATABASE=$MYSQLDATABASE" >> .env
     echo "DB_USERNAME=$MYSQLUSER" >> .env
     echo "DB_PASSWORD=$MYSQLPASSWORD" >> .env
+    echo "✅ Database सेट भयो"
+fi
+
+# ✅ Railway URL सेट गर्ने
+if [ ! -z "$RAILWAY_STATIC_URL" ]; then
+    echo "APP_URL=$RAILWAY_STATIC_URL" >> .env
+    echo "✅ APP_URL सेट भयो"
 fi
 
 # Basic Laravel setup
-php artisan storage:link --force
-php artisan optimize:clear
+php artisan storage:link --force 2>/dev/null || true
+php artisan optimize:clear 2>/dev/null || true
 
-# Apache start गर्ने
-echo "Apache $PORT मा सुरु हुदैछ..."
-exec apache2-foreground
+# ✅ Apache सुरु गर्ने
+echo "Apache ${PORT} मा सुरु हुदैछ..."
+apache2-foreground
