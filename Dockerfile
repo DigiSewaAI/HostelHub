@@ -25,13 +25,17 @@ RUN echo '<Directory /var/www/html>' >> /etc/apache2/apache2.conf && \
 # 3️⃣ MPM configuration
 RUN printf '<IfModule mpm_prefork_module>\n    StartServers            5\n    MinSpareServers         5\n    MaxSpareServers        10\n    MaxRequestWorkers      150\n    MaxConnectionsPerChild   0\n</IfModule>\n' > /etc/apache2/mods-enabled/mpm.conf
 
-# 4️⃣ Laravel public directory को लागि Apache configuration
-RUN sed -ri 's!/var/www/html!/var/www/html/public!g' \
-    /etc/apache2/sites-available/*.conf
-
-RUN sed -ri 's!/var/www/!/var/www/html/public!g' \
-    /etc/apache2/apache2.conf \
-    /etc/apache2/conf-available/*.conf
+# Laravel को लागि Apache document root set गर्ने
+RUN echo '<VirtualHost *:8080>' > /etc/apache2/sites-available/000-default.conf && \
+    echo '    DocumentRoot /var/www/html/public' >> /etc/apache2/sites-available/000-default.conf && \
+    echo '    <Directory /var/www/html/public>' >> /etc/apache2/sites-available/000-default.conf && \
+    echo '        Options Indexes FollowSymLinks' >> /etc/apache2/sites-available/000-default.conf && \
+    echo '        AllowOverride All' >> /etc/apache2/sites-available/000-default.conf && \
+    echo '        Require all granted' >> /etc/apache2/sites-available/000-default.conf && \
+    echo '    </Directory>' >> /etc/apache2/sites-available/000-default.conf && \
+    echo '    ErrorLog ${APACHE_LOG_DIR}/error.log' >> /etc/apache2/sites-available/000-default.conf && \
+    echo '    CustomLog ${APACHE_LOG_DIR}/access.log combined' >> /etc/apache2/sites-available/000-default.conf && \
+    echo '</VirtualHost>' >> /etc/apache2/sites-available/000-default.conf
 
 # 5️⃣ Set port to 8080 for Railway
 RUN sed -ri 's/Listen 80/Listen 8080/g' /etc/apache2/ports.conf
