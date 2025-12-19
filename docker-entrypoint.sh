@@ -31,6 +31,9 @@ echo 'http_response_code(200);' >> public/health.php
 echo 'header("Content-Type: text/plain");' >> public/health.php
 echo 'echo "OK";' >> public/health.php
 
+# Disable the .htaccess file causing the 500 error
+mv /var/www/html/public/.htaccess /var/www/html/public/.htaccess.disabled 2>/dev/null || true
+
 # Apache सुरु गर्ने
 echo "Starting Apache..."
 exec apache2-foreground
