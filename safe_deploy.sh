@@ -53,8 +53,11 @@ php artisan migrate --force
 # Clear and optimize cache
 php artisan optimize:clear
 php artisan config:cache
-php artisan route:cache
 php artisan view:cache
+
+# TEMPORARILY DISABLED due to duplicate route name error
+# php artisan route:cache
+echo "Route caching skipped for initial deployment."
 
 # Fix permissions
 chown -R www-data:www-data storage bootstrap/cache public/storage
