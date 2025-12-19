@@ -1,0 +1,20 @@
+# .railwayignore
+node_modules/
+.git/
+.env
+*.bat
+*.exe
+docker-compose.yml
+vagrant/
+Homestead.json
+Homestead.yaml
+*.md
+.editorconfig
+*.log
+storage/logs/*
+storage/debugbar/*
+public/hot
+public/storage
+tests/
+.scrutinizer.yml
+.styleci.yml
