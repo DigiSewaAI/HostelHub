@@ -13,7 +13,7 @@
         '2 seater' => '२ सिटर', 
         '3 seater' => '३ सिटर',
         '4 seater' => '४ सिटर',
-        'other' => 'अन्य (५+ सिटर)'
+        'other' => 'अन्य (५++ सिटर)'
     ];
 
     // Get all active gallery items
