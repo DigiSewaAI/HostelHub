@@ -259,13 +259,16 @@
                             $availableRooms = $hostel->available_rooms_count ?? $hostel->rooms()->where('status', 'available')->count();
                             
                             // Get hostel image from owner panel - FIXED IMAGE VISIBILITY
-                        $hostelImage = $hostel->image ? route('media.stream', ['path' => $hostel->image]) : ($mainImage ? route('media.stream', ['path' => $mainImage->file_path]) : asset('images/hostel-placeholder.jpg'));                            // Use cover_image if available, otherwise fallback to existing image logic
-                        $coverImage = $hostel->cover_image ? route('media.stream', ['path' => $hostel->cover_image]) : $hostelImage;
-                                                @endphp
+                            $hostelImage = $hostel->image ? asset('storage/' . $hostel->image) : ($mainImage ? asset('storage/' . $mainImage->file_path) : asset('images/hostel-placeholder.jpg'));
+                            
+                            // Use cover_image if available, otherwise fallback to existing image logic
+                            $coverImage = $hostel->cover_image ? asset('storage/' . $hostel->cover_image) : $hostelImage;
+                        @endphp
 
                         <div class="group bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-1 relative min-h-[380px] flex flex-col">
                             <!-- Top Section with Cover Image as Background -->
-<div class="h-36 relative overflow-hidden flex-shrink-0" style="background-image: url('{{ $coverImage }}'); background-size: cover; background-position: center;">                                <!-- Minimal Overlay for Better Text Readability -->
+                            <div class="h-36 relative overflow-hidden flex-shrink-0" style="background-image: url('{{ $coverImage }}'); background-size: cover; background-position: center;">
+                                <!-- Minimal Overlay for Better Text Readability -->
                                 <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
                                 
                                 <!-- Badges on Image -->

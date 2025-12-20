@@ -54,13 +54,13 @@
     
     // Try to get hostel's main image
     if ($hostel->image && \Storage::disk('public')->exists($hostel->image)) {
-        $hostelBgImage = \Storage::disk('public')->url($hostel->image);
+        $hostelBgImage = route('media.stream', ['path' => $hostel->image]);
     }
     // Try from hostel images
     elseif (isset($hostel->images) && $hostel->images->count() > 0) {
         foreach ($hostel->images as $img) {
             if ($img->file_path && \Storage::disk('public')->exists($img->file_path)) {
-                $hostelBgImage = \Storage::disk('public')->url($img->file_path);
+                $hostelBgImage = route('media.stream', ['path' => $img->file_path]);
                 break;
             }
         }
@@ -69,23 +69,44 @@
     elseif (isset($galleries) && $galleries->count() > 0) {
         foreach ($galleries as $gallery) {
             if ($gallery->file_path && Storage::disk('public')->exists($gallery->file_path)) {
-                $hostelBgImage = Storage::disk('public')->url($gallery->file_path);
+                $hostelBgImage = route('media.stream', ['path' => $gallery->file_path]);
                 break;
             }
         }
     }
 
     function getRoomImageUrl($room) {
-        if (method_exists($room, 'getImageUrlAttribute') && $room->image_url) {
+    if (method_exists($room, 'getImageUrlAttribute') && $room->image_url) {
+        // यदि already full URL हो भने
+        if (str_starts_with($room->image_url, 'http://') || str_starts_with($room->image_url, 'https://')) {
             return $room->image_url;
         }
         
-        if ($room->image && \Storage::disk('public')->exists($room->image)) {
-            return \Storage::disk('public')->url($room->image);
+        // यदि storage path हो भने media stream route प्रयोग गर्ने
+        $path = $room->image_url;
+        
+        // 'public/' हटाउने यदि छ भने
+        if (str_starts_with($path, 'public/')) {
+            $path = str_replace('public/', '', $path);
         }
         
-        return asset('images/default-room.jpg');
+        return route('media.stream', ['path' => $path]);
     }
+    
+    if ($room->image) {
+        // Storage path लाई media stream route मा बदल्ने
+        $path = $room->image;
+        
+        // 'public/' हटाउने यदि छ भने
+        if (str_starts_with($path, 'public/')) {
+            $path = str_replace('public/', '', $path);
+        }
+        
+        return route('media.stream', ['path' => $path]);
+    }
+    
+    return asset('images/default-room.jpg');
+}
 
     function roomHasImage($room) {
         if (method_exists($room, 'getHasImageAttribute')) {
@@ -1099,10 +1120,11 @@
                     
                     <div class="gallery-item" data-room-type="{{ $room->type }}">
                         @if($room->has_image)
-                            <img src="{{ $room->image_url }}" 
-                                alt="कोठा {{ $room->room_number }}" 
-                                loading="lazy"
-                                onerror="this.onerror=null; this.src='{{ asset('images/no-image.png') }}'; this.classList.add('image-error');">
+                            <img src="{{ getRoomImageUrl($room) }}" 
+     alt="कोठा {{ $room->room_number }}" 
+     loading="lazy"
+     onerror="this.onerror=null; this.src='{{ asset('images/no-image.png') }}'; this.classList.add('image-error');">
+
                         @else
                             <div class="image-fallback">
                                 <i class="fas fa-bed"></i>
