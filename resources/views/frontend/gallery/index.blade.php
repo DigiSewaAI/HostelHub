@@ -1425,18 +1425,6 @@ select[data-filter-active="true"] {
 
 @section('content')
 
-<!-- ✅ NEW: Temporary helper function for Railway -->
-@php
-function railway_media_url($path) {
-    if (!$path) return asset('images/no-image.png');
-    
-    // Remove storage/ or public/ prefixes
-    $path = str_replace(['storage/', 'public/'], '', $path);
-    
-    // For Railway - direct path
-    return '/media/' . ltrim($path, '/');
-}
-@endphp
 
 <!-- ✅ UPDATED: GALLERY HERO SECTION - CRYSTAL CLEAR BACKGROUND -->
 <section class="gallery-hero-section">
