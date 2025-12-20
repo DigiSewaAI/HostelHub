@@ -15,7 +15,7 @@ RUN a2dismod mpm_event mpm_worker 2>/dev/null || true && \
     a2enmod mpm_prefork && \
     a2enmod rewrite
 
-# 2.1️⃣ Create custom Apache config for health check
+# 2.1️⃣ Apache directory config
 RUN echo '<Directory /var/www/html>' >> /etc/apache2/apache2.conf && \
     echo '    Options Indexes FollowSymLinks' >> /etc/apache2/apache2.conf && \
     echo '    AllowOverride All' >> /etc/apache2/apache2.conf && \
@@ -23,9 +23,15 @@ RUN echo '<Directory /var/www/html>' >> /etc/apache2/apache2.conf && \
     echo '</Directory>' >> /etc/apache2/apache2.conf
 
 # 3️⃣ MPM configuration
-RUN printf '<IfModule mpm_prefork_module>\n    StartServers            5\n    MinSpareServers         5\n    MaxSpareServers        10\n    MaxRequestWorkers      150\n    MaxConnectionsPerChild   0\n</IfModule>\n' > /etc/apache2/mods-enabled/mpm.conf
+RUN printf '<IfModule mpm_prefork_module>\n\
+    StartServers            5\n\
+    MinSpareServers         5\n\
+    MaxSpareServers        10\n\
+    MaxRequestWorkers      150\n\
+    MaxConnectionsPerChild   0\n\
+</IfModule>\n' > /etc/apache2/mods-enabled/mpm.conf
 
-# Laravel को लागि Apache document root set गर्ने
+# 4️⃣ Apache VirtualHost (Laravel public)
 RUN echo '<VirtualHost *:8080>' > /etc/apache2/sites-available/000-default.conf && \
     echo '    DocumentRoot /var/www/html/public' >> /etc/apache2/sites-available/000-default.conf && \
     echo '    <Directory /var/www/html/public>' >> /etc/apache2/sites-available/000-default.conf && \
@@ -37,7 +43,7 @@ RUN echo '<VirtualHost *:8080>' > /etc/apache2/sites-available/000-default.conf 
     echo '    CustomLog ${APACHE_LOG_DIR}/access.log combined' >> /etc/apache2/sites-available/000-default.conf && \
     echo '</VirtualHost>' >> /etc/apache2/sites-available/000-default.conf
 
-# 5️⃣ Set port to 8080 for Railway
+# 5️⃣ Railway port
 RUN sed -ri 's/Listen 80/Listen 8080/g' /etc/apache2/ports.conf
 
 # 6️⃣ Workdir
@@ -46,50 +52,49 @@ WORKDIR /var/www/html
 # 7️⃣ Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# 8️⃣ TEMPORARY: Create dummy artisan file for composer install
+# 8️⃣ Dummy artisan (composer safety)
 RUN touch artisan && echo "<?php echo 'Dummy artisan';" > artisan
 
-# 9️⃣ Copy package files for caching
+# 9️⃣ Copy composer files
 COPY composer.json composer.lock ./
 
-# 🔟 Install dependencies WITH NO SCRIPTS
+# 🔟 Install deps (no scripts)
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
 # 1️⃣1️⃣ Remove dummy artisan
 RUN rm -f artisan
 
-# 1️⃣2️⃣ Copy ALL application files
+# 1️⃣2️⃣ Copy full app
 COPY . .
 
-# 🚨 RAILWAY MEDIA FIX: Create storage link for images/videos
+# 1️⃣3️⃣ Storage symlink (media)
 RUN php artisan storage:link || \
-    (mkdir -p public/storage && ln -sf ../storage/app/public public/storage && echo "Manual storage link created")
+    (mkdir -p public/storage && ln -sf ../storage/app/public public/storage)
 
-# 1️⃣3️⃣ Fix permissions
-RUN mkdir -p bootstrap/cache storage/framework/sessions storage/framework/views storage/framework/cache \
-    && chown -R www-data:www-data storage bootstrap/cache public/storage \
-    && chmod -R 775 storage bootstrap/cache public/storage
+# 1️⃣4️⃣ Permissions (IMPORTANT FIX)
+RUN mkdir -p bootstrap/cache storage/framework/sessions storage/framework/views storage/framework/cache && \
+    chown -R www-data:www-data storage bootstrap/cache && \
+    chmod -R 775 storage bootstrap/cache
 
-# 1️⃣4️⃣ Run package discover manually (optional)
-RUN php artisan package:discover --no-interaction 2>/dev/null || true
+# 1️⃣5️⃣ Package discover (safe)
+RUN php artisan package:discover --no-interaction || true
 
-# 1️⃣5️⃣ Create .env with APP_KEY
-RUN touch .env
-RUN echo "APP_NAME=HostelHub" >> .env
-RUN echo "APP_ENV=production" >> .env  
-RUN echo "APP_DEBUG=false" >> .env
-RUN echo "APP_KEY=base64:$(openssl rand -base64 32 | tr -d '\n')" >> .env
-RUN echo "APP_URL=http://localhost" >> .env
+# 1️⃣6️⃣ Minimal .env (NO APP_URL)
+RUN touch .env && \
+    echo "APP_NAME=HostelHub" >> .env && \
+    echo "APP_ENV=production" >> .env && \
+    echo "APP_DEBUG=false" >> .env && \
+    echo "APP_KEY=base64:$(openssl rand -base64 32 | tr -d '\n')" >> .env
 
-# 1️⃣6️⃣ Copy deployment scripts
+# 1️⃣7️⃣ Entrypoints
 COPY safe_deploy.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/safe_deploy.sh
 
 COPY docker-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
-# 1️⃣7️⃣ Expose port
+# 1️⃣8️⃣ Expose
 EXPOSE 8080
 
-# 1️⃣8️⃣ Start with entrypoint
+# 1️⃣9️⃣ Start
 CMD ["/usr/local/bin/docker-entrypoint.sh"]
