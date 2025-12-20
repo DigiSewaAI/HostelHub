@@ -76,18 +76,6 @@
         }
     }
 
-    function getRoomImageUrl($room) {
-        if (method_exists($room, 'getImageUrlAttribute') && $room->image_url) {
-            return railway_media_url($room->image_url);
-        }
-        
-        if ($room->image) {
-            return railway_media_url($room->image);
-        }
-        
-        return asset('images/default-room.jpg');
-    }
-
     function roomHasImage($room) {
         if (method_exists($room, 'getHasImageAttribute')) {
             return $room->has_image;
