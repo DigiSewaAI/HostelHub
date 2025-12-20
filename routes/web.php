@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Response;
 use App\Http\Controllers\WelcomeController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\PricingController;
@@ -495,3 +496,26 @@ Route::post('/test-registration-submit', function (Request $request) {
         'session_plan' => session('registration_plan')
     ]);
 });
+
+// Media streaming route for Railway - serves files from storage/app/public
+Route::get('/media/{path}', function ($path) {
+    // Security: prevent directory traversal
+    if (str_contains($path, '..')) {
+        abort(404, 'फाइल फेला परेन');
+    }
+
+    $filePath = storage_path('app/public/' . $path);
+
+    if (!file_exists($filePath)) {
+        abort(404, 'फाइल फेला परेन');
+    }
+
+    $mimeType = mime_content_type($filePath);
+    $headers = [];
+
+    if (str_starts_with($mimeType, 'video/')) {
+        $headers['Accept-Ranges'] = 'bytes';
+    }
+
+    return response()->file($filePath, $headers);
+})->where('path', '.*')->name('media.stream');
