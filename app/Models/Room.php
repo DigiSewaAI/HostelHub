@@ -325,11 +325,16 @@ class Room extends Model
     }
 
     /**
-     * ✅ FIXED: Get the room image URL with PROPER fallback - TIMRO SYSTEM
+     * ✅ FIXED: Get the room image URL using centralized media helper
      */
     public function getImageUrlAttribute(): string
     {
-        // ✅ STRICT FIX: Always check if image exists in storage
+        // Use media_url helper if available, otherwise fallback to original logic
+        if (function_exists('media_url')) {
+            return media_url($this->image);
+        }
+
+        // Fallback to original logic if helper not available
         if ($this->image && Storage::disk('public')->exists($this->image)) {
             return Storage::disk('public')->url($this->image);
         }
@@ -339,10 +344,16 @@ class Room extends Model
     }
 
     /**
-     * ✅ FIXED: Check if room has image with PROPER storage check
+     * ✅ FIXED: Check if room has image using centralized media helper
      */
     public function getHasImageAttribute(): bool
     {
+        // Use media_exists helper if available, otherwise fallback to original logic
+        if (function_exists('media_exists')) {
+            return !empty($this->image) && media_exists($this->image);
+        }
+
+        // Fallback to original logic if helper not available
         return !empty($this->image) && Storage::disk('public')->exists($this->image);
     }
 
@@ -450,7 +461,19 @@ class Room extends Model
         $this->galleries()->delete();
 
         // ✅ STRICT FIX: Only create gallery if image exists in storage
-        if (!$this->image || !Storage::disk('public')->exists($this->image)) {
+        if (!$this->image) {
+            return;
+        }
+
+        // Check if image exists using media_exists helper or fallback
+        $imageExists = false;
+        if (function_exists('media_exists')) {
+            $imageExists = media_exists($this->image);
+        } else {
+            $imageExists = Storage::disk('public')->exists($this->image);
+        }
+
+        if (!$imageExists) {
             return;
         }
 
@@ -525,7 +548,7 @@ class Room extends Model
     }
 
     /**
-     * ✅ FIXED: Get primary gallery image with PROPER fallback
+     * ✅ FIXED: Get primary gallery image using centralized media helper
      */
     public function getPrimaryGalleryImageAttribute(): string
     {
@@ -534,7 +557,19 @@ class Room extends Model
         }
 
         $firstGallery = $this->galleries()->where('is_active', true)->first();
-        return $firstGallery ? $firstGallery->media_url : asset('images/default-room.jpg');
+
+        // Check if Gallery model has media_url attribute or use helper
+        if ($firstGallery) {
+            if (method_exists($firstGallery, 'getMediaUrlAttribute')) {
+                return $firstGallery->media_url;
+            } elseif (function_exists('media_url') && $firstGallery->file_path) {
+                return media_url($firstGallery->file_path);
+            } elseif ($firstGallery->file_path && Storage::disk('public')->exists($firstGallery->file_path)) {
+                return Storage::disk('public')->url($firstGallery->file_path);
+            }
+        }
+
+        return asset('images/default-room.jpg');
     }
 
     /**

@@ -1425,6 +1425,19 @@ select[data-filter-active="true"] {
 
 @section('content')
 
+<!-- ✅ NEW: Temporary helper function for Railway -->
+@php
+function railway_media_url($path) {
+    if (!$path) return asset('images/no-image.png');
+    
+    // Remove storage/ or public/ prefixes
+    $path = str_replace(['storage/', 'public/'], '', $path);
+    
+    // For Railway - direct path
+    return '/media/' . ltrim($path, '/');
+}
+@endphp
+
 <!-- ✅ UPDATED: GALLERY HERO SECTION - CRYSTAL CLEAR BACKGROUND -->
 <section class="gallery-hero-section">
     <!-- ✅ FIXED: NATURAL CLEAR BACKGROUND IMAGE (NO BLUE OVERLAY) -->
@@ -1606,10 +1619,18 @@ select[data-filter-active="true"] {
                             $hostelSlug = $isArray ? ($gallery['hostel_slug'] ?? '') : ($gallery->hostel_slug ?? '');
                             $room = $isArray ? ($gallery['room'] ?? null) : ($gallery->room ?? null);
                             $roomNumber = $room ? ($isArray ? ($room['room_number'] ?? '') : ($room->room_number ?? '')) : '';
-                            $thumbnailUrl = $isArray ? ($gallery['thumbnail_url'] ?? ($gallery['media_url'] ?? '')) : ($gallery->thumbnail_url ?? ($gallery->media_url ?? ''));
-                            $mediaUrl = $isArray ? ($gallery['media_url'] ?? '') : ($gallery->media_url ?? '');
+                            
+                            // Get raw paths
+                            $rawMediaPath = $isArray ? ($gallery['file_path'] ?? '') : ($gallery->file_path ?? '');
+                            $rawThumbnailPath = $isArray ? ($gallery['thumbnail_path'] ?? $rawMediaPath) : ($gallery->thumbnail_path ?? $rawMediaPath);
+                            $rawHdPath = $isArray ? ($gallery['hd_path'] ?? $rawMediaPath) : ($gallery->hd_path ?? $rawMediaPath);
+                            
+                            // Convert to Railway URLs
+                            $thumbnailUrl = railway_media_url($rawThumbnailPath);
+                            $mediaUrl = railway_media_url($rawMediaPath);
+                            $hdUrl = railway_media_url($rawHdPath);
+                            
                             $hdAvailable = $isArray ? ($gallery['hd_available'] ?? false) : ($gallery->hd_available ?? false);
-                            $hdUrl = $isArray ? ($gallery['hd_url'] ?? $mediaUrl) : ($gallery->hd_url ?? $mediaUrl);
                             
                             $hostelGender = $isArray ? 
                                 ($gallery['hostel_gender'] ?? 'mixed') : 
@@ -1737,7 +1758,13 @@ select[data-filter-active="true"] {
                                     $hostelName = $gallery['hostel_name'] ?? '';
                                     $hostelId = $gallery['hostel_id'] ?? '';
                                     $hostelSlug = $gallery['hostel_slug'] ?? '';
-                                    $thumbnailUrl = $gallery['thumbnail_url'] ?? ($gallery['media_url'] ?? asset('images/video-thumbnail.jpg'));
+                                    
+                                    // Get raw thumbnail path
+                                    $rawThumbnailPath = $gallery['thumbnail_path'] ?? $gallery['file_path'] ?? '';
+                                    
+                                    // Convert to Railway URL
+                                    $thumbnailUrl = $rawThumbnailPath ? railway_media_url($rawThumbnailPath) : asset('images/video-thumbnail.jpg');
+                                    
                                     $mediaUrl = $gallery['media_url'] ?? '';
                                     $youtubeEmbedUrl = $gallery['youtube_embed_url'] ?? '';
                                     $videoDuration = $gallery['video_duration'] ?? '';
@@ -1754,7 +1781,13 @@ select[data-filter-active="true"] {
                                     $hostelName = $gallery->hostel_name ?? '';
                                     $hostelId = $gallery->hostel_id ?? '';
                                     $hostelSlug = $gallery->hostel_slug ?? '';
-                                    $thumbnailUrl = $gallery->thumbnail_url ?? ($gallery->media_url ?? asset('images/video-thumbnail.jpg'));
+                                    
+                                    // Get raw thumbnail path
+                                    $rawThumbnailPath = $gallery->thumbnail_path ?? $gallery->file_path ?? '';
+                                    
+                                    // Convert to Railway URL
+                                    $thumbnailUrl = $rawThumbnailPath ? railway_media_url($rawThumbnailPath) : asset('images/video-thumbnail.jpg');
+                                    
                                     $mediaUrl = $gallery->media_url ?? '';
                                     $youtubeEmbedUrl = $gallery->youtube_embed_url ?? '';
                                     $videoDuration = $gallery->video_duration_formatted ?? '';
@@ -1768,10 +1801,6 @@ select[data-filter-active="true"] {
                                     $videoModalUrl = $youtubeEmbedUrl . '?autoplay=1&rel=0&controls=1&showinfo=0';
                                 } elseif ($mediaType === 'local_video' && $mediaUrl) {
                                     $videoModalUrl = $mediaUrl;
-                                }
-                                
-                                if (empty($thumbnailUrl) || $thumbnailUrl == asset('')) {
-                                    $thumbnailUrl = asset('images/video-thumbnail.jpg');
                                 }
                                 
                                 // Generate hostel gallery URL

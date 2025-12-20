@@ -1,6 +1,9 @@
 <?php
 
 use App\Models\Gallery;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
+use App\Helpers\MediaHelper;
 
 if (!function_exists('getGalleryCategories')) {
     function getGalleryCategories()
@@ -273,5 +276,86 @@ if (!function_exists('getGalleryNavigation')) {
         $next = $currentIndex < ($galleries->count() - 1) ? $galleries[$currentIndex + 1] : null;
 
         return compact('prev', 'next');
+    }
+}
+
+// ========== MEDIA HELPER FUNCTIONS ==========
+// Added as per the instructions for Railway deployment fix
+
+if (!function_exists('media_url')) {
+    /**
+     * Generate a consistent media URL for Railway deployment
+     */
+    function media_url($path)
+    {
+        return MediaHelper::getMediaUrl($path);
+    }
+}
+
+if (!function_exists('thumbnail_url')) {
+    /**
+     * Generate thumbnail URL
+     */
+    function thumbnail_url($path, $thumbnailPath = null)
+    {
+        return MediaHelper::getThumbnailUrl($path, $thumbnailPath);
+    }
+}
+
+if (!function_exists('media_exists')) {
+    /**
+     * Check if media file exists (Railway-specific)
+     */
+    function media_exists($path)
+    {
+        return MediaHelper::mediaExists($path);
+    }
+}
+
+if (!function_exists('railway_media_url')) {
+    /**
+     * Temporary helper for immediate testing
+     */
+    function railway_media_url($path)
+    {
+        if (!$path) return asset('images/no-image.png');
+
+        // Remove storage/ or public/ prefixes
+        $path = str_replace(['storage/', 'public/'], '', $path);
+
+        // For Railway - direct path
+        return '/media/' . ltrim($path, '/');
+    }
+}
+
+if (!function_exists('getRoomImageUrl')) {
+    /**
+     * Get room image URL with fallback
+     */
+    function getRoomImageUrl($room)
+    {
+        if (method_exists($room, 'getImageUrlAttribute')) {
+            return $room->image_url;
+        }
+
+        if ($room->image) {
+            return media_url($room->image);
+        }
+
+        return asset('images/default-room.jpg');
+    }
+}
+
+if (!function_exists('getHostelImageUrl')) {
+    /**
+     * Get hostel image URL with fallback
+     */
+    function getHostelImageUrl($hostel)
+    {
+        if (!$hostel->image) {
+            return asset('images/default-hostel.jpg');
+        }
+
+        return media_url($hostel->image);
     }
 }

@@ -6,6 +6,20 @@
 @section('page-description', 'हाम्रो होस्टलको सम्पूर्ण सुविधाहरू, कोठाहरू, भिडियो टुर र खानाको मेनुको पूर्ण दृश्यात्मक अनुभव')
 
 @section('content')
+
+<!-- ✅ NEW: Temporary helper function for Railway -->
+@php
+function railway_media_url($path) {
+    if (!$path) return asset('images/no-image.png');
+    
+    // Remove storage/ or public/ prefixes
+    $path = str_replace(['storage/', 'public/'], '', $path);
+    
+    // For Railway - direct path
+    return '/media/' . ltrim($path, '/');
+}
+@endphp
+
 @php
     // PERMANENT FIX: Nepali room types
     $nepaliRoomTypes = [
@@ -33,14 +47,14 @@
     $hostelBgImage = asset('images/default-hostel-bg.jpg');
     
     // Try to get hostel's main image
-    if ($hostel->image && \Storage::disk('public')->exists($hostel->image)) {
-        $hostelBgImage = \Storage::disk('public')->url($hostel->image);
+    if ($hostel->image) {
+        $hostelBgImage = railway_media_url($hostel->image);
     }
     // Try from hostel images
     elseif (isset($hostel->images) && $hostel->images->count() > 0) {
         foreach ($hostel->images as $img) {
-            if ($img->file_path && \Storage::disk('public')->exists($img->file_path)) {
-                $hostelBgImage = \Storage::disk('public')->url($img->file_path);
+            if ($img->file_path) {
+                $hostelBgImage = railway_media_url($img->file_path);
                 break;
             }
         }
@@ -48,8 +62,8 @@
     // Try from gallery images
     elseif (isset($galleries) && $galleries->count() > 0) {
         foreach ($galleries as $gallery) {
-            if ($gallery->file_path && \Storage::disk('public')->exists($gallery->file_path)) {
-                $hostelBgImage = \Storage::disk('public')->url($gallery->file_path);
+            if ($gallery->file_path) {
+                $hostelBgImage = railway_media_url($gallery->file_path);
                 break;
             }
         }
@@ -1309,13 +1323,17 @@
 
                         $displayedItems++;
                         $isHidden = $displayedItems > $maxInitialDisplay;
+                        
+                        // Get image URL using railway_media_url function
+                        $imagePath = $gallery->file_path ?? '';
+                        $imageUrl = $imagePath ? railway_media_url($imagePath) : asset('images/no-image.png');
                     @endphp
 
                     <div class="gallery-item {{ $isHidden ? 'hidden-item' : '' }}" 
                          data-category="{{ $filterCategory }}"
                          data-gallery-id="{{ $gallery->id }}">
                         
-                        <img src="{{ $gallery->thumbnail_url ?? $gallery->media_url }}" 
+                        <img src="{{ $imageUrl }}" 
                              alt="{{ $gallery->title }}" 
                              loading="lazy"
                              onerror="this.onerror=null; this.src='{{ asset('images/no-image.png') }}';">
@@ -1368,14 +1386,20 @@
         <div class="tab-content" id="video-gallery">
             <div class="gallery-grid">
                 @foreach($activeGalleries->whereIn('media_type', ['local_video', 'external_video']) as $gallery)
+                    @php
+                        // Get thumbnail URL using railway_media_url function for videos
+                        $thumbnailPath = $gallery->thumbnail_path ?? $gallery->file_path ?? '';
+                        $thumbnailUrl = $thumbnailPath ? railway_media_url($thumbnailPath) : asset('images/video-default.jpg');
+                    @endphp
+                    
                     <div class="gallery-item" data-gallery-id="{{ $gallery->id }}">
                         
                         @if($gallery->media_type === 'local_video')
-                            <img src="{{ $gallery->thumbnail_url ?? asset('images/video-default.jpg') }}" 
+                            <img src="{{ $thumbnailUrl }}" 
                                  alt="{{ $gallery->title }}" 
                                  loading="lazy">
                         @elseif($gallery->media_type === 'external_video')
-                            <img src="{{ $gallery->thumbnail_url ?? asset('images/video-default.jpg') }}" 
+                            <img src="{{ $thumbnailUrl }}" 
                                  alt="{{ $gallery->title }}" 
                                  loading="lazy">
                         @endif
@@ -1430,8 +1454,8 @@
                             $mealTypeNepali = 'बेलुकाको खाना';
                         }
                         
-                        // Get image URL
-                        $mealImageUrl = $menu->image ? asset('storage/'.$menu->image) : 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80';
+                        // Get image URL using railway_media_url function
+                        $mealImageUrl = $menu->image ? railway_media_url($menu->image) : 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80';
                         
                         // Get meal items description
                         $mealDescription = $menu->formatted_items ?? $menu->description;
@@ -1697,8 +1721,8 @@
             title: {!! json_encode($gallery->title) !!},
             description: {!! json_encode($gallery->description) !!},
             media_type: {!! json_encode($gallery->media_type) !!},
-            media_url: {!! json_encode($gallery->media_type === 'external_video' ? $gallery->external_link : $gallery->media_url) !!},
-            thumbnail_url: {!! json_encode($gallery->thumbnail_url) !!},
+            media_url: {!! json_encode($gallery->media_type === 'external_video' ? $gallery->external_link : railway_media_url($gallery->file_path ?? '')) !!},
+            thumbnail_url: {!! json_encode($gallery->thumbnail_path ? railway_media_url($gallery->thumbnail_path) : railway_media_url($gallery->file_path ?? '')) !!},
             youtube_embed_url: {!! json_encode($gallery->youtube_embed_url) !!}
         },
         @endforeach

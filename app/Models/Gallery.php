@@ -100,39 +100,23 @@ class Gallery extends Model
     }
 
     /**
-     * ✅ COMPATIBILITY LAYER: Try multiple directories for legacy data
-     * This method checks if a file exists in multiple possible directories
-     * Only used when file_path is filename-only (no directory)
+     * ✅ UPDATED: Use media_url helper for consistent URL generation
      */
-    private function findFileInDirectories($filename)
+    private function storagePathToUrl($path)
     {
-        if (empty($filename)) {
-            return null;
+        // Use media_url helper if available
+        if (function_exists('media_url')) {
+            return media_url($path);
         }
 
-        // List of directories to search (in priority order)
-        $directories = [
-            'galleries/images/',
-            'galleries/thumbnails/',
-            'galleries/videos/',
-            'galleries/',
-            'room_images/',
-            'hostels/',
-            'meals/'
-        ];
-
-        foreach ($directories as $directory) {
-            $fullPath = $directory . $filename;
-            if (Storage::disk('public')->exists($fullPath)) {
-                return $fullPath;
-            }
-        }
-
-        return null;
+        // Fallback: original logic
+        $path = ltrim($path, '/');
+        $path = preg_replace('#^storage/#', '', $path);
+        return url('storage/' . $path);
     }
 
     /**
-     * ✅ COMPATIBILITY LAYER: Resolve media path with legacy support
+     * ✅ UPDATED: Use media_exists helper for consistent file checking
      */
     private function resolveMediaPath($path)
     {
@@ -145,16 +129,33 @@ class Gallery extends Model
             return $path;
         }
 
-        // If path contains '/', it's already a relative path - check directly
-        if (str_contains($path, '/')) {
-            if (Storage::disk('public')->exists($path)) {
+        // Use media_exists helper if available
+        if (function_exists('media_exists')) {
+            if (media_exists($path)) {
                 return $path;
             }
+
+            // Try alternative paths
+            $pathsToTry = [
+                'galleries/images/' . $path,
+                'galleries/videos/' . $path,
+                'galleries/' . $path,
+                'room_images/' . $path,
+                'hostels/' . $path,
+                'meals/' . $path
+            ];
+
+            foreach ($pathsToTry as $tryPath) {
+                if (media_exists($tryPath)) {
+                    return $tryPath;
+                }
+            }
         } else {
-            // Filename-only: try multiple directories
-            $foundPath = $this->findFileInDirectories($path);
-            if ($foundPath) {
-                return $foundPath;
+            // Fallback: original logic
+            if (str_contains($path, '/')) {
+                if (Storage::disk('public')->exists($path)) {
+                    return $path;
+                }
             }
         }
 
@@ -162,7 +163,7 @@ class Gallery extends Model
     }
 
     /**
-     * ✅ SIMPLE FIX: Get thumbnail URL without double /storage/
+     * ✅ UPDATED: Get thumbnail URL using media_url helper
      */
     public function getThumbnailUrlAttribute()
     {
@@ -173,20 +174,26 @@ class Gallery extends Model
                 return $this->thumbnail;
             }
 
-            // DIRECT FIX: /storage/ नथप्ने, सिधै file path बाट URL बनाउने
-            $pathsToCheck = [
-                $this->thumbnail,
-                'galleries/thumbnails/' . $this->thumbnail,
-                'galleries/' . $this->thumbnail,
-                'room_images/' . $this->thumbnail,
-                'hostels/' . $this->thumbnail,
-                'meals/' . $this->thumbnail
-            ];
+            // Use media_url helper if available
+            if (function_exists('media_url')) {
+                if (function_exists('media_exists') && media_exists($this->thumbnail)) {
+                    return media_url($this->thumbnail);
+                }
 
-            foreach ($pathsToCheck as $path) {
-                if (Storage::disk('public')->exists($path)) {
-                    // FIX: storage_path बाट सिधै URL बनाउने
-                    return $this->storagePathToUrl($path);
+                // Try alternative paths
+                $pathsToCheck = [
+                    $this->thumbnail,
+                    'galleries/thumbnails/' . $this->thumbnail,
+                    'galleries/' . $this->thumbnail,
+                    'room_images/' . $this->thumbnail,
+                    'hostels/' . $this->thumbnail,
+                    'meals/' . $this->thumbnail
+                ];
+
+                foreach ($pathsToCheck as $path) {
+                    if (media_exists($path)) {
+                        return media_url($path);
+                    }
                 }
             }
         }
@@ -197,18 +204,24 @@ class Gallery extends Model
                 return $this->file_path;
             }
 
-            $pathsToCheck = [
-                $this->file_path,
-                'galleries/images/' . $this->file_path,
-                'galleries/' . $this->file_path,
-                'room_images/' . $this->file_path,
-                'hostels/' . $this->file_path,
-                'meals/' . $this->file_path
-            ];
+            if (function_exists('media_url') && function_exists('media_exists')) {
+                if (media_exists($this->file_path)) {
+                    return media_url($this->file_path);
+                }
 
-            foreach ($pathsToCheck as $path) {
-                if (Storage::disk('public')->exists($path)) {
-                    return $this->storagePathToUrl($path);
+                $pathsToCheck = [
+                    $this->file_path,
+                    'galleries/images/' . $this->file_path,
+                    'galleries/' . $this->file_path,
+                    'room_images/' . $this->file_path,
+                    'hostels/' . $this->file_path,
+                    'meals/' . $this->file_path
+                ];
+
+                foreach ($pathsToCheck as $path) {
+                    if (media_exists($path)) {
+                        return media_url($path);
+                    }
                 }
             }
         }
@@ -233,20 +246,7 @@ class Gallery extends Model
     }
 
     /**
-     * ✅ NEW: Convert storage path to URL without double /storage/
-     */
-    private function storagePathToUrl($path)
-    {
-        // /storage/ prefix हटाउने
-        $path = ltrim($path, '/');
-        $path = preg_replace('#^storage/#', '', $path);
-
-        // सिधै URL बनाउने
-        return url('storage/' . $path);
-    }
-
-    /**
-     * ✅ SIMPLE FIX: Get media URL without double /storage/
+     * ✅ UPDATED: Get media URL using media_url helper
      */
     public function getMediaUrlAttribute()
     {
@@ -261,19 +261,26 @@ class Gallery extends Model
                 return $this->file_path;
             }
 
-            $pathsToCheck = [
-                $this->file_path,
-                'galleries/images/' . $this->file_path,
-                'galleries/videos/' . $this->file_path,
-                'galleries/' . $this->file_path,
-                'room_images/' . $this->file_path,
-                'hostels/' . $this->file_path,
-                'meals/' . $this->file_path
-            ];
+            // Use media_url helper if available
+            if (function_exists('media_url') && function_exists('media_exists')) {
+                if (media_exists($this->file_path)) {
+                    return media_url($this->file_path);
+                }
 
-            foreach ($pathsToCheck as $path) {
-                if (Storage::disk('public')->exists($path)) {
-                    return $this->storagePathToUrl($path);
+                $pathsToCheck = [
+                    $this->file_path,
+                    'galleries/images/' . $this->file_path,
+                    'galleries/videos/' . $this->file_path,
+                    'galleries/' . $this->file_path,
+                    'room_images/' . $this->file_path,
+                    'hostels/' . $this->file_path,
+                    'meals/' . $this->file_path
+                ];
+
+                foreach ($pathsToCheck as $path) {
+                    if (media_exists($path)) {
+                        return media_url($path);
+                    }
                 }
             }
         }
@@ -593,7 +600,7 @@ class Gallery extends Model
     }
 
     /**
-     * ✅ NEW: Get HD image URL
+     * ✅ UPDATED: Get HD image URL using media_url helper
      */
     public function getHdImageUrlAttribute(): ?string
     {
@@ -602,14 +609,14 @@ class Gallery extends Model
         }
 
         // Check if HD file exists
-        if ($this->hd_file_path && Storage::disk('public')->exists($this->hd_file_path)) {
-            return Storage::disk('public')->url($this->hd_file_path);
-        }
-
-        // Check for auto-generated HD path
-        $hdPath = $this->generateHdPath();
-        if (Storage::disk('public')->exists($hdPath)) {
-            return Storage::disk('public')->url($hdPath);
+        if ($this->hd_file_path) {
+            if (function_exists('media_exists') && media_exists($this->hd_file_path)) {
+                if (function_exists('media_url')) {
+                    return media_url($this->hd_file_path);
+                } else {
+                    return Storage::disk('public')->url($this->hd_file_path);
+                }
+            }
         }
 
         // Fallback to regular image URL
@@ -617,7 +624,7 @@ class Gallery extends Model
     }
 
     /**
-     * ✅ NEW: Check if HD version is available
+     * ✅ UPDATED: Check if HD version is available
      */
     public function getIsHdAvailableAttribute(): bool
     {
@@ -626,17 +633,19 @@ class Gallery extends Model
         }
 
         // Check HD file path
-        if ($this->hd_file_path && Storage::disk('public')->exists($this->hd_file_path)) {
-            return true;
+        if ($this->hd_file_path) {
+            if (function_exists('media_exists')) {
+                return media_exists($this->hd_file_path);
+            } else {
+                return Storage::disk('public')->exists($this->hd_file_path);
+            }
         }
 
-        // Check auto-generated HD path
-        $hdPath = $this->generateHdPath();
-        return Storage::disk('public')->exists($hdPath);
+        return false;
     }
 
     /**
-     * ✅ NEW: Generate HD path from regular path
+     * ✅ UPDATED: Generate HD path from regular path
      */
     private function generateHdPath(): string
     {
@@ -790,7 +799,7 @@ class Gallery extends Model
     }
 
     /**
-     * ✅ SIMPLE FIX: Check if file exists
+     * ✅ UPDATED: Check if file exists using media_exists helper
      */
     public function fileExists(): bool
     {
@@ -800,6 +809,15 @@ class Gallery extends Model
             return true;
         }
 
+        // Use media_exists helper if available
+        if (function_exists('media_exists')) {
+            return media_exists($this->file_path) ||
+                media_exists('galleries/images/' . $this->file_path) ||
+                media_exists('galleries/' . $this->file_path) ||
+                media_exists('room_images/' . $this->file_path);
+        }
+
+        // Fallback: original logic
         $pathsToCheck = [
             $this->file_path,
             'galleries/images/' . $this->file_path,
@@ -817,7 +835,7 @@ class Gallery extends Model
     }
 
     /**
-     * Get file size in human readable format
+     * ✅ UPDATED: Get file size using media_exists helper
      */
     public function getFileSizeAttribute(): string
     {
@@ -933,7 +951,7 @@ class Gallery extends Model
     }
 
     /**
-     * ✅ NEW: Get optimized thumbnail for different contexts
+     * ✅ UPDATED: Get optimized thumbnail using media_url helper
      */
     public function getOptimizedThumbnailAttribute(): string
     {
@@ -947,8 +965,12 @@ class Gallery extends Model
             $resolvedPath = $this->resolveMediaPath($this->file_path);
             if ($resolvedPath) {
                 $thumbPath = str_replace('.', '-thumb.', $resolvedPath);
-                if (Storage::disk('public')->exists($thumbPath)) {
-                    return Storage::disk('public')->url($thumbPath);
+                if (function_exists('media_exists') && media_exists($thumbPath)) {
+                    if (function_exists('media_url')) {
+                        return media_url($thumbPath);
+                    } else {
+                        return Storage::disk('public')->url($thumbPath);
+                    }
                 }
             }
         }

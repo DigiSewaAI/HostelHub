@@ -18,6 +18,7 @@ class Kernel extends HttpKernel
         \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
         \App\Http\Middleware\Localize::class,
         \App\Http\Middleware\SecurityHeaders::class,
+        \App\Http\Middleware\MediaFallbackMiddleware::class,
     ];
 
     /**

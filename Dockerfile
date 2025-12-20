@@ -61,10 +61,14 @@ RUN rm -f artisan
 # 1️⃣2️⃣ Copy ALL application files
 COPY . .
 
+# 🚨 RAILWAY MEDIA FIX: Create storage link for images/videos
+RUN php artisan storage:link || \
+    (mkdir -p public/storage && ln -sf ../storage/app/public public/storage && echo "Manual storage link created")
+
 # 1️⃣3️⃣ Fix permissions
 RUN mkdir -p bootstrap/cache storage/framework/sessions storage/framework/views storage/framework/cache \
-    && chown -R www-data:www-data storage bootstrap/cache \
-    && chmod -R 775 storage bootstrap/cache
+    && chown -R www-data:www-data storage bootstrap/cache public/storage \
+    && chmod -R 775 storage bootstrap/cache public/storage
 
 # 1️⃣4️⃣ Run package discover manually (optional)
 RUN php artisan package:discover --no-interaction 2>/dev/null || true

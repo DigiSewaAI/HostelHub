@@ -497,25 +497,18 @@ Route::post('/test-registration-submit', function (Request $request) {
     ]);
 });
 
-// Media streaming route for Railway - serves files from storage/app/public
+// Media streaming route for Railway
 Route::get('/media/{path}', function ($path) {
-    // Security: prevent directory traversal
-    if (str_contains($path, '..')) {
-        abort(404, 'फाइल फेला परेन');
+    $storagePath = 'public/' . $path;
+
+    if (!Storage::disk('public')->exists($path)) {
+        abort(404);
     }
 
-    $filePath = storage_path('app/public/' . $path);
+    $file = Storage::disk('public')->get($path);
+    $type = Storage::disk('public')->mimeType($path);
 
-    if (!file_exists($filePath)) {
-        abort(404, 'फाइल फेला परेन');
-    }
-
-    $mimeType = mime_content_type($filePath);
-    $headers = [];
-
-    if (str_starts_with($mimeType, 'video/')) {
-        $headers['Accept-Ranges'] = 'bytes';
-    }
-
-    return response()->file($filePath, $headers);
+    return response($file, 200)
+        ->header('Content-Type', $type)
+        ->header('Content-Disposition', 'inline');
 })->where('path', '.*')->name('media.stream');
