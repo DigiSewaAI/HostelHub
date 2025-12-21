@@ -1309,13 +1309,23 @@
 
                         $displayedItems++;
                         $isHidden = $displayedItems > $maxInitialDisplay;
+                        
+                        // ✅ FIXED: Normalize image rendering logic to match meal gallery
+                        // Use the same logic that works for meal images in production
+                        if ($gallery->file_path) {
+                            // Use Storage URL generation (same as meal gallery)
+                            $imageUrl = \Storage::disk('public')->url($gallery->file_path);
+                        } else {
+                            // Fallback to existing URL if file_path not available
+                            $imageUrl = $gallery->thumbnail_url ?? $gallery->media_url ?? asset('images/no-image.png');
+                        }
                     @endphp
 
                     <div class="gallery-item {{ $isHidden ? 'hidden-item' : '' }}" 
                          data-category="{{ $filterCategory }}"
                          data-gallery-id="{{ $gallery->id }}">
                         
-                        <img src="{{ $gallery->thumbnail_url ?? $gallery->media_url }}" 
+                        <img src="{{ $imageUrl }}" 
                              alt="{{ $gallery->title }}" 
                              loading="lazy"
                              onerror="this.onerror=null; this.src='{{ asset('images/no-image.png') }}';">
@@ -1368,14 +1378,26 @@
         <div class="tab-content" id="video-gallery">
             <div class="gallery-grid">
                 @foreach($activeGalleries->whereIn('media_type', ['local_video', 'external_video']) as $gallery)
+                    @php
+                        // ✅ FIXED: Apply same logic for video thumbnails
+                        if ($gallery->thumbnail_path ?? $gallery->file_path) {
+                            // Use file_path or thumbnail_path with Storage URL
+                            $thumbPath = $gallery->thumbnail_path ?? $gallery->file_path;
+                            $thumbnailUrl = \Storage::disk('public')->url($thumbPath);
+                        } else {
+                            // Fallback to existing URL
+                            $thumbnailUrl = $gallery->thumbnail_url ?? asset('images/video-default.jpg');
+                        }
+                    @endphp
+                    
                     <div class="gallery-item" data-gallery-id="{{ $gallery->id }}">
                         
                         @if($gallery->media_type === 'local_video')
-                            <img src="{{ $gallery->thumbnail_url ?? asset('images/video-default.jpg') }}" 
+                            <img src="{{ $thumbnailUrl }}" 
                                  alt="{{ $gallery->title }}" 
                                  loading="lazy">
                         @elseif($gallery->media_type === 'external_video')
-                            <img src="{{ $gallery->thumbnail_url ?? asset('images/video-default.jpg') }}" 
+                            <img src="{{ $thumbnailUrl }}" 
                                  alt="{{ $gallery->title }}" 
                                  loading="lazy">
                         @endif
@@ -1430,7 +1452,8 @@
                             $mealTypeNepali = 'बेलुकाको खाना';
                         }
                         
-                        // Get image URL
+                        // ✅ FIXED: Use same logic as meal images (already working)
+                        // This logic is already correct and works in production
                         $mealImageUrl = $menu->image ? asset('storage/'.$menu->image) : 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80';
                         
                         // Get meal items description
@@ -1699,7 +1722,8 @@
             media_type: {!! json_encode($gallery->media_type) !!},
             media_url: {!! json_encode($gallery->media_type === 'external_video' ? $gallery->external_link : $gallery->media_url) !!},
             thumbnail_url: {!! json_encode($gallery->thumbnail_url) !!},
-            youtube_embed_url: {!! json_encode($gallery->youtube_embed_url) !!}
+            youtube_embed_url: {!! json_encode($gallery->youtube_embed_url) !!},
+            file_path: {!! json_encode($gallery->file_path ?? '') !!}
         },
         @endforeach
     };
@@ -1818,7 +1842,15 @@
             }
             
             modal.classList.add('active');
-            document.getElementById('modalImage').src = gallery.media_url;
+            
+            // ✅ FIXED: Use file_path from database with Storage URL if available
+            let imageUrl = gallery.media_url;
+            if (gallery.file_path) {
+                // Use the same Storage URL generation as in the main gallery
+                imageUrl = '{{ url("/") }}/storage/' + gallery.file_path;
+            }
+            
+            document.getElementById('modalImage').src = imageUrl;
             document.getElementById('modalTitle').textContent = gallery.title;
             document.getElementById('modalDescription').textContent = gallery.description;
             
