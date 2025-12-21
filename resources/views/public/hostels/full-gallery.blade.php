@@ -32,15 +32,15 @@
     // Hostel image for HERO section background
     $hostelBgImage = asset('images/default-hostel-bg.jpg');
     
-    // Try to get hostel's main image
-    if ($hostel->image && \Storage::disk('public')->exists($hostel->image)) {
-        $hostelBgImage = \Storage::disk('public')->url($hostel->image);
+    // Try to get hostel's main image - USE SAME LOGIC AS MEAL IMAGES
+    if (!empty($hostel->image)) {
+        $hostelBgImage = asset('storage/'.$hostel->image);
     }
     // Try from hostel images
     elseif (isset($hostel->images) && $hostel->images->count() > 0) {
         foreach ($hostel->images as $img) {
-            if ($img->file_path && \Storage::disk('public')->exists($img->file_path)) {
-                $hostelBgImage = \Storage::disk('public')->url($img->file_path);
+            if (!empty($img->file_path)) {
+                $hostelBgImage = asset('storage/'.$img->file_path);
                 break;
             }
         }
@@ -48,8 +48,8 @@
     // Try from gallery images
     elseif (isset($galleries) && $galleries->count() > 0) {
         foreach ($galleries as $gallery) {
-            if ($gallery->file_path && \Storage::disk('public')->exists($gallery->file_path)) {
-                $hostelBgImage = \Storage::disk('public')->url($gallery->file_path);
+            if (!empty($gallery->file_path)) {
+                $hostelBgImage = asset('storage/'.$gallery->file_path);
                 break;
             }
         }
@@ -1310,15 +1310,10 @@
                         $displayedItems++;
                         $isHidden = $displayedItems > $maxInitialDisplay;
                         
-                        // ✅ FIXED: Normalize image rendering logic to match meal gallery
-                        // Use the same logic that works for meal images in production
-                        if ($gallery->file_path) {
-                            // Use Storage URL generation (same as meal gallery)
-                            $imageUrl = \Storage::disk('public')->url($gallery->file_path);
-                        } else {
-                            // Fallback to existing URL if file_path not available
-                            $imageUrl = $gallery->thumbnail_url ?? $gallery->media_url ?? asset('images/no-image.png');
-                        }
+                        // ✅ FIXED: Normalize ALL image rendering to use SAME logic as meal gallery
+                        // Use EXACT same logic that works for meal images in production
+                        $imageUrl = !empty($gallery->file_path) ? asset('storage/'.$gallery->file_path) : 
+                                    ($gallery->thumbnail_url ?? $gallery->media_url ?? asset('images/no-image.png'));
                     @endphp
 
                     <div class="gallery-item {{ $isHidden ? 'hidden-item' : '' }}" 
@@ -1380,14 +1375,9 @@
                 @foreach($activeGalleries->whereIn('media_type', ['local_video', 'external_video']) as $gallery)
                     @php
                         // ✅ FIXED: Apply same logic for video thumbnails
-                        if ($gallery->thumbnail_path ?? $gallery->file_path) {
-                            // Use file_path or thumbnail_path with Storage URL
-                            $thumbPath = $gallery->thumbnail_path ?? $gallery->file_path;
-                            $thumbnailUrl = \Storage::disk('public')->url($thumbPath);
-                        } else {
-                            // Fallback to existing URL
-                            $thumbnailUrl = $gallery->thumbnail_url ?? asset('images/video-default.jpg');
-                        }
+                        $thumbPath = $gallery->thumbnail_path ?? $gallery->file_path ?? '';
+                        $thumbnailUrl = !empty($thumbPath) ? asset('storage/'.$thumbPath) : 
+                                        ($gallery->thumbnail_url ?? asset('images/video-default.jpg'));
                     @endphp
                     
                     <div class="gallery-item" data-gallery-id="{{ $gallery->id }}">
@@ -1453,8 +1443,7 @@
                         }
                         
                         // ✅ FIXED: Use same logic as meal images (already working)
-                        // This logic is already correct and works in production
-                        $mealImageUrl = $menu->image ? asset('storage/'.$menu->image) : 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80';
+                        $mealImageUrl = !empty($menu->image) ? asset('storage/'.$menu->image) : 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80';
                         
                         // Get meal items description
                         $mealDescription = $menu->formatted_items ?? $menu->description;
@@ -1843,10 +1832,10 @@
             
             modal.classList.add('active');
             
-            // ✅ FIXED: Use file_path from database with Storage URL if available
+            // ✅ FIXED: Use file_path from database with asset('storage/') if available
             let imageUrl = gallery.media_url;
             if (gallery.file_path) {
-                // Use the same Storage URL generation as in the main gallery
+                // Use the same Storage URL generation as meal images
                 imageUrl = '{{ url("/") }}/storage/' + gallery.file_path;
             }
             
