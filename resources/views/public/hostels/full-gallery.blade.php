@@ -1397,26 +1397,26 @@
     <div class="gallery-grid">
         @foreach($activeGalleries->whereIn('media_type', ['local_video', 'external_video']) as $gallery)
             @php
-                // PERMANENT FIX: Correct thumbnail handling
-                $thumbnailPath = $gallery->thumbnail ?? $gallery->file_path ?? '';
-                
-                if ($thumbnailPath) {
-                    // Check if thumbnail exists in storage
-                    if (strpos($thumbnailPath, 'thumb_') !== false) {
-                        // It's a thumbnail path
-                        $thumbnailUrl = asset('storage/' . $thumbnailPath);
-                    } else {
-                        // It's a video file, use default
-                        $thumbnailUrl = asset('images/video-default.jpg');
-                    }
-                } else {
-                    // No thumbnail in database
-                    $thumbnailUrl = asset('images/video-default.jpg');
-                }
-                
-                // Fallback for broken images
-                $onError = "this.onerror=null; this.src='" . asset('images/video-default.jpg') . "';";
-            @endphp
+    // UNIVERSAL FIX: Works for both local and Railway
+    $thumbnailPath = $gallery->thumbnail ?? $gallery->file_path ?? '';
+    
+    if ($thumbnailPath) {
+        // Remove any storage path prefixes
+        $cleanPath = str_replace(['storage/app/public/', 'app/public/', 'public/'], '', $thumbnailPath);
+        $cleanPath = ltrim($cleanPath, '/');
+        
+        // For Railway, use asset() with storage path
+        $thumbnailUrl = asset('storage/' . $cleanPath);
+        
+        // Add cache busting for Railway
+        $thumbnailUrl .= '?v=' . time();
+    } else {
+        $thumbnailUrl = asset('images/video-default.jpg');
+    }
+    
+    // Enhanced fallback
+    $onError = "this.onerror=null; this.src='" . asset('images/video-default.jpg') . "'; this.style.backgroundColor='#1a1a2e';";
+@endphp
             
             <div class="gallery-item" data-gallery-id="{{ $gallery->id }}">
                 
