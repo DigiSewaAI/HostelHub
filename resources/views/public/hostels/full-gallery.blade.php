@@ -1396,30 +1396,70 @@
 <div class="tab-content" id="video-gallery">
     <div class="gallery-grid">
         @foreach($activeGalleries->whereIn('media_type', ['local_video', 'external_video']) as $gallery)
-        @php
+        {{-- Original line 1424-1440 को ठाउँमा यो राख्नुहोस् --}}
+
+@php
     $thumbnailPath = $gallery->thumbnail ?? $gallery->file_path ?? '';
     
-    if ($thumbnailPath && file_exists(public_path('storage/' . $thumbnailPath))) {
-        // Actual thumbnail exists भने त्यही प्रयोग गर्ने
+    // Determine if we should use placeholder or real thumbnail
+    $usePlaceholder = true;
+    
+    if ($thumbnailPath && strpos($thumbnailPath, 'thumb_') !== false) {
+        // Check if file exists in storage (Railway मा usually हुँदैन)
+        $usePlaceholder = false;
         $thumbnailUrl = asset('storage/' . ltrim($thumbnailPath, '/'));
-    } else {
-        // SVG placeholder generate गर्ने (PROPERLY ENCODED)
+    }
+    
+    if ($usePlaceholder) {
+        // Create SVG placeholder (NO onerror needed)
         $title = htmlspecialchars(substr($gallery->title, 0, 20), ENT_QUOTES);
         $colors = ['1a1a2e', '16213e', '0f3460', '533483'];
         $color = $colors[$gallery->id % count($colors)];
         
-        // PROPERLY ENCODED SVG
         $svgContent = rawurlencode(
             '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">' .
             '<rect width="400" height="300" fill="#' . $color . '"/>' .
             '<text x="200" y="150" text-anchor="middle" dy=".3em" fill="white" font-family="Arial" font-size="16">' . 
             $title . '</text>' .
+            '<text x="200" y="180" text-anchor="middle" fill="#a855f7" font-family="Arial" font-size="12">Video</text>' .
             '</svg>'
         );
         
         $thumbnailUrl = "data:image/svg+xml;charset=UTF-8," . $svgContent;
+        $onError = ""; // onerror चाहिँदैन किनभने SVG ले कहिल्यै error गर्दैन
+    } else {
+        // Real thumbnail को लागि onerror थप्ने
+        $colors = ['1a1a2e', '16213e', '0f3460', '533483'];
+        $color = $colors[$gallery->id % count($colors)];
+        
+        $onError = "this.onerror=null; this.src='data:image/svg+xml;base64," . base64_encode(
+            '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">' .
+            '<rect width="400" height="300" fill="#' . $color . '"/>' .
+            '<text x="200" y="150" text-anchor="middle" dy=".3em" fill="white" font-family="Arial" font-size="16">' . 
+            htmlspecialchars(substr($gallery->title, 0, 20), ENT_QUOTES) . '</text>' .
+            '</svg>'
+        ) . "'";
     }
 @endphp
+
+<div class="gallery-item" data-gallery-id="{{ $gallery->id }}">
+    <img src="{{ $thumbnailUrl }}" 
+         alt="{{ $gallery->title }}" 
+         loading="lazy"
+         @if(!empty($onError)) onerror="{{ $onError }}" @endif
+         style="width: 100%; height: 100%; object-fit: cover;">
+    
+    {{-- बाँकी code नचलाउनुहोस् --}}
+    @if($gallery->is_featured)
+        <div class="featured-badge nepali">
+            <i class="fas fa-star"></i> Featured
+        </div>
+    @endif
+    
+    <div class="category-badge nepali">
+        <i class="fas fa-video"></i> भिडियो
+    </div>
+</div>
             
             <div class="gallery-item" data-gallery-id="{{ $gallery->id }}">
                 
