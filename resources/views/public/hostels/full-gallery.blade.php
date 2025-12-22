@@ -1,5 +1,28 @@
 @extends('layouts.frontend')
 
+@php
+    // Helper function to get media URLs - FIX for railway_media_url() error
+    if (!function_exists('get_media_url')) {
+        function get_media_url($path) {
+            if (!$path) {
+                return asset('images/no-image.png');
+            }
+            
+            // Check if path is already a full URL
+            if (filter_var($path, FILTER_VALIDATE_URL)) {
+                return $path;
+            }
+            
+            // Check if file exists in storage
+            try {
+                return Illuminate\Support\Facades\Storage::url($path);
+            } catch (\Exception $e) {
+                return asset('images/no-image.png');
+            }
+        }
+    }
+@endphp
+
 @section('page-title', ($hostel->name ?? 'Sanctuary Girls Hostel') . ' - Complete Gallery | HostelHub')
 
 @section('page-header', ($hostel->name ?? 'Sanctuary Girls Hostel') . ' - Complete Gallery')
@@ -35,13 +58,13 @@
     
     // Try to get hostel's main image
     if ($hostel->image) {
-        $hostelBgImage = railway_media_url($hostel->image);
+        $hostelBgImage = get_media_url($hostel->image);
     }
     // Try from hostel images
     elseif (isset($hostel->images) && $hostel->images->count() > 0) {
         foreach ($hostel->images as $img) {
             if ($img->file_path) {
-                $hostelBgImage = railway_media_url($img->file_path);
+                $hostelBgImage = get_media_url($img->file_path);
                 break;
             }
         }
@@ -50,7 +73,7 @@
     elseif (isset($galleries) && $galleries->count() > 0) {
         foreach ($galleries as $gallery) {
             if ($gallery->file_path) {
-                $hostelBgImage = railway_media_url($gallery->file_path);
+                $hostelBgImage = get_media_url($gallery->file_path);
                 break;
             }
         }
@@ -1311,9 +1334,9 @@
                         $displayedItems++;
                         $isHidden = $displayedItems > $maxInitialDisplay;
                         
-                        // Get image URL using railway_media_url function
+                        // Get image URL using get_media_url function
                         $imagePath = $gallery->file_path ?? '';
-                        $imageUrl = $imagePath ? railway_media_url($imagePath) : asset('images/no-image.png');
+                        $imageUrl = $imagePath ? get_media_url($imagePath) : asset('images/no-image.png');
                     @endphp
 
                     <div class="gallery-item {{ $isHidden ? 'hidden-item' : '' }}" 
@@ -1374,9 +1397,9 @@
             <div class="gallery-grid">
                 @foreach($activeGalleries->whereIn('media_type', ['local_video', 'external_video']) as $gallery)
                     @php
-                        // Get thumbnail URL using railway_media_url function for videos
+                        // Get thumbnail URL using get_media_url function for videos
                         $thumbnailPath = $gallery->thumbnail_path ?? $gallery->file_path ?? '';
-                        $thumbnailUrl = $thumbnailPath ? railway_media_url($thumbnailPath) : asset('images/video-default.jpg');
+                        $thumbnailUrl = $thumbnailPath ? get_media_url($thumbnailPath) : asset('images/video-default.jpg');
                     @endphp
                     
                     <div class="gallery-item" data-gallery-id="{{ $gallery->id }}">
@@ -1441,8 +1464,8 @@
                             $mealTypeNepali = 'बेलुकाको खाना';
                         }
                         
-                        // Get image URL using railway_media_url function
-                        $mealImageUrl = $menu->image ? railway_media_url($menu->image) : 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80';
+                        // Get image URL using get_media_url function
+                        $mealImageUrl = $menu->image ? get_media_url($menu->image) : 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80';
                         
                         // Get meal items description
                         $mealDescription = $menu->formatted_items ?? $menu->description;
@@ -1708,8 +1731,8 @@
             title: {!! json_encode($gallery->title) !!},
             description: {!! json_encode($gallery->description) !!},
             media_type: {!! json_encode($gallery->media_type) !!},
-            media_url: {!! json_encode($gallery->media_type === 'external_video' ? $gallery->external_link : railway_media_url($gallery->file_path ?? '')) !!},
-            thumbnail_url: {!! json_encode($gallery->thumbnail_path ? railway_media_url($gallery->thumbnail_path) : railway_media_url($gallery->file_path ?? '')) !!},
+            media_url: {!! json_encode($gallery->media_type === 'external_video' ? $gallery->external_link : ($gallery->file_path ? get_media_url($gallery->file_path) : asset('images/no-image.png'))) !!},
+            thumbnail_url: {!! json_encode($gallery->thumbnail_path ? get_media_url($gallery->thumbnail_path) : ($gallery->file_path ? get_media_url($gallery->file_path) : asset('images/no-image.png'))) !!},
             youtube_embed_url: {!! json_encode($gallery->youtube_embed_url) !!}
         },
         @endforeach
