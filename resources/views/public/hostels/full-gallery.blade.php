@@ -1396,62 +1396,30 @@
 <div class="tab-content" id="video-gallery">
     <div class="gallery-grid">
         @foreach($activeGalleries->whereIn('media_type', ['local_video', 'external_video']) as $gallery)
-            @php
-    // QUICK FIX: Use colored placeholders
+        @php
     $thumbnailPath = $gallery->thumbnail ?? $gallery->file_path ?? '';
     
-    // Generate a consistent color based on video ID
-    $colors = [
-        'linear-gradient(135deg, #FF6B35, #FF8B3D)',
-        'linear-gradient(135deg, #10b981, #34d399)',
-        'linear-gradient(135deg, #3b82f6, #6366f1)',
-        'linear-gradient(135deg, #8b5cf6, #a855f7)'
-    ];
-    
-    $colorIndex = $gallery->id % count($colors);
-    $gradient = $colors[$colorIndex];
-    
-    // Create a styled placeholder
-    $onError = "this.onerror=null; 
-                this.style.background = '{$gradient}';
-                this.style.display = 'flex';
-                this.style.alignItems = 'center';
-                this.style.justifyContent = 'center';
-                this.style.color = 'white';
-                this.style.fontWeight = 'bold';
-                this.style.fontSize = '16px';
-                this.innerHTML = '" . addslashes(substr($gallery->title, 0, 30)) . "';";
-    
-    // Try to load actual thumbnail first
-    if ($thumbnailPath && strpos($thumbnailPath, 'thumb_') !== false) {
+    if ($thumbnailPath && file_exists(public_path('storage/' . $thumbnailPath))) {
+        // Actual thumbnail exists भने त्यही प्रयोग गर्ने
         $thumbnailUrl = asset('storage/' . ltrim($thumbnailPath, '/'));
     } else {
-        // Use a data URL as placeholder
-        $thumbnailUrl = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='300'><rect width='400' height='300' fill='%231a1a2e'/><text x='50%' y='50%' text-anchor='middle' dy='.3em' fill='white' font-family='Arial' font-size='16'>" . htmlentities($gallery->title) . "</text></svg>";
+        // SVG placeholder generate गर्ने (PROPERLY ENCODED)
+        $title = htmlspecialchars(substr($gallery->title, 0, 20), ENT_QUOTES);
+        $colors = ['1a1a2e', '16213e', '0f3460', '533483'];
+        $color = $colors[$gallery->id % count($colors)];
+        
+        // PROPERLY ENCODED SVG
+        $svgContent = rawurlencode(
+            '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">' .
+            '<rect width="400" height="300" fill="#' . $color . '"/>' .
+            '<text x="200" y="150" text-anchor="middle" dy=".3em" fill="white" font-family="Arial" font-size="16">' . 
+            $title . '</text>' .
+            '</svg>'
+        );
+        
+        $thumbnailUrl = "data:image/svg+xml;charset=UTF-8," . $svgContent;
     }
 @endphp
-
-<style>
-    .gallery-item {
-        position: relative;
-        min-height: 300px;
-    }
-    
-    .gallery-item img {
-        transition: all 0.3s ease;
-    }
-    
-    .gallery-item img[src*="data:image"] {
-        background: linear-gradient(135deg, #1a1a2e, #16213e);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-weight: bold;
-        padding: 20px;
-        text-align: center;
-    }
-</style>
             
             <div class="gallery-item" data-gallery-id="{{ $gallery->id }}">
                 
