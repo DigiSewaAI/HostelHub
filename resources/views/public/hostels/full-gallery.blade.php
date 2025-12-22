@@ -1397,26 +1397,61 @@
     <div class="gallery-grid">
         @foreach($activeGalleries->whereIn('media_type', ['local_video', 'external_video']) as $gallery)
             @php
-    // UNIVERSAL FIX: Works for both local and Railway
+    // QUICK FIX: Use colored placeholders
     $thumbnailPath = $gallery->thumbnail ?? $gallery->file_path ?? '';
     
-    if ($thumbnailPath) {
-        // Remove any storage path prefixes
-        $cleanPath = str_replace(['storage/app/public/', 'app/public/', 'public/'], '', $thumbnailPath);
-        $cleanPath = ltrim($cleanPath, '/');
-        
-        // For Railway, use asset() with storage path
-        $thumbnailUrl = asset('storage/' . $cleanPath);
-        
-        // Add cache busting for Railway
-        $thumbnailUrl .= '?v=' . time();
+    // Generate a consistent color based on video ID
+    $colors = [
+        'linear-gradient(135deg, #FF6B35, #FF8B3D)',
+        'linear-gradient(135deg, #10b981, #34d399)',
+        'linear-gradient(135deg, #3b82f6, #6366f1)',
+        'linear-gradient(135deg, #8b5cf6, #a855f7)'
+    ];
+    
+    $colorIndex = $gallery->id % count($colors);
+    $gradient = $colors[$colorIndex];
+    
+    // Create a styled placeholder
+    $onError = "this.onerror=null; 
+                this.style.background = '{$gradient}';
+                this.style.display = 'flex';
+                this.style.alignItems = 'center';
+                this.style.justifyContent = 'center';
+                this.style.color = 'white';
+                this.style.fontWeight = 'bold';
+                this.style.fontSize = '16px';
+                this.innerHTML = '" . addslashes(substr($gallery->title, 0, 30)) . "';";
+    
+    // Try to load actual thumbnail first
+    if ($thumbnailPath && strpos($thumbnailPath, 'thumb_') !== false) {
+        $thumbnailUrl = asset('storage/' . ltrim($thumbnailPath, '/'));
     } else {
-        $thumbnailUrl = asset('images/video-default.jpg');
+        // Use a data URL as placeholder
+        $thumbnailUrl = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='300'><rect width='400' height='300' fill='%231a1a2e'/><text x='50%' y='50%' text-anchor='middle' dy='.3em' fill='white' font-family='Arial' font-size='16'>" . htmlentities($gallery->title) . "</text></svg>";
+    }
+@endphp
+
+<style>
+    .gallery-item {
+        position: relative;
+        min-height: 300px;
     }
     
-    // Enhanced fallback
-    $onError = "this.onerror=null; this.src='" . asset('images/video-default.jpg') . "'; this.style.backgroundColor='#1a1a2e';";
-@endphp
+    .gallery-item img {
+        transition: all 0.3s ease;
+    }
+    
+    .gallery-item img[src*="data:image"] {
+        background: linear-gradient(135deg, #1a1a2e, #16213e);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        padding: 20px;
+        text-align: center;
+    }
+</style>
             
             <div class="gallery-item" data-gallery-id="{{ $gallery->id }}">
                 
