@@ -1460,25 +1460,6 @@
         <i class="fas fa-video"></i> भिडियो
     </div>
 </div>
-            
-            <div class="gallery-item" data-gallery-id="{{ $gallery->id }}">
-                
-                <img src="{{ $thumbnailUrl }}" 
-                     alt="{{ $gallery->title }}" 
-                     loading="lazy"
-                     onerror="{{ $onError }}"
-                     style="width: 100%; height: 100%; object-fit: cover;">
-                
-                @if($gallery->is_featured)
-                    <div class="featured-badge nepali">
-                        <i class="fas fa-star"></i> Featured
-                    </div>
-                @endif
-                
-                <div class="category-badge nepali">
-                    <i class="fas fa-video"></i> भिडियो
-                </div>
-
                 <div class="gallery-overlay">
                     <h3 class="gallery-title nepali">{{ $gallery->title }}</h3>
                     <p class="gallery-description nepali">{{ Str::limit($gallery->description, 120) }}</p>
