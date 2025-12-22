@@ -1,28 +1,5 @@
 @extends('layouts.frontend')
 
-@php
-    // Helper function to get media URLs - FIX for railway_media_url() error
-    if (!function_exists('get_media_url')) {
-        function get_media_url($path) {
-            if (!$path) {
-                return asset('images/no-image.png');
-            }
-            
-            // Check if path is already a full URL
-            if (filter_var($path, FILTER_VALIDATE_URL)) {
-                return $path;
-            }
-            
-            // Check if file exists in storage
-            try {
-                return Illuminate\Support\Facades\Storage::url($path);
-            } catch (\Exception $e) {
-                return asset('images/no-image.png');
-            }
-        }
-    }
-@endphp
-
 @section('page-title', ($hostel->name ?? 'Sanctuary Girls Hostel') . ' - Complete Gallery | HostelHub')
 
 @section('page-header', ($hostel->name ?? 'Sanctuary Girls Hostel') . ' - Complete Gallery')
@@ -53,30 +30,31 @@
         'meal' => $mealMenus->count() ?? 0
     ];
     
-    // RAILWAY FIX: Always use SVG placeholder for hero background
-    $hostelBgImage = "data:image/svg+xml;charset=UTF-8," . rawurlencode(
-        '<?xml version="1.0"?>' .
-        '<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="500" viewBox="0 0 1200 500">' .
-        '<defs>' .
-        '<linearGradient id="coverGrad" x1="0%" y1="0%" x2="100%" y2="100%">' .
-        '<stop offset="0%" style="stop-color:#1a1a2e;stop-opacity:1" />' .
-        '<stop offset="100%" style="stop-color:#0f3460;stop-opacity:1" />' .
-        '</linearGradient>' .
-        '</defs>' .
-        '<rect width="1200" height="500" fill="url(#coverGrad)" />' .
-        
-        '<g transform="translate(600, 200)">' .
-        '<rect x="-250" y="-60" width="500" height="120" fill="rgba(255,255,255,0.1)" rx="15" />' .
-        '<text text-anchor="middle" fill="white" font-family="Arial" font-size="42" font-weight="800" dy="-10">' . htmlspecialchars($hostel->name ?? 'होस्टल', ENT_QUOTES) . '</text>' .
-        '<text text-anchor="middle" fill="#a855f7" font-family="Arial" font-size="22" font-weight="600" dy="30">Complete Photo & Video Gallery</text>' .
-        '</g>' .
-        
-        '<g transform="translate(600, 320)">' .
-        '<text text-anchor="middle" fill="#e2e8f0" font-family="Arial" font-size="18" font-weight="500">सबै कोठाहरू, किचन, सुविधाहरू र भिडियोहरूको विस्तृत दृश्यात्मक अनुभव</text>' .
-        '</g>' .
-        
-        '</svg>'
-    );
+    // Hostel image for HERO section background
+    $hostelBgImage = asset('images/default-hostel-bg.jpg');
+    
+    // Try to get hostel's main image
+    if ($hostel->image) {
+        $hostelBgImage = railway_media_url($hostel->image);
+    }
+    // Try from hostel images
+    elseif (isset($hostel->images) && $hostel->images->count() > 0) {
+        foreach ($hostel->images as $img) {
+            if ($img->file_path) {
+                $hostelBgImage = railway_media_url($img->file_path);
+                break;
+            }
+        }
+    }
+    // Try from gallery images
+    elseif (isset($galleries) && $galleries->count() > 0) {
+        foreach ($galleries as $gallery) {
+            if ($gallery->file_path) {
+                $hostelBgImage = railway_media_url($gallery->file_path);
+                break;
+            }
+        }
+    }
 @endphp
 
 <style>
@@ -1333,25 +1311,9 @@
                         $displayedItems++;
                         $isHidden = $displayedItems > $maxInitialDisplay;
                         
-                        // RAILWAY FIX: Always use SVG placeholder for photo gallery
-                        $title = htmlspecialchars(substr($gallery->title, 0, 25), ENT_QUOTES);
-                        $colors = ['1a1a2e', '16213e', '0f3460', '533483'];
-                        $color = $colors[($gallery->id ?? rand(1,100)) % count($colors)];
-                        
-                        $svgContent = rawurlencode(
-                            '<?xml version="1.0"?>' .
-                            '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">' .
-                            '<rect width="400" height="300" fill="#' . $color . '" />' .
-                            '<rect x="100" y="80" width="200" height="140" fill="rgba(255,255,255,0.1)" rx="10" />' .
-                            '<circle cx="200" cy="110" r="25" fill="rgba(255,255,255,0.2)" />' .
-                            '<rect x="150" cy="150" width="100" height="8" y="140" fill="rgba(255,255,255,0.2)" rx="4" />' .
-                            '<rect x="130" cy="170" width="140" height="8" y="160" fill="rgba(255,255,255,0.2)" rx="4" />' .
-                            '<text x="200" y="230" text-anchor="middle" fill="white" font-family="Arial" font-size="16" font-weight="600">' . $title . '</text>' .
-                            '<text x="200" y="260" text-anchor="middle" fill="#e2e8f0" font-family="Arial" font-size="12">' . ($categoryName ?? 'Image') . '</text>' .
-                            '</svg>'
-                        );
-                        
-                        $imageUrl = "data:image/svg+xml;charset=UTF-8," . $svgContent;
+                        // Get image URL using railway_media_url function
+                        $imagePath = $gallery->file_path ?? '';
+                        $imageUrl = $imagePath ? railway_media_url($imagePath) : asset('images/no-image.png');
                     @endphp
 
                     <div class="gallery-item {{ $isHidden ? 'hidden-item' : '' }}" 
@@ -1360,7 +1322,8 @@
                         
                         <img src="{{ $imageUrl }}" 
                              alt="{{ $gallery->title }}" 
-                             loading="lazy">
+                             loading="lazy"
+                             onerror="this.onerror=null; this.src='{{ asset('images/no-image.png') }}';">
 
                         @if($gallery->is_featured)
                             <div class="featured-badge nepali">
@@ -1411,34 +1374,23 @@
             <div class="gallery-grid">
                 @foreach($activeGalleries->whereIn('media_type', ['local_video', 'external_video']) as $gallery)
                     @php
-                        // RAILWAY FIX: Video thumbnail with proper SVG placeholder
-                        $thumbnailPath = $gallery->thumbnail ?? $gallery->file_path ?? '';
-                        
-                        // Always use placeholder on Railway
-                        $title = htmlspecialchars(substr($gallery->title, 0, 20), ENT_QUOTES);
-                        $colors = ['1a1a2e', '16213e', '0f3460', '533483'];
-                        $color = $colors[$gallery->id % count($colors)];
-                        
-                        $svgContent = rawurlencode(
-                            '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">' .
-                            '<rect width="400" height="300" fill="#' . $color . '"/>' .
-                            '<circle cx="200" cy="120" r="50" fill="rgba(255,255,255,0.2)"/>' .
-                            '<polygon points="180,110 180,130 200,120" fill="white"/>' .
-                            '<text x="200" y="180" text-anchor="middle" fill="white" font-family="Arial" font-size="16">' . 
-                            $title . '</text>' .
-                            '<text x="200" y="210" text-anchor="middle" fill="#a855f7" font-family="Arial" font-size="12">Click to play video</text>' .
-                            '</svg>'
-                        );
-                        
-                        $thumbnailUrl = "data:image/svg+xml;charset=UTF-8," . $svgContent;
+                        // Get thumbnail URL using railway_media_url function for videos
+                        $thumbnailPath = $gallery->thumbnail_path ?? $gallery->file_path ?? '';
+                        $thumbnailUrl = $thumbnailPath ? railway_media_url($thumbnailPath) : asset('images/video-default.jpg');
                     @endphp
-
+                    
                     <div class="gallery-item" data-gallery-id="{{ $gallery->id }}">
-                        <img src="{{ $thumbnailUrl }}" 
-                             alt="{{ $gallery->title }}" 
-                             loading="lazy"
-                             style="width: 100%; height: 100%; object-fit: cover;">
                         
+                        @if($gallery->media_type === 'local_video')
+                            <img src="{{ $thumbnailUrl }}" 
+                                 alt="{{ $gallery->title }}" 
+                                 loading="lazy">
+                        @elseif($gallery->media_type === 'external_video')
+                            <img src="{{ $thumbnailUrl }}" 
+                                 alt="{{ $gallery->title }}" 
+                                 loading="lazy">
+                        @endif
+
                         @if($gallery->is_featured)
                             <div class="featured-badge nepali">
                                 <i class="fas fa-star"></i> Featured
@@ -1489,32 +1441,8 @@
                             $mealTypeNepali = 'बेलुकाको खाना';
                         }
                         
-                        // RAILWAY FIX: Meal image SVG placeholder
-                        $svgContent = rawurlencode(
-                            '<?xml version="1.0"?>' .
-                            '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400">' .
-                            '<defs>' .
-                            '<linearGradient id="mealGrad" x1="0%" y1="0%" x2="100%" y2="100%">' .
-                            '<stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />' .
-                            '<stop offset="100%" style="stop-color:#059669;stop-opacity:1" />' .
-                            '</linearGradient>' .
-                            '</defs>' .
-                            '<rect width="600" height="400" fill="url(#mealGrad)" />' .
-                            
-                            '<g transform="translate(300, 150)">' .
-                            '<circle cx="0" cy="0" r="60" fill="rgba(255,255,255,0.2)" />' .
-                            '<text text-anchor="middle" fill="white" font-family="Arial" font-size="36" dy="10">🍽️</text>' .
-                            '</g>' .
-                            
-                            '<g transform="translate(300, 250)">' .
-                            '<text text-anchor="middle" fill="white" font-family="Arial" font-size="24" font-weight="bold">' . htmlspecialchars($mealTypeNepali, ENT_QUOTES) . '</text>' .
-                            '<text text-anchor="middle" fill="#e2e8f0" font-family="Arial" font-size="16" dy="30">' . htmlspecialchars($menu->day_of_week, ENT_QUOTES) . '</text>' .
-                            '</g>' .
-                            
-                            '</svg>'
-                        );
-                        
-                        $mealImageUrl = "data:image/svg+xml;charset=UTF-8," . $svgContent;
+                        // Get image URL using railway_media_url function
+                        $mealImageUrl = $menu->image ? railway_media_url($menu->image) : 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80';
                         
                         // Get meal items description
                         $mealDescription = $menu->formatted_items ?? $menu->description;
@@ -1780,8 +1708,8 @@
             title: {!! json_encode($gallery->title) !!},
             description: {!! json_encode($gallery->description) !!},
             media_type: {!! json_encode($gallery->media_type) !!},
-            media_url: {!! json_encode($gallery->media_type === 'external_video' ? $gallery->external_link : ($gallery->file_path ? get_media_url($gallery->file_path) : asset('images/no-image.png'))) !!},
-            thumbnail_url: {!! json_encode($gallery->thumbnail_path ? get_media_url($gallery->thumbnail_path) : ($gallery->file_path ? get_media_url($gallery->file_path) : asset('images/no-image.png'))) !!},
+            media_url: {!! json_encode($gallery->media_type === 'external_video' ? $gallery->external_link : railway_media_url($gallery->file_path ?? '')) !!},
+            thumbnail_url: {!! json_encode($gallery->thumbnail_path ? railway_media_url($gallery->thumbnail_path) : railway_media_url($gallery->file_path ?? '')) !!},
             youtube_embed_url: {!! json_encode($gallery->youtube_embed_url) !!}
         },
         @endforeach
