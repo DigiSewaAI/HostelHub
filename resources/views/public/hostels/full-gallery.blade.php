@@ -53,31 +53,30 @@
         'meal' => $mealMenus->count() ?? 0
     ];
     
-    // Hostel image for HERO section background
-    $hostelBgImage = asset('images/default-hostel-bg.jpg');
-    
-    // Try to get hostel's main image
-    if ($hostel->image) {
-        $hostelBgImage = get_media_url($hostel->image);
-    }
-    // Try from hostel images
-    elseif (isset($hostel->images) && $hostel->images->count() > 0) {
-        foreach ($hostel->images as $img) {
-            if ($img->file_path) {
-                $hostelBgImage = get_media_url($img->file_path);
-                break;
-            }
-        }
-    }
-    // Try from gallery images
-    elseif (isset($galleries) && $galleries->count() > 0) {
-        foreach ($galleries as $gallery) {
-            if ($gallery->file_path) {
-                $hostelBgImage = get_media_url($gallery->file_path);
-                break;
-            }
-        }
-    }
+    // RAILWAY FIX: Always use SVG placeholder for hero background
+    $hostelBgImage = "data:image/svg+xml;charset=UTF-8," . rawurlencode(
+        '<?xml version="1.0"?>' .
+        '<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="500" viewBox="0 0 1200 500">' .
+        '<defs>' .
+        '<linearGradient id="coverGrad" x1="0%" y1="0%" x2="100%" y2="100%">' .
+        '<stop offset="0%" style="stop-color:#1a1a2e;stop-opacity:1" />' .
+        '<stop offset="100%" style="stop-color:#0f3460;stop-opacity:1" />' .
+        '</linearGradient>' .
+        '</defs>' .
+        '<rect width="1200" height="500" fill="url(#coverGrad)" />' .
+        
+        '<g transform="translate(600, 200)">' .
+        '<rect x="-250" y="-60" width="500" height="120" fill="rgba(255,255,255,0.1)" rx="15" />' .
+        '<text text-anchor="middle" fill="white" font-family="Arial" font-size="42" font-weight="800" dy="-10">' . htmlspecialchars($hostel->name ?? 'होस्टल', ENT_QUOTES) . '</text>' .
+        '<text text-anchor="middle" fill="#a855f7" font-family="Arial" font-size="22" font-weight="600" dy="30">Complete Photo & Video Gallery</text>' .
+        '</g>' .
+        
+        '<g transform="translate(600, 320)">' .
+        '<text text-anchor="middle" fill="#e2e8f0" font-family="Arial" font-size="18" font-weight="500">सबै कोठाहरू, किचन, सुविधाहरू र भिडियोहरूको विस्तृत दृश्यात्मक अनुभव</text>' .
+        '</g>' .
+        
+        '</svg>'
+    );
 @endphp
 
 <style>
@@ -1334,9 +1333,25 @@
                         $displayedItems++;
                         $isHidden = $displayedItems > $maxInitialDisplay;
                         
-                        // Get image URL using get_media_url function
-                        $imagePath = $gallery->file_path ?? '';
-                        $imageUrl = $imagePath ? get_media_url($imagePath) : asset('images/no-image.png');
+                        // RAILWAY FIX: Always use SVG placeholder for photo gallery
+                        $title = htmlspecialchars(substr($gallery->title, 0, 25), ENT_QUOTES);
+                        $colors = ['1a1a2e', '16213e', '0f3460', '533483'];
+                        $color = $colors[($gallery->id ?? rand(1,100)) % count($colors)];
+                        
+                        $svgContent = rawurlencode(
+                            '<?xml version="1.0"?>' .
+                            '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">' .
+                            '<rect width="400" height="300" fill="#' . $color . '" />' .
+                            '<rect x="100" y="80" width="200" height="140" fill="rgba(255,255,255,0.1)" rx="10" />' .
+                            '<circle cx="200" cy="110" r="25" fill="rgba(255,255,255,0.2)" />' .
+                            '<rect x="150" cy="150" width="100" height="8" y="140" fill="rgba(255,255,255,0.2)" rx="4" />' .
+                            '<rect x="130" cy="170" width="140" height="8" y="160" fill="rgba(255,255,255,0.2)" rx="4" />' .
+                            '<text x="200" y="230" text-anchor="middle" fill="white" font-family="Arial" font-size="16" font-weight="600">' . $title . '</text>' .
+                            '<text x="200" y="260" text-anchor="middle" fill="#e2e8f0" font-family="Arial" font-size="12">' . ($categoryName ?? 'Image') . '</text>' .
+                            '</svg>'
+                        );
+                        
+                        $imageUrl = "data:image/svg+xml;charset=UTF-8," . $svgContent;
                     @endphp
 
                     <div class="gallery-item {{ $isHidden ? 'hidden-item' : '' }}" 
@@ -1345,8 +1360,7 @@
                         
                         <img src="{{ $imageUrl }}" 
                              alt="{{ $gallery->title }}" 
-                             loading="lazy"
-                             onerror="this.onerror=null; this.src='{{ asset('images/no-image.png') }}';">
+                             loading="lazy">
 
                         @if($gallery->is_featured)
                             <div class="featured-badge nepali">
@@ -1393,134 +1407,71 @@
         </div>
         
         <!-- Video Gallery Tab -->
-<div class="tab-content" id="video-gallery">
-    <div class="gallery-grid">
-        @foreach($activeGalleries->whereIn('media_type', ['local_video', 'external_video']) as $gallery)
-        {{-- Original line 1424-1440 को ठाउँमा यो राख्नुहोस् --}}
+        <div class="tab-content" id="video-gallery">
+            <div class="gallery-grid">
+                @foreach($activeGalleries->whereIn('media_type', ['local_video', 'external_video']) as $gallery)
+                    @php
+                        // RAILWAY FIX: Video thumbnail with proper SVG placeholder
+                        $thumbnailPath = $gallery->thumbnail ?? $gallery->file_path ?? '';
+                        
+                        // Always use placeholder on Railway
+                        $title = htmlspecialchars(substr($gallery->title, 0, 20), ENT_QUOTES);
+                        $colors = ['1a1a2e', '16213e', '0f3460', '533483'];
+                        $color = $colors[$gallery->id % count($colors)];
+                        
+                        $svgContent = rawurlencode(
+                            '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">' .
+                            '<rect width="400" height="300" fill="#' . $color . '"/>' .
+                            '<circle cx="200" cy="120" r="50" fill="rgba(255,255,255,0.2)"/>' .
+                            '<polygon points="180,110 180,130 200,120" fill="white"/>' .
+                            '<text x="200" y="180" text-anchor="middle" fill="white" font-family="Arial" font-size="16">' . 
+                            $title . '</text>' .
+                            '<text x="200" y="210" text-anchor="middle" fill="#a855f7" font-family="Arial" font-size="12">Click to play video</text>' .
+                            '</svg>'
+                        );
+                        
+                        $thumbnailUrl = "data:image/svg+xml;charset=UTF-8," . $svgContent;
+                    @endphp
 
-@php
-    $thumbnailPath = $gallery->thumbnail ?? $gallery->file_path ?? '';
-    
-    // Determine if we should use placeholder or real thumbnail
-    $usePlaceholder = true;
-    
-    if ($thumbnailPath && strpos($thumbnailPath, 'thumb_') !== false) {
-        // Check if file exists in storage (Railway मा usually हुँदैन)
-        $usePlaceholder = false;
-        $thumbnailUrl = asset('storage/' . ltrim($thumbnailPath, '/'));
-    }
-    
-    if ($usePlaceholder) {
-        // Create SVG placeholder (NO onerror needed)
-        $title = htmlspecialchars(substr($gallery->title, 0, 20), ENT_QUOTES);
-        $colors = ['1a1a2e', '16213e', '0f3460', '533483'];
-        $color = $colors[$gallery->id % count($colors)];
-        
-        $svgContent = rawurlencode(
-            '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">' .
-            '<rect width="400" height="300" fill="#' . $color . '"/>' .
-            '<text x="200" y="150" text-anchor="middle" dy=".3em" fill="white" font-family="Arial" font-size="16">' . 
-            $title . '</text>' .
-            '<text x="200" y="180" text-anchor="middle" fill="#a855f7" font-family="Arial" font-size="12">Video</text>' .
-            '</svg>'
-        );
-        
-        $thumbnailUrl = "data:image/svg+xml;charset=UTF-8," . $svgContent;
-        $onError = ""; // onerror चाहिँदैन किनभने SVG ले कहिल्यै error गर्दैन
-    } else {
-        // Real thumbnail को लागि onerror थप्ने
-        $colors = ['1a1a2e', '16213e', '0f3460', '533483'];
-        $color = $colors[$gallery->id % count($colors)];
-        
-        $onError = "this.onerror=null; this.src='data:image/svg+xml;base64," . base64_encode(
-            '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">' .
-            '<rect width="400" height="300" fill="#' . $color . '"/>' .
-            '<text x="200" y="150" text-anchor="middle" dy=".3em" fill="white" font-family="Arial" font-size="16">' . 
-            htmlspecialchars(substr($gallery->title, 0, 20), ENT_QUOTES) . '</text>' .
-            '</svg>'
-        ) . "'";
-    }
-@endphp
+                    <div class="gallery-item" data-gallery-id="{{ $gallery->id }}">
+                        <img src="{{ $thumbnailUrl }}" 
+                             alt="{{ $gallery->title }}" 
+                             loading="lazy"
+                             style="width: 100%; height: 100%; object-fit: cover;">
+                        
+                        @if($gallery->is_featured)
+                            <div class="featured-badge nepali">
+                                <i class="fas fa-star"></i> Featured
+                            </div>
+                        @endif
+                        
+                        <div class="category-badge nepali">
+                            <i class="fas fa-video"></i> भिडियो
+                        </div>
 
-<div class="gallery-item" data-gallery-id="{{ $gallery->id }}">
-    <img src="{{ $thumbnailUrl }}" 
-         alt="{{ $gallery->title }}" 
-         loading="lazy"
-         @if(!empty($onError)) onerror="{{ $onError }}" @endif
-         style="width: 100%; height: 100%; object-fit: cover;">
-    
-    {{-- बाँकी code नचलाउनुहोस् --}}
-    @if($gallery->is_featured)
-        <div class="featured-badge nepali">
-            <i class="fas fa-star"></i> Featured
+                        <div class="gallery-overlay">
+                            <h3 class="gallery-title nepali">{{ $gallery->title }}</h3>
+                            <p class="gallery-description nepali">{{ Str::limit($gallery->description, 120) }}</p>
+                            <button class="btn btn-primary view-gallery-btn" 
+                                    style="margin-top: 12px; padding: 10px 20px; font-size: 0.95rem;" 
+                                    onclick="openGalleryModal('{{ $gallery->id }}', '{{ $gallery->media_type }}')">
+                                <i class="fas fa-play-circle" style="margin-right: 8px;"></i> भिडियो हेर्नुहोस्
+                            </button>
+                        </div>
+                    </div>
+                @endforeach
+
+                @if($activeGalleries->whereIn('media_type', ['local_video', 'external_video'])->count() === 0)
+                    <div class="no-content">
+                        <div class="no-content-icon">
+                            <i class="fas fa-video"></i>
+                        </div>
+                        <h3 class="nepali">कुनै भिडियोहरू छैनन्</h3>
+                        <p class="nepali">यस होस्टलको भिडियो ग्यालरी चाँहि उपलब्ध छैन। कृपया पछि फेरी जाँच गर्नुहोस्।</p>
+                    </div>
+                @endif
+            </div>
         </div>
-    @endif
-    
-    <div class="category-badge nepali">
-        <i class="fas fa-video"></i> भिडियो
-    </div>
-</div>
-                <div class="gallery-overlay">
-                    <h3 class="gallery-title nepali">{{ $gallery->title }}</h3>
-                    <p class="gallery-description nepali">{{ Str::limit($gallery->description, 120) }}</p>
-                    <button class="btn btn-primary view-gallery-btn" 
-                            style="margin-top: 12px; padding: 10px 20px; font-size: 0.95rem;" 
-                            onclick="openGalleryModal('{{ $gallery->id }}', '{{ $gallery->media_type }}')">
-                        <i class="fas fa-play-circle" style="margin-right: 8px;"></i> भिडियो हेर्नुहोस्
-                    </button>
-                </div>
-            </div>
-        @endforeach
-
-        @if($activeGalleries->whereIn('media_type', ['local_video', 'external_video'])->count() === 0)
-            <div class="no-content">
-                <div class="no-content-icon">
-                    <i class="fas fa-video"></i>
-                </div>
-                <h3 class="nepali">कुनै भिडियोहरू छैनन्</h3>
-                <p class="nepali">यस होस्टलको भिडियो ग्यालरी चाँहि उपलब्ध छैन। कृपया पछि फेरी जाँच गर्नुहोस्।</p>
-            </div>
-        @endif
-    </div>
-</div>
-
-<style>
-    /* Force image to cover the container */
-    .gallery-item img {
-        width: 100% !important;
-        height: 100% !important;
-        object-fit: cover !important;
-        display: block !important;
-    }
-    
-    /* Ensure no white space */
-    .gallery-item {
-        background-color: #000 !important;
-        overflow: hidden !important;
-    }
-</style>
-
-<script>
-    // Additional script to handle image loading
-    document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('#video-gallery img').forEach(function(img) {
-            // If image fails to load, set a default background
-            img.addEventListener('error', function() {
-                this.style.backgroundColor = '#1a1a2e';
-                this.style.backgroundImage = 'url(' + "{{ asset('images/video-default.jpg') }}" + ')';
-                this.style.backgroundSize = 'cover';
-                this.style.backgroundPosition = 'center';
-                this.style.display = 'block';
-            });
-            
-            // Force load check
-            if (img.complete && img.naturalWidth === 0) {
-                img.dispatchEvent(new Event('error'));
-            }
-        });
-    });
-</script>
-
         
         <!-- Meal Gallery Tab -->
         <div class="tab-content" id="meal-gallery">
@@ -1538,8 +1489,32 @@
                             $mealTypeNepali = 'बेलुकाको खाना';
                         }
                         
-                        // Get image URL using get_media_url function
-                        $mealImageUrl = $menu->image ? get_media_url($menu->image) : 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80';
+                        // RAILWAY FIX: Meal image SVG placeholder
+                        $svgContent = rawurlencode(
+                            '<?xml version="1.0"?>' .
+                            '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400">' .
+                            '<defs>' .
+                            '<linearGradient id="mealGrad" x1="0%" y1="0%" x2="100%" y2="100%">' .
+                            '<stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />' .
+                            '<stop offset="100%" style="stop-color:#059669;stop-opacity:1" />' .
+                            '</linearGradient>' .
+                            '</defs>' .
+                            '<rect width="600" height="400" fill="url(#mealGrad)" />' .
+                            
+                            '<g transform="translate(300, 150)">' .
+                            '<circle cx="0" cy="0" r="60" fill="rgba(255,255,255,0.2)" />' .
+                            '<text text-anchor="middle" fill="white" font-family="Arial" font-size="36" dy="10">🍽️</text>' .
+                            '</g>' .
+                            
+                            '<g transform="translate(300, 250)">' .
+                            '<text text-anchor="middle" fill="white" font-family="Arial" font-size="24" font-weight="bold">' . htmlspecialchars($mealTypeNepali, ENT_QUOTES) . '</text>' .
+                            '<text text-anchor="middle" fill="#e2e8f0" font-family="Arial" font-size="16" dy="30">' . htmlspecialchars($menu->day_of_week, ENT_QUOTES) . '</text>' .
+                            '</g>' .
+                            
+                            '</svg>'
+                        );
+                        
+                        $mealImageUrl = "data:image/svg+xml;charset=UTF-8," . $svgContent;
                         
                         // Get meal items description
                         $mealDescription = $menu->formatted_items ?? $menu->description;
