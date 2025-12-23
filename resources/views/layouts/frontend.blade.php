@@ -755,423 +755,255 @@
             }
         }
 
-        /* 🚨 MOBILE HEADER FIX ONLY - Clean PR */
+        /* 🚨 FINAL MOBILE HEADER FIX - PROPER SEPARATION */
 
 @media (max-width: 767px) {
-    /* ==================== FIX 1: COMPACT LOGIN & SIGNUP BUTTONS ==================== */
+    /* ==================== 1. HEADER LAYOUT RESET ==================== */
     
-    /* Fix header spacing */
-    .header-inner {
-        padding: 0.5rem 0 !important;
-        min-height: var(--header-height) !important;
+    /* Reset header container */
+    #site-header {
+        height: 60px !important;
+        overflow: visible !important;
     }
     
-    .navbar {
+    .header-inner {
         padding: 0 !important;
         height: 100% !important;
     }
     
-    /* Adjust logo spacing - pull slightly left */
-    .logo {
-        margin-right: 0 !important;
+    .header-inner .container {
         padding-left: 0.5rem !important;
-        flex-shrink: 1 !important;
-        min-width: 0 !important;
-        margin-left: 0 !important;
+        padding-right: 0.5rem !important;
+        max-width: 100% !important;
+        width: 100% !important;
     }
     
-    /* Compact logo image */
+    /* Make navbar flexible */
+    .navbar {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        width: 100% !important;
+        height: 100% !important;
+        gap: 0.5rem !important;
+    }
+    
+    /* ==================== 2. LOGO - EXTREME LEFT ==================== */
+    
+    .logo {
+        flex-shrink: 0 !important;
+        margin-right: 0 !important;
+        margin-left: 0 !important;
+        padding-left: 0.2rem !important;
+        transform: translateX(-0.4rem) !important; /* 👈 Extreme left */
+        min-width: auto !important;
+        max-width: 120px !important;
+    }
+    
+    /* Compact logo */
+    .logo-image {
+        width: 40px !important;
+        height: 40px !important;
+        padding: 2px !important;
+        border-width: 1px !important;
+    }
+    
     header .logo img {
-        width: 50px !important;
-        height: 50px !important;
+        width: 35px !important;
+        height: 35px !important;
     }
     
     .logo-text h1 {
-        font-size: 1.1rem !important;
-        white-space: nowrap !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
+        font-size: 0.95rem !important;
+        margin-right: 0.2rem !important;
     }
     
     .logo-text span {
-        font-size: 0.6rem !important;
-        line-height: 1 !important;
+        font-size: 0.5rem !important;
+        line-height: 0.9 !important;
     }
     
-    /* ==================== FIX 2: SHOW COMPACT HEADER CTA (LOGIN/SIGNUP) ==================== */
+    /* ==================== 3. BUTTONS (Login/Signup) - MIDDLE-RIGHT ==================== */
     
-    /* Show header CTA on mobile */
     .header-cta {
         display: flex !important;
         position: static !important;
-        margin-left: 0 !important;
-        gap: 0.5rem !important;
+        margin-left: auto !important; /* 👈 Pushes to right */
+        margin-right: 0.5rem !important;
+        gap: 0.4rem !important;
         padding: 0 !important;
         min-width: 0 !important;
         flex-shrink: 0 !important;
+        transform: none !important;
+        left: auto !important;
     }
     
-    /* Compact button styling */
+    /* Super compact buttons */
     .header-cta .btn {
-        padding: 0.4rem 0.8rem !important;
-        font-size: 0.8rem !important;
-        min-width: 60px !important;
-        height: 32px !important;
-        border-radius: 6px !important;
+        padding: 0.3rem 0.6rem !important;
+        font-size: 0.7rem !important;
+        min-width: 50px !important;
+        height: 28px !important;
+        border-radius: 5px !important;
         white-space: nowrap !important;
         overflow: hidden !important;
         text-overflow: ellipsis !important;
     }
     
     .btn-outline {
-        padding: 0.4rem 0.8rem !important;
         border-width: 1px !important;
-        font-size: 0.8rem !important;
+        padding: 0.3rem 0.6rem !important;
     }
     
-    /* Dashboard link compact */
-    .dashboard-link {
-        padding: 0.4rem 0.8rem !important;
-        font-size: 0.8rem !important;
-        border-width: 1px !important;
-        min-width: 60px !important;
-        height: 32px !important;
+    /* Auth buttons (dashboard/logout) */
+    .dashboard-link, .logout-btn {
+        padding: 0.3rem 0.6rem !important;
+        font-size: 0.7rem !important;
+        min-width: 50px !important;
+        height: 28px !important;
+        border-radius: 5px !important;
         white-space: nowrap !important;
     }
     
-    /* Logout button compact */
-    .logout-btn {
-        padding: 0.4rem 0.8rem !important;
-        font-size: 0.8rem !important;
-        border-width: 1px !important;
-        min-width: 60px !important;
-        height: 32px !important;
-        white-space: nowrap !important;
-    }
-    
-    /* ==================== FIX 3: MOBILE MENU BUTTON SPACING ==================== */
+    /* ==================== 4. HAMBURGER - EXTREME RIGHT EDGE ==================== */
     
     .mobile-menu-btn {
-        margin-left: 0.5rem !important;
-        padding-right: 0.5rem !important;
-        font-size: 1.1rem !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        margin-left: 0 !important;
+        margin-right: 0.2rem !important; /* 👈 Edge of screen */
+        padding: 0 !important;
         width: 36px !important;
         height: 36px !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        flex-shrink: 0 !important;
-    }
-    
-    /* ==================== RESPONSIVE ADJUSTMENTS BY SCREEN SIZE ==================== */
-    
-    /* Small mobile (≤360px) */
-    @media (max-width: 360px) {
-        .logo {
-            padding-left: 0.3rem !important;
-        }
-        
-        header .logo img {
-            width: 40px !important;
-            height: 40px !important;
-        }
-        
-        .logo-text h1 {
-            font-size: 0.9rem !important;
-        }
-        
-        .logo-text span {
-            font-size: 0.5rem !important;
-        }
-        
-        .header-cta {
-            gap: 0.3rem !important;
-        }
-        
-        .header-cta .btn,
-        .dashboard-link,
-        .logout-btn {
-            padding: 0.3rem 0.6rem !important;
-            font-size: 0.7rem !important;
-            min-width: 50px !important;
-            height: 28px !important;
-        }
-        
-        .mobile-menu-btn {
-            font-size: 1rem !important;
-            width: 32px !important;
-            height: 32px !important;
-            padding-right: 0.3rem !important;
-        }
-    }
-    
-    /* Medium mobile (361px–480px) */
-    @media (min-width: 361px) and (max-width: 480px) {
-        .logo {
-            padding-left: 0.4rem !important;
-        }
-        
-        .header-cta {
-            gap: 0.4rem !important;
-        }
-        
-        .header-cta .btn,
-        .dashboard-link,
-        .logout-btn {
-            padding: 0.4rem 0.7rem !important;
-            font-size: 0.75rem !important;
-            min-width: 55px !important;
-        }
-    }
-    
-    /* Large mobile (481px–767px) */
-    @media (min-width: 481px) and (max-width: 767px) {
-        .logo {
-            padding-left: 0.5rem !important;
-        }
-        
-        .header-cta {
-            gap: 0.6rem !important;
-        }
-        
-        .header-cta .btn,
-        .dashboard-link,
-        .logout-btn {
-            padding: 0.4rem 0.8rem !important;
-            font-size: 0.8rem !important;
-            min-width: 60px !important;
-        }
-    }
-}
-
-/* 🚨 IMPORTANT: Ensure no duplicate headers on mobile */
-@media (max-width: 767px) {
-    /* Hide any duplicate header */
-    header#site-header.fixed.top-0.left-0.right-0.z-50.bg-indigo-900,
-    .fixed.top-0.left-0.right-0.z-50.bg-indigo-900 {
-        display: none !important;
-    }
-    
-    /* Ensure only our header shows */
-    #site-header {
-        display: flex !important;
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        z-index: 1000 !important;
-    }
-}
-
-/* 🚨 CRITICAL: Remove old header file reference */
-/* Delete or comment out this line in your layout if it exists: */
-
-/* 🚨 IMPROVEMENT 1: LOGO FARTHER LEFT + HAMBURGER TO RIGHT EDGE */
-
-@media (max-width: 767px) {
-    /* ==================== FIX: MOVE LOGO FARTHER LEFT ==================== */
-    
-    /* Remove all container padding on sides for header */
-    .header-inner .container {
-        padding-left: 0.3rem !important;
-        padding-right: 0.3rem !important;
-        width: 100% !important;
-        max-width: 100% !important;
-    }
-    
-    /* Push logo to very left edge */
-    .logo {
-        margin-right: 0 !important;
-        margin-left: 0 !important;
-        padding-left: 0.3rem !important;
-        flex-shrink: 0 !important;
-        min-width: 0 !important;
-        transform: translateX(-0.3rem) !important; /* 👈 Pushes logo even more left */
-    }
-    
-    /* Make logo container very compact */
-    .logo-image {
-        width: 45px !important;
-        height: 45px !important;
-        padding: 2px !important;
-        margin-right: 0.2rem !important;
-    }
-    
-    header .logo img {
-        width: 40px !important;
-        height: 40px !important;
-    }
-    
-    .logo-text h1 {
-        font-size: 1rem !important;
-        margin-right: 0.3rem !important;
-    }
-    
-    .logo-text span {
-        font-size: 0.55rem !important;
-        line-height: 0.9 !important;
-    }
-    
-    /* ==================== FIX: HAMBURGER TO RIGHT EDGE WITH SPACING ==================== */
-    
-    /* Move hamburger menu to far right */
-    .mobile-menu-btn {
-        margin-left: auto !important; /* 👈 Pushes to right */
-        margin-right: 0.5rem !important;
-        padding: 0 !important;
-        width: 40px !important;
-        height: 40px !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        flex-shrink: 0 !important;
         border: 1px solid rgba(255, 255, 255, 0.3) !important;
-        border-radius: 6px !important;
+        border-radius: 5px !important;
         background: rgba(255, 255, 255, 0.1) !important;
+        color: white !important;
+        font-size: 1.1rem !important;
+        flex-shrink: 0 !important;
+        order: 3 !important; /* Ensures it's last */
     }
     
-    /* Center the 3 lines icon inside hamburger */
     .mobile-menu-btn i {
         margin: 0 !important;
         padding: 0 !important;
-        font-size: 1.2rem !important;
     }
     
-    /* ==================== FIX: BUTTONS SPACING IN CENTER ==================== */
+    /* ==================== 5. NAV LINKS (HIDDEN ON MOBILE) ==================== */
     
-    /* Header CTA buttons (login/signup) */
-    .header-cta {
-        display: flex !important;
-        position: absolute !important;
-        left: 50% !important;
-        transform: translateX(-50%) !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        gap: 0.4rem !important;
-        z-index: 10 !important;
+    .nav-links {
+        display: none !important;
     }
     
-    /* Compact buttons */
-    .header-cta .btn {
-        padding: 0.35rem 0.7rem !important;
-        font-size: 0.75rem !important;
-        min-width: 55px !important;
-        height: 30px !important;
-        border-radius: 5px !important;
-    }
+    /* ==================== RESPONSIVE ADJUSTMENTS ==================== */
     
-    /* Dashboard/logout buttons compact */
-    .dashboard-link, .logout-btn {
-        padding: 0.35rem 0.7rem !important;
-        font-size: 0.75rem !important;
-        min-width: 55px !important;
-        height: 30px !important;
-        border-radius: 5px !important;
-    }
-    
-    /* ==================== RESPONSIVE ADJUSTMENTS BY SCREEN SIZE ==================== */
-    
-    /* Small mobile (≤360px) - Extra compact */
+    /* Small mobile (≤360px) */
     @media (max-width: 360px) {
-        .header-inner .container {
-            padding-left: 0.2rem !important;
-            padding-right: 0.2rem !important;
+        #site-header {
+            height: 55px !important;
         }
         
         .logo {
-            padding-left: 0.2rem !important;
-            transform: translateX(-0.2rem) !important;
+            max-width: 100px !important;
+            transform: translateX(-0.5rem) !important;
         }
         
         .logo-image {
-            width: 40px !important;
-            height: 40px !important;
-        }
-        
-        header .logo img {
             width: 35px !important;
             height: 35px !important;
         }
         
+        header .logo img {
+            width: 30px !important;
+            height: 30px !important;
+        }
+        
         .logo-text h1 {
-            font-size: 0.9rem !important;
-        }
-        
-        .logo-text span {
-            font-size: 0.5rem !important;
-        }
-        
-        .mobile-menu-btn {
-            margin-right: 0.3rem !important;
-            width: 36px !important;
-            height: 36px !important;
+            font-size: 0.85rem !important;
         }
         
         .header-cta {
             gap: 0.3rem !important;
+            margin-right: 0.3rem !important;
         }
         
         .header-cta .btn,
         .dashboard-link,
         .logout-btn {
-            padding: 0.3rem 0.6rem !important;
-            font-size: 0.7rem !important;
-            min-width: 50px !important;
-            height: 28px !important;
+            padding: 0.25rem 0.5rem !important;
+            font-size: 0.65rem !important;
+            min-width: 45px !important;
+            height: 26px !important;
+        }
+        
+        .mobile-menu-btn {
+            width: 34px !important;
+            height: 34px !important;
+            font-size: 1rem !important;
+            margin-right: 0.1rem !important;
         }
     }
     
     /* Medium mobile (361px–480px) */
     @media (min-width: 361px) and (max-width: 480px) {
         .logo {
-            padding-left: 0.4rem !important;
-        }
-        
-        .mobile-menu-btn {
-            margin-right: 0.6rem !important;
+            max-width: 130px !important;
         }
         
         .header-cta {
-            gap: 0.5rem !important;
+            gap: 0.4rem !important;
+            margin-right: 0.4rem !important;
+        }
+        
+        .mobile-menu-btn {
+            margin-right: 0.3rem !important;
         }
     }
     
     /* Large mobile (481px–767px) */
     @media (min-width: 481px) and (max-width: 767px) {
         .logo {
-            padding-left: 0.5rem !important;
-        }
-        
-        .mobile-menu-btn {
-            margin-right: 0.8rem !important;
-        }
-        
-        .header-cta {
-            gap: 0.6rem !important;
+            max-width: 150px !important;
         }
         
         .header-cta .btn,
         .dashboard-link,
         .logout-btn {
-            padding: 0.4rem 0.8rem !important;
-            min-width: 60px !important;
+            min-width: 55px !important;
+            height: 30px !important;
+        }
+        
+        .mobile-menu-btn {
+            margin-right: 0.4rem !important;
         }
     }
 }
 
-/* 🚨 ENSURE HAMBURGER IS ALWAYS VISIBLE AND CLICKABLE */
+/* 🚨 CRITICAL: Ensure proper order on mobile */
 @media (max-width: 767px) {
-    .mobile-menu-btn {
-        position: relative !important;
-        z-index: 1001 !important;
-        pointer-events: auto !important;
-        opacity: 1 !important;
-        visibility: visible !important;
+    /* Hide desktop nav */
+    .nav-links {
+        display: none !important;
     }
     
-    /* Fix for any possible overlap */
-    #site-header {
-        overflow: visible !important;
+    /* Show hamburger */
+    .mobile-menu-btn {
+        display: flex !important;
+    }
+    
+    /* Ensure buttons are visible */
+    .header-cta {
+        display: flex !important;
+    }
+    
+    /* Clean up any conflicting styles */
+    .header-cta[style*="position: absolute"],
+    .header-cta[style*="left: 50%"],
+    .header-cta[style*="transform: translateX"] {
+        position: static !important;
+        left: auto !important;
+        transform: none !important;
     }
 }
     </style>
