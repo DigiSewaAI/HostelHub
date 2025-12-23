@@ -1006,6 +1006,67 @@
         transform: none !important;
     }
 }
+
+/* 🚨 HAMBURGER MENU VISIBILITY FIX */
+
+@media (max-width: 767px) {
+    /* Ensure hamburger is always visible and clickable */
+    .mobile-menu-btn {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        cursor: pointer !important;
+        z-index: 9999 !important;
+        position: relative !important;
+    }
+    
+    /* Make sure nav links are properly positioned */
+    .nav-links {
+        position: fixed !important;
+        top: 60px !important; /* Height of header */
+        left: 0 !important;
+        right: 0 !important;
+        background: var(--primary) !important;
+        flex-direction: column !important;
+        padding: 1.5rem !important;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2) !important;
+        border-top: 1px solid rgba(255,255,255,0.1) !important;
+        z-index: 9998 !important;
+        max-height: calc(100vh - 60px) !important;
+        overflow-y: auto !important;
+        transition: transform 0.3s ease, opacity 0.3s ease !important;
+        transform: translateY(-20px) !important;
+        opacity: 0 !important;
+        display: flex !important; /* Always flex but hidden by transform/opacity */
+        visibility: hidden !important;
+    }
+    
+    .nav-links.show {
+        transform: translateY(0) !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+    }
+    
+    /* Better styling for mobile nav links */
+    .nav-links a {
+        padding: 0.8rem 0 !important;
+        border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+        font-size: 1rem !important;
+        color: white !important;
+        width: 100% !important;
+        text-align: left !important;
+    }
+    
+    .nav-links a:last-child {
+        border-bottom: none !important;
+    }
+    
+    .nav-links a:hover {
+        background: rgba(255,255,255,0.1) !important;
+        padding-left: 0.5rem !important;
+    }
+}
     </style>
 
     @stack('styles')
@@ -1278,5 +1339,126 @@
     </script>
 
     @stack('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚨 Mobile header fix loaded');
+    
+    // 🚨 CRITICAL FIX: Hamburger menu click functionality
+    function initializeMobileMenu() {
+        const menuBtn = document.querySelector('.mobile-menu-btn');
+        const navLinks = document.getElementById('main-nav');
+        
+        console.log('Menu button found:', menuBtn);
+        console.log('Nav links found:', navLinks);
+        
+        if (menuBtn && navLinks) {
+            // Remove any existing event listeners first
+            const newMenuBtn = menuBtn.cloneNode(true);
+            menuBtn.parentNode.replaceChild(newMenuBtn, menuBtn);
+            
+            // Get fresh references
+            const freshMenuBtn = document.querySelector('.mobile-menu-btn');
+            const freshNavLinks = document.getElementById('main-nav');
+            
+            // Add click event with proper error handling
+            freshMenuBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                e.preventDefault();
+                
+                console.log('Hamburger clicked!');
+                
+                const isExpanded = freshMenuBtn.getAttribute('aria-expanded') === 'true';
+                freshMenuBtn.setAttribute('aria-expanded', !isExpanded);
+                freshNavLinks.classList.toggle('show');
+                
+                // Toggle icon
+                const icon = freshMenuBtn.querySelector('i');
+                if (icon) {
+                    icon.className = isExpanded ? 'fas fa-bars' : 'fas fa-times';
+                }
+                
+                // Prevent body scroll when menu is open
+                if (!isExpanded) {
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    document.body.style.overflow = '';
+                }
+            });
+            
+            console.log('✅ Hamburger click listener attached');
+            
+            // Close menu when clicking on a link
+            document.querySelectorAll('.nav-links a').forEach(link => {
+                link.addEventListener('click', () => {
+                    freshNavLinks.classList.remove('show');
+                    freshMenuBtn.setAttribute('aria-expanded', 'false');
+                    const icon = freshMenuBtn.querySelector('i');
+                    if (icon) icon.className = 'fas fa-bars';
+                    document.body.style.overflow = '';
+                });
+            });
+            
+            // Close menu when clicking outside
+            document.addEventListener('click', function(event) {
+                if (freshNavLinks.classList.contains('show')) {
+                    const isClickInsideNav = freshNavLinks.contains(event.target);
+                    const isClickOnMenuBtn = freshMenuBtn.contains(event.target);
+                    
+                    if (!isClickInsideNav && !isClickOnMenuBtn) {
+                        freshNavLinks.classList.remove('show');
+                        freshMenuBtn.setAttribute('aria-expanded', 'false');
+                        const icon = freshMenuBtn.querySelector('i');
+                        if (icon) icon.className = 'fas fa-bars';
+                        document.body.style.overflow = '';
+                    }
+                }
+            });
+            
+            // Close menu on ESC key
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape' && freshNavLinks.classList.contains('show')) {
+                    freshNavLinks.classList.remove('show');
+                    freshMenuBtn.setAttribute('aria-expanded', 'false');
+                    const icon = freshMenuBtn.querySelector('i');
+                    if (icon) icon.className = 'fas fa-bars';
+                    document.body.style.overflow = '';
+                }
+            });
+        } else {
+            console.error('❌ Menu elements not found:', { menuBtn, navLinks });
+        }
+    }
+    
+    // Initialize immediately
+    initializeMobileMenu();
+    
+    // Re-initialize after a short delay (in case of dynamic loading)
+    setTimeout(initializeMobileMenu, 500);
+    setTimeout(initializeMobileMenu, 1000);
+    
+    // Also add a debug button for testing (remove in production)
+    const debugBtn = document.createElement('button');
+    debugBtn.textContent = '🛠️ Debug Menu';
+    debugBtn.style.cssText = 'position:fixed;bottom:10px;right:10px;z-index:99999;background:red;color:white;padding:5px;font-size:10px;';
+    debugBtn.onclick = function() {
+        const menuBtn = document.querySelector('.mobile-menu-btn');
+        const navLinks = document.getElementById('main-nav');
+        alert(`Menu Debug:\nButton: ${menuBtn ? 'Found' : 'Missing'}\nNav: ${navLinks ? 'Found' : 'Missing'}`);
+        if (menuBtn) menuBtn.click();
+    };
+    document.body.appendChild(debugBtn);
+    
+    // Force show mobile menu button if hidden
+    setTimeout(() => {
+        const menuBtn = document.querySelector('.mobile-menu-btn');
+        if (menuBtn) {
+            menuBtn.style.display = 'flex !important';
+            menuBtn.style.visibility = 'visible !important';
+            menuBtn.style.opacity = '1 !important';
+            menuBtn.style.pointerEvents = 'auto !important';
+        }
+    }, 100);
+});
+</script>
 </body>
 </html>
