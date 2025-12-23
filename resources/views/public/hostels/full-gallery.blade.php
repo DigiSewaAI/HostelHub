@@ -1412,60 +1412,54 @@
         </div>
         
         <!-- Video Gallery Tab -->
-        <div class="tab-content" id="video-gallery">
-            <div class="gallery-grid">
-                @foreach($activeGalleries->whereIn('media_type', ['local_video', 'external_video']) as $gallery)
-                    @php
-                        // Get thumbnail URL using get_media_url function for videos
-                        $thumbnailPath = $gallery->thumbnail_path ?? $gallery->file_path ?? '';
-                        $thumbnailUrl = $thumbnailPath ? get_media_url($thumbnailPath) : asset('images/video-default.jpg');
-                    @endphp
-                    
-                    <div class="gallery-item" data-gallery-id="{{ $gallery->id }}">
-                        
-                        @if($gallery->media_type === 'local_video')
-                            <img src="{{ $thumbnailUrl }}" 
-                                 alt="{{ $gallery->title }}" 
-                                 loading="lazy">
-                        @elseif($gallery->media_type === 'external_video')
-                            <img src="{{ $thumbnailUrl }}" 
-                                 alt="{{ $gallery->title }}" 
-                                 loading="lazy">
-                        @endif
-
-                        @if($gallery->is_featured)
-                            <div class="featured-badge nepali">
-                                <i class="fas fa-star"></i> Featured
-                            </div>
-                        @endif
-                        
-                        <div class="category-badge nepali">
-                            <i class="fas fa-video"></i> भिडियो
-                        </div>
-
-                        <div class="gallery-overlay">
-                            <h3 class="gallery-title nepali">{{ $gallery->title }}</h3>
-                            <p class="gallery-description nepali">{{ Str::limit($gallery->description, 120) }}</p>
-                            <button class="btn btn-primary view-gallery-btn" 
-                                    style="margin-top: 12px; padding: 10px 20px; font-size: 0.95rem;" 
-                                    onclick="openGalleryModal('{{ $gallery->id }}', '{{ $gallery->media_type }}')">
-                                <i class="fas fa-play-circle" style="margin-right: 8px;"></i> भिडियो हेर्नुहोस्
-                            </button>
-                        </div>
-                    </div>
-                @endforeach
-
-                @if($activeGalleries->whereIn('media_type', ['local_video', 'external_video'])->count() === 0)
-                    <div class="no-content">
-                        <div class="no-content-icon">
-                            <i class="fas fa-video"></i>
-                        </div>
-                        <h3 class="nepali">कुनै भिडियोहरू छैनन्</h3>
-                        <p class="nepali">यस होस्टलको भिडियो ग्यालरी चाँहि उपलब्ध छैन। कृपया पछि फेरी जाँच गर्नुहोस्।</p>
+<div class="tab-content" id="video-gallery">
+    <div class="gallery-grid">
+        @foreach($activeGalleries->whereIn('media_type', ['local_video', 'external_video']) as $gallery)
+            @php
+                // 🎯 FIXED: Use the model's thumbnail_url attribute
+                // This will use our fixed logic above
+                $thumbnailUrl = $gallery->thumbnail_url;
+            @endphp
+            
+            <div class="gallery-item" data-gallery-id="{{ $gallery->id }}">
+                <img src="{{ $thumbnailUrl }}" 
+                     alt="{{ $gallery->title }}" 
+                     loading="lazy"
+                     onerror="this.onerror=null; this.src='{{ asset('images/video-default.jpg') }}';">
+                
+                @if($gallery->is_featured)
+                    <div class="featured-badge nepali">
+                        <i class="fas fa-star"></i> Featured
                     </div>
                 @endif
+                
+                <div class="category-badge nepali">
+                    <i class="fas fa-video"></i> भिडियो
+                </div>
+
+                <div class="gallery-overlay">
+                    <h3 class="gallery-title nepali">{{ $gallery->title }}</h3>
+                    <p class="gallery-description nepali">{{ Str::limit($gallery->description, 120) }}</p>
+                    <button class="btn btn-primary view-gallery-btn" 
+                            style="margin-top: 12px; padding: 10px 20px; font-size: 0.95rem;" 
+                            onclick="openGalleryModal('{{ $gallery->id }}', '{{ $gallery->media_type }}')">
+                        <i class="fas fa-play-circle" style="margin-right: 8px;"></i> भिडियो हेर्नुहोस्
+                    </button>
+                </div>
             </div>
-        </div>
+        @endforeach
+
+        @if($activeGalleries->whereIn('media_type', ['local_video', 'external_video'])->count() === 0)
+            <div class="no-content">
+                <div class="no-content-icon">
+                    <i class="fas fa-video"></i>
+                </div>
+                <h3 class="nepali">कुनै भिडियोहरू छैनन्</h3>
+                <p class="nepali">यस होस्टलको भिडियो ग्यालरी चाँहि उपलब्ध छैन। कृपया पछि फेरी जाँच गर्नुहोस्।</p>
+            </div>
+        @endif
+    </div>
+</div>
         
         <!-- Meal Gallery Tab -->
         <div class="tab-content" id="meal-gallery">
