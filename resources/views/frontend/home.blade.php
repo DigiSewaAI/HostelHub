@@ -1417,6 +1417,180 @@ main.home-page-main {
         }
     }
 }
+
+/* 🚨 MOBILE-ONLY TITLE UNHIDE FIX */
+
+@media (max-width: 767px) {
+    /* Title लाई unhide गर्ने - सम्भवतः header को कारण hide भएको छ */
+    .hero-title.nepali {
+        visibility: visible !important;
+        opacity: 1 !important;
+        display: block !important;
+        position: relative !important;
+        z-index: 100 !important;
+        color: #ffffff !important;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.5) !important;
+        margin-top: 10px !important;
+        margin-bottom: 15px !important;
+        padding-top: 5px !important;
+        padding-bottom: 5px !important;
+        background: rgba(0,0,0,0.15) !important;
+        backdrop-filter: blur(5px) !important;
+        border-radius: 8px !important;
+        padding-left: 15px !important;
+        padding-right: 15px !important;
+    }
+    
+    /* Header को overlapping बाट बचाउन */
+    .hero {
+        padding-top: 70px !important;
+        margin-top: 0 !important;
+    }
+    
+    /* Hero section मा थप top spacing */
+    .hero-content {
+        padding-top: 10px !important;
+    }
+    
+    /* अगाडि को CSS हरू देखि यसरी ensure गर्ने कि title देखिन्छ */
+    .hero-text {
+        position: relative !important;
+        z-index: 50 !important;
+    }
+}
+
+/* Small mobile को लागि fine-tuning */
+@media (max-width: 360px) {
+    .hero-title.nepali {
+        font-size: 1.4rem !important;
+        margin-top: 8px !important;
+        margin-bottom: 12px !important;
+        padding-left: 12px !important;
+        padding-right: 12px !important;
+    }
+    
+    .hero {
+        padding-top: 60px !important;
+    }
+}
+
+/* Medium mobile (361px–480px) */
+@media (min-width: 361px) and (max-width: 480px) {
+    .hero-title.nepali {
+        font-size: 1.5rem !important;
+        margin-top: 12px !important;
+        margin-bottom: 15px !important;
+    }
+}
+
+/* Large mobile (481px–767px) */
+@media (min-width: 481px) and (max-width: 767px) {
+    .hero-title.nepali {
+        font-size: 1.7rem !important;
+        margin-top: 15px !important;
+        margin-bottom: 18px !important;
+    }
+    
+    .hero {
+        padding-top: 75px !important;
+    }
+}
+
+/* 🚨 CRITICAL FIX: यदि header fixed छ भने यो CSS add गर्ने */
+@media (max-width: 767px) {
+    /* Ensure title header को पछाडि hide भएन */
+    .hero-title.nepali::before {
+        content: '' !important;
+        display: block !important;
+        height: 5px !important;
+        width: 100% !important;
+        background: transparent !important;
+    }
+    
+    /* Page को top मा extra space दिने जसले गर्दा title देखिन्छ */
+    body {
+        padding-top: 0 !important;
+    }
+    
+    /* यदि पनि title hide भएमा यो extreme fix */
+    .hero-text h1.hero-title.nepali {
+        transform: translateY(0) !important;
+        clip-path: none !important;
+        -webkit-clip-path: none !important;
+        overflow: visible !important;
+    }
+}
+
+/* 🚨 SUPER EXTREME FIX: यदि अझै पनि title hide भएमा */
+@media (max-width: 767px) {
+    .hero-title.nepali {
+        /* Force render the text */
+        -webkit-font-smoothing: antialiased !important;
+        -moz-osx-font-smoothing: grayscale !important;
+        text-rendering: optimizeLegibility !important;
+        
+        /* Remove any potential hiding effects */
+        clip: auto !important;
+        clip-path: none !important;
+        -webkit-clip-path: none !important;
+        
+        /* Ensure text is visible */
+        color: #ffffff !important;
+        text-shadow: 
+            0 1px 0 rgba(0,0,0,0.3),
+            0 2px 4px rgba(0,0,0,0.5),
+            0 4px 8px rgba(0,0,0,0.3) !important;
+        
+        /* Add subtle background for better visibility */
+        background: linear-gradient(90deg, 
+            rgba(0,0,0,0.1) 0%, 
+            rgba(0,0,0,0.2) 50%, 
+            rgba(0,0,0,0.1) 100%) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        box-shadow: 
+            inset 0 1px 0 rgba(255,255,255,0.1),
+            0 4px 12px rgba(0,0,0,0.3) !important;
+    }
+}
+
+/* 🚨 FINAL NUCLEAR OPTION: यदि कुनै CSS title लाई hide गरिरहेको छ भने */
+@media (max-width: 767px) {
+    /* सबै possible hiding styles हटाउने */
+    .hero-title.nepali {
+        /* Reset all hiding properties */
+        visibility: visible !important;
+        opacity: 1 !important;
+        display: block !important;
+        position: static !important;
+        transform: none !important;
+        filter: none !important;
+        backdrop-filter: none !important;
+        background: none !important;
+        border: none !important;
+        box-shadow: none !important;
+        
+        /* Just show the text clearly */
+        color: white !important;
+        font-size: 1.6rem !important;
+        font-weight: 800 !important;
+        line-height: 1.3 !important;
+        text-align: left !important;
+        padding: 10px 15px !important;
+        margin: 10px 0 15px 0 !important;
+    }
+    
+    /* Remove any parent element hiding */
+    .hero-text {
+        overflow: visible !important;
+        clip-path: none !important;
+    }
+    
+    /* Ensure hero section has enough space */
+    .hero {
+        min-height: calc(100vh - 100px) !important;
+        padding-top: 80px !important;
+    }
+}
 </style>
 @endpush
 
