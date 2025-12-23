@@ -754,6 +754,218 @@
                 height: 60px !important;
             }
         }
+
+        /* 🚨 MOBILE HEADER FIX ONLY - Clean PR */
+
+@media (max-width: 767px) {
+    /* ==================== FIX 1: COMPACT LOGIN & SIGNUP BUTTONS ==================== */
+    
+    /* Fix header spacing */
+    .header-inner {
+        padding: 0.5rem 0 !important;
+        min-height: var(--header-height) !important;
+    }
+    
+    .navbar {
+        padding: 0 !important;
+        height: 100% !important;
+    }
+    
+    /* Adjust logo spacing - pull slightly left */
+    .logo {
+        margin-right: 0 !important;
+        padding-left: 0.5rem !important;
+        flex-shrink: 1 !important;
+        min-width: 0 !important;
+        margin-left: 0 !important;
+    }
+    
+    /* Compact logo image */
+    header .logo img {
+        width: 50px !important;
+        height: 50px !important;
+    }
+    
+    .logo-text h1 {
+        font-size: 1.1rem !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+    
+    .logo-text span {
+        font-size: 0.6rem !important;
+        line-height: 1 !important;
+    }
+    
+    /* ==================== FIX 2: SHOW COMPACT HEADER CTA (LOGIN/SIGNUP) ==================== */
+    
+    /* Show header CTA on mobile */
+    .header-cta {
+        display: flex !important;
+        position: static !important;
+        margin-left: 0 !important;
+        gap: 0.5rem !important;
+        padding: 0 !important;
+        min-width: 0 !important;
+        flex-shrink: 0 !important;
+    }
+    
+    /* Compact button styling */
+    .header-cta .btn {
+        padding: 0.4rem 0.8rem !important;
+        font-size: 0.8rem !important;
+        min-width: 60px !important;
+        height: 32px !important;
+        border-radius: 6px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+    
+    .btn-outline {
+        padding: 0.4rem 0.8rem !important;
+        border-width: 1px !important;
+        font-size: 0.8rem !important;
+    }
+    
+    /* Dashboard link compact */
+    .dashboard-link {
+        padding: 0.4rem 0.8rem !important;
+        font-size: 0.8rem !important;
+        border-width: 1px !important;
+        min-width: 60px !important;
+        height: 32px !important;
+        white-space: nowrap !important;
+    }
+    
+    /* Logout button compact */
+    .logout-btn {
+        padding: 0.4rem 0.8rem !important;
+        font-size: 0.8rem !important;
+        border-width: 1px !important;
+        min-width: 60px !important;
+        height: 32px !important;
+        white-space: nowrap !important;
+    }
+    
+    /* ==================== FIX 3: MOBILE MENU BUTTON SPACING ==================== */
+    
+    .mobile-menu-btn {
+        margin-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+        font-size: 1.1rem !important;
+        width: 36px !important;
+        height: 36px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        flex-shrink: 0 !important;
+    }
+    
+    /* ==================== RESPONSIVE ADJUSTMENTS BY SCREEN SIZE ==================== */
+    
+    /* Small mobile (≤360px) */
+    @media (max-width: 360px) {
+        .logo {
+            padding-left: 0.3rem !important;
+        }
+        
+        header .logo img {
+            width: 40px !important;
+            height: 40px !important;
+        }
+        
+        .logo-text h1 {
+            font-size: 0.9rem !important;
+        }
+        
+        .logo-text span {
+            font-size: 0.5rem !important;
+        }
+        
+        .header-cta {
+            gap: 0.3rem !important;
+        }
+        
+        .header-cta .btn,
+        .dashboard-link,
+        .logout-btn {
+            padding: 0.3rem 0.6rem !important;
+            font-size: 0.7rem !important;
+            min-width: 50px !important;
+            height: 28px !important;
+        }
+        
+        .mobile-menu-btn {
+            font-size: 1rem !important;
+            width: 32px !important;
+            height: 32px !important;
+            padding-right: 0.3rem !important;
+        }
+    }
+    
+    /* Medium mobile (361px–480px) */
+    @media (min-width: 361px) and (max-width: 480px) {
+        .logo {
+            padding-left: 0.4rem !important;
+        }
+        
+        .header-cta {
+            gap: 0.4rem !important;
+        }
+        
+        .header-cta .btn,
+        .dashboard-link,
+        .logout-btn {
+            padding: 0.4rem 0.7rem !important;
+            font-size: 0.75rem !important;
+            min-width: 55px !important;
+        }
+    }
+    
+    /* Large mobile (481px–767px) */
+    @media (min-width: 481px) and (max-width: 767px) {
+        .logo {
+            padding-left: 0.5rem !important;
+        }
+        
+        .header-cta {
+            gap: 0.6rem !important;
+        }
+        
+        .header-cta .btn,
+        .dashboard-link,
+        .logout-btn {
+            padding: 0.4rem 0.8rem !important;
+            font-size: 0.8rem !important;
+            min-width: 60px !important;
+        }
+    }
+}
+
+/* 🚨 IMPORTANT: Ensure no duplicate headers on mobile */
+@media (max-width: 767px) {
+    /* Hide any duplicate header */
+    header#site-header.fixed.top-0.left-0.right-0.z-50.bg-indigo-900,
+    .fixed.top-0.left-0.right-0.z-50.bg-indigo-900 {
+        display: none !important;
+    }
+    
+    /* Ensure only our header shows */
+    #site-header {
+        display: flex !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        z-index: 1000 !important;
+    }
+}
+
+/* 🚨 CRITICAL: Remove old header file reference */
+/* Delete or comment out this line in your layout if it exists: */
+/* @include('frontend.partials.header') */
     </style>
 
     @stack('styles')
