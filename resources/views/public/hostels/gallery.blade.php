@@ -86,23 +86,13 @@
             }
         }
     }
-@endphp
 
-
-    function roomHasImage($room) {
-        if (method_exists($room, 'getHasImageAttribute')) {
-            return $room->has_image;
-        }
-        
-        return $room->image && \Storage::disk('public')->exists($room->image);
-    }
-    
-    function routeExists($name) {
-        try {
-            return \Route::has($name);
-        } catch (\Exception $e) {
-            return false;
-        }
+    // ✅ FIXED: Check if route exists
+    $hostelsShowRouteExists = false;
+    try {
+        $hostelsShowRouteExists = \Route::has('hostels.show');
+    } catch (\Exception $e) {
+        $hostelsShowRouteExists = false;
     }
 @endphp
 
@@ -1204,7 +1194,7 @@
                 <i class="fas fa-images"></i> पूरा ग्यालरी हेर्नुहोस्
             </a>
             
-            @if(routeExists('hostels.show'))
+            @if($hostelsShowRouteExists)
                 <a href="{{ route('hostels.show', $hostel->slug) }}" 
                    class="gallery-outline-button nepali">
                     <i class="fas fa-external-link-alt"></i> पृष्ठ भ्रमण गर्नुहोस्
