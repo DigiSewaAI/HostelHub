@@ -1436,18 +1436,6 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(initializeMobileMenu, 500);
     setTimeout(initializeMobileMenu, 1000);
     
-    // Also add a debug button for testing (remove in production)
-    const debugBtn = document.createElement('button');
-    debugBtn.textContent = '🛠️ Debug Menu';
-    debugBtn.style.cssText = 'position:fixed;bottom:10px;right:10px;z-index:99999;background:red;color:white;padding:5px;font-size:10px;';
-    debugBtn.onclick = function() {
-        const menuBtn = document.querySelector('.mobile-menu-btn');
-        const navLinks = document.getElementById('main-nav');
-        alert(`Menu Debug:\nButton: ${menuBtn ? 'Found' : 'Missing'}\nNav: ${navLinks ? 'Found' : 'Missing'}`);
-        if (menuBtn) menuBtn.click();
-    };
-    document.body.appendChild(debugBtn);
-    
     // Force show mobile menu button if hidden
     setTimeout(() => {
         const menuBtn = document.querySelector('.mobile-menu-btn');
