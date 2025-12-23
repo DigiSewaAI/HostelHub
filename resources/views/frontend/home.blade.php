@@ -1922,6 +1922,337 @@ main.home-page-main {
         transform: translateY(5px) !important;
     }
 }
+
+/* 🚨 NUCLEAR OPTION: TITLE HEADER BHANDA MAATHI LYAUNE - 100% GUARANTEE */
+
+/* सुरुमा header height define गर्ने */
+:root {
+    --mobile-header-height: 70px;
+}
+
+/* Mobile view को लागि emergency fix */
+@media (max-width: 767px) {
+    /* 1. सबै भन्दा पहिले: body को top padding हटाउने */
+    body {
+        padding-top: 0 !important;
+        margin-top: 0 !important;
+        overflow-x: hidden !important;
+    }
+    
+    /* 2. Header को लागि compensate गर्ने */
+    .hero {
+        min-height: 100vh !important;
+        height: auto !important;
+        padding-top: var(--mobile-header-height) !important;
+        margin-top: 0 !important;
+        position: relative !important;
+        z-index: 1 !important;
+        overflow: visible !important;
+    }
+    
+    /* 3. Hero content लाई पूरै viewport मा फिट गर्ने */
+    .hero-content {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100vw !important;
+        max-width: 100vw !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        gap: 0 !important;
+        position: relative !important;
+        top: -20px !important; /* यो लाइनले title लाई header भन्दा माथि उठाउँछ */
+    }
+    
+    /* 4. TITLE को NUCLEAR FIX - 100% visible */
+    .hero-text {
+        order: 1 !important;
+        width: 100vw !important;
+        max-width: 100vw !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        position: relative !important;
+        z-index: 1000 !important;
+        background: transparent !important;
+    }
+    
+    /* Title लाई FORCE गरेर header भन्दा माथि देखाउने */
+    .hero-title.nepali {
+        /* पहिले सबै hiding styles हटाउने */
+        visibility: visible !important;
+        opacity: 1 !important;
+        display: block !important;
+        position: relative !important;
+        z-index: 9999 !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        transform: none !important;
+        
+        /* Text को styling */
+        font-size: 1.6rem !important;
+        font-weight: 800 !important;
+        line-height: 1.3 !important;
+        color: #ffffff !important;
+        text-shadow: 
+            0 1px 0 rgba(0,0,0,0.3),
+            0 2px 4px rgba(0,0,0,0.5),
+            0 4px 8px rgba(0,0,0,0.3) !important;
+        
+        /* Spacing */
+        margin: 15px 0 10px 0 !important;
+        padding: 12px 16px !important;
+        
+        /* Background for better visibility */
+        background: rgba(0, 0, 0, 0.3) !important;
+        backdrop-filter: blur(10px) !important;
+        -webkit-backdrop-filter: blur(10px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 8px !important;
+        box-shadow: 
+            0 4px 15px rgba(0, 0, 0, 0.4),
+            inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+        
+        /* Force render */
+        -webkit-font-smoothing: antialiased !important;
+        -moz-osx-font-smoothing: grayscale !important;
+        text-rendering: optimizeLegibility !important;
+        font-family: 'Noto Sans Devanagari', sans-serif !important;
+    }
+    
+    /* Subtitle पनि यहीँ गर्ने */
+    .hero-subtitle.nepali {
+        visibility: visible !important;
+        opacity: 1 !important;
+        font-size: 0.95rem !important;
+        line-height: 1.5 !important;
+        color: rgba(255, 255, 255, 0.95) !important;
+        margin: 0 0 15px 0 !important;
+        padding: 10px 16px !important;
+        background: rgba(0, 0, 0, 0.25) !important;
+        backdrop-filter: blur(8px) !important;
+        border-radius: 8px !important;
+        border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    }
+    
+    /* 5. Buttons horizontal राख्ने */
+    .hero-cta {
+        flex-direction: row !important;
+        justify-content: flex-start !important;
+        gap: 10px !important;
+        margin: 15px 16px !important;
+        padding: 0 !important;
+        flex-wrap: nowrap !important;
+    }
+    
+    .hero-cta .btn {
+        flex: 1 !important;
+        min-width: 0 !important;
+        max-width: 180px !important;
+        padding: 10px 15px !important;
+        font-size: 0.85rem !important;
+    }
+    
+    /* 6. Stats हरू */
+    .hero-stats {
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        gap: 8px !important;
+        margin: 0 16px 25px 16px !important;
+        padding: 0 !important;
+    }
+    
+    /* 7. Image slider लाई तल राख्ने */
+    .hero-slideshow {
+        order: 2 !important;
+        width: 100vw !important;
+        height: 280px !important;
+        margin: auto 0 0 0 !important; /* यो लाइनले slider लाई bottom मा धकेल्छ */
+        border-radius: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        position: relative !important;
+        bottom: 0 !important;
+        z-index: 50 !important;
+    }
+    
+    /* Slider images */
+    .hero-slider .swiper-slide img {
+        width: 100vw !important;
+        height: 280px !important;
+        object-fit: cover !important;
+    }
+}
+
+/* Small mobile (≤360px) */
+@media (max-width: 360px) {
+    .hero-title.nepali {
+        font-size: 1.4rem !important;
+        padding: 10px 12px !important;
+        margin: 12px 12px 8px 12px !important;
+    }
+    
+    .hero-subtitle.nepali {
+        font-size: 0.85rem !important;
+        padding: 8px 12px !important;
+        margin: 0 12px 12px 12px !important;
+    }
+    
+    .hero-cta {
+        margin: 12px 12px !important;
+        gap: 8px !important;
+    }
+    
+    .hero-cta .btn {
+        max-width: 150px !important;
+        padding: 8px 12px !important;
+        font-size: 0.8rem !important;
+    }
+    
+    .hero-stats {
+        margin: 0 12px 20px 12px !important;
+        gap: 6px !important;
+    }
+    
+    .hero-slideshow {
+        height: 240px !important;
+    }
+    
+    .hero-slider .swiper-slide img {
+        height: 240px !important;
+    }
+}
+
+/* Medium mobile (361px–480px) */
+@media (min-width: 361px) and (max-width: 480px) {
+    .hero-title.nepali {
+        font-size: 1.5rem !important;
+        padding: 12px 14px !important;
+        margin: 14px 14px 10px 14px !important;
+    }
+    
+    .hero-subtitle.nepali {
+        font-size: 0.9rem !important;
+        padding: 10px 14px !important;
+        margin: 0 14px 14px 14px !important;
+    }
+    
+    .hero-cta {
+        margin: 14px 14px !important;
+    }
+    
+    .hero-stats {
+        margin: 0 14px 22px 14px !important;
+    }
+    
+    .hero-slideshow {
+        height: 260px !important;
+    }
+    
+    .hero-slider .swiper-slide img {
+        height: 260px !important;
+    }
+}
+
+/* Large mobile (481px–767px) */
+@media (min-width: 481px) and (max-width: 767px) {
+    .hero-title.nepali {
+        font-size: 1.7rem !important;
+        padding: 15px 18px !important;
+        margin: 16px 16px 12px 16px !important;
+    }
+    
+    .hero-subtitle.nepali {
+        font-size: 1rem !important;
+        padding: 12px 18px !important;
+        margin: 0 16px 16px 16px !important;
+    }
+    
+    .hero-cta {
+        margin: 16px 16px !important;
+        gap: 12px !important;
+    }
+    
+    .hero-cta .btn {
+        max-width: 200px !important;
+        padding: 12px 18px !important;
+        font-size: 0.9rem !important;
+    }
+    
+    .hero-stats {
+        margin: 0 16px 25px 16px !important;
+        gap: 10px !important;
+    }
+    
+    .hero-slideshow {
+        height: 300px !important;
+    }
+    
+    .hero-slider .swiper-slide img {
+        height: 300px !important;
+    }
+}
+
+/* 🚨 EMERGENCY OVERRIDE: यदि अझै पनि title hide भएमा */
+@media (max-width: 767px) {
+    /* Header लाई ignore गर्ने */
+    header {
+        position: relative !important;
+        z-index: 1 !important;
+    }
+    
+    /* Hero लाई header भन्दा माथि ल्याउने */
+    .hero {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        z-index: 2 !important;
+    }
+    
+    /* Title लाई header भन्दा माथि force गर्ने */
+    .hero-title.nepali {
+        position: absolute !important;
+        top: 80px !important; /* Header भन्दा 80px तल */
+        left: 0 !important;
+        right: 0 !important;
+        z-index: 99999 !important;
+    }
+}
+
+/* 🚨 ULTIMATE NUCLEAR OPTION: यदि कुनै पनि CSS ले hide गरिरहेको छ भने */
+@media (max-width: 767px) {
+    /* सबै CSS rules हटाउने जसले title लाई hide गर्न सक्छ */
+    .hero-title.nepali {
+        all: unset !important;
+        
+        /* नयाँ styling */
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        position: relative !important;
+        z-index: 999999 !important;
+        
+        /* Text properties */
+        font-family: 'Noto Sans Devanagari', sans-serif !important;
+        font-size: 1.6rem !important;
+        font-weight: 800 !important;
+        line-height: 1.3 !important;
+        color: #ffffff !important;
+        text-align: left !important;
+        
+        /* Spacing */
+        margin: 20px 16px 15px 16px !important;
+        padding: 15px !important;
+        
+        /* Background for visibility */
+        background: rgba(0, 0, 0, 0.5) !important;
+        backdrop-filter: blur(10px) !important;
+        border-radius: 10px !important;
+        
+        /* Shadow for better contrast */
+        text-shadow: 0 2px 4px rgba(0,0,0,0.5) !important;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3) !important;
+    }
+}
 </style>
 @endpush
 
