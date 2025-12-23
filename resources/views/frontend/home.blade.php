@@ -1591,6 +1591,337 @@ main.home-page-main {
         padding-top: 80px !important;
     }
 }
+
+/* 🚨 MOBILE-ONLY FINAL FIX: TITLE LAII 4-5 CM MAATHI SAARNE */
+
+@media (max-width: 767px) {
+    /* 1. Header bhanda maathi title laii saarne */
+    .hero {
+        padding-top: 0 !important;
+        margin-top: 0 !important;
+        min-height: 100vh !important;
+        position: relative !important;
+    }
+    
+    /* Hero content laii top maa saarne */
+    .hero-content {
+        margin-top: 0 !important;
+        padding-top: 10px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 0 !important;
+        height: 100% !important;
+    }
+    
+    /* Text section laii TOP maa - 4-5 cm header bhanda maathi */
+    .hero-text {
+        order: 1 !important;
+        width: 100vw !important;
+        max-width: 100vw !important;
+        margin-top: 0 !important;
+        padding-top: 15px !important; /* यो थप्ने */
+        padding-bottom: 20px !important;
+        position: relative !important;
+        z-index: 100 !important;
+        background: transparent !important;
+    }
+    
+    /* Title laii header bhanda maathi सार्ने */
+    .hero-title.nepali {
+        font-size: 1.6rem !important;
+        line-height: 1.3 !important;
+        margin-top: 5px !important; /* Header bhanda केही तल */
+        margin-bottom: 12px !important;
+        padding: 12px 15px !important;
+        text-align: left !important;
+        width: 100% !important;
+        color: #ffffff !important;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.6) !important;
+        background: rgba(0,0,0,0.25) !important;
+        backdrop-filter: blur(8px) !important;
+        border-radius: 10px !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        box-shadow: 
+            0 4px 15px rgba(0,0,0,0.3),
+            inset 0 1px 0 rgba(255,255,255,0.1) !important;
+        position: relative !important;
+        z-index: 200 !important;
+        transform: translateY(0) !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        display: block !important;
+    }
+    
+    /* Subtitle */
+    .hero-subtitle.nepali {
+        font-size: 0.95rem !important;
+        line-height: 1.5 !important;
+        margin-bottom: 1.5rem !important;
+        padding: 10px 15px !important;
+        text-align: left !important;
+        width: 100% !important;
+        color: rgba(255, 255, 255, 0.95) !important;
+        background: rgba(0,0,0,0.2) !important;
+        backdrop-filter: blur(8px) !important;
+        border-radius: 8px !important;
+        border: 1px solid rgba(255,255,255,0.05) !important;
+    }
+    
+    /* Buttons horizontal one line */
+    .hero-cta {
+        flex-direction: row !important;
+        justify-content: flex-start !important;
+        gap: 1rem !important;
+        flex-wrap: nowrap !important;
+        margin-bottom: 1.5rem !important;
+        width: 100% !important;
+        padding: 0 15px !important;
+    }
+    
+    .hero-cta .btn {
+        flex: 1 !important;
+        min-width: 0 !important;
+        max-width: 180px !important;
+        padding: 0.7rem 1rem !important;
+        font-size: 0.85rem !important;
+        text-align: center !important;
+        white-space: nowrap !important;
+    }
+    
+    /* Stats */
+    .hero-stats {
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        gap: 0.5rem !important;
+        width: 100% !important;
+        margin-top: 0 !important;
+        margin-bottom: 25px !important;
+        padding: 0 15px !important;
+    }
+    
+    .stat-item {
+        flex: 1 !important;
+        max-width: 100px !important;
+        min-width: 80px !important;
+    }
+    
+    .stat-number {
+        font-size: 1.5rem !important;
+        min-width: 60px !important;
+        padding: 0.5rem !important;
+    }
+    
+    .stat-label {
+        font-size: 0.75rem !important;
+        line-height: 1.2 !important;
+    }
+    
+    /* 2. Image slider laii TEXT ko TALA (bottom) */
+    .hero-slideshow {
+        order: 2 !important;
+        width: 100vw !important;
+        max-width: 100vw !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        margin-top: auto !important; /* यसले slider लाई bottom तिर धकेल्छ */
+        border-radius: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        height: 300px !important;
+        position: relative !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        z-index: 50 !important;
+    }
+    
+    .hero-slider {
+        width: 100vw !important;
+        height: 100% !important;
+    }
+    
+    .hero-slider .swiper-slide {
+        width: 100vw !important;
+        height: 100% !important;
+    }
+    
+    .hero-slider .swiper-slide img {
+        width: 100vw !important;
+        height: 300px !important;
+        object-fit: cover !important;
+        border-radius: 0 !important;
+    }
+    
+    /* Hide swiper navigation on mobile */
+    .hero-slideshow .swiper-button-next,
+    .hero-slideshow .swiper-button-prev {
+        display: none !important;
+    }
+    
+    /* अब title को लागि EXTRA FIX: header bhanda maathi सार्ने */
+    body {
+        padding-top: 0 !important;
+    }
+    
+    /* Header height compensate गर्ने */
+    .hero::before {
+        content: '';
+        display: block;
+        height: 20px;
+        width: 100%;
+        background: transparent;
+    }
+    
+    /* Ensure title देखिन्छ */
+    .hero-title.nepali:before,
+    .hero-title.nepali:after {
+        display: none !important;
+    }
+}
+
+/* Small mobile (≤360px) */
+@media (max-width: 360px) {
+    .hero-title.nepali {
+        font-size: 1.4rem !important;
+        margin-top: 8px !important;
+        margin-bottom: 10px !important;
+        padding: 10px 12px !important;
+    }
+    
+    .hero-subtitle.nepali {
+        font-size: 0.85rem !important;
+        padding: 8px 12px !important;
+    }
+    
+    .hero-cta {
+        gap: 0.6rem !important;
+        padding: 0 12px !important;
+    }
+    
+    .hero-cta .btn {
+        max-width: 150px !important;
+        padding: 0.6rem 0.8rem !important;
+        font-size: 0.8rem !important;
+    }
+    
+    .hero-slideshow {
+        height: 250px !important;
+    }
+    
+    .hero-slider .swiper-slide img {
+        height: 250px !important;
+    }
+    
+    .hero-stats {
+        gap: 0.3rem !important;
+        padding: 0 12px !important;
+    }
+    
+    .stat-number {
+        font-size: 1.3rem !important;
+        min-width: 55px !important;
+    }
+    
+    .stat-label {
+        font-size: 0.7rem !important;
+    }
+}
+
+/* Medium mobile (361px–480px) */
+@media (min-width: 361px) and (max-width: 480px) {
+    .hero-title.nepali {
+        font-size: 1.5rem !important;
+        margin-top: 10px !important;
+        margin-bottom: 12px !important;
+    }
+    
+    .hero-subtitle.nepali {
+        font-size: 0.9rem !important;
+    }
+    
+    .hero-slideshow {
+        height: 280px !important;
+    }
+    
+    .hero-slider .swiper-slide img {
+        height: 280px !important;
+    }
+}
+
+/* Large mobile (481px–767px) */
+@media (min-width: 481px) and (max-width: 767px) {
+    .hero-title.nepali {
+        font-size: 1.7rem !important;
+        margin-top: 12px !important;
+        margin-bottom: 15px !important;
+    }
+    
+    .hero-subtitle.nepali {
+        font-size: 1rem !important;
+    }
+    
+    .hero-slideshow {
+        height: 320px !important;
+    }
+    
+    .hero-slider .swiper-slide img {
+        height: 320px !important;
+    }
+    
+    .hero-cta {
+        gap: 1.2rem !important;
+    }
+    
+    .hero-cta .btn {
+        max-width: 200px !important;
+        padding: 0.8rem 1.2rem !important;
+        font-size: 0.9rem !important;
+    }
+}
+
+/* 🚨 EXTREME FINAL FIX: यदि अझै पनि title header भन्दा तल छ भने */
+@media (max-width: 767px) {
+    /* Header को लागि extra space दिने */
+    .hero {
+        margin-top: -20px !important; /* Header भन्दा माथि उठाउने */
+    }
+    
+    /* Title laii अझै माथि */
+    .hero-text {
+        padding-top: 5px !important;
+        margin-top: -10px !important;
+    }
+    
+    /* यदि अझै पनि title hide भएमा */
+    .hero-title.nepali {
+        position: relative !important;
+        top: -10px !important;
+    }
+}
+
+/* 🚨 ULTIMATE FIX: Header overlap हटाउने */
+@media (max-width: 767px) {
+    /* Header को height अनुसार adjust */
+    :root {
+        --header-height: 60px;
+    }
+    
+    body {
+        padding-top: 0 !important;
+        overflow-x: hidden !important;
+    }
+    
+    /* Hero section को top spacing */
+    .hero .container {
+        padding-top: 5px !important;
+        margin-top: 0 !important;
+    }
+    
+    /* Title लाई सजिलै देखिने बनाउने */
+    .hero-text h1.hero-title.nepali {
+        transform: translateY(5px) !important;
+    }
+}
 </style>
 @endpush
 
