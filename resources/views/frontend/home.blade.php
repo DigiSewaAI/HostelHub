@@ -1101,6 +1101,248 @@ main.home-page-main {
 .compact-search-widget {
     animation: compactSlideInUp 0.6s ease-out;
 }
+
+/* 🚨 MOBILE-ONLY HERO FIXES - Added to home.blade.php inline styles */
+
+/* Small mobile (≤360px) */
+@media (max-width: 360px) {
+    /* Hero Text Fix */
+    .hero-title.nepali {
+        font-size: 1.2rem !important;
+        line-height: 1.3 !important;
+        margin-top: 0.5rem !important;
+        margin-bottom: 0.8rem !important;
+        padding-top: 10px !important;
+    }
+    
+    .hero-subtitle.nepali {
+        font-size: 0.8rem !important;
+        line-height: 1.4 !important;
+        margin-bottom: 1rem !important;
+    }
+    
+    /* Hero Image Slider Fix */
+    .hero-slideshow {
+        height: 180px !important;
+        margin: 0 auto !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        transform: none !important;
+        left: 0 !important;
+    }
+    
+    .hero-slider .swiper-slide {
+        width: 100% !important;
+        margin: 0 !important;
+    }
+    
+    .hero-slider .swiper-slide img {
+        object-fit: cover !important;
+        height: 100% !important;
+        width: 100% !important;
+    }
+    
+    /* Adjust hero stats */
+    .hero-stats {
+        gap: 0.5rem !important;
+        margin-top: 1rem !important;
+    }
+    
+    .stat-item {
+        max-width: 65px !important;
+    }
+    
+    .stat-number {
+        font-size: 1.2rem !important;
+        min-width: 50px !important;
+        padding: 0.3rem 0.5rem !important;
+    }
+    
+    .stat-label {
+        font-size: 0.7rem !important;
+    }
+}
+
+/* Medium mobile (361px–480px) */
+@media (min-width: 361px) and (max-width: 480px) {
+    /* Hero Text Fix */
+    .hero-title.nepali {
+        font-size: 1.4rem !important;
+        line-height: 1.4 !important;
+        margin-top: 0.5rem !important;
+        margin-bottom: 1rem !important;
+        padding-top: 15px !important;
+    }
+    
+    .hero-subtitle.nepali {
+        font-size: 0.9rem !important;
+        line-height: 1.5 !important;
+        margin-bottom: 1.2rem !important;
+    }
+    
+    /* Hero Image Slider Fix */
+    .hero-slideshow {
+        height: 200px !important;
+        margin: 0 auto !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        transform: none !important;
+        left: 0 !important;
+    }
+    
+    .hero-slider {
+        width: 100% !important;
+    }
+    
+    .hero-slider .swiper-slide {
+        width: 100% !important;
+    }
+    
+    .hero-slider .swiper-slide img {
+        object-fit: cover !important;
+        height: 100% !important;
+        width: 100% !important;
+    }
+    
+    .hostel-name {
+        font-size: 1rem !important;
+    }
+    
+    .hostel-location {
+        font-size: 0.75rem !important;
+    }
+    
+    /* Adjust hero stats */
+    .stat-number {
+        font-size: 1.4rem !important;
+        min-width: 60px !important;
+    }
+    
+    .stat-label {
+        font-size: 0.75rem !important;
+    }
+}
+
+/* Large mobile (481px–767px) */
+@media (min-width: 481px) and (max-width: 767px) {
+    /* Hero Text Fix */
+    .hero-title.nepali {
+        font-size: 1.6rem !important;
+        line-height: 1.4 !important;
+        margin-top: 0.5rem !important;
+        margin-bottom: 1rem !important;
+        padding-top: 20px !important;
+    }
+    
+    .hero-subtitle.nepali {
+        font-size: 1rem !important;
+        line-height: 1.5 !important;
+        margin-bottom: 1.5rem !important;
+    }
+    
+    /* Hero Image Slider Fix */
+    .hero-slideshow {
+        height: 250px !important;
+        margin: 0 auto !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        transform: none !important;
+        left: 0 !important;
+    }
+    
+    .hero-slider {
+        width: 100% !important;
+    }
+    
+    .hero-slider .swiper-slide {
+        width: 100% !important;
+    }
+    
+    .hero-slider .swiper-slide img {
+        object-fit: cover !important;
+        height: 100% !important;
+        width: 100% !important;
+    }
+    
+    /* Ensure hero container doesn't overflow */
+    .hero .container {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 0 1rem !important;
+    }
+    
+    .hero-content {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    
+    /* Adjust hero stats for better fit */
+    .stat-number {
+        font-size: 1.6rem !important;
+    }
+}
+
+/* 🚨 ADDITIONAL SAFE PADDING FOR HEADER OVERLAP PREVENTION */
+@media (max-width: 767px) {
+    /* Add safe top padding to prevent header overlap */
+    .hero {
+        padding-top: calc(var(--header-height, 70px) + 10px) !important;
+    }
+    
+    /* Ensure text doesn't get cut off */
+    .hero-text {
+        padding-top: 0.5rem !important;
+    }
+    
+    /* Center align slider on mobile */
+    .hero-slideshow {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+    }
+    
+    /* Fix aspect ratio for slider images */
+    .hero-slider .swiper-slide img {
+        aspect-ratio: 16/9 !important;
+        object-position: center !important;
+    }
+    
+    /* Adjust CTA buttons for mobile */
+    .hero-cta {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 0.8rem !important;
+    }
+    
+    .hero-cta .btn {
+        width: 100% !important;
+        max-width: 100% !important;
+        text-align: center !important;
+    }
+}
+
+/* 🚨 SPECIFIC FIX FOR iOS DEVICES */
+@supports (-webkit-touch-callout: none) {
+    @media (max-width: 767px) {
+        .hero {
+            min-height: calc(100vh - 80px) !important;
+            height: auto !important;
+        }
+        
+        .hero-content {
+            min-height: auto !important;
+        }
+    }
+}
+
+/* 🚨 FIX FOR ANDROID CHROME */
+@media (max-width: 767px) and (-webkit-min-device-pixel-ratio: 0) {
+    .hero-title.nepali {
+        -webkit-font-smoothing: antialiased !important;
+        text-rendering: optimizeLegibility !important;
+    }
+}
+
 </style>
 @endpush
 
