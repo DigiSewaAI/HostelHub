@@ -1567,6 +1567,113 @@
             // Initialize bulk actions on page load
             toggleBulkActionsPanel();
         });
+
+// 🔥 MOBILE SIDEBAR TOGGLE FIXES - MOBILE ONLY
+document.addEventListener('DOMContentLoaded', function() {
+  // Check if we're on mobile
+  function isMobile() {
+    return window.innerWidth <= 768;
+  }
+  
+  if (isMobile()) {
+    // Add mobile overlay div if not exists
+    if (!document.querySelector('.mobile-sidebar-overlay')) {
+      const overlay = document.createElement('div');
+      overlay.className = 'mobile-sidebar-overlay';
+      overlay.setAttribute('x-show', 'mobileSidebarOpen');
+      overlay.setAttribute('@click', 'mobileSidebarOpen = false');
+      overlay.setAttribute('x-transition:enter', 'transition ease-out duration-300');
+      overlay.setAttribute('x-transition:enter-start', 'opacity-0');
+      overlay.setAttribute('x-transition:enter-end', 'opacity-100');
+      overlay.setAttribute('x-transition:leave', 'transition ease-in duration-200');
+      overlay.setAttribute('x-transition:leave-start', 'opacity-100');
+      overlay.setAttribute('x-transition:leave-end', 'opacity-0');
+      document.body.appendChild(overlay);
+    }
+    
+    // Close sidebar when clicking outside on mobile
+    document.addEventListener('click', function(event) {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.querySelector('.mobile-sidebar-overlay');
+      const menuBtn = document.querySelector('[x-on\\:click*="mobileSidebarOpen"]');
+      
+      if (isMobile() && sidebar && sidebar.classList.contains('open') && 
+          overlay && overlay.classList.contains('active') &&
+          event.target !== sidebar && 
+          !sidebar.contains(event.target) &&
+          event.target !== menuBtn && 
+          !menuBtn.contains(event.target)) {
+        
+        // Trigger Alpine.js state change
+        if (typeof Alpine !== 'undefined') {
+          Alpine.store('appState', Alpine.store('appState') || {});
+          Alpine.store('appState').mobileSidebarOpen = false;
+        }
+        
+        // Update DOM
+        sidebar.classList.remove('open');
+        overlay.classList.remove('active');
+        document.body.classList.remove('sidebar-open');
+      }
+    });
+    
+    // Handle sidebar toggle
+    document.addEventListener('alpine:init', function() {
+      Alpine.data('sidebar', () => ({
+        mobileSidebarOpen: false,
+        
+        init() {
+          // Watch for sidebar state changes
+          this.$watch('mobileSidebarOpen', (value) => {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.querySelector('.mobile-sidebar-overlay');
+            
+            if (sidebar) {
+              if (value) {
+                sidebar.classList.add('open');
+                document.body.classList.add('sidebar-open');
+              } else {
+                sidebar.classList.remove('open');
+                document.body.classList.remove('sidebar-open');
+              }
+            }
+            
+            if (overlay) {
+              if (value) {
+                overlay.classList.add('active');
+              } else {
+                overlay.classList.remove('active');
+              }
+            }
+          });
+        }
+      }));
+    });
+    
+    // Ensure sidebar starts closed on mobile
+    window.addEventListener('load', function() {
+      const sidebar = document.getElementById('sidebar');
+      if (sidebar && isMobile()) {
+        sidebar.classList.remove('open');
+        document.body.classList.remove('sidebar-open');
+      }
+    });
+  }
+  
+  // Handle window resize
+  window.addEventListener('resize', function() {
+    if (!isMobile()) {
+      // Reset on desktop
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.querySelector('.mobile-sidebar-overlay');
+      
+      if (sidebar) sidebar.classList.remove('open');
+      if (overlay) overlay.classList.remove('active');
+      document.body.classList.remove('sidebar-open');
+    }
+  });
+});
+
     </script>
 </body>
 </html>
