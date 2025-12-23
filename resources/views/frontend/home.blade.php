@@ -1102,60 +1102,173 @@ main.home-page-main {
     animation: compactSlideInUp 0.6s ease-out;
 }
 
-/* 🚨 MOBILE-ONLY HERO FIXES - Added to home.blade.php inline styles */
+/* 🚨 MOBILE-ONLY HERO FIXES - COMPLETE SOLUTION */
 
-/* Small mobile (≤360px) */
-@media (max-width: 360px) {
-    /* Hero Text Fix */
-    .hero-title.nepali {
-        font-size: 1.2rem !important;
-        line-height: 1.3 !important;
-        margin-top: 0.5rem !important;
-        margin-bottom: 0.8rem !important;
+/* Mobile मा header भन्दा माथि उठाउने र full width */
+@media (max-width: 767px) {
+    /* 1. Title लाई header भन्दा माथि सार्ने */
+    .hero {
+        padding-top: 0 !important;
+        min-height: 85vh !important;
+        height: auto !important;
+    }
+    
+    .hero-content {
+        align-items: flex-start !important;
+        padding-top: 20px !important;
+    }
+    
+    .hero-text {
+        order: 1 !important;
         padding-top: 10px !important;
+        margin-top: 0 !important;
+    }
+    
+    /* 2. Hero text (title + subtitle) पुरै width ले left-to-right extend गर्ने */
+    .hero-text {
+        width: 100vw !important;
+        max-width: 100vw !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+    
+    .hero-title.nepali {
+        font-size: 1.6rem !important;
+        line-height: 1.3 !important;
+        margin-top: 5px !important;
+        margin-bottom: 12px !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        text-align: left !important;
     }
     
     .hero-subtitle.nepali {
-        font-size: 0.8rem !important;
-        line-height: 1.4 !important;
-        margin-bottom: 1rem !important;
-    }
-    
-    /* Hero Image Slider Fix */
-    .hero-slideshow {
-        height: 180px !important;
-        margin: 0 auto !important;
+        font-size: 0.95rem !important;
+        line-height: 1.5 !important;
+        margin-bottom: 1.5rem !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
         width: 100% !important;
         max-width: 100% !important;
-        transform: none !important;
-        left: 0 !important;
+        text-align: left !important;
     }
     
-    .hero-slider .swiper-slide {
-        width: 100% !important;
-        margin: 0 !important;
+    /* 3. Hero section (including slider) पुरै width ले edge-to-edge */
+    .hero-slideshow {
+        width: 100vw !important;
+        max-width: 100vw !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        border-radius: 0 !important;
+        border-left: none !important;
+        border-right: none !important;
+        height: 280px !important;
+        order: 2 !important;
     }
     
-    .hero-slider .swiper-slide img {
+    .hero-slideshow .swiper-slide {
+        width: 100vw !important;
+        max-width: 100vw !important;
+    }
+    
+    .hero-slideshow .swiper-slide img {
+        width: 100vw !important;
+        height: 280px !important;
         object-fit: cover !important;
-        height: 100% !important;
-        width: 100% !important;
+        border-radius: 0 !important;
     }
     
-    /* Adjust hero stats */
+    /* 4. Buttons हरू horizontal one line मा राख्ने */
+    .hero-cta {
+        flex-direction: row !important;
+        justify-content: flex-start !important;
+        gap: 1rem !important;
+        flex-wrap: nowrap !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+        margin-bottom: 1.5rem !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    
+    .hero-cta .btn {
+        flex: 1 !important;
+        min-width: 0 !important;
+        max-width: 180px !important;
+        padding: 0.7rem 1rem !important;
+        font-size: 0.85rem !important;
+        text-align: center !important;
+        white-space: nowrap !important;
+    }
+    
+    /* Hero stats हरू पनि optimize गर्ने */
     .hero-stats {
+        flex-direction: row !important;
+        justify-content: space-between !important;
         gap: 0.5rem !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+        width: 100% !important;
         margin-top: 1rem !important;
     }
     
     .stat-item {
-        max-width: 65px !important;
+        flex: 1 !important;
+        max-width: 100px !important;
+        min-width: 80px !important;
     }
     
     .stat-number {
-        font-size: 1.2rem !important;
-        min-width: 50px !important;
-        padding: 0.3rem 0.5rem !important;
+        font-size: 1.5rem !important;
+        min-width: 60px !important;
+        padding: 0.5rem !important;
+    }
+    
+    .stat-label {
+        font-size: 0.75rem !important;
+        line-height: 1.2 !important;
+    }
+}
+
+/* Small mobile (≤360px) को लागि fine-tuning */
+@media (max-width: 360px) {
+    .hero-title.nepali {
+        font-size: 1.4rem !important;
+        padding-left: 0.8rem !important;
+        padding-right: 0.8rem !important;
+    }
+    
+    .hero-subtitle.nepali {
+        font-size: 0.85rem !important;
+        padding-left: 0.8rem !important;
+        padding-right: 0.8rem !important;
+    }
+    
+    .hero-cta {
+        gap: 0.6rem !important;
+        padding-left: 0.8rem !important;
+        padding-right: 0.8rem !important;
+    }
+    
+    .hero-cta .btn {
+        max-width: 150px !important;
+        padding: 0.6rem 0.8rem !important;
+        font-size: 0.8rem !important;
+    }
+    
+    .hero-stats {
+        padding-left: 0.8rem !important;
+        padding-right: 0.8rem !important;
+        gap: 0.3rem !important;
+    }
+    
+    .stat-number {
+        font-size: 1.3rem !important;
+        min-width: 55px !important;
     }
     
     .stat-label {
@@ -1165,184 +1278,128 @@ main.home-page-main {
 
 /* Medium mobile (361px–480px) */
 @media (min-width: 361px) and (max-width: 480px) {
-    /* Hero Text Fix */
     .hero-title.nepali {
-        font-size: 1.4rem !important;
-        line-height: 1.4 !important;
-        margin-top: 0.5rem !important;
-        margin-bottom: 1rem !important;
-        padding-top: 15px !important;
+        font-size: 1.5rem !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
     }
     
     .hero-subtitle.nepali {
         font-size: 0.9rem !important;
-        line-height: 1.5 !important;
-        margin-bottom: 1.2rem !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
     }
     
-    /* Hero Image Slider Fix */
     .hero-slideshow {
-        height: 200px !important;
-        margin: 0 auto !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        transform: none !important;
-        left: 0 !important;
+        height: 250px !important;
     }
     
-    .hero-slider {
-        width: 100% !important;
-    }
-    
-    .hero-slider .swiper-slide {
-        width: 100% !important;
-    }
-    
-    .hero-slider .swiper-slide img {
-        object-fit: cover !important;
-        height: 100% !important;
-        width: 100% !important;
-    }
-    
-    .hostel-name {
-        font-size: 1rem !important;
-    }
-    
-    .hostel-location {
-        font-size: 0.75rem !important;
-    }
-    
-    /* Adjust hero stats */
-    .stat-number {
-        font-size: 1.4rem !important;
-        min-width: 60px !important;
-    }
-    
-    .stat-label {
-        font-size: 0.75rem !important;
+    .hero-slideshow .swiper-slide img {
+        height: 250px !important;
     }
 }
 
 /* Large mobile (481px–767px) */
 @media (min-width: 481px) and (max-width: 767px) {
-    /* Hero Text Fix */
     .hero-title.nepali {
-        font-size: 1.6rem !important;
-        line-height: 1.4 !important;
-        margin-top: 0.5rem !important;
-        margin-bottom: 1rem !important;
-        padding-top: 20px !important;
+        font-size: 1.7rem !important;
+        padding-left: 1.2rem !important;
+        padding-right: 1.2rem !important;
     }
     
     .hero-subtitle.nepali {
         font-size: 1rem !important;
-        line-height: 1.5 !important;
-        margin-bottom: 1.5rem !important;
+        padding-left: 1.2rem !important;
+        padding-right: 1.2rem !important;
     }
     
-    /* Hero Image Slider Fix */
     .hero-slideshow {
-        height: 250px !important;
-        margin: 0 auto !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        transform: none !important;
-        left: 0 !important;
+        height: 300px !important;
     }
     
-    .hero-slider {
-        width: 100% !important;
+    .hero-slideshow .swiper-slide img {
+        height: 300px !important;
     }
     
-    .hero-slider .swiper-slide {
-        width: 100% !important;
-    }
-    
-    .hero-slider .swiper-slide img {
-        object-fit: cover !important;
-        height: 100% !important;
-        width: 100% !important;
-    }
-    
-    /* Ensure hero container doesn't overflow */
-    .hero .container {
-        width: 100% !important;
-        max-width: 100% !important;
-        padding: 0 1rem !important;
-    }
-    
-    .hero-content {
-        width: 100% !important;
-        max-width: 100% !important;
-    }
-    
-    /* Adjust hero stats for better fit */
-    .stat-number {
-        font-size: 1.6rem !important;
-    }
-}
-
-/* 🚨 ADDITIONAL SAFE PADDING FOR HEADER OVERLAP PREVENTION */
-@media (max-width: 767px) {
-    /* Add safe top padding to prevent header overlap */
-    .hero {
-        padding-top: calc(var(--header-height, 70px) + 10px) !important;
-    }
-    
-    /* Ensure text doesn't get cut off */
-    .hero-text {
-        padding-top: 0.5rem !important;
-    }
-    
-    /* Center align slider on mobile */
-    .hero-slideshow {
-        display: flex !important;
-        justify-content: center !important;
-        align-items: center !important;
-    }
-    
-    /* Fix aspect ratio for slider images */
-    .hero-slider .swiper-slide img {
-        aspect-ratio: 16/9 !important;
-        object-position: center !important;
-    }
-    
-    /* Adjust CTA buttons for mobile */
     .hero-cta {
-        flex-direction: column !important;
-        align-items: stretch !important;
-        gap: 0.8rem !important;
+        gap: 1.2rem !important;
     }
     
     .hero-cta .btn {
-        width: 100% !important;
+        max-width: 200px !important;
+        padding: 0.8rem 1.2rem !important;
+        font-size: 0.9rem !important;
+    }
+}
+
+/* 🚨 EXTREME FIX: Header overlap को लागि additional space */
+@media (max-width: 767px) {
+    /* Hero section लाई safe margin दिने */
+    .hero {
+        margin-top: 0 !important;
+    }
+    
+    /* Header height को लागि compensate गर्ने */
+    .hero::before {
+        content: '';
+        display: block;
+        height: 10px;
+        width: 100%;
+        background: transparent;
+    }
+    
+    /* Swiper navigation हरू mobile मा hide गर्ने (space बचाउन) */
+    .hero-slideshow .swiper-button-next,
+    .hero-slideshow .swiper-button-prev {
+        display: none !important;
+    }
+    
+    /* Slideshow को overlay text optimize गर्ने */
+    .slide-overlay {
+        padding: 1rem !important;
+    }
+    
+    .hostel-name {
+        font-size: 1.1rem !important;
+        margin-bottom: 0.3rem !important;
+    }
+    
+    .hostel-location {
+        font-size: 0.8rem !important;
+        margin-bottom: 0.3rem !important;
+    }
+    
+    .view-hostel-btn {
+        font-size: 0.75rem !important;
+        padding: 0.3rem 0.6rem !important;
+    }
+}
+
+/* 🚨 BUTTON HORIZONTAL LAYOUT केहि mobile मा tight भएमा */
+@media (max-width: 320px) {
+    .hero-cta {
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+    }
+    
+    .hero-cta .btn {
         max-width: 100% !important;
-        text-align: center !important;
+        width: 100% !important;
     }
 }
 
-/* 🚨 SPECIFIC FIX FOR iOS DEVICES */
-@supports (-webkit-touch-callout: none) {
+/* 🚨 IPHONE NOTCH / SAFE AREA SUPPORT */
+@supports (padding: max(0px)) {
     @media (max-width: 767px) {
-        .hero {
-            min-height: calc(100vh - 80px) !important;
-            height: auto !important;
-        }
-        
-        .hero-content {
-            min-height: auto !important;
+        .hero-title.nepali,
+        .hero-subtitle.nepali,
+        .hero-cta,
+        .hero-stats {
+            padding-left: max(1rem, env(safe-area-inset-left)) !important;
+            padding-right: max(1rem, env(safe-area-inset-right)) !important;
         }
     }
 }
-
-/* 🚨 FIX FOR ANDROID CHROME */
-@media (max-width: 767px) and (-webkit-min-device-pixel-ratio: 0) {
-    .hero-title.nepali {
-        -webkit-font-smoothing: antialiased !important;
-        text-rendering: optimizeLegibility !important;
-    }
-}
-
 </style>
 @endpush
 
