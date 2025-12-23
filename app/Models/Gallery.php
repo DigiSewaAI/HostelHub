@@ -106,7 +106,7 @@ class Gallery extends Model
     {
         // Use media_url helper if available
         if (function_exists('media_url')) {
-            return media_url($path);
+            return \media_url($path);
         }
 
         // Fallback: original logic
@@ -163,92 +163,67 @@ class Gallery extends Model
     }
 
     /**
-     * ✅ UPDATED: Get thumbnail URL using media_url helper
+     * ✅ FIXED: Get thumbnail URL - ALWAYS returns string
      */
-    public function getThumbnailUrlAttribute()
+    public function getThumbnailUrlAttribute(): string
     {
-        // पहिले thumbnail check गर्ने
+        // 1. Try thumbnail
         if (!empty($this->thumbnail)) {
-            // यदि thumbnail URL हो भने
+            // Check if it's already a URL
             if (str_starts_with($this->thumbnail, 'http')) {
                 return $this->thumbnail;
             }
 
-            // Use media_url helper if available
-            if (function_exists('media_url')) {
-                if (function_exists('media_exists') && media_exists($this->thumbnail)) {
-                    return media_url($this->thumbnail);
+            // Try to get URL
+            try {
+                $url = \media_url($this->thumbnail);
+                if ($url !== asset('images/no-image.png')) {
+                    return $url;
                 }
-
-                // Try alternative paths
-                $pathsToCheck = [
-                    $this->thumbnail,
-                    'galleries/thumbnails/' . $this->thumbnail,
-                    'galleries/' . $this->thumbnail,
-                    'room_images/' . $this->thumbnail,
-                    'hostels/' . $this->thumbnail,
-                    'meals/' . $this->thumbnail
-                ];
-
-                foreach ($pathsToCheck as $path) {
-                    if (media_exists($path)) {
-                        return media_url($path);
-                    }
-                }
+            } catch (\Exception $e) {
+                // Fall through
             }
         }
 
-        // त्यसपछि file_path check गर्ने
+        // 2. Try file_path
         if (!empty($this->file_path)) {
             if (str_starts_with($this->file_path, 'http')) {
                 return $this->file_path;
             }
 
-            if (function_exists('media_url') && function_exists('media_exists')) {
-                if (media_exists($this->file_path)) {
-                    return media_url($this->file_path);
+            try {
+                $url = \media_url($this->file_path);
+                if ($url !== asset('images/no-image.png')) {
+                    return $url;
                 }
-
-                $pathsToCheck = [
-                    $this->file_path,
-                    'galleries/images/' . $this->file_path,
-                    'galleries/' . $this->file_path,
-                    'room_images/' . $this->file_path,
-                    'hostels/' . $this->file_path,
-                    'meals/' . $this->file_path
-                ];
-
-                foreach ($pathsToCheck as $path) {
-                    if (media_exists($path)) {
-                        return media_url($path);
-                    }
-                }
+            } catch (\Exception $e) {
+                // Fall through
             }
         }
 
-        // Default images (404 नहुने)
-        $defaultImages = [
-            'default-gallery.jpg',
-            'default-room.jpg',
-            'video-thumbnail.jpg',
-            'placeholder.jpg'
-        ];
-
-        foreach ($defaultImages as $image) {
-            $imagePath = 'images/' . $image;
-            if (file_exists(public_path($imagePath))) {
-                return asset($imagePath);
+        // 3. For YouTube videos, get thumbnail
+        if ($this->media_type === 'external_video' && $this->external_link) {
+            $youtubeId = $this->getYoutubeId($this->external_link);
+            if ($youtubeId) {
+                return "https://img.youtube.com/vi/{$youtubeId}/hqdefault.jpg";
             }
         }
 
-        // Blank image
-        return 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2VlZWVlZSIvPjwvc3ZnPg==';
+        // 4. Default images based on media type
+        if ($this->media_type === 'photo') {
+            return asset('images/default-gallery.jpg');
+        } elseif (in_array($this->media_type, ['local_video', 'external_video'])) {
+            return asset('images/video-default.jpg');
+        }
+
+        // 5. Ultimate fallback
+        return asset('images/no-image.png');
     }
 
     /**
-     * ✅ UPDATED: Get media URL using media_url helper
+     * ✅ FIXED: Get media URL - ALWAYS returns string
      */
-    public function getMediaUrlAttribute()
+    public function getMediaUrlAttribute(): string
     {
         // YouTube video
         if ($this->media_type === 'external_video' && $this->external_link) {
@@ -261,31 +236,24 @@ class Gallery extends Model
                 return $this->file_path;
             }
 
-            // Use media_url helper if available
-            if (function_exists('media_url') && function_exists('media_exists')) {
-                if (media_exists($this->file_path)) {
-                    return media_url($this->file_path);
+            try {
+                $url = \media_url($this->file_path);
+                if ($url !== asset('images/no-image.png')) {
+                    return $url;
                 }
-
-                $pathsToCheck = [
-                    $this->file_path,
-                    'galleries/images/' . $this->file_path,
-                    'galleries/videos/' . $this->file_path,
-                    'galleries/' . $this->file_path,
-                    'room_images/' . $this->file_path,
-                    'hostels/' . $this->file_path,
-                    'meals/' . $this->file_path
-                ];
-
-                foreach ($pathsToCheck as $path) {
-                    if (media_exists($path)) {
-                        return media_url($path);
-                    }
-                }
+            } catch (\Exception $e) {
+                // Fall through
             }
         }
 
-        return asset('images/default-gallery.jpg');
+        // Default based on media type
+        if ($this->media_type === 'photo') {
+            return asset('images/default-gallery.jpg');
+        } elseif (in_array($this->media_type, ['local_video', 'external_video'])) {
+            return asset('images/video-default.jpg');
+        }
+
+        return asset('images/no-image.png');
     }
 
     /**
@@ -536,12 +504,12 @@ class Gallery extends Model
     }
 
     /**
-     * ✅ NEW: Get hostel name (with fallback)
+     * ✅ FIXED: Get hostel name - ALWAYS returns string
      */
     public function getHostelNameAttribute(): string
     {
         if (!empty($this->attributes['hostel_name'])) {
-            return $this->attributes['hostel_name'];
+            return (string) $this->attributes['hostel_name'];
         }
 
         if ($this->hostel) {
@@ -612,7 +580,7 @@ class Gallery extends Model
         if ($this->hd_file_path) {
             if (function_exists('media_exists') && media_exists($this->hd_file_path)) {
                 if (function_exists('media_url')) {
-                    return media_url($this->hd_file_path);
+                    return \media_url($this->hd_file_path);
                 } else {
                     return Storage::disk('public')->url($this->hd_file_path);
                 }
@@ -755,7 +723,7 @@ class Gallery extends Model
     }
 
     /**
-     * ✅ ENHANCED: Get category in Nepali with video categories
+     * ✅ FIXED: Get category in Nepali - ALWAYS returns string
      */
     public function getCategoryNepaliAttribute(): string
     {
@@ -771,21 +739,22 @@ class Gallery extends Model
             'living room' => 'लिभिङ रूम',
             'study room' => 'अध्ययन कोठा',
             'event' => 'कार्यक्रम',
-            'hostel_tour' => 'होस्टल टुर',         // ✅ NEW: Video category
-            'room_tour' => 'कोठा टुर',           // ✅ NEW: Video category
-            'student_life' => 'विद्यार्थी जीवन', // ✅ NEW: Video category
-            'virtual_tour' => 'भर्चुअल टुर',     // ✅ NEW: Video category
-            'testimonial' => 'विद्यार्थी अनुभव', // ✅ NEW: Video category
-            'facility' => 'सुविधाहरू',          // ✅ NEW: Video category
-            'food' => 'खाना',                   // ✅ NEW: For meal gallery
-            'menu' => 'मेनु'                    // ✅ NEW: For meal gallery
+            'hostel_tour' => 'होस्टल टुर',
+            'room_tour' => 'कोठा टुर',
+            'student_life' => 'विद्यार्थी जीवन',
+            'virtual_tour' => 'भर्चुअल टुर',
+            'testimonial' => 'विद्यार्थी अनुभव',
+            'facility' => 'सुविधाहरू',
+            'food' => 'खाना',
+            'menu' => 'मेनु'
         ];
 
-        return $categories[$this->category] ?? $this->category;
+        $category = $this->category ?? 'other';
+        return $categories[$category] ?? $category;
     }
 
     /**
-     * ✅ ENHANCED: Get media type in Nepali
+     * ✅ FIXED: Get media type in Nepali - ALWAYS returns string
      */
     public function getMediaTypeNepaliAttribute(): string
     {
@@ -795,7 +764,8 @@ class Gallery extends Model
             'external_video' => 'यूट्युब भिडियो'
         ];
 
-        return $types[$this->media_type] ?? $this->media_type;
+        $mediaType = $this->media_type ?? 'photo';
+        return $types[$mediaType] ?? $mediaType;
     }
 
     /**
@@ -835,23 +805,27 @@ class Gallery extends Model
     }
 
     /**
-     * ✅ UPDATED: Get file size using media_exists helper
+     * ✅ FIXED: Get file size - ALWAYS returns string
      */
     public function getFileSizeAttribute(): string
     {
-        $resolvedPath = $this->resolveMediaPath($this->file_path);
-        if (!$resolvedPath || !Storage::disk('public')->exists($resolvedPath)) {
+        try {
+            $resolvedPath = $this->resolveMediaPath($this->file_path);
+            if (!$resolvedPath || !Storage::disk('public')->exists($resolvedPath)) {
+                return '0 KB';
+            }
+
+            $size = Storage::disk('public')->size($resolvedPath);
+
+            if ($size >= 1048576) {
+                return round($size / 1048576, 2) . ' MB';
+            } elseif ($size >= 1024) {
+                return round($size / 1024, 2) . ' KB';
+            } else {
+                return $size . ' bytes';
+            }
+        } catch (\Exception $e) {
             return '0 KB';
-        }
-
-        $size = Storage::disk('public')->size($resolvedPath);
-
-        if ($size >= 1048576) {
-            return round($size / 1048576, 2) . ' MB';
-        } elseif ($size >= 1024) {
-            return round($size / 1024, 2) . ' KB';
-        } else {
-            return $size . ' bytes';
         }
     }
 
@@ -967,7 +941,7 @@ class Gallery extends Model
                 $thumbPath = str_replace('.', '-thumb.', $resolvedPath);
                 if (function_exists('media_exists') && media_exists($thumbPath)) {
                     if (function_exists('media_url')) {
-                        return media_url($thumbPath);
+                        return \media_url($thumbPath);
                     } else {
                         return Storage::disk('public')->url($thumbPath);
                     }

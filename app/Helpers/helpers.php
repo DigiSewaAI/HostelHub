@@ -3,7 +3,6 @@
 use App\Models\Gallery;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
-use App\Helpers\MediaHelper;
 
 if (!function_exists('getGalleryCategories')) {
     function getGalleryCategories()
@@ -192,113 +191,85 @@ if (!function_exists('getGalleryStats')) {
     }
 }
 
-if (!function_exists('generateVideoThumbnail')) {
-    function generateVideoThumbnail($videoPath, $thumbnailPath, $time = 2)
-    {
-        $videoFullPath = storage_path('app/public/' . $videoPath);
-        $thumbnailFullPath = storage_path('app/public/' . $thumbnailPath);
-
-        // Create directory if it doesn't exist
-        $thumbnailDir = dirname($thumbnailFullPath);
-        if (!file_exists($thumbnailDir)) {
-            mkdir($thumbnailDir, 0777, true);
-        }
-
-        // Generate thumbnail using FFmpeg
-        $cmd = "ffmpeg -i \"{$videoFullPath}\" -ss 00:00:{$time} -vframes 1 -q:v 2 \"{$thumbnailFullPath}\" 2>&1";
-        $output = shell_exec($cmd);
-
-        return file_exists($thumbnailFullPath);
-    }
-}
-
-if (!function_exists('sanitizeFileName')) {
-    function sanitizeFileName($filename)
-    {
-        // Remove any path information
-        $filename = basename($filename);
-
-        // Replace spaces with underscores
-        $filename = str_replace(' ', '_', $filename);
-
-        // Remove any non-alphanumeric characters except dots, underscores, and hyphens
-        $filename = preg_replace('/[^a-zA-Z0-9._-]/', '', $filename);
-
-        // Ensure the filename is not empty
-        if (empty($filename)) {
-            $filename = uniqid() . '_file';
-        }
-
-        return $filename;
-    }
-}
-
-if (!function_exists('getHumanReadableFileSize')) {
-    function getHumanReadableFileSize($bytes)
-    {
-        if ($bytes >= 1073741824) {
-            return number_format($bytes / 1073741824, 2) . ' GB';
-        } elseif ($bytes >= 1048576) {
-            return number_format($bytes / 1048576, 2) . ' MB';
-        } elseif ($bytes >= 1024) {
-            return number_format($bytes / 1024, 2) . ' KB';
-        } else {
-            return $bytes . ' bytes';
-        }
-    }
-}
-
-if (!function_exists('validateYouTubeUrl')) {
-    function validateYouTubeUrl($url)
-    {
-        $pattern = '/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$/';
-        return preg_match($pattern, $url);
-    }
-}
-
-if (!function_exists('getGalleryNavigation')) {
-    function getGalleryNavigation($currentGallery, $category = null)
-    {
-        $query = Gallery::where('is_active', true)
-            ->where('hostel_id', $currentGallery->hostel_id);
-
-        if ($category) {
-            $query->where('category', $category);
-        }
-
-        $galleries = $query->orderBy('created_at', 'desc')->get();
-
-        $currentIndex = $galleries->search(function ($item) use ($currentGallery) {
-            return $item->id === $currentGallery->id;
-        });
-
-        $prev = $currentIndex > 0 ? $galleries[$currentIndex - 1] : null;
-        $next = $currentIndex < ($galleries->count() - 1) ? $galleries[$currentIndex + 1] : null;
-
-        return compact('prev', 'next');
-    }
-}
-
 // ========== MEDIA HELPER FUNCTIONS ==========
-// Added as per the instructions for Railway deployment fix
+// ✅ FIXED: Proper media URL handling for Railway
 
 if (!function_exists('media_url')) {
     /**
      * Generate a consistent media URL for Railway deployment
+     * ✅ CRITICAL FIX: ALWAYS returns string, never null
      */
-    function media_url($path)
+    function media_url($path): string
     {
-        return MediaHelper::getMediaUrl($path);
+        if (empty($path)) {
+            return asset('images/no-image.png');
+        }
+
+        // If it's already a full URL, return as is
+        if (filter_var($path, FILTER_VALIDATE_URL)) {
+            return $path;
+        }
+
+        // For Railway, check if file exists in storage
+        try {
+            // Remove storage/ prefix if present
+            $cleanPath = str_replace('storage/', '', $path);
+
+            // Try to get the URL
+            if (Storage::disk('public')->exists($cleanPath)) {
+                return Storage::disk('public')->url($cleanPath);
+            }
+
+            // Try with original path
+            if (Storage::disk('public')->exists($path)) {
+                return Storage::disk('public')->url($path);
+            }
+
+            // Try common directories
+            $directories = [
+                'galleries/',
+                'galleries/images/',
+                'galleries/videos/',
+                'room_images/',
+                'hostels/',
+                'meals/',
+                'users/'
+            ];
+
+            foreach ($directories as $dir) {
+                $testPath = $dir . $cleanPath;
+                if (Storage::disk('public')->exists($testPath)) {
+                    return Storage::disk('public')->url($testPath);
+                }
+            }
+
+            // Final fallback
+            return asset('images/no-image.png');
+        } catch (\Exception $e) {
+            // Log error but return default image
+            \Log::error("media_url error for {$path}: " . $e->getMessage());
+            return asset('images/no-image.png');
+        }
     }
 }
 
 if (!function_exists('thumbnail_url')) {
     /**
      * Generate thumbnail URL
+     * ✅ CRITICAL FIX: ALWAYS returns string, never null
      */
-    function thumbnail_url($path, $thumbnailPath = null)
+    function thumbnail_url($path, $thumbnailPath = null): string
     {
-        return MediaHelper::getThumbnailUrl($path, $thumbnailPath);
+        // Try thumbnail first
+        if (!empty($thumbnailPath)) {
+            $url = media_url($thumbnailPath);
+            if ($url !== asset('images/no-image.png')) {
+                return $url;
+            }
+        }
+
+        // Fallback to main image
+        return media_url($path);
     }
 }
 
@@ -306,9 +277,21 @@ if (!function_exists('media_exists')) {
     /**
      * Check if media file exists (Railway-specific)
      */
-    function media_exists($path)
+    function media_exists($path): bool
     {
-        return MediaHelper::mediaExists($path);
+        if (empty($path)) {
+            return false;
+        }
+
+        // Remove storage/ prefix if present
+        $cleanPath = str_replace('storage/', '', $path);
+
+        try {
+            return Storage::disk('public')->exists($cleanPath) ||
+                Storage::disk('public')->exists($path);
+        } catch (\Exception $e) {
+            return false;
+        }
     }
 }
 
@@ -331,15 +314,44 @@ if (!function_exists('railway_media_url')) {
 if (!function_exists('getRoomImageUrl')) {
     /**
      * Get room image URL with fallback
+     * ✅ CRITICAL FIX: ALWAYS returns string, never null
      */
-    function getRoomImageUrl($room)
+    function getRoomImageUrl($room): string
     {
-        if (method_exists($room, 'getImageUrlAttribute')) {
-            return $room->image_url;
+        if (!$room) {
+            return asset('images/default-room.jpg');
         }
 
-        if ($room->image) {
-            return media_url($room->image);
+        // Try to get image using model's accessor
+        if (method_exists($room, 'getImageUrlAttribute')) {
+            try {
+                $url = $room->image_url;
+                if (!empty($url) && $url !== asset('images/no-image.png')) {
+                    return $url;
+                }
+            } catch (\Exception $e) {
+                // Fall through
+            }
+        }
+
+        // Try room image
+        if ($room->image ?? false) {
+            $url = media_url($room->image);
+            if ($url !== asset('images/no-image.png')) {
+                return $url;
+            }
+        }
+
+        // Try first gallery image
+        if (method_exists($room, 'galleries') && $room->galleries->count() > 0) {
+            foreach ($room->galleries as $gallery) {
+                if ($gallery->file_path) {
+                    $url = media_url($gallery->file_path);
+                    if ($url !== asset('images/no-image.png')) {
+                        return $url;
+                    }
+                }
+            }
         }
 
         return asset('images/default-room.jpg');
@@ -349,13 +361,78 @@ if (!function_exists('getRoomImageUrl')) {
 if (!function_exists('getHostelImageUrl')) {
     /**
      * Get hostel image URL with fallback
+     * ✅ CRITICAL FIX: ALWAYS returns string, never null
      */
-    function getHostelImageUrl($hostel)
+    function getHostelImageUrl($hostel): string
     {
-        if (!$hostel->image) {
+        if (!$hostel) {
             return asset('images/default-hostel.jpg');
         }
 
-        return media_url($hostel->image);
+        // Try hostel's main image
+        if ($hostel->image ?? false) {
+            $url = media_url($hostel->image);
+            if ($url !== asset('images/no-image.png')) {
+                return $url;
+            }
+        }
+
+        // Try hostel images relationship
+        if (method_exists($hostel, 'images') && $hostel->images->count() > 0) {
+            foreach ($hostel->images as $image) {
+                if ($image->file_path) {
+                    $url = media_url($image->file_path);
+                    if ($url !== asset('images/no-image.png')) {
+                        return $url;
+                    }
+                }
+            }
+        }
+
+        return asset('images/default-hostel.jpg');
+    }
+}
+
+// ✅ FIXED: Add new helper for video thumbnails
+if (!function_exists('getVideoThumbnailUrl')) {
+    function getVideoThumbnailUrl($gallery): string
+    {
+        if (!$gallery) {
+            return asset('images/video-default.jpg');
+        }
+
+        // Try custom thumbnail
+        if (!empty($gallery->video_thumbnail)) {
+            $url = media_url($gallery->video_thumbnail);
+            if ($url !== asset('images/no-image.png')) {
+                return $url;
+            }
+        }
+
+        // Try regular thumbnail
+        if (!empty($gallery->thumbnail)) {
+            $url = media_url($gallery->thumbnail);
+            if ($url !== asset('images/no-image.png')) {
+                return $url;
+            }
+        }
+
+        // Try file path
+        if (!empty($gallery->file_path)) {
+            $url = media_url($gallery->file_path);
+            if ($url !== asset('images/no-image.png')) {
+                return $url;
+            }
+        }
+
+        // YouTube video thumbnail
+        if ($gallery->media_type === 'external_video' && $gallery->external_link) {
+            $youtubeId = getYouTubeId($gallery->external_link);
+            if ($youtubeId) {
+                return "https://img.youtube.com/vi/{$youtubeId}/hqdefault.jpg";
+            }
+        }
+
+        return asset('images/video-default.jpg');
     }
 }

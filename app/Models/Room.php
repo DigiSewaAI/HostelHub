@@ -325,48 +325,68 @@ class Room extends Model
     }
 
     /**
-     * ✅ FIXED: Get the room image URL using centralized media helper
+     * ✅ FIXED: Get the room image URL - ALWAYS returns string
      */
     public function getImageUrlAttribute(): string
     {
-        // Use media_url helper if available, otherwise fallback to original logic
-        if (function_exists('media_url')) {
-            return media_url($this->image);
+        // Use media_url helper
+        if (!empty($this->image)) {
+            try {
+                $url = \media_url($this->image);
+                if ($url !== asset('images/no-image.png')) {
+                    return $url;
+                }
+            } catch (\Exception $e) {
+                // Fall through
+            }
         }
 
-        // Fallback to original logic if helper not available
-        if ($this->image && Storage::disk('public')->exists($this->image)) {
-            return Storage::disk('public')->url($this->image);
+        // Try galleries
+        if ($this->galleries && $this->galleries->count() > 0) {
+            foreach ($this->galleries as $gallery) {
+                if ($gallery->file_path) {
+                    try {
+                        $url = \media_url($gallery->file_path);
+                        if ($url !== asset('images/no-image.png')) {
+                            return $url;
+                        }
+                    } catch (\Exception $e) {
+                        // Continue to next
+                    }
+                }
+            }
         }
 
-        // ✅ FALLBACK: Use TIMRO no-image.png
-        return asset('images/no-image.png');
+        // Final fallback
+        return asset('images/default-room.jpg');
     }
 
     /**
-     * ✅ FIXED: Check if room has image using centralized media helper
+     * ✅ FIXED: Check if room has image - ALWAYS returns boolean
      */
     public function getHasImageAttribute(): bool
     {
-        // Use media_exists helper if available, otherwise fallback to original logic
-        if (function_exists('media_exists')) {
-            return !empty($this->image) && media_exists($this->image);
+        if (empty($this->image)) {
+            return false;
         }
 
-        // Fallback to original logic if helper not available
-        return !empty($this->image) && Storage::disk('public')->exists($this->image);
+        try {
+            return media_exists($this->image);
+        } catch (\Exception $e) {
+            return false;
+        }
     }
 
     /**
-     * ✅ FIXED: Get display status with CORRECT logic based on ACTUAL occupancy
+     * ✅ FIXED: Get display status - ALWAYS returns array with strings
      */
     public function getDisplayStatusAttribute(): array
     {
         $status = $this->status;
-        $available_beds = $this->available_beds;
-        $current_occupancy = $this->current_occupancy;
+        $available_beds = (int) ($this->available_beds ?? 0);
+        $current_occupancy = (int) ($this->current_occupancy ?? 0);
 
-        // ✅ CRITICAL FIX: Ensure consistency between status and actual data
+        // ✅ FIXED: Ensure we always return valid values
         if ($status === 'maintenance') {
             return [
                 'status' => 'maintenance',
@@ -403,7 +423,7 @@ class Room extends Model
     }
 
     /**
-     * Get Nepali room type
+     * ✅ FIXED: Get Nepali room type - ALWAYS returns string
      */
     public function getNepaliTypeAttribute(): string
     {
@@ -421,12 +441,12 @@ class Room extends Model
             'other' => 'अन्य कोठा'
         ];
 
-        // Ensure we always return a string, never null
-        return $types[$this->type] ?? $this->type ?? 'अन्य कोठा';
+        $roomType = $this->type ?? 'other';
+        return $types[$roomType] ?? $types['other'];
     }
 
     /**
-     * Get Nepali status (for backward compatibility)
+     * ✅ FIXED: Get Nepali status - ALWAYS returns string
      */
     public function getNepaliStatusAttribute(): string
     {
@@ -441,7 +461,8 @@ class Room extends Model
             'आंशिक उपलब्ध' => 'आंशिक उपलब्ध',
         ];
 
-        return $statuses[$this->status] ?? $this->status;
+        $roomStatus = $this->status ?? 'available';
+        return $statuses[$roomStatus] ?? $roomStatus;
     }
 
     /**
@@ -563,7 +584,7 @@ class Room extends Model
             if (method_exists($firstGallery, 'getMediaUrlAttribute')) {
                 return $firstGallery->media_url;
             } elseif (function_exists('media_url') && $firstGallery->file_path) {
-                return media_url($firstGallery->file_path);
+                return \media_url($firstGallery->file_path);
             } elseif ($firstGallery->file_path && Storage::disk('public')->exists($firstGallery->file_path)) {
                 return Storage::disk('public')->url($firstGallery->file_path);
             }
@@ -636,7 +657,7 @@ class Room extends Model
     }
 
     /**
-     * ✅ FIXED: Get gallery category in Nepali for display
+     * ✅ FIXED: Get gallery category in Nepali for display - ALWAYS returns string
      */
     public function getGalleryCategoryNepaliAttribute(): string
     {
@@ -654,7 +675,8 @@ class Room extends Model
             'video_tour' => 'भिडियो टुर'
         ];
 
-        return $categories[$this->gallery_category] ?? $this->gallery_category;
+        $category = $this->gallery_category ?? 'other';
+        return $categories[$category] ?? $category;
     }
 
     /**

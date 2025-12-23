@@ -300,12 +300,22 @@ class Hostel extends Model
         return route('hostels.show', $this->slug);
     }
 
-    // ✅ Get logo URL
-    public function getLogoUrlAttribute()
+    /**
+     * ✅ FIXED: Get logo URL - ALWAYS returns string
+     */
+    public function getLogoUrlAttribute(): string
     {
-        if ($this->logo_path) {
-            return asset('storage/' . $this->logo_path);
+        if (!empty($this->logo_path)) {
+            try {
+                $url = \media_url($this->logo_path);
+                if ($url !== asset('images/no-image.png')) {
+                    return $url;
+                }
+            } catch (\Exception $e) {
+                // Fall through
+            }
         }
+
         return asset('images/default-hostel.png');
     }
 
@@ -347,23 +357,25 @@ class Hostel extends Model
         return $statuses[$this->status] ?? $this->status;
     }
 
-    // ✅ ADDED: Get formatted contact phone with fallback
-    public function getContactPhoneFormattedAttribute()
+    /**
+     * ✅ FIXED: Get formatted contact phone with fallback - ALWAYS returns string
+     */
+    public function getContactPhoneFormattedAttribute(): string
     {
         // First check if hostel has direct contact phone
         if (!empty($this->attributes['contact_phone'])) {
-            return $this->attributes['contact_phone'];
+            return (string) $this->attributes['contact_phone'];
         }
 
         // Fallback to owner's phone if owner relationship is loaded
         if ($this->relationLoaded('owner') && $this->owner) {
             if (!empty($this->owner->phone)) {
-                return $this->owner->phone;
+                return (string) $this->owner->phone;
             }
 
             // Fallback to owner's mobile
             if (!empty($this->owner->mobile)) {
-                return $this->owner->mobile;
+                return (string) $this->owner->mobile;
             }
         }
 
@@ -371,36 +383,44 @@ class Hostel extends Model
         return '+९७७ ९८०XXXXXXXX';
     }
 
-    // ✅ ADDED: Get formatted contact email with fallback
-    public function getContactEmailFormattedAttribute()
+    /**
+     * ✅ FIXED: Get formatted contact email with fallback - ALWAYS returns string
+     */
+    public function getContactEmailFormattedAttribute(): string
     {
         // First check if hostel has direct contact email
         if (!empty($this->attributes['contact_email'])) {
-            return $this->attributes['contact_email'];
+            return (string) $this->attributes['contact_email'];
         }
 
         // Fallback to owner's email if owner relationship is loaded
         if ($this->relationLoaded('owner') && $this->owner && !empty($this->owner->email)) {
-            return $this->owner->email;
+            return (string) $this->owner->email;
         }
 
-        return null;
+        return 'info@hostelhub.com'; // Default fallback
     }
 
-    // ✅ ADDED: Get contact phone for display (with smart fallback)
-    public function getDisplayPhoneAttribute()
+    /**
+     * ✅ FIXED: Get contact phone for display (with smart fallback) - ALWAYS returns string
+     */
+    public function getDisplayPhoneAttribute(): string
     {
         return $this->contact_phone_formatted;
     }
 
-    // ✅ ADDED: Get contact email for display (with smart fallback)
-    public function getDisplayEmailAttribute()
+    /**
+     * ✅ FIXED: Get contact email for display (with smart fallback) - ALWAYS returns string
+     */
+    public function getDisplayEmailAttribute(): string
     {
         return $this->contact_email_formatted;
     }
 
-    // ✅ UPDATED: Gender detection for gallery filters - IMPROVED VERSION
-    public function getGenderDetectedAttribute()
+    /**
+     * ✅ FIXED: Gender detection for gallery filters - ALWAYS returns string
+     */
+    public function getGenderDetectedAttribute(): string
     {
         // 1. पहिले gender column check गर्ने
         if (!empty($this->attributes['gender'])) {
@@ -411,7 +431,7 @@ class Hostel extends Model
         }
 
         // 2. Hostel name बाट gender detect गर्ने
-        $name = strtolower($this->name);
+        $name = strtolower($this->name ?? '');
 
         // Boys detection with more keywords
         $boysKeywords = ['boys', 'ब्वाइज', 'पुरुष', 'ब्वायज', 'male', 'mens', 'पुरूष', 'पुर्खा'];
@@ -447,55 +467,98 @@ class Hostel extends Model
         return 'mixed';
     }
 
-    // ✅ NEW: Get cover image URL for gallery background
-    public function getCoverImageUrlAttribute()
+    /**
+     * ✅ FIXED: Get cover image URL for gallery background - ALWAYS returns string
+     */
+    public function getCoverImageUrlAttribute(): string
     {
-        // पहिलो image निकाल्ने
+        $defaultImage = asset('images/default-hostel-bg.jpg');
+
+        // 1. Try hostel images
         if ($this->images && $this->images->count() > 0) {
             foreach ($this->images as $image) {
-                if ($image->file_path && Storage::disk('public')->exists($image->file_path)) {
-                    return Storage::disk('public')->url($image->file_path);
+                if (!empty($image->file_path)) {
+                    try {
+                        $url = \media_url($image->file_path);
+                        if ($url !== asset('images/no-image.png')) {
+                            return $url;
+                        }
+                    } catch (\Exception $e) {
+                        // Continue to next
+                    }
                 }
             }
         }
 
-        // Hostel को मुख्य image
-        if ($this->image && Storage::disk('public')->exists($this->image)) {
-            return Storage::disk('public')->url($this->image);
-        }
-
-        // Fallback
-        return asset('images/default-hostel-bg.jpg');
-    }
-
-    // ✅ NEW: Get main image URL for gallery background
-    public function getMainImageUrlAttribute()
-    {
-        // Hostel को मुख्य image
-        if ($this->image && Storage::disk('public')->exists($this->image)) {
-            return Storage::disk('public')->url($this->image);
-        }
-
-        // Gallery images बाट निकाल्ने
-        $galleryImage = $this->galleries()
-            ->where('media_type', 'photo')
-            ->whereNotNull('file_path')
-            ->first();
-
-        if ($galleryImage && Storage::disk('public')->exists($galleryImage->file_path)) {
-            return Storage::disk('public')->url($galleryImage->file_path);
-        }
-
-        // Images relationship बाट निकाल्ने
-        if ($this->images && $this->images->count() > 0) {
-            $image = $this->images->first();
-            if ($image && $image->file_path && Storage::disk('public')->exists($image->file_path)) {
-                return Storage::disk('public')->url($image->file_path);
+        // 2. Try hostel's main image
+        if (!empty($this->image)) {
+            try {
+                $url = \media_url($this->image);
+                if ($url !== asset('images/no-image.png')) {
+                    return $url;
+                }
+            } catch (\Exception $e) {
+                // Fall through
             }
         }
 
-        // Fallback
-        return asset('images/default-hostel-bg.jpg');
+        return $defaultImage;
+    }
+
+    /**
+     * ✅ FIXED: Get main image URL for gallery background - ALWAYS returns string
+     */
+    public function getMainImageUrlAttribute(): string
+    {
+        $defaultImage = asset('images/default-hostel-bg.jpg');
+
+        // 1. Try hostel's main image
+        if (!empty($this->image)) {
+            try {
+                $url = \media_url($this->image);
+                if ($url !== asset('images/no-image.png')) {
+                    return $url;
+                }
+            } catch (\Exception $e) {
+                // Fall through
+            }
+        }
+
+        // 2. Try gallery images
+        if ($this->galleries()->count() > 0) {
+            $galleryImage = $this->galleries()
+                ->where('media_type', 'photo')
+                ->whereNotNull('file_path')
+                ->first();
+
+            if ($galleryImage && !empty($galleryImage->file_path)) {
+                try {
+                    $url = \media_url($galleryImage->file_path);
+                    if ($url !== asset('images/no-image.png')) {
+                        return $url;
+                    }
+                } catch (\Exception $e) {
+                    // Fall through
+                }
+            }
+        }
+
+        // 3. Try hostel images
+        if ($this->images && $this->images->count() > 0) {
+            $image = $this->images->first();
+            if ($image && !empty($image->file_path)) {
+                try {
+                    $url = \media_url($image->file_path);
+                    if ($url !== asset('images/no-image.png')) {
+                        return $url;
+                    }
+                } catch (\Exception $e) {
+                    // Fall through
+                }
+            }
+        }
+
+        return $defaultImage;
     }
 
     /**
@@ -822,18 +885,40 @@ class Hostel extends Model
     }
 
 
-    public function getThumbnailUrlAttribute()
+    /**
+     * ✅ FIXED: Get thumbnail URL - ALWAYS returns string
+     */
+    public function getThumbnailUrlAttribute(): string
     {
-        $mainImage = $this->images->first();
-        if ($mainImage && $mainImage->thumbnail) {
-            return asset('storage/' . $mainImage->thumbnail);
+        $defaultImage = asset('images/hostel-placeholder.jpg');
+
+        if ($this->images && $this->images->count() > 0) {
+            $mainImage = $this->images->first();
+
+            if ($mainImage && !empty($mainImage->thumbnail)) {
+                try {
+                    $url = \media_url($mainImage->thumbnail);
+                    if ($url !== asset('images/no-image.png')) {
+                        return $url;
+                    }
+                } catch (\Exception $e) {
+                    // Fall through
+                }
+            }
+
+            if ($mainImage && !empty($mainImage->file_path)) {
+                try {
+                    $url = \media_url($mainImage->file_path);
+                    if ($url !== asset('images/no-image.png')) {
+                        return $url;
+                    }
+                } catch (\Exception $e) {
+                    // Fall through
+                }
+            }
         }
 
-        if ($mainImage) {
-            return asset('storage/' . $mainImage->file_path);
-        }
-
-        return asset('images/hostel-placeholder.jpg');
+        return $defaultImage;
     }
 
     /**

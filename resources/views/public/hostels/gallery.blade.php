@@ -50,31 +50,42 @@
     
     $hasRooms = $rooms->count() > 0;
 
-    // Hostel image for HERO section background
+    @php
+    // ✅ FIXED: Hostel image for HERO section background with proper fallbacks
     $hostelBgImage = asset('images/default-hostel-bg.jpg');
     
     // Try to get hostel's main image
-    if ($hostel->image) {
-        $hostelBgImage = railway_media_url($hostel->image);
+    if ($hostel->image ?? false) {
+        $imageUrl = \media_url($hostel->image);
+        if ($imageUrl !== asset('images/no-image.png')) {
+            $hostelBgImage = $imageUrl;
+        }
     }
     // Try from hostel images
     elseif (isset($hostel->images) && $hostel->images->count() > 0) {
         foreach ($hostel->images as $img) {
-            if ($img->file_path) {
-                $hostelBgImage = railway_media_url($img->file_path);
-                break;
+            if ($img->file_path ?? false) {
+                $imageUrl = \media_url($img->file_path);
+                if ($imageUrl !== asset('images/no-image.png')) {
+                    $hostelBgImage = $imageUrl;
+                    break;
+                }
             }
         }
     }
     // Try from gallery images
     elseif (isset($galleries) && $galleries->count() > 0) {
         foreach ($galleries as $gallery) {
-            if ($gallery->file_path) {
-                $hostelBgImage = railway_media_url($gallery->file_path);
-                break;
+            if ($gallery->file_path ?? false) {
+                $imageUrl = \media_url($gallery->file_path);
+                if ($imageUrl !== asset('images/no-image.png')) {
+                    $hostelBgImage = $imageUrl;
+                    break;
+                }
             }
         }
     }
+@endphp
 
     function roomHasImage($room) {
         if (method_exists($room, 'getHasImageAttribute')) {

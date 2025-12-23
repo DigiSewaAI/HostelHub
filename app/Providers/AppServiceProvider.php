@@ -33,6 +33,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // ✅ CRITICAL FIX: Force load helper functions
+        $helperFile = app_path('Helpers/helpers.php');
+        if (file_exists($helperFile)) {
+            require_once $helperFile;
+        }
+
         // Register PlanLimitService as a singleton
         $this->app->singleton(PlanLimitService::class, function ($app) {
             return new PlanLimitService();

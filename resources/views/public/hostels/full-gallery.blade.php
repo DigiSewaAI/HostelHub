@@ -1,23 +1,42 @@
 @extends('layouts.frontend')
 
 @php
-    // Helper function to get media URLs - FIX for railway_media_url() error
+    // Helper function to get media URLs - FIXED with proper fallbacks
     if (!function_exists('get_media_url')) {
-        function get_media_url($path) {
+        function get_media_url($path): string {
             if (!$path) {
                 return asset('images/no-image.png');
             }
             
-            // Check if path is already a full URL
-            if (filter_var($path, FILTER_VALIDATE_URL)) {
-                return $path;
+            // Use the global media_url helper
+            if (function_exists('media_url')) {
+                return media_url($path);
             }
             
-            // Check if file exists in storage
-            try {
-                return Illuminate\Support\Facades\Storage::url($path);
-            } catch (\Exception $e) {
-                return asset('images/no-image.png');
+            // Fallback if helper not available
+            return asset('images/no-image.png');
+        }
+    }
+    
+    // ✅ FIXED: Hostel cover image with proper fallback
+    $hostelBgImage = asset('images/default-hostel-bg.jpg');
+    
+    // Try to get hostel's main image
+    if ($hostel->image ?? false) {
+        $imageUrl = \media_url($hostel->image);
+        if ($imageUrl !== asset('images/no-image.png')) {
+            $hostelBgImage = $imageUrl;
+        }
+    }
+    // Try from hostel images
+    elseif (isset($hostel->images) && $hostel->images->count() > 0) {
+        foreach ($hostel->images as $img) {
+            if ($img->file_path ?? false) {
+                $imageUrl = \media_url($img->file_path);
+                if ($imageUrl !== asset('images/no-image.png')) {
+                    $hostelBgImage = $imageUrl;
+                    break;
+                }
             }
         }
     }
