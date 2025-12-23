@@ -965,7 +965,6 @@
 
 /* 🚨 CRITICAL: Remove old header file reference */
 /* Delete or comment out this line in your layout if it exists: */
-/* @include('frontend.partials.header') */
     </style>
 
     @stack('styles')
