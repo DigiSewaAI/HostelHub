@@ -17,55 +17,55 @@
 
     foreach ($rooms as $room) {
         $type = $room->type;
-        
+
         if (!isset($availableRoomCounts[$type])) {
             $availableRoomCounts[$type] = 0;
             $availableBedsCounts[$type] = 0;
         }
-        
+
         $availableRoomCounts[$type]++;
         $availableBedsCounts[$type] += $room->available_beds;
     }
 
     $categoryCounts = [
-        'rooms' => $galleries->whereIn('category', ['1 seater', '2 seater', '3 seater', '4 seater', 'other', 'साझा कोठा'])->count(),
+        'rooms' => $galleries->whereIn('category', ['1 seater','2 seater','3 seater','4 seater','other','साझा कोठा'])->count(),
         'kitchen' => $galleries->where('category', 'kitchen')->count(),
-        'facilities' => $galleries->whereIn('category', ['bathroom', 'common', 'living room', 'study room'])->count(),
-        'video' => $galleries->whereIn('media_type', ['local_video', 'external_video'])->count()
+        'facilities' => $galleries->whereIn('category', ['bathroom','common','living room','study room'])->count(),
+        'video' => $galleries->whereIn('media_type', ['local_video','external_video'])->count()
     ];
 
     $nepaliRoomTypes = [
         '1 seater' => '१ सिटर',
-        '2 seater' => '२ सिटर', 
+        '2 seater' => '२ सिटर',
         '3 seater' => '३ सिटर',
         '4 seater' => '४ सिटर',
         'other' => 'साझा कोठा',
         'साझा कोठा' => 'साझा कोठा',
         'single' => '१ सिटर',
         'double' => '२ सिटर',
-        'triple' => '३ सिटर', 
+        'triple' => '३ सिटर',
         'quad' => '४ सिटर',
         'shared' => 'साझा कोठा'
     ];
-    
+
     $hasRooms = $rooms->count() > 0;
 
-    @php
-    // ✅ FIXED: Hostel image for HERO section background with proper fallbacks
+    // ✅ HERO background image fallback logic
     $hostelBgImage = asset('images/default-hostel-bg.jpg');
-    
-    // Try to get hostel's main image
-    if ($hostel->image ?? false) {
-        $imageUrl = \media_url($hostel->image);
+
+    // 1️⃣ Hostel main image
+    if (!empty($hostel->image)) {
+        $imageUrl = media_url($hostel->image);
         if ($imageUrl !== asset('images/no-image.png')) {
             $hostelBgImage = $imageUrl;
         }
     }
-    // Try from hostel images
-    elseif (isset($hostel->images) && $hostel->images->count() > 0) {
+
+    // 2️⃣ Hostel images relation
+    elseif (!empty($hostel->images) && $hostel->images->count()) {
         foreach ($hostel->images as $img) {
-            if ($img->file_path ?? false) {
-                $imageUrl = \media_url($img->file_path);
+            if (!empty($img->file_path)) {
+                $imageUrl = media_url($img->file_path);
                 if ($imageUrl !== asset('images/no-image.png')) {
                     $hostelBgImage = $imageUrl;
                     break;
@@ -73,11 +73,12 @@
             }
         }
     }
-    // Try from gallery images
-    elseif (isset($galleries) && $galleries->count() > 0) {
+
+    // 3️⃣ Gallery fallback
+    elseif (!empty($galleries) && $galleries->count()) {
         foreach ($galleries as $gallery) {
-            if ($gallery->file_path ?? false) {
-                $imageUrl = \media_url($gallery->file_path);
+            if (!empty($gallery->file_path)) {
+                $imageUrl = media_url($gallery->file_path);
                 if ($imageUrl !== asset('images/no-image.png')) {
                     $hostelBgImage = $imageUrl;
                     break;
@@ -86,6 +87,7 @@
         }
     }
 @endphp
+
 
     function roomHasImage($room) {
         if (method_exists($room, 'getHasImageAttribute')) {
