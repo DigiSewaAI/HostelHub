@@ -1102,97 +1102,70 @@ main.home-page-main {
     animation: compactSlideInUp 0.6s ease-out;
 }
 
-/* 🚨 MOBILE-ONLY HERO FIXES - COMPLETE SOLUTION */
+/* 🚨 MOBILE-ONLY HERO FIXES - FINAL VERSION */
 
-/* Mobile मा header भन्दा माथि उठाउने र full width */
+/* Mobile मा header भन्दा माथि text र slider bottom मा */
 @media (max-width: 767px) {
-    /* 1. Title लाई header भन्दा माथि सार्ने */
+    /* 1. Hero text लाई TOP मा ल्याउने */
     .hero {
         padding-top: 0 !important;
-        min-height: 85vh !important;
+        min-height: 100vh !important;
         height: auto !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: flex-start !important;
+        align-items: flex-start !important;
     }
     
     .hero-content {
-        align-items: flex-start !important;
-        padding-top: 20px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 0 !important;
+        padding-top: 0 !important;
+        margin-top: 0 !important;
+        width: 100% !important;
     }
     
+    /* Text section लाई TOP मा */
     .hero-text {
         order: 1 !important;
-        padding-top: 10px !important;
-        margin-top: 0 !important;
-    }
-    
-    /* 2. Hero text (title + subtitle) पुरै width ले left-to-right extend गर्ने */
-    .hero-text {
         width: 100vw !important;
         max-width: 100vw !important;
-        padding-left: 0 !important;
-        padding-right: 0 !important;
-        margin-left: 0 !important;
-        margin-right: 0 !important;
+        padding-top: 20px !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+        margin-top: 0 !important;
+        margin-bottom: 1.5rem !important;
     }
     
     .hero-title.nepali {
         font-size: 1.6rem !important;
         line-height: 1.3 !important;
-        margin-top: 5px !important;
+        margin-top: 0 !important;
         margin-bottom: 12px !important;
-        padding-left: 1rem !important;
-        padding-right: 1rem !important;
-        width: 100% !important;
-        max-width: 100% !important;
         text-align: left !important;
+        width: 100% !important;
+        color: #ffffff !important;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3) !important;
     }
     
     .hero-subtitle.nepali {
         font-size: 0.95rem !important;
         line-height: 1.5 !important;
         margin-bottom: 1.5rem !important;
-        padding-left: 1rem !important;
-        padding-right: 1rem !important;
-        width: 100% !important;
-        max-width: 100% !important;
         text-align: left !important;
+        width: 100% !important;
+        color: rgba(255, 255, 255, 0.95) !important;
     }
     
-    /* 3. Hero section (including slider) पुरै width ले edge-to-edge */
-    .hero-slideshow {
-        width: 100vw !important;
-        max-width: 100vw !important;
-        margin-left: 0 !important;
-        margin-right: 0 !important;
-        border-radius: 0 !important;
-        border-left: none !important;
-        border-right: none !important;
-        height: 280px !important;
-        order: 2 !important;
-    }
-    
-    .hero-slideshow .swiper-slide {
-        width: 100vw !important;
-        max-width: 100vw !important;
-    }
-    
-    .hero-slideshow .swiper-slide img {
-        width: 100vw !important;
-        height: 280px !important;
-        object-fit: cover !important;
-        border-radius: 0 !important;
-    }
-    
-    /* 4. Buttons हरू horizontal one line मा राख्ने */
+    /* Buttons horizontal one line मा */
     .hero-cta {
         flex-direction: row !important;
         justify-content: flex-start !important;
         gap: 1rem !important;
         flex-wrap: nowrap !important;
-        padding-left: 1rem !important;
-        padding-right: 1rem !important;
         margin-bottom: 1.5rem !important;
         width: 100% !important;
-        max-width: 100% !important;
     }
     
     .hero-cta .btn {
@@ -1205,15 +1178,14 @@ main.home-page-main {
         white-space: nowrap !important;
     }
     
-    /* Hero stats हरू पनि optimize गर्ने */
+    /* Stats हरू */
     .hero-stats {
         flex-direction: row !important;
         justify-content: space-between !important;
         gap: 0.5rem !important;
-        padding-left: 1rem !important;
-        padding-right: 1rem !important;
         width: 100% !important;
-        margin-top: 1rem !important;
+        margin-top: 0 !important;
+        margin-bottom: 2rem !important;
     }
     
     .stat-item {
@@ -1232,9 +1204,71 @@ main.home-page-main {
         font-size: 0.75rem !important;
         line-height: 1.2 !important;
     }
+    
+    /* 2. Image slider लाई TEXT को TALA (bottom मा) */
+    .hero-slideshow {
+        order: 2 !important;
+        width: 100vw !important;
+        max-width: 100vw !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        margin-top: auto !important; /* यसले slider लाई bottom तिर धकेल्छ */
+        border-radius: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        height: 320px !important;
+        position: relative !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+    }
+    
+    .hero-slider {
+        width: 100vw !important;
+        height: 100% !important;
+    }
+    
+    .hero-slider .swiper-slide {
+        width: 100vw !important;
+        height: 100% !important;
+    }
+    
+    .hero-slider .swiper-slide img {
+        width: 100vw !important;
+        height: 320px !important;
+        object-fit: cover !important;
+        border-radius: 0 !important;
+    }
+    
+    /* Slider overlay text optimize */
+    .slide-overlay {
+        padding: 1rem !important;
+        background: linear-gradient(transparent, rgba(0,0,0,0.8)) !important;
+    }
+    
+    .hostel-name {
+        font-size: 1.2rem !important;
+        margin-bottom: 0.3rem !important;
+    }
+    
+    .hostel-location {
+        font-size: 0.85rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    .view-hostel-btn {
+        font-size: 0.8rem !important;
+        padding: 0.4rem 0.8rem !important;
+    }
+    
+    /* Hide swiper navigation on mobile (save space) */
+    .hero-slideshow .swiper-button-next,
+    .hero-slideshow .swiper-button-prev {
+        display: none !important;
+    }
 }
 
-/* Small mobile (≤360px) को लागि fine-tuning */
+/* Small mobile (≤360px) को लागि */
 @media (max-width: 360px) {
     .hero-title.nepali {
         font-size: 1.4rem !important;
@@ -1250,8 +1284,6 @@ main.home-page-main {
     
     .hero-cta {
         gap: 0.6rem !important;
-        padding-left: 0.8rem !important;
-        padding-right: 0.8rem !important;
     }
     
     .hero-cta .btn {
@@ -1260,9 +1292,15 @@ main.home-page-main {
         font-size: 0.8rem !important;
     }
     
+    .hero-slideshow {
+        height: 280px !important;
+    }
+    
+    .hero-slider .swiper-slide img {
+        height: 280px !important;
+    }
+    
     .hero-stats {
-        padding-left: 0.8rem !important;
-        padding-right: 0.8rem !important;
         gap: 0.3rem !important;
     }
     
@@ -1280,22 +1318,18 @@ main.home-page-main {
 @media (min-width: 361px) and (max-width: 480px) {
     .hero-title.nepali {
         font-size: 1.5rem !important;
-        padding-left: 1rem !important;
-        padding-right: 1rem !important;
     }
     
     .hero-subtitle.nepali {
         font-size: 0.9rem !important;
-        padding-left: 1rem !important;
-        padding-right: 1rem !important;
     }
     
     .hero-slideshow {
-        height: 250px !important;
+        height: 300px !important;
     }
     
-    .hero-slideshow .swiper-slide img {
-        height: 250px !important;
+    .hero-slider .swiper-slide img {
+        height: 300px !important;
     }
 }
 
@@ -1303,22 +1337,18 @@ main.home-page-main {
 @media (min-width: 481px) and (max-width: 767px) {
     .hero-title.nepali {
         font-size: 1.7rem !important;
-        padding-left: 1.2rem !important;
-        padding-right: 1.2rem !important;
     }
     
     .hero-subtitle.nepali {
         font-size: 1rem !important;
-        padding-left: 1.2rem !important;
-        padding-right: 1.2rem !important;
     }
     
     .hero-slideshow {
-        height: 300px !important;
+        height: 350px !important;
     }
     
-    .hero-slideshow .swiper-slide img {
-        height: 300px !important;
+    .hero-slider .swiper-slide img {
+        height: 350px !important;
     }
     
     .hero-cta {
@@ -1332,50 +1362,40 @@ main.home-page-main {
     }
 }
 
-/* 🚨 EXTREME FIX: Header overlap को लागि additional space */
+/* 🚨 EXTRA FIX: Header को overlap बाट बचाउन */
 @media (max-width: 767px) {
-    /* Hero section लाई safe margin दिने */
+    /* Ensure header भन्दा तल नजाओस् */
     .hero {
-        margin-top: 0 !important;
+        position: relative !important;
+        overflow: visible !important;
     }
     
-    /* Header height को लागि compensate गर्ने */
-    .hero::before {
-        content: '';
-        display: block;
-        height: 10px;
-        width: 100%;
-        background: transparent;
+    /* Video background fix */
+    .hero-video {
+        height: 100% !important;
+        object-fit: cover !important;
     }
     
-    /* Swiper navigation हरू mobile मा hide गर्ने (space बचाउन) */
-    .hero-slideshow .swiper-button-next,
-    .hero-slideshow .swiper-button-prev {
-        display: none !important;
+    /* Container को padding हटाउने */
+    .hero .container {
+        width: 100vw !important;
+        max-width: 100vw !important;
+        padding: 0 !important;
+        margin: 0 !important;
     }
     
-    /* Slideshow को overlay text optimize गर्ने */
-    .slide-overlay {
-        padding: 1rem !important;
+    /* Ensure text र slider बिचमा proper spacing */
+    .hero-text {
+        z-index: 10 !important;
+        position: relative !important;
     }
     
-    .hostel-name {
-        font-size: 1.1rem !important;
-        margin-bottom: 0.3rem !important;
-    }
-    
-    .hostel-location {
-        font-size: 0.8rem !important;
-        margin-bottom: 0.3rem !important;
-    }
-    
-    .view-hostel-btn {
-        font-size: 0.75rem !important;
-        padding: 0.3rem 0.6rem !important;
+    .hero-slideshow {
+        z-index: 5 !important;
     }
 }
 
-/* 🚨 BUTTON HORIZONTAL LAYOUT केहि mobile मा tight भएमा */
+/* 🚨 VERY SMALL PHONES (≤320px) मा buttons column मा राख्ने */
 @media (max-width: 320px) {
     .hero-cta {
         flex-direction: column !important;
@@ -1388,13 +1408,10 @@ main.home-page-main {
     }
 }
 
-/* 🚨 IPHONE NOTCH / SAFE AREA SUPPORT */
+/* 🚨 IPHONE SAFE AREA SUPPORT */
 @supports (padding: max(0px)) {
     @media (max-width: 767px) {
-        .hero-title.nepali,
-        .hero-subtitle.nepali,
-        .hero-cta,
-        .hero-stats {
+        .hero-text {
             padding-left: max(1rem, env(safe-area-inset-left)) !important;
             padding-right: max(1rem, env(safe-area-inset-right)) !important;
         }
