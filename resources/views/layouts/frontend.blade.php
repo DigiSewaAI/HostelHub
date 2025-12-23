@@ -965,6 +965,215 @@
 
 /* 🚨 CRITICAL: Remove old header file reference */
 /* Delete or comment out this line in your layout if it exists: */
+
+/* 🚨 IMPROVEMENT 1: LOGO FARTHER LEFT + HAMBURGER TO RIGHT EDGE */
+
+@media (max-width: 767px) {
+    /* ==================== FIX: MOVE LOGO FARTHER LEFT ==================== */
+    
+    /* Remove all container padding on sides for header */
+    .header-inner .container {
+        padding-left: 0.3rem !important;
+        padding-right: 0.3rem !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    
+    /* Push logo to very left edge */
+    .logo {
+        margin-right: 0 !important;
+        margin-left: 0 !important;
+        padding-left: 0.3rem !important;
+        flex-shrink: 0 !important;
+        min-width: 0 !important;
+        transform: translateX(-0.3rem) !important; /* 👈 Pushes logo even more left */
+    }
+    
+    /* Make logo container very compact */
+    .logo-image {
+        width: 45px !important;
+        height: 45px !important;
+        padding: 2px !important;
+        margin-right: 0.2rem !important;
+    }
+    
+    header .logo img {
+        width: 40px !important;
+        height: 40px !important;
+    }
+    
+    .logo-text h1 {
+        font-size: 1rem !important;
+        margin-right: 0.3rem !important;
+    }
+    
+    .logo-text span {
+        font-size: 0.55rem !important;
+        line-height: 0.9 !important;
+    }
+    
+    /* ==================== FIX: HAMBURGER TO RIGHT EDGE WITH SPACING ==================== */
+    
+    /* Move hamburger menu to far right */
+    .mobile-menu-btn {
+        margin-left: auto !important; /* 👈 Pushes to right */
+        margin-right: 0.5rem !important;
+        padding: 0 !important;
+        width: 40px !important;
+        height: 40px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        flex-shrink: 0 !important;
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        border-radius: 6px !important;
+        background: rgba(255, 255, 255, 0.1) !important;
+    }
+    
+    /* Center the 3 lines icon inside hamburger */
+    .mobile-menu-btn i {
+        margin: 0 !important;
+        padding: 0 !important;
+        font-size: 1.2rem !important;
+    }
+    
+    /* ==================== FIX: BUTTONS SPACING IN CENTER ==================== */
+    
+    /* Header CTA buttons (login/signup) */
+    .header-cta {
+        display: flex !important;
+        position: absolute !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        gap: 0.4rem !important;
+        z-index: 10 !important;
+    }
+    
+    /* Compact buttons */
+    .header-cta .btn {
+        padding: 0.35rem 0.7rem !important;
+        font-size: 0.75rem !important;
+        min-width: 55px !important;
+        height: 30px !important;
+        border-radius: 5px !important;
+    }
+    
+    /* Dashboard/logout buttons compact */
+    .dashboard-link, .logout-btn {
+        padding: 0.35rem 0.7rem !important;
+        font-size: 0.75rem !important;
+        min-width: 55px !important;
+        height: 30px !important;
+        border-radius: 5px !important;
+    }
+    
+    /* ==================== RESPONSIVE ADJUSTMENTS BY SCREEN SIZE ==================== */
+    
+    /* Small mobile (≤360px) - Extra compact */
+    @media (max-width: 360px) {
+        .header-inner .container {
+            padding-left: 0.2rem !important;
+            padding-right: 0.2rem !important;
+        }
+        
+        .logo {
+            padding-left: 0.2rem !important;
+            transform: translateX(-0.2rem) !important;
+        }
+        
+        .logo-image {
+            width: 40px !important;
+            height: 40px !important;
+        }
+        
+        header .logo img {
+            width: 35px !important;
+            height: 35px !important;
+        }
+        
+        .logo-text h1 {
+            font-size: 0.9rem !important;
+        }
+        
+        .logo-text span {
+            font-size: 0.5rem !important;
+        }
+        
+        .mobile-menu-btn {
+            margin-right: 0.3rem !important;
+            width: 36px !important;
+            height: 36px !important;
+        }
+        
+        .header-cta {
+            gap: 0.3rem !important;
+        }
+        
+        .header-cta .btn,
+        .dashboard-link,
+        .logout-btn {
+            padding: 0.3rem 0.6rem !important;
+            font-size: 0.7rem !important;
+            min-width: 50px !important;
+            height: 28px !important;
+        }
+    }
+    
+    /* Medium mobile (361px–480px) */
+    @media (min-width: 361px) and (max-width: 480px) {
+        .logo {
+            padding-left: 0.4rem !important;
+        }
+        
+        .mobile-menu-btn {
+            margin-right: 0.6rem !important;
+        }
+        
+        .header-cta {
+            gap: 0.5rem !important;
+        }
+    }
+    
+    /* Large mobile (481px–767px) */
+    @media (min-width: 481px) and (max-width: 767px) {
+        .logo {
+            padding-left: 0.5rem !important;
+        }
+        
+        .mobile-menu-btn {
+            margin-right: 0.8rem !important;
+        }
+        
+        .header-cta {
+            gap: 0.6rem !important;
+        }
+        
+        .header-cta .btn,
+        .dashboard-link,
+        .logout-btn {
+            padding: 0.4rem 0.8rem !important;
+            min-width: 60px !important;
+        }
+    }
+}
+
+/* 🚨 ENSURE HAMBURGER IS ALWAYS VISIBLE AND CLICKABLE */
+@media (max-width: 767px) {
+    .mobile-menu-btn {
+        position: relative !important;
+        z-index: 1001 !important;
+        pointer-events: auto !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+    }
+    
+    /* Fix for any possible overlap */
+    #site-header {
+        overflow: visible !important;
+    }
+}
     </style>
 
     @stack('styles')
