@@ -808,10 +808,101 @@
                 justify-content: center !important;
             }
 
-            .contact-info li {
-    justify-content: center !important;
-    text-align: center !important;
-    padding-right: 0 !important;
+            /* ==================== ULTIMATE MOBILE CONTACT INFO FIX ==================== */
+@media (max-width: 768px) {
+    /* Center the Contact Info heading */
+    .footer-col:nth-child(3) h3 {
+        text-align: center !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        display: block !important;
+    }
+    
+    /* Center the entire contact info column */
+    .footer-col:nth-child(3) {
+        align-items: center !important;
+        text-align: center !important;
+    }
+    
+    /* Center each contact info item with minimal spacing */
+    .footer-col:nth-child(3) .contact-info li {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-start !important;  /* Icons and text close together */
+        text-align: left !important;
+        margin: 0.5rem 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        gap: 6px !important;  /* Very small gap between icon and text */
+        max-width: 280px !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+    
+    .footer-col:nth-child(3) .contact-info i {
+        margin-right: 0 !important;
+        margin-top: 0 !important;
+        min-width: 18px !important;
+        font-size: 0.9rem !important;
+        color: #0ea5e9 !important;
+        flex-shrink: 0 !important;
+        text-align: center !important;
+    }
+    
+    .footer-col:nth-child(3) .contact-info div {
+        text-align: left !important;
+        line-height: 1.4 !important;
+        font-size: 0.9rem !important;
+        flex: 1 !important;
+        max-width: calc(100% - 24px) !important;
+    }
+    
+    /* Center the entire contact info list */
+    .footer-col:nth-child(3) .contact-info {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        width: 100% !important;
+        padding: 0 !important;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Even tighter spacing on very small screens */
+    .footer-col:nth-child(3) .contact-info li {
+        gap: 5px !important;
+        margin: 0.4rem 0 !important;
+        max-width: 260px !important;
+    }
+    
+    .footer-col:nth-child(3) .contact-info i {
+        min-width: 16px !important;
+        font-size: 0.85rem !important;
+    }
+    
+    .footer-col:nth-child(3) .contact-info div {
+        font-size: 0.85rem !important;
+        max-width: calc(100% - 21px) !important;
+    }
+}
+
+@media (max-width: 360px) {
+    /* Ultra small screens - minimal spacing */
+    .footer-col:nth-child(3) .contact-info li {
+        gap: 4px !important;
+        margin: 0.3rem 0 !important;
+        max-width: 240px !important;
+    }
+    
+    .footer-col:nth-child(3) .contact-info i {
+        min-width: 14px !important;
+        font-size: 0.8rem !important;
+    }
+    
+    .footer-col:nth-child(3) .contact-info div {
+        font-size: 0.8rem !important;
+        max-width: calc(100% - 18px) !important;
+    }
 }
             
             .newsletter-form input,
