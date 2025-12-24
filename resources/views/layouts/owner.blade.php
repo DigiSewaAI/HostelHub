@@ -2,13 +2,13 @@
 <html lang="ne" dir="ltr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="robots" content="noindex, nofollow">
     <title>@yield('title', 'ड्यासबोर्ड') - HostelHub Owner</title>
-    
-    <link rel="stylesheet" href="{{ asset('css/mobile-fixes.css') }}">
-    
+
+    <link rel="stylesheet" href="{{ asset('css/mobile-only.css') }}">
+
     <!-- Favicon -->
     <link rel="shortcut icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
     
@@ -523,7 +523,7 @@
         <!-- Main Content Area - FIXED -->
         <div class="main-content-area" style="margin-left: 16rem !important; width: calc(100vw - 16rem) !important; min-height: 100vh !important; display: flex !important; flex-direction: column !important;">
             <!-- Top Navigation -->
-            <header class="bg-gradient-primary shadow-sm z-10 fixed top-0 left-0 right-0">
+            <header class="bg-gradient-primary shadow-sm z-10">
                 <div class="flex items-center justify-between px-6 header-content">
                     <div class="flex items-center">
                         <button id="mobile-sidebar-toggle" class="lg:hidden text-white hover:text-gray-200 mr-4" aria-label="मोबाइल साइडबार खोल्नुहोस्">
@@ -644,11 +644,10 @@
                         </div>
                     </div>
                 </div>
-
             </header>
 
-<!-- Mobile Header Spacer - Mobile मा मात्र देखिने -->
-<div class="mobile-header-spacer d-block d-lg-none" style="height: 60px;"></div>
+<!-- Mobile Header Space - Mobile मा मात्र देखिने -->
+<div class="mobile-header-space d-block d-lg-none"></div>
 
             <!-- Main Content Container -->
             <div class="main-content-container">
@@ -681,6 +680,9 @@
             </div>
         </div>
     </div>
+
+    <!-- Mobile Only JavaScript -->
+    <script src="{{ asset('js/mobile-only.js') }}"></script>
 
     <!-- Bootstrap Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -734,37 +736,36 @@
                 });
             }
             
-            // Replace the existing mobile sidebar toggle code with this:
+            // Mobile sidebar toggle
+            if (mobileSidebarToggle) {
+                mobileSidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('mobile-open');
+                    
+                    // Create overlay when mobile sidebar opens
+                    if (sidebar.classList.contains('mobile-open')) {
+                        const overlay = document.createElement('div');
+                        overlay.className = 'sidebar-overlay';
+                        overlay.addEventListener('click', function() {
+                            sidebar.classList.remove('mobile-open');
+                            document.body.removeChild(overlay);
+                        });
+                        document.body.appendChild(overlay);
+                    } else {
+                        const overlay = document.querySelector('.sidebar-overlay');
+                        if (overlay) {
+                            document.body.removeChild(overlay);
+                        }
+                    }
+                   
+                    
 
-if (mobileSidebarToggle) {
-    mobileSidebarToggle.addEventListener('click', function() {
-        sidebar.classList.toggle('mobile-open');
-        document.body.classList.toggle('sidebar-open');
-        
-        // Create or remove overlay
-        if (sidebar.classList.contains('mobile-open')) {
-            const overlay = document.createElement('div');
-            overlay.className = 'sidebar-overlay active';
-            overlay.addEventListener('click', function() {
-                sidebar.classList.remove('mobile-open');
-                document.body.classList.remove('sidebar-open');
-                overlay.remove();
-            });
-            document.body.appendChild(overlay);
-        } else {
-            const overlay = document.querySelector('.sidebar-overlay');
-            if (overlay) {
-                overlay.remove();
+                    // Update aria-expanded
+                    const isOpen = sidebar.classList.contains('mobile-open');
+                    this.setAttribute('aria-expanded', isOpen);
+                    this.setAttribute('aria-label', isOpen ? 
+                        'मोबाइल साइडबार बन्द गर्नुहोस्' : 'मोबाइल साइडबार खोल्नुहोस्');
+                });
             }
-        }
-        
-        // Update aria attributes
-        const isOpen = sidebar.classList.contains('mobile-open');
-        this.setAttribute('aria-expanded', isOpen);
-        this.setAttribute('aria-label', isOpen ? 
-            'मोबाइल साइडबार बन्द गर्नुहोस्' : 'मोबाइल साइडबार खोल्नुहोस्');
-    });
-}
             
             // Initialize tooltips
             const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
@@ -1071,9 +1072,6 @@ if (mobileSidebarToggle) {
         });
     </script>
     
-    <!-- Mobile Fixes JavaScript -->
-<script src="{{ asset('js/mobile-fixes.js') }}"></script>
-
     <!-- Page-specific JavaScript -->
     @stack('scripts')
 </body>
