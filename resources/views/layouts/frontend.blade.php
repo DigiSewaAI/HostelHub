@@ -1186,9 +1186,33 @@
     }
 }
 
-/* ==================== MOBILE CONTACT INFO ICON-TEXT SPACING FIX ==================== */
+/* ==================== MOBILE CONTACT INFO FINAL FIX ==================== */
+/* Desktop view - keep as is */
+.contact-info li {
+    margin-bottom: 0.8rem !important;
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+    width: 100% !important;
+    padding-right: 1rem !important;
+}
+
+/* Mobile view - center everything */
 @media (max-width: 768px) {
-    /* Fix for Contact Info - Center alignment and reduce icon-text gap */
+    /* Center the Contact Info heading */
+    .footer-col:nth-child(3) h3 {
+        text-align: center !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+    
+    /* Center the entire contact info column */
+    .footer-col:nth-child(3) {
+        align-items: center !important;
+        text-align: center !important;
+    }
+    
+    /* Center each contact info item with proper spacing */
     .footer-col:nth-child(3) .contact-info li {
         display: flex !important;
         align-items: center !important;
@@ -1197,7 +1221,8 @@
         margin: 0.5rem 0 !important;
         padding: 0 !important;
         width: 100% !important;
-        gap: 8px !important; /* Reduced gap from 12px to 8px */
+        gap: 6px !important;
+        flex-direction: row !important;
     }
     
     .footer-col:nth-child(3) .contact-info i {
@@ -1209,11 +1234,28 @@
     }
     
     .footer-col:nth-child(3) .contact-info div {
-        text-align: left !important;
+        text-align: center !important;
         line-height: 1.4 !important;
         font-size: 0.9rem !important;
         max-width: calc(100% - 30px) !important;
     }
+}
+
+@media (max-width: 480px) {
+    .footer-col:nth-child(3) .contact-info li {
+        gap: 5px !important;
+        margin: 0.4rem 0 !important;
+    }
+    
+    .footer-col:nth-child(3) .contact-info i {
+        font-size: 0.9rem !important;
+        min-width: 18px !important;
+    }
+    
+    .footer-col:nth-child(3) .contact-info div {
+        font-size: 0.85rem !important;
+    }
+}
     
     /* Ensure all contact items are centered properly */
     .footer-col:nth-child(3) {
