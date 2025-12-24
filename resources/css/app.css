@@ -1485,37 +1485,24 @@ footer > .container {
     transform: translateY(0) !important;
 }
 
-/* 🔥 MOBILE SIDEBAR FIXES - MOBILE ONLY (max-width: 768px) */
+/* ✅ FIXED: MOBILE SIDEBAR WORKING SOLUTION */
 @media (max-width: 768px) {
-  /* Hide sidebar by default on mobile */
-  .sidebar {
+  /* Hide sidebar by default with smooth animation */
+  #sidebar {
     transform: translateX(-100%) !important;
-    transition: transform 0.3s ease-in-out !important;
-    z-index: 1000 !important;
-    box-shadow: 5px 0 15px rgba(0, 0, 0, 0.1) !important;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    z-index: 1040 !important;
+    box-shadow: 5px 0 25px rgba(0, 0, 0, 0.15) !important;
+    width: 280px !important;
+    max-width: 85vw !important;
   }
   
-  /* Show sidebar when mobileSidebarOpen is true */
-  .sidebar.open {
+  /* Show sidebar when open */
+  #sidebar.open {
     transform: translateX(0) !important;
   }
   
-  /* Main content should be full width on mobile */
-  .main-content-spacing,
-  .main-content-spacing.collapsed,
-  .admin-main-content,
-  .main-content {
-    margin-left: 0 !important;
-    width: 100vw !important;
-    max-width: 100vw !important;
-  }
-  
-  /* Ensure body doesn't scroll when sidebar is open */
-  body.sidebar-open {
-    overflow: hidden !important;
-  }
-  
-  /* Mobile overlay for sidebar */
+  /* Mobile overlay - FIXED */
   .mobile-sidebar-overlay {
     display: none;
     position: fixed;
@@ -1524,51 +1511,88 @@ footer > .container {
     right: 0;
     bottom: 0;
     background: rgba(0, 0, 0, 0.5);
-    z-index: 999;
     backdrop-filter: blur(2px);
+    z-index: 1039;
+    opacity: 0;
+    transition: opacity 0.3s ease;
   }
   
   .mobile-sidebar-overlay.active {
     display: block;
+    opacity: 1;
   }
   
-  /* Fix topbar position on mobile */
+  /* Prevent body scroll when sidebar is open */
+  body.sidebar-open {
+    overflow: hidden !important;
+    position: fixed !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
+  
+  /* Main content adjustments */
+  .main-content-spacing {
+    margin-left: 0 !important;
+    width: 100vw !important;
+    transition: none !important;
+    padding-top: 60px !important;
+  }
+  
+  /* Header stays on top */
   header.bg-gradient-primary {
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;
     right: 0 !important;
-    z-index: 100 !important;
+    z-index: 1030 !important;
+    width: 100vw !important;
   }
   
-  /* Adjust main content padding for fixed header */
+  /* Close button inside sidebar */
+  .sidebar-close-btn {
+    display: flex !important;
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 40px;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    color: white;
+    z-index: 1050;
+    border: none;
+    font-size: 1.25rem;
+    cursor: pointer;
+  }
+  
+  .sidebar-close-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+  
+  /* Fix for content area */
   main#main-content {
-    padding-top: 4rem !important;
-    padding-left: 0.5rem !important;
-    padding-right: 0.5rem !important;
-    width: 100vw !important;
-    max-width: 100vw !important;
+    padding: 1rem !important;
+    margin-top: 60px !important;
+    width: 100% !important;
     overflow-x: hidden !important;
   }
   
-  /* Fix dashboard grid layout on mobile */
-  .grid-cols-1.xl\:grid-cols-3 {
-    grid-template-columns: 1fr !important;
-    gap: 1rem !important;
+  /* Mobile menu button icon change */
+  .mobile-menu-btn .fa-bars {
+    display: inline-block;
   }
   
-  .grid.grid-cols-1.md\:grid-cols-2.gap-4 {
-    grid-template-columns: 1fr !important;
+  .mobile-menu-btn .fa-times {
+    display: none;
   }
   
-  /* Ensure all content containers are full width */
-  .w-full,
-  .max-w-7xl,
-  .container {
-    max-width: 100vw !important;
-    width: 100vw !important;
-    padding-left: 0.5rem !important;
-    padding-right: 0.5rem !important;
-    margin: 0 !important;
+  .mobile-menu-btn.active .fa-bars {
+    display: none;
+  }
+  
+  .mobile-menu-btn.active .fa-times {
+    display: inline-block;
   }
 }

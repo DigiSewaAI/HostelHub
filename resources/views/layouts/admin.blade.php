@@ -664,18 +664,33 @@
     @stack('styles')
 </head>
 
-<body class="bg-gray-50 font-sans" x-data="{ darkMode: localStorage.getItem('darkMode') === 'true', sidebarCollapsed: localStorage.getItem('sidebarCollapsed') === 'true', mobileSidebarOpen: false }" :class="{ 'dark-mode': darkMode }">
+<body class="bg-gray-50 font-sans" 
+      x-data="{ 
+        darkMode: localStorage.getItem('darkMode') === 'true', 
+        sidebarCollapsed: localStorage.getItem('sidebarCollapsed') === 'true',
+        mobileSidebarOpen: false 
+      }" 
+      x-on:keydown.escape="mobileSidebarOpen = false"
+      :class="{ 
+        'dark-mode': darkMode,
+        'sidebar-open': mobileSidebarOpen 
+      }">
     <a href="#main-content" class="skip-link nepali">मुख्य सामग्रीमा जानुहोस्</a>
     
     <div class="flex h-screen overflow-hidden">
         <!-- Sidebar Component -->
         <aside id="sidebar" 
-               class="sidebar text-white z-20 flex-shrink-0 transition-all duration-300 ease-in-out flex flex-col h-full fixed lg:relative sidebar-mobile lg:sidebar-mobile-open"
-               :class="{ 
-                 'collapsed': sidebarCollapsed,
-                 'open': mobileSidebarOpen 
-               }">
-            <div class="p-4 border-b border-blue-700 flex items-center justify-between">
+       class="sidebar text-white z-20 flex-shrink-0 transition-all duration-300 ease-in-out flex flex-col h-full fixed lg:relative"
+       :class="{ 
+         'collapsed': sidebarCollapsed,
+         'open': mobileSidebarOpen 
+       }">
+    <!-- 🔥 ADD: Mobile close button inside sidebar -->
+    <button @click="mobileSidebarOpen = false" class="sidebar-close-btn lg:hidden" aria-label="साइडबार बन्द गर्नुहोस्">
+        <i class="fas fa-times"></i>
+    </button>
+    
+    <div class="p-4 border-b border-blue-700 flex items-center justify-between">
                 <a href="{{ url('/admin/dashboard') }}" class="logo-container">
                     <img src="{{ asset('images/logo.png') }}" alt="HostelHub Logo" class="logo-img" onerror="this.src='{{ asset('build/assets/logo.png') }}'">
                     <span class="logo-text sidebar-text" x-show="!sidebarCollapsed">होस्टलहब</span>
@@ -820,9 +835,13 @@
             <header class="bg-gradient-primary shadow-sm z-10">
                 <div class="flex items-center justify-between px-6 header-content">
                     <div class="flex items-center">
-                        <button @click="mobileSidebarOpen = !mobileSidebarOpen" class="lg:hidden text-white hover:text-gray-200 mr-4" aria-label="मोबाइल साइडबार खोल्नुहोस्">
-                            <i class="fas fa-bars text-xl"></i>
-                        </button>
+                        <button @click="mobileSidebarOpen = !mobileSidebarOpen" 
+        class="lg:hidden text-white hover:text-gray-200 mr-4 mobile-menu-btn"
+        :class="{ 'active': mobileSidebarOpen }"
+        aria-label="मोबाइल साइडबार खोल्नुहोस्">
+    <i class="fas fa-bars text-xl"></i>
+    <i class="fas fa-times text-xl"></i>
+</button>
                         <!-- Brand with Logo -->
                         <a href="{{ url('/admin/dashboard') }}" class="navbar-brand text-white flex items-center">
                             <img src="{{ asset('images/logo.png') }}" alt="HostelHub Logo" class="mobile-logo mr-2" onerror="this.src='{{ asset('build/assets/logo.png') }}'">
@@ -1568,110 +1587,47 @@
             toggleBulkActionsPanel();
         });
 
-// 🔥 MOBILE SIDEBAR TOGGLE FIXES - MOBILE ONLY
+// ✅ FIXED: SIMPLE MOBILE SIDEBAR SOLUTION
 document.addEventListener('DOMContentLoaded', function() {
-  // Check if we're on mobile
-  function isMobile() {
-    return window.innerWidth <= 768;
-  }
-  
-  if (isMobile()) {
-    // Add mobile overlay div if not exists
-    if (!document.querySelector('.mobile-sidebar-overlay')) {
-      const overlay = document.createElement('div');
-      overlay.className = 'mobile-sidebar-overlay';
-      overlay.setAttribute('x-show', 'mobileSidebarOpen');
-      overlay.setAttribute('@click', 'mobileSidebarOpen = false');
-      overlay.setAttribute('x-transition:enter', 'transition ease-out duration-300');
-      overlay.setAttribute('x-transition:enter-start', 'opacity-0');
-      overlay.setAttribute('x-transition:enter-end', 'opacity-100');
-      overlay.setAttribute('x-transition:leave', 'transition ease-in duration-200');
-      overlay.setAttribute('x-transition:leave-start', 'opacity-100');
-      overlay.setAttribute('x-transition:leave-end', 'opacity-0');
-      document.body.appendChild(overlay);
-    }
-    
-    // Close sidebar when clicking outside on mobile
+    // Close sidebar when clicking on overlay
     document.addEventListener('click', function(event) {
-      const sidebar = document.getElementById('sidebar');
-      const overlay = document.querySelector('.mobile-sidebar-overlay');
-      const menuBtn = document.querySelector('[x-on\\:click*="mobileSidebarOpen"]');
-      
-      if (isMobile() && sidebar && sidebar.classList.contains('open') && 
-          overlay && overlay.classList.contains('active') &&
-          event.target !== sidebar && 
-          !sidebar.contains(event.target) &&
-          event.target !== menuBtn && 
-          !menuBtn.contains(event.target)) {
-        
-        // Trigger Alpine.js state change
-        if (typeof Alpine !== 'undefined') {
-          Alpine.store('appState', Alpine.store('appState') || {});
-          Alpine.store('appState').mobileSidebarOpen = false;
+        const overlay = document.querySelector('.mobile-sidebar-overlay');
+        if (overlay && overlay.classList.contains('active') && event.target === overlay) {
+            // Use Alpine.js to close sidebar
+            if (typeof Alpine !== 'undefined') {
+                const alpineElement = document.querySelector('[x-data]');
+                if (alpineElement && alpineElement.__x) {
+                    alpineElement.__x.$data.mobileSidebarOpen = false;
+                }
+            }
         }
-        
-        // Update DOM
-        sidebar.classList.remove('open');
-        overlay.classList.remove('active');
-        document.body.classList.remove('sidebar-open');
-      }
     });
     
-    // Handle sidebar toggle
-    document.addEventListener('alpine:init', function() {
-      Alpine.data('sidebar', () => ({
-        mobileSidebarOpen: false,
-        
-        init() {
-          // Watch for sidebar state changes
-          this.$watch('mobileSidebarOpen', (value) => {
+    // Close sidebar on Escape key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
             const sidebar = document.getElementById('sidebar');
-            const overlay = document.querySelector('.mobile-sidebar-overlay');
-            
-            if (sidebar) {
-              if (value) {
-                sidebar.classList.add('open');
-                document.body.classList.add('sidebar-open');
-              } else {
-                sidebar.classList.remove('open');
-                document.body.classList.remove('sidebar-open');
-              }
+            if (sidebar && sidebar.classList.contains('open')) {
+                if (typeof Alpine !== 'undefined') {
+                    const alpineElement = document.querySelector('[x-data]');
+                    if (alpineElement && alpineElement.__x) {
+                        alpineElement.__x.$data.mobileSidebarOpen = false;
+                    }
+                }
             }
-            
-            if (overlay) {
-              if (value) {
-                overlay.classList.add('active');
-              } else {
-                overlay.classList.remove('active');
-              }
-            }
-          });
         }
-      }));
     });
     
-    // Ensure sidebar starts closed on mobile
-    window.addEventListener('load', function() {
-      const sidebar = document.getElementById('sidebar');
-      if (sidebar && isMobile()) {
-        sidebar.classList.remove('open');
-        document.body.classList.remove('sidebar-open');
-      }
+    // Close sidebar when window is resized to desktop
+    window.addEventListener('resize', function() {
+        if (window.innerWidth > 768) {
+            // Close mobile sidebar on desktop
+            const alpineElement = document.querySelector('[x-data]');
+            if (alpineElement && alpineElement.__x) {
+                alpineElement.__x.$data.mobileSidebarOpen = false;
+            }
+        }
     });
-  }
-  
-  // Handle window resize
-  window.addEventListener('resize', function() {
-    if (!isMobile()) {
-      // Reset on desktop
-      const sidebar = document.getElementById('sidebar');
-      const overlay = document.querySelector('.mobile-sidebar-overlay');
-      
-      if (sidebar) sidebar.classList.remove('open');
-      if (overlay) overlay.classList.remove('active');
-      document.body.classList.remove('sidebar-open');
-    }
-  });
 });
 
     </script>
