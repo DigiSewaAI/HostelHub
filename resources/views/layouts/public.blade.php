@@ -466,13 +466,7 @@
             .footer-links a {
                 justify-content: center !important;
             }
-            
-            .contact-info li {
-                justify-content: center !important;
-                text-align: center !important;
-                padding-right: 0 !important;
-            }
-            
+              
             .newsletter-form input,
             .newsletter-form button {
                 max-width: 300px !important;
@@ -510,6 +504,219 @@
                 height: 60px !important;
             }
         }
+    
+    /* ==================== MOBILE FOOTER FIXES ==================== */
+
+/* 1️⃣ Fix footer links - make uniform vertical buttons */
+.footer-links {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+    width: 100% !important;
+    padding: 0 !important;
+}
+
+.footer-links li {
+    width: 100% !important;
+    margin: 0 !important;
+    display: block !important;
+}
+
+.footer-links a {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    min-height: 44px !important;
+    padding: 0.75rem 1rem !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-radius: 0.75rem !important;
+    margin-bottom: 0.5rem !important;
+    color: rgba(249, 250, 251, 0.9) !important;
+    text-decoration: none !important;
+    font-size: 0.95rem !important;
+    font-weight: 500 !important;
+    transition: all 0.3s ease !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    box-sizing: border-box !important;
+}
+
+.footer-links a:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.footer-links i {
+    margin-right: 0.75rem !important;
+    font-size: 0.9rem !important;
+    width: 16px !important;
+    text-align: center !important;
+}
+
+/* 2️⃣ Fix contact info icon spacing - IMPORTANT: FLEX-START TO FIX CENTERING */
+.contact-info li {
+    gap: 8px !important; /* Reduced from 12px to 8px */
+    align-items: center !important;  /* flex-start को सट्टा center गर्नुहोस् */
+    justify-content: flex-start !important;
+    text-align: left !important;
+    margin-bottom: 1rem !important;
+    padding: 0.5rem 0 !important;
+}
+
+.contact-info i {
+    min-width: 20px !important; /* Fixed width for alignment */
+    text-align: center !important;
+    margin-top: 2px !important;
+    font-size: 1rem !important;
+    color: #0ea5e9 !important;
+    flex-shrink: 0 !important;
+}
+
+.contact-info div {
+    line-height: 1.5 !important;
+    flex: 1 !important;
+    text-align: left !important;
+    color: rgba(249, 250, 251, 0.85) !important;
+    font-size: 0.9rem !important;
+}
+
+/* 3️⃣ Adjust newsletter form for mobile */
+.newsletter-form {
+    max-width: 100% !important;
+}
+
+.newsletter-form input,
+.newsletter-form button {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+}
+
+.newsletter-form input {
+    margin-bottom: 0.75rem !important;
+}
+
+/* 4️⃣ Ensure proper column spacing on mobile */
+.footer-col {
+    padding: 1rem 0 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.footer-col:last-child {
+    border-bottom: none !important;
+}
+
+.footer-col h3 {
+    margin-bottom: 1.25rem !important;
+}
+
+/* ==================== MOBILE CONTACT INFO FINAL FIX ==================== */
+/* Desktop view - keep as is */
+.contact-info li {
+    margin-bottom: 0.8rem !important;
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+    width: 100% !important;
+    padding-right: 1rem !important;
+}
+
+/* Mobile view - center everything */
+@media (max-width: 768px) {
+    /* Center the Contact Info heading */
+    .footer-col:nth-child(3) h3 {
+        text-align: center !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+    
+    /* Center the entire contact info column */
+    .footer-col:nth-child(3) {
+        align-items: center !important;
+        text-align: center !important;
+    }
+    
+    /* Center each contact info item with VERY CLOSE spacing */
+    .footer-col:nth-child(3) .contact-info li {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        text-align: left !important;
+        margin: 0.5rem 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        gap: 4px !important;  /* 0.5 cm नजिक */
+        max-width: 280px !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+    
+    .footer-col:nth-child(3) .contact-info i {
+        margin-right: 0 !important;
+        margin-top: 0 !important;
+        min-width: 16px !important;
+        font-size: 0.9rem !important;
+        color: #0ea5e9 !important;
+        flex-shrink: 0 !important;
+        text-align: center !important;
+    }
+    
+    .footer-col:nth-child(3) .contact-info div {
+        text-align: left !important;
+        line-height: 1.4 !important;
+        font-size: 0.9rem !important;
+        flex: 1 !important;
+        max-width: calc(100% - 20px) !important;
+    }
+    
+    /* Center the entire contact info list */
+    .footer-col:nth-child(3) .contact-info {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        width: 100% !important;
+        padding: 0 !important;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Even tighter spacing on very small screens */
+    .footer-col:nth-child(3) .contact-info li {
+        gap: 3px !important;  /* अझ नजिक */
+        margin: 0.4rem 0 !important;
+        max-width: 260px !important;
+    }
+    
+    .footer-col:nth-child(3) .contact-info i {
+        min-width: 14px !important;
+        font-size: 0.85rem !important;
+    }
+    
+    .footer-col:nth-child(3) .contact-info div {
+        font-size: 0.85rem !important;
+        max-width: calc(100% - 17px) !important;
+    }
+}
+
+@media (max-width: 360px) {
+    /* Ultra small screens - minimal spacing */
+    .footer-col:nth-child(3) .contact-info li {
+        gap: 2px !important;  /* एकदमै नजिक */
+        margin: 0.3rem 0 !important;
+        max-width: 240px !important;
+    }
+    
+    .footer-col:nth-child(3) .contact-info i {
+        min-width: 12px !important;
+        font-size: 0.8rem !important;
+    }
+    
+    .footer-col:nth-child(3) .contact-info div {
+        font-size: 0.8rem !important;
+        max-width: calc(100% - 14px) !important;
+    }
+}
     </style>
     
     @stack('styles')
