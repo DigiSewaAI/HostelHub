@@ -1596,3 +1596,73 @@ footer > .container {
     display: inline-block;
   }
 }
+
+/* 🚨 EMERGENCY MOBILE FIXES ONLY */
+/* ================================ */
+
+/* Force full width on mobile */
+@media (max-width: 768px) {
+    body {
+        width: 100vw !important;
+        overflow-x: hidden !important;
+        position: relative !important;
+    }
+    
+    /* Fix main content area on mobile */
+    .main-content-area {
+        width: 100vw !important;
+        margin-left: 0 !important;
+        padding: 0 !important;
+        overflow-x: hidden !important;
+    }
+    
+    /* Fix header on mobile */
+    header.bg-gradient-primary {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100vw !important;
+        z-index: 1030 !important;
+    }
+    
+    /* Add spacing for fixed header */
+    main#main-content {
+        padding-top: 70px !important;
+    }
+    
+    /* Fix dashboard cards grid on mobile */
+    .grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-7 {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.5rem !important;
+    }
+    
+    /* Fix quick actions grid on mobile */
+    .grid.grid-cols-2.md\\:grid-cols-4.lg\\:grid-cols-9 {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 0.5rem !important;
+    }
+    
+    /* Hide sidebar on mobile by default */
+    #sidebar {
+        transform: translateX(-100%) !important;
+    }
+    
+    /* Show sidebar when mobile-open class added */
+    #sidebar.mobile-open {
+        transform: translateX(0) !important;
+    }
+}
+
+/* Mobile Header Spacer - Mobile मा मात्र देखिने */
+@media (max-width: 768px) {
+    .mobile-header-spacer {
+        display: block !important;
+    }
+}
+
+@media (min-width: 769px) {
+    .mobile-header-spacer {
+        display: none !important;
+    }
+}
