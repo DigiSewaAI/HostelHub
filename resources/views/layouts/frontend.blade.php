@@ -1185,6 +1185,68 @@
         padding-left: 0.5rem !important;
     }
 }
+
+/* ==================== MOBILE CONTACT INFO CENTER FIX ==================== */
+@media (max-width: 768px) {
+    /* Center the Contact Info heading */
+    .footer-col:nth-child(3) h3 {
+        text-align: center !important;
+        display: block !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+    
+    /* Center the contact info items */
+    .footer-col:nth-child(3) .contact-info {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+        width: 100% !important;
+        padding: 0 !important;
+    }
+    
+    .footer-col:nth-child(3) .contact-info li {
+        justify-content: center !important;
+        text-align: center !important;
+        padding: 0 !important;
+        margin: 0.5rem 0 !important;
+        width: 100% !important;
+        max-width: 300px !important;
+    }
+    
+    .footer-col:nth-child(3) .contact-info i {
+        margin-right: 10px !important;
+        flex-shrink: 0 !important;
+    }
+    
+    .footer-col:nth-child(3) .contact-info div {
+        text-align: center !important;
+        width: 100% !important;
+        display: block !important;
+    }
+    
+    /* Remove any existing left-align styles */
+    .footer-col:nth-child(3) .contact-info[style*="text-align: left"],
+    .footer-col:nth-child(3) .contact-info li[style*="text-align: left"],
+    .footer-col:nth-child(3) .contact-info div[style*="text-align: left"] {
+        text-align: center !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .footer-col:nth-child(3) .contact-info li {
+        max-width: 100% !important;
+    }
+    
+    .footer-col:nth-child(3) .contact-info i {
+        font-size: 0.9rem !important;
+    }
+    
+    .footer-col:nth-child(3) .contact-info div {
+        font-size: 0.85rem !important;
+    }
+}
     </style>
 
     @stack('styles')
