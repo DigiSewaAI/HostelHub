@@ -413,124 +413,6 @@
             font-family: 'Noto Sans Devanagari', sans-serif !important;
         }
         
-        /* ==================== MOBILE FOOTER FIXES ==================== */
-
-        /* 1️⃣ Fix footer links - make uniform vertical buttons */
-        .footer-links {
-            display: flex !important;
-            flex-direction: column !important;
-            gap: 0.5rem !important;
-            width: 100% !important;
-            padding: 0 !important;
-        }
-
-        .footer-links li {
-            width: 100% !important;
-            margin: 0 !important;
-            display: block !important;
-        }
-
-        .footer-links a {
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            width: 100% !important;
-            min-height: 44px !important;
-            padding: 0.75rem 1rem !important;
-            background: rgba(255, 255, 255, 0.1) !important;
-            border-radius: 0.75rem !important;
-            margin-bottom: 0.5rem !important;
-            color: rgba(249, 250, 251, 0.9) !important;
-            text-decoration: none !important;
-            font-size: 0.95rem !important;
-            font-weight: 500 !important;
-            transition: all 0.3s ease !important;
-            border: 1px solid rgba(255, 255, 255, 0.15) !important;
-            box-sizing: border-box !important;
-        }
-
-        .footer-links a:hover {
-            background: rgba(255, 255, 255, 0.2) !important;
-            transform: translateY(-2px) !important;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-        }
-
-        .footer-links i {
-            margin-right: 0.75rem !important;
-            font-size: 0.9rem !important;
-            width: 16px !important;
-            text-align: center !important;
-        }
-
-        /* 2️⃣ Fix contact info icon spacing */
-        .contact-info li {
-            gap: 8px !important; /* Reduced from 12px to 8px */
-            align-items: flex-start !important;
-            justify-content: flex-start !important;
-            text-align: left !important;
-            margin-bottom: 1rem !important;
-            padding: 0.5rem 0 !important;
-        }
-
-        .contact-info i {
-            min-width: 20px !important; /* Fixed width for alignment */
-            text-align: center !important;
-            margin-top: 2px !important;
-            font-size: 1rem !important;
-            color: #0ea5e9 !important;
-            flex-shrink: 0 !important;
-        }
-
-        .contact-info div {
-            line-height: 1.5 !important;
-            flex: 1 !important;
-            text-align: left !important;
-            color: rgba(249, 250, 251, 0.85) !important;
-            font-size: 0.9rem !important;
-        }
-
-        /* 3️⃣ Adjust newsletter form for mobile */
-        .newsletter-form {
-            max-width: 100% !important;
-        }
-
-        .newsletter-form input,
-        .newsletter-form button {
-            width: 100% !important;
-            max-width: 100% !important;
-            margin: 0 !important;
-        }
-
-        .newsletter-form input {
-            margin-bottom: 0.75rem !important;
-        }
-
-        /* 4️⃣ Ensure proper column spacing on mobile */
-        .footer-col {
-            padding: 1rem 0 !important;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-        }
-
-        .footer-col:last-child {
-            border-bottom: none !important;
-        }
-
-        .footer-col h3 {
-            margin-bottom: 1.25rem !important;
-        }
-
-        /* 5️⃣ Remove any existing problematic mobile styles */
-        @media (max-width: 768px) {
-            /* Remove old conflicting styles */
-            .footer-links a[style*="justify-content: center"] {
-                justify-content: center !important;
-            }
-            
-            .contact-info li[style*="justify-content: center"] {
-                justify-content: flex-start !important;
-            }
-        }
-        
         /* Responsive Design */
         @media (max-width: 1024px) {
             .footer-grid {
@@ -583,6 +465,12 @@
             
             .footer-links a {
                 justify-content: center !important;
+            }
+            
+            .contact-info li {
+                justify-content: center !important;
+                text-align: center !important;
+                padding-right: 0 !important;
             }
             
             .newsletter-form input,
