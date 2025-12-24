@@ -808,7 +808,7 @@
                 justify-content: center !important;
             }
 
-            /* ==================== ULTIMATE MOBILE CONTACT INFO FIX ==================== */
+     /* ==================== ULTIMATE MOBILE CONTACT INFO FIX ==================== */
 @media (max-width: 768px) {
     /* Center the Contact Info heading */
     .footer-col:nth-child(3) h3 {
@@ -824,16 +824,16 @@
         text-align: center !important;
     }
     
-    /* Center each contact info item with minimal spacing */
+    /* Center each contact info item with VERY CLOSE spacing */
     .footer-col:nth-child(3) .contact-info li {
         display: flex !important;
         align-items: center !important;
-        justify-content: flex-start !important;  /* Icons and text close together */
+        justify-content: flex-start !important;
         text-align: left !important;
         margin: 0.5rem 0 !important;
         padding: 0 !important;
         width: 100% !important;
-        gap: 6px !important;  /* Very small gap between icon and text */
+        gap: 4px !important;  /* 0.5 cm नजिक (पहिले 6px थियो) */
         max-width: 280px !important;
         margin-left: auto !important;
         margin-right: auto !important;
@@ -842,7 +842,7 @@
     .footer-col:nth-child(3) .contact-info i {
         margin-right: 0 !important;
         margin-top: 0 !important;
-        min-width: 18px !important;
+        min-width: 16px !important;  /* सानो icon width */
         font-size: 0.9rem !important;
         color: #0ea5e9 !important;
         flex-shrink: 0 !important;
@@ -854,7 +854,7 @@
         line-height: 1.4 !important;
         font-size: 0.9rem !important;
         flex: 1 !important;
-        max-width: calc(100% - 24px) !important;
+        max-width: calc(100% - 20px) !important;  /* सानो max-width (पहिले 24px थियो) */
     }
     
     /* Center the entire contact info list */
@@ -870,19 +870,38 @@
 @media (max-width: 480px) {
     /* Even tighter spacing on very small screens */
     .footer-col:nth-child(3) .contact-info li {
-        gap: 5px !important;
+        gap: 3px !important;  /* अझ नजिक */
         margin: 0.4rem 0 !important;
         max-width: 260px !important;
     }
     
     .footer-col:nth-child(3) .contact-info i {
-        min-width: 16px !important;
+        min-width: 14px !important;  /* अझ सानो */
         font-size: 0.85rem !important;
     }
     
     .footer-col:nth-child(3) .contact-info div {
         font-size: 0.85rem !important;
-        max-width: calc(100% - 21px) !important;
+        max-width: calc(100% - 17px) !important;  /* अझ सानो */
+    }
+}
+
+@media (max-width: 360px) {
+    /* Ultra small screens - minimal spacing */
+    .footer-col:nth-child(3) .contact-info li {
+        gap: 2px !important;  /* एकदमै नजिक */
+        margin: 0.3rem 0 !important;
+        max-width: 240px !important;
+    }
+    
+    .footer-col:nth-child(3) .contact-info i {
+        min-width: 12px !important;
+        font-size: 0.8rem !important;
+    }
+    
+    .footer-col:nth-child(3) .contact-info div {
+        font-size: 0.8rem !important;
+        max-width: calc(100% - 14px) !important;  /* सबैभन्दा सानो */
     }
 }
 
