@@ -6,9 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="robots" content="noindex, nofollow">
     <title>@yield('title', 'ड्यासबोर्ड') - HostelHub Owner</title>
-
-    <link rel="stylesheet" href="{{ asset('css/mobile-only.css') }}">
-
+    
     <!-- Favicon -->
     <link rel="shortcut icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
     
@@ -646,9 +644,6 @@
                 </div>
             </header>
 
-<!-- Mobile Header Space - Mobile मा मात्र देखिने -->
-<div class="mobile-header-space d-block d-lg-none"></div>
-
             <!-- Main Content Container -->
             <div class="main-content-container">
                 <!-- Page Content -->
@@ -680,9 +675,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Mobile Only JavaScript -->
-    <script src="{{ asset('js/mobile-only.js') }}"></script>
 
     <!-- Bootstrap Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
