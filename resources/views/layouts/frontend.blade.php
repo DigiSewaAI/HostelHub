@@ -808,12 +808,6 @@
                 justify-content: center !important;
             }
             
-            .contact-info li {
-                justify-content: center !important;
-                text-align: center !important;
-                padding-right: 0 !important;
-            }
-            
             .newsletter-form input,
             .newsletter-form button {
                 max-width: 300px !important;
@@ -1186,65 +1180,91 @@
     }
 }
 
-/* ==================== MOBILE CONTACT INFO CENTER FIX ==================== */
+/* ==================== MOBILE CONTACT INFO ICON-TEXT SPACING FIX ==================== */
 @media (max-width: 768px) {
-    /* Center the Contact Info heading */
-    .footer-col:nth-child(3) h3 {
+    /* Fix for Contact Info - Center alignment and reduce icon-text gap */
+    .footer-col:nth-child(3) .contact-info li {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
         text-align: center !important;
-        display: block !important;
-        margin-left: auto !important;
-        margin-right: auto !important;
+        margin: 0.5rem 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        gap: 8px !important; /* Reduced gap from 12px to 8px */
     }
     
-    /* Center the contact info items */
-    .footer-col:nth-child(3) .contact-info {
+    .footer-col:nth-child(3) .contact-info i {
+        margin-right: 0 !important;
+        margin-top: 0 !important;
+        min-width: 20px !important;
+        font-size: 0.95rem !important;
+        color: #0ea5e9 !important;
+    }
+    
+    .footer-col:nth-child(3) .contact-info div {
+        text-align: left !important;
+        line-height: 1.4 !important;
+        font-size: 0.9rem !important;
+        max-width: calc(100% - 30px) !important;
+    }
+    
+    /* Ensure all contact items are centered properly */
+    .footer-col:nth-child(3) {
         display: flex !important;
         flex-direction: column !important;
         align-items: center !important;
         text-align: center !important;
-        width: 100% !important;
-        padding: 0 !important;
     }
     
-    .footer-col:nth-child(3) .contact-info li {
-        justify-content: center !important;
+    .footer-col:nth-child(3) h3 {
         text-align: center !important;
-        padding: 0 !important;
-        margin: 0.5rem 0 !important;
-        width: 100% !important;
-        max-width: 300px !important;
-    }
-    
-    .footer-col:nth-child(3) .contact-info i {
-        margin-right: 10px !important;
-        flex-shrink: 0 !important;
-    }
-    
-    .footer-col:nth-child(3) .contact-info div {
-        text-align: center !important;
-        width: 100% !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
         display: block !important;
     }
     
-    /* Remove any existing left-align styles */
-    .footer-col:nth-child(3) .contact-info[style*="text-align: left"],
-    .footer-col:nth-child(3) .contact-info li[style*="text-align: left"],
-    .footer-col:nth-child(3) .contact-info div[style*="text-align: left"] {
-        text-align: center !important;
+    .footer-col:nth-child(3) .contact-info {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        width: 100% !important;
+        padding: 0 !important;
     }
 }
 
 @media (max-width: 480px) {
+    /* Even tighter spacing on very small screens */
     .footer-col:nth-child(3) .contact-info li {
-        max-width: 100% !important;
+        gap: 6px !important;
+        margin: 0.4rem 0 !important;
     }
     
     .footer-col:nth-child(3) .contact-info i {
         font-size: 0.9rem !important;
+        min-width: 18px !important;
     }
     
     .footer-col:nth-child(3) .contact-info div {
         font-size: 0.85rem !important;
+        max-width: calc(100% - 25px) !important;
+    }
+}
+
+@media (max-width: 360px) {
+    /* Ultra small screens - minimal spacing */
+    .footer-col:nth-child(3) .contact-info li {
+        gap: 5px !important;
+        margin: 0.3rem 0 !important;
+    }
+    
+    .footer-col:nth-child(3) .contact-info i {
+        font-size: 0.85rem !important;
+        min-width: 16px !important;
+    }
+    
+    .footer-col:nth-child(3) .contact-info div {
+        font-size: 0.8rem !important;
     }
 }
     </style>
