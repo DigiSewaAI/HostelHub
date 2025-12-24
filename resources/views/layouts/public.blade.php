@@ -613,13 +613,17 @@
                 margin: 0.3rem 0 !important;
                 padding: 0 !important;
                 width: 100% !important;
-                gap: 0.5rem !important;
+                /* 🚨 CRITICAL FIX: Icon र text को बीचको distance कम गर्ने */
+                gap: 0.3rem !important;  /* 👈 0.5rem बाट 0.3rem मा कम गरियो */
+                max-width: 280px !important;
             }
 
             .footer-col:nth-child(3) .contact-info i {
                 margin: 0 !important;
                 text-align: center !important;
                 flex-shrink: 0 !important;
+                font-size: 0.9rem !important;
+                min-width: 16px !important;
             }
 
             .footer-col:nth-child(3) .contact-info div {
@@ -662,7 +666,14 @@
             /* Even tighter spacing on very small screens */
             .footer-col:nth-child(3) .contact-info li {
                 margin: 0.2rem 0 !important;
-                gap: 0.4rem !important;
+                /* 🚨 अझ कम distance सानो screen मा */
+                gap: 0.2rem !important;  /* 👈 0.4rem बाट 0.2rem मा कम गरियो */
+                max-width: 260px !important;
+            }
+
+            .footer-col:nth-child(3) .contact-info i {
+                font-size: 0.85rem !important;
+                min-width: 14px !important;
             }
 
             .footer-col:nth-child(3) .contact-info div {
@@ -679,7 +690,14 @@
             /* Ultra small screens - minimal spacing */
             .footer-col:nth-child(3) .contact-info li {
                 margin: 0.15rem 0 !important;
-                gap: 0.3rem !important;
+                /* 🚨 सबैभन्दा कम distance ultra small screen मा */
+                gap: 0.1rem !important;  /* 👈 0.3rem बाट 0.1rem मा कम गरियो */
+                max-width: 240px !important;
+            }
+
+            .footer-col:nth-child(3) .contact-info i {
+                font-size: 0.8rem !important;
+                min-width: 12px !important;
             }
 
             .footer-col:nth-child(3) .contact-info div {
