@@ -584,6 +584,50 @@
             .footer-links a {
                 justify-content: center !important;
             }
+
+            /* ===== CONTACT INFO CENTERING AND SPACING FIX ===== */
+            .footer-col:nth-child(3) {
+                align-items: center !important;
+                text-align: center !important;
+            }
+
+            .footer-col:nth-child(3) h3 {
+                text-align: center !important;
+                margin-left: auto !important;
+                margin-right: auto !important;
+            }
+
+            .footer-col:nth-child(3) .contact-info {
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                text-align: center !important;
+                width: 100% !important;
+            }
+
+            .footer-col:nth-child(3) .contact-info li {
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                text-align: center !important;
+                margin: 0.3rem 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+                gap: 0.5rem !important;
+            }
+
+            .footer-col:nth-child(3) .contact-info i {
+                margin: 0 !important;
+                text-align: center !important;
+                flex-shrink: 0 !important;
+            }
+
+            .footer-col:nth-child(3) .contact-info div {
+                text-align: center !important;
+                line-height: 1.4 !important;
+                font-size: 0.9rem !important;
+                width: 100% !important;
+            }
             
             .newsletter-form input,
             .newsletter-form button {
@@ -614,12 +658,32 @@
                 width: 70px !important;
                 height: 70px !important;
             }
+            
+            /* Even tighter spacing on very small screens */
+            .footer-col:nth-child(3) .contact-info li {
+                margin: 0.2rem 0 !important;
+                gap: 0.4rem !important;
+            }
+
+            .footer-col:nth-child(3) .contact-info div {
+                font-size: 0.85rem !important;
+            }
         }
         
         @media (max-width: 360px) {
             .footer-logo img {
                 width: 60px !important;
                 height: 60px !important;
+            }
+            
+            /* Ultra small screens - minimal spacing */
+            .footer-col:nth-child(3) .contact-info li {
+                margin: 0.15rem 0 !important;
+                gap: 0.3rem !important;
+            }
+
+            .footer-col:nth-child(3) .contact-info div {
+                font-size: 0.8rem !important;
             }
         }
     </style>
