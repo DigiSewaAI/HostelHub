@@ -807,6 +807,12 @@
             .footer-links a {
                 justify-content: center !important;
             }
+
+            .contact-info li {
+    justify-content: center !important;
+    text-align: center !important;
+    padding-right: 0 !important;
+}
             
             .newsletter-form input,
             .newsletter-form button {
