@@ -709,93 +709,170 @@
     margin-bottom: 1.25rem !important;
 }
 
-/* ==================== MOBILE CONTACT INFO ICON-TEXT SPACING FIX ==================== */
+/* 5️⃣ Remove any existing problematic mobile styles */
 @media (max-width: 768px) {
-    /* Fix for Contact Info - Center alignment and reduce icon-text gap */
-    .footer-col:nth-child(3) .contact-info li {
-        display: flex !important;
-        align-items: center !important;
+    /* Remove old conflicting styles */
+    .footer-links a[style*="justify-content: center"] {
         justify-content: center !important;
-        text-align: center !important;
-        margin: 0.5rem 0 !important;
-        padding: 0 !important;
-        width: 100% !important;
-        gap: 8px !important; /* Reduced gap from 12px to 8px */
     }
     
-    .footer-col:nth-child(3) .contact-info i {
-        margin-right: 0 !important;
-        margin-top: 0 !important;
-        min-width: 20px !important;
-        font-size: 0.95rem !important;
-        color: #0ea5e9 !important;
-    }
-    
-    .footer-col:nth-child(3) .contact-info div {
-        text-align: left !important;
-        line-height: 1.4 !important;
-        font-size: 0.9rem !important;
-        max-width: calc(100% - 30px) !important;
-    }
-    
-    /* Ensure all contact items are centered properly */
-    .footer-col:nth-child(3) {
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: center !important;
-        text-align: center !important;
-    }
-    
-    .footer-col:nth-child(3) h3 {
-        text-align: center !important;
-        margin-left: auto !important;
-        margin-right: auto !important;
-        display: block !important;
-    }
-    
-    .footer-col:nth-child(3) .contact-info {
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: center !important;
-        width: 100% !important;
-        padding: 0 !important;
+    .contact-info li[style*="justify-content: center"] {
+        justify-content: flex-start !important;
     }
 }
 
-@media (max-width: 480px) {
-    /* Even tighter spacing on very small screens */
-    .footer-col:nth-child(3) .contact-info li {
-        gap: 6px !important;
-        margin: 0.4rem 0 !important;
-    }
-    
-    .footer-col:nth-child(3) .contact-info i {
-        font-size: 0.9rem !important;
-        min-width: 18px !important;
-    }
-    
-    .footer-col:nth-child(3) .contact-info div {
-        font-size: 0.85rem !important;
-        max-width: calc(100% - 25px) !important;
-    }
-}
+            /* Remove borders and padding on medium screens */
+            .footer-col:nth-child(2),
+            .footer-col:nth-child(3),
+            .footer-col:nth-child(4) {
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+                border-left: none !important;
+                border-right: none !important;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .mobile-menu-btn {
+                display: block;
+            }
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: var(--primary);
+                flex-direction: column;
+                padding: 1.2rem;
+                box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            .nav-links.show {
+                display: flex;
+            }
+            .header-cta {
+                display: none;
+            }
+            .newsletter-form {
+                flex-direction: column;
+            }
+            .newsletter-form input {
+                min-width: 100%;
+            }
+            .page-header {
+                padding: 1.8rem 0;
+            }
+            .page-header h1 {
+                font-size: 1.8rem;
+            }
+            .page-header p {
+                font-size: 1rem;
+            }
+            .content-container {
+                padding: 0 1.2rem;
+            }
+            
+            .footer-grid {
+                grid-template-columns: 1fr !important;
+                gap: 1.5rem !important;
+            }
+            
+            .footer-logo-wrapper {
+                align-items: center !important;
+                text-align: center !important;
+            }
+            
+            .footer-logo-wrapper span {
+                text-align: center !important;
+            }
+            
+            .footer-logo-wrapper .nepali {
+                text-align: center !important;
+            }
+            
+            .footer-col h3 {
+                text-align: center !important;
+            }
+            
+            .footer-col h3::after {
+                left: 50% !important;
+                transform: translateX(-50%) !important;
+            }
+            
+            .social-links {
+                justify-content: center !important;
+            }
+            
+            .footer-links a {
+                justify-content: center !important;
+            }
+            
+            .contact-info li {
+                justify-content: center !important;
+                text-align: center !important;
+                padding-right: 0 !important;
+            }
+            
+            .newsletter-form input,
+            .newsletter-form button {
+                max-width: 300px !important;
+                margin: 0 auto !important;
+            }
+            
+            /* 🚨 FIX: Smaller logo on mobile */
+            .footer-logo img {
+                width: 80px !important;
+                height: 80px !important;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            :root {
+                --header-height: 60px;
+            }
+            header .logo img {
+                width: 60px;
+                height: 60px;
+            }
+            .page-header {
+                padding: 1.5rem 0;
+            }
+            .page-header h1 {
+                font-size: 1.6rem;
+            }
+            .content-container {
+                padding: 0 1rem;
+            }
+            
+            /* 🚨 FIX: Even smaller logo on small mobile */
+            .footer-logo img {
+                width: 70px !important;
+                height: 70px !important;
+            }
+        }
+        
+        @media (max-width: 360px) {
+            header .logo img {
+                width: 50px;
+                height: 50px;
+            }
+            .logo-text h1 {
+                font-size: 1rem;
+            }
+            .logo-text span {
+                font-size: 0.6rem;
+            }
+            .page-header h1 {
+                font-size: 1.4rem;
+            }
+            
+            .footer-logo img {
+                width: 60px !important;
+                height: 60px !important;
+            }
+        }
 
-@media (max-width: 360px) {
-    /* Ultra small screens - minimal spacing */
-    .footer-col:nth-child(3) .contact-info li {
-        gap: 5px !important;
-        margin: 0.3rem 0 !important;
-    }
-    
-    .footer-col:nth-child(3) .contact-info i {
-        font-size: 0.85rem !important;
-        min-width: 16px !important;
-    }
-    
-    .footer-col:nth-child(3) .contact-info div {
-        font-size: 0.8rem !important;
-    }
-}
         /* 🚨 FINAL MOBILE HEADER FIX - PROPER SEPARATION */
 
 @media (max-width: 767px) {
