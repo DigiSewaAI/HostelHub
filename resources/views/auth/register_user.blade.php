@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ne">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register</title>
+    <title>दर्ता गर्नुहोस्</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-gray-100">
     <div class="min-h-screen flex items-center justify-center">
         <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-            <h2 class="text-2xl font-bold mb-6 text-center">Create Account</h2>
+            <h2 class="text-2xl font-bold mb-6 text-center">खाता सिर्जना गर्नुहोस्</h2>
 
             @if ($errors->any())
                 <div class="mb-4 p-3 bg-red-100 text-red-700 rounded">
@@ -21,13 +21,11 @@
                 </div>
             @endif
 
-            <!-- FIX: Correct form action route -->
             <form method="POST" action="{{ route('register.submit') }}">
                 @csrf
 
                 <div class="mb-4">
-                    <label for="name" class="block text-gray-700 mb-2">Full Name</label>
-                    <!-- FIX: Add old input for name -->
+                    <label for="name" class="block text-gray-700 mb-2">पूरा नाम</label>
                     <input
                         type="text"
                         name="name"
@@ -43,8 +41,7 @@
                 </div>
 
                 <div class="mb-4">
-                    <label for="email" class="block text-gray-700 mb-2">Email</label>
-                    <!-- FIX: Add old input for email -->
+                    <label for="email" class="block text-gray-700 mb-2">इमेल</label>
                     <input
                         type="email"
                         name="email"
@@ -59,8 +56,7 @@
                 </div>
 
                 <div class="mb-4">
-                    <label for="password" class="block text-gray-700 mb-2">Password</label>
-                    <!-- FIX: Add autocomplete and remove old input -->
+                    <label for="password" class="block text-gray-700 mb-2">पासवर्ड</label>
                     <input
                         type="password"
                         name="password"
@@ -75,8 +71,7 @@
                 </div>
 
                 <div class="mb-6">
-                    <label for="password_confirmation" class="block text-gray-700 mb-2">Confirm Password</label>
-                    <!-- FIX: Add autocomplete -->
+                    <label for="password_confirmation" class="block text-gray-700 mb-2">पासवर्ड पुष्टि गर्नुहोस्</label>
                     <input
                         type="password"
                         name="password_confirmation"
@@ -89,13 +84,13 @@
 
                 <div class="mb-4">
                     <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition">
-                        Register
+                        दर्ता गर्नुहोस्
                     </button>
                 </div>
 
                 <div class="text-center">
                     <a href="{{ route('login') }}" class="text-blue-500 hover:underline">
-                        Already have an account? Login
+                        पहिले नै खाता छ? लगइन गर्नुहोस्
                     </a>
                 </div>
             </form>
