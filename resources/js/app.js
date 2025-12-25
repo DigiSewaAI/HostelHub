@@ -1,6 +1,25 @@
 import './bootstrap';
 import './meal_share.js';
 
+// ✅ THEME JS (DO NOT REMOVE)
+import './themes/modern';
+import './themes/classic';
+
+// ✅ CSS IMPORTS (THIS IS VERY IMPORTANT)
+import '../css/app.css';
+import '../css/hostelhub.css';
+import '../css/public-themes.css';
+import '../css/themes.css';
+import '../css/gallery.css';
+import '../css/home.css';
+import '../css/dashboard.css';
+import '../css/themes/modern.css';
+import '../css/themes/classic.css';
+
+
+import './bootstrap';
+import './meal_share.js';
+
 // Alpine.js
 import Alpine from 'alpinejs';
 window.Alpine = Alpine;
@@ -258,15 +277,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-
-    // Check if CSS is loaded
-    if (!document.querySelector('link[href*="app-C2VmGskO.css"]')) {
-        console.warn('CSS not loaded, injecting fallback');
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = '/build/assets/app-C2VmGskO.css';
-        document.head.appendChild(link);
-    }
     
     // Admin sidebar functionality
     window.toggleSidebar = function() {
