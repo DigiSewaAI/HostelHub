@@ -64,8 +64,12 @@ WORKDIR /var/www/html
 # ---------------------------------------------------------
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-COPY composer.json composer.lock ./
+# Copy full Laravel app FIRST (so helpers.php exists)
+COPY . .
+
+# Install PHP deps
 RUN composer install --no-dev --optimize-autoloader --no-interaction
+
 
 # ---------------------------------------------------------
 # 5️⃣ Copy Laravel app
