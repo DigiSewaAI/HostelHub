@@ -1,3 +1,23 @@
+# =========================================================
+#  FRONTEND BUILD (VITE / NODE)
+# =========================================================
+FROM node:18 AS frontend
+
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+RUN npm install
+
+COPY resources resources
+COPY vite.config.js .
+COPY public public
+
+RUN npm run build
+
+
+# =========================================================
+#  BACKEND (PHP + APACHE)
+# =========================================================
 FROM php:8.3-apache-bookworm
 
 # 1️⃣ System deps & PHP extensions
@@ -67,19 +87,22 @@ RUN rm -f artisan
 # 1️⃣2️⃣ Copy full app
 COPY . .
 
+# ✅ COPY BUILT FRONTEND ASSETS (CRITICAL FIX)
+COPY --from=frontend /app/public/build public/build
+
 # 1️⃣3️⃣ Storage symlink (media)
 RUN php artisan storage:link || \
     (mkdir -p public/storage && ln -sf ../storage/app/public public/storage)
 
-# 1️⃣4️⃣ Permissions (IMPORTANT FIX)
+# 1️⃣4️⃣ Permissions
 RUN mkdir -p bootstrap/cache storage/framework/sessions storage/framework/views storage/framework/cache && \
     chown -R www-data:www-data storage bootstrap/cache && \
     chmod -R 775 storage bootstrap/cache
 
-# 1️⃣5️⃣ Package discover (safe)
+# 1️⃣5️⃣ Package discover
 RUN php artisan package:discover --no-interaction || true
 
-# 1️⃣6️⃣ Minimal .env (NO APP_URL)
+# 1️⃣6️⃣ Minimal .env
 RUN touch .env && \
     echo "APP_NAME=HostelHub" >> .env && \
     echo "APP_ENV=production" >> .env && \
