@@ -68,5 +68,7 @@ RUN touch .env \
  && echo "APP_KEY=base64:$(openssl rand -base64 32 | tr -d '\n')" >> .env
 
 EXPOSE 8080
-CMD ["apache2-foreground"]
+
+ENTRYPOINT ["apache2-foreground"]
+
 
