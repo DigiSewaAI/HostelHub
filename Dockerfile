@@ -69,4 +69,6 @@ RUN touch .env \
 
 EXPOSE 8080
 
+ENTRYPOINT []
 CMD ["apache2-foreground"]
+
