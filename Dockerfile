@@ -77,4 +77,5 @@ RUN php artisan storage:link || true \
 # Start
 # ---------------------------------------------------------
 EXPOSE 8080
+ENTRYPOINT []
 CMD ["apache2-foreground"]
