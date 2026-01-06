@@ -662,6 +662,7 @@
     
     <!-- Page-specific CSS -->
     @stack('styles')
+    <link rel="stylesheet" href="/css/mobile-safe.css">
 </head>
 
 <body class="bg-gray-50 font-sans" 
@@ -1073,7 +1074,7 @@
         @endif
     @endproduction
     
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.12.0/dist/cdn.min.js" defer></script>
     
     <!-- ✅ ADDED: jQuery for circular functionality -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

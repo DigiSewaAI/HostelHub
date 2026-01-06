@@ -344,6 +344,7 @@
     
     <!-- Page-specific CSS -->
     @stack('styles')
+    <link rel="stylesheet" href="/css/mobile-safe.css">
 </head>
 <body class="bg-gray-50 font-sans">
     <a href="#main-content" class="skip-link">मुख्य सामग्रीमा जानुहोस्</a>
