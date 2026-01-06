@@ -519,7 +519,7 @@
         </aside>
 
         <!-- Main Content Area - FIXED -->
-        <div class="main-content-area">
+        <div class="main-content-area" style="margin-left: 16rem !important; width: calc(100vw - 16rem) !important; min-height: 100vh !important; display: flex !important; flex-direction: column !important;">
             <!-- Top Navigation -->
             <header class="bg-gradient-primary shadow-sm z-10">
                 <div class="flex items-center justify-between px-6 header-content">
