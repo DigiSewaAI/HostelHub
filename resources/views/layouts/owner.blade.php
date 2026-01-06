@@ -371,7 +371,7 @@
     <!-- Page-specific CSS -->
     @stack('styles')
 </head>
-<body class="bg-gray-50 font-sans">
+<body class="bg-gray-50 font-sans owner-dashboard">
     <!-- 🚨 Vite Manifest Error Message (Hidden by default) -->
     <div class="vite-error-message" id="viteError">
         <strong>⚠️ Vite Asset Loading Issue</strong>
