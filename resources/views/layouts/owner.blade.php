@@ -371,7 +371,7 @@
     <!-- Page-specific CSS -->
     @stack('styles')
 </head>
-<body class="bg-gray-50 font-sans owner-dashboard">
+<body class="bg-gray-50 font-sans">
     <!-- 🚨 Vite Manifest Error Message (Hidden by default) -->
     <div class="vite-error-message" id="viteError">
         <strong>⚠️ Vite Asset Loading Issue</strong>
@@ -519,7 +519,7 @@
         </aside>
 
         <!-- Main Content Area - FIXED -->
-        <div class="main-content-area" style="margin-left: 16rem !important; width: calc(100vw - 16rem) !important; min-height: 100vh !important; display: flex !important; flex-direction: column !important;">
+        <div class="main-content-area">
             <!-- Top Navigation -->
             <header class="bg-gradient-primary shadow-sm z-10">
                 <div class="flex items-center justify-between px-6 header-content">
