@@ -15,7 +15,7 @@
     
     <!-- Font Awesome 6.4.0 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-          integrity="sha512-iecdLmaskl7CVskpV0u:YGFkTd73EVdjGN7teJQ8N+2ER5yiJHHIyMI1GAa5I80LzvcpbKjByZcXc9j5QFZUvSJQ=="
+          integrity="sha512-iecdLmaskl7CVkqV0u:YGFkTd73EVdjGN7teJQ8N+2ER5yiJHHIyMI1GAa5I80LzvcpbKjByZcXc9j5QFZUvSJQ=="
           crossorigin="anonymous" referrerpolicy="no-referrer">
     
     <!-- Tailwind CSS with Vite -->
@@ -29,6 +29,7 @@
             --sidebar-width: 16rem;
             --sidebar-collapsed-width: 4.5rem;
             --transition-speed: 0.3s;
+            --header-height: 64px;
         }
         
         body {
@@ -37,12 +38,283 @@
             margin: 0;
             padding: 0;
             overflow-x: hidden;
+            color: #333333 !important; /* ADDED: Default text color */
         }
+        
+        /* 🎯 MOBILE-FIRST RESPONSIVE STYLES */
+        
+        /* Mobile (< 1024px) */
+        @media (max-width: 1023px) {
+            body {
+                overflow-x: hidden !important;
+                position: relative !important;
+                color: #333333 !important; /* ADDED: Ensure text color */
+            }
+            
+            /* Sidebar - Mobile Off-canvas */
+            .sidebar {
+                width: 280px !important;
+                transform: translateX(-100%) !important;
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                height: 100vh !important;
+                z-index: 1050 !important;
+                box-shadow: 5px 0 15px rgba(0, 0, 0, 0.2) !important;
+                transition: transform var(--transition-speed) ease-in-out !important;
+            }
+            
+            .sidebar.mobile-open {
+                transform: translateX(0) !important;
+            }
+            
+            /* Mobile overlay when sidebar is open */
+            .sidebar-overlay {
+                position: fixed !important;
+                inset: 0 !important;
+                background: rgba(0, 0, 0, 0.5) !important;
+                z-index: 1040 !important;
+                backdrop-filter: blur(2px) !important;
+                display: none !important;
+            }
+            
+            .sidebar-overlay.active {
+                display: block !important;
+            }
+            
+            /* Prevent body scroll when sidebar is open */
+            body.sidebar-open {
+                overflow: hidden !important;
+                position: fixed !important;
+                width: 100% !important;
+            }
+            
+            /* Main content - Full width on mobile */
+            .main-content-area {
+                margin-left: 0 !important;
+                width: 100vw !important;
+                min-height: 100vh !important;
+                display: flex !important;
+                flex-direction: column !important;
+            }
+            
+            /* Header - Fixed at top on mobile */
+            .header-fixed {
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                height: var(--header-height) !important;
+                z-index: 1030 !important;
+                background: linear-gradient(45deg, #4e73df, #224abe) !important; /* ADDED: Ensure gradient */
+            }
+            
+            /* Header content - ensure white text */
+            .header-content {
+                color: white !important;
+            }
+            
+            /* Header buttons and icons - ensure visibility */
+            .header-content .btn,
+            .header-content .notification-button,
+            .header-content .dropdown-toggle,
+            .header-content i {
+                color: white !important;
+            }
+            
+            /* Notification dropdown - ensure visibility */
+            .dropdown-menu {
+                background-color: white !important;
+                color: #333333 !important;
+            }
+            
+            .dropdown-menu a,
+            .dropdown-menu p,
+            .dropdown-menu h3,
+            .dropdown-menu span {
+                color: #333333 !important;
+            }
+            
+            /* Main content padding to account for fixed header */
+            .page-content {
+                padding-top: calc(var(--header-height) + 1rem) !important;
+                color: #333333 !important; /* ADDED: Ensure text color */
+            }
+            
+            /* Ensure all text in content area is visible */
+            .main-content-area *:not(.header-content *) {
+                color: #333333 !important;
+            }
+            
+            /* Card adjustments for mobile */
+            .card-mobile {
+                margin: 0 !important;
+                border-radius: 0.5rem !important;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+                background-color: white !important;
+                color: #333333 !important;
+            }
+            
+            /* Ensure buttons are visible */
+            .btn {
+                color: #333333 !important;
+            }
+            
+            .btn-primary {
+                color: white !important;
+            }
+            
+            .btn-outline-primary {
+                color: #4e73df !important;
+                border-color: #4e73df !important;
+            }
+            
+            .btn-outline-primary:hover {
+                color: white !important;
+                background-color: #4e73df !important;
+            }
+            
+            /* Table responsive fixes */
+            .table-responsive-mobile {
+                overflow-x: auto !important;
+                -webkit-overflow-scrolling: touch !important;
+            }
+            
+            /* Button group mobile optimization */
+            .btn-group-mobile {
+                flex-wrap: wrap !important;
+                gap: 0.5rem !important;
+            }
+            
+            /* Form field spacing */
+            .form-field-mobile {
+                margin-bottom: 1rem !important;
+            }
+            
+            /* Statistics card grid */
+            .stats-grid-mobile {
+                grid-template-columns: repeat(1, 1fr) !important;
+                gap: 1rem !important;
+            }
+            
+            /* Hide desktop collapse button on mobile */
+            #sidebar-collapse {
+                display: none !important;
+            }
+            
+            /* Show mobile menu button */
+            #mobile-sidebar-toggle {
+                display: block !important;
+                color: white !important;
+            }
+            
+            /* Ensure user dropdown text is visible */
+            .user-dropdown .btn {
+                color: white !important;
+                border-color: rgba(255, 255, 255, 0.5) !important;
+            }
+            
+            .user-dropdown .btn:hover {
+                background-color: rgba(255, 255, 255, 0.1) !important;
+            }
+            
+            /* Student badge on mobile */
+            .student-badge {
+                background: rgba(255, 255, 255, 0.2) !important;
+                color: white !important;
+                padding: 4px 8px !important;
+                border-radius: 4px !important;
+            }
+            
+            /* Bell icon notification dot */
+            .notification-dot {
+                background-color: #ff4757 !important;
+                border: 2px solid #224abe !important;
+            }
+            
+            /* Alerts visibility */
+            .alert {
+                color: #333333 !important;
+            }
+            
+            .alert-success {
+                background-color: #d4edda !important;
+                border-color: #c3e6cb !important;
+                color: #155724 !important;
+            }
+            
+            .alert-danger {
+                background-color: #f8d7da !important;
+                border-color: #f5c6cb !important;
+                color: #721c24 !important;
+            }
+            
+            .alert-info {
+                background-color: #d1ecf1 !important;
+                border-color: #bee5eb !important;
+                color: #0c5460 !important;
+            }
+        }
+        
+        /* Tablet (768px - 1023px) */
+        @media (min-width: 768px) and (max-width: 1023px) {
+            .sidebar {
+                width: 300px !important;
+            }
+            
+            .stats-grid-mobile {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            
+            /* Ensure text visibility on tablet */
+            .page-content,
+            .page-content *:not(.header-content *) {
+                color: #333333 !important;
+            }
+        }
+        
+        /* Desktop (≥ 1024px) - Original behavior */
+        @media (min-width: 1024px) {
+            .sidebar {
+                transform: translateX(0) !important;
+                position: fixed !important;
+            }
+            
+            .main-content-area {
+                margin-left: var(--sidebar-width) !important;
+                width: calc(100vw - var(--sidebar-width)) !important;
+            }
+            
+            .sidebar.collapsed ~ .main-content-area {
+                margin-left: var(--sidebar-collapsed-width) !important;
+                width: calc(100vw - var(--sidebar-collapsed-width)) !important;
+            }
+            
+            .header-fixed {
+                position: static !important;
+            }
+            
+            .page-content {
+                padding-top: 1rem !important;
+            }
+            
+            /* Hide mobile menu button on desktop */
+            #mobile-sidebar-toggle {
+                display: none !important;
+            }
+            
+            /* Show desktop collapse button */
+            #sidebar-collapse {
+                display: block !important;
+            }
+        }
+        
+        /* 🎯 EXISTING STYLES (Modified for mobile compatibility) */
         
         .sidebar {
             width: var(--sidebar-width);
             transition: width var(--transition-speed);
-            background: linear-gradient(45deg, #4e73df, #224abe) !important; /* CHANGED: Royal Navy Blue */
+            background: linear-gradient(45deg, #4e73df, #224abe) !important;
             position: fixed;
             left: 0;
             top: 0;
@@ -95,7 +367,7 @@
         }
         
         .bg-gradient-primary {
-            background: linear-gradient(45deg, #4e73df, #224abe) !important; /* CHANGED: Royal Navy Blue */
+            background: linear-gradient(45deg, #4e73df, #224abe) !important;
         }
         
         .btn {
@@ -109,26 +381,40 @@
         }
         
         .btn-primary {
-            background: linear-gradient(45deg, #4e73df, #224abe); /* CHANGED: Royal Navy Blue */
+            background: linear-gradient(45deg, #4e73df, #224abe);
             border: none;
             box-shadow: 0 2px 5px rgba(78, 115, 223, 0.3);
+            color: white !important;
         }
         
         .btn-primary:hover {
-            background: linear-gradient(45deg, #224abe, #4e73df); /* CHANGED: Royal Navy Blue */
+            background: linear-gradient(45deg, #224abe, #4e73df);
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(78, 115, 223, 0.4);
+            color: white !important;
+        }
+        
+        .btn-outline-primary {
+            color: #4e73df !important;
+            border: 2px solid #4e73df !important;
+            background: transparent !important;
+        }
+        
+        .btn-outline-primary:hover {
+            background: linear-gradient(45deg, #4e73df, #224abe) !important;
+            color: white !important;
         }
         
         .notification-dot {
             position: absolute;
             top: 3px;
             right: 3px;
-            width: 8px;
-            height: 8px;
+            width: 10px;
+            height: 10px;
             background-color: #ef4444;
             border-radius: 50%;
             z-index: 10;
+            border: 2px solid #224abe;
         }
         
         .notification-button {
@@ -136,20 +422,22 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            color: white !important;
         }
         
         .notification-button i {
             font-size: 1.25rem;
+            color: white !important;
         }
         
         .skip-link {
             position: absolute;
             top: -40px;
             left: 0;
-            background: #224abe; /* CHANGED: Royal Navy Blue */
+            background: #224abe;
             color: white;
             padding: 8px 16px;
-            z-index: 100;
+            z-index: 1100;
             transition: top 0.3s;
         }
         
@@ -157,25 +445,34 @@
             top: 0;
         }
         
-        /* Reduced header height by 20% */
+        /* Header content */
         .header-content {
             padding-top: 0.75rem !important;
             padding-bottom: 0.75rem !important;
+            color: white !important;
         }
         
         .navbar-brand {
             font-size: 1.1rem !important;
+            color: white !important;
         }
         
         .notification-button, .dark-mode-toggle {
             padding: 0.4rem !important;
+            color: white !important;
         }
         
         .user-dropdown .btn {
             padding: 0.4rem 0.75rem !important;
+            color: white !important;
+            border: 1px solid rgba(255, 255, 255, 0.5) !important;
         }
         
-        /* Logo Styles - UPDATED WITH FALLBACK */
+        .user-dropdown .btn:hover {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+        }
+        
+        /* Logo Styles */
         .logo-container {
             display: flex;
             align-items: center;
@@ -212,7 +509,7 @@
             height: 40px;
             width: 40px;
             font-weight: bold;
-            color: #4e73df; /* CHANGED: Royal Navy Blue */
+            color: #4e73df;
             font-size: 16px;
             border: 2px solid white;
         }
@@ -223,7 +520,7 @@
             padding: 4px;
         }
 
-        /* Main content area - FIXED */
+        /* Main content area */
         .main-content-area {
             margin-left: var(--sidebar-width);
             width: calc(100% - var(--sidebar-width));
@@ -231,6 +528,7 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            background-color: #f8fafc !important;
         }
 
         .sidebar.collapsed ~ .main-content-area {
@@ -238,40 +536,22 @@
             width: calc(100% - var(--sidebar-collapsed-width));
         }
 
-        /* Mobile sidebar styles */
-        @media (max-width: 1023px) {
-            .sidebar {
-                transform: translateX(-100%);
-            }
-            
-            .sidebar.mobile-open {
-                transform: translateX(0);
-            }
-            
-            .main-content-area {
-    margin-left: 0 !important;
-    width: 100vw !important;
-}
-            
-            .sidebar-overlay {
-                position: fixed;
-                inset: 0;
-                background: rgba(0, 0, 0, 0.5);
-                z-index: 999;
-            }
-        }
-
         /* Ensure content takes full width */
         .main-content-container {
             flex: 1;
             display: flex;
             flex-direction: column;
+            background-color: #f8fafc !important;
         }
 
         /* Fix for page content */
         .page-content {
             flex: 1;
             padding: 1rem;
+            width: 100% !important;
+            display: block !important;
+            background-color: #f8fafc !important;
+            color: #333333 !important;
         }
 
         @media (min-width: 768px) {
@@ -282,15 +562,15 @@
 
         /* Student specific styles */
         .student-badge {
-            background: linear-gradient(45deg, #4e73df, #224abe); /* CHANGED: Royal Navy Blue */
-            color: white;
+            background: linear-gradient(45deg, #4e73df, #224abe);
+            color: white !important;
             padding: 4px 8px;
             border-radius: 4px;
             font-size: 0.8rem;
             font-weight: 600;
         }
 
-        /* CHANGED: Updated border colors to match navy blue theme */
+        /* Updated border colors */
         .sidebar-border {
             border-color: #2d4fc7 !important;
         }
@@ -299,7 +579,7 @@
             background-color: rgba(255, 255, 255, 0.15) !important;
         }
 
-        /* ✅ ADDED: Circular specific styles for student */
+        /* Circular specific styles for student */
         .circular-item {
             border: 1px solid #e2e8f0;
             border-radius: 0.75rem;
@@ -307,6 +587,7 @@
             margin-bottom: 1rem;
             transition: all 0.3s ease;
             background: white;
+            color: #333333 !important;
         }
         
         .circular-item.unread {
@@ -336,9 +617,72 @@
             gap: 0.5rem;
         }
 
-        /* ✅ ADDED: Alert styles for circular notifications */
+        /* Alert styles for circular notifications */
         .alert-nepali {
             font-family: 'Noto Sans Devanagari', sans-serif;
+        }
+        
+        /* Mobile menu button */
+        #mobile-sidebar-toggle {
+            display: none;
+            color: white !important;
+        }
+        
+        /* Ensure all text in content is visible */
+        .card, .card * {
+            color: #333333 !important;
+        }
+        
+        .text-dark {
+            color: #333333 !important;
+        }
+        
+        .text-muted {
+            color: #6c757d !important;
+        }
+        
+        /* Dropdown menu visibility */
+        .dropdown-menu {
+            background-color: white !important;
+            color: #333333 !important;
+        }
+        
+        .dropdown-item {
+            color: #333333 !important;
+        }
+        
+        .dropdown-item:hover {
+            background-color: #f8f9fa !important;
+            color: #333333 !important;
+        }
+        
+        /* Headings visibility */
+        h1, h2, h3, h4, h5, h6 {
+            color: #333333 !important;
+        }
+        
+        p, span, div:not(.header-content *):not(.sidebar *) {
+            color: #333333 !important;
+        }
+        
+        /* Form elements visibility */
+        .form-control, .form-label, .form-text {
+            color: #333333 !important;
+        }
+        
+        /* Table visibility */
+        table, th, td {
+            color: #333333 !important;
+        }
+        
+        /* Badge visibility */
+        .badge {
+            color: white !important;
+        }
+        
+        /* Ensure header remains colorful */
+        header {
+            background: linear-gradient(45deg, #4e73df, #224abe) !important;
         }
     </style>
     
@@ -401,7 +745,7 @@
                     <span class="sidebar-text">मेरो प्रोफाइल</span>
                 </a>
                 
-                <!-- Rooms - CHANGED FROM "My Room" to "Rooms" -->
+                <!-- Rooms -->
                 <a href="{{ route('student.rooms.index') }}"
                    class="sidebar-link {{ request()->routeIs('student.rooms.*') ? 'active' : '' }}"
                    aria-current="{{ request()->routeIs('student.rooms.*') ? 'page' : 'false' }}">
@@ -417,7 +761,7 @@
                     <span class="sidebar-text">खानाको योजना</span>
                 </a>
                 
-                <!-- Circulars (Notices) - CHANGED FROM "Notices" to "Circulars" -->
+                <!-- Circulars -->
                 <a href="{{ route('student.circulars.index') }}"
                    class="sidebar-link {{ request()->routeIs('student.circulars.*') ? 'active' : '' }}"
                    aria-current="{{ request()->routeIs('student.circulars.*') ? 'page' : 'false' }}">
@@ -478,18 +822,20 @@
             </nav>
         </aside>
 
-        <!-- Main Content Area - FIXED -->
-        <div class="main-content-area" style="margin-left: 16rem !important; width: calc(100vw - 16rem) !important; min-height: 100vh !important; display: flex !important; flex-direction: column !important;">
+        <!-- Mobile Sidebar Overlay -->
+        <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+        <!-- Main Content Area -->
+        <div class="main-content-area">
             <!-- Top Navigation -->
-            <header class="bg-gradient-primary shadow-sm z-10">
-                <div class="flex items-center justify-between px-6 header-content">
+            <header class="bg-gradient-primary shadow-sm z-10 header-fixed">
+                <div class="flex items-center justify-between px-4 header-content h-full">
                     <div class="flex items-center">
-                        <button id="mobile-sidebar-toggle" class="lg:hidden text-white hover:text-gray-200 mr-4" aria-label="मोबाइल साइडबार खोल्नुहोस्">
+                        <button id="mobile-sidebar-toggle" class="text-white hover:text-gray-200 mr-4" aria-label="मोबाइल साइडबार खोल्नुहोस्">
                             <i class="fas fa-bars text-xl"></i>
                         </button>
-                        <!-- Brand with Logo - FIXED -->
+                        <!-- Brand with Logo -->
                         <a href="{{ url('/student/dashboard') }}" class="navbar-brand text-white flex items-center">
-                            <!-- FIXED MOBILE LOGO WITH FALLBACK -->
                             @php
                                 $mobileLogoFound = false;
                             @endphp
@@ -502,20 +848,19 @@
                             @endforeach
                             
                             @if(!$mobileLogoFound)
-                                <!-- FALLBACK MOBILE TEXT LOGO -->
                                 <div class="mobile-text-logo mr-2">
                                     HH
                                 </div>
                             @endif
-                            <span class="hidden md:inline">होस्टलहब - विद्यार्थी प्यानल</span>
+                            <span class="hidden md:inline text-sm text-white">होस्टलहब - विद्यार्थी प्यानल</span>
                         </a>
                     </div>
                     
                     <div class="flex items-center space-x-3">
                         <!-- Student Info Badge -->
                         <div class="student-badge hidden md:flex items-center space-x-2">
-                            <i class="fas fa-user-graduate"></i>
-                            <span>विद्यार्थी</span>
+                            <i class="fas fa-user-graduate text-white"></i>
+                            <span class="text-white">विद्यार्थी</span>
                         </div>
 
                         <!-- Notifications -->
@@ -526,7 +871,7 @@
                                     data-bs-toggle="dropdown" 
                                     aria-expanded="false"
                                     aria-label="सूचनाहरू हेर्नुहोस्">
-                                <i class="fas fa-bell text-lg"></i>
+                                <i class="fas fa-bell text-lg text-white"></i>
                                 <span class="notification-dot" aria-hidden="true"></span>
                             </button>
                             <div class="dropdown-menu dropdown-menu-end w-80 bg-white rounded-xl shadow-lg py-1 z-20 max-h-96 overflow-y-auto border border-gray-200" 
@@ -534,30 +879,30 @@
                                 <div class="px-4 py-2 border-b border-gray-200">
                                     <h3 class="font-semibold text-gray-800">सूचनाहरू</h3>
                                 </div>
-                                <a href="#" class="flex items-start px-4 py-3 hover:bg-gray-50 border-b border-gray-100">
+                                <a href="#" class="flex items-start px-4 py-3 hover:bg-gray-50 border-b border-gray-100 text-gray-800">
                                     <div class="bg-blue-100 p-2 rounded-lg mr-3">
                                         <i class="fas fa-utensils text-blue-600"></i>
                                     </div>
                                     <div>
-                                        <p class="text-sm font-medium text-gray-800">नयाँ खानाको योजना सिर्जना गरियो</p>
+                                        <p class="text-sm font-medium">नयाँ खानाको योजना सिर्जना गरियो</p>
                                         <p class="text-xs text-gray-500">३० मिनेट अघि</p>
                                     </div>
                                 </a>
-                                <a href="#" class="flex items-start px-4 py-3 hover:bg-gray-50 border-b border-gray-100">
+                                <a href="#" class="flex items-start px-4 py-3 hover:bg-gray-50 border-b border-gray-100 text-gray-800">
                                     <div class="bg-amber-100 p-2 rounded-lg mr-3">
                                         <i class="fas fa-money-bill-wave text-amber-600"></i>
                                     </div>
                                     <div>
-                                        <p class="text-sm font-medium text-gray-800">भुक्तानी म्याद नजिकिँदैछ</p>
+                                        <p class="text-sm font-medium">भुक्तानी म्याद नजिकिँदैछ</p>
                                         <p class="text-xs text-gray-500">१ घण्टा अघि</p>
                                     </div>
                                 </a>
-                                <a href="#" class="flex items-start px-4 py-3 hover:bg-gray-50">
+                                <a href="#" class="flex items-start px-4 py-3 hover:bg-gray-50 text-gray-800">
                                     <div class="bg-indigo-100 p-2 rounded-lg mr-3">
                                         <i class="fas fa-bullhorn text-indigo-600"></i>
                                     </div>
                                     <div>
-                                        <p class="text-sm font-medium text-gray-800">नयाँ सूचना प्रकाशित भयो</p>
+                                        <p class="text-sm font-medium">नयाँ सूचना प्रकाशित भयो</p>
                                         <p class="text-xs text-gray-500">२ घण्टा अघि</p>
                                     </div>
                                 </a>
@@ -575,17 +920,17 @@
                                     data-bs-toggle="dropdown" 
                                     aria-expanded="false"
                                     aria-label="प्रयोगकर्ता मेनु">
-                                <i class="fas fa-user-circle me-2"></i>
-                                <span class="d-none d-md-inline">{{ Auth::user()->name ?? 'विद्यार्थी' }}</span>
+                                <i class="fas fa-user-circle me-2 text-white"></i>
+                                <span class="d-none d-md-inline text-white">{{ Auth::user()->name ?? 'विद्यार्थी' }}</span>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end shadow-lg rounded-xl border-0 py-2" aria-labelledby="userDropdown">
                                 <li>
-                                    <a class="dropdown-item d-flex align-items-center" href="{{ route('student.profile') }}">
+                                    <a class="dropdown-item d-flex align-items-center text-dark" href="{{ route('student.profile') }}">
                                         <i class="fas fa-user me-2"></i>प्रोफाइल
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item d-flex align-items-center" href="{{ route('student.dashboard') }}">
+                                    <a class="dropdown-item d-flex align-items-center text-dark" href="{{ route('student.dashboard') }}">
                                         <i class="fas fa-cog me-2"></i>सेटिङहरू
                                     </a>
                                 </li>
@@ -607,13 +952,13 @@
             <!-- Main Content Container -->
             <div class="main-content-container">
                 <!-- Page Content -->
-                <main id="main-content" class="page-content" style="width: 100% !important; padding: 1rem !important; flex: 1 !important; display: block !important;">
+                <main id="main-content" class="page-content">
                     <!-- Flash Messages -->
                     @if(session('success'))
                         <div class="alert alert-success alert-dismissible fade show mb-4 rounded-xl" role="alert">
                             <div class="d-flex align-items-center">
                                 <i class="fas fa-check-circle me-2"></i>
-                                <strong class="nepali">{{ session('success') }}</strong>
+                                <strong class="nepali text-dark">{{ session('success') }}</strong>
                             </div>
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
@@ -623,7 +968,7 @@
                         <div class="alert alert-danger alert-dismissible fade show mb-4 rounded-xl" role="alert">
                             <div class="d-flex align-items-center">
                                 <i class="fas fa-exclamation-circle me-2"></i>
-                                <strong class="nepali">{{ session('error') }}</strong>
+                                <strong class="nepali text-dark">{{ session('error') }}</strong>
                             </div>
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
@@ -649,7 +994,8 @@
             const sidebar = document.getElementById('sidebar');
             const sidebarCollapse = document.getElementById('sidebar-collapse');
             const mobileSidebarToggle = document.getElementById('mobile-sidebar-toggle');
-            const mainContentArea = document.querySelector('.main-content-area');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+            const body = document.body;
             
             // Desktop sidebar collapse
             if (sidebarCollapse) {
@@ -667,31 +1013,61 @@
             // Mobile sidebar toggle
             if (mobileSidebarToggle) {
                 mobileSidebarToggle.addEventListener('click', function() {
+                    const isOpen = !sidebar.classList.contains('mobile-open');
+                    
+                    // Toggle sidebar
                     sidebar.classList.toggle('mobile-open');
                     
-                    // Create overlay when mobile sidebar opens
-                    if (sidebar.classList.contains('mobile-open')) {
-                        const overlay = document.createElement('div');
-                        overlay.className = 'sidebar-overlay';
-                        overlay.addEventListener('click', function() {
-                            sidebar.classList.remove('mobile-open');
-                            document.body.removeChild(overlay);
-                        });
-                        document.body.appendChild(overlay);
+                    // Toggle overlay
+                    if (isOpen) {
+                        sidebarOverlay.classList.add('active');
+                        body.classList.add('sidebar-open');
                     } else {
-                        const overlay = document.querySelector('.sidebar-overlay');
-                        if (overlay) {
-                            document.body.removeChild(overlay);
-                        }
+                        sidebarOverlay.classList.remove('active');
+                        body.classList.remove('sidebar-open');
                     }
                     
                     // Update aria-expanded
-                    const isOpen = sidebar.classList.contains('mobile-open');
                     this.setAttribute('aria-expanded', isOpen);
                     this.setAttribute('aria-label', isOpen ? 
                         'मोबाइल साइडबार बन्द गर्नुहोस्' : 'मोबाइल साइडबार खोल्नुहोस्');
                 });
             }
+            
+            // Close sidebar when clicking on overlay
+            if (sidebarOverlay) {
+                sidebarOverlay.addEventListener('click', function() {
+                    sidebar.classList.remove('mobile-open');
+                    this.classList.remove('active');
+                    body.classList.remove('sidebar-open');
+                    
+                    // Update mobile toggle button
+                    if (mobileSidebarToggle) {
+                        mobileSidebarToggle.setAttribute('aria-expanded', 'false');
+                        mobileSidebarToggle.setAttribute('aria-label', 'मोबाइल साइडबार खोल्नुहोस्');
+                    }
+                });
+            }
+            
+            // Close sidebar when clicking on a link (mobile)
+            const sidebarLinks = document.querySelectorAll('.sidebar-link');
+            sidebarLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    if (window.innerWidth < 1024) {
+                        sidebar.classList.remove('mobile-open');
+                        if (sidebarOverlay) {
+                            sidebarOverlay.classList.remove('active');
+                        }
+                        body.classList.remove('sidebar-open');
+                        
+                        // Update mobile toggle button
+                        if (mobileSidebarToggle) {
+                            mobileSidebarToggle.setAttribute('aria-expanded', 'false');
+                            mobileSidebarToggle.setAttribute('aria-label', 'मोबाइल साइडबार खोल्नुहोस्');
+                        }
+                    }
+                });
+            });
             
             // Initialize tooltips
             const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
@@ -725,6 +1101,23 @@
             
             // Keyboard navigation improvements
             document.addEventListener('keydown', function(e) {
+                // Close sidebar on Escape key (mobile)
+                if (e.key === 'Escape' && window.innerWidth < 1024) {
+                    if (sidebar.classList.contains('mobile-open')) {
+                        sidebar.classList.remove('mobile-open');
+                        if (sidebarOverlay) {
+                            sidebarOverlay.classList.remove('active');
+                        }
+                        body.classList.remove('sidebar-open');
+                        
+                        // Update mobile toggle button
+                        if (mobileSidebarToggle) {
+                            mobileSidebarToggle.setAttribute('aria-expanded', 'false');
+                            mobileSidebarToggle.setAttribute('aria-label', 'मोबाइल साइडबार खोल्नुहोस्');
+                        }
+                    }
+                }
+                
                 // Close dropdowns on Escape
                 if (e.key === 'Escape') {
                     const openDropdowns = document.querySelectorAll('.dropdown-menu.show');
@@ -734,38 +1127,42 @@
                             dropdownInstance.hide();
                         }
                     });
-                    
-                    // Close mobile sidebar
-                    if (sidebar && sidebar.classList.contains('mobile-open')) {
-                        sidebar.classList.remove('mobile-open');
-                        const overlay = document.querySelector('.sidebar-overlay');
-                        if (overlay) {
-                            document.body.removeChild(overlay);
-                        }
-                    }
                 }
             });
-        });
-        
-        // Handle window resize
-        window.addEventListener('resize', function() {
-            const sidebar = document.getElementById('sidebar');
             
-            // Close mobile sidebar on desktop
-            if (window.innerWidth >= 1024 && sidebar) {
-                sidebar.classList.remove('mobile-open');
-                const overlay = document.querySelector('.sidebar-overlay');
-                if (overlay) {
-                    document.body.removeChild(overlay);
+            // Update mobile sidebar state on window resize
+            function updateSidebarState() {
+                if (window.innerWidth >= 1024) {
+                    // Desktop: ensure sidebar is visible and not in mobile mode
+                    sidebar.classList.remove('mobile-open');
+                    if (sidebarOverlay) {
+                        sidebarOverlay.classList.remove('active');
+                    }
+                    body.classList.remove('sidebar-open');
+                } else {
+                    // Mobile: ensure sidebar is closed by default
+                    if (!sidebar.classList.contains('mobile-open')) {
+                        sidebar.classList.remove('mobile-open');
+                        if (sidebarOverlay) {
+                            sidebarOverlay.classList.remove('active');
+                        }
+                        body.classList.remove('sidebar-open');
+                    }
                 }
             }
+            
+            // Initial state update
+            updateSidebarState();
+            
+            // Update on window resize
+            window.addEventListener('resize', updateSidebarState);
         });
     </script>
 
-    <!-- ✅ ADDED: Student circular functionality JavaScript -->
+    <!-- Student circular functionality JavaScript -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // ✅ FIXED: Student circular real-time updates
+            // Student circular real-time updates
             function updateStudentCirculars() {
                 $.ajax({
                     url: '{{ route("student.dashboard") }}?circulars_only=true',
@@ -794,7 +1191,7 @@
                             <div class="circular-item ${isRead ? 'read' : 'unread'} ${priorityClass}">
                                 <div class="d-flex justify-content-between align-items-start">
                                     <div class="flex-grow-1">
-                                        <h6 class="mb-1 ${isRead ? 'text-muted' : 'font-weight-bold'}">
+                                        <h6 class="mb-1 ${isRead ? 'text-muted' : 'font-weight-bold text-dark'}">
                                             ${circular.title}
                                             ${!isRead ? '<span class="badge bg-danger ms-2">नयाँ</span>' : ''}
                                         </h6>
@@ -882,7 +1279,7 @@
                 setInterval(updateStudentCirculars, 60000); // Update every minute
             }
 
-            // ✅ ADDED: Real-time circular notifications for students
+            // Real-time circular notifications for students
             function checkNewCirculars() {
                 $.ajax({
                     url: '{{ route("student.circulars.index") }}?check_new=true',
@@ -936,7 +1333,7 @@
             // Check for new circulars every 30 seconds
             setInterval(checkNewCirculars, 30000);
 
-            // ✅ ADDED: Bulk mark as read functionality
+            // Bulk mark as read functionality
             $(document).on('click', '.bulk-mark-read-btn', function() {
                 const selectedCirculars = $('.circular-bulk-select:checked');
                 const circularIds = selectedCirculars.map(function() {
@@ -973,7 +1370,7 @@
                 });
             });
 
-            // ✅ ADDED: Select all functionality for circulars
+            // Select all functionality for circulars
             $(document).on('change', '.select-all-circulars', function() {
                 const isChecked = $(this).prop('checked');
                 $('.circular-bulk-select').prop('checked', isChecked);

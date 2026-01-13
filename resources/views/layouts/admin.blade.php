@@ -19,7 +19,7 @@
           crossorigin="anonymous" referrerpolicy="no-referrer">
 
     <!-- 🔥 CRITICAL: Vite Asset Loading - Fixed -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/css/dashboard-mobile.css', 'resources/js/app.js'])
     
     <!-- 🔥 BACKUP: Manual CSS Load if Vite fails -->
     @production
@@ -47,10 +47,23 @@
             --background-color: #f9fafb;
         }
         
+        body {
+            font-family: 'Noto Sans Devanagari', sans-serif;
+            background-color: #f8fafc;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+        
         .sidebar {
             width: var(--sidebar-width);
-            transition: width var(--transition-speed);
+            transition: all var(--transition-speed);
             background: linear-gradient(45deg, var(--primary-color), var(--primary-dark)) !important;
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            z-index: 1040;
         }
         
         .sidebar.collapsed {
@@ -241,15 +254,14 @@
             font-family: 'Noto Sans Devanagari', sans-serif !important;
         }
         
-        /* ✅ FIXED: Proper header height and logo sizing */
+        /* ✅ FIXED: Mobile header height and logo sizing */
         .header-content {
-            padding-top: 0.5rem !important;
-            padding-bottom: 0.5rem !important;
-            min-height: 60px !important;
+            padding: 0.5rem 1rem !important;
+            min-height: 56px !important;
         }
         
         .navbar-brand {
-            font-size: 1rem !important;
+            font-size: 0.95rem !important;
         }
         
         .notification-button, .dark-mode-toggle {
@@ -270,7 +282,7 @@
         }
         
         .logo-img {
-            height: 32px !important; /* Reduced from 40px */
+            height: 32px !important;
             width: auto !important;
             object-fit: contain !important;
         }
@@ -279,11 +291,11 @@
             margin-left: 8px !important;
             color: white !important;
             font-weight: 600 !important;
-            font-size: 16px !important; /* Reduced from 18px */
+            font-size: 16px !important;
         }
         
         .mobile-logo {
-            height: 28px !important; /* Reduced from 32px */
+            height: 28px !important;
             width: auto !important;
         }
         
@@ -292,104 +304,162 @@
             transition: opacity 0.5s !important;
         }
 
-        /* 🔥 FIX: Mobile sidebar classes */
-        .sidebar-mobile {
-            transform: translateX(-100%) !important;
-        }
-        
-        .sidebar-mobile.open {
-            transform: translateX(0) !important;
-        }
-
-        /* 🔥 CRITICAL: Force Tailwind utilities */
-        .flex { display: flex !important; }
-        .hidden { display: none !important; }
-        .block { display: block !important; }
-        .lg\:hidden { 
-            display: none !important; 
-        }
-        
-        @media (min-width: 1024px) {
-            .lg\:hidden { 
-                display: none !important; 
-            }
-            .lg\:block { 
-                display: block !important; 
-            }
-            .lg\:flex {
-                display: flex !important;
-            }
-            .lg\:relative {
-                position: relative !important;
-            }
-        }
-
-        /* 🔥 CRITICAL LAYOUT FIXES - UPDATED */
-        .main-content-spacing {
-            margin-left: 16rem !important;
-            width: calc(100vw - 16rem) !important;
-            max-width: none !important;
-            transition: margin-left 0.3s !important;
+        /* ✅ MOBILE-FIRST: Main content area */
+        .main-content-area {
+            width: 100vw !important;
             min-height: 100vh !important;
             display: flex !important;
             flex-direction: column !important;
+            transition: all var(--transition-speed) !important;
+            margin-left: 0 !important;
+        }
+
+        /* Desktop sidebar adjustments */
+        @media (min-width: 1024px) {
+            .main-content-area {
+                margin-left: var(--sidebar-width) !important;
+                width: calc(100vw - var(--sidebar-width)) !important;
+            }
+            
+            .sidebar.collapsed ~ .main-content-area {
+                margin-left: var(--sidebar-collapsed-width) !important;
+                width: calc(100vw - var(--sidebar-collapsed-width)) !important;
+            }
+            
+            .sidebar {
+                position: fixed !important;
+                transform: translateX(0) !important;
+            }
+        }
+
+        /* ✅ ENHANCED: Mobile sidebar styles */
+        @media (max-width: 1023px) {
+            .sidebar {
+                transform: translateX(-100%) !important;
+                width: 280px !important;
+                box-shadow: 5px 0 15px rgba(0, 0, 0, 0.2) !important;
+                z-index: 1040 !important;
+            }
+            
+            .sidebar.open {
+                transform: translateX(0) !important;
+            }
+            
+            /* Fixed header for mobile */
+            header.bg-gradient-primary {
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                z-index: 1030 !important;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1) !important;
+            }
+            
+            /* Space for fixed header */
+            #main-content {
+                padding-top: 56px !important;
+            }
+            
+            /* Mobile overlay */
+            .sidebar-overlay {
+                position: fixed !important;
+                inset: 0 !important;
+                background: rgba(0, 0, 0, 0.5) !important;
+                z-index: 1039 !important;
+                backdrop-filter: blur(2px) !important;
+            }
+            
+            /* Prevent body scroll when sidebar is open */
+            body.sidebar-open {
+                overflow: hidden !important;
+            }
+            
+            /* Mobile-optimized buttons */
+            .btn-mobile {
+                width: 100% !important;
+                margin-bottom: 0.5rem !important;
+            }
+            
+            /* Mobile form inputs */
+            .form-control-mobile {
+                font-size: 16px !important;
+                padding: 0.75rem !important;
+            }
+            
+            /* Mobile table adjustments */
+            .table-responsive-mobile {
+                overflow-x: auto !important;
+                -webkit-overflow-scrolling: touch !important;
+            }
+            
+            /* Mobile grid adjustments */
+            .stats-grid-mobile {
+                display: grid !important;
+                grid-template-columns: repeat(1, 1fr) !important;
+                gap: 1rem !important;
+            }
+        }
+
+        /* Tablet adjustments */
+        @media (min-width: 768px) and (max-width: 1023px) {
+            .sidebar {
+                width: 300px !important;
+            }
+            
+            .stats-grid-mobile {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            
+            .header-content {
+                padding: 0.5rem 1.5rem !important;
+            }
+            
+            .mobile-logo {
+                height: 30px !important;
+            }
+        }
+
+        /* Ensure content takes full width */
+        .main-content-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Fix for page content */
+        .page-content {
+            flex: 1;
+            padding: 1rem;
+            width: 100% !important;
+        }
+
+        @media (min-width: 768px) {
+            .page-content {
+                padding: 1.5rem;
+            }
+        }
+
+        /* Logo fallback styles */
+        .logo-fallback {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border-radius: 6px;
+            padding: 5px;
+            height: 40px;
+            width: 40px;
+            font-weight: bold;
+            color: #4e73df;
+            font-size: 16px;
+            border: 2px solid white;
         }
         
-        .main-content-spacing.collapsed {
-            margin-left: 4.5rem !important;
-            width: calc(100vw - 4.5rem) !important;
-        }
-
-        .max-w-7xl {
-            max-width: none !important;
-            width: 100% !important;
-            margin: 0 !important;
-            padding: 0 !important;
-        }
-
-        main#main-content {
-            flex: 1 !important;
-            padding: 1rem !important;
-            margin: 0 !important;
-            width: 100% !important;
-            max-width: none !important;
-            overflow-x: hidden !important;
-        }
-
-        .bg-white.rounded-xl {
-            border-radius: 0.5rem !important;
-            margin: 0 !important;
-            width: 100% !important;
-            min-height: auto !important;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
-        }
-
-        /* Fix main content container */
-        .main-content {
-            margin-left: 0 !important;
-            width: 100% !important;
-            max-width: none !important;
-        }
-
-        /* Remove any extra padding/margin from main content */
-        #main-content {
-            padding: 0 !important;
-            margin: 0 !important;
-        }
-
-        /* Fix the main content area */
-        .flex-1.overflow-y-auto {
-            width: 100% !important;
-            margin: 0 !important;
-            padding: 0 !important;
-        }
-
-        /* Ensure content uses full available space */
-        .bg-white.dark\:bg-gray-700.rounded-xl {
-            border-radius: 0.5rem !important;
-            margin: 0 !important;
-            min-height: auto !important;
-            width: 100% !important;
+        .mobile-logo-fallback {
+            height: 32px;
+            width: 32px;
+            font-size: 14px;
+            padding: 4px;
         }
 
         /* ✅ ADDED: Circular specific styles for admin */
@@ -561,80 +631,65 @@
             background: white !important;
         }
 
-        /* Mobile fixes */
-        @media (max-width: 1023px) {
-            .sidebar-mobile {
-                transform: translateX(-100%) !important;
-            }
-            .sidebar-mobile.open {
-                transform: translateX(0) !important;
-            }
-            .main-content-spacing {
-                margin-left: 0 !important;
-                width: 100vw !important;
-            }
-            
-            .max-w-7xl.mx-auto {
-                padding: 0 0.5rem !important;
-            }
-            
-            /* ✅ FIXED: Mobile header adjustments */
-            .header-content {
-                padding-top: 0.4rem !important;
-                padding-bottom: 0.4rem !important;
-                min-height: 55px !important;
-            }
-            
-            .mobile-logo {
-                height: 24px !important;
-            }
-            
-            .navbar-brand span {
-                font-size: 0.9rem !important;
-            }
-            
-            /* Mobile table fixes */
-            .table-responsive {
-                font-size: 0.875rem !important;
-            }
-            
-            .bulk-actions-panel {
-                flex-direction: column !important;
-                gap: 0.5rem !important;
-            }
-            
-            .btn-group {
-                flex-wrap: wrap !important;
-                gap: 0.25rem;
-            }
-            
-            .btn-group .btn {
-                margin-bottom: 0.25rem;
-            }
-
-            /* 🔥 FIX: Mobile responsiveness */
-            .main-content-spacing {
-                margin-left: 0 !important;
-                width: 100vw !important;
-            }
-            
-            #main-content {
-                padding: 0.5rem !important;
-            }
-        }
-
-        /* 🔥 VITE FALLBACK STYLES - Critical for when Vite fails */
-        .vite-fallback {
-            display: none;
+        /* ✅ ADDED: Mobile-specific utility classes */
+        .mobile-only {
+            display: block !important;
         }
         
-        /* Show fallback only when Vite fails */
-        .no-vite .vite-fallback {
-            display: block;
+        .desktop-only {
+            display: none !important;
         }
         
-        .no-vite .vite-asset {
-            display: none;
+        @media (min-width: 1024px) {
+            .mobile-only {
+                display: none !important;
+            }
+            
+            .desktop-only {
+                display: block !important;
+            }
+        }
+        
+        /* ✅ ADDED: Touch-friendly tap targets */
+        .tap-target {
+            min-height: 44px;
+            min-width: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* ✅ ADDED: Safe area insets for modern mobile devices */
+        @supports (padding: max(0px)) {
+            .safe-area-top {
+                padding-top: max(0.5rem, env(safe-area-inset-top));
+            }
+            
+            .safe-area-bottom {
+                padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+            }
+            
+            .safe-area-left {
+                padding-left: max(0.5rem, env(safe-area-inset-left));
+            }
+            
+            .safe-area-right {
+                padding-right: max(0.5rem, env(safe-area-inset-right));
+            }
+        }
+        
+        /* ✅ ADDED: Loading states for mobile */
+        .loading-mobile {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
         }
         
         /* ✅ ADDED: User name styling for better fit */
@@ -658,6 +713,76 @@
         .d-none {
             display: none !important;
         }
+        
+        .d-flex {
+            display: flex !important;
+        }
+        
+        /* 🔥 VITE FALLBACK STYLES */
+        .vite-fallback {
+            display: none;
+        }
+        
+        /* Show fallback only when Vite fails */
+        .no-vite .vite-fallback {
+            display: block;
+        }
+        
+        .no-vite .vite-asset {
+            display: none;
+        }
+        
+        /* Mobile fixes - Override for existing styles */
+        @media (max-width: 1023px) {
+            .main-content-spacing {
+                margin-left: 0 !important;
+                width: 100vw !important;
+            }
+            
+            .max-w-7xl.mx-auto {
+                padding: 0 0.5rem !important;
+                max-width: none !important;
+            }
+            
+            /* ✅ FIXED: Mobile header adjustments */
+            .header-content {
+                padding-top: 0.4rem !important;
+                padding-bottom: 0.4rem !important;
+                min-height: 56px !important;
+            }
+            
+            .mobile-logo {
+                height: 26px !important;
+            }
+            
+            .navbar-brand span {
+                font-size: 0.85rem !important;
+            }
+            
+            /* Mobile table fixes */
+            .table-responsive {
+                font-size: 0.875rem !important;
+            }
+            
+            .bulk-actions-panel {
+                flex-direction: column !important;
+                gap: 0.5rem !important;
+            }
+            
+            .btn-group {
+                flex-wrap: wrap !important;
+                gap: 0.25rem;
+            }
+            
+            .btn-group .btn {
+                margin-bottom: 0.25rem;
+            }
+
+            /* 🔥 FIX: Mobile responsiveness */
+            #main-content {
+                padding: 0.75rem !important;
+            }
+        }
     </style>
     
     <!-- Page-specific CSS -->
@@ -677,26 +802,44 @@
       }">
     <a href="#main-content" class="skip-link nepali">मुख्य सामग्रीमा जानुहोस्</a>
     
-    <div class="flex h-screen overflow-hidden">
+    <div class="flex min-h-screen">
         <!-- Sidebar Component -->
         <aside id="sidebar" 
-       class="sidebar text-white z-20 flex-shrink-0 transition-all duration-300 ease-in-out flex flex-col h-full fixed lg:relative"
-       :class="{ 
-         'collapsed': sidebarCollapsed,
-         'open': mobileSidebarOpen 
-       }">
-    <!-- 🔥 ADD: Mobile close button inside sidebar -->
-    <button @click="mobileSidebarOpen = false" class="sidebar-close-btn lg:hidden" aria-label="साइडबार बन्द गर्नुहोस्">
-        <i class="fas fa-times"></i>
-    </button>
-    
-    <div class="p-4 border-b border-blue-700 flex items-center justify-between">
+               class="sidebar text-white z-20 flex-shrink-0 transition-all duration-300 ease-in-out flex flex-col h-full"
+               :class="{ 
+                 'collapsed': sidebarCollapsed,
+                 'open': mobileSidebarOpen 
+               }">
+            <div class="p-4 border-b border-blue-700 flex items-center justify-between">
                 <a href="{{ url('/admin/dashboard') }}" class="logo-container">
-                    <img src="{{ asset('images/logo.png') }}" alt="HostelHub Logo" class="logo-img" onerror="this.src='{{ asset('build/assets/logo.png') }}'">
+                    <!-- LOGO WITH FALLBACK -->
+                    @php
+                        $logoPaths = [
+                            'images/logo.png',
+                            'storage/images/logo.png',
+                            'assets/images/logo.png',
+                            'public/images/logo.png'
+                        ];
+                        $logoFound = false;
+                    @endphp
+                    
+                    @foreach($logoPaths as $logoPath)
+                        @if(file_exists(public_path($logoPath)) && !$logoFound)
+                            <img src="{{ asset($logoPath) }}" alt="HostelHub Logo" class="logo-img">
+                            @php $logoFound = true; @endphp
+                        @endif
+                    @endforeach
+                    
+                    @if(!$logoFound)
+                        <!-- FALLBACK TEXT LOGO -->
+                        <div class="logo-fallback">
+                            HH
+                        </div>
+                    @endif
                     <span class="logo-text sidebar-text" x-show="!sidebarCollapsed">होस्टलहब</span>
                 </a>
                 <button @click="sidebarCollapsed = !sidebarCollapsed; localStorage.setItem('sidebarCollapsed', sidebarCollapsed)" 
-                        class="text-gray-300 hover:text-white sidebar-text" 
+                        class="text-gray-300 hover:text-white sidebar-text desktop-only" 
                         aria-label="साइडबार सङ्कुचित गर्नुहोस्"
                         x-show="!sidebarCollapsed">
                     <i class="fas fa-bars-staggered"></i>
@@ -720,21 +863,21 @@
                     <span class="sidebar-text" x-show="!sidebarCollapsed">होस्टलहरू</span>
                 </a>
                 
-                    <!-- ✅ NEW: Featured Hostels Menu -->
-                    <a href="{{ route('admin.hostels.featured') }}"
-                    class="sidebar-link {{ request()->routeIs('admin.hostels.featured*') ? 'active' : '' }}"
-                    aria-current="{{ request()->routeIs('admin.hostels.featured*') ? 'page' : 'false' }}">
-                        <i class="fas fa-star sidebar-icon"></i>
-                        <span class="sidebar-text" x-show="!sidebarCollapsed">
-                            फिचर्ड होस्टलहरू
-                            @php
-                                $featuredCount = \App\Models\Hostel::where('is_featured', true)->count();
-                            @endphp
-                            @if($featuredCount > 0)
-                                <span class="badge bg-yellow-500 text-white text-xs ml-2">{{ $featuredCount }}</span>
-                            @endif
-                        </span>
-                    </a>
+                <!-- ✅ NEW: Featured Hostels Menu -->
+                <a href="{{ route('admin.hostels.featured') }}"
+                   class="sidebar-link {{ request()->routeIs('admin.hostels.featured*') ? 'active' : '' }}"
+                   aria-current="{{ request()->routeIs('admin.hostels.featured*') ? 'page' : 'false' }}">
+                    <i class="fas fa-star sidebar-icon"></i>
+                    <span class="sidebar-text" x-show="!sidebarCollapsed">
+                        फिचर्ड होस्टलहरू
+                        @php
+                            $featuredCount = \App\Models\Hostel::where('is_featured', true)->count();
+                        @endphp
+                        @if($featuredCount > 0)
+                            <span class="badge bg-yellow-500 text-white text-xs ml-2">{{ $featuredCount }}</span>
+                        @endif
+                    </span>
+                </a>
 
                 <!-- Rooms -->
                 <a href="{{ route('admin.rooms.index') }}"
@@ -820,7 +963,7 @@
                 <div class="mt-auto pt-4 border-t border-blue-700">
                     <form method="POST" action="{{ route('logout') }}" id="logout-form">
                         @csrf
-                        <button type="submit" class="w-full flex items-center px-2 py-2 text-sm rounded-md hover:bg-blue-700 transition-colors">
+                        <button type="submit" class="w-full flex items-center px-2 py-2 text-sm rounded-md hover:bg-blue-700 transition-colors tap-target">
                             <i class="fas fa-sign-out-alt sidebar-icon"></i>
                             <span class="sidebar-text" x-show="!sidebarCollapsed">लगआउट</span>
                         </button>
@@ -829,30 +972,50 @@
             </nav>
         </aside>
 
-        <!-- Main Content -->
-        <div class="flex-1 flex flex-col overflow-auto main-content-spacing transition-all duration-300 overflow-fix" :class="{ 'collapsed': sidebarCollapsed }">
+        <!-- Main Content Area - MOBILE FIRST -->
+        <div class="main-content-area">
             <!-- Top Navigation -->
-            <header class="bg-gradient-primary shadow-sm z-10">
-                <div class="flex items-center justify-between px-6 header-content">
+            <header class="bg-gradient-primary shadow-sm">
+                <div class="flex items-center justify-between px-4 header-content safe-area-top safe-area-left safe-area-right">
                     <div class="flex items-center">
+                        <!-- ✅ UPDATED: Mobile sidebar toggle button -->
                         <button @click="mobileSidebarOpen = !mobileSidebarOpen" 
-        class="lg:hidden text-white hover:text-gray-200 mr-4 mobile-menu-btn"
-        :class="{ 'active': mobileSidebarOpen }"
-        aria-label="मोबाइल साइडबार खोल्नुहोस्">
-    <i class="fas fa-bars text-xl"></i>
-    <i class="fas fa-times text-xl"></i>
-</button>
+                                class="text-white hover:text-gray-200 mr-3 tap-target mobile-only" 
+                                aria-label="मोबाइल साइडबार खोल्नुहोस्"
+                                :aria-expanded="mobileSidebarOpen">
+                            <i class="fas fa-bars text-xl" x-show="!mobileSidebarOpen"></i>
+                            <i class="fas fa-times text-xl" x-show="mobileSidebarOpen"></i>
+                        </button>
+                        
                         <!-- Brand with Logo -->
                         <a href="{{ url('/admin/dashboard') }}" class="navbar-brand text-white flex items-center">
-                            <img src="{{ asset('images/logo.png') }}" alt="HostelHub Logo" class="mobile-logo mr-2" onerror="this.src='{{ asset('build/assets/logo.png') }}'">
+                            <!-- MOBILE LOGO WITH FALLBACK -->
+                            @php
+                                $mobileLogoFound = false;
+                            @endphp
+                            
+                            @foreach($logoPaths as $logoPath)
+                                @if(file_exists(public_path($logoPath)) && !$mobileLogoFound)
+                                    <img src="{{ asset($logoPath) }}" alt="HostelHub Logo" class="mobile-logo mr-2">
+                                    @php $mobileLogoFound = true; @endphp
+                                @endif
+                            @endforeach
+                            
+                            @if(!$mobileLogoFound)
+                                <!-- FALLBACK MOBILE TEXT LOGO -->
+                                <div class="mobile-logo-fallback mr-2">
+                                    HH
+                                </div>
+                            @endif
                             <span class="hidden md:inline text-sm">होस्टलहब - प्रशासक प्यानल</span>
+                            <span class="md:hidden text-xs ml-2">प्रशासक प्यानल</span>
                         </a>
                     </div>
                     
-                    <div class="flex items-center space-x-3">
+                    <div class="flex items-center space-x-2">
                         <!-- Dark Mode Toggle -->
                         <button @click="darkMode = !darkMode; localStorage.setItem('darkMode', darkMode)" 
-                                class="text-white hover:text-gray-200 dark-mode-toggle p-2 rounded-full hover:bg-blue-700" 
+                                class="text-white hover:text-gray-200 dark-mode-toggle p-2 rounded-full hover:bg-blue-700 tap-target" 
                                 aria-label="डार्क मोड टगल गर्नुहोस्">
                             <i class="fas fa-moon" x-show="!darkMode"></i>
                             <i class="fas fa-sun" x-show="darkMode"></i>
@@ -860,7 +1023,7 @@
                         
                         <!-- Notifications -->
                         <div class="relative" x-data="{ open: false }">
-                            <button @click="open = !open" class="notification-button text-white hover:text-gray-200 p-2 rounded-full hover:bg-blue-700" aria-label="सूचनाहरू हेर्नुहोस्">
+                            <button @click="open = !open" class="notification-button text-white hover:text-gray-200 p-2 rounded-full hover:bg-blue-700 tap-target" aria-label="सूचनाहरू हेर्नुहोस्">
                                 <i class="fas fa-bell text-lg"></i>
                                 <span class="notification-dot" aria-hidden="true"></span>
                             </button>
@@ -914,11 +1077,11 @@
                         
                         <!-- User Dropdown -->
                         <div class="flex items-center space-x-2 user-dropdown">
-                            <span class="text-white nepali user-name" x-show="!sidebarCollapsed || window.innerWidth >= 1024">पराशर रेग्मी</span>
+                            <span class="text-white nepali user-name" x-show="!sidebarCollapsed || window.innerWidth >= 1024">{{ Auth::user()->name ?? 'प्रशासक' }}</span>
                             <div class="relative" x-data="{ userDropdownOpen: false }">
-                                <button @click="userDropdownOpen = !userDropdownOpen" class="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-3 py-2 rounded-lg flex items-center space-x-2 transition-all">
+                                <button @click="userDropdownOpen = !userDropdownOpen" class="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-3 py-2 rounded-lg flex items-center space-x-2 transition-all tap-target">
                                     <i class="fas fa-user-circle"></i>
-                                    <span class="nepali text-sm">प्रशासक</span>
+                                    <span class="nepali text-sm hidden sm:inline">प्रशासक</span>
                                     <i class="fas fa-chevron-down text-xs"></i>
                                 </button>
                                 
@@ -952,62 +1115,59 @@
             </header>
 
             <!-- Page Content -->
-            <main id="main-content" class="flex-1 overflow-y-auto p-4 md:p-6 bg-gray-50 dark:bg-gray-800 overflow-fix">
+            <main id="main-content" class="flex-1 overflow-y-auto p-4 md:p-6 bg-gray-50 dark:bg-gray-800 safe-area-left safe-area-right safe-area-bottom">
                 <div class="h-full">
-                    <!-- Remove max-w-7xl and mx-auto to use full width -->
-                    <div class="w-full">
-                        <!-- Page Header -->
-                        <div class="mb-6">
-                            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                                <div>
-                                    <h1 class="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white mb-1 md:block">@yield('title')</h1>
-                                    @if(View::hasSection('page-description'))
-                                        <p class="text-gray-600 dark:text-gray-300 text-sm">@yield('page-description')</p>
-                                    @endif
-                                </div>
-                                <div>
-                                    @yield('header-buttons')
-                                </div>
+                    <!-- Page Header -->
+                    <div class="mb-6">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                            <div>
+                                <h1 class="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white mb-1 md:block">@yield('title')</h1>
+                                @if(View::hasSection('page-description'))
+                                    <p class="text-gray-600 dark:text-gray-300 text-sm">@yield('page-description')</p>
+                                @endif
+                            </div>
+                            <div>
+                                @yield('header-buttons')
                             </div>
                         </div>
+                    </div>
 
-                        <!-- Session Messages -->
-                        @if (session('success'))
-                            <div class="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg flex items-center dark:bg-green-900 dark:border-green-700 dark:text-green-300">
-                                <i class="fas fa-check-circle mr-2"></i>
-                                <span>{{ session('success') }}</span>
-                            </div>
-                        @endif
-                        
-                        @if (session('error'))
-                            <div class="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg flex items-center dark:bg-red-900 dark:border-red-700 dark:text-red-300">
-                                <i class="fas fa-exclamation-circle mr-2"></i>
-                                <span>{{ session('error') }}</span>
-                            </div>
-                        @endif
-                        
-                        @if ($errors->any())
-                            <div class="mb-6 p-4 bg-yellow-50 border border-yellow-200 text-yellow-700 rounded-lg dark:bg-yellow-900 dark:border-yellow-700 dark:text-yellow-300">
-                                <div class="flex items-center mb-2">
-                                    <i class="fas fa-exclamation-triangle mr-2"></i>
-                                    <strong class="font-medium">त्रुटिहरू पत्ता लाग्यो:</strong>
-                                </div>
-                                <ul class="list-disc pl-5 space-y-1">
-                                    @foreach ($errors->all() as $error)
-                                        <li>{{ $error }}</li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        @endif
-
-                        <!-- Page Content -->
-                        <div class="main-content bg-white dark:bg-gray-700 rounded-xl shadow-sm overflow-hidden">
-                            @hasSection('विस्तार')
-                                @yield('विस्तार')
-                            @else
-                                @yield('content')
-                            @endif
+                    <!-- Session Messages -->
+                    @if (session('success'))
+                        <div class="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg flex items-center dark:bg-green-900 dark:border-green-700 dark:text-green-300">
+                            <i class="fas fa-check-circle mr-2"></i>
+                            <span>{{ session('success') }}</span>
                         </div>
+                    @endif
+                    
+                    @if (session('error'))
+                        <div class="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg flex items-center dark:bg-red-900 dark:border-red-700 dark:text-red-300">
+                            <i class="fas fa-exclamation-circle mr-2"></i>
+                            <span>{{ session('error') }}</span>
+                        </div>
+                    @endif
+                    
+                    @if ($errors->any())
+                        <div class="mb-6 p-4 bg-yellow-50 border border-yellow-200 text-yellow-700 rounded-lg dark:bg-yellow-900 dark:border-yellow-700 dark:text-yellow-300">
+                            <div class="flex items-center mb-2">
+                                <i class="fas fa-exclamation-triangle mr-2"></i>
+                                <strong class="font-medium">त्रुटिहरू पत्ता लाग्यो:</strong>
+                            </div>
+                            <ul class="list-disc pl-5 space-y-1">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    <!-- Page Content -->
+                    <div class="main-content bg-white dark:bg-gray-700 rounded-xl shadow-sm overflow-hidden">
+                        @hasSection('विस्तार')
+                            @yield('विस्तार')
+                        @else
+                            @yield('content')
+                        @endif
                     </div>
                 </div>
             </main>
@@ -1031,7 +1191,7 @@
     <!-- Mobile Sidebar Overlay -->
     <div x-show="mobileSidebarOpen" 
          @click="mobileSidebarOpen = false"
-         class="fixed inset-0 bg-black bg-opacity-50 z-10 lg:hidden" 
+         class="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden sidebar-overlay" 
          aria-hidden="true"
          x-transition:enter="transition ease-out duration-300"
          x-transition:enter-start="opacity-0"
@@ -1073,14 +1233,16 @@
         @endif
     @endproduction
     
+    <!-- Alpine.js -->
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     
-    <!-- ✅ ADDED: jQuery for circular functionality -->
+    <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     
+    <!-- Enhanced Mobile-First JavaScript -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Vite Asset Detection - Add fallback class if Vite fails
+            // Vite Asset Detection
             setTimeout(function() {
                 const viteStyles = document.querySelector('link[href*="build/assets/app"]');
                 if (!viteStyles) {
@@ -1088,6 +1250,49 @@
                     console.warn('Vite assets not detected, using fallback assets');
                 }
             }, 1000);
+
+            // ✅ ENHANCED: Mobile sidebar functionality
+            const sidebar = document.getElementById('sidebar');
+            const mobileSidebarToggle = document.querySelector('[x-on\\:click*="mobileSidebarOpen"]');
+            const body = document.body;
+            
+            // Close sidebar when clicking outside on mobile
+            document.addEventListener('click', function(event) {
+                if (window.innerWidth < 1024 && 
+                    sidebar.classList.contains('open') &&
+                    !sidebar.contains(event.target) && 
+                    event.target !== mobileSidebarToggle &&
+                    !mobileSidebarToggle.contains(event.target)) {
+                    
+                    // Close sidebar using Alpine.js
+                    const alpineElement = document.querySelector('[x-data]');
+                    if (alpineElement && alpineElement.__x) {
+                        alpineElement.__x.$data.mobileSidebarOpen = false;
+                    }
+                }
+            });
+            
+            // Close sidebar on Escape key
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape') {
+                    if (window.innerWidth < 1024 && sidebar.classList.contains('open')) {
+                        const alpineElement = document.querySelector('[x-data]');
+                        if (alpineElement && alpineElement.__x) {
+                            alpineElement.__x.$data.mobileSidebarOpen = false;
+                        }
+                    }
+                }
+            });
+            
+            // Close sidebar when window is resized to desktop
+            window.addEventListener('resize', function() {
+                if (window.innerWidth >= 1024) {
+                    const alpineElement = document.querySelector('[x-data]');
+                    if (alpineElement && alpineElement.__x) {
+                        alpineElement.__x.$data.mobileSidebarOpen = false;
+                    }
+                }
+            });
 
             // Video Modal Functionality
             const playVideoBtns = document.querySelectorAll('.play-video-btn');
@@ -1103,11 +1308,13 @@
                     if (videoUrl && modalVideoPlayer && videoTitle) {
                         modalVideoPlayer.querySelector('source').src = videoUrl;
                         videoTitle.textContent = title;
-                        // Reload video to ensure it loads the new source
                         modalVideoPlayer.load();
-                        // Show modal
                         if (videoModal) {
                             videoModal.classList.remove('hidden');
+                            // Prevent body scroll when modal is open on mobile
+                            if (window.innerWidth < 768) {
+                                body.style.overflow = 'hidden';
+                            }
                         }
                     }
                 });
@@ -1119,23 +1326,25 @@
                     videoModal.classList.add('hidden');
                     modalVideoPlayer.pause();
                     modalVideoPlayer.currentTime = 0;
+                    // Restore body scroll
+                    body.style.overflow = '';
                 });
                 
-                // Close modal when clicking outside video
                 videoModal.addEventListener('click', function(e) {
                     if (e.target === videoModal) {
                         videoModal.classList.add('hidden');
                         modalVideoPlayer.pause();
                         modalVideoPlayer.currentTime = 0;
+                        body.style.overflow = '';
                     }
                 });
                 
-                // Close modal on escape key
                 document.addEventListener('keydown', function(e) {
                     if (e.key === 'Escape' && !videoModal.classList.contains('hidden')) {
                         videoModal.classList.add('hidden');
                         modalVideoPlayer.pause();
                         modalVideoPlayer.currentTime = 0;
+                        body.style.overflow = '';
                     }
                 });
             }
@@ -1171,22 +1380,30 @@
                 });
             }
 
-            // Form submission handling
+            // Form submission handling with mobile optimization
             const forms = document.querySelectorAll('form');
             forms.forEach(form => {
                 form.addEventListener('submit', function() {
-                    // Disable submit button to prevent multiple submissions
                     const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
                     if (submitBtn) {
                         const originalText = submitBtn.innerHTML;
                         submitBtn.disabled = true;
-                        // Check if we're already showing a spinner
+                        
+                        // Show spinner only if not already showing
                         if (!submitBtn.querySelector('.spinner-border')) {
-                            submitBtn.innerHTML = `
-                                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                प्रक्रिया गर्दै...
-                            `;
+                            if (window.innerWidth < 768) {
+                                submitBtn.innerHTML = `
+                                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                    प्रक्रिया गर्दै...
+                                `;
+                            } else {
+                                submitBtn.innerHTML = `
+                                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                    प्रक्रिया गर्दै...
+                                `;
+                            }
                         }
+                        
                         // Reset button after 3 seconds if form doesn't submit
                         setTimeout(() => {
                             if (submitBtn.disabled) {
@@ -1207,6 +1424,39 @@
                     }
                 });
             });
+            
+            // Mobile loading functions
+            window.showMobileLoading = function() {
+                const loadingDiv = document.createElement('div');
+                loadingDiv.className = 'loading-mobile';
+                loadingDiv.innerHTML = `
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">लोड हुदैछ...</span>
+                        </div>
+                        <p class="mt-2 text-gray-600">लोड हुदैछ...</p>
+                    </div>
+                `;
+                document.body.appendChild(loadingDiv);
+            };
+            
+            window.hideMobileLoading = function() {
+                const loadingDiv = document.querySelector('.loading-mobile');
+                if (loadingDiv) {
+                    document.body.removeChild(loadingDiv);
+                }
+            };
+            
+            // Mobile form input handling
+            if (window.innerWidth < 768) {
+                // Focus form inputs with better UX
+                const formInputs = document.querySelectorAll('input, textarea, select');
+                formInputs.forEach(input => {
+                    input.addEventListener('focus', function() {
+                        this.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    });
+                });
+            }
         });
 
         // ✅ ADDED: Admin circular functionality JavaScript
@@ -1228,7 +1478,6 @@
                 if (circularContent) circularContent.value = '';
                 if (targetAudience) {
                     targetAudience.selectedIndex = -1;
-                    // Trigger change event for any dependent fields
                     targetAudience.dispatchEvent(new Event('change'));
                 }
                 
@@ -1238,10 +1487,27 @@
                     input.value = '';
                 });
                 
+                // Mobile success feedback
+                if (window.innerWidth < 768) {
+                    const alertDiv = document.createElement('div');
+                    alertDiv.className = 'alert alert-success alert-dismissible fade show mb-4 rounded-xl';
+                    alertDiv.innerHTML = `
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <strong class="nepali">सफलता:</strong> फारम सफलतापूर्वक रिसेट गरियो
+                        </div>
+                        <button type="button" class="btn-close tap-target" data-bs-dismiss="alert" aria-label="Close"></button>
+                    `;
+                    const mainContent = document.getElementById('main-content');
+                    if (mainContent) {
+                        mainContent.insertBefore(alertDiv, mainContent.firstChild);
+                    }
+                }
+                
                 console.log('Form reset completed for circular creation');
             @endif
 
-            // ✅ FIXED: AJAX form submission handling for circulars
+            // ✅ ENHANCED: AJAX form submission handling for circulars (mobile optimized)
             $(document).on('submit', 'form[data-ajax-form="true"]', function(e) {
                 e.preventDefault();
                 
@@ -1249,7 +1515,11 @@
                 const submitBtn = form.find('button[type="submit"]');
                 const originalText = submitBtn.html();
                 
-                // Show loading state
+                // Show mobile loading if on small screen
+                if (window.innerWidth < 768) {
+                    window.showMobileLoading();
+                }
+                
                 submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> प्रक्रिया हुदैछ...');
                 
                 $.ajax({
@@ -1266,6 +1536,11 @@
                             // Reset form if needed
                             if (response.clear_form) {
                                 form[0].reset();
+                                
+                                // Mobile-specific feedback
+                                if (window.innerWidth < 768 && navigator.vibrate) {
+                                    navigator.vibrate([100, 50, 100]);
+                                }
                             }
                             
                             // Redirect if specified
@@ -1273,6 +1548,17 @@
                                 setTimeout(() => {
                                     window.location.href = response.redirect;
                                 }, 1500);
+                            }
+                            
+                            // Close mobile sidebar if open
+                            if (window.innerWidth < 1024) {
+                                const sidebar = document.getElementById('sidebar');
+                                if (sidebar && sidebar.classList.contains('open')) {
+                                    const alpineElement = document.querySelector('[x-data]');
+                                    if (alpineElement && alpineElement.__x) {
+                                        alpineElement.__x.$data.mobileSidebarOpen = false;
+                                    }
+                                }
                             }
                         }
                     },
@@ -1282,14 +1568,27 @@
                             errorMessage = xhr.responseJSON.message;
                         }
                         showAdminAlert('त्रुटि', errorMessage, 'error');
+                        
+                        // Mobile-specific error handling
+                        if (window.innerWidth < 768) {
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                            if (navigator.vibrate) {
+                                navigator.vibrate([200, 100, 200]);
+                            }
+                        }
                     },
                     complete: function() {
                         submitBtn.prop('disabled', false).html(originalText);
+                        
+                        // Hide mobile loading
+                        if (window.innerWidth < 768) {
+                            window.hideMobileLoading();
+                        }
                     }
                 });
             });
 
-            // Helper function to show alerts for admin
+            // Helper function to show alerts for admin (mobile optimized)
             function showAdminAlert(title, message, type) {
                 const alertClass = type === 'success' ? 'alert-success' : 
                                  type === 'error' ? 'alert-danger' : 'alert-info';
@@ -1302,21 +1601,39 @@
                             <i class="fas ${icon} me-2"></i>
                             <strong class="nepali">${title}:</strong> ${message}
                         </div>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        <button type="button" class="btn-close tap-target" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 `;
                 
                 // Prepend alert to main content
-                $('#main-content').prepend(alertHtml);
+                const mainContent = document.getElementById('main-content');
+                if (mainContent) {
+                    const existingAlerts = mainContent.querySelectorAll('.alert');
+                    existingAlerts.forEach(alert => alert.remove());
+                    
+                    mainContent.insertAdjacentHTML('afterbegin', alertHtml);
+                    
+                    // Scroll to top on mobile to show alert
+                    if (window.innerWidth < 768) {
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                }
                 
                 // Auto remove after 5 seconds
                 setTimeout(() => {
-                    $('.alert').alert('close');
+                    const alert = document.querySelector('.alert');
+                    if (alert) {
+                        const bsAlert = new bootstrap.Alert(alert);
+                        bsAlert.close();
+                    }
                 }, 5000);
             }
 
-            // ✅ FIXED: Real-time circular notifications for admin
+            // ✅ ENHANCED: Real-time circular notifications for admin (mobile optimized)
             function checkNewCirculars() {
+                // Only check if user is active (not on mobile with screen off)
+                if (document.hidden) return;
+                
                 $.ajax({
                     url: '{{ route("admin.circulars.index") }}?check_new=true',
                     method: 'GET',
@@ -1326,71 +1643,157 @@
                             const badge = $('.notification-dot');
                             if (badge.length) {
                                 badge.text(response.new_circulars);
+                                badge.css({
+                                    'width': '12px',
+                                    'height': '12px',
+                                    'display': 'flex',
+                                    'align-items': 'center',
+                                    'justify-content': 'center',
+                                    'font-size': '8px',
+                                    'color': 'white'
+                                });
                                 badge.show();
                             }
                             
-                            // Show notification
-                            if (response.new_circulars === 1) {
-                                showAdminAlert('नयाँ सूचना', 'तपाईंसँग १ नयाँ सूचना छ', 'info');
-                            } else {
-                                showAdminAlert('नयाँ सूचनाहरू', `तपाईंसँग ${response.new_circulars} नयाँ सूचनाहरू छन्`, 'info');
+                            // Show notification only if not on the circulars page
+                            if (!window.location.pathname.includes('/admin/circulars')) {
+                                if (response.new_circulars === 1) {
+                                    showAdminAlert('नयाँ सूचना', 'तपाईंसँग १ नयाँ सूचना छ', 'info');
+                                } else {
+                                    showAdminAlert('नयाँ सूचनाहरू', `तपाईंसँग ${response.new_circulars} नयाँ सूचनाहरू छन्`, 'info');
+                                }
+                                
+                                // Mobile notification sound/vibration
+                                if (window.innerWidth < 768) {
+                                    try {
+                                        const audio = new Audio('{{ asset("sounds/notification.mp3") }}');
+                                        audio.volume = 0.3;
+                                        audio.play();
+                                    } catch (e) {
+                                        console.log('Audio notification failed');
+                                    }
+                                    
+                                    if (navigator.vibrate) {
+                                        navigator.vibrate([100, 50, 100]);
+                                    }
+                                }
                             }
                         }
                     }
                 });
             }
 
-            // Check for new circulars every 30 seconds
-            setInterval(checkNewCirculars, 30000);
+            // Check for new circulars every 30 seconds, but only when page is visible
+            let circularCheckInterval;
+            
+            function startCircularChecker() {
+                if (!circularCheckInterval) {
+                    circularCheckInterval = setInterval(checkNewCirculars, 30000);
+                }
+            }
+            
+            function stopCircularChecker() {
+                if (circularCheckInterval) {
+                    clearInterval(circularCheckInterval);
+                    circularCheckInterval = null;
+                }
+            }
+            
+            // Start/stop based on page visibility
+            document.addEventListener('visibilitychange', function() {
+                if (document.hidden) {
+                    stopCircularChecker();
+                } else {
+                    startCircularChecker();
+                    checkNewCirculars();
+                }
+            });
+            
+            // Start the checker
+            startCircularChecker();
 
-            // ✅ ADDED: Circular publish functionality for admin
+            // ✅ ENHANCED: Circular publish functionality for admin (mobile friendly)
             $(document).on('click', '.publish-circular-btn', function() {
                 const circularId = $(this).data('circular-id');
                 const button = $(this);
                 
-                if (!confirm('के तपाईं यो सूचना प्रकाशित गर्न चाहनुहुन्छ?')) {
-                    return;
+                // Mobile-friendly confirmation
+                const confirmMessage = 'के तपाईं यो सूचना प्रकाशित गर्न चाहनुहुन्छ?';
+                
+                if (window.innerWidth < 768) {
+                    if (confirm(confirmMessage)) {
+                        proceedWithPublish();
+                    }
+                } else {
+                    if (confirm(confirmMessage)) {
+                        proceedWithPublish();
+                    }
                 }
                 
-                button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> प्रकाशन हुदैछ...');
-                
-                $.ajax({
-                    url: "{{ route('admin.circulars.publish', ['circular' => 'CIRCULAR_ID_PLACEHOLDER']) }}".replace('CIRCULAR_ID_PLACEHOLDER', circularId),
-                    method: 'POST',
-                    data: {
-                        _token: '{{ csrf_token() }}'
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            showAdminAlert('सफलता', response.message, 'success');
-                            button.replaceWith('<span class="badge bg-success">प्रकाशित</span>');
-                            
-                            // Reload the page after 2 seconds to reflect changes
-                            setTimeout(() => {
-                                window.location.reload();
-                            }, 2000);
-                        }
-                    },
-                    error: function(xhr) {
-                        let errorMessage = 'प्रकाशन असफल भयो';
-                        if (xhr.responseJSON && xhr.responseJSON.message) {
-                            errorMessage = xhr.responseJSON.message;
-                        }
-                        showAdminAlert('त्रुटि', errorMessage, 'error');
-                        button.prop('disabled', false).html('<i class="fas fa-paper-plane"></i> प्रकाशन गर्नुहोस्');
+                function proceedWithPublish() {
+                    button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> प्रकाशन हुदैछ...');
+                    
+                    // Show loading on mobile
+                    if (window.innerWidth < 768) {
+                        window.showMobileLoading();
                     }
-                });
+                    
+                    $.ajax({
+                        url: "{{ route('admin.circulars.publish', ['circular' => 'CIRCULAR_ID_PLACEHOLDER']) }}".replace('CIRCULAR_ID_PLACEHOLDER', circularId),
+                        method: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}'
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                showAdminAlert('सफलता', response.message, 'success');
+                                button.replaceWith('<span class="badge bg-success">प्रकाशित</span>');
+                                
+                                // Mobile success feedback
+                                if (window.innerWidth < 768 && navigator.vibrate) {
+                                    navigator.vibrate([100]);
+                                }
+                                
+                                setTimeout(() => {
+                                    window.location.reload();
+                                }, 2000);
+                            }
+                        },
+                        error: function(xhr) {
+                            let errorMessage = 'प्रकाशन असफल भयो';
+                            if (xhr.responseJSON && xhr.responseJSON.message) {
+                                errorMessage = xhr.responseJSON.message;
+                            }
+                            showAdminAlert('त्रुटि', errorMessage, 'error');
+                            button.prop('disabled', false).html('<i class="fas fa-paper-plane"></i> प्रकाशन गर्नुहोस्');
+                        },
+                        complete: function() {
+                            if (window.innerWidth < 768) {
+                                window.hideMobileLoading();
+                            }
+                        }
+                    });
+                }
             });
 
-            // ✅ ADDED: Circular delete confirmation for admin
+            // ✅ ENHANCED: Circular delete confirmation for admin (mobile friendly)
             $(document).on('click', '.delete-circular-btn', function(e) {
                 e.preventDefault();
                 
                 const form = $(this).closest('form');
                 const circularTitle = $(this).data('circular-title') || 'यो सूचना';
+                const confirmMessage = `के तपाईं ${circularTitle} लाई मेट्न चाहनुहुन्छ? यो कार्य पूर्ववत गर्न सकिँदैन।`;
                 
-                if (confirm(`के तपाईं ${circularTitle} लाई मेट्न चाहनुहुन्छ? यो कार्य पूर्ववत गर्न सकिँदैन।`)) {
-                    form.submit();
+                if (window.innerWidth < 768) {
+                    const mobileConfirm = confirm(confirmMessage);
+                    if (mobileConfirm) {
+                        window.showMobileLoading();
+                        form.submit();
+                    }
+                } else {
+                    if (confirm(confirmMessage)) {
+                        form.submit();
+                    }
                 }
             });
 
@@ -1402,6 +1805,11 @@
                 if (checkedCount > 0) {
                     bulkActions.fadeIn();
                     $('.bulk-action-count').text(checkedCount);
+                    
+                    // On mobile, scroll to bulk actions
+                    if (window.innerWidth < 768) {
+                        bulkActions[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }
                 } else {
                     bulkActions.fadeOut();
                 }
@@ -1411,23 +1819,6 @@
                 $('.circular-bulk-select').prop('checked', this.checked);
                 $('.circular-bulk-select').trigger('change');
             });
-
-            // ✅ ADDED: Circular analytics chart initialization for admin
-            function initializeCircularAnalytics() {
-                const analyticsChart = document.getElementById('circularAnalyticsChart');
-                
-                if (analyticsChart) {
-                    // Initialize chart here (you can use Chart.js or any other library)
-                    console.log('Initializing circular analytics chart for admin...');
-                    
-                    // Example chart initialization (replace with actual implementation)
-                    const ctx = analyticsChart.getContext('2d');
-                    // Add your chart initialization code here
-                }
-            }
-
-            // Initialize analytics when DOM is ready
-            initializeCircularAnalytics();
 
             // ✅ ADDED: Global circular sending functionality for admin
             $(document).on('click', '.send-global-circular-btn', function() {
@@ -1494,13 +1885,13 @@
                 const checkedCount = document.querySelectorAll('.item-checkbox:checked, .hostel-checkbox:checked').length;
                 if (checkedCount > 0 && bulkActionsPanel) {
                     bulkActionsPanel.classList.remove('d-none');
-                    bulkActionsPanel.classList.add('show');
+                    bulkActionsPanel.classList.add('d-flex');
                     if (selectAll) {
                         selectAll.checked = checkedCount === itemCheckboxes.length;
                     }
                 } else if (bulkActionsPanel) {
                     bulkActionsPanel.classList.add('d-none');
-                    bulkActionsPanel.classList.remove('show');
+                    bulkActionsPanel.classList.remove('d-flex');
                     if (selectAll) {
                         selectAll.checked = false;
                     }
@@ -1587,49 +1978,55 @@
             toggleBulkActionsPanel();
         });
 
-// ✅ FIXED: SIMPLE MOBILE SIDEBAR SOLUTION
-document.addEventListener('DOMContentLoaded', function() {
-    // Close sidebar when clicking on overlay
-    document.addEventListener('click', function(event) {
-        const overlay = document.querySelector('.mobile-sidebar-overlay');
-        if (overlay && overlay.classList.contains('active') && event.target === overlay) {
-            // Use Alpine.js to close sidebar
-            if (typeof Alpine !== 'undefined') {
-                const alpineElement = document.querySelector('[x-data]');
-                if (alpineElement && alpineElement.__x) {
+        // ✅ FIXED: Window resize handler for mobile/desktop transitions
+        window.addEventListener('resize', function() {
+            const alpineElement = document.querySelector('[x-data]');
+            if (!alpineElement || !alpineElement.__x) return;
+            
+            // Close mobile sidebar when switching to desktop
+            if (window.innerWidth >= 1024) {
+                alpineElement.__x.$data.mobileSidebarOpen = false;
+            }
+            
+            // Update sidebar collapsed state for mobile
+            if (window.innerWidth < 1024) {
+                alpineElement.__x.$data.sidebarCollapsed = false;
+            }
+        });
+
+        // ✅ ADDED: Touch gesture support for mobile sidebar
+        let touchStartX = 0;
+        let touchEndX = 0;
+        
+        document.addEventListener('touchstart', function(e) {
+            touchStartX = e.changedTouches[0].screenX;
+        }, { passive: true });
+        
+        document.addEventListener('touchend', function(e) {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, { passive: true });
+        
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            const swipeDistance = touchEndX - touchStartX;
+            const alpineElement = document.querySelector('[x-data]');
+            
+            if (!alpineElement || !alpineElement.__x) return;
+            
+            // Swipe right to open sidebar (only from left edge on mobile)
+            if (swipeDistance > swipeThreshold && touchStartX < 50 && window.innerWidth < 1024) {
+                if (!alpineElement.__x.$data.mobileSidebarOpen) {
+                    alpineElement.__x.$data.mobileSidebarOpen = true;
+                }
+            }
+            // Swipe left to close sidebar
+            else if (swipeDistance < -swipeThreshold && window.innerWidth < 1024) {
+                if (alpineElement.__x.$data.mobileSidebarOpen) {
                     alpineElement.__x.$data.mobileSidebarOpen = false;
                 }
             }
         }
-    });
-    
-    // Close sidebar on Escape key
-    document.addEventListener('keydown', function(event) {
-        if (event.key === 'Escape') {
-            const sidebar = document.getElementById('sidebar');
-            if (sidebar && sidebar.classList.contains('open')) {
-                if (typeof Alpine !== 'undefined') {
-                    const alpineElement = document.querySelector('[x-data]');
-                    if (alpineElement && alpineElement.__x) {
-                        alpineElement.__x.$data.mobileSidebarOpen = false;
-                    }
-                }
-            }
-        }
-    });
-    
-    // Close sidebar when window is resized to desktop
-    window.addEventListener('resize', function() {
-        if (window.innerWidth > 768) {
-            // Close mobile sidebar on desktop
-            const alpineElement = document.querySelector('[x-data]');
-            if (alpineElement && alpineElement.__x) {
-                alpineElement.__x.$data.mobileSidebarOpen = false;
-            }
-        }
-    });
-});
-
     </script>
 </body>
 </html>

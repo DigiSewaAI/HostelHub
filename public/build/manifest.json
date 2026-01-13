@@ -1,8 +1,4 @@
 {
-  "_modern-theme.css": {
-    "file": "assets/modern-theme.css",
-    "src": "_modern-theme.css"
-  },
   "resources/css/app.css": {
     "file": "assets/app.css",
     "src": "resources/css/app.css",
@@ -10,6 +6,15 @@
     "name": "app",
     "names": [
       "app.css"
+    ]
+  },
+  "resources/css/dashboard-mobile.css": {
+    "file": "assets/dashboard-mobile.css",
+    "src": "resources/css/dashboard-mobile.css",
+    "isEntry": true,
+    "name": "dashboard-mobile",
+    "names": [
+      "dashboard-mobile.css"
     ]
   },
   "resources/css/dashboard.css": {
@@ -76,11 +81,12 @@
     ]
   },
   "resources/css/themes/modern.css": {
-    "file": "assets/modern.css",
+    "file": "assets/modern-theme.css",
     "src": "resources/css/themes/modern.css",
     "isEntry": true,
     "name": "modern",
     "names": [
+      "modern-theme.css",
       "modern.css"
     ]
   },

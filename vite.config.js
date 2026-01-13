@@ -13,6 +13,7 @@ export default defineConfig({
                 'resources/css/gallery.css',
                 'resources/css/home.css',
                 'resources/css/dashboard.css',
+                'resources/css/dashboard-mobile.css', // ✅ ADDED: Mobile dashboard CSS
                 'resources/css/themes/modern.css',
                 'resources/css/themes/classic.css',
                 

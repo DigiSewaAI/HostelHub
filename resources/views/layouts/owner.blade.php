@@ -159,22 +159,23 @@
             top: 0;
         }
         
-        /* Reduced header height by 20% */
+        /* ✅ UPDATED: Mobile-optimized header height */
         .header-content {
-            padding-top: 0.75rem !important;
-            padding-bottom: 0.75rem !important;
+            padding: 0.75rem 1rem !important;
+            min-height: 64px;
         }
         
         .navbar-brand {
-            font-size: 1.1rem !important;
+            font-size: 1rem !important;
         }
         
         .notification-button, .dark-mode-toggle {
-            padding: 0.4rem !important;
+            padding: 0.5rem !important;
         }
         
         .user-dropdown .btn {
-            padding: 0.4rem 0.75rem !important;
+            padding: 0.5rem 0.75rem !important;
+            font-size: 0.875rem;
         }
         
         /* Logo Styles */
@@ -225,41 +226,112 @@
             padding: 4px;
         }
 
-        /* 🚨 CRITICAL FIX: Main content area - FIXED for Vite */
+        /* ✅ UPDATED: Main content area - Mobile first approach */
         .main-content-area {
-            margin-left: var(--sidebar-width);
-            width: calc(100% - var(--sidebar-width));
-            transition: all var(--transition-speed);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
+            width: 100% !important;
+            min-height: 100vh !important;
+            display: flex !important;
+            flex-direction: column !important;
+            transition: all var(--transition-speed) !important;
         }
 
-        .sidebar.collapsed ~ .main-content-area {
-            margin-left: var(--sidebar-collapsed-width);
-            width: calc(100% - var(--sidebar-collapsed-width));
+        /* Desktop sidebar adjustments */
+        @media (min-width: 1024px) {
+            .main-content-area {
+                margin-left: var(--sidebar-width) !important;
+                width: calc(100% - var(--sidebar-width)) !important;
+            }
+            
+            .sidebar.collapsed ~ .main-content-area {
+                margin-left: var(--sidebar-collapsed-width) !important;
+                width: calc(100% - var(--sidebar-collapsed-width)) !important;
+            }
         }
 
-        /* Mobile sidebar styles */
+        /* ✅ UPDATED: Enhanced mobile sidebar styles */
         @media (max-width: 1023px) {
             .sidebar {
-                transform: translateX(-100%);
+                transform: translateX(-100%) !important;
+                width: 280px !important;
+                box-shadow: 5px 0 15px rgba(0, 0, 0, 0.2) !important;
+                z-index: 1040 !important;
             }
             
             .sidebar.mobile-open {
-                transform: translateX(0);
+                transform: translateX(0) !important;
             }
             
             .main-content-area {
-    margin-left: 0 !important;
-    width: 100vw !important;
-}
+                margin-left: 0 !important;
+                width: 100vw !important;
+            }
             
+            /* Fixed header for mobile */
+            header.bg-gradient-primary {
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                z-index: 1030 !important;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1) !important;
+            }
+            
+            /* Space for fixed header */
+            .page-content {
+                padding-top: 64px !important;
+            }
+            
+            /* Mobile overlay with blur effect */
             .sidebar-overlay {
-                position: fixed;
-                inset: 0;
-                background: rgba(0, 0, 0, 0.5);
-                z-index: 999;
+                position: fixed !important;
+                inset: 0 !important;
+                background: rgba(0, 0, 0, 0.5) !important;
+                z-index: 1039 !important;
+                backdrop-filter: blur(2px) !important;
+            }
+            
+            /* Prevent body scroll when sidebar is open */
+            body.sidebar-open {
+                overflow: hidden !important;
+            }
+            
+            /* Mobile-optimized buttons and forms */
+            .btn-mobile {
+                width: 100% !important;
+                margin-bottom: 0.5rem !important;
+            }
+            
+            .form-control-mobile {
+                font-size: 16px !important; /* Prevents iOS zoom */
+                padding: 0.75rem !important;
+            }
+            
+            /* Mobile table adjustments */
+            .table-responsive-mobile {
+                overflow-x: auto !important;
+                -webkit-overflow-scrolling: touch !important;
+            }
+            
+            /* Mobile grid adjustments */
+            .stats-grid-mobile {
+                display: grid !important;
+                grid-template-columns: repeat(1, 1fr) !important;
+                gap: 1rem !important;
+            }
+        }
+
+        /* Tablet adjustments */
+        @media (min-width: 768px) and (max-width: 1023px) {
+            .sidebar {
+                width: 300px !important;
+            }
+            
+            .stats-grid-mobile {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            
+            .header-content {
+                padding: 0.75rem 1.5rem !important;
             }
         }
 
@@ -274,6 +346,7 @@
         .page-content {
             flex: 1;
             padding: 1rem;
+            width: 100% !important;
         }
 
         @media (min-width: 768px) {
@@ -330,41 +403,65 @@
             display: none;
         }
 
-        /* ✅ ADDED: Circular specific styles */
-        .circular-item {
-            border: 1px solid #e2e8f0;
-            border-radius: 0.75rem;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            transition: all 0.3s ease;
-            background: white;
+        /* ✅ ADDED: Mobile-specific utility classes */
+        .mobile-only {
+            display: block !important;
         }
         
-        .circular-item.unread {
-            background: #f0f9ff;
-            border-left: 4px solid #3b82f6;
+        .desktop-only {
+            display: none !important;
         }
         
-        .circular-item.read {
-            background: #f8fafc;
-            opacity: 0.8;
+        @media (min-width: 1024px) {
+            .mobile-only {
+                display: none !important;
+            }
+            
+            .desktop-only {
+                display: block !important;
+            }
         }
         
-        .border-left-urgent {
-            border-left: 4px solid #ef4444 !important;
-        }
-        
-        .border-left-high {
-            border-left: 4px solid #f59e0b !important;
-        }
-        
-        .border-left-normal {
-            border-left: 4px solid #10b981 !important;
-        }
-        
-        .circular-actions {
+        /* ✅ ADDED: Touch-friendly tap targets */
+        .tap-target {
+            min-height: 44px;
+            min-width: 44px;
             display: flex;
-            gap: 0.5rem;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* ✅ ADDED: Safe area insets for modern mobile devices */
+        @supports (padding: max(0px)) {
+            .safe-area-top {
+                padding-top: max(0.75rem, env(safe-area-inset-top));
+            }
+            
+            .safe-area-bottom {
+                padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+            }
+            
+            .safe-area-left {
+                padding-left: max(0.75rem, env(safe-area-inset-left));
+            }
+            
+            .safe-area-right {
+                padding-right: max(0.75rem, env(safe-area-inset-right));
+            }
+        }
+        
+        /* ✅ ADDED: Loading states for mobile */
+        .loading-mobile {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
         }
     </style>
     
@@ -411,7 +508,7 @@
                     @endif
                     <span class="logo-text sidebar-text">होस्टलहब</span>
                 </a>
-                <button id="sidebar-collapse" class="text-gray-300 hover:text-white sidebar-text" aria-label="साइडबार सङ्कुचित गर्नुहोस्">
+                <button id="sidebar-collapse" class="text-gray-300 hover:text-white sidebar-text desktop-only" aria-label="साइडबार सङ्कुचित गर्नुहोस्">
                     <i class="fas fa-bars-staggered"></i>
                 </button>
             </div>
@@ -509,7 +606,7 @@
                 <div class="mt-auto pt-4 border-t border-blue-700">
                     <form method="POST" action="{{ route('logout') }}" id="logout-form">
                         @csrf
-                        <button type="submit" class="w-full flex items-center px-2 py-2 text-sm rounded-md hover:bg-blue-700 transition-colors">
+                        <button type="submit" class="w-full flex items-center px-2 py-2 text-sm rounded-md hover:bg-blue-700 transition-colors tap-target">
                             <i class="fas fa-sign-out-alt sidebar-icon"></i>
                             <span class="sidebar-text">लगआउट</span>
                         </button>
@@ -518,18 +615,21 @@
             </nav>
         </aside>
 
-        <!-- Main Content Area - FIXED -->
-        <div class="main-content-area" style="margin-left: 16rem !important; width: calc(100vw - 16rem) !important; min-height: 100vh !important; display: flex !important; flex-direction: column !important;">
+        <!-- Main Content Area - MOBILE FIRST -->
+        <div class="main-content-area">
             <!-- Top Navigation -->
             <header class="bg-gradient-primary shadow-sm z-10">
-                <div class="flex items-center justify-between px-6 header-content">
+                <div class="flex items-center justify-between px-4 header-content safe-area-top safe-area-left safe-area-right">
                     <div class="flex items-center">
-                        <button id="mobile-sidebar-toggle" class="lg:hidden text-white hover:text-gray-200 mr-4" aria-label="मोबाइल साइडबार खोल्नुहोस्">
+                        <!-- ✅ UPDATED: Mobile sidebar toggle button -->
+                        <button id="mobile-sidebar-toggle" class="text-white hover:text-gray-200 mr-3 tap-target mobile-only" 
+                                aria-label="मोबाइल साइडबार खोल्नुहोस्">
                             <i class="fas fa-bars text-xl"></i>
                         </button>
-                        <!-- Brand with Logo - FIXED -->
+                        
+                        <!-- Brand with Logo -->
                         <a href="{{ url('/owner/dashboard') }}" class="navbar-brand text-white flex items-center">
-                            <!-- FIXED MOBILE LOGO WITH FALLBACK -->
+                            <!-- MOBILE LOGO WITH FALLBACK -->
                             @php
                                 $mobileLogoFound = false;
                             @endphp
@@ -547,20 +647,21 @@
                                     HH
                                 </div>
                             @endif
-                            <span class="hidden md:inline">होस्टलहब - मालिक प्यानल</span>
+                            <span class="hidden md:inline text-sm">होस्टलहब - मालिक प्यानल</span>
+                            <span class="md:hidden text-xs ml-2">मालिक प्यानल</span>
                         </a>
                     </div>
                     
-                    <div class="flex items-center space-x-3">
+                    <div class="flex items-center space-x-2">
                         <!-- Owner Info Badge -->
                         <div class="owner-badge hidden md:flex items-center space-x-2">
                             <i class="fas fa-crown"></i>
                             <span>मालिक</span>
                         </div>
 
-                        <!-- 🔔 NOTIFICATION BELL - ADDED -->
+                        <!-- Notification Bell -->
                         <div class="dropdown">
-                            <button class="notification-button text-white hover:text-gray-200 p-2 rounded-full hover:bg-blue-700 dropdown-toggle" 
+                            <button class="notification-button text-white hover:text-gray-200 p-2 rounded-full hover:bg-blue-700 dropdown-toggle tap-target" 
                                     type="button" 
                                     id="notificationsDropdown" 
                                     data-bs-toggle="dropdown" 
@@ -609,7 +710,7 @@
                         
                         <!-- User Profile Dropdown -->
                         <div class="dropdown user-dropdown">
-                            <button class="btn btn-outline-light dropdown-toggle d-flex align-items-center" 
+                            <button class="btn btn-outline-light dropdown-toggle d-flex align-items-center tap-target" 
                                     type="button" 
                                     id="userDropdown" 
                                     data-bs-toggle="dropdown" 
@@ -617,6 +718,7 @@
                                     aria-label="प्रयोगकर्ता मेनु">
                                 <i class="fas fa-user-circle me-2"></i>
                                 <span class="d-none d-md-inline">{{ Auth::user()->name ?? 'प्रयोगकर्ता' }}</span>
+                                <span class="d-md-none"><i class="fas fa-chevron-down"></i></span>
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end shadow-lg rounded-xl border-0 py-2" aria-labelledby="userDropdown">
                                 <li>
@@ -647,7 +749,7 @@
             <!-- Main Content Container -->
             <div class="main-content-container">
                 <!-- Page Content -->
-                <main id="main-content" class="page-content" style="width: 100% !important; padding: 1rem !important; flex: 1 !important; display: block !important;">
+                <main id="main-content" class="page-content safe-area-left safe-area-right safe-area-bottom">
                     <!-- Flash Messages -->
                     @if(session('success'))
                         <div class="alert alert-success alert-dismissible fade show mb-4 rounded-xl" role="alert">
@@ -655,7 +757,7 @@
                                 <i class="fas fa-check-circle me-2"></i>
                                 <strong class="nepali">{{ session('success') }}</strong>
                             </div>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            <button type="button" class="btn-close tap-target" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     @endif
 
@@ -665,7 +767,7 @@
                                 <i class="fas fa-exclamation-circle me-2"></i>
                                 <strong class="nepali">{{ session('error') }}</strong>
                             </div>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            <button type="button" class="btn-close tap-target" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     @endif
 
@@ -706,16 +808,16 @@
         });
     </script>
 
-    <!-- Custom JavaScript -->
+    <!-- ✅ UPDATED: Enhanced JavaScript with mobile-first approach -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Sidebar collapse functionality
+            // Sidebar elements
             const sidebar = document.getElementById('sidebar');
             const sidebarCollapse = document.getElementById('sidebar-collapse');
             const mobileSidebarToggle = document.getElementById('mobile-sidebar-toggle');
-            const mainContentArea = document.querySelector('.main-content-area');
+            const body = document.body;
             
-            // Desktop sidebar collapse
+            // ✅ ENHANCED: Desktop sidebar collapse
             if (sidebarCollapse) {
                 sidebarCollapse.addEventListener('click', function() {
                     sidebar.classList.toggle('collapsed');
@@ -725,20 +827,37 @@
                     this.setAttribute('aria-expanded', !isCollapsed);
                     this.setAttribute('aria-label', isCollapsed ? 
                         'साइडबार विस्तार गर्नुहोस्' : 'साइडबार सङ्कुचित गर्नुहोस्');
+                    
+                    // Save preference
+                    localStorage.setItem('sidebarCollapsed', isCollapsed);
                 });
+                
+                // Load saved preference
+                const savedCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+                if (savedCollapsed) {
+                    sidebar.classList.add('collapsed');
+                    sidebarCollapse.setAttribute('aria-expanded', false);
+                    sidebarCollapse.setAttribute('aria-label', 'साइडबार विस्तार गर्नुहोस्');
+                }
             }
             
-            // Mobile sidebar toggle
+            // ✅ ENHANCED: Mobile sidebar toggle with improved UX
             if (mobileSidebarToggle) {
-                mobileSidebarToggle.addEventListener('click', function() {
-                    sidebar.classList.toggle('mobile-open');
+                mobileSidebarToggle.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const isOpening = !sidebar.classList.contains('mobile-open');
                     
-                    // Create overlay when mobile sidebar opens
-                    if (sidebar.classList.contains('mobile-open')) {
+                    sidebar.classList.toggle('mobile-open');
+                    body.classList.toggle('sidebar-open', isOpening);
+                    
+                    // Create or remove overlay
+                    if (isOpening) {
                         const overlay = document.createElement('div');
                         overlay.className = 'sidebar-overlay';
+                        overlay.setAttribute('aria-hidden', 'true');
                         overlay.addEventListener('click', function() {
                             sidebar.classList.remove('mobile-open');
+                            body.classList.remove('sidebar-open');
                             document.body.removeChild(overlay);
                         });
                         document.body.appendChild(overlay);
@@ -748,16 +867,35 @@
                             document.body.removeChild(overlay);
                         }
                     }
-                   
                     
-
                     // Update aria-expanded
-                    const isOpen = sidebar.classList.contains('mobile-open');
-                    this.setAttribute('aria-expanded', isOpen);
-                    this.setAttribute('aria-label', isOpen ? 
+                    this.setAttribute('aria-expanded', isOpening);
+                    this.setAttribute('aria-label', isOpening ? 
                         'मोबाइल साइडबार बन्द गर्नुहोस्' : 'मोबाइल साइडबार खोल्नुहोस्');
                 });
             }
+            
+            // ✅ ADDED: Close mobile sidebar when clicking outside on mobile
+            document.addEventListener('click', function(e) {
+                if (window.innerWidth < 1024 && 
+                    sidebar.classList.contains('mobile-open') &&
+                    !sidebar.contains(e.target) && 
+                    e.target.id !== 'mobile-sidebar-toggle' &&
+                    !e.target.closest('#mobile-sidebar-toggle')) {
+                    
+                    sidebar.classList.remove('mobile-open');
+                    body.classList.remove('sidebar-open');
+                    const overlay = document.querySelector('.sidebar-overlay');
+                    if (overlay) {
+                        document.body.removeChild(overlay);
+                    }
+                    
+                    if (mobileSidebarToggle) {
+                        mobileSidebarToggle.setAttribute('aria-expanded', false);
+                        mobileSidebarToggle.setAttribute('aria-label', 'मोबाइल साइडबार खोल्नुहोस्');
+                    }
+                }
+            });
             
             // Initialize tooltips
             const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
@@ -765,7 +903,7 @@
                 return new bootstrap.Tooltip(tooltipTriggerEl);
             });
             
-            // Auto-dismiss alerts after 5 seconds
+            // ✅ ENHANCED: Auto-dismiss alerts after 5 seconds (mobile friendly)
             const alerts = document.querySelectorAll('.alert');
             alerts.forEach(function(alert) {
                 setTimeout(function() {
@@ -776,7 +914,7 @@
                 }, 5000);
             });
             
-            // Add smooth scrolling for skip link
+            // ✅ ENHANCED: Smooth scrolling for skip link
             const skipLink = document.querySelector('.skip-link');
             const mainContent = document.getElementById('main-content');
             
@@ -786,13 +924,33 @@
                     mainContent.scrollIntoView({ behavior: 'smooth' });
                     mainContent.setAttribute('tabindex', '-1');
                     mainContent.focus();
+                    
+                    // Remove tabindex after focus
+                    setTimeout(() => {
+                        mainContent.removeAttribute('tabindex');
+                    }, 1000);
                 });
             }
             
-            // Keyboard navigation improvements
+            // ✅ ENHANCED: Keyboard navigation improvements
             document.addEventListener('keydown', function(e) {
-                // Close dropdowns on Escape
+                // Close mobile sidebar on Escape
                 if (e.key === 'Escape') {
+                    if (window.innerWidth < 1024 && sidebar.classList.contains('mobile-open')) {
+                        sidebar.classList.remove('mobile-open');
+                        body.classList.remove('sidebar-open');
+                        const overlay = document.querySelector('.sidebar-overlay');
+                        if (overlay) {
+                            document.body.removeChild(overlay);
+                        }
+                        
+                        if (mobileSidebarToggle) {
+                            mobileSidebarToggle.setAttribute('aria-expanded', false);
+                            mobileSidebarToggle.setAttribute('aria-label', 'मोबाइल साइडबार खोल्नुहोस्');
+                        }
+                    }
+                    
+                    // Close dropdowns on Escape
                     const openDropdowns = document.querySelectorAll('.dropdown-menu.show');
                     openDropdowns.forEach(function(dropdown) {
                         const dropdownInstance = bootstrap.Dropdown.getInstance(dropdown.previousElementSibling);
@@ -800,35 +958,171 @@
                             dropdownInstance.hide();
                         }
                     });
+                }
+                
+                // Handle tab navigation in mobile sidebar
+                if (e.key === 'Tab' && sidebar.classList.contains('mobile-open')) {
+                    const focusableElements = sidebar.querySelectorAll('button, a, input, select, textarea, [tabindex]:not([tabindex="-1"])');
+                    const firstElement = focusableElements[0];
+                    const lastElement = focusableElements[focusableElements.length - 1];
                     
-                    // Close mobile sidebar
-                    if (sidebar && sidebar.classList.contains('mobile-open')) {
+                    if (e.shiftKey && document.activeElement === firstElement) {
+                        e.preventDefault();
+                        lastElement.focus();
+                    } else if (!e.shiftKey && document.activeElement === lastElement) {
+                        e.preventDefault();
+                        firstElement.focus();
+                    }
+                }
+            });
+            
+            // ✅ ADDED: Touch gesture support for mobile sidebar
+            let touchStartX = 0;
+            let touchEndX = 0;
+            
+            document.addEventListener('touchstart', function(e) {
+                touchStartX = e.changedTouches[0].screenX;
+            }, { passive: true });
+            
+            document.addEventListener('touchend', function(e) {
+                touchEndX = e.changedTouches[0].screenX;
+                handleSwipe();
+            }, { passive: true });
+            
+            function handleSwipe() {
+                const swipeThreshold = 50;
+                const swipeDistance = touchEndX - touchStartX;
+                
+                // Swipe right to open sidebar (only from left edge on mobile)
+                if (swipeDistance > swipeThreshold && touchStartX < 50 && window.innerWidth < 1024) {
+                    if (!sidebar.classList.contains('mobile-open')) {
+                        mobileSidebarToggle.click();
+                    }
+                }
+                // Swipe left to close sidebar
+                else if (swipeDistance < -swipeThreshold && window.innerWidth < 1024) {
+                    if (sidebar.classList.contains('mobile-open')) {
                         sidebar.classList.remove('mobile-open');
+                        body.classList.remove('sidebar-open');
                         const overlay = document.querySelector('.sidebar-overlay');
                         if (overlay) {
                             document.body.removeChild(overlay);
                         }
                     }
                 }
+            }
+            
+            // ✅ ADDED: Focus trap for mobile sidebar
+            function trapFocus(element) {
+                const focusableElements = element.querySelectorAll('button, a, input, select, textarea, [tabindex]:not([tabindex="-1"])');
+                const firstFocusable = focusableElements[0];
+                const lastFocusable = focusableElements[focusableElements.length - 1];
+                
+                element.addEventListener('keydown', function(e) {
+                    if (e.key === 'Tab') {
+                        if (e.shiftKey && document.activeElement === firstFocusable) {
+                            e.preventDefault();
+                            lastFocusable.focus();
+                        } else if (!e.shiftKey && document.activeElement === lastFocusable) {
+                            e.preventDefault();
+                            firstFocusable.focus();
+                        }
+                    }
+                });
+            }
+            
+            // Apply focus trap when mobile sidebar opens
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.attributeName === 'class') {
+                        if (sidebar.classList.contains('mobile-open')) {
+                            trapFocus(sidebar);
+                        }
+                    }
+                });
+            });
+            
+            observer.observe(sidebar, { attributes: true });
+            
+            // ✅ ADDED: Mobile loading state handler
+            window.showMobileLoading = function() {
+                const loadingDiv = document.createElement('div');
+                loadingDiv.className = 'loading-mobile';
+                loadingDiv.innerHTML = `
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">लोड हुदैछ...</span>
+                        </div>
+                        <p class="mt-2 text-gray-600">लोड हुदैछ...</p>
+                    </div>
+                `;
+                document.body.appendChild(loadingDiv);
+            };
+            
+            window.hideMobileLoading = function() {
+                const loadingDiv = document.querySelector('.loading-mobile');
+                if (loadingDiv) {
+                    document.body.removeChild(loadingDiv);
+                }
+            };
+            
+            // ✅ ADDED: Mobile form submission handling
+            document.addEventListener('submit', function(e) {
+                const form = e.target;
+                if (form.method === 'post' || form.method === 'POST') {
+                    const submitButton = form.querySelector('button[type="submit"]');
+                    if (submitButton && window.innerWidth < 768) {
+                        submitButton.disabled = true;
+                        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> प्रक्रिया हुदैछ...';
+                    }
+                }
             });
         });
         
-        // Handle window resize
+        // ✅ ENHANCED: Handle window resize with debouncing
+        let resizeTimeout;
         window.addEventListener('resize', function() {
-            const sidebar = document.getElementById('sidebar');
-            
-            // Close mobile sidebar on desktop
-            if (window.innerWidth >= 1024 && sidebar) {
-                sidebar.classList.remove('mobile-open');
-                const overlay = document.querySelector('.sidebar-overlay');
-                if (overlay) {
-                    document.body.removeChild(overlay);
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(function() {
+                const sidebar = document.getElementById('sidebar');
+                const body = document.body;
+                
+                // Close mobile sidebar on desktop
+                if (window.innerWidth >= 1024 && sidebar) {
+                    sidebar.classList.remove('mobile-open');
+                    body.classList.remove('sidebar-open');
+                    const overlay = document.querySelector('.sidebar-overlay');
+                    if (overlay) {
+                        document.body.removeChild(overlay);
+                    }
+                    
+                    // Reset mobile sidebar toggle state
+                    const mobileSidebarToggle = document.getElementById('mobile-sidebar-toggle');
+                    if (mobileSidebarToggle) {
+                        mobileSidebarToggle.setAttribute('aria-expanded', false);
+                        mobileSidebarToggle.setAttribute('aria-label', 'मोबाइल साइडबार खोल्नुहोस्');
+                    }
                 }
-            }
+                
+                // Show/hide elements based on screen size
+                const mobileOnlyElements = document.querySelectorAll('.mobile-only');
+                const desktopOnlyElements = document.querySelectorAll('.desktop-only');
+                
+                if (window.innerWidth >= 1024) {
+                    mobileOnlyElements.forEach(el => el.style.display = 'none');
+                    desktopOnlyElements.forEach(el => el.style.display = 'block');
+                } else {
+                    mobileOnlyElements.forEach(el => el.style.display = 'block');
+                    desktopOnlyElements.forEach(el => el.style.display = 'none');
+                }
+            }, 250);
         });
+        
+        // Initial check for screen size
+        window.dispatchEvent(new Event('resize'));
     </script>
 
-    <!-- ✅ ADDED: Enhanced form reset and circular functionality JavaScript -->
+    <!-- ✅ ADDED: Enhanced mobile form reset and circular functionality JavaScript -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // ✅ FIXED: Enhanced form reset functionality for circular creation
@@ -858,16 +1152,38 @@
                     input.value = '';
                 });
                 
+                // Show success message for mobile
+                if (window.innerWidth < 768) {
+                    const alertDiv = document.createElement('div');
+                    alertDiv.className = 'alert alert-success alert-dismissible fade show mb-4 rounded-xl';
+                    alertDiv.innerHTML = `
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <strong class="nepali">सफलता:</strong> फारम सफलतापूर्वक रिसेट गरियो
+                        </div>
+                        <button type="button" class="btn-close tap-target" data-bs-dismiss="alert" aria-label="Close"></button>
+                    `;
+                    const mainContent = document.getElementById('main-content');
+                    if (mainContent) {
+                        mainContent.insertBefore(alertDiv, mainContent.firstChild);
+                    }
+                }
+                
                 console.log('Form reset completed for circular creation');
             @endif
 
-            // ✅ FIXED: AJAX form submission handling for circulars
+            // ✅ ENHANCED: AJAX form submission handling for circulars (mobile optimized)
             $(document).on('submit', 'form[data-ajax-form="true"]', function(e) {
                 e.preventDefault();
                 
                 const form = $(this);
                 const submitBtn = form.find('button[type="submit"]');
                 const originalText = submitBtn.html();
+                
+                // Show mobile loading if on small screen
+                if (window.innerWidth < 768) {
+                    window.showMobileLoading();
+                }
                 
                 // Show loading state
                 submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> प्रक्रिया हुदैछ...');
@@ -886,6 +1202,14 @@
                             // Reset form if needed
                             if (response.clear_form) {
                                 form[0].reset();
+                                
+                                // Mobile-specific feedback
+                                if (window.innerWidth < 768) {
+                                    // Add haptic feedback if available
+                                    if (navigator.vibrate) {
+                                        navigator.vibrate([100, 50, 100]);
+                                    }
+                                }
                             }
                             
                             // Redirect if specified
@@ -893,6 +1217,19 @@
                                 setTimeout(() => {
                                     window.location.href = response.redirect;
                                 }, 1500);
+                            }
+                            
+                            // Close mobile sidebar if open
+                            if (window.innerWidth < 1024) {
+                                const sidebar = document.getElementById('sidebar');
+                                if (sidebar && sidebar.classList.contains('mobile-open')) {
+                                    sidebar.classList.remove('mobile-open');
+                                    document.body.classList.remove('sidebar-open');
+                                    const overlay = document.querySelector('.sidebar-overlay');
+                                    if (overlay) {
+                                        document.body.removeChild(overlay);
+                                    }
+                                }
                             }
                         }
                     },
@@ -902,14 +1239,30 @@
                             errorMessage = xhr.responseJSON.message;
                         }
                         showAlert('त्रुटि', errorMessage, 'error');
+                        
+                        // Mobile-specific error handling
+                        if (window.innerWidth < 768) {
+                            // Scroll to top to show error
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                            
+                            // Add haptic feedback for error
+                            if (navigator.vibrate) {
+                                navigator.vibrate([200, 100, 200]);
+                            }
+                        }
                     },
                     complete: function() {
                         submitBtn.prop('disabled', false).html(originalText);
+                        
+                        // Hide mobile loading
+                        if (window.innerWidth < 768) {
+                            window.hideMobileLoading();
+                        }
                     }
                 });
             });
 
-            // Helper function to show alerts
+            // Helper function to show alerts (mobile optimized)
             function showAlert(title, message, type) {
                 const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
                 const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
@@ -920,21 +1273,41 @@
                             <i class="fas ${icon} me-2"></i>
                             <strong class="nepali">${title}:</strong> ${message}
                         </div>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        <button type="button" class="btn-close tap-target" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 `;
                 
                 // Prepend alert to main content
-                $('#main-content').prepend(alertHtml);
+                const mainContent = document.getElementById('main-content');
+                if (mainContent) {
+                    // Remove any existing alerts
+                    const existingAlerts = mainContent.querySelectorAll('.alert');
+                    existingAlerts.forEach(alert => alert.remove());
+                    
+                    // Add new alert
+                    mainContent.insertAdjacentHTML('afterbegin', alertHtml);
+                    
+                    // Scroll to top on mobile to show alert
+                    if (window.innerWidth < 768) {
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                }
                 
                 // Auto remove after 5 seconds
                 setTimeout(() => {
-                    $('.alert').alert('close');
+                    const alert = document.querySelector('.alert');
+                    if (alert) {
+                        const bsAlert = new bootstrap.Alert(alert);
+                        bsAlert.close();
+                    }
                 }, 5000);
             }
 
-            // ✅ FIXED: Real-time circular notifications
+            // ✅ ENHANCED: Real-time circular notifications (mobile optimized)
             function checkNewCirculars() {
+                // Only check if user is active (not on mobile with screen off)
+                if (document.hidden) return;
+                
                 $.ajax({
                     url: '{{ route("owner.circulars.index") }}?check_new=true',
                     method: 'GET',
@@ -944,90 +1317,192 @@
                             const badge = $('.notification-dot');
                             if (badge.length) {
                                 badge.text(response.new_circulars);
+                                badge.css({
+                                    'width': '12px',
+                                    'height': '12px',
+                                    'display': 'flex',
+                                    'align-items': 'center',
+                                    'justify-content': 'center',
+                                    'font-size': '8px',
+                                    'color': 'white'
+                                });
                                 badge.show();
                             }
                             
-                            // Show notification
-                            if (response.new_circulars === 1) {
-                                showAlert('नयाँ सूचना', 'तपाईंसँग १ नयाँ सूचना छ', 'info');
-                            } else {
-                                showAlert('नयाँ सूचनाहरू', `तपाईंसँग ${response.new_circulars} नयाँ सूचनाहरू छन्`, 'info');
+                            // Show notification only if not on the circulars page
+                            if (!window.location.pathname.includes('/owner/circulars')) {
+                                if (response.new_circulars === 1) {
+                                    showAlert('नयाँ सूचना', 'तपाईंसँग १ नयाँ सूचना छ', 'info');
+                                } else {
+                                    showAlert('नयाँ सूचनाहरू', `तपाईंसँग ${response.new_circulars} नयाँ सूचनाहरू छन्`, 'info');
+                                }
+                                
+                                // Mobile notification sound/vibration
+                                if (window.innerWidth < 768) {
+                                    // Play notification sound if allowed
+                                    try {
+                                        const audio = new Audio('{{ asset("sounds/notification.mp3") }}');
+                                        audio.volume = 0.3;
+                                        audio.play();
+                                    } catch (e) {
+                                        console.log('Audio notification failed');
+                                    }
+                                    
+                                    // Vibrate if available
+                                    if (navigator.vibrate) {
+                                        navigator.vibrate([100, 50, 100]);
+                                    }
+                                }
                             }
                         }
                     }
                 });
             }
 
-            // Check for new circulars every 30 seconds
-            setInterval(checkNewCirculars, 30000);
+            // Check for new circulars every 30 seconds, but only when page is visible
+            let circularCheckInterval;
+            
+            function startCircularChecker() {
+                if (!circularCheckInterval) {
+                    circularCheckInterval = setInterval(checkNewCirculars, 30000);
+                }
+            }
+            
+            function stopCircularChecker() {
+                if (circularCheckInterval) {
+                    clearInterval(circularCheckInterval);
+                    circularCheckInterval = null;
+                }
+            }
+            
+            // Start/stop based on page visibility
+            document.addEventListener('visibilitychange', function() {
+                if (document.hidden) {
+                    stopCircularChecker();
+                } else {
+                    startCircularChecker();
+                    checkNewCirculars(); // Check immediately when page becomes visible
+                }
+            });
+            
+            // Start the checker
+            startCircularChecker();
 
-            // ✅ ADDED: Circular publish functionality
+            // ✅ ENHANCED: Circular publish functionality (mobile friendly)
             $(document).on('click', '.publish-circular-btn', function() {
                 const circularId = $(this).data('circular-id');
                 const button = $(this);
                 
-                if (!confirm('के तपाईं यो सूचना प्रकाशित गर्न चाहनुहुन्छ?')) {
-                    return;
+                // Mobile-friendly confirmation
+                const confirmMessage = 'के तपाईं यो सूचना प्रकाशित गर्न चाहनुहुन्छ?';
+                
+                if (window.innerWidth < 768) {
+                    // Use custom modal for mobile
+                    if (confirm(confirmMessage)) {
+                        proceedWithPublish();
+                    }
+                } else {
+                    if (confirm(confirmMessage)) {
+                        proceedWithPublish();
+                    }
                 }
                 
-                button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> प्रकाशन हुदैछ...');
-                
-                $.ajax({
-                    url: `{{ route('owner.circulars.publish', ':circularId') }}`.replace(':circularId', circularId),
-                    method: 'POST',
-                    data: {
-                        _token: '{{ csrf_token() }}'
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            showAlert('सफलता', response.message, 'success');
-                            button.replaceWith('<span class="badge bg-success">प्रकाशित</span>');
-                            
-                            // Reload the page after 2 seconds to reflect changes
-                            setTimeout(() => {
-                                window.location.reload();
-                            }, 2000);
-                        }
-                    },
-                    error: function(xhr) {
-                        let errorMessage = 'प्रकाशन असफल भयो';
-                        if (xhr.responseJSON && xhr.responseJSON.message) {
-                            errorMessage = xhr.responseJSON.message;
-                        }
-                        showAlert('त्रुटि', errorMessage, 'error');
-                        button.prop('disabled', false).html('<i class="fas fa-paper-plane"></i> प्रकाशन गर्नुहोस्');
+                function proceedWithPublish() {
+                    button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> प्रकाशन हुदैछ...');
+                    
+                    // Show loading on mobile
+                    if (window.innerWidth < 768) {
+                        window.showMobileLoading();
                     }
-                });
+                    
+                    $.ajax({
+                        url: `{{ route('owner.circulars.publish', ':circularId') }}`.replace(':circularId', circularId),
+                        method: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}'
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                showAlert('सफलता', response.message, 'success');
+                                button.replaceWith('<span class="badge bg-success">प्रकाशित</span>');
+                                
+                                // Mobile success feedback
+                                if (window.innerWidth < 768) {
+                                    if (navigator.vibrate) {
+                                        navigator.vibrate([100]);
+                                    }
+                                }
+                                
+                                // Reload the page after 2 seconds to reflect changes
+                                setTimeout(() => {
+                                    window.location.reload();
+                                }, 2000);
+                            }
+                        },
+                        error: function(xhr) {
+                            let errorMessage = 'प्रकाशन असफल भयो';
+                            if (xhr.responseJSON && xhr.responseJSON.message) {
+                                errorMessage = xhr.responseJSON.message;
+                            }
+                            showAlert('त्रुटि', errorMessage, 'error');
+                            button.prop('disabled', false).html('<i class="fas fa-paper-plane"></i> प्रकाशन गर्नुहोस्');
+                        },
+                        complete: function() {
+                            if (window.innerWidth < 768) {
+                                window.hideMobileLoading();
+                            }
+                        }
+                    });
+                }
             });
 
-            // ✅ ADDED: Circular delete confirmation
+            // ✅ ENHANCED: Circular delete confirmation (mobile friendly)
             $(document).on('click', '.delete-circular-btn', function(e) {
                 e.preventDefault();
                 
                 const form = $(this).closest('form');
                 const circularTitle = $(this).data('circular-title') || 'यो सूचना';
+                const confirmMessage = `के तपाईं ${circularTitle} लाई मेट्न चाहनुहुन्छ? यो कार्य पूर्ववत गर्न सकिँदैन।`;
                 
-                if (confirm(`के तपाईं ${circularTitle} लाई मेट्न चाहनुहुन्छ? यो कार्य पूर्ववत गर्न सकिँदैन।`)) {
-                    form.submit();
+                if (window.innerWidth < 768) {
+                    // Mobile-friendly confirmation with custom styling
+                    const mobileConfirm = confirm(confirmMessage);
+                    if (mobileConfirm) {
+                        // Show loading on mobile
+                        window.showMobileLoading();
+                        form.submit();
+                    }
+                } else {
+                    if (confirm(confirmMessage)) {
+                        form.submit();
+                    }
                 }
             });
 
-            // ✅ ADDED: Contact message delete functionality
+            // ✅ ADDED: Contact message delete functionality (mobile optimized)
             $(document).on('submit', 'form[action*="contacts"][method="DELETE"]', function(e) {
-                if (!confirm('के तपाईं यो सन्देश मेटाउन निश्चित हुनुहुन्छ? यो कार्य पूर्ववत गर्न सकिँदैन।')) {
+                const confirmMessage = 'के तपाईं यो सन्देश मेटाउन निश्चित हुनुहुन्छ? यो कार्य पूर्ववत गर्न सकिँदैन।';
+                
+                if (!confirm(confirmMessage)) {
                     e.preventDefault();
                     return false;
                 }
                 
-                // Show loading state
+                // Show loading state with mobile optimization
                 const button = $(this).find('button[type="submit"]');
                 const originalHtml = button.html();
-                button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> मेट्दै...');
+                
+                if (window.innerWidth < 768) {
+                    button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> मेट्दै...');
+                    window.showMobileLoading();
+                } else {
+                    button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> मेट्दै...');
+                }
                 
                 return true;
             });
 
-            // ✅ ADDED: Bulk actions for circulars
+            // ✅ ADDED: Bulk actions for circulars (mobile optimized)
             $(document).on('change', '.circular-bulk-select', function() {
                 const checkedCount = $('.circular-bulk-select:checked').length;
                 const bulkActions = $('.circular-bulk-actions');
@@ -1035,6 +1510,11 @@
                 if (checkedCount > 0) {
                     bulkActions.fadeIn();
                     $('.bulk-action-count').text(checkedCount);
+                    
+                    // On mobile, scroll to bulk actions
+                    if (window.innerWidth < 768) {
+                        bulkActions[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }
                 } else {
                     bulkActions.fadeOut();
                 }
@@ -1045,22 +1525,67 @@
                 $('.circular-bulk-select').trigger('change');
             });
 
-            // ✅ ADDED: Circular analytics chart initialization
-            function initializeCircularAnalytics() {
-                const analyticsChart = document.getElementById('circularAnalyticsChart');
+            // ✅ ADDED: Mobile swipe actions for circular items
+            let touchStartY = 0;
+            let touchEndY = 0;
+            
+            $(document).on('touchstart', '.circular-item', function(e) {
+                touchStartY = e.originalEvent.touches[0].clientY;
+            });
+            
+            $(document).on('touchmove', '.circular-item', function(e) {
+                if (window.innerWidth < 768) {
+                    e.preventDefault();
+                }
+            });
+            
+            $(document).on('touchend', '.circular-item', function(e) {
+                touchEndY = e.originalEvent.changedTouches[0].clientY;
+                const swipeDistance = touchEndY - touchStartY;
                 
-                if (analyticsChart) {
-                    // Initialize chart here (you can use Chart.js or any other library)
-                    console.log('Initializing circular analytics chart...');
+                // Only trigger on significant vertical swipe
+                if (Math.abs(swipeDistance) > 100) {
+                    $(this).css('transform', swipeDistance > 0 ? 'translateY(100%)' : 'translateY(-100%)');
+                    setTimeout(() => {
+                        $(this).remove();
+                    }, 300);
+                }
+            });
+
+            // ✅ ADDED: Mobile offline detection
+            window.addEventListener('online', function() {
+                showAlert('सफलता', 'इन्टरनेट जडान पुनः स्थापित भयो', 'success');
+            });
+            
+            window.addEventListener('offline', function() {
+                showAlert('चेतावनी', 'इन्टरनेट जडान हराइरहेको छ', 'warning');
+            });
+
+            // ✅ ADDED: Mobile back button handling
+            if (window.innerWidth < 768) {
+                let backButtonPressed = false;
+                
+                // Detect back/forward button
+                window.addEventListener('popstate', function() {
+                    backButtonPressed = true;
                     
-                    // Example chart initialization (replace with actual implementation)
-                    const ctx = analyticsChart.getContext('2d');
-                    // Add your chart initialization code here
+                    // Close mobile sidebar if open
+                    const sidebar = document.getElementById('sidebar');
+                    if (sidebar && sidebar.classList.contains('mobile-open')) {
+                        sidebar.classList.remove('mobile-open');
+                        document.body.classList.remove('sidebar-open');
+                        const overlay = document.querySelector('.sidebar-overlay');
+                        if (overlay) {
+                            document.body.removeChild(overlay);
+                        }
+                    }
+                });
+                
+                // Add history entry for mobile pages
+                if (!window.history.state) {
+                    window.history.replaceState({ page: 'dashboard' }, '', window.location.href);
                 }
             }
-
-            // Initialize analytics when DOM is ready
-            initializeCircularAnalytics();
         });
     </script>
     
