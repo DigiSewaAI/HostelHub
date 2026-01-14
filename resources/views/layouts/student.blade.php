@@ -38,7 +38,7 @@
             margin: 0;
             padding: 0;
             overflow-x: hidden;
-            color: #333333 !important; /* ADDED: Default text color */
+            color: #333333 !important;
         }
         
         /* 🎯 MOBILE-FIRST RESPONSIVE STYLES */
@@ -48,7 +48,7 @@
             body {
                 overflow-x: hidden !important;
                 position: relative !important;
-                color: #333333 !important; /* ADDED: Ensure text color */
+                color: #333333 !important;
             }
             
             /* Sidebar - Mobile Off-canvas */
@@ -106,7 +106,7 @@
                 right: 0 !important;
                 height: var(--header-height) !important;
                 z-index: 1030 !important;
-                background: linear-gradient(45deg, #4e73df, #224abe) !important; /* ADDED: Ensure gradient */
+                background: linear-gradient(45deg, #4e73df, #224abe) !important;
             }
             
             /* Header content - ensure white text */
@@ -138,7 +138,7 @@
             /* Main content padding to account for fixed header */
             .page-content {
                 padding-top: calc(var(--header-height) + 1rem) !important;
-                color: #333333 !important; /* ADDED: Ensure text color */
+                color: #333333 !important;
             }
             
             /* Ensure all text in content area is visible */
@@ -684,12 +684,950 @@
         header {
             background: linear-gradient(45deg, #4e73df, #224abe) !important;
         }
+
+        /* =========================================== */
+        /* 🎯 STUDENT DASHBOARD MOBILE FIXES - SCOPED */
+        /* =========================================== */
+
+        /* 🔹 MOBILE HEADER HEIGHT FIX (max-width: 768px) */
+        @media (max-width: 768px) {
+          .student-dashboard {
+            /* Reset any problematic body styles */
+            overflow-x: hidden !important;
+          }
+          
+          /* FIX 1: Header height reduction */
+          .student-dashboard .header-fixed {
+            height: 56px !important;
+            min-height: 56px !important;
+          }
+          
+          .student-dashboard .header-content {
+            height: 56px !important;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+          }
+          
+          /* FIX 2: Header content alignment */
+          .student-dashboard .header-content > div:first-child {
+            flex: 1 1 auto;
+            min-width: 0;
+          }
+          
+          .student-dashboard .header-content > div:last-child {
+            flex-shrink: 0;
+          }
+          
+          /* FIX 3: Mobile menu button visibility */
+          .student-dashboard #mobile-sidebar-toggle {
+            width: 44px;
+            height: 44px;
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            padding: 0 !important;
+            margin-right: 8px !important;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+          }
+          
+          /* FIX 4: Logo/brand adjustment */
+          .student-dashboard .navbar-brand {
+            font-size: 14px !important;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 120px;
+          }
+          
+          .student-dashboard .navbar-brand img,
+          .student-dashboard .navbar-brand .mobile-text-logo {
+            width: 32px !important;
+            height: 32px !important;
+            margin-right: 8px !important;
+          }
+          
+          /* FIX 5: Header buttons container */
+          .student-dashboard .header-content .flex.items-center.space-x-3 {
+            gap: 4px !important;
+          }
+          
+          /* FIX 6: Student badge visibility */
+          .student-dashboard .student-badge {
+            padding: 4px 8px !important;
+            font-size: 12px !important;
+            margin-right: 4px !important;
+            display: none;
+          }
+          
+          /* FIX 7: Notification button */
+          .student-dashboard .notification-button {
+            width: 40px !important;
+            height: 40px !important;
+            padding: 0 !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          
+          .student-dashboard .notification-button i {
+            font-size: 18px !important;
+          }
+          
+          /* FIX 8: User dropdown button */
+          .student-dashboard .user-dropdown .btn {
+            padding: 6px 10px !important;
+            font-size: 13px !important;
+            height: 40px !important;
+          }
+          
+          .student-dashboard .user-dropdown .btn i {
+            margin-right: 4px !important;
+          }
+          
+          .student-dashboard .user-dropdown .btn span {
+            display: none;
+          }
+          
+          /* FIX 9: Dropdown menus visibility */
+          .student-dashboard .dropdown-menu {
+            font-size: 14px !important;
+            min-width: 200px !important;
+          }
+          
+          /* FIX 10: Ensure text contrast */
+          .student-dashboard .header-content * {
+            color: white !important;
+          }
+        }
+
+        /* 🔹 CONTENT SPACING FIX */
+        @media (max-width: 768px) {
+          /* FIX 1: Main content offset */
+          .student-dashboard .page-content {
+            padding-top: calc(56px + 16px) !important;
+          }
+          
+          /* FIX 2: Dashboard content spacing */
+          .student-dashboard .page-content > .bg-blue-800.rounded-2xl {
+            margin-top: 8px !important;
+          }
+          
+          /* FIX 3: Remove any top margins that cause overlap */
+          .student-dashboard .page-content > *:first-child {
+            margin-top: 0 !important;
+          }
+          
+          /* FIX 4: Safe scrolling area */
+          .student-dashboard .main-content-container {
+            min-height: calc(100vh - 56px) !important;
+          }
+        }
+
+        /* 🔹 VISIBILITY FIXES */
+        @media (max-width: 768px) {
+          /* FIX 1: Card contrast */
+          .student-dashboard .bg-white,
+          .student-dashboard .card,
+          .student-dashboard .circular-item {
+            background-color: white !important;
+            color: #333333 !important;
+            border: 1px solid #e5e7eb !important;
+          }
+          
+          /* FIX 2: Text readability */
+          .student-dashboard h1, 
+          .student-dashboard h2, 
+          .student-dashboard h3 {
+            color: #1f2937 !important;
+            line-height: 1.3 !important;
+          }
+          
+          .student-dashboard p,
+          .student-dashboard span:not(.header-content *) {
+            color: #4b5563 !important;
+            line-height: 1.5 !important;
+          }
+          
+          /* FIX 3: Button visibility */
+          .student-dashboard .btn {
+            min-height: 44px !important;
+            padding: 10px 16px !important;
+            font-size: 14px !important;
+            font-weight: 500 !important;
+          }
+          
+          .student-dashboard .btn-primary {
+            background-color: #3b82f6 !important;
+            color: white !important;
+          }
+          
+          .student-dashboard .btn-outline-primary {
+            color: #3b82f6 !important;
+            border-color: #3b82f6 !important;
+          }
+          
+          /* FIX 4: Icon visibility */
+          .student-dashboard i:not(.header-content *) {
+            color: #6b7280 !important;
+          }
+          
+          .student-dashboard .bg-blue-100 i,
+          .student-dashboard .bg-green-100 i,
+          .student-dashboard .bg-amber-100 i,
+          .student-dashboard .bg-indigo-100 i {
+            color: inherit !important;
+          }
+          
+          /* FIX 5: Table/cell visibility */
+          .student-dashboard table * {
+            font-size: 13px !important;
+          }
+          
+          .student-dashboard th,
+          .student-dashboard td {
+            padding: 8px !important;
+          }
+        }
+
+        /* 🔹 MOBILE ENHANCEMENTS (VERY LIMITED) */
+        @media (max-width: 768px) {
+          /* ENH 1: Card spacing */
+          .student-dashboard .bg-white.rounded-2xl {
+            margin-bottom: 16px !important;
+            padding: 16px !important;
+          }
+          
+          /* ENH 2: Grid spacing */
+          .student-dashboard .grid {
+            gap: 12px !important;
+          }
+          
+          /* ENH 3: Section spacing */
+          .student-dashboard .space-y-6 > * + * {
+            margin-top: 20px !important;
+          }
+          
+          /* ENH 4: Dashboard stats grid - 2 columns */
+          .student-dashboard .grid.grid-cols-2 {
+            grid-template-columns: repeat(2, 1fr) !important;
+          }
+          
+          .student-dashboard .grid.grid-cols-2 > * {
+            min-height: 100px !important;
+          }
+          
+          /* ENH 5: Quick actions grid - 3 columns */
+          .student-dashboard .grid.grid-cols-2.gap-3 {
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 8px !important;
+          }
+          
+          /* ENH 6: Welcome section improvement */
+          .student-dashboard .bg-blue-800 .text-white {
+            font-size: 15px !important;
+          }
+          
+          .student-dashboard .bg-blue-800 h2 {
+            font-size: 18px !important;
+            margin-bottom: 4px !important;
+          }
+        }
+
+        /* 🔹 EXTRA SMALL DEVICES (max-width: 576px) */
+        @media (max-width: 576px) {
+          .student-dashboard .navbar-brand span {
+            display: none;
+          }
+          
+          .student-dashboard .notification-button {
+            width: 36px !important;
+            height: 36px !important;
+          }
+          
+          .student-dashboard .user-dropdown .btn {
+            padding: 6px !important;
+            min-width: 36px !important;
+          }
+          
+          .student-dashboard .grid.grid-cols-2 {
+            grid-template-columns: 1fr !important;
+          }
+          
+          .student-dashboard .grid.grid-cols-2.gap-3 {
+            grid-template-columns: repeat(2, 1fr) !important;
+          }
+        }
+
+        /* =========================================== */
+        /* 🎯 CRITICAL MOBILE FIXES - SCOPE: STUDENT DASHBOARD ONLY */
+        /* =========================================== */
+
+        /* 🔹 1. SIDEBAR TEXT COLOR FIX (Desktop + Mobile) */
+        .student-dashboard .sidebar,
+        .student-dashboard .sidebar *:not(.dropdown-menu *) {
+            color: #ffffff !important;
+        }
+
+        .student-dashboard .sidebar a,
+        .student-dashboard .sidebar span,
+        .student-dashboard .sidebar i,
+        .student-dashboard .sidebar .logo-text,
+        .student-dashboard .sidebar .sidebar-text,
+        .student-dashboard .sidebar .sidebar-link {
+            color: #ffffff !important;
+        }
+
+        .student-dashboard .sidebar .sidebar-link.active {
+            color: #ffffff !important;
+            background-color: rgba(255, 255, 255, 0.15) !important;
+        }
+
+        /* 🔹 2. ICON COLOR FIXES (Mobile) */
+        @media (max-width: 768px) {
+            .student-dashboard .page-content i:not(.header-content i) {
+                color: inherit !important;
+            }
+            
+            .student-dashboard .page-content .fa-utensils,
+            .student-dashboard .page-content .fa-money-bill-wave,
+            .student-dashboard .page-content .fa-bullhorn,
+            .student-dashboard .page-content .fa-door-open,
+            .student-dashboard .page-content .fa-star,
+            .student-dashboard .page-content .fa-calendar-check,
+            .student-dashboard .page-content .fa-images,
+            .student-dashboard .page-content .fa-calendar-alt {
+                color: #4e73df !important;
+            }
+            
+            .student-dashboard .page-content .bg-blue-100 i,
+            .student-dashboard .page-content .bg-green-100 i,
+            .student-dashboard .page-content .bg-amber-100 i,
+            .student-dashboard .page-content .bg-indigo-100 i {
+                color: inherit !important;
+            }
+        }
+
+        /* 🔹 3. BUTTON COLOR FIXES (Mobile) - EXACT DESKTOP STYLES */
+        @media (max-width: 768px) {
+            .student-dashboard .page-content .btn:not(.btn-primary):not(.btn-outline-primary) {
+                background-color: #f8fafc !important;
+                color: #333333 !important;
+                border: 1px solid #e5e7eb !important;
+            }
+            
+            /* EXACT DESKTOP PRIMARY BUTTON */
+            .student-dashboard .page-content .btn-primary {
+                background: linear-gradient(45deg, #4e73df, #224abe) !important;
+                border: none !important;
+                box-shadow: 0 2px 5px rgba(78, 115, 223, 0.3) !important;
+                color: white !important;
+                border-radius: 0.5rem !important;
+                font-weight: 600 !important;
+                padding: 0.5rem 1rem !important;
+                display: inline-flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                transition: all 0.3s !important;
+            }
+            
+            .student-dashboard .page-content .btn-primary:hover {
+                background: linear-gradient(45deg, #224abe, #4e73df) !important;
+                transform: translateY(-2px) !important;
+                box-shadow: 0 4px 8px rgba(78, 115, 223, 0.4) !important;
+                color: white !important;
+            }
+            
+            /* EXACT DESKTOP OUTLINE PRIMARY */
+            .student-dashboard .page-content .btn-outline-primary {
+                color: #4e73df !important;
+                border: 2px solid #4e73df !important;
+                background: transparent !important;
+                border-radius: 0.5rem !important;
+                font-weight: 600 !important;
+                padding: 0.5rem 1rem !important;
+                display: inline-flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                transition: all 0.3s !important;
+            }
+            
+            .student-dashboard .page-content .btn-outline-primary:hover {
+                background: linear-gradient(45deg, #4e73df, #224abe) !important;
+                color: white !important;
+            }
+            
+            /* SUCCESS BUTTON - Desktop Style */
+            .student-dashboard .page-content .btn-success {
+                background: linear-gradient(45deg, #1cc88a, #13855c) !important;
+                border: none !important;
+                box-shadow: 0 2px 5px rgba(28, 200, 138, 0.3) !important;
+                color: white !important;
+            }
+            
+            .student-dashboard .page-content .btn-success:hover {
+                background: linear-gradient(45deg, #13855c, #1cc88a) !important;
+                transform: translateY(-2px) !important;
+                box-shadow: 0 4px 8px rgba(28, 200, 138, 0.4) !important;
+            }
+            
+            /* WARNING BUTTON - Desktop Style */
+            .student-dashboard .page-content .btn-warning {
+                background: linear-gradient(45deg, #f6c23e, #dda20a) !important;
+                border: none !important;
+                box-shadow: 0 2px 5px rgba(246, 194, 62, 0.3) !important;
+                color: #333333 !important;
+            }
+            
+            .student-dashboard .page-content .btn-warning:hover {
+                background: linear-gradient(45deg, #dda20a, #f6c23e) !important;
+                transform: translateY(-2px) !important;
+                box-shadow: 0 4px 8px rgba(246, 194, 62, 0.4) !important;
+            }
+            
+            /* DANGER BUTTON - Desktop Style */
+            .student-dashboard .page-content .btn-danger {
+                background: linear-gradient(45deg, #e74a3b, #be2617) !important;
+                border: none !important;
+                box-shadow: 0 2px 5px rgba(231, 74, 59, 0.3) !important;
+                color: white !important;
+            }
+            
+            .student-dashboard .page-content .btn-danger:hover {
+                background: linear-gradient(45deg, #be2617, #e74a3b) !important;
+                transform: translateY(-2px) !important;
+                box-shadow: 0 4px 8px rgba(231, 74, 59, 0.4) !important;
+            }
+        }
+
+        /* 🔹 4. HEADER VISIBILITY & OVERLAP FIX */
+        @media (max-width: 768px) {
+            .student-dashboard .header-fixed {
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                z-index: 1030 !important;
+                background: linear-gradient(45deg, #4e73df, #224abe) !important;
+                height: 56px !important;
+                min-height: 56px !important;
+            }
+            
+            .student-dashboard .header-content {
+                height: 56px !important;
+                padding-top: 0 !important;
+                padding-bottom: 0 !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: space-between !important;
+            }
+            
+            .student-dashboard .page-content {
+                padding-top: calc(56px + 16px) !important;
+            }
+            
+            .student-dashboard .main-content-container {
+                min-height: calc(100vh - 56px) !important;
+            }
+            
+            /* Fix header content alignment */
+            .student-dashboard .header-content > div:first-child {
+                flex: 1 1 auto;
+                min-width: 0;
+                display: flex;
+                align-items: center;
+            }
+            
+            .student-dashboard .header-content > div:last-child {
+                flex-shrink: 0;
+                display: flex;
+                align-items: center;
+            }
+        }
+
+        /* 🔹 5. NOTIFICATION BELL FIX - EXACT DESKTOP STYLES */
+        @media (max-width: 768px) {
+            .student-dashboard .notification-button {
+                position: relative !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                width: 40px !important;
+                height: 40px !important;
+                color: white !important;
+                padding: 0 !important;
+                background: transparent !important;
+                border: none !important;
+                border-radius: 50% !important;
+                transition: all 0.3s !important;
+            }
+            
+            .student-dashboard .notification-button:hover {
+                background: rgba(255, 255, 255, 0.15) !important;
+                transform: translateY(-1px) !important;
+            }
+            
+            .student-dashboard .notification-button i {
+                color: white !important;
+                font-size: 1.25rem !important;
+            }
+            
+            .student-dashboard .notification-dot {
+                position: absolute !important;
+                top: 3px !important;
+                right: 3px !important;
+                width: 10px !important;
+                height: 10px !important;
+                background-color: #ef4444 !important;
+                border: 2px solid #224abe !important;
+                border-radius: 50% !important;
+                z-index: 10 !important;
+            }
+            
+            /* NOTIFICATION DROPDOWN - EXACT DESKTOP STYLES */
+            .student-dashboard .dropdown-menu {
+                position: absolute !important;
+                right: 0 !important;
+                left: auto !important;
+                margin-top: 8px !important;
+                background-color: white !important;
+                color: #333333 !important;
+                border: 1px solid #e5e7eb !important;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+                border-radius: 0.75rem !important;
+                min-width: 320px !important;
+                z-index: 9999 !important;
+                opacity: 1 !important;
+                visibility: visible !important;
+                transform: translateY(0) !important;
+                animation: dropdownSlide 0.2s ease !important;
+            }
+            
+            @keyframes dropdownSlide {
+                from {
+                    opacity: 0;
+                    transform: translateY(-10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            
+            .student-dashboard .dropdown-menu.show {
+                display: block !important;
+            }
+            
+            .student-dashboard .dropdown-menu .dropdown-item {
+                padding: 12px 20px !important;
+                color: #333333 !important;
+                border-bottom: 1px solid #f1f5f9 !important;
+                transition: all 0.2s !important;
+                display: flex !important;
+                align-items: flex-start !important;
+            }
+            
+            .student-dashboard .dropdown-menu .dropdown-item:hover {
+                background: #f8fafc !important;
+                color: #4e73df !important;
+            }
+            
+            .student-dashboard .dropdown-menu .px-4.py-2 {
+                padding: 12px 20px !important;
+            }
+            
+            .student-dashboard .dropdown-menu .px-4.py-2 h3 {
+                color: #333333 !important;
+                font-weight: 600 !important;
+                font-size: 1rem !important;
+            }
+            
+            .student-dashboard .dropdown-menu .flex.items-start {
+                display: flex !important;
+                align-items: flex-start !important;
+            }
+            
+            .student-dashboard .dropdown-menu .bg-blue-100 {
+                background-color: #dbeafe !important;
+                padding: 10px !important;
+                border-radius: 0.5rem !important;
+                margin-right: 12px !important;
+            }
+            
+            .student-dashboard .dropdown-menu .bg-blue-100 i {
+                color: #3b82f6 !important;
+                font-size: 1rem !important;
+            }
+            
+            .student-dashboard .dropdown-menu .text-sm.font-medium {
+                color: #333333 !important;
+                font-weight: 500 !important;
+                font-size: 0.875rem !important;
+                line-height: 1.25rem !important;
+            }
+            
+            .student-dashboard .dropdown-menu .text-xs.text-gray-500 {
+                color: #6b7280 !important;
+                font-size: 0.75rem !important;
+                line-height: 1rem !important;
+                margin-top: 2px !important;
+            }
+            
+            .student-dashboard .dropdown-menu .text-center {
+                text-align: center !important;
+                padding: 12px 20px !important;
+            }
+            
+            .student-dashboard .dropdown-menu .text-blue-600 {
+                color: #4e73df !important;
+                font-weight: 500 !important;
+                font-size: 0.875rem !important;
+            }
+            
+            .student-dashboard .dropdown-menu .text-blue-600:hover {
+                color: #224abe !important;
+            }
+        }
+
+        /* 🔹 6. HERO/WELCOME SECTION BACKGROUND FIX */
+        @media (max-width: 768px) {
+            .student-dashboard .bg-blue-800,
+            .student-dashboard .bg-blue-800 * {
+                background: linear-gradient(45deg, #4e73df, #224abe) !important;
+                color: white !important;
+            }
+            
+            .student-dashboard .bg-blue-800 .text-white {
+                color: white !important;
+            }
+            
+            .student-dashboard .bg-blue-800 .text-blue-200 {
+                color: #bfdbfe !important;
+            }
+            
+            .student-dashboard .bg-blue-800 .btn {
+                background-color: white !important;
+                color: #4e73df !important;
+                border: none !important;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+            }
+            
+            .student-dashboard .bg-blue-800 .btn:hover {
+                background-color: #f8fafc !important;
+                color: #224abe !important;
+                transform: translateY(-1px) !important;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+            }
+        }
+
+        /* 🔹 7. CARD & CONTENT VISIBILITY FIXES */
+        @media (max-width: 768px) {
+            .student-dashboard .page-content .card,
+            .student-dashboard .page-content .bg-white {
+                background-color: white !important;
+                color: #333333 !important;
+                border: 1px solid #e5e7eb !important;
+                border-radius: 0.75rem !important;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+            }
+            
+            .student-dashboard .page-content .card *:not(.btn):not(i.fas):not(i.far):not(i.fab),
+            .student-dashboard .page-content .bg-white *:not(.btn):not(i.fas):not(i.far):not(i.fab) {
+                color: #333333 !important;
+            }
+            
+            .student-dashboard .page-content h1,
+            .student-dashboard .page-content h2,
+            .student-dashboard .page-content h3,
+            .student-dashboard .page-content h4,
+            .student-dashboard .page-content h5,
+            .student-dashboard .page-content h6 {
+                color: #1f2937 !important;
+            }
+            
+            .student-dashboard .page-content p,
+            .student-dashboard .page-content span:not(.header-content *):not(.sidebar *),
+            .student-dashboard .page-content div:not(.header-content *):not(.sidebar *) {
+                color: #4b5563 !important;
+            }
+        }
+
+        /* 🔹 8. FORM ELEMENTS VISIBILITY */
+        @media (max-width: 768px) {
+            .student-dashboard .page-content .form-control,
+            .student-dashboard .page-content .form-label,
+            .student-dashboard .page-content .form-text,
+            .student-dashboard .page-content .form-select {
+                color: #333333 !important;
+            }
+            
+            .student-dashboard .page-content .form-control::placeholder {
+                color: #9ca3af !important;
+            }
+        }
+
+        /* 🔹 9. TABLE VISIBILITY FIX */
+        @media (max-width: 768px) {
+            .student-dashboard .page-content table,
+            .student-dashboard .page-content th,
+            .student-dashboard .page-content td {
+                color: #333333 !important;
+            }
+            
+            .student-dashboard .page-content .table-striped tbody tr:nth-of-type(odd) {
+                background-color: #f9fafb !important;
+            }
+        }
+
+        /* 🔹 10. BADGE & LABEL VISIBILITY */
+        @media (max-width: 768px) {
+            .student-dashboard .page-content .badge {
+                color: white !important;
+            }
+            
+            .student-dashboard .page-content .badge.bg-blue-500 {
+                background-color: #3b82f6 !important;
+            }
+            
+            .student-dashboard .page-content .badge.bg-green-500 {
+                background-color: #10b981 !important;
+            }
+            
+            .student-dashboard .page-content .badge.bg-amber-500 {
+                background-color: #f59e0b !important;
+            }
+            
+            .student-dashboard .page-content .badge.bg-red-500 {
+                background-color: #ef4444 !important;
+            }
+            
+            .student-dashboard .page-content .badge.bg-indigo-500 {
+                background-color: #6366f1 !important;
+            }
+        }
+
+        /* 🔹 11. SPECIFIC DASHBOARD COMPONENT FIXES */
+        @media (max-width: 768px) {
+            /* Quick actions */
+            .student-dashboard .page-content .bg-blue-50,
+            .student-dashboard .page-content .bg-green-50,
+            .student-dashboard .page-content .bg-amber-50,
+            .student-dashboard .page-content .bg-indigo-50 {
+                background-color: #eff6ff !important;
+                color: #333333 !important;
+            }
+            
+            .student-dashboard .page-content .bg-blue-50 *,
+            .student-dashboard .page-content .bg-green-50 *,
+            .student-dashboard .page-content .bg-amber-50 *,
+            .student-dashboard .page-content .bg-indigo-50 * {
+                color: #333333 !important;
+            }
+            
+            /* Circular items */
+            .student-dashboard .page-content .circular-item {
+                background-color: white !important;
+                color: #333333 !important;
+                border: 1px solid #e5e7eb !important;
+            }
+            
+            .student-dashboard .page-content .circular-item.unread {
+                background-color: #f0f9ff !important;
+                border-left: 4px solid #3b82f6 !important;
+            }
+            
+            .student-dashboard .page-content .circular-item.read {
+                background-color: #f8fafc !important;
+                opacity: 0.9 !important;
+            }
+        }
+
+        /* 🔹 12. USER DROPDOWN VISIBILITY FIXES */
+        @media (max-width: 768px) {
+            .student-dashboard .user-dropdown .dropdown-menu {
+                background-color: white !important;
+                color: #333333 !important;
+                border: 1px solid #e5e7eb !important;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+                border-radius: 0.75rem !important;
+                min-width: 200px !important;
+                padding: 8px 0 !important;
+            }
+            
+            .student-dashboard .user-dropdown .dropdown-item {
+                color: #333333 !important;
+                padding: 10px 16px !important;
+                font-size: 0.875rem !important;
+                display: flex !important;
+                align-items: center !important;
+                transition: all 0.2s !important;
+            }
+            
+            .student-dashboard .user-dropdown .dropdown-item:hover {
+                background-color: #f8f9fa !important;
+                color: #4e73df !important;
+            }
+            
+            .student-dashboard .user-dropdown .dropdown-item.text-danger {
+                color: #ef4444 !important;
+            }
+            
+            .student-dashboard .user-dropdown .dropdown-item.text-danger:hover {
+                background-color: #fef2f2 !important;
+                color: #dc2626 !important;
+            }
+        }
+
+        /* 🔹 13. ALERT VISIBILITY FIXES */
+        @media (max-width: 768px) {
+            .student-dashboard .alert {
+                color: #333333 !important;
+                border: 1px solid transparent !important;
+                border-radius: 0.75rem !important;
+                padding: 1rem !important;
+                margin-bottom: 1rem !important;
+            }
+            
+            .student-dashboard .alert-success {
+                background-color: #d4edda !important;
+                border-color: #c3e6cb !important;
+                color: #155724 !important;
+            }
+            
+            .student-dashboard .alert-danger {
+                background-color: #f8d7da !important;
+                border-color: #f5c6cb !important;
+                color: #721c24 !important;
+            }
+            
+            .student-dashboard .alert-info {
+                background-color: #d1ecf1 !important;
+                border-color: #bee5eb !important;
+                color: #0c5460 !important;
+            }
+            
+            .student-dashboard .alert-warning {
+                background-color: #fff3cd !important;
+                border-color: #ffeeba !important;
+                color: #856404 !important;
+            }
+        }
+
+        /* 🔹 14. PROGRESS BARS & STATS VISIBILITY */
+        @media (max-width: 768px) {
+            .student-dashboard .page-content .progress {
+                background-color: #e5e7eb !important;
+                height: 0.75rem !important;
+                border-radius: 0.375rem !important;
+                overflow: hidden !important;
+            }
+            
+            .student-dashboard .page-content .progress-bar {
+                background-color: #4e73df !important;
+                color: white !important;
+                border-radius: 0.375rem !important;
+            }
+            
+            .student-dashboard .page-content .bg-blue-100 {
+                background-color: #dbeafe !important;
+                color: #1e40af !important;
+            }
+            
+            .student-dashboard .page-content .bg-green-100 {
+                background-color: #d1fae5 !important;
+                color: #065f46 !important;
+            }
+            
+            .student-dashboard .page-content .bg-amber-100 {
+                background-color: #fef3c7 !important;
+                color: #92400e !important;
+            }
+            
+            .student-dashboard .page-content .bg-red-100 {
+                background-color: #fee2e2 !important;
+                color: #991b1b !important;
+            }
+        }
+
+        /* 🔹 MOBILE UI POLISH ENHANCEMENTS (NEW ADDITION) */
+        @media (max-width: 768px) {
+            /* CARD POLISH - Restore desktop-like shine */
+            .student-dashboard .page-content .bg-white,
+            .student-dashboard .page-content .card,
+            .student-dashboard .page-content .circular-item {
+                background-color: white !important;
+                color: #333333 !important;
+                border: 1px solid #e5e7eb !important;
+                border-radius: 0.75rem !important;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 
+                            0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+                transition: all 0.3s ease !important;
+            }
+            
+            .student-dashboard .page-content .bg-white:hover,
+            .student-dashboard .page-content .card:hover {
+                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 
+                            0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+                transform: translateY(-2px) !important;
+            }
+            
+            /* ICON POLISH */
+            .student-dashboard .page-content i:not(.header-content i) {
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+            }
+            
+            .student-dashboard .page-content .fa-utensils,
+            .student-dashboard .page-content .fa-money-bill-wave,
+            .student-dashboard .page-content .fa-bullhorn,
+            .student-dashboard .page-content .fa-door-open,
+            .student-dashboard .page-content .fa-star {
+                color: #4e73df !important;
+                filter: drop-shadow(0 2px 2px rgba(78, 115, 223, 0.3)) !important;
+            }
+            
+            /* HERO/WELCOME SECTION POLISH */
+            .student-dashboard .bg-blue-800 {
+                background: linear-gradient(45deg, #4e73df, #224abe) !important;
+                color: white !important;
+                border-radius: 1rem !important;
+                box-shadow: 0 10px 25px -5px rgba(78, 115, 223, 0.3) !important;
+                padding: 1.5rem !important;
+            }
+            
+            /* STATS CARD POLISH */
+            .student-dashboard .page-content .bg-blue-100,
+            .student-dashboard .page-content .bg-green-100,
+            .student-dashboard .page-content .bg-amber-100,
+            .student-dashboard .page-content .bg-indigo-100 {
+                border-radius: 0.75rem !important;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
+                padding: 1rem !important;
+                transition: all 0.3s ease !important;
+            }
+            
+            .student-dashboard .page-content .bg-blue-100:hover,
+            .student-dashboard .page-content .bg-green-100:hover,
+            .student-dashboard .page-content .bg-amber-100:hover,
+            .student-dashboard .page-content .bg-indigo-100:hover {
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07) !important;
+                transform: translateY(-2px) !important;
+            }
+        }
+
+        /* 🔹 DROPDOWN FIX - HIDE BY DEFAULT, SHOW WITH JS */
+        .student-dashboard .dropdown-menu {
+            display: none !important;
+        }
+        
+        .student-dashboard .dropdown-menu.show {
+            display: block !important;
+        }
     </style>
     
     <!-- Page-specific CSS -->
     @stack('styles')
 </head>
-<body class="bg-gray-50 font-sans">
+<body class="student-dashboard">
     <a href="#main-content" class="skip-link">मुख्य सामग्रीमा जानुहोस्</a>
     
     <div class="flex min-h-screen">
@@ -864,18 +1802,16 @@
                         </div>
 
                         <!-- Notifications -->
-                        <div class="dropdown">
-                            <button class="notification-button text-white hover:text-gray-200 p-2 rounded-full hover:bg-blue-700 dropdown-toggle" 
+                        <div class="relative">
+                            <button class="notification-button text-white hover:text-gray-200 p-2 rounded-full hover:bg-blue-700" 
                                     type="button" 
-                                    id="notificationsDropdown" 
-                                    data-bs-toggle="dropdown" 
-                                    aria-expanded="false"
+                                    id="notificationsDropdown"
                                     aria-label="सूचनाहरू हेर्नुहोस्">
                                 <i class="fas fa-bell text-lg text-white"></i>
                                 <span class="notification-dot" aria-hidden="true"></span>
                             </button>
-                            <div class="dropdown-menu dropdown-menu-end w-80 bg-white rounded-xl shadow-lg py-1 z-20 max-h-96 overflow-y-auto border border-gray-200" 
-                                 aria-labelledby="notificationsDropdown">
+                            <div class="dropdown-menu dropdown-menu-end w-80 bg-white rounded-xl shadow-lg py-1 z-20 max-h-96 overflow-y-auto border border-gray-200 absolute right-0 mt-2" 
+                                 id="notificationsMenu">
                                 <div class="px-4 py-2 border-b border-gray-200">
                                     <h3 class="font-semibold text-gray-800">सूचनाहरू</h3>
                                 </div>
@@ -913,17 +1849,16 @@
                         </div>
                         
                         <!-- User Profile Dropdown -->
-                        <div class="dropdown user-dropdown">
+                        <div class="relative">
                             <button class="btn btn-outline-light dropdown-toggle d-flex align-items-center" 
                                     type="button" 
-                                    id="userDropdown" 
-                                    data-bs-toggle="dropdown" 
-                                    aria-expanded="false"
+                                    id="userDropdown"
                                     aria-label="प्रयोगकर्ता मेनु">
                                 <i class="fas fa-user-circle me-2 text-white"></i>
                                 <span class="d-none d-md-inline text-white">{{ Auth::user()->name ?? 'विद्यार्थी' }}</span>
                             </button>
-                            <ul class="dropdown-menu dropdown-menu-end shadow-lg rounded-xl border-0 py-2" aria-labelledby="userDropdown">
+                            <ul class="dropdown-menu dropdown-menu-end shadow-lg rounded-xl border-0 py-2 absolute right-0 mt-2" 
+                                id="userMenu">
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center text-dark" href="{{ route('student.profile') }}">
                                         <i class="fas fa-user me-2"></i>प्रोफाइल
@@ -990,6 +1925,8 @@
     <!-- Custom JavaScript -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded - initializing dropdowns');
+            
             // Sidebar collapse functionality
             const sidebar = document.getElementById('sidebar');
             const sidebarCollapse = document.getElementById('sidebar-collapse');
@@ -1069,12 +2006,6 @@
                 });
             });
             
-            // Initialize tooltips
-            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl);
-            });
-            
             // Auto-dismiss alerts after 5 seconds
             const alerts = document.querySelectorAll('.alert');
             alerts.forEach(function(alert) {
@@ -1120,12 +2051,8 @@
                 
                 // Close dropdowns on Escape
                 if (e.key === 'Escape') {
-                    const openDropdowns = document.querySelectorAll('.dropdown-menu.show');
-                    openDropdowns.forEach(function(dropdown) {
-                        const dropdownInstance = bootstrap.Dropdown.getInstance(dropdown.previousElementSibling);
-                        if (dropdownInstance) {
-                            dropdownInstance.hide();
-                        }
+                    document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                        menu.classList.remove('show');
                     });
                 }
             });
@@ -1156,6 +2083,77 @@
             
             // Update on window resize
             window.addEventListener('resize', updateSidebarState);
+
+            // ===========================================
+            // SIMPLE DROPDOWN TOGGLE - NO BOOTSTRAP INTERFERENCE
+            // ===========================================
+            
+            // Get dropdown elements
+            const notificationsBtn = document.getElementById('notificationsDropdown');
+            const notificationsMenu = document.getElementById('notificationsMenu');
+            const userBtn = document.getElementById('userDropdown');
+            const userMenu = document.getElementById('userMenu');
+            
+            console.log('Dropdown elements found:', {
+                notificationsBtn: !!notificationsBtn,
+                notificationsMenu: !!notificationsMenu,
+                userBtn: !!userBtn,
+                userMenu: !!userMenu
+            });
+            
+            // Ensure dropdowns are hidden on page load
+            if (notificationsMenu) notificationsMenu.classList.remove('show');
+            if (userMenu) userMenu.classList.remove('show');
+            
+            // Function to toggle dropdown
+            function toggleDropdown(button, menu) {
+                if (!button || !menu) return;
+                
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    console.log('Button clicked:', button.id);
+                    
+                    // Close all other dropdowns
+                    document.querySelectorAll('.dropdown-menu').forEach(m => {
+                        if (m !== menu && m.classList.contains('show')) {
+                            m.classList.remove('show');
+                        }
+                    });
+                    
+                    // Toggle current dropdown
+                    menu.classList.toggle('show');
+                    
+                    console.log('Menu state:', menu.classList.contains('show') ? 'open' : 'closed');
+                });
+            }
+            
+            // Initialize dropdowns
+            toggleDropdown(notificationsBtn, notificationsMenu);
+            toggleDropdown(userBtn, userMenu);
+            
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', function(e) {
+                // Check if click is inside a dropdown button or menu
+                const isDropdownButton = e.target.closest('#notificationsDropdown') || 
+                                       e.target.closest('#userDropdown');
+                const isDropdownMenu = e.target.closest('.dropdown-menu');
+                
+                if (!isDropdownButton && !isDropdownMenu) {
+                    // Clicked outside, close all dropdowns
+                    document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                        menu.classList.remove('show');
+                    });
+                }
+            });
+            
+            // Close dropdowns when clicking on dropdown items (links)
+            document.querySelectorAll('.dropdown-menu a').forEach(link => {
+                link.addEventListener('click', function() {
+                    this.closest('.dropdown-menu')?.classList.remove('show');
+                });
+            });
         });
     </script>
 
@@ -1279,31 +2277,6 @@
                 setInterval(updateStudentCirculars, 60000); // Update every minute
             }
 
-            // Real-time circular notifications for students
-            function checkNewCirculars() {
-                $.ajax({
-                    url: '{{ route("student.circulars.index") }}?check_new=true',
-                    method: 'GET',
-                    success: function(response) {
-                        if (response.new_circulars && response.new_circulars > 0) {
-                            // Update notification badge
-                            const badge = $('.notification-dot');
-                            if (badge.length) {
-                                badge.text(response.new_circulars);
-                                badge.show();
-                            }
-                            
-                            // Show notification
-                            if (response.new_circulars === 1) {
-                                showStudentAlert('नयाँ सूचना', 'तपाईंसँग १ नयाँ सूचना छ', 'info');
-                            } else {
-                                showStudentAlert('नयाँ सूचनाहरू', `तपाईंसँग ${response.new_circulars} नयाँ सूचनाहरू छन्`, 'info');
-                            }
-                        }
-                    }
-                });
-            }
-
             // Helper function to show alerts for students
             function showStudentAlert(title, message, type) {
                 const alertClass = type === 'success' ? 'alert-success' : 
@@ -1329,9 +2302,6 @@
                     $('.alert').alert('close');
                 }, 5000);
             }
-
-            // Check for new circulars every 30 seconds
-            setInterval(checkNewCirculars, 30000);
 
             // Bulk mark as read functionality
             $(document).on('click', '.bulk-mark-read-btn', function() {
