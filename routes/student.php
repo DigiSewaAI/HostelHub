@@ -20,9 +20,15 @@ Route::middleware(['auth', 'role:student'])
         // Student Dashboard
         Route::get('/dashboard', [StudentController::class, 'dashboard'])->name('dashboard');
 
+        // Student Profile
         Route::get('/profile', [StudentController::class, 'profile'])->name('profile');
+        Route::patch('/profile/update', [StudentController::class, 'updateProfile'])->name('profile.update');
 
-        // Payments route
+        // ✅ NEW: Student's Room Routes
+        Route::get('/my-room', [StudentController::class, 'myRoom'])->name('my-room');
+        Route::post('/report-room-issue', [StudentController::class, 'reportRoomIssue'])->name('report-room-issue');
+
+        // Payments routes
         Route::get('/payments', [PaymentController::class, 'studentPayments'])->name('payments.index');
         Route::get('/payments/{paymentId}/receipt', [PaymentController::class, 'showReceipt'])->name('payments.receipt');
         Route::get('/payments/{paymentId}/receipt/download', [PaymentController::class, 'downloadReceipt'])->name('payments.receipt.download');
@@ -32,8 +38,8 @@ Route::middleware(['auth', 'role:student'])
         Route::get('/meal-menus/{mealMenu}', [StudentController::class, 'showMealMenu'])->name('meal-menus.show');
 
         // Room viewing
-        Route::get('/rooms', [RoomController::class, 'studentIndex'])->name('rooms.index');
-        Route::get('/rooms/{room}', [RoomController::class, 'studentShow'])->name('rooms.show');
+        //Route::get('/rooms', [RoomController::class, 'studentIndex'])->name('rooms.index');
+        // Route::get('/rooms/{room}', [RoomController::class, 'studentShow'])->name('rooms.show');
         Route::get('/rooms/search', [RoomController::class, 'search'])->name('rooms.search');
 
         // Hostel routes
@@ -59,9 +65,6 @@ Route::middleware(['auth', 'role:student'])
         Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
         Route::get('/bookings/{id}', [BookingController::class, 'show'])->name('bookings.show');
         Route::post('/bookings/{id}/cancel', [BookingController::class, 'cancel'])->name('bookings.cancel');
-
-        // Student profile update
-        Route::patch('/profile/update', [StudentController::class, 'updateProfile'])->name('profile.update');
 
         // ✅ FIXED: Student Circular Routes with enhanced functionality
         Route::prefix('circulars')->name('circulars.')->group(function () {

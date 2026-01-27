@@ -254,6 +254,9 @@ Route::middleware(['auth', 'hasOrganization', 'role:owner,hostel_manager'])
         Route::post('contacts/{contact}/mark-unread', [OwnerContactController::class, 'markAsUnread'])->name('contacts.mark-unread');
         Route::post('contacts/bulk-action', [OwnerContactController::class, 'bulkAction'])->name('contacts.bulk-action');
 
+        Route::post('rooms/{room}/sync-single', [AdminRoomController::class, 'syncSingle'])->name('rooms.sync-single');
+
+
         // ✅ FIXED: Gallery Feature Toggle Routes - INSIDE OWNER GROUP
         Route::patch('/galleries/{gallery}/toggle-featured', [OwnerGalleryController::class, 'toggleFeatured'])->name('galleries.toggle-featured');
         Route::patch('/galleries/{gallery}/toggle-active', [OwnerGalleryController::class, 'toggleActive'])->name('galleries.toggle-active');

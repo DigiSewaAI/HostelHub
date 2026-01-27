@@ -80,7 +80,7 @@
                             <span>{{ now()->format('F j, Y') }}</span>
                         </div>
                     </div>
-                    <!-- 🏠 Homepage Button in Welcome Section -->
+                    <!-- 🏠 Homepage Button in Welcome Section (KEEP THIS ONE) -->
                     <a href="{{ url('/') }}" 
                        class="bg-green-600 hover:bg-green-700 text-white p-3 rounded-xl border border-green-500 font-bold text-center transition-colors no-underline">
                         <div class="flex items-center justify-center">
@@ -285,9 +285,11 @@
                         </div>
                     </div>
                     
-                    <button class="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl font-medium transition-colors">
-                        <i class="fas fa-info-circle mr-2"></i>पूर्ण विवरण हेर्नुहोस्
-                    </button>
+                    <a href="{{ route('student.my-room') }}" 
+   class="block w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl font-medium transition-colors text-center">
+    <i class="fas fa-info-circle mr-2"></i>पूर्ण विवरण हेर्नुहोस्
+</a>
+
                 </div>
 
                 <!-- Payment Status -->
@@ -330,7 +332,7 @@
                         <div class="bg-green-100 p-2 rounded-lg mr-3">
                             <i class="fas fa-utensils text-green-600"></i>
                         </div>
-                        <h3 class="text-lg font-bold text-gray-800">आजको खानाको योजना</h3>
+                        <h3 class="text-lg font-bold text-gray-800">आजको खानाको मेनु</h3>
                     </div>
                     
                     @if($todayMeal)
@@ -363,7 +365,7 @@
                     @else
                         <div class="text-center py-4">
                             <i class="fas fa-utensils text-gray-400 text-3xl mb-2"></i>
-                            <p class="text-gray-500">आजको खानाको योजना हाल अपडेट छैन</p>
+                            <p class="text-gray-500">आजको खानाको मेनु हाल अपडेट छैन</p>
                         </div>
                     @endif
                     
@@ -416,13 +418,8 @@
             <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
                 <h3 class="text-lg font-bold text-gray-800 mb-4">द्रुत कार्यहरू</h3>
                 <div class="grid grid-cols-2 gap-3">
-                    <!-- 🏠 Homepage Button in Quick Actions -->
-                    <a href="{{ url('/') }}" class="bg-green-50 hover:bg-green-100 p-3 rounded-xl text-center transition-colors group border border-green-100">
-                        <div class="text-green-600 text-xl mb-1">
-                            <i class="fas fa-home"></i>
-                        </div>
-                        <div class="text-green-800 text-xs font-medium">मुख्य पृष्ठ</div>
-                    </a>
+                    <!-- 🚫 DUPLICATE "मुख्य पृष्ठ" BUTTON REMOVED FROM QUICK ACTIONS -->
+                    <!-- Keeping only the one in Welcome section -->
                     
                     <a href="{{ route('student.profile') }}" class="bg-blue-50 hover:bg-blue-100 p-3 rounded-xl text-center transition-colors group border border-blue-100">
                         <div class="text-blue-600 text-xl mb-1">
@@ -435,7 +432,7 @@
                         <div class="text-green-600 text-xl mb-1">
                             <i class="fas fa-utensils"></i>
                         </div>
-                        <div class="text-green-800 text-xs font-medium">खानाको योजना</div>
+                        <div class="text-green-800 text-xs font-medium">खानाको मेनु</div>
                     </a>
                     
                     <a href="{{ route('student.circulars.index') }}" class="bg-indigo-50 hover:bg-indigo-100 p-3 rounded-xl text-center transition-colors group border border-indigo-100 relative">
@@ -463,6 +460,14 @@
                         </div>
                         <div class="text-amber-800 text-xs font-medium">भुक्तानी गर्नुहोस्</div>
                     </button>
+                    
+                    <!-- Added extra button to maintain grid layout -->
+                    <a href="{{ route('student.bookings.index') }}" class="bg-teal-50 hover:bg-teal-100 p-3 rounded-xl text-center transition-colors group border border-teal-100">
+                        <div class="text-teal-600 text-xl mb-1">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="text-teal-800 text-xs font-medium">मेरो बुकिङ</div>
+                    </a>
                 </div>
             </div>
 

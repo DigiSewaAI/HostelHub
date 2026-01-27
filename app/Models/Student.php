@@ -291,10 +291,26 @@ class Student extends Model
      */
     public function getImageUrlAttribute()
     {
-        return $this->image
-            ? asset('storage/' . $this->image)
-            : asset('images/default-user.png');
+        if (!empty($this->image)) {
+            // Check if it's already a full URL
+            if (filter_var($this->image, FILTER_VALIDATE_URL)) {
+                return $this->image;
+            }
+
+            // Try to get from storage
+            if (Storage::disk('public')->exists($this->image)) {
+                return Storage::disk('public')->url($this->image);
+            }
+
+            // Try asset path
+            if (file_exists(public_path('storage/' . $this->image))) {
+                return asset('storage/' . $this->image);
+            }
+        }
+
+        return asset('images/default-user.png');
     }
+
 
     /**
      * Accessor for Nepali status.

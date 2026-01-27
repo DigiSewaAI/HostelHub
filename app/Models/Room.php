@@ -27,7 +27,7 @@ class Room extends Model
         'status',
         'image',
         'description',
-        'floor',
+        // 'floor', // REMOVED TEMPORARILY - column doesn't exist
     ];
 
     protected $casts = [
@@ -37,7 +37,19 @@ class Room extends Model
         'available_beds' => 'integer',
     ];
 
-    protected $appends = ['image_url', 'has_image', 'display_status', 'is_available'];
+    protected $appends = ['image_url', 'has_image', 'display_status', 'is_available', 'floor'];
+
+    /**
+     * ✅ FIXED: Get floor attribute with fallback
+     */
+    public function getFloorAttribute()
+    {
+        // Check if floor exists in database, otherwise return default
+        if (isset($this->attributes['floor'])) {
+            return $this->attributes['floor'];
+        }
+        return 'N/A'; // Default value
+    }
 
     /**
      * ✅ FIXED: Boot method with CORRECT occupancy calculation based on ACTIVE STUDENTS only
@@ -54,18 +66,27 @@ class Room extends Model
                 '2 seater' => 2,
                 '3 seater' => 3,
                 '4 seater' => 4,
-                // 'साझा कोठा' keeps existing capacity (custom)
+                'साझा कोठा' => 5, // Default for shared room
+                // Additional mappings for consistency
+                'single' => 1,
+                'double' => 2,
+                'triple' => 3,
+                'quad' => 4,
+                'dormitory' => 10,
+                'suite' => 2,
             ];
 
-            if (isset($typeCapacityMap[$room->type]) && $room->type !== 'साझा कोठा') {
+            if (isset($typeCapacityMap[$room->type])) {
                 $room->capacity = $typeCapacityMap[$room->type];
             }
 
             // ✅ CRITICAL FIX: Calculate current_occupancy based on ACTIVE STUDENTS only
-            $activeStudentsCount = $room->students()
-                ->where('status', 'active') // Only ACTIVE students count as occupancy
-                ->count();
-
+            $activeStudentsCount = 0;
+            if ($room->exists) {
+                $activeStudentsCount = $room->students()
+                    ->where('status', 'active')
+                    ->count();
+            }
             $room->current_occupancy = $activeStudentsCount;
 
             // ✅ CRITICAL FIX: Calculate available beds CORRECTLY
@@ -90,21 +111,27 @@ class Room extends Model
 
         // Update hostel room counts when room is created, updated or deleted
         static::created(function ($room) {
-            $room->hostel->updateRoomCounts();
+            if ($room->hostel) {
+                $room->hostel->updateRoomCounts();
+            }
             if ($room->image) {
                 $room->syncImageToGallery();
             }
         });
 
         static::updated(function ($room) {
-            $room->hostel->updateRoomCounts();
+            if ($room->hostel) {
+                $room->hostel->updateRoomCounts();
+            }
             if ($room->isDirty('image') || $room->isDirty('type')) {
                 $room->syncImageToGallery();
             }
         });
 
         static::deleted(function ($room) {
-            $room->hostel->updateRoomCounts();
+            if ($room->hostel) {
+                $room->hostel->updateRoomCounts();
+            }
             $room->galleries()->delete();
         });
     }
@@ -332,9 +359,11 @@ class Room extends Model
         // Use media_url helper
         if (!empty($this->image)) {
             try {
-                $url = \media_url($this->image);
-                if ($url !== asset('images/no-image.png')) {
-                    return $url;
+                if (function_exists('media_url')) {
+                    $url = media_url($this->image);
+                    if ($url !== asset('images/no-image.png')) {
+                        return $url;
+                    }
                 }
             } catch (\Exception $e) {
                 // Fall through
@@ -346,9 +375,11 @@ class Room extends Model
             foreach ($this->galleries as $gallery) {
                 if ($gallery->file_path) {
                     try {
-                        $url = \media_url($gallery->file_path);
-                        if ($url !== asset('images/no-image.png')) {
-                            return $url;
+                        if (function_exists('media_url')) {
+                            $url = media_url($gallery->file_path);
+                            if ($url !== asset('images/no-image.png')) {
+                                return $url;
+                            }
                         }
                     } catch (\Exception $e) {
                         // Continue to next
@@ -371,10 +402,14 @@ class Room extends Model
         }
 
         try {
-            return media_exists($this->image);
+            if (function_exists('media_exists')) {
+                return media_exists($this->image);
+            }
         } catch (\Exception $e) {
             return false;
         }
+
+        return false;
     }
 
     /**
@@ -438,6 +473,8 @@ class Room extends Model
             'triple' => 'तीन सिटर कोठा',
             'quad' => 'चार सिटर कोठा',
             'shared' => 'साझा कोठा',
+            'dormitory' => 'डोर्मिटरी',
+            'suite' => 'सुइट',
             'other' => 'अन्य कोठा'
         ];
 
@@ -526,21 +563,28 @@ class Room extends Model
         // Use ROOM TYPE to determine category
         switch ($this->type) {
             case '1 seater':
+            case 'single':
                 return '1 seater';
             case '2 seater':
+            case 'double':
                 return '2 seater';
             case '3 seater':
+            case 'triple':
                 return '3 seater';
             case '4 seater':
+            case 'quad':
                 return '4 seater';
             case 'साझा कोठा':
+            case 'shared':
+            case 'dormitory':
                 return 'साझा कोठा';
             default:
                 // Fallback for old types
                 if ($this->capacity == 1) return '1 seater';
                 if ($this->capacity == 2) return '2 seater';
                 if ($this->capacity == 3) return '3 seater';
-                return '4 seater';
+                if ($this->capacity == 4) return '4 seater';
+                return 'साझा कोठा';
         }
     }
 
@@ -584,7 +628,7 @@ class Room extends Model
             if (method_exists($firstGallery, 'getMediaUrlAttribute')) {
                 return $firstGallery->media_url;
             } elseif (function_exists('media_url') && $firstGallery->file_path) {
-                return \media_url($firstGallery->file_path);
+                return media_url($firstGallery->file_path);
             } elseif ($firstGallery->file_path && Storage::disk('public')->exists($firstGallery->file_path)) {
                 return Storage::disk('public')->url($firstGallery->file_path);
             }

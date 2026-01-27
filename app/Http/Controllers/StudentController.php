@@ -400,6 +400,179 @@ class StudentController extends Controller
         }
     }
 
+    /**
+     * ✅ ULTIMATE FIX: विद्यार्थीको कोठा विवरण हेर्ने method
+     */
+    public function myRoom()
+    {
+        try {
+            $user = Auth::user();
+            $student = $user->student;
+
+            if (!$student) {
+                return redirect()->route('student.dashboard')
+                    ->with('error', 'तपाईंको विद्यार्थी प्रोफाइल भेटिएन।');
+            }
+
+            // ✅ Get room with relationships - FIXED: image_url को सट्टा image प्रयोग गर्नुहोस्
+            $room = Room::with([
+                'hostel:id,name',
+                'students' => function ($query) use ($student) {
+                    $query->where('status', 'active')
+                        ->with(['user' => function ($q) {
+                            $q->select('id', 'name');
+                        }]);
+                },
+                'galleries'
+            ])->find($student->room_id);
+
+            if (!$room) {
+                return view('student.my-room-empty', compact('student'))
+                    ->with('info', 'तपाईंलाई अहिले कुनै कोठा असाइन गरिएको छैन।');
+            }
+
+            // ✅ FIXED: Get roommates - Use existing columns only
+$roommates = $room->students()
+    ->where('id', '!=', $student->id)
+    ->where('status', 'active')
+    ->select('id', 'name', 'image', 'status', 'room_id') // Only use existing columns
+    ->with(['user' => function ($query) {
+        $query->select('id', 'name');
+    }])
+    ->get();
+
+            // ✅ Calculate occupancy percentage
+            $currentOccupancy = $room->current_occupancy ?? 0;
+            $occupancyPercentage = $room->capacity > 0 ?
+                ($currentOccupancy / $room->capacity) * 100 : 0;
+
+            // ✅ Add calculated fields to room object
+            $room->occupancy_percentage = round($occupancyPercentage);
+            $room->available_beds_display = $room->available_beds ?? 0;
+
+            // ✅ Get Nepali translations
+            $room->nepali_status = $this->getNepaliRoomStatus($room->status ?? 'available');
+            $room->nepali_type = $this->getNepaliRoomType($room->type ?? 'other');
+            $room->gallery_category_nepali = $this->getNepaliGalleryCategory($room->gallery_category ?? '');
+
+            // ✅ Set floor with safe fallback
+            if (empty($room->floor)) {
+                $room->floor = 'N/A';
+            }
+
+            // ✅ Get student info (for "You" badge) with safe fallback
+            $student->image_url = $student->image_url ?? asset('images/default-user.png');
+
+            return view('student.my-room', compact('room', 'roommates', 'student'));
+        } catch (\Exception $e) {
+            \Log::error('Student room view error: ' . $e->getMessage(), [
+                'user_id' => Auth::id(),
+                'student_id' => $student->id ?? null,
+                'error_trace' => $e->getTraceAsString()
+            ]);
+
+            return redirect()->route('student.dashboard')
+                ->with('error', 'कोठा विवरण लोड गर्न असफल भयो।');
+        }
+    }
+
+    // ✅ Helper methods for Nepali translations
+    private function getNepaliRoomStatus($status)
+    {
+        $statusMap = [
+            'available' => 'उपलब्ध',
+            'occupied' => 'व्यस्त',
+            'partially_available' => 'आंशिक उपलब्ध',
+            'maintenance' => 'मर्मतमा',
+            'reserved' => 'आरक्षित',
+        ];
+
+        return $statusMap[$status] ?? $status;
+    }
+
+    /**
+     * ✅ Helper method for Nepali room type
+     */
+    private function getNepaliRoomType($type)
+    {
+        $typeMap = [
+            'single' => 'एक सिटर कोठा',
+            'double' => 'दुई सिटर कोठा',
+            'triple' => 'तीन सिटर कोठा',
+            'quad' => 'चार सिटर कोठा',
+            'dormitory' => 'डोर्मिटरी',
+            'suite' => 'सुइट',
+            '1 seater' => 'एक सिटर कोठा',
+            '2 seater' => 'दुई सिटर कोठा',
+            '3 seater' => 'तीन सिटर कोठा',
+            '4 seater' => 'चार सिटर कोठा',
+            'साझा कोठा' => 'साझा कोठा',
+        ];
+
+        return $typeMap[$type] ?? $type;
+    }
+
+    /**
+     * ✅ Helper method for Nepali gallery category
+     */
+    private function getNepaliGalleryCategory($category)
+    {
+        $categoryMap = [
+            'single_room' => 'एक सिटर कोठा',
+            'double_room' => 'दुई सिटर कोठा',
+            'triple_room' => 'तीन सिटर कोठा',
+            'quad_room' => 'चार सिटर कोठा',
+            'dormitory' => 'डोर्मिटरी',
+            'common_areas' => 'सामान्य क्षेत्रहरू',
+            'bathroom' => 'स्नानागार',
+            'kitchen' => 'भान्सा',
+            'garden' => 'बगैंचा',
+            'reception' => 'रिसेप्सन',
+            '1 seater' => '१ सिटर कोठा',
+            '2 seater' => '२ सिटर कोठा',
+            '3 seater' => '३ सिटर कोठा',
+            '4 seater' => '४ सिटर कोठा',
+            'साझा कोठा' => 'साझा कोठा',
+        ];
+
+        return $categoryMap[$category] ?? $category;
+    }
+
+
+    // ✅ NEW: कोठा सम्बन्धित समस्याहरू रिपोर्ट गर्ने method
+    public function reportRoomIssue(Request $request)
+    {
+        $validated = $request->validate([
+            'issue_type' => 'required|in:cleaning,maintenance,noise,other',
+            'description' => 'required|string|max:500',
+            'priority' => 'required|in:low,medium,high'
+        ]);
+
+        $student = Auth::user()->student;
+
+        if (!$student || !$student->room_id) {
+            return redirect()->back()->with('error', 'तपाईंलाई कोठा असाइन गरिएको छैन।');
+        }
+
+        // Check if MaintenanceRequest model exists
+        if (class_exists('App\Models\MaintenanceRequest')) {
+            \App\Models\MaintenanceRequest::create([
+                'student_id' => $student->id,
+                'hostel_id' => $student->hostel_id,
+                'room_id' => $student->room_id,
+                'title' => 'कोठा समस्या: ' . $validated['issue_type'],
+                'description' => $validated['description'],
+                'priority' => $validated['priority'],
+                'status' => 'pending'
+            ]);
+
+            return redirect()->route('student.my-room')
+                ->with('success', 'तपाईंको समस्या सफलतापूर्वक रिपोर्ट गरियो।');
+        } else {
+            return redirect()->back()->with('error', 'रिपोर्ट सेवा अहिले उपलब्ध छैन।');
+        }
+    }
+
     // ✅ NEWLY ADDED: Method to mark circular as read
     public function markCircularAsRead($circularId)
     {

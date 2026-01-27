@@ -710,94 +710,94 @@
           
           /* FIX 2: Header content alignment */
           .student-dashboard .header-content > div:first-child {
-            flex: 1 1 auto;
-            min-width: 0;
+                flex: 1 1 auto;
+                min-width: 0;
           }
           
           .student-dashboard .header-content > div:last-child {
-            flex-shrink: 0;
+                flex-shrink: 0;
           }
           
           /* FIX 3: Mobile menu button visibility */
           .student-dashboard #mobile-sidebar-toggle {
-            width: 44px;
-            height: 44px;
-            display: flex !important;
-            align-items: center;
-            justify-content: center;
-            padding: 0 !important;
-            margin-right: 8px !important;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
+                width: 44px;
+                height: 44px;
+                display: flex !important;
+                align-items: center;
+                justify-content: center;
+                padding: 0 !important;
+                margin-right: 8px !important;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 8px;
           }
           
           /* FIX 4: Logo/brand adjustment */
           .student-dashboard .navbar-brand {
-            font-size: 14px !important;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 120px;
+                font-size: 14px !important;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 120px;
           }
           
           .student-dashboard .navbar-brand img,
           .student-dashboard .navbar-brand .mobile-text-logo {
-            width: 32px !important;
-            height: 32px !important;
-            margin-right: 8px !important;
+                width: 32px !important;
+                height: 32px !important;
+                margin-right: 8px !important;
           }
           
           /* FIX 5: Header buttons container */
           .student-dashboard .header-content .flex.items-center.space-x-3 {
-            gap: 4px !important;
+                gap: 4px !important;
           }
           
           /* FIX 6: Student badge visibility */
           .student-dashboard .student-badge {
-            padding: 4px 8px !important;
-            font-size: 12px !important;
-            margin-right: 4px !important;
-            display: none;
+                padding: 4px 8px !important;
+                font-size: 12px !important;
+                margin-right: 4px !important;
+                display: none;
           }
           
           /* FIX 7: Notification button */
           .student-dashboard .notification-button {
-            width: 40px !important;
-            height: 40px !important;
-            padding: 0 !important;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+                width: 40px !important;
+                height: 40px !important;
+                padding: 0 !important;
+                display: flex;
+                align-items: center;
+                justify-content: center;
           }
           
           .student-dashboard .notification-button i {
-            font-size: 18px !important;
+                font-size: 18px !important;
           }
           
           /* FIX 8: User dropdown button */
           .student-dashboard .user-dropdown .btn {
-            padding: 6px 10px !important;
-            font-size: 13px !important;
-            height: 40px !important;
+                padding: 6px 10px !important;
+                font-size: 13px !important;
+                height: 40px !important;
           }
           
           .student-dashboard .user-dropdown .btn i {
-            margin-right: 4px !important;
+                margin-right: 4px !important;
           }
           
           .student-dashboard .user-dropdown .btn span {
-            display: none;
+                display: none;
           }
           
           /* FIX 9: Dropdown menus visibility */
           .student-dashboard .dropdown-menu {
-            font-size: 14px !important;
-            min-width: 200px !important;
+                font-size: 14px !important;
+                min-width: 200px !important;
           }
           
           /* FIX 10: Ensure text contrast */
           .student-dashboard .header-content * {
-            color: white !important;
+                color: white !important;
           }
         }
 
@@ -805,22 +805,22 @@
         @media (max-width: 768px) {
           /* FIX 1: Main content offset */
           .student-dashboard .page-content {
-            padding-top: calc(56px + 16px) !important;
+                padding-top: calc(56px + 16px) !important;
           }
           
           /* FIX 2: Dashboard content spacing */
           .student-dashboard .page-content > .bg-blue-800.rounded-2xl {
-            margin-top: 8px !important;
+                margin-top: 8px !important;
           }
           
           /* FIX 3: Remove any top margins that cause overlap */
           .student-dashboard .page-content > *:first-child {
-            margin-top: 0 !important;
+                margin-top: 0 !important;
           }
           
           /* FIX 4: Safe scrolling area */
           .student-dashboard .main-content-container {
-            min-height: calc(100vh - 56px) !important;
+                min-height: calc(100vh - 56px) !important;
           }
         }
 
@@ -830,63 +830,63 @@
           .student-dashboard .bg-white,
           .student-dashboard .card,
           .student-dashboard .circular-item {
-            background-color: white !important;
-            color: #333333 !important;
-            border: 1px solid #e5e7eb !important;
+                background-color: white !important;
+                color: #333333 !important;
+                border: 1px solid #e5e7eb !important;
           }
           
           /* FIX 2: Text readability */
           .student-dashboard h1, 
           .student-dashboard h2, 
           .student-dashboard h3 {
-            color: #1f2937 !important;
-            line-height: 1.3 !important;
+                color: #1f2937 !important;
+                line-height: 1.3 !important;
           }
           
           .student-dashboard p,
           .student-dashboard span:not(.header-content *) {
-            color: #4b5563 !important;
-            line-height: 1.5 !important;
+                color: #4b5563 !important;
+                line-height: 1.5 !important;
           }
           
           /* FIX 3: Button visibility */
           .student-dashboard .btn {
-            min-height: 44px !important;
-            padding: 10px 16px !important;
-            font-size: 14px !important;
-            font-weight: 500 !important;
+                min-height: 44px !important;
+                padding: 10px 16px !important;
+                font-size: 14px !important;
+                font-weight: 500 !important;
           }
           
           .student-dashboard .btn-primary {
-            background-color: #3b82f6 !important;
-            color: white !important;
+                background-color: #3b82f6 !important;
+                color: white !important;
           }
           
           .student-dashboard .btn-outline-primary {
-            color: #3b82f6 !important;
-            border-color: #3b82f6 !important;
+                color: #3b82f6 !important;
+                border-color: #3b82f6 !important;
           }
           
           /* FIX 4: Icon visibility */
           .student-dashboard i:not(.header-content *) {
-            color: #6b7280 !important;
+                color: #6b7280 !important;
           }
           
           .student-dashboard .bg-blue-100 i,
           .student-dashboard .bg-green-100 i,
           .student-dashboard .bg-amber-100 i,
           .student-dashboard .bg-indigo-100 i {
-            color: inherit !important;
+                color: inherit !important;
           }
           
           /* FIX 5: Table/cell visibility */
           .student-dashboard table * {
-            font-size: 13px !important;
+                font-size: 13px !important;
           }
           
           .student-dashboard th,
           .student-dashboard td {
-            padding: 8px !important;
+                padding: 8px !important;
           }
         }
 
@@ -894,68 +894,68 @@
         @media (max-width: 768px) {
           /* ENH 1: Card spacing */
           .student-dashboard .bg-white.rounded-2xl {
-            margin-bottom: 16px !important;
-            padding: 16px !important;
+                margin-bottom: 16px !important;
+                padding: 16px !important;
           }
           
           /* ENH 2: Grid spacing */
           .student-dashboard .grid {
-            gap: 12px !important;
+                gap: 12px !important;
           }
           
           /* ENH 3: Section spacing */
           .student-dashboard .space-y-6 > * + * {
-            margin-top: 20px !important;
+                margin-top: 20px !important;
           }
           
           /* ENH 4: Dashboard stats grid - 2 columns */
           .student-dashboard .grid.grid-cols-2 {
-            grid-template-columns: repeat(2, 1fr) !important;
+                grid-template-columns: repeat(2, 1fr) !important;
           }
           
           .student-dashboard .grid.grid-cols-2 > * {
-            min-height: 100px !important;
+                min-height: 100px !important;
           }
           
           /* ENH 5: Quick actions grid - 3 columns */
           .student-dashboard .grid.grid-cols-2.gap-3 {
-            grid-template-columns: repeat(3, 1fr) !important;
-            gap: 8px !important;
+                grid-template-columns: repeat(3, 1fr) !important;
+                gap: 8px !important;
           }
           
           /* ENH 6: Welcome section improvement */
           .student-dashboard .bg-blue-800 .text-white {
-            font-size: 15px !important;
+                font-size: 15px !important;
           }
           
           .student-dashboard .bg-blue-800 h2 {
-            font-size: 18px !important;
-            margin-bottom: 4px !important;
+                font-size: 18px !important;
+                margin-bottom: 4px !important;
           }
         }
 
         /* 🔹 EXTRA SMALL DEVICES (max-width: 576px) */
         @media (max-width: 576px) {
           .student-dashboard .navbar-brand span {
-            display: none;
+                display: none;
           }
           
           .student-dashboard .notification-button {
-            width: 36px !important;
-            height: 36px !important;
+                width: 36px !important;
+                height: 36px !important;
           }
           
           .student-dashboard .user-dropdown .btn {
-            padding: 6px !important;
-            min-width: 36px !important;
+                padding: 6px !important;
+                min-width: 36px !important;
           }
           
           .student-dashboard .grid.grid-cols-2 {
-            grid-template-columns: 1fr !important;
+                grid-template-columns: 1fr !important;
           }
           
           .student-dashboard .grid.grid-cols-2.gap-3 {
-            grid-template-columns: repeat(2, 1fr) !important;
+                grid-template-columns: repeat(2, 1fr) !important;
           }
         }
 
@@ -1622,6 +1622,607 @@
         .student-dashboard .dropdown-menu.show {
             display: block !important;
         }
+
+        /* =========================================== */
+        /* 🎯 FINAL MOBILE POLISH - STUDENT DASHBOARD */
+        /* =========================================== */
+
+        /* 🔹 1. DATE CARD POLISH */
+        @media (max-width: 768px) {
+            .student-dashboard .page-content .bg-blue-50.text-blue-800,
+            .student-dashboard .page-content .bg-blue-50 {
+                background-color: white !important;
+                color: #1f2937 !important;
+                border-radius: 0.75rem !important;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 
+                            0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+                padding: 1rem !important;
+                border: 1px solid #e5e7eb !important;
+            }
+            
+            .student-dashboard .page-content .bg-blue-50 i {
+                color: #3b82f6 !important;
+                filter: drop-shadow(0 2px 2px rgba(59, 130, 246, 0.3)) !important;
+            }
+            
+            .student-dashboard .page-content .bg-blue-50 .text-blue-800 {
+                color: #1f2937 !important;
+                font-weight: 600 !important;
+            }
+        }
+
+        /* 🔹 2. "मुख्य पृष्ठ" BUTTON POLISH */
+        @media (max-width: 768px) {
+            .student-dashboard .page-content .btn-success {
+                background: linear-gradient(45deg, #1cc88a, #13855c) !important;
+                border: none !important;
+                box-shadow: 0 4px 6px rgba(28, 200, 138, 0.25) !important;
+                color: white !important;
+                border-radius: 0.75rem !important;
+                font-weight: 600 !important;
+                padding: 0.75rem 1.5rem !important;
+                transition: all 0.3s ease !important;
+                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+            }
+            
+            .student-dashboard .page-content .btn-success:hover {
+                background: linear-gradient(45deg, #13855c, #1cc88a) !important;
+                transform: translateY(-3px) !important;
+                box-shadow: 0 6px 12px rgba(28, 200, 138, 0.3) !important;
+            }
+            
+            .student-dashboard .page-content .btn-success:active {
+                transform: translateY(-1px) !important;
+                box-shadow: 0 3px 6px rgba(28, 200, 138, 0.2) !important;
+            }
+        }
+
+        /* 🔹 3. NOTIFICATION BELL ICON COLOR */
+        @media (max-width: 768px) {
+            .student-dashboard .page-content .fa-bell {
+                color: #3b82f6 !important;
+                filter: drop-shadow(0 2px 3px rgba(59, 130, 246, 0.3)) !important;
+            }
+            
+            .student-dashboard .page-content .bg-blue-100 .fa-bell {
+                background: linear-gradient(45deg, #3b82f6, #1d4ed8) !important;
+                -webkit-background-clip: text !important;
+                background-clip: text !important;
+                color: transparent !important;
+            }
+        }
+
+        /* 🔹 4. STAR RATING COLORS */
+        @media (max-width: 768px) {
+            .student-dashboard .page-content .star-rating i.fa-star {
+                color: #eab308 !important;
+                text-shadow: 0 2px 4px rgba(234, 179, 8, 0.3) !important;
+            }
+            
+            .student-dashboard .page-content .star-rating i.fa-star:first-child {
+                color: #ea580c !important;
+                filter: drop-shadow(0 2px 3px rgba(234, 88, 12, 0.4)) !important;
+            }
+            
+            .student-dashboard .page-content .star-rating i.fa-star.filled {
+                color: #eab308 !important;
+                filter: drop-shadow(0 2px 3px rgba(234, 179, 8, 0.4)) !important;
+            }
+        }
+
+        /* 🔹 5. CTA BUTTONS UNIFIED STYLE */
+        @media (max-width: 768px) {
+            .student-dashboard .page-content .btn-primary,
+            .student-dashboard .page-content .btn-info,
+            .student-dashboard .page-content .btn-purple {
+                background: linear-gradient(45deg, #4e73df, #224abe) !important;
+                border: none !important;
+                box-shadow: 0 4px 6px rgba(78, 115, 223, 0.25) !important;
+                color: white !important;
+                border-radius: 0.75rem !important;
+                font-weight: 600 !important;
+                padding: 0.75rem 1.5rem !important;
+                transition: all 0.3s ease !important;
+                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+            }
+            
+            .student-dashboard .page-content .btn-primary:hover,
+            .student-dashboard .page-content .btn-info:hover,
+            .student-dashboard .page-content .btn-purple:hover {
+                background: linear-gradient(45deg, #224abe, #4e73df) !important;
+                transform: translateY(-3px) !important;
+                box-shadow: 0 6px 12px rgba(78, 115, 223, 0.3) !important;
+            }
+            
+            .student-dashboard .page-content .btn-primary:active,
+            .student-dashboard .page-content .btn-info:active,
+            .student-dashboard .page-content .btn-purple:active {
+                transform: translateY(-1px) !important;
+                box-shadow: 0 3px 6px rgba(78, 115, 223, 0.2) !important;
+            }
+            
+            /* Specific button colors */
+            .student-dashboard .page-content .btn-info {
+                background: linear-gradient(45deg, #36b9cc, #258391) !important;
+            }
+            
+            .student-dashboard .page-content .btn-info:hover {
+                background: linear-gradient(45deg, #258391, #36b9cc) !important;
+                box-shadow: 0 6px 12px rgba(54, 185, 204, 0.3) !important;
+            }
+        }
+
+        /* 🔹 6. QUICK ACTIONS SECTION - CARDS */
+        @media (max-width: 768px) {
+            .student-dashboard .page-content .quick-action-card {
+                background: linear-gradient(135deg, #ffffff, #f8fafc) !important;
+                border: 1px solid #e5e7eb !important;
+                border-radius: 1rem !important;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 
+                            0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+                padding: 1.25rem !important;
+                transition: all 0.3s ease !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+                text-align: center !important;
+                color: #333333 !important;
+                min-height: 120px !important;
+            }
+            
+            .student-dashboard .page-content .quick-action-card:hover {
+                transform: translateY(-5px) !important;
+                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 
+                            0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+                border-color: #4e73df !important;
+            }
+            
+            .student-dashboard .page-content .quick-action-card i {
+                font-size: 1.75rem !important;
+                margin-bottom: 0.75rem !important;
+                color: #4e73df !important;
+                filter: drop-shadow(0 2px 3px rgba(78, 115, 223, 0.3)) !important;
+            }
+            
+            .student-dashboard .page-content .quick-action-card span {
+                font-weight: 600 !important;
+                color: #1f2937 !important;
+                font-size: 0.9rem !important;
+                line-height: 1.3 !important;
+            }
+            
+            /* Specific quick action colors */
+            .student-dashboard .page-content .quick-action-card.bg-blue-50 i {
+                color: #3b82f6 !important;
+            }
+            
+            .student-dashboard .page-content .quick-action-card.bg-green-50 i {
+                color: #10b981 !important;
+            }
+            
+            .student-dashboard .page-content .quick-action-card.bg-amber-50 i {
+                color: #f59e0b !important;
+            }
+            
+            .student-dashboard .page-content .quick-action-card.bg-indigo-50 i {
+                color: #6366f1 !important;
+            }
+            
+            .student-dashboard .page-content .quick-action-card.bg-purple-50 i {
+                color: #8b5cf6 !important;
+            }
+            
+            .student-dashboard .page-content .quick-action-card.bg-pink-50 i {
+                color: #ec4899 !important;
+            }
+            
+            .student-dashboard .page-content .quick-action-card.bg-teal-50 i {
+                color: #14b8a6 !important;
+            }
+        }
+
+        /* 🔹 7. "आगामी घटनाहरू" ICON COLOR */
+        @media (max-width: 768px) {
+            .student-dashboard .page-content .fa-calendar-alt,
+            .student-dashboard .page-content .fa-calendar-day,
+            .student-dashboard .page-content .fa-calendar-check {
+                color: #ea580c !important;
+                filter: drop-shadow(0 2px 3px rgba(234, 88, 12, 0.3)) !important;
+            }
+            
+            .student-dashboard .page-content .bg-orange-100 i.fa-calendar-alt {
+                background: linear-gradient(45deg, #ea580c, #c2410c) !important;
+                -webkit-background-clip: text !important;
+                background-clip: text !important;
+                color: transparent !important;
+            }
+        }
+
+        /* 🔹 8. ENHANCED CARD VISUAL DEPTH */
+        @media (max-width: 768px) {
+            .student-dashboard .page-content .card,
+            .student-dashboard .page-content .bg-white.rounded-2xl,
+            .student-dashboard .page-content .bg-white.rounded-xl {
+                background: linear-gradient(135deg, #ffffff, #fafafa) !important;
+                border: 1px solid #e5e7eb !important;
+                border-radius: 1rem !important;
+                box-shadow: 0 6px 12px -2px rgba(0, 0, 0, 0.1), 
+                            0 4px 8px -2px rgba(0, 0, 0, 0.05) !important;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                position: relative !important;
+                overflow: hidden !important;
+            }
+            
+            .student-dashboard .page-content .card:hover,
+            .student-dashboard .page-content .bg-white.rounded-2xl:hover,
+            .student-dashboard .page-content .bg-white.rounded-xl:hover {
+                transform: translateY(-4px) !important;
+                box-shadow: 0 15px 25px -5px rgba(0, 0, 0, 0.15), 
+                            0 10px 15px -5px rgba(0, 0, 0, 0.08) !important;
+                border-color: #d1d5db !important;
+            }
+            
+            /* Card subtle shine effect */
+            .student-dashboard .page-content .card::before,
+            .student-dashboard .page-content .bg-white.rounded-2xl::before {
+                content: '' !important;
+                position: absolute !important;
+                top: 0 !important;
+                left: -100% !important;
+                width: 50% !important;
+                height: 100% !important;
+                background: linear-gradient(
+                    90deg,
+                    transparent,
+                    rgba(255, 255, 255, 0.4),
+                    transparent
+                ) !important;
+                transition: left 0.7s ease !important;
+            }
+            
+            .student-dashboard .page-content .card:hover::before,
+            .student-dashboard .page-content .bg-white.rounded-2xl:hover::before {
+                left: 150% !important;
+            }
+        }
+
+        /* 🔹 9. ENHANCED ICON VISUALS */
+        @media (max-width: 768px) {
+            .student-dashboard .page-content i.fas,
+            .student-dashboard .page-content i.far,
+            .student-dashboard .page-content i.fab {
+                filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.1)) !important;
+                transition: all 0.3s ease !important;
+            }
+            
+            /* Colored icons with gradient */
+            .student-dashboard .page-content .fa-utensils {
+                background: linear-gradient(45deg, #3b82f6, #1d4ed8) !important;
+                -webkit-background-clip: text !important;
+                background-clip: text !important;
+                color: transparent !important;
+            }
+            
+            .student-dashboard .page-content .fa-money-bill-wave {
+                background: linear-gradient(45deg, #10b981, #047857) !important;
+                -webkit-background-clip: text !important;
+                background-clip: text !important;
+                color: transparent !important;
+            }
+            
+            .student-dashboard .page-content .fa-bullhorn {
+                background: linear-gradient(45deg, #8b5cf6, #7c3aed) !important;
+                -webkit-background-clip: text !important;
+                background-clip: text !important;
+                color: transparent !important;
+            }
+            
+            .student-dashboard .page-content .fa-door-open {
+                background: linear-gradient(45deg, #f59e0b, #d97706) !important;
+                -webkit-background-clip: text !important;
+                background-clip: text !important;
+                color: transparent !important;
+            }
+            
+            .student-dashboard .page-content .fa-star {
+                background: linear-gradient(45deg, #eab308, #ca8a04) !important;
+                -webkit-background-clip: text !important;
+                background-clip: text !important;
+                color: transparent !important;
+            }
+        }
+
+        /* 🔹 10. STATS CARD COLOR ENHANCEMENT */
+        @media (max-width: 768px) {
+            .student-dashboard .page-content .bg-blue-100,
+            .student-dashboard .page-content .bg-green-100,
+            .student-dashboard .page-content .bg-amber-100,
+            .student-dashboard .page-content .bg-indigo-100,
+            .student-dashboard .page-content .bg-purple-100,
+            .student-dashboard .page-content .bg-pink-100,
+            .student-dashboard .page-content .bg-teal-100 {
+                border-radius: 1rem !important;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+                padding: 1.25rem !important;
+                transition: all 0.3s ease !important;
+                border: 1px solid transparent !important;
+            }
+            
+            .student-dashboard .page-content .bg-blue-100 {
+                background: linear-gradient(135deg, #dbeafe, #bfdbfe) !important;
+                border-color: #93c5fd !important;
+            }
+            
+            .student-dashboard .page-content .bg-green-100 {
+                background: linear-gradient(135deg, #d1fae5, #a7f3d0) !important;
+                border-color: #6ee7b7 !important;
+            }
+            
+            .student-dashboard .page-content .bg-amber-100 {
+                background: linear-gradient(135deg, #fef3c7, #fde68a) !important;
+                border-color: #fcd34d !important;
+            }
+            
+            .student-dashboard .page-content .bg-indigo-100 {
+                background: linear-gradient(135deg, #e0e7ff, #c7d2fe) !important;
+                border-color: #a5b4fc !important;
+            }
+            
+            .student-dashboard .page-content .bg-purple-100 {
+                background: linear-gradient(135deg, #f3e8ff, #e9d5ff) !important;
+                border-color: #d8b4fe !important;
+            }
+            
+            .student-dashboard .page-content .bg-pink-100 {
+                background: linear-gradient(135deg, #fce7f3, #fbcfe8) !important;
+                border-color: #f9a8d4 !important;
+            }
+            
+            .student-dashboard .page-content .bg-teal-100 {
+                background: linear-gradient(135deg, #ccfbf1, #99f6e4) !important;
+                border-color: #5eead4 !important;
+            }
+            
+            /* Hover effects */
+            .student-dashboard .page-content .bg-blue-100:hover {
+                transform: translateY(-3px) !important;
+                box-shadow: 0 8px 12px -2px rgba(59, 130, 246, 0.2) !important;
+            }
+            
+            .student-dashboard .page-content .bg-green-100:hover {
+                transform: translateY(-3px) !important;
+                box-shadow: 0 8px 12px -2px rgba(16, 185, 129, 0.2) !important;
+            }
+            
+            .student-dashboard .page-content .bg-amber-100:hover {
+                transform: translateY(-3px) !important;
+                box-shadow: 0 8px 12px -2px rgba(245, 158, 11, 0.2) !important;
+            }
+            
+            .student-dashboard .page-content .bg-indigo-100:hover {
+                transform: translateY(-3px) !important;
+                box-shadow: 0 8px 12px -2px rgba(99, 102, 241, 0.2) !important;
+            }
+        }
+
+        /* 🔹 11. BADGE ENHANCEMENT */
+        @media (max-width: 768px) {
+            .student-dashboard .page-content .badge {
+                font-weight: 600 !important;
+                padding: 0.35rem 0.75rem !important;
+                border-radius: 9999px !important;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+                text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1) !important;
+            }
+            
+            .student-dashboard .page-content .badge.bg-blue-500 {
+                background: linear-gradient(45deg, #3b82f6, #1d4ed8) !important;
+                color: white !important;
+            }
+            
+            .student-dashboard .page-content .badge.bg-green-500 {
+                background: linear-gradient(45deg, #10b981, #047857) !important;
+                color: white !important;
+            }
+            
+            .student-dashboard .page-content .badge.bg-amber-500 {
+                background: linear-gradient(45deg, #f59e0b, #d97706) !important;
+                color: white !important;
+            }
+            
+            .student-dashboard .page-content .badge.bg-red-500 {
+                background: linear-gradient(45deg, #ef4444, #dc2626) !important;
+                color: white !important;
+            }
+            
+            .student-dashboard .page-content .badge.bg-purple-500 {
+                background: linear-gradient(45deg, #8b5cf6, #7c3aed) !important;
+                color: white !important;
+            }
+        }
+
+        /* 🔹 12. WELCOME SECTION PREMIUM POLISH */
+        @media (max-width: 768px) {
+            .student-dashboard .bg-blue-800 {
+                background: linear-gradient(135deg, #4e73df, #224abe) !important;
+                color: white !important;
+                border-radius: 1.5rem !important;
+                box-shadow: 0 15px 30px -10px rgba(78, 115, 223, 0.4) !important;
+                padding: 1.5rem !important;
+                position: relative !important;
+                overflow: hidden !important;
+            }
+            
+            .student-dashboard .bg-blue-800::before {
+                content: '' !important;
+                position: absolute !important;
+                top: -50% !important;
+                right: -50% !important;
+                width: 200% !important;
+                height: 200% !important;
+                background: radial-gradient(
+                    circle at 30% 30%,
+                    rgba(255, 255, 255, 0.1) 0%,
+                    transparent 50%
+                ) !important;
+            }
+            
+            .student-dashboard .bg-blue-800 h2 {
+                color: white !important;
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+                position: relative !important;
+                z-index: 1 !important;
+            }
+            
+            .student-dashboard .bg-blue-800 .text-blue-200 {
+                color: rgba(255, 255, 255, 0.9) !important;
+                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+                position: relative !important;
+                z-index: 1 !important;
+            }
+            
+            .student-dashboard .bg-blue-800 .btn {
+                background: linear-gradient(45deg, #ffffff, #f0f9ff) !important;
+                color: #4e73df !important;
+                border: none !important;
+                box-shadow: 0 4px 6px rgba(255, 255, 255, 0.2) !important;
+                font-weight: 600 !important;
+                border-radius: 0.75rem !important;
+                padding: 0.75rem 1.5rem !important;
+                transition: all 0.3s ease !important;
+                position: relative !important;
+                z-index: 1 !important;
+            }
+            
+            .student-dashboard .bg-blue-800 .btn:hover {
+                transform: translateY(-3px) !important;
+                box-shadow: 0 8px 12px rgba(255, 255, 255, 0.25) !important;
+                color: #224abe !important;
+            }
+        }
+
+        /* 🔹 13. TABLE ENHANCEMENT */
+        @media (max-width: 768px) {
+            .student-dashboard .page-content table {
+                border-collapse: separate !important;
+                border-spacing: 0 !important;
+                border-radius: 0.75rem !important;
+                overflow: hidden !important;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+            }
+            
+            .student-dashboard .page-content thead {
+                background: linear-gradient(45deg, #4e73df, #224abe) !important;
+                color: white !important;
+            }
+            
+            .student-dashboard .page-content thead th {
+                color: white !important;
+                font-weight: 600 !important;
+                border: none !important;
+                padding: 0.75rem 1rem !important;
+            }
+            
+            .student-dashboard .page-content tbody tr {
+                transition: all 0.2s ease !important;
+            }
+            
+            .student-dashboard .page-content tbody tr:hover {
+                background-color: #f8fafc !important;
+                transform: translateX(2px) !important;
+            }
+            
+            .student-dashboard .page-content tbody td {
+                padding: 0.75rem 1rem !important;
+                border-bottom: 1px solid #f1f5f9 !important;
+                color: #4b5563 !important;
+            }
+        }
+
+        /* 🔹 14. PROGRESS BAR ENHANCEMENT */
+        @media (max-width: 768px) {
+            .student-dashboard .page-content .progress {
+                height: 0.75rem !important;
+                border-radius: 9999px !important;
+                background-color: #e5e7eb !important;
+                overflow: hidden !important;
+                box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+            }
+            
+            .student-dashboard .page-content .progress-bar {
+                border-radius: 9999px !important;
+                background: linear-gradient(90deg, #4e73df, #224abe) !important;
+                box-shadow: 0 2px 4px rgba(78, 115, 223, 0.3) !important;
+                position: relative !important;
+                overflow: hidden !important;
+            }
+            
+            .student-dashboard .page-content .progress-bar::after {
+                content: '' !important;
+                position: absolute !important;
+                top: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                bottom: 0 !important;
+                background: linear-gradient(
+                    90deg,
+                    transparent,
+                    rgba(255, 255, 255, 0.3),
+                    transparent
+                ) !important;
+                animation: shimmer 2s infinite !important;
+            }
+            
+            @keyframes shimmer {
+                0% {
+                    transform: translateX(-100%) !important;
+                }
+                100% {
+                    transform: translateX(100%) !important;
+                }
+            }
+        }
+
+        /* 🔹 15. FINAL TOUCH: GLOBAL TEXT LEGIBILITY */
+        @media (max-width: 768px) {
+            .student-dashboard .page-content h1,
+            .student-dashboard .page-content h2,
+            .student-dashboard .page-content h3,
+            .student-dashboard .page-content h4,
+            .student-dashboard .page-content h5,
+            .student-dashboard .page-content h6 {
+                font-weight: 600 !important;
+                line-height: 1.3 !important;
+                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+            }
+            
+            .student-dashboard .page-content h1 {
+                color: #1f2937 !important;
+                font-size: 1.75rem !important;
+            }
+            
+            .student-dashboard .page-content h2 {
+                color: #1f2937 !important;
+                font-size: 1.5rem !important;
+            }
+            
+            .student-dashboard .page-content h3 {
+                color: #1f2937 !important;
+                font-size: 1.25rem !important;
+            }
+            
+            .student-dashboard .page-content p,
+            .student-dashboard .page-content span {
+                line-height: 1.6 !important;
+                color: #4b5563 !important;
+            }
+            
+            .student-dashboard .page-content .text-muted {
+                color: #6b7280 !important;
+                opacity: 0.9 !important;
+            }
+        }
     </style>
     
     <!-- Page-specific CSS -->
@@ -1683,20 +2284,20 @@
                     <span class="sidebar-text">मेरो प्रोफाइल</span>
                 </a>
                 
-                <!-- Rooms -->
-                <a href="{{ route('student.rooms.index') }}"
-                   class="sidebar-link {{ request()->routeIs('student.rooms.*') ? 'active' : '' }}"
-                   aria-current="{{ request()->routeIs('student.rooms.*') ? 'page' : 'false' }}">
-                    <i class="fas fa-door-open sidebar-icon"></i>
-                    <span class="sidebar-text">कोठाहरू</span>
-                </a>
+                <!-- My Room -->
+<a href="{{ route('student.my-room') }}"
+   class="sidebar-link {{ request()->routeIs('student.my-room') ? 'active' : '' }}"
+   aria-current="{{ request()->routeIs('student.my-room') ? 'page' : 'false' }}">
+    <i class="fas fa-door-open sidebar-icon"></i>
+    <span class="sidebar-text">मेरो कोठा</span>
+</a>
                 
-                <!-- Meal Menus -->
+                <!-- Meal Menu -->
                 <a href="{{ route('student.meal-menus') }}"
                    class="sidebar-link {{ request()->routeIs('student.meal-menus') ? 'active' : '' }}"
                    aria-current="{{ request()->routeIs('student.meal-menus') ? 'page' : 'false' }}">
                     <i class="fas fa-utensils sidebar-icon"></i>
-                    <span class="sidebar-text">खानाको योजना</span>
+                    <span class="sidebar-text">खानाको मेनु</span>
                 </a>
                 
                 <!-- Circulars -->
@@ -1723,12 +2324,12 @@
                     <span class="sidebar-text">समीक्षा</span>
                 </a>
                 
-                <!-- Bookings -->
+                <!-- My Booking -->
                 <a href="{{ route('student.bookings.index') }}"
                    class="sidebar-link {{ request()->routeIs('student.bookings.*') ? 'active' : '' }}"
                    aria-current="{{ request()->routeIs('student.bookings.*') ? 'page' : 'false' }}">
                     <i class="fas fa-calendar-check sidebar-icon"></i>
-                    <span class="sidebar-text">बुकिङहरू</span>
+                    <span class="sidebar-text">मेरो बुकिङ</span>
                 </a>
                 
                 <!-- Gallery -->
@@ -1820,7 +2421,7 @@
                                         <i class="fas fa-utensils text-blue-600"></i>
                                     </div>
                                     <div>
-                                        <p class="text-sm font-medium">नयाँ खानाको योजना सिर्जना गरियो</p>
+                                        <p class="text-sm font-medium">नयाँ खानाको मेनु सिर्जना गरियो</p>
                                         <p class="text-xs text-gray-500">३० मिनेट अघि</p>
                                     </div>
                                 </a>
@@ -2154,6 +2755,29 @@
                     this.closest('.dropdown-menu')?.classList.remove('show');
                 });
             });
+
+            // Real-time notification updates
+            function checkNewNotifications() {
+                fetch('/student/notifications/unread-count')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.count > 0) {
+                            // Update notification dot
+                            const dot = document.querySelector('.notification-dot');
+                            if (dot) {
+                                dot.style.display = 'block';
+                                dot.textContent = data.count > 9 ? '9+' : data.count;
+                            }
+                        }
+                    })
+                    .catch(error => console.error('Error fetching notifications:', error));
+            }
+
+            // Check for new notifications every 30 seconds
+            setInterval(checkNewNotifications, 30000);
+            
+            // Initial check
+            checkNewNotifications();
         });
     </script>
 
