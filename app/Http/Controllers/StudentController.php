@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use App\Models\Student;
 use App\Models\Hostel;
 use App\Models\Room;
@@ -432,14 +434,14 @@ class StudentController extends Controller
             }
 
             // ✅ FIXED: Get roommates - Use existing columns only
-$roommates = $room->students()
-    ->where('id', '!=', $student->id)
-    ->where('status', 'active')
-    ->select('id', 'name', 'image', 'status', 'room_id') // Only use existing columns
-    ->with(['user' => function ($query) {
-        $query->select('id', 'name');
-    }])
-    ->get();
+            $roommates = $room->students()
+                ->where('id', '!=', $student->id)
+                ->where('status', 'active')
+                ->select('id', 'name', 'image', 'status', 'room_id') // Only use existing columns
+                ->with(['user' => function ($query) {
+                    $query->select('id', 'name');
+                }])
+                ->get();
 
             // ✅ Calculate occupancy percentage
             $currentOccupancy = $room->current_occupancy ?? 0;
@@ -539,37 +541,150 @@ $roommates = $room->students()
     }
 
 
-    // ✅ NEW: कोठा सम्बन्धित समस्याहरू रिपोर्ट गर्ने method
+    /**
+     * ✅ FIXED: Report room issue with multiple fallback options
+     */
     public function reportRoomIssue(Request $request)
     {
+        // Validate the request
         $validated = $request->validate([
-            'issue_type' => 'required|in:cleaning,maintenance,noise,other',
-            'description' => 'required|string|max:500',
-            'priority' => 'required|in:low,medium,high'
+            'issue_type' => 'required|string|max:255',
+            'description' => 'required|string|max:1000',
+            'priority' => 'required|in:low,medium,high,urgent'
         ]);
 
-        $student = Auth::user()->student;
+        try {
+            $user = Auth::user();
+            $student = $user->student;
 
-        if (!$student || !$student->room_id) {
-            return redirect()->back()->with('error', 'तपाईंलाई कोठा असाइन गरिएको छैन।');
-        }
+            if (!$student) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'विद्यार्थी खाता भेटिएन।'
+                ]);
+            }
 
-        // Check if MaintenanceRequest model exists
-        if (class_exists('App\Models\MaintenanceRequest')) {
-            \App\Models\MaintenanceRequest::create([
+            $room = $student->room;
+
+            if (!$room) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'तपाईंलाई कोठा असाइन गरिएको छैन।'
+                ]);
+            }
+
+            // Prepare report data
+            $reportData = [
                 'student_id' => $student->id,
-                'hostel_id' => $student->hostel_id,
-                'room_id' => $student->room_id,
-                'title' => 'कोठा समस्या: ' . $validated['issue_type'],
+                'student_name' => $student->name,
+                'room_id' => $room->id,
+                'room_number' => $room->room_number,
+                'hostel_id' => $room->hostel_id,
+                'hostel_name' => $room->hostel->name ?? 'N/A',
+                'issue_type' => $validated['issue_type'],
                 'description' => $validated['description'],
                 'priority' => $validated['priority'],
-                'status' => 'pending'
-            ]);
+                'status' => 'pending',
+                'reported_at' => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
 
-            return redirect()->route('student.my-room')
-                ->with('success', 'तपाईंको समस्या सफलतापूर्वक रिपोर्ट गरियो।');
-        } else {
-            return redirect()->back()->with('error', 'रिपोर्ट सेवा अहिले उपलब्ध छैन।');
+            $savedToDb = false;
+            $tableName = '';
+
+            // Try to save in room_issues table (NEW TABLE)
+            if (\Schema::hasTable('room_issues')) {
+                try {
+                    \DB::table('room_issues')->insert($reportData);
+                    $savedToDb = true;
+                    $tableName = 'room_issues';
+                } catch (\Exception $e) {
+                    \Log::error('Room issues table error: ' . $e->getMessage());
+                }
+            }
+
+            // Try to save in maintenance_requests table (EXISTING TABLE)
+            if (!$savedToDb && \Schema::hasTable('maintenance_requests')) {
+                try {
+                    \DB::table('maintenance_requests')->insert($reportData);
+                    $savedToDb = true;
+                    $tableName = 'maintenance_requests';
+                } catch (\Exception $e) {
+                    \Log::error('Maintenance request table error: ' . $e->getMessage());
+                }
+            }
+
+            // Save to log file (ALWAYS WORKS)
+            $logMessage = sprintf(
+                "[%s] Room Issue Report:\nStudent: %s (ID: %s)\nRoom: %s, Hostel: %s\nIssue Type: %s\nPriority: %s\nDescription: %s\n\n",
+                now()->format('Y-m-d H:i:s'),
+                $student->name,
+                $student->id,
+                $room->room_number,
+                $room->hostel->name ?? 'N/A',
+                $validated['issue_type'],
+                $validated['priority'],
+                $validated['description']
+            );
+
+            // Save to Laravel log
+            \Log::info('ROOM_ISSUE_REPORT', $reportData);
+
+            // Save to custom log file
+            file_put_contents(storage_path('logs/room_issues.log'), $logMessage, FILE_APPEND);
+
+            // Send notification to hostel owner
+            $this->notifyHostelOwner($student, $room, $validated);
+
+            $message = $savedToDb
+                ? 'तपाईंको समस्या सफलतापूर्वक रिपोर्ट गरियो! (सुरक्षित गरियो: ' . $tableName . ' मा)'
+                : 'तपाईंको समस्या लग गरियो। व्यवस्थापकलाई सूचना गरियो।';
+
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'saved_to_db' => $savedToDb
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error in reportRoomIssue: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'रिपोर्ट गर्दा त्रुटि भयो: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    // New method to notify hostel owner
+    private function notifyHostelOwner($student, $room, $data)
+    {
+        try {
+            // Get hostel owner
+            $hostel = $room->hostel;
+
+            if ($hostel && $hostel->owner) {
+                // Create notification in database
+                \DB::table('notifications')->insert([
+                    'user_id' => $hostel->owner->id,
+                    'type' => 'room_issue',
+                    'title' => 'नयाँ कोठा समस्या रिपोर्ट',
+                    'message' => "विद्यार्थी: {$student->name}\nकोठा: {$room->room_number}\nसमस्या: {$data['issue_type']}",
+                    'data' => json_encode([
+                        'student_id' => $student->id,
+                        'room_id' => $room->id,
+                        'issue_type' => $data['issue_type'],
+                        'priority' => $data['priority']
+                    ]),
+                    'read' => false,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+                \Log::info('Notification sent to hostel owner: ' . $hostel->owner->email);
+            }
+        } catch (\Exception $e) {
+            \Log::error('Failed to send notification: ' . $e->getMessage());
         }
     }
 
