@@ -7,6 +7,148 @@
         font-size: 0.875rem;
         margin-top: 0.25rem;
     }
+    
+    /* Global Plan Note */
+    .global-plan-note {
+        background: #fff8e1;
+        border: 2px solid #ffd54f;
+        border-radius: 12px;
+        padding: 1.25rem;
+        margin: 1rem auto 1.5rem auto;
+        max-width: 800px;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    
+    .global-plan-note p {
+        font-size: 1.125rem;
+        color: #5d4037;
+        font-weight: 600;
+        margin: 0;
+        line-height: 1.5;
+    }
+    
+    .global-plan-note i {
+        color: #ff9800;
+        margin-right: 8px;
+    }
+    
+    /* Plan Card Styling */
+    .plan-card-container {
+        position: relative;
+        margin-bottom: 2rem;
+    }
+    
+    .popular-badge {
+        position: absolute;
+        top: -12px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #ffc107;
+        color: #000;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 600;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        z-index: 10;
+    }
+    
+    .plan-content {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1));
+        border-radius: 12px;
+        padding: 2rem;
+        border: 2px solid rgba(99, 102, 241, 0.2);
+        position: relative;
+        overflow: visible;
+        margin-top: 0;
+    }
+    
+    /* Add top margin if popular badge exists */
+    .plan-card-container.has-badge .plan-content {
+        margin-top: 15px;
+    }
+    
+    .capacity-box {
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 8px;
+        padding: 1.25rem;
+        margin: 1.5rem 0;
+        border-left: 4px solid #0d6efd;
+    }
+    
+    .capacity-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+        font-size: 15px;
+        color: #333;
+    }
+    
+    .capacity-item:last-child {
+        margin-bottom: 0;
+    }
+    
+    .capacity-item i {
+        color: #0d6efd;
+        margin-right: 12px;
+        font-size: 16px;
+        min-width: 20px;
+        text-align: center;
+    }
+    
+    .trial-badge {
+        background: linear-gradient(135deg, #4CAF50, #45a049);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 600;
+        display: inline-block;
+        margin-top: 10px;
+    }
+    
+    .plan-header {
+        text-align: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid rgba(99, 102, 241, 0.2);
+    }
+    
+    .plan-title {
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: #1a3a8f;
+        margin-bottom: 0.5rem;
+    }
+    
+    .plan-price {
+        font-size: 2.25rem;
+        font-weight: 800;
+        color: #0d6efd;
+        margin: 0;
+    }
+    
+    .plan-period {
+        color: #6c757d;
+        font-size: 1rem;
+        margin-top: 0.25rem;
+    }
+    
+    .additional-note {
+        margin-top: 1rem;
+        padding: 0.75rem;
+        background: rgba(13, 110, 253, 0.1);
+        border: 1px solid rgba(13, 110, 253, 0.2);
+        border-radius: 8px;
+        font-size: 0.875rem;
+        color: #0d6efd;
+    }
+    
+    .additional-note i {
+        color: #0d6efd;
+        margin-right: 8px;
+    }
 </style>
 
 <!-- Registration Form -->
@@ -22,6 +164,11 @@
                 <div class="mt-3 bg-yellow-50 text-yellow-700 px-4 py-2 rounded-lg text-sm">
                     <strong>नोट:</strong> दर्ता पश्चात प्रशासकद्वारा स्वीकृतिपछि मात्र तपाईंले आफ्नो ड्यासबोर्डमा पहुँच गर्न सक्नुहुन्छ
                 </div>
+            </div>
+            
+            <!-- Global Plan Note -->
+            <div class="global-plan-note">
+                <p><i class="fas fa-info-circle"></i> सबै योजनाहरूमा समान सुविधाहरू उपलब्ध छन्। फरक केवल विद्यार्थी संख्या र होस्टल क्षमतामा मात्र हो।</p>
             </div>
             
             <!-- Validation Errors -->
@@ -42,12 +189,38 @@
                 <!-- Explicit CSRF token field as a backup -->
                 <input type="hidden" name="_token" value="{{ csrf_token() }}">
                 
-                <!-- Plan Type - FIXED: Always ensure plan is passed -->
-@php
-    $planSlug = $plan->slug ?? request()->route('plan') ?? request()->query('plan') ?? 'starter';
-@endphp
-<input type="hidden" name="plan" value="{{ $planSlug }}">
-<input type="hidden" name="plan_slug" value="{{ $planSlug }}">
+                <!-- Plan Type -->
+                @php
+                    $planSlug = $plan->slug ?? request()->route('plan') ?? request()->query('plan') ?? 'starter';
+                    $planName = $plan->name ?? ucfirst($planSlug);
+                    
+                    // Set prices based on plan
+                    $prices = [
+                        'starter' => 2999,
+                        'pro' => 4999,
+                        'enterprise' => 8999
+                    ];
+                    $price = $plan->price ?? $prices[$planSlug] ?? 0;
+                    
+                    // Set capacities
+                    $capacities = [
+                        'starter' => [
+                            'students' => '५० विद्यार्थी सम्म',
+                            'hostels' => '१ होस्टल सम्म'
+                        ],
+                        'pro' => [
+                            'students' => '२०० विद्यार्थी सम्म',
+                            'hostels' => '१ होस्टल सम्म'
+                        ],
+                        'enterprise' => [
+                            'students' => 'असीमित विद्यार्थी',
+                            'hostels' => 'बहु-होस्टल व्यवस्थापन (५ होस्टल सम्म)'
+                        ]
+                    ];
+                    $capacity = $capacities[$planSlug] ?? $capacities['starter'];
+                @endphp
+                <input type="hidden" name="plan" value="{{ $planSlug }}">
+                <input type="hidden" name="plan_slug" value="{{ $planSlug }}">
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div>
@@ -135,50 +308,45 @@
                     </div>
                 </div>
                 
-                <!-- Plan Information -->
-                <div class="mb-8 p-6 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border border-indigo-200">
-                    <div class="flex justify-between items-start mb-4">
-                        <div>
-                            <h3 class="text-xl font-bold text-indigo-800">{{ $plan->name ?? 'योजना' }}</h3>
-                            <p class="text-indigo-700 text-lg font-semibold mt-1">
-                                मूल्य: रु. {{ number_format($plan->price ?? 0) }}/महिना
-                            </p>
-                        </div>
-                        <span class="bg-indigo-600 text-white px-3 py-1 rounded-full text-sm font-medium">
-                            लोकप्रिय
-                        </span>
-                    </div>
+                <!-- Plan Information - FIXED: Proper spacing for popular badge -->
+                <div class="plan-card-container {{ $planSlug == 'pro' ? 'has-badge' : '' }}">
+                    @if($planSlug == 'pro')
+                        <div class="popular-badge">लोकप्रिय</div>
+                    @endif
                     
-                    <div class="mt-4">
-                        <h4 class="font-semibold text-indigo-800 mb-3 text-lg">विशेषताहरू:</h4>
-                        <ul class="grid grid-cols-1 md:grid-cols-2 gap-2">
-                            @if($plan && $plan->features)
-                                @php
-                                    // Features लाई array मा बदल्ने
-                                    $features = [];
-                                    if (is_string($plan->features)) {
-                                        // JSON string हो भने
-                                        $decoded = json_decode($plan->features, true);
-                                        $features = is_array($decoded) ? $decoded : explode(',', $plan->features);
-                                    } elseif (is_array($plan->features)) {
-                                        $features = $plan->features;
-                                    } else {
-                                        $features = ['विशेषताहरू उपलब्ध छैनन्'];
-                                    }
-                                @endphp
-                                
-                                @foreach($features as $feature)
-                                    <li class="flex items-center space-x-2 text-indigo-700">
-                                        <svg class="w-5 h-5 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                                        </svg>
-                                        <span>{{ trim($feature) }}</span>
-                                    </li>
-                                @endforeach
-                            @else
-                                <li class="text-indigo-700">योजना विवरण उपलब्ध छैन</li>
-                            @endif
-                        </ul>
+                    <div class="plan-content">
+                        <div class="plan-header">
+                            <h3 class="plan-title">{{ $planName }} योजना</h3>
+                            <p class="plan-price">रु. {{ number_format($price) }}</p>
+                            <p class="plan-period">/महिना</p>
+                        </div>
+                        
+                        <!-- Capacity Information -->
+                        <div class="capacity-box">
+                            <h4 class="font-semibold text-indigo-800 mb-3 text-lg">क्षमता:</h4>
+                            <div class="capacity-item">
+                                <i class="fas fa-users"></i>
+                                <span><strong>विद्यार्थी सीमा:</strong> {{ $capacity['students'] }}</span>
+                            </div>
+                            <div class="capacity-item">
+                                <i class="fas fa-building"></i>
+                                <span><strong>होस्टल सीमा:</strong> {{ $capacity['hostels'] }}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center">
+                            <div class="trial-badge">
+                                <i class="fas fa-check-circle"></i> ७ दिन निःशुल्क परीक्षण
+                            </div>
+                        </div>
+                        
+                        <!-- Additional note for enterprise -->
+                        @if($planSlug == 'enterprise')
+                            <div class="additional-note">
+                                <i class="fas fa-info-circle"></i> 
+                                <strong>अतिरिक्त होस्टल थप्न सकिन्छ:</strong> रु. १,०००/महिना प्रति अतिरिक्त होस्टल
+                            </div>
+                        @endif
                     </div>
                 </div>
                 
@@ -223,7 +391,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('registration-form');
     
-    // ✅ STEP 4: Ensure plan is not empty before submission
+    // ✅ Ensure plan is not empty before submission
     form.addEventListener('submit', function(e) {
         const planInput = document.querySelector('input[name="plan"]');
         if (!planInput || !planInput.value) {
@@ -302,4 +470,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+
+<!-- Add Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 @endsection
