@@ -602,6 +602,13 @@
                     <span class="sidebar-text">सूचनाहरू</span>
                 </a>
                 
+                <!-- Room Issues -->
+<a href="{{ route('owner.room-issues.index') }}"
+   class="sidebar-link {{ request()->routeIs('owner.room-issues.*') ? 'active' : '' }}"
+   aria-current="{{ request()->routeIs('owner.room-issues.*') ? 'page' : 'false' }}">
+    <i class="fas fa-exclamation-triangle sidebar-icon"></i>
+    <span class="sidebar-text">रूम समस्याहरू</span>
+</a>
                 <!-- Logout Section -->
                 <div class="mt-auto pt-4 border-t border-blue-700">
                     <form method="POST" action="{{ route('logout') }}" id="logout-form">

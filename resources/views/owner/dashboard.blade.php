@@ -13,6 +13,23 @@
             ->where('owner_id', $ownerId)
             ->pluck('id');
 
+        // ✅ FIXED: Room Issues Statistics (AFTER $hostelIds is defined)
+        $roomIssuesTotal = \App\Models\RoomIssue::whereIn('hostel_id', $hostelIds)->count();
+        $pendingRoomIssues = \App\Models\RoomIssue::whereIn('hostel_id', $hostelIds)
+            ->where('status', 'pending')
+            ->count();
+        $highPriorityRoomIssues = \App\Models\RoomIssue::whereIn('hostel_id', $hostelIds)
+            ->where('priority', 'high')
+            ->count();
+        $todayRoomIssues = \App\Models\RoomIssue::whereIn('hostel_id', $hostelIds)
+            ->whereDate('created_at', today())
+            ->count();
+        $recentRoomIssues = \App\Models\RoomIssue::whereIn('hostel_id', $hostelIds)
+            ->with(['hostel', 'room', 'student.user'])
+            ->latest()
+            ->take(5)
+            ->get();
+
         // Count pending bookings from Booking model (NEW SYSTEM)
         $pendingBookingsCount = \App\Models\Booking::whereIn('hostel_id', $hostelIds)
             ->where('status', 'pending')
@@ -78,7 +95,7 @@
     </div>
 
     <!-- Financial Summary Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-6 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-8 gap-6 mb-6">
         <!-- Total Monthly Revenue -->
         <div class="bg-white rounded-2xl shadow-sm p-6 border-l-4 border-blue-500">
             <div class="flex justify-between items-center">
@@ -129,6 +146,33 @@
                     <i class="fas fa-hotel text-amber-600 text-xl"></i>
                 </div>
             </div>
+        </div>
+
+        <!-- 🆕 ROOM ISSUES STATISTICS CARD -->
+        <div class="bg-white rounded-2xl shadow-sm p-6 border-l-4 border-red-500">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-600">रूम समस्याहरू</h3>
+                    <p class="text-2xl font-bold text-gray-800">{{ $roomIssuesTotal ?? 0 }}</p>
+                    <div class="flex space-x-4 mt-2">
+                        <span class="text-xs text-warning">
+                            <i class="fas fa-clock mr-1"></i>{{ $pendingRoomIssues ?? 0 }} पेन्डिङ
+                        </span>
+                        <span class="text-xs text-danger">
+                            <i class="fas fa-exclamation-circle mr-1"></i>{{ $highPriorityRoomIssues ?? 0 }} जरुरी
+                        </span>
+                        <span class="text-xs text-success">
+                            <i class="fas fa-calendar-day mr-1"></i>{{ $todayRoomIssues ?? 0 }} आज
+                        </span>
+                    </div>
+                </div>
+                <div class="bg-red-100 p-3 rounded-xl">
+                    <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                </div>
+            </div>
+            <a href="{{ route('owner.room-issues.index') }}" class="text-xs text-red-600 hover:text-red-800 font-medium mt-2 inline-block">
+                व्यवस्थापन गर्नुहोस् <i class="fas fa-arrow-circle-right ml-1"></i>
+            </a>
         </div>
 
         <!-- Circulars Card -->
@@ -337,7 +381,7 @@
     <!-- Quick Actions Section -->
     <div class="bg-white rounded-2xl shadow-sm p-6 mb-6">
         <h2 class="text-xl font-bold text-gray-800 mb-6">द्रुत कार्यहरू</h2>
-        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-9 gap-4">
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-10 gap-4">
             <!-- 🏠 Homepage Button in Quick Actions -->
             <a href="{{ url('/') }}" class="p-4 bg-green-50 hover:bg-green-100 rounded-2xl text-center transition-colors no-underline group border border-green-100">
                 <div class="text-green-600 text-2xl mb-2 group-hover:scale-110 transition-transform">
@@ -379,6 +423,19 @@
                 @if($totalPending > 0)
                     <span class="absolute top-2 right-2 bg-red-500 text-white rounded-full text-xs w-5 h-5 flex items-center justify-center animate-pulse">
                         {{ $totalPending }}
+                    </span>
+                @endif
+            </a>
+            
+            <!-- 🆕 ROOM ISSUES QUICK ACTION -->
+            <a href="{{ route('owner.room-issues.index') }}" class="p-4 bg-red-50 hover:bg-red-100 rounded-2xl text-center transition-colors no-underline group border border-red-100 relative">
+                <div class="text-red-600 text-2xl mb-2 group-hover:scale-110 transition-transform">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="font-medium text-red-800 text-sm">रूम समस्याहरू</div>
+                @if(($pendingRoomIssues ?? 0) > 0)
+                    <span class="absolute top-2 right-2 bg-red-500 text-white rounded-full text-xs w-5 h-5 flex items-center justify-center animate-pulse">
+                        {{ $pendingRoomIssues ?? 0 }}
                     </span>
                 @endif
             </a>
@@ -519,122 +576,184 @@
         </div>
     </div>
 
-    <!-- 🆕 CONTACT MESSAGES SECTION -->
-<div class="bg-white rounded-2xl shadow-sm p-6 mt-6">
-    <div class="flex justify-between items-center mb-6">
-        <h2 class="text-xl font-bold text-gray-800">सम्पर्क सन्देशहरू</h2>
-        <div class="flex space-x-2">
-            <a href="{{ route('owner.contacts.index') }}" 
-               class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl px-5 py-2 shadow-sm hover:shadow-md transition-all duration-200 no-underline">
-                <i class="fas fa-envelope mr-2"></i>
-                सबै सन्देशहरू
+    <!-- 🆕 RECENT ROOM ISSUES SECTION -->
+    <div class="bg-white rounded-2xl shadow-sm p-6 mt-6">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold text-gray-800">हालका रूम समस्याहरू</h2>
+            <a href="{{ route('owner.room-issues.index') }}" 
+               class="inline-flex items-center bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl px-5 py-2 shadow-sm hover:shadow-md transition-all duration-200 no-underline">
+                <i class="fas fa-list mr-2"></i>
+                सबै हेर्नुहोस्
             </a>
         </div>
-    </div>
 
-    <!-- Contact Statistics -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100">
-            <div class="flex justify-between items-center">
-                <div>
-                    <h3 class="text-sm font-semibold text-blue-800">कुल सन्देशहरू</h3>
-                    <p class="text-2xl font-bold text-blue-600">{{ $totalContacts }}</p>
-                </div>
-                <div class="bg-blue-600 text-white p-3 rounded-xl">
-                    <i class="fas fa-envelope-open text-xl"></i>
-                </div>
-            </div>
-        </div>
-
-        <div class="bg-red-50 p-4 rounded-2xl border border-red-100">
-            <div class="flex justify-between items-center">
-                <div>
-                    <h3 class="text-sm font-semibold text-red-800">नपढिएका</h3>
-                    <p class="text-2xl font-bold text-red-600">{{ $unreadContacts }}</p>
-                </div>
-                <div class="bg-red-600 text-white p-3 rounded-xl">
-                    <i class="fas fa-envelope text-xl"></i>
-                </div>
-            </div>
-        </div>
-
-        <div class="bg-green-50 p-4 rounded-2xl border border-green-100">
-            <div class="flex justify-between items-center">
-                <div>
-                    <h3 class="text-sm font-semibold text-green-800">आजको सन्देश</h3>
-                    <p class="text-2xl font-bold text-green-600">{{ $todayContacts }}</p>
-                </div>
-                <div class="bg-green-600 text-white p-3 rounded-xl">
-                    <i class="fas fa-calendar-day text-xl"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Recent Contacts -->
-    <div class="space-y-3">
-        @forelse($recentContacts as $contact)
-            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-200 hover:bg-gray-100 transition-colors">
-                <div class="flex items-center flex-1">
-                    <div class="bg-blue-100 p-2 rounded-lg mr-3">
-                        <i class="fas fa-user text-blue-600"></i>
-                    </div>
-                    <div class="flex-1">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="font-medium text-gray-800 text-sm">{{ $contact->name }}</p>
-                                <p class="text-xs text-gray-600">{{ $contact->email }}</p>
-                                <p class="text-xs text-gray-600">{{ Str::limit($contact->subject, 40) }}</p>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-xs text-gray-500">{{ $contact->created_at->diffForHumans() }}</p>
-                                @if(!$contact->is_read)
-                                    <span class="bg-red-100 text-red-600 px-2 py-1 rounded-full text-xs">नयाँ</span>
-                                @endif
+        <div class="space-y-3">
+            @forelse($recentRoomIssues ?? [] as $issue)
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-200 hover:bg-gray-100 transition-colors">
+                    <div class="flex items-center flex-1">
+                        <div class="bg-red-100 p-2 rounded-lg mr-3">
+                            <i class="fas fa-exclamation-triangle text-red-600"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="font-medium text-gray-800 text-sm">
+                                        {{ $issue->student->user->name ?? 'अज्ञात विद्यार्थी' }}
+                                    </p>
+                                    <p class="text-xs text-gray-600">
+                                        {{ $issue->hostel->name ?? 'अज्ञात होस्टेल' }} - कोठा: {{ $issue->room->room_number ?? 'N/A' }}
+                                    </p>
+                                    <p class="text-xs text-gray-600 mt-1">
+                                        {{ Str::limit($issue->description, 60) }}
+                                    </p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-xs text-gray-500">{{ $issue->created_at->diffForHumans() }}</p>
+                                    @if($issue->priority == 'high')
+                                        <span class="bg-red-100 text-red-600 px-2 py-1 rounded-full text-xs">जरुरी</span>
+                                    @elseif($issue->priority == 'medium')
+                                        <span class="bg-yellow-100 text-yellow-600 px-2 py-1 rounded-full text-xs">मध्यम</span>
+                                    @else
+                                        <span class="bg-green-100 text-green-600 px-2 py-1 rounded-full text-xs">कम</span>
+                                    @endif
+                                </div>
                             </div>
                         </div>
-                        <p class="text-xs text-gray-500 mt-1">{{ Str::limit($contact->message, 60) }}</p>
+                    </div>
+                    <div class="ml-4">
+                        <a href="{{ route('owner.room-issues.show', $issue->id) }}" 
+                           class="text-blue-600 hover:text-blue-800 p-2 transition-colors" 
+                           title="हेर्नुहोस्">
+                            <i class="fas fa-eye"></i>
+                        </a>
                     </div>
                 </div>
-                <div class="flex space-x-2 ml-4">
-                    <a href="{{ route('owner.contacts.show', $contact) }}" 
-                       class="text-blue-600 hover:text-blue-800 p-2 transition-colors" 
-                       title="हेर्नुहोस्">
-                        <i class="fas fa-eye"></i>
-                    </a>
-                    @if(!$contact->is_read)
-                        <form action="{{ route('owner.contacts.update-status', $contact) }}" method="POST" class="inline">
-                            @csrf
-                            @method('PATCH')
-                            <input type="hidden" name="status" value="read">
-                            <button type="submit" class="text-green-600 hover:text-green-800 p-2 transition-colors" title="पढियो चिन्ह लगाउनुहोस्">
-                                <i class="fas fa-check"></i>
-                            </button>
-                        </form>
-                    @endif
-                    
-                    <!-- ✅ FIXED: CORRECTED DELETE BUTTON WITH NAMED ROUTE -->
-                    <form action="{{ route('owner.contacts.destroy', $contact) }}" method="POST" class="inline">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" 
-                                class="text-red-600 hover:text-red-800 p-2 transition-colors" 
-                                title="मेटाउनुहोस्"
-                                onclick="return confirm('के तपाईं यो सन्देश मेटाउन निश्चित हुनुहुन्छ? यो कार्य पूर्ववत गर्न सकिँदैन।')">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </form>
+            @empty
+                <div class="text-center py-4">
+                    <i class="fas fa-check-circle text-gray-400 text-3xl mb-2"></i>
+                    <p class="text-gray-500 text-sm">हाल कुनै रूम समस्या छैन</p>
+                    <p class="text-gray-400 text-xs mt-1">नयाँ समस्याहरू यहाँ देखिनेछन्</p>
+                </div>
+            @endforelse
+        </div>
+    </div>
+
+    <!-- 🆕 CONTACT MESSAGES SECTION -->
+    <div class="bg-white rounded-2xl shadow-sm p-6 mt-6">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold text-gray-800">सम्पर्क सन्देशहरू</h2>
+            <div class="flex space-x-2">
+                <a href="{{ route('owner.contacts.index') }}" 
+                   class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl px-5 py-2 shadow-sm hover:shadow-md transition-all duration-200 no-underline">
+                    <i class="fas fa-envelope mr-2"></i>
+                    सबै सन्देशहरू
+                </a>
+            </div>
+        </div>
+
+        <!-- Contact Statistics -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="text-sm font-semibold text-blue-800">कुल सन्देशहरू</h3>
+                        <p class="text-2xl font-bold text-blue-600">{{ $totalContacts }}</p>
+                    </div>
+                    <div class="bg-blue-600 text-white p-3 rounded-xl">
+                        <i class="fas fa-envelope-open text-xl"></i>
+                    </div>
                 </div>
             </div>
-        @empty
-            <div class="text-center py-8">
-                <i class="fas fa-envelope-open-text text-gray-400 text-4xl mb-3"></i>
-                <p class="text-gray-500 text-sm">हाल कुनै सम्पर्क सन्देश छैन</p>
-                <p class="text-gray-400 text-xs mt-1">नयाँ सन्देशहरू यहाँ देखिनेछन्</p>
+
+            <div class="bg-red-50 p-4 rounded-2xl border border-red-100">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="text-sm font-semibold text-red-800">नपढिएका</h3>
+                        <p class="text-2xl font-bold text-red-600">{{ $unreadContacts }}</p>
+                    </div>
+                    <div class="bg-red-600 text-white p-3 rounded-xl">
+                        <i class="fas fa-envelope text-xl"></i>
+                    </div>
+                </div>
             </div>
-        @endforelse
+
+            <div class="bg-green-50 p-4 rounded-2xl border border-green-100">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="text-sm font-semibold text-green-800">आजको सन्देश</h3>
+                        <p class="text-2xl font-bold text-green-600">{{ $todayContacts }}</p>
+                    </div>
+                    <div class="bg-green-600 text-white p-3 rounded-xl">
+                        <i class="fas fa-calendar-day text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Contacts -->
+        <div class="space-y-3">
+            @forelse($recentContacts as $contact)
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-200 hover:bg-gray-100 transition-colors">
+                    <div class="flex items-center flex-1">
+                        <div class="bg-blue-100 p-2 rounded-lg mr-3">
+                            <i class="fas fa-user text-blue-600"></i>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="font-medium text-gray-800 text-sm">{{ $contact->name }}</p>
+                                    <p class="text-xs text-gray-600">{{ $contact->email }}</p>
+                                    <p class="text-xs text-gray-600">{{ Str::limit($contact->subject, 40) }}</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-xs text-gray-500">{{ $contact->created_at->diffForHumans() }}</p>
+                                    @if(!$contact->is_read)
+                                        <span class="bg-red-100 text-red-600 px-2 py-1 rounded-full text-xs">नयाँ</span>
+                                    @endif
+                                </div>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">{{ Str::limit($contact->message, 60) }}</p>
+                        </div>
+                    </div>
+                    <div class="flex space-x-2 ml-4">
+                        <a href="{{ route('owner.contacts.show', $contact) }}" 
+                           class="text-blue-600 hover:text-blue-800 p-2 transition-colors" 
+                           title="हेर्नुहोस्">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        @if(!$contact->is_read)
+                            <form action="{{ route('owner.contacts.update-status', $contact) }}" method="POST" class="inline">
+                                @csrf
+                                @method('PATCH')
+                                <input type="hidden" name="status" value="read">
+                                <button type="submit" class="text-green-600 hover:text-green-800 p-2 transition-colors" title="पढियो चिन्ह लगाउनुहोस्">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                            </form>
+                        @endif
+                        
+                        <!-- ✅ FIXED: CORRECTED DELETE BUTTON WITH NAMED ROUTE -->
+                        <form action="{{ route('owner.contacts.destroy', $contact) }}" method="POST" class="inline">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" 
+                                    class="text-red-600 hover:text-red-800 p-2 transition-colors" 
+                                    title="मेटाउनुहोस्"
+                                    onclick="return confirm('के तपाईं यो सन्देश मेटाउन निश्चित हुनुहुन्छ? यो कार्य पूर्ववत गर्न सकिँदैन।')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            @empty
+                <div class="text-center py-8">
+                    <i class="fas fa-envelope-open-text text-gray-400 text-4xl mb-3"></i>
+                    <p class="text-gray-500 text-sm">हाल कुनै सम्पर्क सन्देश छैन</p>
+                    <p class="text-gray-400 text-xs mt-1">नयाँ सन्देशहरू यहाँ देखिनेछन्</p>
+                </div>
+            @endforelse
+        </div>
     </div>
-</div>
 @endsection
 
 @section('scripts')

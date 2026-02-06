@@ -557,6 +557,12 @@ class DashboardController extends Controller
                     'unreadContacts' => 0,
                     'todayContacts' => 0,
                     'recentContacts' => collect(),
+                    // ✅ NEW: Room Issues Statistics
+                    'roomIssuesTotal' => 0,
+                    'pendingRoomIssues' => 0,
+                    'highPriorityRoomIssues' => 0,
+                    'todayRoomIssues' => 0,
+                    'recentRoomIssues' => collect(),
                 ]);
             }
 
@@ -631,6 +637,25 @@ class DashboardController extends Controller
                 ->take(5)
                 ->get();
 
+            // ✅ NEW: Room Issues Statistics for Owner Dashboard
+            $roomIssuesTotal = \App\Models\RoomIssue::whereIn('hostel_id', $hostelIds)->count();
+            $pendingRoomIssues = \App\Models\RoomIssue::whereIn('hostel_id', $hostelIds)
+                ->where('status', 'pending')
+                ->count();
+            $highPriorityRoomIssues = \App\Models\RoomIssue::whereIn('hostel_id', $hostelIds)
+                ->where('priority', 'high')
+                ->count();
+            $todayRoomIssues = \App\Models\RoomIssue::whereIn('hostel_id', $hostelIds)
+                ->whereDate('created_at', today())
+                ->count();
+
+            // ✅ NEW: Recent room issues
+            $recentRoomIssues = \App\Models\RoomIssue::whereIn('hostel_id', $hostelIds)
+                ->with(['hostel', 'room', 'student.user'])
+                ->latest()
+                ->take(5)
+                ->get();
+
             // For today's meal, we use the first hostel
             $todayMeal = null;
             if ($hostel) {
@@ -669,7 +694,13 @@ class DashboardController extends Controller
                 'totalContacts',
                 'unreadContacts',
                 'todayContacts',
-                'recentContacts'  // ✅ THIS IS THE KEY VARIABLE!
+                'recentContacts',
+                // ✅ NEW: Room Issues Statistics
+                'roomIssuesTotal',
+                'pendingRoomIssues',
+                'highPriorityRoomIssues',
+                'todayRoomIssues',
+                'recentRoomIssues'
             ));
         } catch (\Exception $e) {
             Log::error('होस्टेल मालिक ड्यासबोर्ड त्रुटि: ' . $e->getMessage(), [
@@ -723,6 +754,12 @@ class DashboardController extends Controller
                 'unreadContacts' => $unreadContacts,
                 'todayContacts' => $todayContacts,
                 'recentContacts' => $recentContacts,
+                // ✅ NEW: Room Issues Statistics with default values
+                'roomIssuesTotal' => 0,
+                'pendingRoomIssues' => 0,
+                'highPriorityRoomIssues' => 0,
+                'todayRoomIssues' => 0,
+                'recentRoomIssues' => collect(),
             ]);
         }
     }

@@ -13,6 +13,7 @@ use App\Http\Controllers\Frontend\PublicController;
 use App\Http\Controllers\Admin\HostelController as AdminHostelController;
 use App\Http\Controllers\Admin\RoomController as AdminRoomController;
 use App\Http\Controllers\RoomController;
+use App\Http\Controllers\Owner\OwnerRoomIssuesController;
 
 // Force HTTPS in production
 if (app()->environment('production')) {
@@ -160,7 +161,7 @@ Route::prefix('admin')
 
 // ✅ Owner routes
 Route::prefix('owner')
-    ->middleware(['auth', 'hasOrganization', 'role:owner,hostel_manager'])
+    ->middleware(['auth', 'hasOrganization', 'role:owner,hostel_manager'])  // 'owner' middleware हटाउनुहोस्
     ->group(function () {
         require __DIR__ . '/owner.php';
 
@@ -192,6 +193,13 @@ Route::prefix('owner')
 
         Route::post('/messages/{message}/mark-read', [\App\Http\Controllers\Owner\HostelController::class, 'markAsRead'])
             ->name('owner.messages.mark-read');
+
+        // ✅ NEW: Owner room issues management routes (यसरी update गर्नुहोस्)
+        Route::get('/room-issues', [\App\Http\Controllers\Owner\OwnerRoomIssuesController::class, 'index'])->name('owner.room-issues.index');
+        Route::get('/room-issues/{id}', [\App\Http\Controllers\Owner\OwnerRoomIssuesController::class, 'show'])->name('owner.room-issues.show');
+        Route::patch('/room-issues/{id}', [\App\Http\Controllers\Owner\OwnerRoomIssuesController::class, 'update'])->name('owner.room-issues.update');
+        Route::delete('/room-issues/{id}', [\App\Http\Controllers\Owner\OwnerRoomIssuesController::class, 'destroy'])->name('owner.room-issues.destroy');
+        Route::get('/room-issues/stats', [\App\Http\Controllers\Owner\OwnerRoomIssuesController::class, 'getStats'])->name('owner.room-issues.stats');
     });
 
 // ✅ Student routes
