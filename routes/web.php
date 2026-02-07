@@ -14,6 +14,8 @@ use App\Http\Controllers\Admin\HostelController as AdminHostelController;
 use App\Http\Controllers\Admin\RoomController as AdminRoomController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\Owner\OwnerRoomIssuesController;
+use App\Http\Controllers\PaymentController;
+
 
 // Force HTTPS in production
 if (app()->environment('production')) {
@@ -215,6 +217,12 @@ Route::prefix('student')
         Route::post('/bookings', [BookingController::class, 'store'])->name('student.bookings.store');
         Route::get('/bookings/{id}', [BookingController::class, 'show'])->name('student.bookings.show');
         Route::post('/bookings/{id}/cancel', [BookingController::class, 'cancel'])->name('student.bookings.cancel');
+
+        // ✅ NEW: Student Payment Routes (यहीं थप्नुहोस्)
+        Route::get('/payments', [PaymentController::class, 'studentPayments'])->name('student.payments.index');
+        Route::get('/payments/receipt/{payment}/show', [PaymentController::class, 'showReceipt'])->name('student.payments.receipt.show');
+        Route::get('/payments/receipt/{payment}/download', [PaymentController::class, 'downloadReceipt'])->name('student.payments.receipt.download');
+        Route::get('/payments/receipt/{payment}/pdf', [PaymentController::class, 'downloadReceipt'])->name('student.payments.receipt.pdf');
     });
 
 /*|--------------------------------------------------------------------------

@@ -55,7 +55,7 @@ class PaymentController extends Controller
 
         $validated = $request->validated();
         $validated['organization_id'] = $organizationId;
-        $validated['user_id'] = Auth::id();
+        $validated['student_id'] = Student::where('user_id', Auth::id())->first()->id;
 
         Payment::create($validated);
 
@@ -65,9 +65,7 @@ class PaymentController extends Controller
 
     public function show(Payment $payment)
     {
-        // Authorization check
         $this->authorizePaymentAccess($payment);
-
         $payment->load(['organization', 'user', 'booking.student.user']);
 
         return view('admin.payments.show', compact('payment'));
@@ -75,7 +73,6 @@ class PaymentController extends Controller
 
     public function edit(Payment $payment)
     {
-        // Authorization check
         $this->authorizePaymentAccess($payment);
 
         $organizationId = session('selected_organization_id');
@@ -88,9 +85,7 @@ class PaymentController extends Controller
 
     public function update(UpdatePaymentRequest $request, Payment $payment)
     {
-        // Authorization check
         $this->authorizePaymentAccess($payment);
-
         $payment->update($request->validated());
 
         return redirect()->route('payments.index')
@@ -99,9 +94,7 @@ class PaymentController extends Controller
 
     public function destroy(Payment $payment)
     {
-        // Authorization check
         $this->authorizePaymentAccess($payment);
-
         $payment->delete();
 
         return redirect()->route('payments.index')
@@ -121,13 +114,11 @@ class PaymentController extends Controller
 
         $organizationId = session('selected_organization_id');
 
-        // Get payments for owner's organization
         $payments = Payment::where('organization_id', $organizationId)
             ->with(['user', 'booking'])
             ->latest()
             ->paginate(10);
 
-        // Statistics
         $totalRevenue = Payment::where('organization_id', $organizationId)
             ->where('status', 'completed')
             ->sum('amount');
@@ -152,7 +143,7 @@ class PaymentController extends Controller
         }
 
         $request->validate([
-            'user_id' => 'required|exists:users,id',
+            'student_id' => 'required|exists:students,id',
             'amount' => 'required|numeric|min:1',
             'payment_date' => 'required|date',
             'purpose' => 'required|in:subscription,booking,extra_hostel'
@@ -165,7 +156,7 @@ class PaymentController extends Controller
 
             Payment::create([
                 'organization_id' => $organizationId,
-                'user_id' => $request->user_id,
+                'student_id' => $request->student_id,
                 'amount' => $request->amount,
                 'payment_method' => 'cash',
                 'purpose' => $request->purpose,
@@ -204,7 +195,6 @@ class PaymentController extends Controller
             abort(403, 'तपाईंसँग भुक्तानी स्वीकृत गर्ने अनुमति छैन');
         }
 
-        // Check if payment belongs to owner's organization
         if ($payment->organization_id != session('selected_organization_id')) {
             abort(403, 'तपाईंले यो भुक्तानी स्वीकृत गर्न पाउनुहुन्न।');
         }
@@ -227,9 +217,7 @@ class PaymentController extends Controller
                 ])
             ]);
 
-            // Handle successful payment
             $this->handleSuccessfulPayment($payment);
-
             DB::commit();
 
             return redirect()->back()->with('success', 'बैंक हस्तान्तरण भुक्तानी सफलतापूर्वक स्वीकृत गरियो।');
@@ -251,7 +239,6 @@ class PaymentController extends Controller
             abort(403, 'तपाईंसँग भुक्तानी अस्वीकृत गर्ने अनुमति छैन');
         }
 
-        // Check if payment belongs to owner's organization
         if ($payment->organization_id != session('selected_organization_id')) {
             abort(403, 'तपाईंले यो भुक्तानी अस्वीकृत गर्न पाउनुहुन्न।');
         }
@@ -286,7 +273,6 @@ class PaymentController extends Controller
             abort(404);
         }
 
-        // Authorization check
         $this->authorizePaymentAccess($payment);
 
         $screenshotPath = $payment->metadata['screenshot_path'] ?? null;
@@ -325,7 +311,6 @@ class PaymentController extends Controller
 
         $payment = Payment::findOrFail($request->payment_id);
 
-        // Authorization check
         if ($payment->organization_id != session('selected_organization_id')) {
             return back()->with('error', 'तपाईंले यो भुक्तानी गर्न पाउनुहुन्न।');
         }
@@ -338,11 +323,9 @@ class PaymentController extends Controller
         $signed_field_names = 'total_amount,transaction_uuid,product_code';
         $secret_key = config('services.esewa.secret_key');
 
-        // Create signature
         $data = $amount . ',' . $transaction_uuid . ',' . $product_code;
         $hash = base64_encode(hash_hmac('sha256', $data, $secret_key, true));
 
-        // Update payment with eSewa details
         $payment->update([
             'transaction_id' => $transaction_uuid,
             'payment_method' => 'esewa',
@@ -372,7 +355,6 @@ class PaymentController extends Controller
             $status = $request->input('status');
             $total_amount = $request->input('total_amount');
 
-            // Find payment by transaction ID
             $payment = Payment::where('transaction_id', $transaction_uuid)->first();
 
             if (!$payment) {
@@ -381,7 +363,6 @@ class PaymentController extends Controller
                     ->with('error', 'भुक्तानी रेकर्ड भेटिएन।');
             }
 
-            // Verify payment with eSewa
             $verification_url = config('services.esewa.verify_url');
             $verification_data = [
                 'amt' => $total_amount,
@@ -393,7 +374,6 @@ class PaymentController extends Controller
             $response = Http::post($verification_url, $verification_data);
 
             if ($response->successful() && str_contains($response->body(), 'Success')) {
-                // Payment successful
                 $payment->update([
                     'status' => 'completed',
                     'transaction_id' => $transaction_code,
@@ -404,13 +384,11 @@ class PaymentController extends Controller
                     ])
                 ]);
 
-                // Handle successful payment
                 $this->handleSuccessfulPayment($payment);
 
                 return redirect()->route('payment.success', $payment->id)
                     ->with('success', 'भुक्तानी सफल भयो! धन्यवाद।');
             } else {
-                // Payment verification failed
                 $payment->update([
                     'status' => 'failed',
                     'metadata' => array_merge($payment->metadata ?? [], [
@@ -442,7 +420,6 @@ class PaymentController extends Controller
 
         $payment = Payment::findOrFail($request->payment_id);
 
-        // Authorization check
         if ($payment->organization_id != session('selected_organization_id')) {
             return back()->with('error', 'तपाईंले यो भुक्तानी गर्न पाउनुहुन्न।');
         }
@@ -450,7 +427,7 @@ class PaymentController extends Controller
         $payload = [
             'return_url' => route('payment.khalti.callback'),
             'website_url' => config('app.url'),
-            'amount' => $request->amount * 100, // Convert to paisa
+            'amount' => $request->amount * 100,
             'purchase_order_id' => 'PO_' . $payment->id . '_' . time(),
             'purchase_order_name' => $this->getPurchaseOrderName($request->purchase_type),
             'customer_info' => [
@@ -468,7 +445,6 @@ class PaymentController extends Controller
             if ($response->successful()) {
                 $responseData = $response->json();
 
-                // Update payment with transaction ID
                 $payment->update([
                     'transaction_id' => $responseData['pidx'],
                     'payment_method' => 'khalti',
@@ -499,9 +475,8 @@ class PaymentController extends Controller
         try {
             $pidx = $request->input('pidx');
             $transactionId = $request->input('transaction_id');
-            $amount = $request->input('amount') / 100; // Convert from paisa to rupees
+            $amount = $request->input('amount') / 100;
 
-            // Verify payment with Khalti
             $response = Http::withHeaders([
                 'Authorization' => 'Key ' . config('services.khalti.live_secret_key')
             ])->post('https://khalti.com/api/v2/epayment/lookup/', [
@@ -511,12 +486,10 @@ class PaymentController extends Controller
             if ($response->successful()) {
                 $paymentData = $response->json();
 
-                // Find payment by transaction ID
                 $payment = Payment::where('transaction_id', $pidx)->first();
 
                 if ($payment) {
                     if ($paymentData['status'] == 'Completed') {
-                        // Payment successful
                         $payment->update([
                             'status' => 'completed',
                             'verified_at' => now(),
@@ -526,13 +499,11 @@ class PaymentController extends Controller
                             ])
                         ]);
 
-                        // Handle successful payment
                         $this->handleSuccessfulPayment($payment);
 
                         return redirect()->route('payment.success', $payment->id)
                             ->with('success', 'भुक्तानी सफल भयो! धन्यवाद।');
                     } else {
-                        // Payment failed
                         $payment->update([
                             'status' => 'failed',
                             'metadata' => array_merge($payment->metadata ?? [], [
@@ -551,7 +522,6 @@ class PaymentController extends Controller
                 }
             }
 
-            // Payment verification failed
             return redirect()->route('payment.failure')
                 ->with('error', 'भुक्तानी सत्यापन असफल भयो।');
         } catch (\Exception $e) {
@@ -593,17 +563,16 @@ class PaymentController extends Controller
             'account_number' => 'required|string|max:255',
             'transaction_id' => 'required|string|max:255',
             'transaction_date' => 'required|date',
-            'screenshot' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120', // 5MB max
+            'screenshot' => 'required|image|mimes:jpeg,png,jpg,gif|max:5120',
         ]);
 
         try {
-            // Store screenshot
             $screenshotPath = $request->file('screenshot')->store('bank_screenshots', 'public');
+            $student = Student::where('user_id', Auth::id())->first();
 
-            // Create payment record
             $payment = Payment::create([
                 'organization_id' => session('selected_organization_id'),
-                'user_id' => Auth::id(),
+                'student_id' => $student->id,
                 'amount' => $request->amount,
                 'payment_method' => 'bank_transfer',
                 'purpose' => $request->purpose,
@@ -618,7 +587,6 @@ class PaymentController extends Controller
                 ]
             ]);
 
-            // Associate with booking if provided
             if ($request->booking_id) {
                 $payment->update(['booking_id' => $request->booking_id]);
             }
@@ -641,20 +609,18 @@ class PaymentController extends Controller
         try {
             switch ($payment->purpose) {
                 case 'booking':
-                    // Update booking status
                     if ($payment->booking_id) {
                         $booking = Booking::find($payment->booking_id);
                         if ($booking) {
                             $booking->update([
                                 'payment_status' => 'paid',
-                                'status' => 'approved' // Auto-approve after payment
+                                'status' => 'approved'
                             ]);
                         }
                     }
                     break;
 
                 case 'subscription':
-                    // Activate subscription
                     $metadata = $payment->metadata;
                     $planId = $metadata['plan_id'] ?? null;
 
@@ -663,7 +629,6 @@ class PaymentController extends Controller
                         $currentSubscription = $organization->currentSubscription();
 
                         if ($currentSubscription) {
-                            // Upgrade existing subscription
                             $currentSubscription->update([
                                 'plan_id' => $planId,
                                 'status' => 'active',
@@ -671,7 +636,6 @@ class PaymentController extends Controller
                                 'renews_at' => now()->addMonth()
                             ]);
                         } else {
-                            // Create new subscription
                             Subscription::create([
                                 'organization_id' => $organization->id,
                                 'plan_id' => $planId,
@@ -684,7 +648,6 @@ class PaymentController extends Controller
                     break;
 
                 case 'extra_hostel':
-                    // Add extra hostels to subscription
                     $metadata = $payment->metadata;
                     $quantity = $metadata['quantity'] ?? 0;
                     $subscriptionId = $metadata['subscription_id'] ?? null;
@@ -714,8 +677,6 @@ class PaymentController extends Controller
     public function paymentSuccess($paymentId)
     {
         $payment = Payment::with(['organization', 'user', 'booking'])->findOrFail($paymentId);
-
-        // Authorization check
         $this->authorizePaymentAccess($payment);
 
         return view('payments.success', compact('payment'));
@@ -744,8 +705,6 @@ class PaymentController extends Controller
     {
         try {
             $payment = Payment::findOrFail($paymentId);
-
-            // Authorization check
             $this->authorizePaymentAccess($payment);
 
             if ($payment->status === 'completed') {
@@ -797,15 +756,19 @@ class PaymentController extends Controller
             if ($payment->organization_id != session('selected_organization_id')) {
                 abort(403, 'तपाईंले यो भुक्तानी हेर्न पाउनुहुन्न।');
             }
+            return true;
         }
 
         if ($user->hasRole('student')) {
-            if ($payment->user_id != $user->id) {
+            $student = Student::where('user_id', $user->id)->first();
+
+            if (!$student || $payment->student_id != $student->id) {
                 abort(403, 'तपाईंले यो भुक्तानी हेर्न पाउनुहुन्न।');
             }
+            return true;
         }
 
-        return true;
+        abort(403, 'तपाईंसँग यो भुक्तानी हेर्ने अनुमति छैन।');
     }
 
     /**
@@ -813,47 +776,235 @@ class PaymentController extends Controller
      */
     public function studentPayments()
     {
-        $payments = Payment::where('user_id', Auth::id())
-            ->with(['organization', 'booking.room.hostel'])
-            ->latest()
-            ->paginate(10);
+        $student = Student::where('user_id', Auth::id())->first();
 
-        return view('student.payments.index', compact('payments'));
+        if (!$student) {
+            $payments = collect([]);
+        } else {
+            $payments = Payment::where('student_id', $student->id)
+                ->with(['organization', 'booking.room.hostel'])
+                ->latest()
+                ->paginate(10);
+        }
+
+        return view('student.payments.history', compact('payments'));
     }
 
     /**
-     * Show payment receipt
+     * Show payment receipt (PDF) - For Student Panel
      */
     public function showReceipt($paymentId)
     {
-        $payment = Payment::with(['organization', 'user', 'booking'])->findOrFail($paymentId);
+        // ✅ FIXED: Use same logic as Owner panel
+        $payment = Payment::with(['hostel', 'student.user', 'student.room'])->findOrFail($paymentId);
 
-        // Authorization check
-        $this->authorizePaymentAccess($payment);
+        // Authorization check for student
+        $user = Auth::user();
+        if ($user->hasRole('student')) {
+            $student = Student::where('user_id', $user->id)->first();
+            if (!$student || $payment->student_id != $student->id) {
+                abort(403, 'तपाईंले यो भुक्तानी रसिद हेर्न पाउनुहुन्न।');
+            }
+        } else {
+            $this->authorizePaymentAccess($payment);
+        }
 
-        return view('payment.receipt', compact('payment'));
+        if ($payment->status !== 'completed') {
+            return back()->with('error', 'यो भुक्तानी अझै पूरा भएको छैन। रसिद हेर्न भुक्तानी पूरा गर्नुहोस्।');
+        }
+
+        // ✅ FIXED: Use same logic as Owner panel's PdfController
+        $hostel = $payment->hostel;
+        $student = $payment->student;
+
+        // Get logo URL for DOMPDF - FIXED FOR LOCAL DEVELOPMENT
+        $logoUrl = null;
+        if ($hostel && $hostel->logo_path) {
+            // Check if file exists in storage
+            if (Storage::disk('public')->exists($hostel->logo_path)) {
+                // Get absolute path for DOMPDF
+                $absolutePath = storage_path('app/public/' . $hostel->logo_path);
+                if (file_exists($absolutePath)) {
+                    $logoUrl = 'file://' . str_replace('\\', '/', $absolutePath);
+                }
+            }
+        }
+
+        // Generate receipt number
+        $receipt_number = 'RCPT-' . str_pad($payment->id, 6, '0', STR_PAD_LEFT);
+
+        // ✅ FIXED: Load the same view as Owner panel
+        $pdf = PDF::loadView('pdf.receipt', [
+            'payment' => $payment,
+            'hostel' => $hostel,
+            'student' => $student,
+            'receipt_number' => $receipt_number,
+            'logoUrl' => $logoUrl,
+            'logo_url' => $logoUrl,
+            'logo_path' => $logoUrl,
+        ])->setOption('enable-local-file-access', true)
+            ->setOption('isHtml5ParserEnabled', true)
+            ->setOption('isRemoteEnabled', true);
+
+        return $pdf->stream('receipt_' . $payment->id . '.pdf');
     }
 
     /**
-     * Download payment receipt as PDF
+     * Download receipt as PDF - For Student Panel
      */
     public function downloadReceipt($paymentId)
     {
-        $payment = Payment::with(['organization', 'user', 'booking'])->findOrFail($paymentId);
+        // ✅ FIXED: Use same logic as Owner panel
+        $payment = Payment::with(['hostel', 'student.user', 'student.room'])->findOrFail($paymentId);
+
+        // Authorization check for student
+        $user = Auth::user();
+        if ($user->hasRole('student')) {
+            $student = Student::where('user_id', $user->id)->first();
+            if (!$student || $payment->student_id != $student->id) {
+                abort(403, 'तपाईंले यो भुक्तानी रसिद डाउनलोड गर्न पाउनुहुन्न।');
+            }
+        } else {
+            $this->authorizePaymentAccess($payment);
+        }
+
+        if ($payment->status !== 'completed') {
+            return back()->with('error', 'यो भुक्तानी अझै पूरा भएको छैन। रसिद डाउनलोड गर्न भुक्तानी पूरा गर्नुहोस्।');
+        }
+
+        // ✅ FIXED: Use same logic as Owner panel's PdfController
+        $hostel = $payment->hostel;
+        $student = $payment->student;
+
+        // Get logo URL for DOMPDF - FIXED FOR LOCAL DEVELOPMENT
+        $logoUrl = null;
+        if ($hostel && $hostel->logo_path) {
+            // Check if file exists in storage
+            if (Storage::disk('public')->exists($hostel->logo_path)) {
+                // Get absolute path for DOMPDF
+                $absolutePath = storage_path('app/public/' . $hostel->logo_path);
+                if (file_exists($absolutePath)) {
+                    $logoUrl = 'file://' . str_replace('\\', '/', $absolutePath);
+                }
+            }
+        }
+
+        // Generate receipt number
+        $receipt_number = 'RCPT-' . str_pad($payment->id, 6, '0', STR_PAD_LEFT);
+
+        // ✅ FIXED: Load the same view as Owner panel
+        $pdf = PDF::loadView('pdf.receipt', [
+            'payment' => $payment,
+            'hostel' => $hostel,
+            'student' => $student,
+            'receipt_number' => $receipt_number,
+            'logoUrl' => $logoUrl,
+            'logo_url' => $logoUrl,
+            'logo_path' => $logoUrl,
+        ])->setOption('enable-local-file-access', true)
+            ->setOption('isHtml5ParserEnabled', true)
+            ->setOption('isRemoteEnabled', true);
+
+        return $pdf->download('receipt_' . $payment->id . '.pdf');
+    }
+
+
+    /**
+     * Get hostel information for payment
+     * Student panel मा यो method ले काम गर्छ
+     */
+    private function getHostelForPayment($payment)
+    {
+        // 1. पहिले payment बाट hostel निकाल्ने
+        if ($payment->hostel) {
+            return $payment->hostel;
+        }
+
+        // 2. Booking बाट hostel निकाल्ने
+        if ($payment->booking && $payment->booking->room && $payment->booking->room->hostel) {
+            return $payment->booking->room->hostel;
+        }
+
+        // 3. Student बाट hostel निकाल्ने
+        if ($payment->student && $payment->student->hostel) {
+            return $payment->student->hostel;
+        }
+
+        // 4. Student को room बाट hostel निकाल्ने
+        if ($payment->student && $payment->student->room && $payment->student->room->hostel) {
+            return $payment->student->room->hostel;
+        }
+
+        // 5. Organization बाट hostel निकाल्ने
+        if ($payment->organization_id) {
+            $hostel = Hostel::where('organization_id', $payment->organization_id)->first();
+            if ($hostel) {
+                return $hostel;
+            }
+        }
+
+        // 6. Default hostel information
+        return (object)[
+            'name' => 'HostelHub',
+            'logo_path' => null,
+            'address' => 'Kathmandu, Nepal',
+            'phone' => '+977 9800000000',
+            'email' => 'info@hostelhub.com',
+            'contact_phone' => '+977 9800000000',
+            'contact_email' => 'info@hostelhub.com'
+        ];
+    }
+
+    /**
+     * Generate receipt PDF for owner (alias for downloadReceipt)
+     */
+    public function generateReceipt($id)
+    {
+        $payment = Payment::with(['hostel', 'student.user', 'student.room'])->findOrFail($id);
 
         // Authorization check
-        $this->authorizePaymentAccess($payment);
+        if (Auth::user()->hasRole('hostel_manager')) {
+            if ($payment->organization_id != session('selected_organization_id')) {
+                abort(403, 'तपाईंले यो रसिद हेर्न पाउनुहुन्न।');
+            }
+        } else {
+            $this->authorizePaymentAccess($payment);
+        }
 
-        $data = [
+        // ✅ FIXED: Use same logic as Owner panel's PdfController
+        $hostel = $payment->hostel;
+        $student = $payment->student;
+
+        // Get logo URL for DOMPDF - FIXED FOR LOCAL DEVELOPMENT
+        $logoUrl = null;
+        if ($hostel && $hostel->logo_path) {
+            // Check if file exists in storage
+            if (Storage::disk('public')->exists($hostel->logo_path)) {
+                // Get absolute path for DOMPDF
+                $absolutePath = storage_path('app/public/' . $hostel->logo_path);
+                if (file_exists($absolutePath)) {
+                    $logoUrl = 'file://' . str_replace('\\', '/', $absolutePath);
+                }
+            }
+        }
+
+        // Generate receipt number
+        $receipt_number = 'RCPT-' . str_pad($payment->id, 6, '0', STR_PAD_LEFT);
+
+        // ✅ FIXED: Load the same view as Owner panel's PdfController
+        $pdf = PDF::loadView('pdf.receipt', [
             'payment' => $payment,
-            'organization' => $payment->organization,
-            'user' => $payment->user,
-            'booking' => $payment->booking
-        ];
+            'hostel' => $hostel,
+            'student' => $student,
+            'receipt_number' => $receipt_number,
+            'logoUrl' => $logoUrl,
+            'logo_url' => $logoUrl,
+            'logo_path' => $logoUrl,
+        ])->setOption('enable-local-file-access', true)
+            ->setOption('isHtml5ParserEnabled', true)
+            ->setOption('isRemoteEnabled', true);
 
-        $pdf = PDF::loadView('payment.receipt-pdf', $data);
-
-        return $pdf->download('भुक्तानी-रसिद-' . $payment->id . '.pdf');
+        return $pdf->download('receipt_' . $payment->id . '.pdf');
     }
 
     /**
@@ -863,11 +1014,8 @@ class PaymentController extends Controller
     {
         try {
             $payment = Payment::with(['organization', 'user', 'booking'])->findOrFail($id);
-
-            // Authorization check
             $this->authorizePaymentAccess($payment);
 
-            // Check if payment belongs to owner's organization
             if ($payment->organization_id != session('selected_organization_id')) {
                 abort(403, 'तपाईंले यो बिल हेर्न पाउनुहुन्न।');
             }
@@ -880,19 +1028,10 @@ class PaymentController extends Controller
             ];
 
             $pdf = PDF::loadView('payment.bill-pdf', $data);
-
             return $pdf->download('भुक्तानी-बिल-' . $payment->id . '.pdf');
         } catch (\Exception $e) {
             Log::error('Bill generation failed: ' . $e->getMessage());
             return redirect()->back()->with('error', 'बिल जारी गर्न असफल: ' . $e->getMessage());
         }
-    }
-
-    /**
-     * Generate receipt PDF for owner (alias for downloadReceipt)
-     */
-    public function generateReceipt($id)
-    {
-        return $this->downloadReceipt($id);
     }
 }

@@ -5,8 +5,22 @@
     <title>Payment Receipt - {{ $hostel->name }}</title>
     <style>
         /* DOMPDF COMPATIBLE CSS ONLY */
+        @font-face {
+            font-family: 'Noto Sans';
+            src: url('{{ storage_path('fonts/NotoSans-Regular.ttf') }}') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+        
+        @font-face {
+            font-family: 'Noto Sans';
+            src: url('{{ storage_path('fonts/NotoSans-Bold.ttf') }}') format('truetype');
+            font-weight: bold;
+            font-style: normal;
+        }
+        
         body { 
-            font-family: helvetica, sans-serif; 
+            font-family: helvetica, 'Noto Sans', sans-serif; 
             font-size: 12px; 
             line-height: 1.4; 
             color: #000; 
@@ -163,6 +177,11 @@
             background-color: #d1fae5; 
             color: #065f46; 
         }
+        
+        /* Fix for Unicode characters */
+        .nepali-text {
+            font-family: 'Noto Sans', sans-serif;
+        }
     </style>
 </head>
 <body>
@@ -170,11 +189,14 @@
     <div class="header">
         <!-- Logo Container -->
         <div class="logo-container">
-            @if(isset($logo_base64) && !empty($logo_base64))
+            @if(isset($logoUrl) && !empty($logoUrl))
+                <!-- Use direct file path for DOMPDF -->
+                <img src="{{ $logoUrl }}" class="logo" alt="{{ $hostel->name ?? 'Hostel' }} Logo">
+            @elseif(isset($logo_base64) && !empty($logo_base64))
                 <img src="{{ $logo_base64 }}" class="logo" alt="{{ $hostel->name ?? 'Hostel' }} Logo">
             @else
                 <div style="width: 80px; height: 80px; background-color: #10b981; color: white; text-align: center; line-height: 80px; font-weight: bold; font-size: 20px;">
-                    {{ substr($hostel->name ?? 'H', 0, 1) }}
+                    {{ strtoupper(substr($hostel->name ?? 'H', 0, 1)) }}
                 </div>
             @endif
         </div>
@@ -185,18 +207,18 @@
                 @if(isset($hostel->address) && !empty($hostel->address))
                     <div>{{ $hostel->address }}</div>
                 @endif
-                @if(isset($hostel->phone) && !empty($hostel->phone))
-                    <div>Phone: {{ $hostel->phone }}</div>
+                @if(isset($hostel->contact_phone) && !empty($hostel->contact_phone))
+                    <div>Phone: {{ $hostel->contact_phone }}</div>
                 @endif
-                @if(isset($hostel->email) && !empty($hostel->email))
-                    <div>Email: {{ $hostel->email }}</div>
+                @if(isset($hostel->contact_email) && !empty($hostel->contact_email))
+                    <div>Email: {{ $hostel->contact_email }}</div>
                 @endif
             </div>
         </div>
         
         <div class="text-right">
             <div style="font-weight: bold; color: #4b5563;">Receipt No.</div>
-            <div style="font-size: 14px; color: #059669;">REC-{{ str_pad($payment->id, 6, '0', STR_PAD_LEFT) }}</div>
+            <div style="font-size: 14px; color: #059669;">{{ $receipt_number ?? 'REC-' . str_pad($payment->id, 6, '0', STR_PAD_LEFT) }}</div>
             <div style="font-size: 10px; margin-top: 5px;">
                 <div>Date: {{ now()->format('Y-m-d') }}</div>
                 <div>Page: 1 of 1</div>
@@ -232,6 +254,8 @@
                 <span class="detail-value">
                     @if(isset($student->room) && $student->room)
                         {{ $student->room->room_number ?? 'N/A' }}
+                    @elseif(isset($room) && $room)
+                        {{ $room->room_number ?? 'N/A' }}
                     @else
                         N/A
                     @endif
@@ -250,7 +274,7 @@
             
             <div class="detail-row">
                 <span class="detail-label">Guardian Contact:</span>
-                <span class="detail-value">{{ $student->guardian_phone ?? 'N/A' }}</span>
+                <span class="detail-value">{{ $student->guardian_phone ?? $student->guardian_contact ?? 'N/A' }}</span>
             </div>
         </div>
         
@@ -276,7 +300,21 @@
             
             <div class="detail-row">
                 <span class="detail-label">Payment Method:</span>
-                <span class="detail-value">{{ $payment->payment_method ?? 'N/A' }}</span>
+                <span class="detail-value">
+                    @php
+                        // Fix for Unicode characters - Use simple mapping
+                        $methodMap = [
+                            'cash' => 'Cash',
+                            'bank_transfer' => 'Bank Transfer',
+                            'esewa' => 'eSewa',
+                            'khalti' => 'Khalti',
+                            'connectips' => 'Connect IPS',
+                            'credit_card' => 'Credit Card'
+                        ];
+                        $paymentMethod = $methodMap[$payment->payment_method] ?? ucfirst($payment->payment_method ?? 'N/A');
+                    @endphp
+                    {{ $paymentMethod }}
+                </span>
             </div>
             
             <div class="detail-row">
@@ -293,7 +331,7 @@
             
             <div class="detail-row">
                 <span class="detail-label">Received By:</span>
-                <span class="detail-value">{{ $payment->verifiedBy->name ?? 'Hostel Office' }}</span>
+                <span class="detail-value">{{ $payment->verifiedBy->name ?? ($payment->createdBy->name ?? 'Hostel Office') }}</span>
             </div>
         </div>
         <div class="clear"></div>
@@ -326,7 +364,7 @@
             System: HostelHub
         </div>
         <div style="margin-top: 3px; font-size: 8px; color: #999;">
-            Receipt ID: REC-{{ $payment->id }}-{{ now()->format('YmdHis') }}
+            Receipt ID: {{ $receipt_number ?? 'REC-' . $payment->id . '-' . now()->format('YmdHis') }}
         </div>
     </div>
 </body>

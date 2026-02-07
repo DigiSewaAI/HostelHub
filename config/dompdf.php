@@ -25,22 +25,22 @@ return [
         'default_media_type' => 'print',
         'default_paper_size' => 'a4',
         'default_paper_orientation' => 'portrait',
-        'default_font' => 'helvetica',
+        'default_font' => 'dejavu sans', // Nepali font support
         'dpi' => 96,
         'enable_php' => false,
         'enable_javascript' => false,
-        'enable_remote' => true,
+        'enable_remote' => true, // IMPORTANT: true गर्नुहोस्
         'allowed_remote_hosts' => null,
         'font_height_ratio' => 1.1,
         'enable_html5_parser' => true,
         'is_unicode_enabled' => true,
         'default_encoding' => 'UTF-8',
 
-        'enable_css_float' => false, // Changed from true to false as per instructions
+        'enable_css_float' => false,
         'enable_file_access' => true,
 
-        // Additional options from the instructions
-        'isHtml5ParserEnabled' => true, // Added for compatibility
-        'isRemoteEnabled' => true, // Added for compatibility
+        // Additional options
+        'isHtml5ParserEnabled' => true,
+        'isRemoteEnabled' => true,
     ],
 ];

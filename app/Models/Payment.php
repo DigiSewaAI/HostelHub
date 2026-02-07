@@ -168,7 +168,13 @@ class Payment extends Model
     // ✅ USER RELATIONSHIP (User who made the payment)
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class)->withDefault();
+        // यदि user_id छैन भने student->user relationship प्रयोग गर्नुहोस्
+        if ($this->student) {
+            return $this->student->user();
+        }
+
+        // वैकल्पिक: direct user_id relationship (यदि डाटाबेसमा user_id छ भने)
+        return $this->belongsTo(User::class, 'user_id')->withDefault();
     }
 
     // ✅ STUDENT RELATIONSHIP
