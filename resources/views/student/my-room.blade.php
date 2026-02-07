@@ -386,9 +386,6 @@
                 <button type="button" class="btn btn-outline-primary text-start" onclick="openReportModal()">
                     <i class="fas fa-tools me-2"></i>समस्या रिपोर्ट गर्नुहोस्
                 </button>
-                <button class="btn btn-outline-info text-start">
-                    <i class="fas fa-comment me-2"></i>प्रतिक्रिया दिनुहोस्
-                </button>
             </div>
             
             <!-- Privacy Notice Section -->
@@ -438,291 +435,291 @@
             
             <div style="margin-bottom: 15px;">
                 <label style="display: block; margin-bottom: 5px; font-weight: 500;">विवरण</label>
-                <textarea name="description" class="form-control" rows="3" placeholder="समस्याको विस्तृत विवरण लेख्नुहोस्..." required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; resize: vertical;"></textarea>
-            </div>
-            
-            <div style="margin-bottom: 20px;">
-                <label style="display: block; margin-bottom: 5px; font-weight: 500;">प्राथमिकता</label>
-                <select name="priority" class="form-control" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
-                    <option value="low">निम्न</option>
-                    <option value="medium" selected>मध्यम</option>
-                    <option value="high">उच्च</option>
-                    <option value="urgent">अत्यावश्यक</option>
-                </select>
-            </div>
-            
-            <div style="display: flex; justify-content: flex-end; gap: 10px;">
-                <button type="button" onclick="closeReportModal()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">
-                    रद्द गर्नुहोस्
-                </button>
-                <button type="submit" id="submitBtn" style="padding: 10px 20px; background: #ffc107; color: #000; border: none; border-radius: 5px; cursor: pointer; font-weight: 500;">
-                    <i class="fas fa-paper-plane me-1"></i> रिपोर्ट गर्नुहोस्
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
+                                <textarea name="description" class="form-control" rows="3" placeholder="समस्याको विस्तृत विवरण लेख्नुहोस्..." required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; resize: vertical;"></textarea>
+                            </div>
+                            
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 5px; font-weight: 500;">प्राथमिकता</label>
+                                <select name="priority" class="form-control" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                                    <option value="low">निम्न</option>
+                                    <option value="medium" selected>मध्यम</option>
+                                    <option value="high">उच्च</option>
+                                    <option value="urgent">अत्यावश्यक</option>
+                                </select>
+                            </div>
+                            
+                            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                                <button type="button" onclick="closeReportModal()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                                    रद्द गर्नुहोस्
+                                </button>
+                                <button type="submit" id="submitBtn" style="padding: 10px 20px; background: #ffc107; color: #000; border: none; border-radius: 5px; cursor: pointer; font-weight: 500;">
+                                    <i class="fas fa-paper-plane me-1"></i> रिपोर्ट गर्नुहोस्
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
 
-<!-- SIMPLE CSS -->
-<style>
-    .modal-overlay {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0,0,0,0.5);
-        z-index: 9999;
-        align-items: center;
-        justify-content: center;
-    }
-    
-    .modal-content-custom {
-        background: white;
-        width: 90%;
-        max-width: 500px;
-        border-radius: 10px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        overflow: hidden;
-        animation: modalSlideIn 0.3s ease-out;
-    }
-    
-    @keyframes modalSlideIn {
-        from {
-            opacity: 0;
-            transform: translateY(-50px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-    
-    .modal-header-custom {
-        background: linear-gradient(135deg, #ffc107, #e0a800);
-        color: white;
-        padding: 15px 20px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    
-    .form-control {
-        width: 100%;
-        padding: 10px;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        box-sizing: border-box;
-    }
-    
-    .form-control:focus {
-        outline: none;
-        border-color: #ffc107;
-        box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
-    }
-    
-    .alert {
-        padding: 10px 15px;
-        border-radius: 5px;
-        margin-bottom: 15px;
-    }
-    
-    .alert-success {
-        background-color: #d4edda;
-        color: #155724;
-        border: 1px solid #c3e6cb;
-    }
-    
-    .alert-danger {
-        background-color: #f8d7da;
-        color: #721c24;
-        border: 1px solid #f5c6cb;
-    }
-    
-    .fa-spinner {
-        animation: spin 1s linear infinite;
-    }
-    
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-</style>
+                <!-- SIMPLE CSS -->
+                <style>
+                    .modal-overlay {
+                        display: none;
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background-color: rgba(0,0,0,0.5);
+                        z-index: 9999;
+                        align-items: center;
+                        justify-content: center;
+                    }
+                    
+                    .modal-content-custom {
+                        background: white;
+                        width: 90%;
+                        max-width: 500px;
+                        border-radius: 10px;
+                        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                        overflow: hidden;
+                        animation: modalSlideIn 0.3s ease-out;
+                    }
+                    
+                    @keyframes modalSlideIn {
+                        from {
+                            opacity: 0;
+                            transform: translateY(-50px);
+                        }
+                        to {
+                            opacity: 1;
+                            transform: translateY(0);
+                        }
+                    }
+                    
+                    .modal-header-custom {
+                        background: linear-gradient(135deg, #ffc107, #e0a800);
+                        color: white;
+                        padding: 15px 20px;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                    }
+                    
+                    .form-control {
+                        width: 100%;
+                        padding: 10px;
+                        border: 1px solid #ddd;
+                        border-radius: 5px;
+                        box-sizing: border-box;
+                    }
+                    
+                    .form-control:focus {
+                        outline: none;
+                        border-color: #ffc107;
+                        box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
+                    }
+                    
+                    .alert {
+                        padding: 10px 15px;
+                        border-radius: 5px;
+                        margin-bottom: 15px;
+                    }
+                    
+                    .alert-success {
+                        background-color: #d4edda;
+                        color: #155724;
+                        border: 1px solid #c3e6cb;
+                    }
+                    
+                    .alert-danger {
+                        background-color: #f8d7da;
+                        color: #721c24;
+                        border: 1px solid #f5c6cb;
+                    }
+                    
+                    .fa-spinner {
+                        animation: spin 1s linear infinite;
+                    }
+                    
+                    @keyframes spin {
+                        0% { transform: rotate(0deg); }
+                        100% { transform: rotate(360deg); }
+                    }
+                </style>
 
-<!-- SIMPLE JAVASCRIPT - NO BOOTSTRAP CONFLICT -->
-<script>
-// Modal Functions
-function openReportModal() {
-    document.getElementById('customReportModal').style.display = 'flex';
-    document.body.style.overflow = 'hidden'; // Prevent scrolling
-}
-
-function closeReportModal() {
-    document.getElementById('customReportModal').style.display = 'none';
-    document.body.style.overflow = ''; // Restore scrolling
-    resetForm();
-}
-
-// Close modal when clicking outside
-document.getElementById('customReportModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeReportModal();
-    }
-});
-
-// Form submission
-document.getElementById('reportIssueForm').addEventListener('submit', function(e) {
-    e.preventDefault(); // Prevent page reload
-    
-    // Show loading state
-    const submitBtn = document.getElementById('submitBtn');
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> पेश गर्दै...';
-    submitBtn.disabled = true;
-    
-    // Hide any previous messages
-    const formMessage = document.getElementById('formMessage');
-    formMessage.style.display = 'none';
-    
-    // Get form data
-    const formData = new FormData(this);
-    
-    // Send AJAX request using Fetch API
-    fetch('{{ route("student.report-room-issue") }}', {
-        method: 'POST',
-        body: formData,
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        // Reset button
-        submitBtn.innerHTML = '<i class="fas fa-paper-plane me-1"></i> रिपोर्ट गर्नुहोस्';
-        submitBtn.disabled = false;
-        
-        if (data.success) {
-            // Show success message
-            formMessage.className = 'alert alert-success';
-            formMessage.innerHTML = '<i class="fas fa-check-circle me-2"></i>' + data.message;
-            formMessage.style.display = 'block';
-            
-            // Clear form
-            this.reset();
-            
-            // Close modal after 2 seconds
-            setTimeout(() => {
-                closeReportModal();
-                showToast('सफलता!', data.message, 'success');
-            }, 2000);
-        } else {
-            // Show error message
-            formMessage.className = 'alert alert-danger';
-            formMessage.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i>' + data.message;
-            formMessage.style.display = 'block';
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        
-        // Reset button
-        submitBtn.innerHTML = '<i class="fas fa-paper-plane me-1"></i> रिपोर्ट गर्नुहोस्';
-        submitBtn.disabled = false;
-        
-        // Show error message
-        formMessage.className = 'alert alert-danger';
-        formMessage.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i>अनुरोध पेश गर्न असफल। पुनः प्रयास गर्नुहोस्।';
-        formMessage.style.display = 'block';
-    });
-});
-
-function resetForm() {
-    document.getElementById('reportIssueForm').reset();
-    document.getElementById('formMessage').style.display = 'none';
-    const submitBtn = document.getElementById('submitBtn');
-    submitBtn.innerHTML = '<i class="fas fa-paper-plane me-1"></i> रिपोर्ट गर्नुहोस्';
-    submitBtn.disabled = false;
-}
-
-// Toast notification function
-function showToast(title, message, type = 'success') {
-    // Create toast element
-    const toastEl = document.createElement('div');
-    toastEl.style.cssText = `
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background: ${type === 'success' ? '#28a745' : '#dc3545'};
-        color: white;
-        padding: 15px 20px;
-        border-radius: 5px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        z-index: 10000;
-        min-width: 300px;
-        animation: toastSlideIn 0.3s ease-out;
-    `;
-    
-    toastEl.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div>
-                <strong>${title}</strong><br>
-                <span style="font-size: 14px;">${message}</span>
-            </div>
-            <button onclick="this.parentElement.parentElement.remove()" style="background: none; border: none; color: white; font-size: 16px; cursor: pointer; margin-left: 15px;">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-    `;
-    
-    // Add to page
-    document.body.appendChild(toastEl);
-    
-    // Auto remove after 5 seconds
-    setTimeout(() => {
-        if (toastEl.parentNode) {
-            toastEl.style.animation = 'toastSlideOut 0.3s ease-out';
-            setTimeout(() => {
-                if (toastEl.parentNode) {
-                    toastEl.parentNode.removeChild(toastEl);
+                <!-- SIMPLE JAVASCRIPT - NO BOOTSTRAP CONFLICT -->
+                <script>
+                // Modal Functions
+                function openReportModal() {
+                    document.getElementById('customReportModal').style.display = 'flex';
+                    document.body.style.overflow = 'hidden'; // Prevent scrolling
                 }
-            }, 300);
-        }
-    }, 5000);
-}
 
-// Add CSS for toast animations
-const toastStyle = document.createElement('style');
-toastStyle.textContent = `
-    @keyframes toastSlideIn {
-        from {
-            opacity: 0;
-            transform: translateX(100px);
-        }
-        to {
-            opacity: 1;
-            transform: translateX(0);
-        }
-    }
-    
-    @keyframes toastSlideOut {
-        from {
-            opacity: 1;
-            transform: translateX(0);
-        }
-        to {
-            opacity: 0;
-            transform: translateX(100px);
-        }
-    }
-`;
-document.head.appendChild(toastStyle);
+                function closeReportModal() {
+                    document.getElementById('customReportModal').style.display = 'none';
+                    document.body.style.overflow = ''; // Restore scrolling
+                    resetForm();
+                }
 
-// Escape key to close modal
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        closeReportModal();
-    }
-});
-</script>
-@endsection
+                // Close modal when clicking outside
+                document.getElementById('customReportModal').addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        closeReportModal();
+                    }
+                });
+
+                // Form submission
+                document.getElementById('reportIssueForm').addEventListener('submit', function(e) {
+                    e.preventDefault(); // Prevent page reload
+                    
+                    // Show loading state
+                    const submitBtn = document.getElementById('submitBtn');
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> पेश गर्दै...';
+                    submitBtn.disabled = true;
+                    
+                    // Hide any previous messages
+                    const formMessage = document.getElementById('formMessage');
+                    formMessage.style.display = 'none';
+                    
+                    // Get form data
+                    const formData = new FormData(this);
+                    
+                    // Send AJAX request using Fetch API
+                    fetch('{{ route("student.report-room-issue") }}', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Reset button
+                        submitBtn.innerHTML = '<i class="fas fa-paper-plane me-1"></i> रिपोर्ट गर्नुहोस्';
+                        submitBtn.disabled = false;
+                        
+                        if (data.success) {
+                            // Show success message
+                            formMessage.className = 'alert alert-success';
+                            formMessage.innerHTML = '<i class="fas fa-check-circle me-2"></i>' + data.message;
+                            formMessage.style.display = 'block';
+                            
+                            // Clear form
+                            this.reset();
+                            
+                            // Close modal after 2 seconds
+                            setTimeout(() => {
+                                closeReportModal();
+                                showToast('सफलता!', data.message, 'success');
+                            }, 2000);
+                        } else {
+                            // Show error message
+                            formMessage.className = 'alert alert-danger';
+                            formMessage.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i>' + data.message;
+                            formMessage.style.display = 'block';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        
+                        // Reset button
+                        submitBtn.innerHTML = '<i class="fas fa-paper-plane me-1"></i> रिपोर्ट गर्नुहोस्';
+                        submitBtn.disabled = false;
+                        
+                        // Show error message
+                        formMessage.className = 'alert alert-danger';
+                        formMessage.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i>अनुरोध पेश गर्न असफल। पुनः प्रयास गर्नुहोस्।';
+                        formMessage.style.display = 'block';
+                    });
+                });
+
+                function resetForm() {
+                    document.getElementById('reportIssueForm').reset();
+                    document.getElementById('formMessage').style.display = 'none';
+                    const submitBtn = document.getElementById('submitBtn');
+                    submitBtn.innerHTML = '<i class="fas fa-paper-plane me-1"></i> रिपोर्ट गर्नुहोस्';
+                    submitBtn.disabled = false;
+                }
+
+                // Toast notification function
+                function showToast(title, message, type = 'success') {
+                    // Create toast element
+                    const toastEl = document.createElement('div');
+                    toastEl.style.cssText = `
+                        position: fixed;
+                        bottom: 20px;
+                        right: 20px;
+                        background: ${type === 'success' ? '#28a745' : '#dc3545'};
+                        color: white;
+                        padding: 15px 20px;
+                        border-radius: 5px;
+                        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                        z-index: 10000;
+                        min-width: 300px;
+                        animation: toastSlideIn 0.3s ease-out;
+                    `;
+                    
+                    toastEl.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong>${title}</strong><br>
+                                <span style="font-size: 14px;">${message}</span>
+                            </div>
+                            <button onclick="this.parentElement.parentElement.remove()" style="background: none; border: none; color: white; font-size: 16px; cursor: pointer; margin-left: 15px;">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    `;
+                    
+                    // Add to page
+                    document.body.appendChild(toastEl);
+                    
+                    // Auto remove after 5 seconds
+                    setTimeout(() => {
+                        if (toastEl.parentNode) {
+                            toastEl.style.animation = 'toastSlideOut 0.3s ease-out';
+                            setTimeout(() => {
+                                if (toastEl.parentNode) {
+                                    toastEl.parentNode.removeChild(toastEl);
+                                }
+                            }, 300);
+                        }
+                    }, 5000);
+                }
+
+                // Add CSS for toast animations
+                const toastStyle = document.createElement('style');
+                toastStyle.textContent = `
+                    @keyframes toastSlideIn {
+                        from {
+                            opacity: 0;
+                            transform: translateX(100px);
+                        }
+                        to {
+                            opacity: 1;
+                            transform: translateX(0);
+                        }
+                    }
+                    
+                    @keyframes toastSlideOut {
+                        from {
+                            opacity: 1;
+                            transform: translateX(0);
+                        }
+                        to {
+                            opacity: 0;
+                            transform: translateX(100px);
+                        }
+                    }
+                `;
+                document.head.appendChild(toastStyle);
+
+                // Escape key to close modal
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        closeReportModal();
+                    }
+                });
+                </script>
+                @endsection
