@@ -184,11 +184,11 @@
                                 <td>
                                     <div class="btn-group btn-group-sm">
                                         <a href="{{ route('student.payments.receipt.pdf', $payment->id) }}" 
-   class="btn btn-outline-primary" 
-   title="रसिद डाउनलोड गर्नुहोस्"
-   target="_blank">
-    <i class="fas fa-download"></i> PDF
-</a>
+                                           class="btn btn-outline-primary" 
+                                           title="रसिद डाउनलोड गर्नुहोस्"
+                                           target="_blank">
+                                            <i class="fas fa-download"></i>
+                                        </a>
 
                                         <button type="button" 
                                                 class="btn btn-outline-info" 
@@ -348,8 +348,8 @@
                 </div>
                 <div class="card-body">
                     <ul class="mb-0 ps-3">
-                        <li class="mb-2">भुक्तानी सम्बन्धी समस्या भए <strong>+977-XXXXXXXXXX</strong> मा सम्पर्क गर्नुहोस्</li>
-                        <li>रसिद डाउनलोड गर्न <i class="fas fa-receipt text-primary"></i> बटनमा क्लिक गर्नुहोस्</li>
+                        <li class="mb-2">{{ $contactMessage }}</li>
+                        <li>रसिद डाउनलोड गर्न <i class="fas fa-download text-primary"></i> बटनमा क्लिक गर्नुहोस्</li>
                         <li>भुक्तानी विवरण हेर्न <i class="fas fa-eye text-info"></i> बटनमा क्लिक गर्नुहोस्</li>
                     </ul>
                 </div>

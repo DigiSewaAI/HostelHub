@@ -780,14 +780,26 @@ class PaymentController extends Controller
 
         if (!$student) {
             $payments = collect([]);
+            $contactMessage = "भुक्तानी सम्बन्धी जानकारीका लागि होस्टल कार्यालयमा सम्पर्क गर्नुहोस्";
         } else {
             $payments = Payment::where('student_id', $student->id)
-                ->with(['organization', 'booking.room.hostel'])
+                ->with(['organization', 'booking.room.hostel.owner'])
                 ->latest()
                 ->paginate(10);
+
+            // Get owner phone from student's hostel
+            $contactMessage = "भुक्तानी सम्बन्धी जानकारीका लागि होस्टल कार्यालयमा सम्पर्क गर्नुहोस्";
+
+            // Check if student has hostel and hostel has owner with phone
+            if ($student->hostel && $student->hostel->owner) {
+                $owner = $student->hostel->owner;
+                if (!empty($owner->phone)) {
+                    $contactMessage = "भुक्तानी सम्बन्धी समस्या भए {$owner->phone} मा सम्पर्क गर्नुहोस्";
+                }
+            }
         }
 
-        return view('student.payments.history', compact('payments'));
+        return view('student.payments.history', compact('payments', 'contactMessage'));
     }
 
     /**
