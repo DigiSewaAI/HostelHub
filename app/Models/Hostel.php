@@ -236,6 +236,64 @@ class Hostel extends Model
         return $this->hasMany(Payment::class);
     }
 
+    // ✅ Payment methods relationship
+    public function paymentMethods()
+    {
+        return $this->hasMany(PaymentMethod::class)->orderBy('order')->orderBy('created_at');
+    }
+
+    // ✅ Active payment methods
+    public function activePaymentMethods()
+    {
+        return $this->paymentMethods()->where('is_active', true);
+    }
+
+    // ✅ Default payment method
+    public function defaultPaymentMethod()
+    {
+        return $this->paymentMethods()->where('is_default', true)->first();
+    }
+
+    // ✅ Get bank payment methods
+    public function getBankPaymentMethodsAttribute()
+    {
+        return $this->paymentMethods()->where('type', 'bank')->where('is_active', true)->get();
+    }
+
+    // ✅ Get digital payment methods
+    public function getDigitalPaymentMethodsAttribute()
+    {
+        return $this->paymentMethods()
+            ->whereIn('type', ['esewa', 'khalti', 'fonepay', 'imepay', 'connectips'])
+            ->where('is_active', true)
+            ->get();
+    }
+
+    // ✅ Check if hostel has any payment methods
+    public function getHasPaymentMethodsAttribute(): bool
+    {
+        return $this->activePaymentMethods()->exists();
+    }
+
+    // ✅ Get payment methods for display in bill
+    public function getBillPaymentMethodsAttribute(): array
+    {
+        $methods = $this->activePaymentMethods()->get();
+
+        return $methods->map(function ($method) {
+            return [
+                'id' => $method->id,
+                'type' => $method->type,
+                'type_text' => $method->type_text,
+                'title' => $method->title,
+                'display_info' => $method->display_info,
+                'qr_code_url' => $method->qr_code_url,
+                'instructions' => $method->instructions,
+                'is_default' => $method->is_default
+            ];
+        })->toArray();
+    }
+
     // ✅ Scope for active hostels
     public function scopeActive($query)
     {

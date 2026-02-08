@@ -167,6 +167,62 @@
             background-color: #d1fae5; 
             color: #065f46; 
         }
+
+        /* Payment methods section styles */
+        .payment-method-card {
+            margin-bottom: 15px; 
+            padding: 10px; 
+            border: 1px solid #d1d5db; 
+            border-radius: 5px; 
+            background-color: white;
+        }
+        
+        .payment-method-header {
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 8px;
+        }
+        
+        .payment-type {
+            color: #1e40af; 
+            font-size: 12px; 
+            font-weight: bold;
+        }
+        
+        .default-badge {
+            background-color: #10b981; 
+            color: white; 
+            padding: 2px 8px; 
+            border-radius: 12px; 
+            font-size: 10px;
+        }
+        
+        .qr-container {
+            margin-top: 10px; 
+            text-align: center;
+        }
+        
+        .qr-label {
+            color: #6b7280; 
+            font-size: 10px; 
+            margin-bottom: 5px;
+        }
+        
+        .qr-image {
+            width: 80px; 
+            height: 80px; 
+            display: inline-block; 
+            border: 1px solid #d1d5db;
+        }
+        
+        .instructions-container {
+            margin-top: 10px; 
+            padding-top: 8px; 
+            border-top: 1px dashed #d1d5db; 
+            font-size: 10px; 
+            color: #6b7280;
+        }
     </style>
 </head>
 <body>
@@ -325,17 +381,83 @@
             @endif
         </div>
     </div>
-    
-    <!-- Payment Instructions -->
-    <div style="margin: 20px 0; padding: 10px; background-color: #f0f9ff; border: 1px solid #7dd3fc;">
-        <h4 style="color: #0369a1; margin: 0 0 8px 0;">Payment Instructions:</h4>
-        <div style="font-size: 10px; color: #0c4a6e;">
-            1. Please make payment before the due date.<br>
-            2. Bank Details: ABC Bank, Account No: 1234567890<br>
-            3. Account Name: {{ $hostel->name ?? 'Hostel' }}<br>
-            4. Keep this bill for your records.
+
+    @php
+        // Get active payment methods for the hostel
+        $paymentMethods = $hostel->bill_payment_methods ?? [];
+        $hasPaymentMethods = !empty($paymentMethods);
+    @endphp
+
+    @if($hasPaymentMethods)
+        <!-- Payment Methods Section -->
+        <div style="margin: 20px 0; padding: 15px; background-color: #f0f9ff; border: 1px solid #7dd3fc;">
+            <h4 style="color: #0369a1; margin: 0 0 15px 0; text-align: center; font-size: 14px;">
+                भुक्तानी गर्ने विधिहरू
+            </h4>
+
+            @foreach($paymentMethods as $method)
+                <div class="payment-method-card">
+                    <div class="payment-method-header">
+                        <strong class="payment-type">{{ $method['type_text'] }}</strong>
+                        @if($method['is_default'])
+                            <span class="default-badge">
+                                मुख्य विधि
+                            </span>
+                        @endif
+                    </div>
+                    
+                    <div style="font-size: 11px; color: #374151;">
+                        <strong>{{ $method['title'] }}</strong>
+                        
+                        @foreach($method['display_info']['details'] as $label => $value)
+                            @if(!empty($value))
+                                <div style="margin-top: 4px;">
+                                    <span style="color: #6b7280;">{{ $label }}:</span>
+                                    <span style="color: #111827; font-weight: 500;">{{ $value }}</span>
+                                </div>
+                            @endif
+                        @endforeach
+                        
+                        @if(!empty($method['qr_code_url']))
+                            <div class="qr-container">
+                                <div class="qr-label">QR कोड स्क्यान गर्नुहोस्:</div>
+                                <img src="{{ $method['qr_code_url'] }}" class="qr-image">
+                            </div>
+                        @endif
+                    </div>
+                    
+                    @if(!empty($method['instructions']))
+                        <div class="instructions-container">
+                            <strong>निर्देशनहरू:</strong>
+                            <ul style="margin: 5px 0 0 0; padding-left: 15px;">
+                                @foreach($method['instructions'] as $instruction)
+                                    <li>{{ $instruction }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+                </div>
+            @endforeach
+            
+            <div style="margin-top: 15px; padding: 10px; background-color: #fef3c7; border-radius: 5px; font-size: 10px; color: #92400e;">
+                <strong>नोट:</strong> भुक्तानी गरेपछि रसिद होस्टेल कार्यालयमा पेश गर्नुहोस्।
+            </div>
         </div>
-    </div>
+    @else
+        <!-- Fallback if no payment methods are configured -->
+        <div style="margin: 20px 0; padding: 15px; background-color: #fee2e2; border: 1px solid #fca5a5;">
+            <h4 style="color: #dc2626; margin: 0 0 10px 0; text-align: center; font-size: 14px;">
+                भुक्तानी विवरण
+            </h4>
+            <div style="text-align: center; font-size: 11px; color: #7f1d1d;">
+                भुक्तानी गर्नका लागि होस्टेल कार्यालयमा सम्पर्क गर्नुहोस्।
+                <br>
+                फोन: {{ $hostel->phone ?? 'N/A' }}
+                <br>
+                इमेल: {{ $hostel->email ?? 'N/A' }}
+            </div>
+        </div>
+    @endif
     
     <!-- Footer -->
     <div class="footer">

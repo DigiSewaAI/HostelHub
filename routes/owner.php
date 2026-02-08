@@ -9,13 +9,13 @@ use App\Http\Controllers\Owner\CircularController as OwnerCircularController;
 use App\Http\Controllers\Owner\MealController as OwnerMealController;
 use App\Http\Controllers\Owner\MealMenuController as OwnerMealMenuController;
 use App\Http\Controllers\Owner\BookingRequestController as OwnerBookingRequestController;
-
+use App\Http\Controllers\Owner\PaymentMethodController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\PaymentController;
-use App\Http\Controllers\Admin\RoomController as AdminRoomController; // ✅ FIXED: Added alias
+use App\Http\Controllers\Admin\RoomController as AdminRoomController;
 use App\Http\Controllers\Admin\StudentController;
-use App\Http\Controllers\Owner\ContactController as OwnerContactController; // ✅ CHANGED: Admin to Owner with alias
+use App\Http\Controllers\Owner\ContactController as OwnerContactController;
 use App\Http\Controllers\Admin\DocumentController;
 
 /*|--------------------------------------------------------------------------
@@ -256,16 +256,18 @@ Route::middleware(['auth', 'hasOrganization', 'role:owner,hostel_manager'])
 
         Route::post('rooms/{room}/sync-single', [AdminRoomController::class, 'syncSingle'])->name('rooms.sync-single');
 
-
-        // ✅ FIXED: Gallery Feature Toggle Routes - INSIDE OWNER GROUP
-        Route::patch('/galleries/{gallery}/toggle-featured', [OwnerGalleryController::class, 'toggleFeatured'])->name('galleries.toggle-featured');
-        Route::patch('/galleries/{gallery}/toggle-active', [OwnerGalleryController::class, 'toggleActive'])->name('galleries.toggle-active');
+        // ✅ NEW: Payment Method Routes (थप्नुहोस् यहाँ)
+        Route::prefix('payment-methods')->name('payment-methods.')->group(function () {
+            Route::get('/', [PaymentMethodController::class, 'index'])->name('index');
+            Route::get('/hostel/{hostelId}', [PaymentMethodController::class, 'hostelPaymentMethods'])->name('hostel');
+            Route::get('/create', [PaymentMethodController::class, 'create'])->name('create');
+            Route::get('/create/{hostelId}', [PaymentMethodController::class, 'create'])->name('create.for-hostel');
+            Route::post('/', [PaymentMethodController::class, 'store'])->name('store');
+            Route::get('/{paymentMethod}/edit', [PaymentMethodController::class, 'edit'])->name('edit');
+            Route::put('/{paymentMethod}', [PaymentMethodController::class, 'update'])->name('update');
+            Route::post('/{paymentMethod}/toggle-status', [PaymentMethodController::class, 'toggleStatus'])->name('toggle-status');
+            Route::post('/{paymentMethod}/set-default', [PaymentMethodController::class, 'setDefault'])->name('set-default');
+            Route::delete('/{paymentMethod}', [PaymentMethodController::class, 'destroy'])->name('destroy');
+            Route::post('/update-order', [PaymentMethodController::class, 'updateOrder'])->name('update-order');
+        });
     });
-
-// ❌ REMOVED: Duplicate routes outside the group (they were causing errors)
-// Add this to the contact routes section
-// Route::delete('contacts/{contact}', [ContactController::class, 'destroy'])->name('contacts.destroy');
-
-// Gallery Feature Toggle Routes - PATCH method प्रयोग गर्ने
-// Route::patch('/galleries/{gallery}/toggle-featured', [OwnerGalleryController::class, 'toggleFeatured'])->name('galleries.toggle-featured');
-// Route::patch('/galleries/{gallery}/toggle-active', [OwnerGalleryController::class, 'toggleActive'])->name('galleries.toggle-active');

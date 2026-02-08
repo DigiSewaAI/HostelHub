@@ -16,7 +16,6 @@ use App\Http\Controllers\RoomController;
 use App\Http\Controllers\Owner\OwnerRoomIssuesController;
 use App\Http\Controllers\PaymentController;
 
-
 // Force HTTPS in production
 if (app()->environment('production')) {
     URL::forceScheme('https');
@@ -151,14 +150,6 @@ Route::prefix('admin')
         Route::get('/bookings/pending', [BookingController::class, 'pendingApprovals'])->name('admin.bookings.pending');
         Route::post('/bookings/{id}/approve', [BookingController::class, 'approve'])->name('admin.bookings.approve');
         Route::post('/bookings/{id}/reject', [BookingController::class, 'reject'])->name('admin.bookings.reject');
-
-        // ✅ NEW: Admin gallery management routes
-        Route::get('/galleries', [\App\Http\Controllers\Admin\GalleryController::class, 'index'])->name('admin.galleries.index');
-        Route::get('/galleries/create', [\App\Http\Controllers\Admin\GalleryController::class, 'create'])->name('admin.galleries.create');
-        Route::post('/galleries', [\App\Http\Controllers\Admin\GalleryController::class, 'store'])->name('admin.galleries.store');
-        Route::get('/galleries/{gallery}/edit', [\App\Http\Controllers\Admin\GalleryController::class, 'edit'])->name('admin.galleries.edit');
-        Route::put('/galleries/{gallery}', [\App\Http\Controllers\Admin\GalleryController::class, 'update'])->name('admin.galleries.update');
-        Route::delete('/galleries/{gallery}', [\App\Http\Controllers\Admin\GalleryController::class, 'destroy'])->name('admin.galleries.destroy');
     });
 
 // ✅ Owner routes
@@ -217,12 +208,6 @@ Route::prefix('student')
         Route::post('/bookings', [BookingController::class, 'store'])->name('student.bookings.store');
         Route::get('/bookings/{id}', [BookingController::class, 'show'])->name('student.bookings.show');
         Route::post('/bookings/{id}/cancel', [BookingController::class, 'cancel'])->name('student.bookings.cancel');
-
-        // ✅ NEW: Student Payment Routes (यहीं थप्नुहोस्)
-        Route::get('/payments', [PaymentController::class, 'studentPayments'])->name('student.payments.index');
-        Route::get('/payments/receipt/{payment}/show', [PaymentController::class, 'showReceipt'])->name('student.payments.receipt.show');
-        Route::get('/payments/receipt/{payment}/download', [PaymentController::class, 'downloadReceipt'])->name('student.payments.receipt.download');
-        Route::get('/payments/receipt/{payment}/pdf', [PaymentController::class, 'downloadReceipt'])->name('student.payments.receipt.pdf');
     });
 
 /*|--------------------------------------------------------------------------

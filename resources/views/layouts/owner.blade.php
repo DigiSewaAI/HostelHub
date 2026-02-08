@@ -320,6 +320,68 @@
             }
         }
 
+        /* ✅ ADDED: Dropdown navigation styles for Payments */
+.nav-dropdown-container {
+    position: relative;
+}
+
+.nav-dropdown-toggle {
+    display: flex !important;
+    align-items: center;
+    cursor: pointer;
+    text-decoration: none !important;
+}
+
+.dropdown-arrow {
+    font-size: 0.8rem;
+    transition: transform 0.3s ease;
+    margin-left: auto;
+}
+
+.nav-dropdown-container.active .dropdown-arrow {
+    transform: rotate(90deg);
+}
+
+.nav-dropdown-menu {
+    display: none;
+    padding-left: 1.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 0.25rem;
+    margin: 0.25rem 1rem 0.25rem 0;
+    overflow: hidden;
+}
+
+.nav-dropdown-menu.show {
+    display: block;
+}
+
+.nav-dropdown-item {
+    display: flex;
+    align-items: center;
+    padding: 0.6rem 1rem;
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    border-radius: 0.25rem;
+    margin-bottom: 0.125rem;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.nav-dropdown-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.nav-dropdown-item.active {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+    font-weight: 600;
+}
+
+.nav-dropdown-item i {
+    width: 1.25rem;
+    text-align: center;
+}
         /* Tablet adjustments */
         @media (min-width: 768px) and (max-width: 1023px) {
             .sidebar {
@@ -554,13 +616,27 @@
                     <span class="sidebar-text">विद्यार्थीहरू</span>
                 </a>
                 
-                <!-- Payments -->
-                <a href="{{ route('owner.payments.index') }}"
-                   class="sidebar-link {{ request()->routeIs('owner.payments.*') ? 'active' : '' }}"
-                   aria-current="{{ request()->routeIs('owner.payments.*') ? 'page' : 'false' }}">
-                    <i class="fas fa-money-bill-wave sidebar-icon"></i>
-                    <span class="sidebar-text">भुक्तानी</span>
-                </a>
+                <!-- Payments - Updated with Dropdown -->
+<div class="nav-dropdown-container">
+    <a href="javascript:void(0)" 
+       class="sidebar-link nav-dropdown-toggle {{ request()->routeIs('owner.payments.*') || request()->routeIs('owner.payment-methods.*') ? 'active' : '' }}">
+        <i class="fas fa-money-bill-wave sidebar-icon"></i>
+        <span class="sidebar-text">भुक्तानी</span>
+        <i class="fas fa-chevron-right dropdown-arrow ms-auto"></i>
+    </a>
+    <div class="nav-dropdown-menu {{ request()->routeIs('owner.payments.*') || request()->routeIs('owner.payment-methods.*') ? 'show' : '' }}">
+        <a href="{{ route('owner.payments.index') }}"
+           class="nav-dropdown-item {{ request()->routeIs('owner.payments.index') ? 'active' : '' }}">
+            <i class="fas fa-list me-2"></i>
+            <span>सबै भुक्तानी</span>
+        </a>
+        <a href="{{ route('owner.payment-methods.index') }}"
+           class="nav-dropdown-item {{ request()->routeIs('owner.payment-methods.*') ? 'active' : '' }}">
+            <i class="fas fa-credit-card me-2"></i>
+            <span>भुक्तानी विधिहरू</span>
+        </a>
+    </div>
+</div>
                 
                 <!-- Reviews -->
                 <a href="{{ route('owner.reviews.index') }}"
@@ -795,6 +871,54 @@
     <script>
         // Check if Vite assets loaded properly
         document.addEventListener('DOMContentLoaded', function() {
+
+            // ✅ ADDED: Dropdown navigation functionality for Payments
+const dropdownToggles = document.querySelectorAll('.nav-dropdown-toggle');
+dropdownToggles.forEach(toggle => {
+    toggle.addEventListener('click', function(e) {
+        if (window.innerWidth >= 1024) { // Desktop मा मात्र
+            e.preventDefault();
+            const container = this.closest('.nav-dropdown-container');
+            const menu = container.querySelector('.nav-dropdown-menu');
+            
+            // Toggle current dropdown
+            menu.classList.toggle('show');
+            container.classList.toggle('active');
+            
+            // Close other dropdowns
+            document.querySelectorAll('.nav-dropdown-container').forEach(otherContainer => {
+                if (otherContainer !== container) {
+                    otherContainer.classList.remove('active');
+                    const otherMenu = otherContainer.querySelector('.nav-dropdown-menu');
+                    if (otherMenu) otherMenu.classList.remove('show');
+                }
+            });
+        }
+    });
+});
+
+// Close dropdowns when clicking outside (desktop only)
+document.addEventListener('click', function(e) {
+    if (window.innerWidth >= 1024) {
+        const dropdowns = document.querySelectorAll('.nav-dropdown-container');
+        dropdowns.forEach(container => {
+            if (!container.contains(e.target)) {
+                container.classList.remove('active');
+                const menu = container.querySelector('.nav-dropdown-menu');
+                if (menu) menu.classList.remove('show');
+            }
+        });
+    }
+});
+
+// Mobile मा auto open गर्ने (यदि active भएमा)
+if (window.innerWidth < 1024) {
+    const activeDropdowns = document.querySelectorAll('.nav-dropdown-container.active');
+    activeDropdowns.forEach(container => {
+        const menu = container.querySelector('.nav-dropdown-menu');
+        if (menu) menu.classList.add('show');
+    });
+}
             // Detect if Vite CSS failed to load
             setTimeout(function() {
                 const viteLinks = document.querySelectorAll('link[href*="/build/assets/"]');
@@ -1598,5 +1722,6 @@
     
     <!-- Page-specific JavaScript -->
     @stack('scripts')
+    <div id="toast-container" class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 11"></div>
 </body>
 </html>
