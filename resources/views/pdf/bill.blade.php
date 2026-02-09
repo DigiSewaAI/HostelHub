@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title>Payment Bill - Sanctuary Girls Hostel</title>
+    <title>Payment Bill - {{ $hostel->name ?? 'HostelHub' }}</title>
     <style>
         body {
             font-family: Helvetica, Arial, sans-serif;
@@ -20,44 +20,65 @@
             padding-bottom: 10px;
         }
         
-        .logo-cell {
-            width: 80px;
-            float: left;
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
         }
         
-        .logo {
+        .header-table td {
+            vertical-align: top;
+            padding: 0;
+        }
+        
+        .logo-cell {
+            width: 80px;
+            padding-right: 10px;
+        }
+        
+        .logo-container {
             width: 70px;
             height: 70px;
             border: 1px solid #ddd;
+            overflow: hidden;
+        }
+        
+        .logo-img {
+            width: 100%;
+            height: 100%;
         }
         
         .info-cell {
-            margin-left: 90px;
+            width: auto;
         }
         
         .hostel-name {
             font-size: 16px;
             font-weight: bold;
             color: #1e40af;
-            margin: 0 0 5px 0;
+            margin: 0 0 3px 0;
         }
         
         .hostel-details {
             font-size: 9px;
             color: #666;
-            margin: 0 0 5px 0;
+            margin: 0;
+            line-height: 1.3;
         }
         
         .bill-info {
             text-align: right;
-            float: right;
             font-size: 10px;
+            width: 180px;
+            white-space: nowrap;
         }
         
-        .clear {
-            clear: both;
+        .contact-person {
+            font-size: 8px;
+            color: #4b5563;
+            margin-top: 2px;
         }
         
+        /* Rest of the CSS remains the same */
         .title {
             text-align: center;
             margin: 15px 0;
@@ -201,34 +222,47 @@
     </style>
 </head>
 <body>
-    <!-- Header -->
+    <!-- Header - USING TABLE FOR PERFECT ALIGNMENT -->
     <div class="header">
-        <div class="logo-cell">
-            @if(isset($logo_base64) && !empty($logo_base64))
-                <img src="{{ $logo_base64 }}" class="logo">
-            @else
-                <div style="width:70px;height:70px;background:#3b82f6;color:white;text-align:center;line-height:70px;font-weight:bold;font-size:18px">
-                    S
-                </div>
-            @endif
-        </div>
-        
-        <div class="info-cell">
-            <div class="hostel-name">Sanctuary Girls Hostel</div>
-            <div class="hostel-details">
-                {{ $clean_address ?? 'Kalikasthan, Dillibazar, Kathmandu, Nepal' }}<br>
-                Phone: {{ $contact_phone ?? '9851134338' }} | Email: {{ $contact_email ?? 'shresthaxok@gmail.com' }}
-            </div>
-        </div>
-        
-        <div class="bill-info">
-            <div><strong>Bill No:</strong> {{ $bill_number }}</div>
-            <div>Date: {{ now()->format('Y-m-d') }}</div>
-            <div>Page: 1 of 1</div>
-        </div>
-        <div class="clear"></div>
+        <table class="header-table">
+            <tr>
+                <!-- Logo Column -->
+                <td class="logo-cell">
+                    <div class="logo-container">
+                        @if(isset($logo_base64) && !empty($logo_base64))
+                            <img src="{{ $logo_base64 }}" class="logo-img">
+                        @else
+                            <div style="width:100%;height:100%;background:#3b82f6;color:white;text-align:center;line-height:70px;font-weight:bold;font-size:18px">
+                                {{ substr($hostel->name ?? 'H', 0, 1) }}
+                            </div>
+                        @endif
+                    </div>
+                </td>
+                
+                <!-- Hostel Info Column -->
+                <td class="info-cell">
+                    <div class="hostel-name">{{ $hostel->name ?? 'Hostel Name' }}</div>
+                    <div class="hostel-details">
+                        {{ $clean_address ?? ($hostel->address ?? 'Address not specified') }}<br>
+                        Phone: {{ $contact_phone ?? ($hostel->phone ?? 'N/A') }} | 
+                        Email: {{ $contact_email ?? ($hostel->email ?? 'N/A') }}
+                        @if(isset($owner_name) && !empty($owner_name))
+                            <div class="contact-person">Contact Person: {{ $owner_name }}</div>
+                        @endif
+                    </div>
+                </td>
+                
+                <!-- Bill Info Column (Right Aligned) -->
+                <td class="bill-info">
+                    <div><strong>Bill No:</strong> {{ $bill_number }}</div>
+                    <div>Date: {{ now()->format('Y-m-d') }}</div>
+                    <div>Page: 1 of 1</div>
+                </td>
+            </tr>
+        </table>
     </div>
     
+    <!-- Rest of the template remains the same -->
     <!-- Title -->
     <div class="title">
         <h1>PAYMENT BILL</h1>
@@ -316,7 +350,7 @@
                         @else
                             <span class="status" style="background:#fef3c7;color:#92400e">PENDING</span>
                         @endif
-                    </span>
+                    </span
                 </div>
                 
                 <div class="row">
@@ -347,25 +381,40 @@
     <div class="bank-box">
         <div class="bank-title">Bank Details</div>
         
-        <div class="bank-row">
-            <span class="bank-label">Bank Name:</span>
-            <span class="bank-value">{{ $bank_details['bank_name'] ?? 'Everest Bank' }}</span>
-        </div>
-        
-        <div class="bank-row">
-            <span class="bank-label">Account Name:</span>
-            <span class="bank-value">{{ $bank_details['account_name'] ?? 'Sanctuary Girls Hostel' }}</span>
-        </div>
-        
-        <div class="bank-row">
-            <span class="bank-label">Account Number:</span>
-            <span class="bank-value">{{ $bank_details['account_number'] ?? '798057453509' }}</span>
-        </div>
-        
-        <div class="bank-row">
-            <span class="bank-label">Swift Code:</span>
-            <span class="bank-value">{{ $bank_details['swift_code'] ?? 'EVBLNPKA' }}</span>
-        </div>
+        @if(!empty($bank_details['bank_name']))
+            <div class="bank-row">
+                <span class="bank-label">Bank Name:</span>
+                <span class="bank-value">{{ $bank_details['bank_name'] }}</span>
+            </div>
+            
+            <div class="bank-row">
+                <span class="bank-label">Account Name:</span>
+                <span class="bank-value">{{ $bank_details['account_name'] ?? $hostel->name }}</span>
+            </div>
+            
+            <div class="bank-row">
+                <span class="bank-label">Account Number:</span>
+                <span class="bank-value">{{ $bank_details['account_number'] }}</span>
+            </div>
+            
+            @if(!empty($bank_details['branch']))
+            <div class="bank-row">
+                <span class="bank-label">Branch:</span>
+                <span class="bank-value">{{ $bank_details['branch'] }}</span>
+            </div>
+            @endif
+            
+            @if(!empty($bank_details['swift_code']))
+            <div class="bank-row">
+                <span class="bank-label">Swift Code:</span>
+                <span class="bank-value">{{ $bank_details['swift_code'] }}</span>
+            </div>
+            @endif
+        @else
+            <div style="padding:10px; text-align:center; color:#666; font-size:11px;">
+                For bank details, please contact the hostel office.
+            </div>
+        @endif
         
         <div style="margin-top:10px;padding:8px;background:#fef3c7;font-size:9px;color:#92400e">
             <strong>Note:</strong> Please include Bill No. {{ $bill_number }} in payment reference.
@@ -382,7 +431,7 @@
             Document ID: {{ $bill_number }}-{{ now()->format('YmdHis') }}
         </div>
         <div style="margin-top:5px;font-size:8px">
-            For any queries, contact: {{ $contact_phone ?? '9851134338' }} | {{ $contact_email ?? 'shresthaxok@gmail.com' }}
+            For any queries, contact: {{ $contact_phone ?? ($hostel->phone ?? 'N/A') }} | {{ $contact_email ?? ($hostel->email ?? 'N/A') }}
         </div>
     </div>
 </body>

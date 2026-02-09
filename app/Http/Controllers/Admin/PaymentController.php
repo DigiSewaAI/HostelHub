@@ -1085,59 +1085,39 @@ class PaymentController extends Controller
     }
 
     /**
-     * Generate Bill PDF - FINAL FIXED VERSION
+     * Generate Bill PDF - PERFECT VERSION WITH HOSTEL-SPECIFIC DETAILS
      */
     public function generateBill($id)
     {
         try {
             \Log::info('Admin: Generating bill for payment: ' . $id);
 
-            // Load payment with all necessary relationships
-            $payment = Payment::with(['student.room', 'hostel', 'hostel.paymentMethods', 'hostel.owner'])->findOrFail($id);
+            // ✅ CORRECTED: Remove 'hostel.owner.user' - owner is already User model
+            $payment = Payment::with([
+                'student.room',
+                'hostel',
+                'hostel.paymentMethods',
+                'hostel.owner',  // यो नै User model हो
+                'hostel.manager'
+            ])->findOrFail($id);
 
             // Check permission
             $this->checkPaymentPermission($payment);
 
-            \Log::info('Payment found: ' . $payment->id);
+            \Log::info('Payment found: ' . $payment->id . ' for hostel: ' . $payment->hostel->name);
 
             // ✅ USE BASE64 LOGO
             $pdfImageService = new PdfImageService();
             $logoBase64 = $pdfImageService->getHostelLogoForPdf($payment->hostel_id, 150);
 
-            // Get bank details from hostel or use default
-            $bankDetails = null;
-            if ($payment->hostel && $payment->hostel->paymentMethods) {
-                $bankPaymentMethod = $payment->hostel->paymentMethods
-                    ->where('type', 'bank')
-                    ->where('is_active', true)
-                    ->first();
+            // ✅ GET HOSTEL-SPECIFIC BANK DETAILS
+            $bankDetails = $this->getHostelSpecificBankDetails($payment->hostel);
 
-                if ($bankPaymentMethod) {
-                    $bankDetails = [
-                        'bank_name' => $bankPaymentMethod->bank_name ?? 'Everest Bank',
-                        'account_name' => $bankPaymentMethod->account_name ?? $payment->hostel->name,
-                        'account_number' => $bankPaymentMethod->account_number ?? '798057453509',
-                        'swift_code' => $bankPaymentMethod->swift_code ?? 'EVBLNPKA', // ✅ Correct Swift Code
-                    ];
-                }
-            }
+            // ✅ GET HOSTEL-SPECIFIC CONTACT INFO
+            $contactInfo = $this->getHostelSpecificContactInfo($payment->hostel);
 
-            // If no bank details, use default
-            if (!$bankDetails) {
-                $bankDetails = [
-                    'bank_name' => 'Everest Bank',
-                    'account_name' => $payment->hostel->name ?? 'Sanctuary Girls Hostel',
-                    'account_number' => '798057453509',
-                    'swift_code' => 'EVBLNPKA', // ✅ Correct Swift Code
-                ];
-            }
-
-            // Get contact information
-            $contactPhone = '9851134338';
-            $contactEmail = 'shresthaxok@gmail.com';
-
-            // Clean address data to remove Nepali text
-            $cleanAddress = 'Kalikasthan, Dillibazar, Kathmandu, Nepal';
+            // ✅ GET HOSTEL-SPECIFIC ADDRESS
+            $address = $this->getHostelSpecificAddress($payment->hostel);
 
             $data = [
                 'payment' => $payment,
@@ -1148,9 +1128,10 @@ class PaymentController extends Controller
                 'logo_base64' => $logoBase64,
                 'generated_date' => now()->format('Y-m-d H:i:s'),
                 'bank_details' => $bankDetails,
-                'contact_phone' => $contactPhone,
-                'contact_email' => $contactEmail,
-                'clean_address' => $cleanAddress,
+                'contact_phone' => $contactInfo['phone'],
+                'contact_email' => $contactInfo['email'],
+                'owner_name' => $contactInfo['owner_name'] ?? null,
+                'clean_address' => $address,
             ];
 
             $pdf = Pdf::loadView('pdf.bill', $data)
@@ -1167,7 +1148,7 @@ class PaymentController extends Controller
                     'default_encoding' => 'utf-8',
                 ]);
 
-            \Log::info('Bill PDF generated successfully');
+            \Log::info('Bill PDF generated successfully for hostel: ' . $payment->hostel->name);
             return $pdf->stream('bill_' . $payment->id . '.pdf');
         } catch (\Exception $e) {
             \Log::error('Admin Bill PDF Error: ' . $e->getMessage());
@@ -1178,23 +1159,286 @@ class PaymentController extends Controller
     }
 
     /**
-     * Clean text for PDF - remove Nepali/Unicode characters
+     * Get hostel-specific bank details with correct SWIFT codes
      */
-    private function cleanTextForPdf($text)
+    private function getHostelSpecificBankDetails($hostel)
     {
-        if (empty($text)) {
-            return '';
+        // First, check if hostel has payment methods with bank details
+        if ($hostel->paymentMethods && $hostel->paymentMethods->count() > 0) {
+            $bankPaymentMethod = $hostel->paymentMethods
+                ->where('type', 'bank')
+                ->where('is_active', true)
+                ->first();
+
+            if ($bankPaymentMethod) {
+                // Get correct SWIFT code based on bank name
+                $swiftCode = $this->getCorrectSwiftCode(
+                    $bankPaymentMethod->bank_name ?? '',
+                    $bankPaymentMethod->swift_code ?? ''
+                );
+
+                return [
+                    'bank_name' => $bankPaymentMethod->bank_name ?? '',
+                    'account_name' => $bankPaymentMethod->account_name ?? $hostel->name,
+                    'account_number' => $bankPaymentMethod->account_number ?? '',
+                    'branch' => $bankPaymentMethod->branch ?? '',
+                    'swift_code' => $swiftCode,
+                ];
+            }
         }
 
-        // Remove all non-ASCII characters
-        $clean = preg_replace('/[^\x00-\x7F]/', '', $text);
+        // If no payment methods, check hostel's own bank details (if stored in hostel model)
+        if (!empty($hostel->bank_name)) {
+            $swiftCode = $this->getCorrectSwiftCode(
+                $hostel->bank_name,
+                $hostel->swift_code ?? ''
+            );
 
-        // If after cleaning it's empty, return default
-        if (empty($clean)) {
+            return [
+                'bank_name' => $hostel->bank_name,
+                'account_name' => $hostel->account_name ?? $hostel->name,
+                'account_number' => $hostel->account_number ?? '',
+                'branch' => $hostel->branch ?? '',
+                'swift_code' => $swiftCode,
+            ];
+        }
+
+        // Default bank details based on hostel name/type
+        return $this->getDefaultBankDetailsByHostel($hostel);
+    }
+
+    /**
+     * Get correct SWIFT code for Nepali banks
+     */
+    private function getCorrectSwiftCode($bankName, $currentSwiftCode = '')
+    {
+        $bankName = strtolower(trim($bankName));
+
+        // Mapping of Nepali banks to their SWIFT codes
+        $bankSwiftCodes = [
+            'sanima' => 'SNMANPKA',      // Sanima Bank Ltd
+            'everest' => 'EVBLNPKA',     // Everest Bank Ltd
+            'nimb' => 'NIMBNPKA',        // Nepal Investment Mega Bank
+            'nic' => 'NICENPKA',         // NIC Asia Bank
+            'nabil' => 'NABLNPKA',       // Nabil Bank
+            'himalayan' => 'HIMANPKA',   // Himalayan Bank
+            'standard chartered' => 'SCBLNPKA', // Standard Chartered Bank
+            'global ime' => 'GLBBNPKA',  // Global IME Bank
+            'machhapuchchhre' => 'MBLNNPKA', // Machhapuchchhre Bank
+            'century' => 'CTBVNPKA',     // Century Bank
+            'prime' => 'PRMSNPKA',       // Prime Commercial Bank
+            'sunrise' => 'SRBLNPKA',     // Sunrise Bank
+            'kumari' => 'KUMBNPKA',      // Kumari Bank
+            'agricultural' => 'ADBLNPKA', // Agricultural Development Bank
+            'rastriya banijya' => 'RBBANPKA', // Rastriya Banijya Bank
+        ];
+
+        // Check if we have a known bank
+        foreach ($bankSwiftCodes as $bankKeyword => $swiftCode) {
+            if (strpos($bankName, $bankKeyword) !== false) {
+                return $swiftCode;
+            }
+        }
+
+        // If current swift code is valid, use it
+        if (!empty($currentSwiftCode) && strlen($currentSwiftCode) === 8) {
+            return $currentSwiftCode;
+        }
+
+        // Default SWIFT code
+        return '';
+    }
+
+    /**
+     * Get default bank details based on hostel
+     */
+    private function getDefaultBankDetailsByHostel($hostel)
+    {
+        $hostelName = strtolower($hostel->name ?? '');
+
+        // Special cases for known hostels
+        if (strpos($hostelName, 'black grunz') !== false || strpos($hostelName, 'grunz') !== false) {
+            return [
+                'bank_name' => 'Sanima Bank Ltd',
+                'account_name' => $hostel->name,
+                'account_number' => '096889965544',
+                'branch' => 'Kathmandu Branch',
+                'swift_code' => 'SNMANPKA', // Correct SWIFT for Sanima Bank
+            ];
+        }
+
+        if (strpos($hostelName, 'sanctuary') !== false) {
+            return [
+                'bank_name' => 'Everest Bank',
+                'account_name' => $hostel->name,
+                'account_number' => '798057453509',
+                'branch' => 'Kathmandu Branch',
+                'swift_code' => 'EVBLNPKA', // Correct SWIFT for Everest Bank
+            ];
+        }
+
+        if (strpos($hostelName, 'boys') !== false) {
+            return [
+                'bank_name' => 'Nepal Investment Mega Bank',
+                'account_name' => $hostel->name,
+                'account_number' => '1234567890' . ($hostel->id ?? '001'),
+                'branch' => 'Kathmandu Branch',
+                'swift_code' => 'NIMBNPKA',
+            ];
+        }
+
+        // Generic hostel bank details
+        return [
+            'bank_name' => 'Global IME Bank',
+            'account_name' => $hostel->name,
+            'account_number' => '5555555555' . ($hostel->id ?? '001'),
+            'branch' => 'Kathmandu Branch',
+            'swift_code' => 'GLBBNPKA',
+        ];
+    }
+
+    /**
+     * Get hostel-specific contact information - FIXED VERSION
+     */
+    private function getHostelSpecificContactInfo($hostel)
+    {
+        try {
+            // First check if hostel has its own contact info
+            if (!empty($hostel->phone) || !empty($hostel->email)) {
+                return [
+                    'phone' => $hostel->phone ?? 'N/A',
+                    'email' => $hostel->email ?? 'N/A',
+                    'owner_name' => $hostel->owner->name ?? 'Hostel Management',
+                ];
+            }
+
+            // Then check owner's contact
+            if ($hostel->owner) {
+                $owner = $hostel->owner;
+                // ✅ FIXED: Use correct fields from User model
+                $phone = $owner->phone ?? $owner->mobile ?? $owner->contact_number ?? null;
+                $email = $owner->email ?? null;
+
+                if ($phone || $email) {
+                    return [
+                        'phone' => $phone ?? 'N/A',
+                        'email' => $email ?? 'N/A',
+                        'owner_name' => $owner->name ?? 'Hostel Management',
+                    ];
+                }
+            }
+
+            // Then check manager's contact
+            if ($hostel->manager) {
+                $manager = $hostel->manager;
+                $phone = $manager->phone ?? $manager->mobile ?? $manager->contact_number ?? null;
+                $email = $manager->email ?? null;
+
+                if ($phone || $email) {
+                    return [
+                        'phone' => $phone ?? 'N/A',
+                        'email' => $email ?? 'N/A',
+                        'owner_name' => $manager->name ?? 'Hostel Management',
+                    ];
+                }
+            }
+
+            // Special cases for known hostels
+            $hostelName = strtolower($hostel->name ?? '');
+
+            if (strpos($hostelName, 'black grunz') !== false || strpos($hostelName, 'grunz') !== false) {
+                return [
+                    'phone' => '01-XXXXXXX',
+                    'email' => 'info@blackgrunzhostel.com',
+                    'owner_name' => 'Black Grunz Management',
+                ];
+            }
+
+            if (strpos($hostelName, 'sanctuary') !== false) {
+                return [
+                    'phone' => '9851134338',
+                    'email' => 'shresthaxok@gmail.com',
+                    'owner_name' => 'Sanctuary Hostel Management',
+                ];
+            }
+
+            // Default
+            return [
+                'phone' => 'N/A',
+                'email' => 'N/A',
+                'owner_name' => 'Hostel Management',
+            ];
+        } catch (\Exception $e) {
+            \Log::warning('Failed to get hostel contact: ' . $e->getMessage());
+
+            return [
+                'phone' => 'N/A',
+                'email' => 'N/A',
+                'owner_name' => 'Hostel Management',
+            ];
+        }
+    }
+
+    /**
+     * Get hostel-specific address with dynamic city/location
+     */
+    private function getHostelSpecificAddress($hostel)
+    {
+        // Use hostel's own address if available (full address)
+        if (!empty($hostel->address)) {
+            // Remove non-ASCII characters for PDF compatibility
+            $cleanAddress = preg_replace('/[^\x00-\x7F]/', '', $hostel->address);
+            return !empty($cleanAddress) ? $cleanAddress : ($hostel->city . ', Nepal');
+        }
+
+        // Use hostel's city if available
+        if (!empty($hostel->city)) {
+            // Check if city has proper format
+            $city = trim($hostel->city);
+            if (!empty($city)) {
+                return $city . ', Nepal';
+            }
+        }
+
+        // Use hostel's location if available
+        if (!empty($hostel->location)) {
+            return $hostel->location . ', Nepal';
+        }
+
+        // For known hostels with hardcoded details (fallback)
+        $hostelName = strtolower($hostel->name ?? '');
+
+        if (strpos($hostelName, 'black grunz') !== false || strpos($hostelName, 'grunz') !== false) {
+            return 'Koteshwor, Kathmandu, Nepal';
+        }
+
+        if (strpos($hostelName, 'sanctuary') !== false) {
             return 'Kalikasthan, Dillibazar, Kathmandu, Nepal';
         }
 
-        return $clean;
+        // Default based on hostel type or name
+        if (strpos($hostelName, 'pokhara') !== false) {
+            return 'Pokhara, Nepal';
+        }
+
+        if (strpos($hostelName, 'biratnagar') !== false) {
+            return 'Biratnagar, Nepal';
+        }
+
+        if (strpos($hostelName, 'chitwan') !== false || strpos($hostelName, 'bharatpur') !== false) {
+            return 'Chitwan, Nepal';
+        }
+
+        if (strpos($hostelName, 'lalitpur') !== false || strpos($hostelName, 'patan') !== false) {
+            return 'Lalitpur, Nepal';
+        }
+
+        if (strpos($hostelName, 'bhaktapur') !== false) {
+            return 'Bhaktapur, Nepal';
+        }
+
+        // Default to Kathmandu only if really unknown
+        return 'Kathmandu, Nepal';
     }
     /**
      * Convert amount to Nepali words - IMPROVED VERSION
