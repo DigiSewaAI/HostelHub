@@ -1085,31 +1085,72 @@ class PaymentController extends Controller
     }
 
     /**
-     * Generate Bill PDF - FIXED VERSION WITH BASE64 LOGO
+     * Generate Bill PDF - FINAL FIXED VERSION
      */
     public function generateBill($id)
     {
         try {
             \Log::info('Admin: Generating bill for payment: ' . $id);
 
-            // Load payment with student's room relationship
-            $payment = Payment::with(['student.room', 'hostel'])->findOrFail($id);
+            // Load payment with all necessary relationships
+            $payment = Payment::with(['student.room', 'hostel', 'hostel.paymentMethods', 'hostel.owner'])->findOrFail($id);
 
             // Check permission
             $this->checkPaymentPermission($payment);
 
             \Log::info('Payment found: ' . $payment->id);
 
-            // ✅ USE BASE64 LOGO - WORKS 100%
+            // ✅ USE BASE64 LOGO
             $pdfImageService = new PdfImageService();
             $logoBase64 = $pdfImageService->getHostelLogoForPdf($payment->hostel_id, 150);
+
+            // Get bank details from hostel or use default
+            $bankDetails = null;
+            if ($payment->hostel && $payment->hostel->paymentMethods) {
+                $bankPaymentMethod = $payment->hostel->paymentMethods
+                    ->where('type', 'bank')
+                    ->where('is_active', true)
+                    ->first();
+
+                if ($bankPaymentMethod) {
+                    $bankDetails = [
+                        'bank_name' => $bankPaymentMethod->bank_name ?? 'Everest Bank',
+                        'account_name' => $bankPaymentMethod->account_name ?? $payment->hostel->name,
+                        'account_number' => $bankPaymentMethod->account_number ?? '798057453509',
+                        'swift_code' => $bankPaymentMethod->swift_code ?? 'EVBLNPKA', // ✅ Correct Swift Code
+                    ];
+                }
+            }
+
+            // If no bank details, use default
+            if (!$bankDetails) {
+                $bankDetails = [
+                    'bank_name' => 'Everest Bank',
+                    'account_name' => $payment->hostel->name ?? 'Sanctuary Girls Hostel',
+                    'account_number' => '798057453509',
+                    'swift_code' => 'EVBLNPKA', // ✅ Correct Swift Code
+                ];
+            }
+
+            // Get contact information
+            $contactPhone = '9851134338';
+            $contactEmail = 'shresthaxok@gmail.com';
+
+            // Clean address data to remove Nepali text
+            $cleanAddress = 'Kalikasthan, Dillibazar, Kathmandu, Nepal';
 
             $data = [
                 'payment' => $payment,
                 'hostel' => $payment->hostel,
                 'student' => $payment->student,
+                'room' => $payment->student->room ?? null,
                 'bill_number' => 'BILL-' . str_pad($payment->id, 6, '0', STR_PAD_LEFT),
-                'logo_base64' => $logoBase64, // ✅ Pass base64 logo
+                'logo_base64' => $logoBase64,
+                'generated_date' => now()->format('Y-m-d H:i:s'),
+                'bank_details' => $bankDetails,
+                'contact_phone' => $contactPhone,
+                'contact_email' => $contactEmail,
+                'clean_address' => $cleanAddress,
             ];
 
             $pdf = Pdf::loadView('pdf.bill', $data)
@@ -1117,8 +1158,13 @@ class PaymentController extends Controller
                 ->setOptions([
                     'defaultFont' => 'helvetica',
                     'isHtml5ParserEnabled' => true,
-                    'isRemoteEnabled' => true,
-                    'enable_css_float' => true,
+                    'isRemoteEnabled' => false,
+                    'enable_css_float' => false,
+                    'enable_php' => false,
+                    'enable_javascript' => false,
+                    'enable_remote' => false,
+                    'enable_local_file_access' => true,
+                    'default_encoding' => 'utf-8',
                 ]);
 
             \Log::info('Bill PDF generated successfully');
@@ -1127,12 +1173,29 @@ class PaymentController extends Controller
             \Log::error('Admin Bill PDF Error: ' . $e->getMessage());
             \Log::error('Stack Trace: ' . $e->getTraceAsString());
 
-            return redirect()->back()->with('error', 'बिल जनरेसन असफल भयो: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Bill generation failed: ' . $e->getMessage());
         }
     }
 
+    /**
+     * Clean text for PDF - remove Nepali/Unicode characters
+     */
+    private function cleanTextForPdf($text)
+    {
+        if (empty($text)) {
+            return '';
+        }
 
+        // Remove all non-ASCII characters
+        $clean = preg_replace('/[^\x00-\x7F]/', '', $text);
 
+        // If after cleaning it's empty, return default
+        if (empty($clean)) {
+            return 'Kalikasthan, Dillibazar, Kathmandu, Nepal';
+        }
+
+        return $clean;
+    }
     /**
      * Convert amount to Nepali words - IMPROVED VERSION
      */

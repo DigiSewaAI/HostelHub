@@ -1,473 +1,388 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>Payment Bill - {{ $hostel->name }}</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>Payment Bill - Sanctuary Girls Hostel</title>
     <style>
-        /* DOMPDF COMPATIBLE CSS ONLY */
-        body { 
-            font-family: helvetica, sans-serif; 
-            font-size: 12px; 
-            line-height: 1.4; 
-            color: #000; 
-            margin: 0; 
-            padding: 20px;
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 11px;
+            line-height: 1.3;
+            margin: 0;
+            padding: 15px;
+            color: #000;
         }
         
-        .header { 
-            width: 100%; 
-            margin-bottom: 20px; 
-            padding-bottom: 15px; 
+        .header {
+            width: 100%;
+            margin-bottom: 15px;
             border-bottom: 2px solid #dc2626;
+            padding-bottom: 10px;
         }
         
-        .logo-container { 
-            width: 80px; 
-            height: 80px; 
-            float: left; 
-            margin-right: 20px; 
-            text-align: center;
+        .logo-cell {
+            width: 80px;
+            float: left;
+        }
+        
+        .logo {
+            width: 70px;
+            height: 70px;
             border: 1px solid #ddd;
         }
         
-        .logo { 
-            max-width: 80px; 
-            max-height: 80px; 
+        .info-cell {
+            margin-left: 90px;
         }
         
-        .hostel-info { 
-            overflow: hidden;
-        }
-        
-        .hostel-name { 
-            font-size: 18px; 
-            font-weight: bold; 
-            color: #1e40af; 
+        .hostel-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: #1e40af;
             margin: 0 0 5px 0;
         }
         
-        .hostel-details { 
-            color: #666; 
-            font-size: 10px; 
-            margin: 0;
+        .hostel-details {
+            font-size: 9px;
+            color: #666;
+            margin: 0 0 5px 0;
         }
         
-        .document-title { 
-            text-align: center; 
-            margin: 20px 0; 
-            padding: 10px;
-            background-color: #f3f4f6;
-        }
-        
-        .document-title h1 { 
-            color: #dc2626; 
-            font-size: 20px; 
-            margin: 0 0 5px 0; 
-        }
-        
-        .columns-container {
-            width: 100%;
-            margin: 20px 0;
-        }
-        
-        .column-left {
-            width: 48%;
-            float: left;
-            padding: 10px;
-            border: 1px solid #ddd;
-            background-color: #f9fafb;
-        }
-        
-        .column-right {
-            width: 48%;
+        .bill-info {
+            text-align: right;
             float: right;
-            padding: 10px;
-            border: 1px solid #ddd;
-            background-color: #f9fafb;
+            font-size: 10px;
         }
         
         .clear {
             clear: both;
         }
         
-        .column h3 {
+        .title {
+            text-align: center;
+            margin: 15px 0;
+            padding: 10px;
+            background: #f3f4f6;
+        }
+        
+        .title h1 {
+            color: #dc2626;
+            font-size: 18px;
+            margin: 0 0 5px 0;
+        }
+        
+        .title h2 {
+            color: #666;
+            font-size: 12px;
+            margin: 0;
+        }
+        
+        .content-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        
+        .content-table td {
+            padding: 8px;
+            vertical-align: top;
+            border: 1px solid #ddd;
+            background: #f9fafb;
+        }
+        
+        .section-title {
+            font-size: 12px;
+            font-weight: bold;
             color: #374151;
             border-bottom: 1px solid #d1d5db;
             padding-bottom: 5px;
-            margin: 0 0 10px 0;
-            font-size: 14px;
+            margin: 0 0 8px 0;
         }
         
-        .detail-row {
-            width: 100%;
-            margin-bottom: 8px;
-            padding-bottom: 5px;
+        .row {
+            margin-bottom: 6px;
+            padding-bottom: 4px;
             border-bottom: 1px dotted #ddd;
         }
         
-        .detail-label {
+        .label {
             display: inline-block;
-            width: 120px;
+            width: 110px;
             font-weight: bold;
             color: #4b5563;
         }
         
-        .detail-value {
+        .value {
             display: inline-block;
             color: #000;
         }
         
-        .amount-section {
-            text-align: center; 
-            margin: 25px 0; 
-            padding: 15px;
-            background-color: #fef3c7;
+        .amount-box {
+            text-align: center;
+            margin: 15px 0;
+            padding: 12px;
+            background: #fef3c7;
             border: 2px solid #f59e0b;
         }
         
         .amount-label {
-            font-size: 16px;
+            font-size: 14px;
             color: #92400e;
-            margin-bottom: 10px;
+            font-weight: bold;
+            margin: 0 0 5px 0;
         }
         
         .amount-value {
-            font-size: 24px;
+            font-size: 22px;
             font-weight: bold;
             color: #d97706;
+            margin: 0;
         }
         
-        .footer {
-            margin-top: 30px;
-            padding-top: 15px;
-            border-top: 1px solid #ddd;
-            text-align: center;
-            font-size: 9px;
-            color: #666;
+        .bank-box {
+            margin: 15px 0;
+            padding: 12px;
+            background: #f0f9ff;
+            border: 1px solid #7dd3fc;
         }
         
-        .text-right {
-            text-align: right;
-            float: right;
-        }
-        
-        .status-badge {
-            display: inline;
-            padding: 2px 8px;
-            font-size: 10px;
+        .bank-title {
+            font-size: 12px;
             font-weight: bold;
-            margin-left: 10px;
-        }
-        
-        .status-pending { 
-            background-color: #fef3c7; 
-            color: #92400e; 
-        }
-        .status-paid { 
-            background-color: #d1fae5; 
-            color: #065f46; 
-        }
-
-        /* Payment methods section styles */
-        .payment-method-card {
-            margin-bottom: 15px; 
-            padding: 10px; 
-            border: 1px solid #d1d5db; 
-            border-radius: 5px; 
-            background-color: white;
-        }
-        
-        .payment-method-header {
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            margin-bottom: 8px;
-        }
-        
-        .payment-type {
-            color: #1e40af; 
-            font-size: 12px; 
-            font-weight: bold;
-        }
-        
-        .default-badge {
-            background-color: #10b981; 
-            color: white; 
-            padding: 2px 8px; 
-            border-radius: 12px; 
-            font-size: 10px;
-        }
-        
-        .qr-container {
-            margin-top: 10px; 
+            color: #0369a1;
+            margin: 0 0 8px 0;
             text-align: center;
         }
         
-        .qr-label {
-            color: #6b7280; 
-            font-size: 10px; 
+        .bank-row {
             margin-bottom: 5px;
         }
         
-        .qr-image {
-            width: 80px; 
-            height: 80px; 
-            display: inline-block; 
-            border: 1px solid #d1d5db;
+        .bank-label {
+            display: inline-block;
+            width: 100px;
+            font-weight: bold;
+            color: #1e40af;
         }
         
-        .instructions-container {
-            margin-top: 10px; 
-            padding-top: 8px; 
-            border-top: 1px dashed #d1d5db; 
-            font-size: 10px; 
-            color: #6b7280;
+        .bank-value {
+            display: inline-block;
+            color: #1e3a8a;
+        }
+        
+        .footer {
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 1px solid #ddd;
+            text-align: center;
+            font-size: 8px;
+            color: #666;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 2px 6px;
+            font-size: 9px;
+            font-weight: bold;
+            border-radius: 10px;
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .due-alert {
+            background: #fed7d7;
+            color: #742a2a;
+            padding: 8px;
+            text-align: center;
+            font-size: 10px;
+            margin: 10px 0;
+            border: 1px dashed #e53e3e;
         }
     </style>
 </head>
 <body>
-    <!-- Header with Logo and Hostel Info -->
+    <!-- Header -->
     <div class="header">
-        <!-- Logo Container -->
-        <div class="logo-container">
+        <div class="logo-cell">
             @if(isset($logo_base64) && !empty($logo_base64))
-                <img src="{{ $logo_base64 }}" class="logo" alt="{{ $hostel->name ?? 'Hostel' }} Logo">
+                <img src="{{ $logo_base64 }}" class="logo">
             @else
-                <div style="width: 80px; height: 80px; background-color: #3b82f6; color: white; text-align: center; line-height: 80px; font-weight: bold; font-size: 20px;">
-                    {{ substr($hostel->name ?? 'H', 0, 1) }}
+                <div style="width:70px;height:70px;background:#3b82f6;color:white;text-align:center;line-height:70px;font-weight:bold;font-size:18px">
+                    S
                 </div>
             @endif
         </div>
         
-        <div class="hostel-info">
-            <div class="hostel-name">{{ $hostel->name ?? 'Hostel Name' }}</div>
+        <div class="info-cell">
+            <div class="hostel-name">Sanctuary Girls Hostel</div>
             <div class="hostel-details">
-                @if(isset($hostel->address) && !empty($hostel->address))
-                    <div>{{ $hostel->address }}</div>
-                @endif
-                @if(isset($hostel->phone) && !empty($hostel->phone))
-                    <div>Phone: {{ $hostel->phone }}</div>
-                @endif
-                @if(isset($hostel->email) && !empty($hostel->email))
-                    <div>Email: {{ $hostel->email }}</div>
-                @endif
+                {{ $clean_address ?? 'Kalikasthan, Dillibazar, Kathmandu, Nepal' }}<br>
+                Phone: {{ $contact_phone ?? '9851134338' }} | Email: {{ $contact_email ?? 'shresthaxok@gmail.com' }}
             </div>
         </div>
         
-        <div class="text-right">
-            <div style="font-weight: bold; color: #4b5563;">Document No.</div>
-            <div style="font-size: 14px; color: #dc2626;">BILL-{{ str_pad($payment->id, 6, '0', STR_PAD_LEFT) }}</div>
-            <div style="font-size: 10px; margin-top: 5px;">
-                <div>Date: {{ now()->format('Y-m-d') }}</div>
-                <div>Page: 1 of 1</div>
-            </div>
+        <div class="bill-info">
+            <div><strong>Bill No:</strong> {{ $bill_number }}</div>
+            <div>Date: {{ now()->format('Y-m-d') }}</div>
+            <div>Page: 1 of 1</div>
         </div>
         <div class="clear"></div>
     </div>
     
-    <!-- Document Title -->
-    <div class="document-title">
+    <!-- Title -->
+    <div class="title">
         <h1>PAYMENT BILL</h1>
-        <div style="color: #666; font-size: 12px;">Hostel Fee Payment Bill</div>
+        <h2>Hostel Fee Payment Bill</h2>
     </div>
     
-    <!-- Two Column Layout -->
-    <div class="columns-container">
-        <!-- Student Details -->
-        <div class="column-left">
-            <h3>Student Details</h3>
-            
-            <div class="detail-row">
-                <span class="detail-label">Full Name:</span>
-                <span class="detail-value">{{ $student->name ?? 'N/A' }}</span>
-            </div>
-            
-            <div class="detail-row">
-                <span class="detail-label">Student ID:</span>
-                <span class="detail-value">{{ $student->student_id ?? 'N/A' }}</span>
-            </div>
-            
-            <div class="detail-row">
-                <span class="detail-label">Room No:</span>
-                <span class="detail-value">
-                    @if(isset($student->room) && $student->room)
-                        {{ $student->room->room_number ?? 'N/A' }}
-                    @else
-                        N/A
-                    @endif
-                </span>
-            </div>
-            
-            <div class="detail-row">
-                <span class="detail-label">Contact:</span>
-                <span class="detail-value">{{ $student->phone ?? ($student->email ?? 'N/A') }}</span>
-            </div>
-            
-            <div class="detail-row">
-                <span class="detail-label">Guardian:</span>
-                <span class="detail-value">{{ $student->guardian_name ?? 'N/A' }}</span>
-            </div>
-            
-            <div class="detail-row">
-                <span class="detail-label">Guardian Contact:</span>
-                <span class="detail-value">{{ $student->guardian_phone ?? 'N/A' }}</span>
-            </div>
-        </div>
-        
-        <!-- Payment Details -->
-        <div class="column-right">
-            <h3>Payment Details</h3>
-            
-            <div class="detail-row">
-                <span class="detail-label">Bill Amount:</span>
-                <span class="detail-value">Rs. {{ number_format($payment->amount ?? 0, 2) }}</span>
-            </div>
-            
-            <div class="detail-row">
-                <span class="detail-label">Bill Date:</span>
-                <span class="detail-value">
-                    @if(isset($payment->payment_date) && !empty($payment->payment_date))
-                        {{ \Carbon\Carbon::parse($payment->payment_date)->format('Y-m-d') }}
-                    @else
-                        {{ now()->format('Y-m-d') }}
-                    @endif
-                </span>
-            </div>
-            
-            <div class="detail-row">
-                <span class="detail-label">Payment Method:</span>
-                <span class="detail-value">{{ $payment->payment_method ?? 'N/A' }}</span>
-            </div>
-            
-            <div class="detail-row">
-                <span class="detail-label">Payment Status:</span>
-                <span class="detail-value">
-                    @if(isset($payment->status))
-                        @if($payment->status == 'completed')
-                            <span class="status-badge status-paid">PAID</span>
-                        @elseif($payment->status == 'pending')
-                            <span class="status-badge status-pending">PENDING</span>
+    <!-- Due Date Alert -->
+    @if(isset($payment->due_date))
+    <div class="due-alert">
+        Please pay this bill before {{ \Carbon\Carbon::parse($payment->due_date)->format('F d, Y') }}
+    </div>
+    @endif
+    
+    <!-- Two Columns -->
+    <table class="content-table">
+        <tr>
+            <td width="50%">
+                <div class="section-title">Student Details</div>
+                
+                <div class="row">
+                    <span class="label">Full Name:</span>
+                    <span class="value">{{ $student->name ?? 'N/A' }}</span>
+                </div>
+                
+                <div class="row">
+                    <span class="label">Student ID:</span>
+                    <span class="value">{{ $student->student_id ?? 'N/A' }}</span>
+                </div>
+                
+                <div class="row">
+                    <span class="label">Room No:</span>
+                    <span class="value">
+                        @if(isset($room) && $room)
+                            {{ $room->room_number ?? 'N/A' }}
                         @else
-                            {{ ucfirst($payment->status) }}
+                            N/A
                         @endif
-                    @else
-                        <span class="status-badge status-pending">PENDING</span>
-                    @endif
-                </span>
-            </div>
+                    </span>
+                </div>
+                
+                <div class="row">
+                    <span class="label">Contact:</span>
+                    <span class="value">{{ $student->phone ?? 'N/A' }}</span>
+                </div>
+                
+                <div class="row">
+                    <span class="label">Guardian:</span>
+                    <span class="value">{{ $student->guardian_name ?? 'N/A' }}</span>
+                </div>
+                
+                <div class="row">
+                    <span class="label">Guardian Contact:</span>
+                    <span class="value">{{ $student->guardian_phone ?? 'N/A' }}</span>
+                </div>
+            </td>
             
-            <div class="detail-row">
-                <span class="detail-label">Bill Type:</span>
-                <span class="detail-value">Monthly Hostel Fee</span>
-            </div>
-            
-            <div class="detail-row">
-                <span class="detail-label">Reference No:</span>
-                <span class="detail-value">BL{{ date('Ymd') }}{{ str_pad($payment->id, 4, '0', STR_PAD_LEFT) }}</span>
-            </div>
-        </div>
-        <div class="clear"></div>
-    </div>
+            <td width="50%">
+                <div class="section-title">Payment Details</div>
+                
+                <div class="row">
+                    <span class="label">Bill Amount:</span>
+                    <span class="value">Rs. {{ number_format($payment->amount ?? 0, 2) }}</span>
+                </div>
+                
+                <div class="row">
+                    <span class="label">Bill Date:</span>
+                    <span class="value">{{ \Carbon\Carbon::parse($payment->payment_date)->format('Y-m-d') }}</span>
+                </div>
+                
+                <div class="row">
+                    <span class="label">Due Date:</span>
+                    <span class="value">{{ \Carbon\Carbon::parse($payment->due_date ?? $payment->payment_date)->format('Y-m-d') }}</span>
+                </div>
+                
+                <div class="row">
+                    <span class="label">Payment Method:</span>
+                    <span class="value">{{ $payment->payment_method ?? 'N/A' }}</span>
+                </div>
+                
+                <div class="row">
+                    <span class="label">Payment Status:</span>
+                    <span class="value">
+                        @if($payment->status == 'completed')
+                            <span class="status">PAID</span>
+                        @else
+                            <span class="status" style="background:#fef3c7;color:#92400e">PENDING</span>
+                        @endif
+                    </span>
+                </div>
+                
+                <div class="row">
+                    <span class="label">Bill Type:</span>
+                    <span class="value">Monthly Hostel Fee</span>
+                </div>
+                
+                <div class="row">
+                    <span class="label">Reference No:</span>
+                    <span class="value">BL{{ date('Ymd') }}{{ str_pad($payment->id, 4, '0', STR_PAD_LEFT) }}</span>
+                </div>
+            </td>
+        </tr>
+    </table>
     
-    <!-- Amount Section -->
-    <div class="amount-section">
+    <!-- Amount -->
+    <div class="amount-box">
         <div class="amount-label">TOTAL AMOUNT DUE</div>
         <div class="amount-value">Rs. {{ number_format($payment->amount ?? 0, 2) }}</div>
-        <div style="font-size: 12px; color: #92400e; margin-top: 5px;">
-            @if(isset($payment->due_date) && !empty($payment->due_date))
-                Due Date: {{ \Carbon\Carbon::parse($payment->due_date)->format('F d, Y') }}
-            @else
-                Due Date: {{ now()->addDays(7)->format('F d, Y') }}
-            @endif
+        @if(isset($payment->due_date))
+        <div style="font-size:10px;color:#92400e;margin-top:5px">
+            Due Date: {{ \Carbon\Carbon::parse($payment->due_date)->format('F d, Y') }}
+        </div>
+        @endif
+    </div>
+    
+    <!-- Bank Details -->
+    <div class="bank-box">
+        <div class="bank-title">Bank Details</div>
+        
+        <div class="bank-row">
+            <span class="bank-label">Bank Name:</span>
+            <span class="bank-value">{{ $bank_details['bank_name'] ?? 'Everest Bank' }}</span>
+        </div>
+        
+        <div class="bank-row">
+            <span class="bank-label">Account Name:</span>
+            <span class="bank-value">{{ $bank_details['account_name'] ?? 'Sanctuary Girls Hostel' }}</span>
+        </div>
+        
+        <div class="bank-row">
+            <span class="bank-label">Account Number:</span>
+            <span class="bank-value">{{ $bank_details['account_number'] ?? '798057453509' }}</span>
+        </div>
+        
+        <div class="bank-row">
+            <span class="bank-label">Swift Code:</span>
+            <span class="bank-value">{{ $bank_details['swift_code'] ?? 'EVBLNPKA' }}</span>
+        </div>
+        
+        <div style="margin-top:10px;padding:8px;background:#fef3c7;font-size:9px;color:#92400e">
+            <strong>Note:</strong> Please include Bill No. {{ $bill_number }} in payment reference.
         </div>
     </div>
-
-    @php
-        // Get active payment methods for the hostel
-        $paymentMethods = $hostel->bill_payment_methods ?? [];
-        $hasPaymentMethods = !empty($paymentMethods);
-    @endphp
-
-    @if($hasPaymentMethods)
-        <!-- Payment Methods Section -->
-        <div style="margin: 20px 0; padding: 15px; background-color: #f0f9ff; border: 1px solid #7dd3fc;">
-            <h4 style="color: #0369a1; margin: 0 0 15px 0; text-align: center; font-size: 14px;">
-                भुक्तानी गर्ने विधिहरू
-            </h4>
-
-            @foreach($paymentMethods as $method)
-                <div class="payment-method-card">
-                    <div class="payment-method-header">
-                        <strong class="payment-type">{{ $method['type_text'] }}</strong>
-                        @if($method['is_default'])
-                            <span class="default-badge">
-                                मुख्य विधि
-                            </span>
-                        @endif
-                    </div>
-                    
-                    <div style="font-size: 11px; color: #374151;">
-                        <strong>{{ $method['title'] }}</strong>
-                        
-                        @foreach($method['display_info']['details'] as $label => $value)
-                            @if(!empty($value))
-                                <div style="margin-top: 4px;">
-                                    <span style="color: #6b7280;">{{ $label }}:</span>
-                                    <span style="color: #111827; font-weight: 500;">{{ $value }}</span>
-                                </div>
-                            @endif
-                        @endforeach
-                        
-                        @if(!empty($method['qr_code_url']))
-                            <div class="qr-container">
-                                <div class="qr-label">QR कोड स्क्यान गर्नुहोस्:</div>
-                                <img src="{{ $method['qr_code_url'] }}" class="qr-image">
-                            </div>
-                        @endif
-                    </div>
-                    
-                    @if(!empty($method['instructions']))
-                        <div class="instructions-container">
-                            <strong>निर्देशनहरू:</strong>
-                            <ul style="margin: 5px 0 0 0; padding-left: 15px;">
-                                @foreach($method['instructions'] as $instruction)
-                                    <li>{{ $instruction }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
-                </div>
-            @endforeach
-            
-            <div style="margin-top: 15px; padding: 10px; background-color: #fef3c7; border-radius: 5px; font-size: 10px; color: #92400e;">
-                <strong>नोट:</strong> भुक्तानी गरेपछि रसिद होस्टेल कार्यालयमा पेश गर्नुहोस्।
-            </div>
-        </div>
-    @else
-        <!-- Fallback if no payment methods are configured -->
-        <div style="margin: 20px 0; padding: 15px; background-color: #fee2e2; border: 1px solid #fca5a5;">
-            <h4 style="color: #dc2626; margin: 0 0 10px 0; text-align: center; font-size: 14px;">
-                भुक्तानी विवरण
-            </h4>
-            <div style="text-align: center; font-size: 11px; color: #7f1d1d;">
-                भुक्तानी गर्नका लागि होस्टेल कार्यालयमा सम्पर्क गर्नुहोस्।
-                <br>
-                फोन: {{ $hostel->phone ?? 'N/A' }}
-                <br>
-                इमेल: {{ $hostel->email ?? 'N/A' }}
-            </div>
-        </div>
-    @endif
     
     <!-- Footer -->
     <div class="footer">
         <div>This is a computer-generated document.</div>
-        <div style="margin-top: 5px;">
-            Generated on: {{ now()->format('Y-m-d H:i:s') }} | 
-            System: HostelHub
+        <div style="margin-top:3px">
+            Generated on: {{ $generated_date ?? now()->format('Y-m-d H:i:s') }} | System: HostelHub
         </div>
-        <div style="margin-top: 3px; font-size: 8px; color: #999;">
-            Document ID: BILL-{{ $payment->id }}-{{ now()->format('YmdHis') }}
+        <div style="margin-top:3px;font-size:7px;color:#999">
+            Document ID: {{ $bill_number }}-{{ now()->format('YmdHis') }}
+        </div>
+        <div style="margin-top:5px;font-size:8px">
+            For any queries, contact: {{ $contact_phone ?? '9851134338' }} | {{ $contact_email ?? 'shresthaxok@gmail.com' }}
         </div>
     </div>
 </body>
