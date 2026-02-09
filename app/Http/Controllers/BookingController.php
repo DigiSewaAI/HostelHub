@@ -249,6 +249,23 @@ class BookingController extends Controller
             return back()->with('error', 'बुकिंग सिर्जना गर्दा त्रुटि भयो। कृपया पुनः प्रयास गर्नुहोस्।');
         }
     }
+
+    public function index()
+    {
+        $user = Auth::user();
+
+        // Get both student bookings and guest bookings by email
+        $bookings = Booking::where(function ($query) use ($user) {
+            $query->where('student_id', $user->student->id)
+                ->orWhere('email', $user->email);
+        })
+            ->with(['room', 'hostel', 'approvedBy'])
+            ->latest()
+            ->paginate(10);
+
+        return view('student.bookings.index', compact('bookings'));
+    }
+
     /**
      * ✅ FIXED: Create booking from gallery with proper room loading and variable passing
      */
@@ -654,7 +671,7 @@ class BookingController extends Controller
             ->latest()
             ->paginate(10);
 
-        return view('bookings.my', compact('bookings'));
+        return view('student.bookings.index', compact('bookings'));
     }
 
     /**

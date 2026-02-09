@@ -553,15 +553,7 @@
                             <i class="fas fa-history me-2"></i> सबै भुक्तानी हेर्नुहोस्
                         </a>
                         
-                        <button type="button" class="btn btn-outline-warning tooltip-btn" 
-                                title="मद्दत चाहिन्छ?"
-                                data-bs-toggle="modal" 
-                                data-bs-target="#paymentHelpModal"
-                                data-bs-toggle="tooltip">
-                            <i class="fas fa-question-circle me-2"></i> मद्दत चाहिन्छ?
-                        </button>
-                    </div>
-                </div>
+                                        </div>
             </div>
         </div>
     </div>
