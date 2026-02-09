@@ -28,18 +28,20 @@ Route::middleware(['auth', 'role:student'])
         Route::get('/my-room', [StudentController::class, 'myRoom'])->name('my-room');
         Route::post('/report-room-issue', [StudentController::class, 'reportRoomIssue'])->name('report-room-issue');
 
-        // Payments routes
-        Route::get('/payments', [PaymentController::class, 'studentPayments'])->name('payments.index');
-        Route::get('/payments/{paymentId}/receipt', [PaymentController::class, 'showReceipt'])->name('payments.receipt');
-        Route::get('/payments/{paymentId}/receipt/download', [PaymentController::class, 'downloadReceipt'])->name('payments.receipt.download');
+        // ✅ FIXED: Payments routes with ALL missing routes
+        Route::prefix('payments')->name('payments.')->group(function () {
+            Route::get('/', [PaymentController::class, 'studentPayments'])->name('index');
+            Route::get('/{paymentId}/receipt', [PaymentController::class, 'showReceipt'])->name('receipt');
+            Route::get('/{paymentId}/receipt/download', [PaymentController::class, 'downloadReceipt'])->name('receipt.download');
+            Route::get('/{paymentId}/receipt/pdf', [PaymentController::class, 'downloadReceipt'])->name('receipt.pdf');
+            Route::get('/receipt/show/{userId}', [PaymentController::class, 'studentPayments'])->name('receipt.show');
+        });
 
         // Meal menus routes
         Route::get('/meal-menus', [StudentController::class, 'mealMenus'])->name('meal-menus');
         Route::get('/meal-menus/{mealMenu}', [StudentController::class, 'showMealMenu'])->name('meal-menus.show');
 
         // Room viewing
-        //Route::get('/rooms', [RoomController::class, 'studentIndex'])->name('rooms.index');
-        // Route::get('/rooms/{room}', [RoomController::class, 'studentShow'])->name('rooms.show');
         Route::get('/rooms/search', [RoomController::class, 'search'])->name('rooms.search');
 
         // Hostel routes
@@ -59,31 +61,28 @@ Route::middleware(['auth', 'role:student'])
             Route::get('/hostel/{hostelId}', [StudentReviewController::class, 'hostelReviews'])->name('hostel');
         });
 
-        // Bookings with permission check
+        // ✅ FIXED: Bookings routes with ALL variations
         Route::get('/bookings', [BookingController::class, 'index'])->name('bookings.index');
+        Route::get('/booking', [BookingController::class, 'index'])->name('booking.index');
         Route::get('/bookings/create', [BookingController::class, 'create'])->name('bookings.create');
         Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
         Route::get('/bookings/{id}', [BookingController::class, 'show'])->name('bookings.show');
         Route::post('/bookings/{id}/cancel', [BookingController::class, 'cancel'])->name('bookings.cancel');
 
-        // ✅ FIXED: Student Circular Routes with enhanced functionality
+        // ✅ FIXED: Student Circular Routes
         Route::prefix('circulars')->name('circulars.')->group(function () {
             Route::get('/', [StudentCircularController::class, 'index'])->name('index');
             Route::get('/{circular}', [StudentCircularController::class, 'show'])->name('show');
             Route::post('/{circular}/mark-read', [StudentCircularController::class, 'markAsRead'])->name('mark-read');
-
-            // ✅ ADDED: New student circular routes for better functionality
             Route::get('/{circular}/download', [StudentCircularController::class, 'download'])->name('download');
             Route::get('/unread/count', [StudentCircularController::class, 'unreadCount'])->name('unread.count');
             Route::post('/bulk-mark-read', [StudentCircularController::class, 'bulkMarkAsRead'])->name('bulk-mark-read');
-
-            // ✅ ADDED: Circular filtering and search routes
             Route::get('/filter/priority/{priority}', [StudentCircularController::class, 'filterByPriority'])->name('filter.priority');
             Route::get('/search', [StudentCircularController::class, 'search'])->name('search');
             Route::get('/category/{category}', [StudentCircularController::class, 'filterByCategory'])->name('filter.category');
         });
 
-        // ✅ PERMANENT FIX: Complete Student Document Management Routes
+        // ✅ FIXED: Student Document Management Routes
         Route::prefix('documents')->name('documents.')->group(function () {
             Route::get('/', [DocumentController::class, 'index'])->name('index');
             Route::get('/create', [DocumentController::class, 'create'])->name('create');
@@ -102,7 +101,13 @@ Route::middleware(['auth', 'role:student'])
         Route::get('/notifications', [StudentController::class, 'notifications'])->name('notifications');
         Route::post('/maintenance-request', [StudentController::class, 'submitMaintenance'])->name('maintenance.submit');
 
-        // ✅ ADDED: Real-time notification routes for circulars
+        // ✅ FIXED: Circular notifications
         Route::get('/circulars/notifications/latest', [StudentCircularController::class, 'getLatestCirculars'])->name('circulars.notifications.latest');
         Route::post('/circulars/notifications/mark-all-read', [StudentCircularController::class, 'markAllAsRead'])->name('circulars.notifications.mark-all-read');
+
+        // ✅ FIXED: Bank transfer request route
+        Route::get('/payment/bank-transfer-request', function () {
+            return redirect()->route('student.payments.index')
+                ->with('info', 'बैंक हस्तान्तरणको सुविधा चाँडै उपलब्ध हुनेछ।');
+        })->name('payment.bank-transfer-request');
     });

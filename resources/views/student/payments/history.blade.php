@@ -188,17 +188,19 @@
                                         <td>
                                             <div class="btn-group btn-group-sm">
                                                 <a href="{{ route('student.payments.receipt.pdf', $payment->id) }}" 
-                                                   class="btn btn-outline-primary" 
+                                                   class="btn btn-outline-primary tooltip-btn" 
                                                    title="रसिद डाउनलोड गर्नुहोस्"
-                                                   target="_blank">
+                                                   target="_blank"
+                                                   data-bs-toggle="tooltip">
                                                     <i class="fas fa-download"></i>
                                                 </a>
 
                                                 <button type="button" 
-                                                        class="btn btn-outline-info" 
+                                                        class="btn btn-outline-info tooltip-btn" 
                                                         title="विवरण हेर्नुहोस्"
                                                         data-bs-toggle="modal" 
-                                                        data-bs-target="#paymentModal{{ $payment->id }}">
+                                                        data-bs-target="#paymentModal{{ $payment->id }}"
+                                                        data-bs-toggle="tooltip">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
                                             </div>
@@ -331,7 +333,7 @@
                                 <a href="{{ route('student.dashboard') }}" class="btn btn-primary">
                                     <i class="fas fa-home me-2"></i> ड्यासबोर्डमा फर्कनुहोस्
                                 </a>
-                                <a href="{{ route('student.booking.index') ?? '#' }}" class="btn btn-outline-primary">
+                                <a href="{{ route('student.bookings.index') ?? '#' }}" class="btn btn-outline-primary">
                                     <i class="fas fa-bed me-2"></i> कोठा बुक गर्नुहोस्
                                 </a>
                             </div>
@@ -536,19 +538,26 @@
                 <div class="card-body">
                     <div class="d-grid gap-2">
                         @if($studentHostel && $hasPaymentMethods)
-                            <a href="{{ route('payment.bank-transfer-request') }}" 
-                               class="btn btn-outline-success">
+                            <a href="#" onclick="alert('यो सुविधा चाँडै उपलब्ध हुनेछ।')" 
+                               class="btn btn-outline-success tooltip-btn" 
+                               title="बैंक हस्तान्तरण गर्नुहोस्"
+                               data-bs-toggle="tooltip">
                                 <i class="fas fa-bank me-2"></i> बैंक हस्तान्तरण गर्नुहोस्
                             </a>
                         @endif
                         
-                        <a href="{{ route('student.payments.receipt.show', auth()->user()->id) }}" 
-                           class="btn btn-outline-info">
+                        <a href="{{ route('student.payments.index') }}" 
+                           class="btn btn-outline-info tooltip-btn" 
+                           title="सबै भुक्तानी हेर्नुहोस्"
+                           data-bs-toggle="tooltip">
                             <i class="fas fa-history me-2"></i> सबै भुक्तानी हेर्नुहोस्
                         </a>
                         
-                        <button type="button" class="btn btn-outline-warning" 
-                                data-bs-toggle="modal" data-bs-target="#paymentHelpModal">
+                        <button type="button" class="btn btn-outline-warning tooltip-btn" 
+                                title="मद्दत चाहिन्छ?"
+                                data-bs-toggle="modal" 
+                                data-bs-target="#paymentHelpModal"
+                                data-bs-toggle="tooltip">
                             <i class="fas fa-question-circle me-2"></i> मद्दत चाहिन्छ?
                         </button>
                     </div>
@@ -702,6 +711,73 @@
         padding: 0.25rem 0.5rem;
         font-size: 0.75rem;
     }
+    
+    /* Tooltip Customization - FIX for black text on black background */
+    .tooltip {
+        --bs-tooltip-bg: #fff;
+        --bs-tooltip-color: #000;
+    }
+    
+    .tooltip-inner {
+        background-color: #fff !important;
+        color: #000 !important;
+        border: 1px solid #ddd;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        font-size: 12px;
+        padding: 6px 10px;
+        max-width: 200px;
+    }
+    
+    .bs-tooltip-top .tooltip-arrow::before {
+        border-top-color: #fff !important;
+        border-bottom-color: transparent;
+    }
+    
+    .bs-tooltip-bottom .tooltip-arrow::before {
+        border-bottom-color: #fff !important;
+        border-top-color: transparent;
+    }
+    
+    .bs-tooltip-start .tooltip-arrow::before {
+        border-left-color: #fff !important;
+        border-right-color: transparent;
+    }
+    
+    .bs-tooltip-end .tooltip-arrow::before {
+        border-right-color: #fff !important;
+        border-left-color: transparent;
+    }
+    
+    /* Dark mode support */
+    @media (prefers-color-scheme: dark) {
+        .tooltip-inner {
+            background-color: #333 !important;
+            color: #fff !important;
+            border-color: #555;
+        }
+        
+        .bs-tooltip-top .tooltip-arrow::before {
+            border-top-color: #333 !important;
+        }
+        
+        .bs-tooltip-bottom .tooltip-arrow::before {
+            border-bottom-color: #333 !important;
+        }
+        
+        .bs-tooltip-start .tooltip-arrow::before {
+            border-left-color: #333 !important;
+        }
+        
+        .bs-tooltip-end .tooltip-arrow::before {
+            border-right-color: #333 !important;
+        }
+    }
+    
+    /* Tooltip button styling */
+    .tooltip-btn {
+        position: relative;
+        cursor: pointer;
+    }
 </style>
 @endpush
 
@@ -732,10 +808,24 @@ $(document).ready(function() {
         $(this).find('.modal-dialog').css('transform', 'scale(1)');
     });
 
-    // Tooltip initialization
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'));
+    // Tooltip initialization with custom options
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
+        return new bootstrap.Tooltip(tooltipTriggerEl, {
+            delay: {show: 100, hide: 100},
+            placement: 'top'
+        });
+    });
+    
+    // Initialize all title attributes as tooltips
+    $('[title]').each(function() {
+        if (!$(this).attr('data-bs-toggle')) {
+            $(this).attr('data-bs-toggle', 'tooltip');
+            new bootstrap.Tooltip(this, {
+                delay: {show: 100, hide: 100},
+                placement: 'top'
+            });
+        }
     });
 });
 </script>
