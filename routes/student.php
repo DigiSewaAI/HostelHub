@@ -14,7 +14,8 @@ use App\Http\Controllers\Admin\DocumentController;
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth', 'role:student'])
+Route::prefix('student')  // ✅ YO LINE THAPNUHOS
+    ->middleware(['auth', 'role:student'])
     ->name('student.')
     ->group(function () {
         // Student Dashboard

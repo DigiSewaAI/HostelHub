@@ -2332,22 +2332,6 @@
                     <span class="sidebar-text">मेरो बुकिङ</span>
                 </a>
                 
-                <!-- Gallery -->
-                <a href="{{ route('student.gallery') }}"
-                   class="sidebar-link {{ request()->routeIs('student.gallery') ? 'active' : '' }}"
-                   aria-current="{{ request()->routeIs('student.gallery') ? 'page' : 'false' }}">
-                    <i class="fas fa-images sidebar-icon"></i>
-                    <span class="sidebar-text">ग्यालरी</span>
-                </a>
-                
-                <!-- Events -->
-                <a href="{{ route('student.events') }}"
-                   class="sidebar-link {{ request()->routeIs('student.events') ? 'active' : '' }}"
-                   aria-current="{{ request()->routeIs('student.events') ? 'page' : 'false' }}">
-                    <i class="fas fa-calendar-alt sidebar-icon"></i>
-                    <span class="sidebar-text">घटनाहरू</span>
-                </a>
-                
                 <!-- Logout Section -->
                 <div class="mt-auto pt-4 border-t sidebar-border">
                     <form method="POST" action="{{ route('logout') }}" id="logout-form">

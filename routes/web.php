@@ -15,6 +15,10 @@ use App\Http\Controllers\Admin\RoomController as AdminRoomController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\Owner\OwnerRoomIssuesController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\StudentController;
+use App\Http\Controllers\Student\StudentReviewController;
+use App\Http\Controllers\Student\StudentCircularController;
+use App\Http\Controllers\DocumentController;
 
 // Force HTTPS in production
 if (app()->environment('production')) {
@@ -195,20 +199,9 @@ Route::prefix('owner')
         Route::get('/room-issues/stats', [\App\Http\Controllers\Owner\OwnerRoomIssuesController::class, 'getStats'])->name('owner.room-issues.stats');
     });
 
-// ✅ Student routes
-Route::prefix('student')
-    ->middleware(['auth', 'role:student'])
-    ->group(function () {
-        require __DIR__ . '/student.php';
-
-        // Student specific booking routes
-        Route::get('/bookings', [BookingController::class, 'index'])->name('student.bookings.index');
-        Route::get('/bookings/my', [BookingController::class, 'myBookings'])->name('student.bookings.my');
-        Route::get('/bookings/create', [BookingController::class, 'create'])->name('student.bookings.create');
-        Route::post('/bookings', [BookingController::class, 'store'])->name('student.bookings.store');
-        Route::get('/bookings/{id}', [BookingController::class, 'show'])->name('student.bookings.show');
-        Route::post('/bookings/{id}/cancel', [BookingController::class, 'cancel'])->name('student.bookings.cancel');
-    });
+// ✅ Student routes - सरल र सही version
+// केवल student.php file include गर्ने
+require __DIR__ . '/student.php';
 
 /*|--------------------------------------------------------------------------
 | Development Routes (Conditionally Loaded)

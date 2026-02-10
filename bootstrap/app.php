@@ -7,18 +7,24 @@ use Illuminate\Support\Facades\Route;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        web: __DIR__.'/../routes/web.php',
-        commands: __DIR__.'/../routes/console.php',
+        web: __DIR__ . '/../routes/web.php',
+        commands: __DIR__ . '/../routes/console.php',
         health: '/up',
         then: function () {
             // Admin Routes अलगै फाइलबाट लोड गर्ने
             Route::middleware('web')
-                 ->prefix('admin')
-                 ->group(base_path('routes/admin.php'));
+                ->prefix('admin')
+                ->group(base_path('routes/admin.php'));
         }
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // आवश्यक भएमा Middleware थप्न सक्नुहुन्छ
+        // Middleware aliases थप्ने
+        $middleware->alias([
+            'check.booking' => \App\Http\Middleware\CheckBooking::class,
+            'check.student.booking' => \App\Http\Middleware\CheckStudentBooking::class,
+        ]);
+
+        // आवश्यक भएमा थप Middleware configuration थप्न सक्नुहुन्छ
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

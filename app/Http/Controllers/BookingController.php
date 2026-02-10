@@ -37,6 +37,21 @@ class BookingController extends Controller
      */
     public function store(Request $request)
     {
+        $user = Auth::user();
+
+        // Check if student is already active in a hostel
+        if ($user && $user->hasRole('student')) {
+            $student = Student::where('user_id', $user->id)->first();
+
+            if ($student && $student->hostel_id && in_array($student->status, ['active', 'approved'])) {
+                return back()->withInput()->with(
+                    'error',
+                    'तपाईं हाल अर्को होस्टलमा सक्रिय हुनुहुन्छ। नयाँ बुकिङ गर्न पहिले हालको होस्टलबाट inactive हुनुपर्छ।'
+                );
+            }
+        }
+
+
         // ✅ FIXED: Better guest detection
         $isGuest = !Auth::check();
 

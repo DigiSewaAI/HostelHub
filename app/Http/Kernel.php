@@ -110,6 +110,9 @@ class Kernel extends HttpKernel
         // Localization & Security
         'localize' => \App\Http\Middleware\Localize::class,
         'security.headers' => \App\Http\Middleware\SecurityHeaders::class,
+
+        // ✅ NEW: Student Booking Validation Middleware
+        'check.booking' => \App\Http\Middleware\CheckStudentBooking::class,
     ];
 
     /**
@@ -164,6 +167,9 @@ class Kernel extends HttpKernel
         // Localization & Security
         'localize' => \App\Http\Middleware\Localize::class,
         'security.headers' => \App\Http\Middleware\SecurityHeaders::class,
+
+        // ✅ NEW: Student Booking Validation Middleware
+        'check.booking' => \App\Http\Middleware\CheckStudentBooking::class,
     ];
 
     /**

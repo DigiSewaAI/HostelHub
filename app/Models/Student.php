@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class Student extends Model
 {
@@ -360,6 +361,89 @@ class Student extends Model
     }
 
     /**
+     * Check if student can be transferred to another hostel
+     */
+    public function canTransferTo($hostelId): bool
+    {
+        // Can't transfer if already in the same hostel
+        if ($this->hostel_id == $hostelId) {
+            return false;
+        }
+
+        // Can't transfer if active in another hostel
+        if (in_array($this->status, ['active', 'approved'])) {
+            return false;
+        }
+
+        // Can transfer if inactive or pending
+        return in_array($this->status, ['inactive', 'pending']);
+    }
+
+    /**
+     * Transfer student to another hostel
+     */
+    public function transferToHostel($newHostelId, $newRoomId = null, $newStatus = 'active')
+    {
+        if (!$this->canTransferTo($newHostelId)) {
+            return false;
+        }
+
+        $oldHostelId = $this->hostel_id;
+        $oldRoomId = $this->room_id;
+
+        // Free old room if assigned
+        if ($oldRoomId) {
+            $oldRoom = Room::find($oldRoomId);
+            if ($oldRoom) {
+                // Check if no other active students in the room
+                $otherActiveStudents = Student::where('room_id', $oldRoomId)
+                    ->where('id', '!=', $this->id)
+                    ->whereIn('status', ['active', 'approved'])
+                    ->count();
+
+                if ($otherActiveStudents == 0) {
+                    $oldRoom->update(['status' => 'available']);
+                }
+            }
+        }
+
+        // Update student to new hostel
+        $this->update([
+            'hostel_id' => $newHostelId,
+            'room_id' => $newRoomId,
+            'status' => $newStatus
+        ]);
+
+        // Occupy new room if assigned
+        if ($newRoomId) {
+            $newRoom = Room::find($newRoomId);
+            if ($newRoom && $newRoom->status == 'available') {
+                $newRoom->update(['status' => 'occupied']);
+            }
+        }
+
+        Log::info('Student transferred', [
+            'student_id' => $this->id,
+            'from_hostel' => $oldHostelId,
+            'to_hostel' => $newHostelId,
+            'from_room' => $oldRoomId,
+            'to_room' => $newRoomId
+        ]);
+
+        return true;
+    }
+
+
+    /**
+     * Check if student is active in hostel
+     */
+    public function isActiveInHostel(): bool
+    {
+        return $this->hostel_id && in_array($this->status, ['active', 'approved']);
+    }
+
+
+    /**
      * New method: Check if payment is completed
      */
     public function hasPaid(): bool
@@ -372,7 +456,10 @@ class Student extends Model
      */
     public function getAgeAttribute(): ?int
     {
-        return $this->dob ? $this->dob->age : null;
+        if (!$this->dob) {
+            return null;
+        }
+        return $this->dob->age ?? now()->diffInYears($this->dob);
     }
 
     /**
@@ -380,10 +467,25 @@ class Student extends Model
      */
     public function canBeModifiedBy($user): bool
     {
-        return $this->hostel->canBeModifiedBy($user) ||
-            $this->organization->canBeModifiedBy($user) ||
-            ($this->user_id && $this->user_id === $user->id);
+        // Check if hostel exists and user can modify it
+        if ($this->hostel && method_exists($this->hostel, 'canBeModifiedBy')) {
+            if ($this->hostel->canBeModifiedBy($user)) {
+                return true;
+            }
+        }
+
+        // Check if organization exists and user can modify it
+        if ($this->organization && method_exists($this->organization, 'canBeModifiedBy')) {
+            if ($this->organization->canBeModifiedBy($user)) {
+                return true;
+            }
+        }
+
+        // Check if user owns this student record
+        return $this->user_id && $this->user_id === $user->id;
     }
+
+
 
     /**
      * Get student statistics
