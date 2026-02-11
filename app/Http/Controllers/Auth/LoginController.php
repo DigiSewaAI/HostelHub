@@ -59,16 +59,20 @@ class LoginController extends Controller
     protected function authenticated(Request $request, $user)
     {
         try {
-            // Set organization session first
+            // Set organization session
             $this->setOrganizationSession($user);
 
-            // ✅ FIXED: Use redirect()->intended() for proper redirect handling
-            if ($user->hasRole('admin')) {
-                return redirect()->intended(route('admin.dashboard'));
-            } elseif ($user->hasRole('hostel_manager') || $user->hasRole('owner')) {
+            // ✅ FIX: विद्यार्थी भएमा सिधै student.dashboard मा जाने
+            if ($user->hasRole('student')) {
+                return redirect()->route('student.dashboard');
+            }
+            // Owner/Manager भएमा
+            elseif ($user->hasRole('hostel_manager') || $user->hasRole('owner')) {
                 return redirect()->intended(route('owner.dashboard'));
-            } elseif ($user->hasRole('student')) {
-                return redirect()->intended(route('student.dashboard'));
+            }
+            // Admin भएमा
+            elseif ($user->hasRole('admin')) {
+                return redirect()->intended(route('admin.dashboard'));
             }
 
             return redirect()->intended('/');
@@ -77,6 +81,7 @@ class LoginController extends Controller
             return redirect('/');
         }
     }
+
 
     protected function redirectPath()
     {

@@ -27,35 +27,72 @@ class WelcomeController extends Controller
                 return view('welcome')->with('info', 'कृपया लगइन गर्नुहोस् वा खाता दर्ता गर्नुहोस्।');
             }
 
-            // ✅ Get ALL bookings for this user's email (both guest and student)
-            $bookings = Booking::where('guest_email', $user->email)
-                ->orWhere('user_id', $user->id)
-                ->with(['hostel', 'room', 'approvedBy'])
-                ->orderBy('created_at', 'desc')
-                ->get();
-
-            // ✅ Check if user has student profile
+            // ✅ विद्यार्थी भएमा
             $isStudent = $user->hasRole('student');
             $studentProfile = $user->student;
+            $bookings = collect();
+            $pendingCount = 0;
 
-            // ✅ Count pending bookings for notifications
-            $pendingCount = $bookings->where('status', 'pending')->count();
+            // ✅ विद्यार्थी हो भने
+            if ($isStudent) {
+                if ($studentProfile) {
+                    // होस्टेल छ भने
+                    if ($studentProfile->hostel_id) {
+                        $hostel = Hostel::find($studentProfile->hostel_id);
+                        $hostelName = $hostel ? $hostel->name : null;
+                    } else {
+                        $hostelName = null;
+                    }
+
+                    // विद्यार्थीका बुकिंगहरू
+                    $bookings = Booking::where('student_id', $studentProfile->id)
+                        ->orWhere('guest_email', $user->email)
+                        ->with(['hostel', 'room'])
+                        ->orderBy('created_at', 'desc')
+                        ->get();
+
+                    $pendingCount = $bookings->where('status', 'pending')->count();
+                }
+            }
+            // विद्यार्थी होइन भने
+            else {
+                // गेस्ट बुकिंगहरू
+                $bookings = Booking::where('guest_email', $user->email)
+                    ->orWhere('user_id', $user->id)
+                    ->with(['hostel', 'room'])
+                    ->orderBy('created_at', 'desc')
+                    ->get();
+
+                $pendingCount = $bookings->where('status', 'pending')->count();
+            }
 
             Log::info('Welcome page accessed', [
                 'user_id' => $user->id,
                 'email' => $user->email,
-                'total_bookings' => $bookings->count(),
-                'pending_count' => $pendingCount,
-                'is_student' => $isStudent
+                'is_student' => $isStudent,
+                'pending_count' => $pendingCount
             ]);
 
-            return view('welcome', compact('user', 'bookings', 'isStudent', 'studentProfile', 'pendingCount'));
+            return view('student.welcome', compact(
+                'user',
+                'bookings',
+                'isStudent',
+                'studentProfile',
+                'pendingCount'
+            ));
         } catch (\Exception $e) {
             Log::error('Welcome page error: ' . $e->getMessage());
-            return redirect()->route('home')
-                ->with('error', 'वेलकम पेज लोड गर्दा त्रुटि भयो।');
+
+            // Emergency fallback
+            return view('student.welcome', [
+                'isStudent' => false,
+                'bookings' => collect(),
+                'pendingCount' => 0,
+                'studentProfile' => null
+            ])->with('error', 'वेलकम पेज लोड गर्दा त्रुटि भयो।');
         }
     }
+
 
     /**
      * ✅ UPDATED: Convert guest booking to student booking with auto student creation

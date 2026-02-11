@@ -10,137 +10,147 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log; // ✅ ADD THIS
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
 
 class RegisteredUserController extends Controller
 {
-    /**
-     * Display the registration view.
-     */
     public function create(): View
     {
         try {
             return view('auth.register_user');
         } catch (\Exception $e) {
             Log::error('Student registration form error: ' . $e->getMessage());
-            // Emergency fallback - return simple form
             return view('auth.register_user', ['error' => 'Temporary issue loading form']);
         }
     }
 
-    /**
-     * Handle an incoming registration request.
-     *
-     * @throws \Illuminate\Validation\ValidationException
-     */
     public function store(Request $request): RedirectResponse
     {
         try {
-            // Set central database connection (Railway fix)
             config(['database.default' => 'mysql']);
 
             $request->validate([
                 'name' => ['required', 'string', 'max:255'],
-                'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
+                'email' => ['required', 'string', 'lowercase', 'email', 'max:255'],
                 'password' => ['required', 'confirmed', Rules\Password::defaults()],
             ]);
 
-            // Check if user already exists (created by owner without password)
             $existingUser = User::where('email', $request->email)->first();
-
-            // ✅ Check if student record exists for this email (created by hostel manager)
             $existingStudent = Student::where('email', $request->email)->first();
 
+            \Log::info('Registration attempt', [
+                'email' => $request->email,
+                'existing_user' => $existingUser ? 'yes' : 'no',
+                'user_password' => $existingUser ? ($existingUser->password ? 'has_password' : 'NULL/empty') : 'no_user'
+            ]);
+
+            // 🚨 **FIXED: Check if user exists AND has password**
             if ($existingUser) {
-                // Update existing user with password and ensure student role
+                // Check if password exists and is not empty
+                if ($existingUser->password && trim($existingUser->password) !== '') {
+                    \Log::warning('User already registered with password', [
+                        'email' => $request->email,
+                        'user_id' => $existingUser->id
+                    ]);
+
+                    return back()->withErrors([
+                        'email' => 'This email is already registered. Please login instead.'
+                    ]);
+                }
+
+                // 🎯 **User exists but password is NULL/empty (owner-created)**
+                \Log::info('Updating owner-created user with password', [
+                    'email' => $request->email,
+                    'user_id' => $existingUser->id
+                ]);
+
                 $existingUser->update([
                     'name' => $request->name,
                     'password' => Hash::make($request->password),
-                    'role_id' => 3, // Student role
-                    'email_verified_at' => now(), // ✅ Auto verify email (Temporary fix)
+                    'email_verified_at' => now(),
+                    'role_id' => 3,
                 ]);
 
-                $user = $existingUser;
+                // Assign student role
+                if (!$existingUser->hasRole('student')) {
+                    $existingUser->assignRole('student');
+                }
 
-                // ✅ Link to existing student record if found
+                // Link to student record
                 if ($existingStudent) {
-                    $user->student_id = $existingStudent->id;
-                    $user->hostel_id = $existingStudent->hostel_id;
-                    $user->save();
+                    $existingUser->student_id = $existingStudent->id;
+                    $existingUser->hostel_id = $existingStudent->hostel_id;
+                    $existingUser->save();
 
-                    // Also update student record with user_id
-                    $existingStudent->user_id = $user->id;
+                    $existingStudent->user_id = $existingUser->id;
                     $existingStudent->save();
+
+                    \Log::info('Linked user to student record', [
+                        'user_id' => $existingUser->id,
+                        'student_id' => $existingStudent->id
+                    ]);
                 }
 
-                // Ensure student role is assigned
-                if (!$user->hasRole('student')) {
-                    $user->assignRole('student');
-                }
+                Auth::login($existingUser);
+
+                \Log::info('Student registration completed (owner-created)', [
+                    'user_id' => $existingUser->id,
+                    'email' => $existingUser->email
+                ]);
+
+                return redirect()->route('student.dashboard')
+                    ->with('success', 'Registration completed successfully! Welcome to HostelHub.');
             } else {
-                // Create new student user with auto-verified email
+                // 🎯 **New registration**
+                \Log::info('New user registration', ['email' => $request->email]);
+
+                $request->validate([
+                    'email' => ['unique:' . User::class],
+                ]);
+
                 $user = User::create([
                     'name' => $request->name,
                     'email' => $request->email,
                     'password' => Hash::make($request->password),
-                    'organization_id' => null, // Students don't have organization initially
-                    'role_id' => 3, // Student role
-                    'email_verified_at' => now(), // ✅ Auto verify email (Temporary fix)
+                    'organization_id' => null,
+                    'role_id' => 3,
+                    'email_verified_at' => now(),
                 ]);
 
-                // ✅ Link to existing student record if found
+                $user->assignRole('student');
+
+                // Link to existing student if any
                 if ($existingStudent) {
                     $user->student_id = $existingStudent->id;
                     $user->hostel_id = $existingStudent->hostel_id;
                     $user->save();
 
-                    // Also update student record with user_id
                     $existingStudent->user_id = $user->id;
                     $existingStudent->save();
+
+                    \Log::info('Linked new user to student record', [
+                        'user_id' => $user->id,
+                        'student_id' => $existingStudent->id
+                    ]);
                 }
 
-                // Assign student role using Spatie Permission
-                $user->assignRole('student');
-            }
+                Auth::login($user);
 
-            // ✅ COMMENTED OUT: Temporarily disable Registered event to avoid email verification issues
-            // event(new Registered($user));
+                \Log::info('New student registered successfully', [
+                    'user_id' => $user->id,
+                    'email' => $user->email
+                ]);
 
-            Auth::login($user);
-
-            Log::info('User registered successfully', [
-                'user_id' => $user->id,
-                'email' => $user->email,
-                'hostel_id' => $user->hostel_id,
-                'is_student' => $user->isStudent()
-            ]);
-
-            // ✅ FIXED: Simplified redirect logic - check only hostel_id for students
-            if ($user->isStudent() && $user->hostel_id) {
-                // Student is connected to a hostel - redirect to dashboard
                 return redirect()->route('student.dashboard')
                     ->with('success', 'Registration successful! Welcome to HostelHub.');
-            } else {
-                // New student without hostel - redirect to setup/welcome page
-                return redirect()->route('student.welcome')
-                    ->with('success', 'Registration successful! Please complete your profile.');
             }
         } catch (\Exception $e) {
-            Log::error('Student registration error: ' . $e->getMessage());
-            Log::error('Registration error trace: ' . $e->getTraceAsString());
-
-            // Check if it's a database connection error
-            if (str_contains($e->getMessage(), 'SQLSTATE')) {
-                return back()->withInput()
-                    ->withErrors([
-                        'error' => 'Database connection issue. Please try again or contact support.'
-                    ]);
-            }
+            \Log::error('Student registration error: ' . $e->getMessage());
 
             return back()->withInput()
-                ->withErrors(['error' => 'Registration failed. Please try again.']);
+                ->withErrors(['error' => 'Registration failed: ' . $e->getMessage()]);
         }
     }
 }

@@ -186,17 +186,18 @@
                 <h3 class="text-2xl font-bold text-gray-900 mb-2">खातामा स्वागत छ</h3>
                 
                 <p class="text-gray-600 max-w-2xl mx-auto">
-                    @if($isStudent && $studentProfile && $studentProfile->hostel_id)
-                        तपाईं {{ $hostelName }} सँग जडान हुनुभएको छ। 
-                        तलका विकल्पहरूबाट आफ्नो होस्टल अनुभव सुरु गर्नुहोस्:
-                    @elseif(isset($bookings) && $bookings->count() > 0)
-                        तपाईंसँग {{ $bookings->count() }} वटा बुकिंग छन्। 
-                        तपाईंका बुकिंगहरू माथि देखाइएका छन्।
-                    @else
-                        तपाईंको खातामा स्वागत छ। 
-                        होस्टलमा बुकिंग गर्नका लागि तलका विकल्पहरू छन्:
-                    @endif
-                </p>
+    @if(isset($isStudent) && $isStudent && isset($studentProfile) && $studentProfile && $studentProfile->hostel_id && isset($hostelName))
+        तपाईं {{ $hostelName }} सँग जडान हुनुभएको छ। 
+        तलका विकल्पहरूबाट आफ्नो होस्टल अनुभव सुरु गर्नुहोस्:
+    @elseif(isset($bookings) && $bookings->count() > 0)
+        तपाईंसँग {{ $bookings->count() }} वटा बुकिंग छन्। 
+        तपाईंका बुकिंगहरू माथि देखाइएका छन्।
+    @else
+        तपाईंको खातामा स्वागत छ। 
+        होस्टलमा बुकिंग गर्नका लागि तलका विकल्पहरू छन्:
+    @endif
+</p>
+
             </div>
 
             <!-- Action Buttons Grid -->

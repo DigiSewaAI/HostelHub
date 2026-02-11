@@ -8,6 +8,8 @@ use App\Http\Controllers\Student\StudentReviewController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\Student\CircularController as StudentCircularController;
 use App\Http\Controllers\Admin\DocumentController;
+use App\Http\Controllers\WelcomeController;
+
 
 /*|--------------------------------------------------------------------------
 | Student Routes - ONLY for student role
@@ -105,6 +107,9 @@ Route::prefix('student')  // ✅ YO LINE THAPNUHOS
         // ✅ FIXED: Circular notifications
         Route::get('/circulars/notifications/latest', [StudentCircularController::class, 'getLatestCirculars'])->name('circulars.notifications.latest');
         Route::post('/circulars/notifications/mark-all-read', [StudentCircularController::class, 'markAllAsRead'])->name('circulars.notifications.mark-all-read');
+
+        // student.php file मा यो route थप्नुहोस्:
+        Route::get('/welcome', [WelcomeController::class, 'showWelcome'])->name('welcome');
 
         // ✅ FIXED: Bank transfer request route
         Route::get('/payment/bank-transfer-request', function () {

@@ -20,7 +20,6 @@ use App\Exports\PaymentsExport;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Services\PdfImageService;
 
-
 class PaymentController extends Controller
 {
     /**
@@ -32,13 +31,16 @@ class PaymentController extends Controller
 
         if ($user->hasRole('admin')) {
             return Payment::with(['student', 'hostel', 'room'])->latest();
-        } elseif ($user->hasRole('hostel_manager')) {
-            $hostelIds = Hostel::where('owner_id', $user->id)
-                ->orWhere('manager_id', $user->id)
-                ->pluck('id')
-                ->toArray();
+        } elseif ($user->hasRole('owner') || $user->hasRole('hostel_manager')) {
+            // ✅ FIXED: Include both owner and hostel_manager roles
+            $userHostelId = $user->hostel_id;
 
-            return Payment::whereIn('hostel_id', $hostelIds)
+            if (!$userHostelId) {
+                Log::warning('Owner/Hostel manager has no hostel_id set', ['user_id' => $user->id]);
+                return Payment::where('id', 0); // Return empty query
+            }
+
+            return Payment::where('hostel_id', $userHostelId)
                 ->with(['student', 'hostel', 'room'])
                 ->latest();
         } elseif ($user->hasRole('student')) {
@@ -59,13 +61,9 @@ class PaymentController extends Controller
 
         if ($user->hasRole('admin')) {
             return true;
-        } elseif ($user->hasRole('hostel_manager')) {
-            $hostelIds = Hostel::where('owner_id', $user->id)
-                ->orWhere('manager_id', $user->id)
-                ->pluck('id')
-                ->toArray();
-
-            return in_array($payment->hostel_id, $hostelIds);
+        } elseif ($user->hasRole('owner') || $user->hasRole('hostel_manager')) {
+            // ✅ FIXED: Use user's hostel_id for permission check
+            return $payment->hostel_id === $user->hostel_id;
         } elseif ($user->hasRole('student') && $payment->student_id == $user->id) {
             return true;
         }
@@ -80,21 +78,21 @@ class PaymentController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user->hasRole('hostel_manager')) {
+        // ✅ FIXED: Include owner role
+        if (!$user->hasRole('owner') && !$user->hasRole('hostel_manager')) {
             abort(403, 'तपाईंसँग यो रिपोर्ट हेर्ने अनुमति छैन');
         }
 
-        // Get current user's hostel IDs
-        $hostelIds = Hostel::where('owner_id', $user->id)
-            ->orWhere('manager_id', $user->id)
-            ->pluck('id')
-            ->toArray();
+        $userHostelId = $user->hostel_id;
 
-        // Get payments for owner's hostels with date filter
-        $paymentsQuery = Payment::whereIn('hostel_id', $hostelIds)
+        if (!$userHostelId) {
+            return redirect()->route('owner.dashboard')
+                ->with('error', 'Your hostel is not set. Please contact administrator.');
+        }
+
+        $paymentsQuery = Payment::where('hostel_id', $userHostelId)
             ->with(['student', 'hostel']);
 
-        // Apply date filter if provided
         if ($request->has('start_date') && $request->has('end_date')) {
             $paymentsQuery->whereBetween('payment_date', [
                 $request->start_date,
@@ -104,47 +102,89 @@ class PaymentController extends Controller
 
         $payments = $paymentsQuery->latest()->paginate(10);
 
-        // Statistics for owner's hostels
-        $totalRevenue = Payment::whereIn('hostel_id', $hostelIds)
+        $totalRevenue = Payment::where('hostel_id', $userHostelId)
             ->where('status', 'completed')
             ->sum('amount');
 
-        $pendingTransfers = Payment::whereIn('hostel_id', $hostelIds)
+        $pendingTransfers = Payment::where('hostel_id', $userHostelId)
             ->where('payment_method', 'bank_transfer')
             ->where('status', 'pending')
             ->count();
 
-        $currentMonthRevenue = Payment::whereIn('hostel_id', $hostelIds)
+        $currentMonthRevenue = Payment::where('hostel_id', $userHostelId)
             ->where('status', 'completed')
             ->whereYear('payment_date', now()->year)
             ->whereMonth('payment_date', now()->month)
             ->sum('amount');
 
-        $totalPaymentsCount = Payment::whereIn('hostel_id', $hostelIds)->count();
-        $averagePayment = $totalPaymentsCount > 0 ? $totalRevenue / $totalPaymentsCount : 0;
-
-        // Completed payments count
-        $completedPayments = Payment::whereIn('hostel_id', $hostelIds)
-            ->where('status', 'completed')
-            ->count();
-
-        // Payment methods breakdown
-        $paymentMethods = Payment::whereIn('hostel_id', $hostelIds)
-            ->select('payment_method', DB::raw('count(*) as count'))
-            ->groupBy('payment_method')
-            ->pluck('count', 'payment_method')
-            ->toArray();
+        $hostel = Hostel::find($userHostelId);
 
         return view('owner.payments.report', compact(
             'payments',
             'totalRevenue',
             'pendingTransfers',
             'currentMonthRevenue',
-            'averagePayment',
-            'paymentMethods',
-            'completedPayments',
-            'totalPaymentsCount'
+            'hostel'
         ));
+    }
+
+    /**
+     * Get payments for current user's hostel ONLY
+     */
+    private function getPaymentsForCurrentHostel($query = null)
+    {
+        $user = Auth::user();
+
+        if ($user->hasRole('admin')) {
+            return $query ?: Payment::query();
+        }
+
+        if ($user->hasRole('owner') || $user->hasRole('hostel_manager')) {
+            // ✅ FIXED: Use correct hostel_id for owner/hostel_manager
+            $userHostelId = $user->hostel_id;
+
+            if (!$userHostelId) {
+                Log::warning('Owner/Hostel manager has no hostel_id set', ['user_id' => $user->id]);
+                return Payment::where('id', 0);
+            }
+
+            return ($query ?: Payment::query())->where('hostel_id', $userHostelId);
+        }
+
+        if ($user->hasRole('student')) {
+            $student = Student::where('user_id', $user->id)->first();
+            if ($student && $student->hostel_id) {
+                return ($query ?: Payment::query())->where('hostel_id', $student->hostel_id);
+            }
+        }
+
+        return Payment::where('id', 0);
+    }
+
+    /**
+     * ✅ ADDED: Get hostel logo as base64 for PDF
+     */
+    private function getHostelLogoBase64($hostelId)
+    {
+        try {
+            $hostel = Hostel::find($hostelId);
+            if (!$hostel || !$hostel->logo_path) {
+                return null;
+            }
+
+            $logoPath = storage_path('app/public/' . $hostel->logo_path);
+            if (!file_exists($logoPath)) {
+                return null;
+            }
+
+            $imageData = file_get_contents($logoPath);
+            $mimeType = mime_content_type($logoPath);
+
+            return 'data:' . $mimeType . ';base64,' . base64_encode($imageData);
+        } catch (\Exception $e) {
+            Log::error('Failed to get hostel logo: ' . $e->getMessage());
+            return null;
+        }
     }
 
     /**
@@ -154,7 +194,8 @@ class PaymentController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user->hasRole('hostel_manager')) {
+        // ✅ FIXED: Include owner role
+        if (!$user->hasRole('owner') && !$user->hasRole('hostel_manager')) {
             abort(403, 'तपाईंसँग म्यानुअल भुक्तानी थप्ने अनुमति छैन');
         }
 
@@ -164,17 +205,17 @@ class PaymentController extends Controller
             'paid_at' => 'required|date',
         ]);
 
-        // Get current user's hostel IDs
-        $hostelIds = Hostel::where('owner_id', $user->id)
-            ->orWhere('manager_id', $user->id)
-            ->pluck('id')
-            ->toArray();
+        // Get current user's hostel ID
+        $userHostelId = $user->hostel_id;
 
-        // Verify the student belongs to owner's hostels
+        if (!$userHostelId) {
+            return back()->with('error', 'कृपया पहिले आफ्नो होस्टेल सेटअप गर्नुहोस्।');
+        }
+
+        // Verify the student belongs to owner's hostel
         $student = Student::where('id', $request->student_id)
-            ->whereHas('room', function ($query) use ($hostelIds) {
-                $query->whereIn('hostel_id', $hostelIds);
-            })->first();
+            ->where('hostel_id', $userHostelId)
+            ->first();
 
         if (!$student) {
             return back()->with('error', 'तपाईंसँग यो विद्यार्थीको लागि भुक्तानी थप्ने अनुमति छैन');
@@ -183,12 +224,9 @@ class PaymentController extends Controller
         try {
             DB::beginTransaction();
 
-            // Get hostel_id from student's room
-            $hostel_id = $student->room->hostel_id;
-
             Payment::create([
                 'student_id' => $request->student_id,
-                'hostel_id' => $hostel_id,
+                'hostel_id' => $userHostelId,
                 'amount' => $request->amount,
                 'payment_method' => 'cash',
                 'payment_date' => $request->paid_at,
@@ -216,12 +254,16 @@ class PaymentController extends Controller
      */
     public function index()
     {
-        $payments = $this->getDataByRole()->paginate(10);
+        $payments = $this->getPaymentsForCurrentHostel()
+            ->with(['student', 'hostel', 'room'])
+            ->latest()
+            ->paginate(10);
 
         // Return appropriate view based on role
         if (Auth::user()->hasRole('admin')) {
             return view('admin.payments.index', compact('payments'));
-        } elseif (Auth::user()->hasRole('hostel_manager')) {
+        } elseif (Auth::user()->hasRole('owner') || Auth::user()->hasRole('hostel_manager')) {
+            // ✅ FIXED: Include owner role
             return view('owner.payments.index', compact('payments'));
         } elseif (Auth::user()->hasRole('student')) {
             return view('student.payments.index', compact('payments'));
@@ -234,7 +276,8 @@ class PaymentController extends Controller
     public function create()
     {
         // Only admin and owner can create payments
-        if (!Auth::user()->hasAnyRole(['admin', 'hostel_manager'])) {
+        // ✅ FIXED: Include owner role
+        if (!Auth::user()->hasAnyRole(['admin', 'owner', 'hostel_manager'])) {
             abort(403, 'तपाईंसँग भुक्तानी थप्ने अनुमति छैन');
         }
 
@@ -244,15 +287,18 @@ class PaymentController extends Controller
             $students = Student::where('status', 'active')->get();
             $hostels = Hostel::all();
             return view('admin.payments.create', compact('students', 'hostels'));
-        } elseif ($user->hasRole('hostel_manager')) {
-            $hostelIds = Hostel::where('owner_id', $user->id)
-                ->orWhere('manager_id', $user->id)
-                ->pluck('id')
-                ->toArray();
+        } elseif ($user->hasRole('owner') || $user->hasRole('hostel_manager')) {
+            // ✅ FIXED: Use user's hostel_id
+            $userHostelId = $user->hostel_id;
 
-            $students = Student::whereHas('room', function ($query) use ($hostelIds) {
-                $query->whereIn('hostel_id', $hostelIds);
-            })->where('status', 'active')->get();
+            if (!$userHostelId) {
+                return redirect()->route('owner.dashboard')
+                    ->with('error', 'कृपया पहिले आफ्नो होस्टेल सेटअप गर्नुहोस्।');
+            }
+
+            $students = Student::where('hostel_id', $userHostelId)
+                ->where('status', 'active')
+                ->get();
 
             return view('owner.payments.create', compact('students'));
         }
@@ -264,7 +310,8 @@ class PaymentController extends Controller
     public function store(Request $request)
     {
         // Only admin and owner can create payments
-        if (!Auth::user()->hasAnyRole(['admin', 'hostel_manager'])) {
+        // ✅ FIXED: Include owner role
+        if (!Auth::user()->hasAnyRole(['admin', 'owner', 'hostel_manager'])) {
             abort(403, 'तपाईंसँग भुक्तानी थप्ने अनुमति छैन');
         }
 
@@ -285,17 +332,17 @@ class PaymentController extends Controller
 
         $request->validate($validationRules);
 
-        // For owners, ensure student belongs to their hostels
-        if ($user->hasRole('hostel_manager')) {
-            $hostelIds = Hostel::where('owner_id', $user->id)
-                ->orWhere('manager_id', $user->id)
-                ->pluck('id')
-                ->toArray();
+        // For owners, ensure student belongs to their hostel
+        if ($user->hasRole('owner') || $user->hasRole('hostel_manager')) {
+            $userHostelId = $user->hostel_id;
+
+            if (!$userHostelId) {
+                return back()->with('error', 'कृपया पहिले आफ्नो होस्टेल सेटअप गर्नुहोस्।');
+            }
 
             $student = Student::where('id', $request->student_id)
-                ->whereHas('room', function ($query) use ($hostelIds) {
-                    $query->whereIn('hostel_id', $hostelIds);
-                })->first();
+                ->where('hostel_id', $userHostelId)
+                ->first();
 
             if (!$student) {
                 return back()
@@ -329,9 +376,9 @@ class PaymentController extends Controller
             // Set hostel_id based on role
             if ($user->hasRole('admin')) {
                 $paymentData['hostel_id'] = $request->hostel_id;
-            } elseif ($user->hasRole('hostel_manager')) {
-                if ($student && $student->room) {
-                    $paymentData['hostel_id'] = $student->room->hostel_id;
+            } elseif ($user->hasRole('owner') || $user->hasRole('hostel_manager')) {
+                if ($student && $student->hostel_id) {
+                    $paymentData['hostel_id'] = $student->hostel_id;
                 } else {
                     $paymentData['hostel_id'] = $user->hostel_id ?? null;
                 }
@@ -388,7 +435,8 @@ class PaymentController extends Controller
         // Return appropriate view based on role
         if (Auth::user()->hasRole('admin')) {
             return view('admin.payments.show', compact('payment'));
-        } elseif (Auth::user()->hasRole('hostel_manager')) {
+        } elseif (Auth::user()->hasRole('owner') || Auth::user()->hasRole('hostel_manager')) {
+            // ✅ FIXED: Include owner role
             return view('owner.payments.show', compact('payment'));
         } elseif (Auth::user()->hasRole('student')) {
             return view('student.payments.show', compact('payment'));
@@ -420,7 +468,8 @@ class PaymentController extends Controller
         // Return appropriate view based on role
         if (Auth::user()->hasRole('admin')) {
             return view('admin.payments.index', compact('payments'));
-        } elseif (Auth::user()->hasRole('hostel_manager')) {
+        } elseif (Auth::user()->hasRole('owner') || Auth::user()->hasRole('hostel_manager')) {
+            // ✅ FIXED: Include owner role
             return view('owner.payments.index', compact('payments'));
         } elseif (Auth::user()->hasRole('student')) {
             return view('student.payments.index', compact('payments'));
@@ -445,15 +494,18 @@ class PaymentController extends Controller
             $students = Student::where('status', 'active')->get();
             $hostels = Hostel::all();
             return view('admin.payments.edit', compact('payment', 'students', 'hostels'));
-        } elseif ($user->hasRole('hostel_manager')) {
-            $hostelIds = Hostel::where('owner_id', $user->id)
-                ->orWhere('manager_id', $user->id)
-                ->pluck('id')
-                ->toArray();
+        } elseif ($user->hasRole('owner') || $user->hasRole('hostel_manager')) {
+            // ✅ FIXED: Use user's hostel_id
+            $userHostelId = $user->hostel_id;
 
-            $students = Student::whereHas('room', function ($query) use ($hostelIds) {
-                $query->whereIn('hostel_id', $hostelIds);
-            })->where('status', 'active')->get();
+            if (!$userHostelId) {
+                return redirect()->route('owner.dashboard')
+                    ->with('error', 'कृपया पहिले आफ्नो होस्टेल सेटअप गर्नुहोस्।');
+            }
+
+            $students = Student::where('hostel_id', $userHostelId)
+                ->where('status', 'active')
+                ->get();
 
             return view('owner.payments.edit', compact('payment', 'students'));
         }
@@ -461,7 +513,6 @@ class PaymentController extends Controller
 
     public function update(Request $request, Payment $payment)
     {
-        // update method को सुरुमा यो थप्नुहोस्:
         \Log::info('Auth user:', Auth::user() ? ['id' => Auth::id(), 'name' => Auth::user()->name] : ['user' => 'not authenticated']);
         \Log::info('Update request:', $request->all());
         \Log::info('Payment ID:', ['id' => $payment->id]);
@@ -489,17 +540,17 @@ class PaymentController extends Controller
 
         $request->validate($validationRules);
 
-        // For owners, ensure student belongs to their hostels
-        if ($user->hasRole('hostel_manager')) {
-            $hostelIds = Hostel::where('owner_id', $user->id)
-                ->orWhere('manager_id', $user->id)
-                ->pluck('id')
-                ->toArray();
+        // For owners, ensure student belongs to their hostel
+        if ($user->hasRole('owner') || $user->hasRole('hostel_manager')) {
+            $userHostelId = $user->hostel_id;
+
+            if (!$userHostelId) {
+                return back()->with('error', 'कृपया पहिले आफ्नो होस्टेल सेटअप गर्नुहोस्।');
+            }
 
             $student = Student::where('id', $request->student_id)
-                ->whereHas('room', function ($query) use ($hostelIds) {
-                    $query->whereIn('hostel_id', $hostelIds);
-                })->first();
+                ->where('hostel_id', $userHostelId)
+                ->first();
 
             if (!$student) {
                 return back()
@@ -527,10 +578,10 @@ class PaymentController extends Controller
                 'payment_method' => $request->payment_method,
                 'status' => $request->status,
                 'remarks' => $request->notes,
-                'updated_at' => now(), // ✅ यो थप्नुहोस्
+                'updated_at' => now(),
             ];
 
-            // ✅ सुरक्षित तरिकाले updated_by set गर्ने
+            // Set updated_by safely
             if (Auth::check()) {
                 $paymentData['updated_by'] = Auth::id();
             } else {
@@ -656,20 +707,23 @@ class PaymentController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user->hasAnyRole(['admin', 'hostel_manager'])) {
+        // ✅ FIXED: Include owner role
+        if (!$user->hasAnyRole(['admin', 'owner', 'hostel_manager'])) {
             abort(403, 'तपाईंसँग निर्यात गर्ने अनुमति छैन');
         }
 
         try {
-            // Get current user's hostel IDs for owners
-            if ($user->hasRole('hostel_manager')) {
-                $hostelIds = Hostel::where('owner_id', $user->id)
-                    ->orWhere('manager_id', $user->id)
-                    ->pluck('id')
-                    ->toArray();
+            // Get current user's hostel ID for owners
+            if ($user->hasRole('owner') || $user->hasRole('hostel_manager')) {
+                $userHostelId = $user->hostel_id;
 
-                // Apply date filter if provided - ✅ FIXED: Handle empty dates
-                $paymentsQuery = Payment::whereIn('hostel_id', $hostelIds)
+                if (!$userHostelId) {
+                    return redirect()->route('owner.payments.report')
+                        ->with('error', 'कृपया पहिले आफ्नो होस्टेल सेटअप गर्नुहोस्।');
+                }
+
+                // Apply date filter if provided
+                $paymentsQuery = Payment::where('hostel_id', $userHostelId)
                     ->with(['student', 'hostel']);
 
                 if ($request->filled('start_date') && $request->filled('end_date')) {
@@ -681,7 +735,6 @@ class PaymentController extends Controller
 
                 $payments = $paymentsQuery->get();
 
-                // ✅ FIXED: Handle filename based on type
                 $filename = $this->getExportFilename($request->type, $request->start_date, $request->end_date);
                 return Excel::download(new PaymentsExport($payments), $filename);
             }
@@ -698,7 +751,6 @@ class PaymentController extends Controller
 
             $payments = $paymentsQuery->get();
 
-            // ✅ FIXED: Handle filename based on type
             $filename = $this->getExportFilename($request->type, $request->start_date, $request->end_date);
             return Excel::download(new PaymentsExport($payments), $filename);
         } catch (\Exception $e) {
@@ -724,12 +776,10 @@ class PaymentController extends Controller
     {
         $baseName = 'payments-' . now()->format('Y-m-d');
 
-        // Add type to filename if provided
         if ($type) {
             $baseName = $type . '-' . $baseName;
         }
 
-        // Add date range to filename if provided
         if ($startDate && $endDate) {
             $baseName .= '-from-' . $startDate . '-to-' . $endDate;
         }
@@ -851,7 +901,6 @@ class PaymentController extends Controller
      */
     public function viewProof(Payment $payment)
     {
-        // SECURITY FIX: Check permission before viewing proof
         $this->checkPaymentPermission($payment);
 
         if ($payment->payment_method !== 'bank_transfer') {
@@ -905,9 +954,6 @@ class PaymentController extends Controller
         $payment = Payment::findOrFail($paymentId);
         $this->checkPaymentPermission($payment);
 
-        // PDF generation logic here
-        // This is a placeholder for PDF download functionality
-
         return response()->json(['message' => 'Receipt download functionality']);
     }
 
@@ -916,7 +962,6 @@ class PaymentController extends Controller
      */
     public function bankTransferRequest(Request $request)
     {
-        // Show bank transfer form
         return view('payments.bank-transfer');
     }
 
@@ -935,7 +980,6 @@ class PaymentController extends Controller
 
             $user = Auth::user();
 
-            // SECURITY FIX: Additional file validation
             if ($request->hasFile('screenshot')) {
                 $file = $request->file('screenshot');
                 $allowedMimes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
@@ -980,13 +1024,11 @@ class PaymentController extends Controller
      */
     public function payWithEsewa(Request $request)
     {
-        // Esewa payment integration logic
         $request->validate([
             'amount' => 'required|numeric|min:1',
             'payment_id' => 'required|exists:payments,id'
         ]);
 
-        // Esewa payment implementation
         return response()->json(['message' => 'Esewa payment initiated']);
     }
 
@@ -995,11 +1037,9 @@ class PaymentController extends Controller
      */
     public function verifyEsewa(Request $request)
     {
-        // Esewa payment verification logic
         $paymentId = $request->payment_id;
         $refId = $request->refId;
 
-        // Esewa verification implementation
         return response()->json(['success' => true]);
     }
 
@@ -1014,21 +1054,17 @@ class PaymentController extends Controller
                 return null;
             }
 
-            // Check if logo exists in storage
             $logoPath = storage_path('app/public/' . $hostel->logo_path);
             if (!file_exists($logoPath)) {
                 return null;
             }
 
-            // Check file extension
             $extension = strtolower(pathinfo($logoPath, PATHINFO_EXTENSION));
 
             if ($extension === 'svg') {
-                // For SVG, read content and return as base64
                 $svgContent = file_get_contents($logoPath);
                 return 'data:image/svg+xml;base64,' . base64_encode($svgContent);
             } else {
-                // For other images, use file:// protocol
                 return 'file://' . str_replace('\\', '/', $logoPath);
             }
         } catch (\Exception $e) {
@@ -1043,26 +1079,55 @@ class PaymentController extends Controller
     public function generateReceipt($id)
     {
         try {
-            \Log::info('Admin: Generating receipt for payment: ' . $id);
+            // Load payment with correct hostel relationship
+            $payment = Payment::with([
+                'student.room.hostel',
+                'hostel',
+                'verifiedBy'
+            ])->findOrFail($id);
 
-            // Load payment with student's room relationship
-            $payment = Payment::with(['student.room', 'hostel', 'verifiedBy'])->findOrFail($id);
-
-            // Check permission
             $this->checkPaymentPermission($payment);
 
-            \Log::info('Payment found: ' . $payment->id);
+            // Get hostel from student (most reliable)
+            $hostel = null;
 
-            // ✅ USE BASE64 LOGO - WORKS 100%
-            $pdfImageService = new PdfImageService();
-            $logoBase64 = $pdfImageService->getHostelLogoForPdf($payment->hostel_id, 150);
+            if ($payment->student && $payment->student->hostel) {
+                $hostel = $payment->student->hostel;
+                Log::info('Using student hostel for receipt', [
+                    'payment_id' => $payment->id,
+                    'student_id' => $payment->student->id,
+                    'hostel_id' => $hostel->id,
+                    'hostel_name' => $hostel->name
+                ]);
+            } elseif ($payment->hostel) {
+                $hostel = $payment->hostel;
+                Log::info('Using payment hostel for receipt', [
+                    'payment_id' => $payment->id,
+                    'hostel_id' => $hostel->id
+                ]);
+            } elseif ($payment->student && $payment->student->room && $payment->student->room->hostel) {
+                $hostel = $payment->student->room->hostel;
+                Log::info('Using student room hostel for receipt', [
+                    'payment_id' => $payment->id,
+                    'room_id' => $payment->student->room->id
+                ]);
+            }
+
+            if (!$hostel) {
+                Log::error('No hostel found for payment receipt', ['payment_id' => $payment->id]);
+                return redirect()->back()->with('error', 'Hostel information not found for this payment.');
+            }
+
+            // ✅ ADDED: Use the new method
+            $logoBase64 = $this->getHostelLogoBase64($hostel->id);
 
             $data = [
                 'payment' => $payment,
-                'hostel' => $payment->hostel,
+                'hostel' => $hostel,
                 'student' => $payment->student,
                 'receipt_number' => 'REC-' . str_pad($payment->id, 6, '0', STR_PAD_LEFT),
-                'logo_base64' => $logoBase64, // ✅ Pass base64 logo
+                'logo_base64' => $logoBase64,
+                'generated_date' => now()->format('Y-m-d H:i:s'),
             ];
 
             $pdf = Pdf::loadView('pdf.receipt', $data)
@@ -1071,16 +1136,19 @@ class PaymentController extends Controller
                     'defaultFont' => 'helvetica',
                     'isHtml5ParserEnabled' => true,
                     'isRemoteEnabled' => true,
-                    'enable_css_float' => true,
+                    'enable_css_float' => false,
                 ]);
 
-            \Log::info('Receipt PDF generated successfully');
+            Log::info('Receipt PDF generated successfully', [
+                'payment_id' => $payment->id,
+                'hostel_id' => $hostel->id,
+                'hostel_name' => $hostel->name
+            ]);
+
             return $pdf->stream('receipt_' . $payment->id . '.pdf');
         } catch (\Exception $e) {
-            \Log::error('Admin Receipt PDF Error: ' . $e->getMessage());
-            \Log::error('Stack Trace: ' . $e->getTraceAsString());
-
-            return redirect()->back()->with('error', 'रसिद जनरेसन असफल भयो: ' . $e->getMessage());
+            Log::error('Receipt PDF Error: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Receipt generation failed: ' . $e->getMessage());
         }
     }
 
@@ -1092,31 +1160,23 @@ class PaymentController extends Controller
         try {
             \Log::info('Admin: Generating bill for payment: ' . $id);
 
-            // ✅ CORRECTED: Remove 'hostel.owner.user' - owner is already User model
             $payment = Payment::with([
                 'student.room',
                 'hostel',
                 'hostel.paymentMethods',
-                'hostel.owner',  // यो नै User model हो
+                'hostel.owner',
                 'hostel.manager'
             ])->findOrFail($id);
 
-            // Check permission
             $this->checkPaymentPermission($payment);
 
             \Log::info('Payment found: ' . $payment->id . ' for hostel: ' . $payment->hostel->name);
 
-            // ✅ USE BASE64 LOGO
             $pdfImageService = new PdfImageService();
             $logoBase64 = $pdfImageService->getHostelLogoForPdf($payment->hostel_id, 150);
 
-            // ✅ GET HOSTEL-SPECIFIC BANK DETAILS
             $bankDetails = $this->getHostelSpecificBankDetails($payment->hostel);
-
-            // ✅ GET HOSTEL-SPECIFIC CONTACT INFO
             $contactInfo = $this->getHostelSpecificContactInfo($payment->hostel);
-
-            // ✅ GET HOSTEL-SPECIFIC ADDRESS
             $address = $this->getHostelSpecificAddress($payment->hostel);
 
             $data = [
@@ -1163,7 +1223,6 @@ class PaymentController extends Controller
      */
     private function getHostelSpecificBankDetails($hostel)
     {
-        // First, check if hostel has payment methods with bank details
         if ($hostel->paymentMethods && $hostel->paymentMethods->count() > 0) {
             $bankPaymentMethod = $hostel->paymentMethods
                 ->where('type', 'bank')
@@ -1171,7 +1230,6 @@ class PaymentController extends Controller
                 ->first();
 
             if ($bankPaymentMethod) {
-                // Get correct SWIFT code based on bank name
                 $swiftCode = $this->getCorrectSwiftCode(
                     $bankPaymentMethod->bank_name ?? '',
                     $bankPaymentMethod->swift_code ?? ''
@@ -1187,7 +1245,6 @@ class PaymentController extends Controller
             }
         }
 
-        // If no payment methods, check hostel's own bank details (if stored in hostel model)
         if (!empty($hostel->bank_name)) {
             $swiftCode = $this->getCorrectSwiftCode(
                 $hostel->bank_name,
@@ -1203,7 +1260,6 @@ class PaymentController extends Controller
             ];
         }
 
-        // Default bank details based on hostel name/type
         return $this->getDefaultBankDetailsByHostel($hostel);
     }
 
@@ -1214,38 +1270,34 @@ class PaymentController extends Controller
     {
         $bankName = strtolower(trim($bankName));
 
-        // Mapping of Nepali banks to their SWIFT codes
         $bankSwiftCodes = [
-            'sanima' => 'SNMANPKA',      // Sanima Bank Ltd
-            'everest' => 'EVBLNPKA',     // Everest Bank Ltd
-            'nimb' => 'NIMBNPKA',        // Nepal Investment Mega Bank
-            'nic' => 'NICENPKA',         // NIC Asia Bank
-            'nabil' => 'NABLNPKA',       // Nabil Bank
-            'himalayan' => 'HIMANPKA',   // Himalayan Bank
-            'standard chartered' => 'SCBLNPKA', // Standard Chartered Bank
-            'global ime' => 'GLBBNPKA',  // Global IME Bank
-            'machhapuchchhre' => 'MBLNNPKA', // Machhapuchchhre Bank
-            'century' => 'CTBVNPKA',     // Century Bank
-            'prime' => 'PRMSNPKA',       // Prime Commercial Bank
-            'sunrise' => 'SRBLNPKA',     // Sunrise Bank
-            'kumari' => 'KUMBNPKA',      // Kumari Bank
-            'agricultural' => 'ADBLNPKA', // Agricultural Development Bank
-            'rastriya banijya' => 'RBBANPKA', // Rastriya Banijya Bank
+            'sanima' => 'SNMANPKA',
+            'everest' => 'EVBLNPKA',
+            'nimb' => 'NIMBNPKA',
+            'nic' => 'NICENPKA',
+            'nabil' => 'NABLNPKA',
+            'himalayan' => 'HIMANPKA',
+            'standard chartered' => 'SCBLNPKA',
+            'global ime' => 'GLBBNPKA',
+            'machhapuchchhre' => 'MBLNNPKA',
+            'century' => 'CTBVNPKA',
+            'prime' => 'PRMSNPKA',
+            'sunrise' => 'SRBLNPKA',
+            'kumari' => 'KUMBNPKA',
+            'agricultural' => 'ADBLNPKA',
+            'rastriya banijya' => 'RBBANPKA',
         ];
 
-        // Check if we have a known bank
         foreach ($bankSwiftCodes as $bankKeyword => $swiftCode) {
             if (strpos($bankName, $bankKeyword) !== false) {
                 return $swiftCode;
             }
         }
 
-        // If current swift code is valid, use it
         if (!empty($currentSwiftCode) && strlen($currentSwiftCode) === 8) {
             return $currentSwiftCode;
         }
 
-        // Default SWIFT code
         return '';
     }
 
@@ -1256,14 +1308,13 @@ class PaymentController extends Controller
     {
         $hostelName = strtolower($hostel->name ?? '');
 
-        // Special cases for known hostels
         if (strpos($hostelName, 'black grunz') !== false || strpos($hostelName, 'grunz') !== false) {
             return [
                 'bank_name' => 'Sanima Bank Ltd',
                 'account_name' => $hostel->name,
                 'account_number' => '096889965544',
                 'branch' => 'Kathmandu Branch',
-                'swift_code' => 'SNMANPKA', // Correct SWIFT for Sanima Bank
+                'swift_code' => 'SNMANPKA',
             ];
         }
 
@@ -1273,7 +1324,7 @@ class PaymentController extends Controller
                 'account_name' => $hostel->name,
                 'account_number' => '798057453509',
                 'branch' => 'Kathmandu Branch',
-                'swift_code' => 'EVBLNPKA', // Correct SWIFT for Everest Bank
+                'swift_code' => 'EVBLNPKA',
             ];
         }
 
@@ -1287,7 +1338,6 @@ class PaymentController extends Controller
             ];
         }
 
-        // Generic hostel bank details
         return [
             'bank_name' => 'Global IME Bank',
             'account_name' => $hostel->name,
@@ -1303,7 +1353,6 @@ class PaymentController extends Controller
     private function getHostelSpecificContactInfo($hostel)
     {
         try {
-            // First check if hostel has its own contact info
             if (!empty($hostel->phone) || !empty($hostel->email)) {
                 return [
                     'phone' => $hostel->phone ?? 'N/A',
@@ -1312,10 +1361,8 @@ class PaymentController extends Controller
                 ];
             }
 
-            // Then check owner's contact
             if ($hostel->owner) {
                 $owner = $hostel->owner;
-                // ✅ FIXED: Use correct fields from User model
                 $phone = $owner->phone ?? $owner->mobile ?? $owner->contact_number ?? null;
                 $email = $owner->email ?? null;
 
@@ -1328,7 +1375,6 @@ class PaymentController extends Controller
                 }
             }
 
-            // Then check manager's contact
             if ($hostel->manager) {
                 $manager = $hostel->manager;
                 $phone = $manager->phone ?? $manager->mobile ?? $manager->contact_number ?? null;
@@ -1343,7 +1389,6 @@ class PaymentController extends Controller
                 }
             }
 
-            // Special cases for known hostels
             $hostelName = strtolower($hostel->name ?? '');
 
             if (strpos($hostelName, 'black grunz') !== false || strpos($hostelName, 'grunz') !== false) {
@@ -1362,7 +1407,6 @@ class PaymentController extends Controller
                 ];
             }
 
-            // Default
             return [
                 'phone' => 'N/A',
                 'email' => 'N/A',
@@ -1384,28 +1428,22 @@ class PaymentController extends Controller
      */
     private function getHostelSpecificAddress($hostel)
     {
-        // Use hostel's own address if available (full address)
         if (!empty($hostel->address)) {
-            // Remove non-ASCII characters for PDF compatibility
             $cleanAddress = preg_replace('/[^\x00-\x7F]/', '', $hostel->address);
             return !empty($cleanAddress) ? $cleanAddress : ($hostel->city . ', Nepal');
         }
 
-        // Use hostel's city if available
         if (!empty($hostel->city)) {
-            // Check if city has proper format
             $city = trim($hostel->city);
             if (!empty($city)) {
                 return $city . ', Nepal';
             }
         }
 
-        // Use hostel's location if available
         if (!empty($hostel->location)) {
             return $hostel->location . ', Nepal';
         }
 
-        // For known hostels with hardcoded details (fallback)
         $hostelName = strtolower($hostel->name ?? '');
 
         if (strpos($hostelName, 'black grunz') !== false || strpos($hostelName, 'grunz') !== false) {
@@ -1416,7 +1454,6 @@ class PaymentController extends Controller
             return 'Kalikasthan, Dillibazar, Kathmandu, Nepal';
         }
 
-        // Default based on hostel type or name
         if (strpos($hostelName, 'pokhara') !== false) {
             return 'Pokhara, Nepal';
         }
@@ -1437,9 +1474,9 @@ class PaymentController extends Controller
             return 'Bhaktapur, Nepal';
         }
 
-        // Default to Kathmandu only if really unknown
         return 'Kathmandu, Nepal';
     }
+
     /**
      * Convert amount to Nepali words - IMPROVED VERSION
      */
@@ -1457,13 +1494,8 @@ class PaymentController extends Controller
             }
         }
 
-        // Add "मात्र" at the end for official documents
         return $nepaliNumber . ' रुपैयाँ मात्र';
     }
-
-    // =================================================================
-    // BILLING AND RECEIPT SYSTEM METHODS
-    // =================================================================
 
     /**
      * Student search for invoice generation - SECURITY FIXED: SQL Injection Prevention
@@ -1472,7 +1504,8 @@ class PaymentController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user->hasRole('hostel_manager')) {
+        // ✅ FIXED: Include owner role
+        if (!$user->hasRole('owner') && !$user->hasRole('hostel_manager')) {
             abort(403, 'तपाईंसँग यो पृष्ठ हेर्ने अनुमति छैन');
         }
 
@@ -1482,21 +1515,22 @@ class PaymentController extends Controller
             return redirect()->route('owner.payments.report')->with('error', 'कृपया खोज्ने शब्द लेख्नुहोस्।');
         }
 
-        // SECURITY FIX: Prevent SQL Injection in search
         $safeQuery = '%' . addcslashes($query, '%_') . '%';
 
-        // Get current user's hostel IDs
-        $hostelIds = Hostel::where('owner_id', $user->id)
-            ->orWhere('manager_id', $user->id)
-            ->pluck('id')
-            ->toArray();
+        // Use user's hostel_id
+        $userHostelId = $user->hostel_id;
+
+        if (!$userHostelId) {
+            return redirect()->route('owner.payments.report')
+                ->with('error', 'कृपया पहिले आफ्नो होस्टेल सेटअप गर्नुहोस्।');
+        }
 
         $students = Student::where(function ($q) use ($safeQuery) {
             $q->where('name', 'like', $safeQuery)
                 ->orWhere('email', 'like', $safeQuery)
                 ->orWhere('student_id', 'like', $safeQuery);
         })
-            ->whereIn('hostel_id', $hostelIds)
+            ->where('hostel_id', $userHostelId)
             ->with(['payments' => function ($p) {
                 $p->orderBy('payment_date', 'desc');
             }, 'hostel', 'room'])
@@ -1513,11 +1547,11 @@ class PaymentController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user->hasRole('hostel_manager')) {
+        // ✅ FIXED: Include owner role
+        if (!$user->hasRole('owner') && !$user->hasRole('hostel_manager')) {
             abort(403, 'तपाईंसँग लोगो अपलोड गर्ने अनुमति छैन');
         }
 
-        // Verify the hostel belongs to the user
         $hostel = Hostel::where('id', $hostelId)
             ->where(function ($q) use ($user) {
                 $q->where('owner_id', $user->id)
@@ -1530,7 +1564,6 @@ class PaymentController extends Controller
         ]);
 
         try {
-            // SECURITY FIX: Additional file validation
             if ($request->hasFile('logo')) {
                 $file = $request->file('logo');
                 $allowedMimes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'];
@@ -1540,12 +1573,10 @@ class PaymentController extends Controller
                 }
             }
 
-            // Delete old logo if exists
             if ($hostel->logo_path && Storage::disk('public')->exists($hostel->logo_path)) {
                 Storage::disk('public')->delete($hostel->logo_path);
             }
 
-            // Store new logo
             $path = $request->file('logo')->store('hostel_logos', 'public');
 
             $hostel->update([

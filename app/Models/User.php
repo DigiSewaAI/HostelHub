@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Hash; // ✅ ADDED
 
 class User extends Authenticatable
 {
@@ -47,7 +48,7 @@ class User extends Authenticatable
 
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'password' => 'hashed',
+        // ❌ REMOVED: 'password' => 'hashed', // 🔥 THIS WAS THE PROBLEM
         'email_notifications' => 'boolean',
         'sms_notifications' => 'boolean',
         'booking_alerts' => 'boolean',
@@ -55,6 +56,18 @@ class User extends Authenticatable
         'payment_verified' => 'boolean',
         'trial_ends_at' => 'datetime'
     ];
+
+    /**
+     * ✅ ADDED: Clean Password Mutator (Fixes the NULL hashing issue)
+     */
+    public function setPasswordAttribute($value)
+    {
+        if ($value === null || $value === '') {
+            $this->attributes['password'] = null;
+        } else {
+            $this->attributes['password'] = Hash::make($value);
+        }
+    }
 
     /**
      * ✅ NEW: Boot method for auto-linking guest bookings

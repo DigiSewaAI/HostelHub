@@ -1,3 +1,28 @@
+@php
+    // Determine the correct hostel
+    $hostel = $hostel ?? null;
+    
+    // Fallback: Get hostel from student if not provided
+    if (!$hostel && isset($student) && $student) {
+        $hostel = $student->hostel ?? null;
+    }
+    
+    // Fallback: Get hostel from student's room
+    if (!$hostel && isset($student) && $student && $student->room) {
+        $hostel = $student->room->hostel ?? null;
+    }
+    
+    // Final fallback
+    if (!$hostel) {
+        $hostel = (object)[
+            'name' => 'HostelHub',
+            'address' => 'Kathmandu, Nepal',
+            'phone' => 'N/A',
+            'email' => 'info@hostelhub.com',
+        ];
+    }
+@endphp
+
 <!DOCTYPE html>
 <html>
 <head>

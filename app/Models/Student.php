@@ -485,7 +485,39 @@ class Student extends Model
         return $this->user_id && $this->user_id === $user->id;
     }
 
+    /**
+     * Get the hostel through room relationship
+     */
+    public function getHostelThroughRoomAttribute()
+    {
+        if ($this->room && $this->room->hostel) {
+            return $this->room->hostel;
+        }
+        return $this->hostel;
+    }
 
+    /**
+     * Accessor for current hostel (with fallbacks)
+     */
+    public function getCurrentHostelAttribute()
+    {
+        // Priority 1: Direct hostel relationship
+        if ($this->hostel) {
+            return $this->hostel;
+        }
+
+        // Priority 2: Hostel through room
+        if ($this->room && $this->room->hostel) {
+            return $this->room->hostel;
+        }
+
+        // Priority 3: User's hostel
+        if ($this->user && $this->user->hostel) {
+            return $this->user->hostel;
+        }
+
+        return null;
+    }
 
     /**
      * Get student statistics
@@ -498,6 +530,34 @@ class Student extends Model
             'total_bookings' => $this->bookings()->count(),
             'total_reviews' => $this->reviews()->count(),
         ];
+    }
+
+    /**
+     * 🔥 CRITICAL: Prevent hostel_id from being set to NULL accidentally
+     */
+    public function setHostelIdAttribute($value)
+    {
+        // If trying to set to NULL but student is active/approved, keep current value
+        if ($value === null && in_array($this->status, ['active', 'approved'])) {
+            // Keep the existing hostel_id
+            $this->attributes['hostel_id'] = $this->getOriginal('hostel_id');
+        } else {
+            $this->attributes['hostel_id'] = $value;
+        }
+    }
+
+    /**
+     * 🔥 CRITICAL: Prevent room_id from being set to NULL when hostel_id exists
+     */
+    public function setRoomIdAttribute($value)
+    {
+        // If trying to set to NULL but hostel_id exists, keep current value
+        if ($value === null && $this->hostel_id) {
+            // Keep the existing room_id
+            $this->attributes['room_id'] = $this->getOriginal('room_id');
+        } else {
+            $this->attributes['room_id'] = $value;
+        }
     }
 
     /**

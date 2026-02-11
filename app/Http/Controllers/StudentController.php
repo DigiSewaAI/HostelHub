@@ -39,25 +39,53 @@ class StudentController extends Controller
         return view('students.my', compact('students'));
     }
 
-    // PERMANENT FIX: Dashboard method with COMPLETELY FIXED circular queries
+    // StudentController.php मा dashboard() method यसरी सरल बनाउनुहोस्:
+
     public function dashboard()
     {
         try {
             $user = Auth::user();
             $student = $user->student;
 
-            if (!$student || !$student->hostel_id) {
-                return view('student.welcome');
+            // ✅ CRITICAL FIX: सबै विद्यार्थीलाई dashboard देखाउने
+            // यदि विद्यार्थी प्रोफाइल छैन भने dashboard नै देखाउने तर message सहित
+            if (!$student) {
+                return view('student.dashboard', [
+                    'student' => (object)[
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'email' => $user->email,
+                        'hostel_id' => null,
+                        'room_id' => null
+                    ],
+                    'hostel' => null,
+                    'room' => null,
+                    'todayMeal' => null,
+                    'galleryImages' => collect(),
+                    'notifications' => collect(),
+                    'upcomingEvents' => collect(),
+                    'lastPayment' => null,
+                    'paymentStatus' => 'Unpaid',
+                    'unreadCirculars' => 0,
+                    'recentStudentCirculars' => collect(),
+                    'urgentCirculars' => collect(),
+                    'importantCirculars' => collect(),
+                    'error' => 'विद्यार्थी प्रोफाइल फेला परेन। होस्टेल व्यवस्थापकसँग सम्पर्क गर्नुहोस्।'
+                ]);
             }
 
+            // ✅ विद्यार्थी छ भने सबै data लिने
             $hostel = $student->hostel;
             $room = $student->room;
 
-            // Today's meal
-            $currentDay = now()->format('l');
-            $todayMeal = MealMenu::where('hostel_id', $hostel->id)
-                ->where('day_of_week', $currentDay)
-                ->first();
+            // Today's meal (यदि hostel छ भने)
+            $todayMeal = null;
+            if ($hostel) {
+                $currentDay = now()->format('l');
+                $todayMeal = MealMenu::where('hostel_id', $hostel->id)
+                    ->where('day_of_week', $currentDay)
+                    ->first();
+            }
 
             // Gallery images
             $galleryImages = Gallery::where('is_active', true)
@@ -74,30 +102,23 @@ class StudentController extends Controller
                 $paymentStatus = $lastPayment->status == 'paid' ? 'Paid' : 'Unpaid';
             }
 
-            // ✅ COMPLETELY FIXED: Circular Data Logic
+            // Circular data
             $unreadCirculars = 0;
             $recentStudentCirculars = collect();
             $urgentCirculars = collect();
             $importantCirculars = collect();
 
-            // ✅ CRITICAL FIX: Proper circular query for student with better error handling
             if (class_exists('App\Models\Circular') && class_exists('App\Models\CircularRecipient')) {
-
                 try {
-                    // Get user ID for recipient lookup
                     $userId = $user->id;
-
-                    // Get circular IDs where student is recipient
                     $circularIds = CircularRecipient::where('user_id', $userId)
                         ->pluck('circular_id');
 
                     if ($circularIds->count() > 0) {
-                        // Unread count - FIXED query
                         $unreadCirculars = CircularRecipient::where('user_id', $userId)
                             ->where('is_read', false)
                             ->count();
 
-                        // Recent circulars - FIXED query with proper scopes
                         $recentStudentCirculars = Circular::whereIn('id', $circularIds)
                             ->where('status', 'published')
                             ->where(function ($query) {
@@ -113,7 +134,6 @@ class StudentController extends Controller
                             ->take(5)
                             ->get();
 
-                        // Urgent circulars - FIXED query
                         $urgentCirculars = Circular::whereIn('id', $circularIds)
                             ->where('status', 'published')
                             ->where('priority', 'urgent')
@@ -131,37 +151,17 @@ class StudentController extends Controller
                             ->get();
 
                         $importantCirculars = $urgentCirculars;
-                    } else {
-                        // No circulars found for this student
-                        $unreadCirculars = 0;
-                        $recentStudentCirculars = collect();
-                        $urgentCirculars = collect();
-                        $importantCirculars = collect();
                     }
                 } catch (\Exception $e) {
-                    \Log::error('Circular data fetching error in student dashboard: ' . $e->getMessage(), [
-                        'user_id' => $user->id,
-                        'student_id' => $student->id
-                    ]);
-
-                    // Set default empty values on error
-                    $unreadCirculars = 0;
-                    $recentStudentCirculars = collect();
-                    $urgentCirculars = collect();
-                    $importantCirculars = collect();
+                    \Log::error('Circular data fetching error: ' . $e->getMessage());
                 }
-            } else {
-                // Circular models don't exist
-                $unreadCirculars = 0;
-                $recentStudentCirculars = collect();
-                $urgentCirculars = collect();
-                $importantCirculars = collect();
             }
 
             // Other data
             $notifications = collect();
             $upcomingEvents = collect();
 
+            // ✅ सबै विद्यार्थीलाई dashboard देखाउने
             return view('student.dashboard', compact(
                 'student',
                 'hostel',
@@ -178,14 +178,24 @@ class StudentController extends Controller
                 'importantCirculars'
             ));
         } catch (\Exception $e) {
-            \Log::error('Student dashboard error: ' . $e->getMessage(), [
-                'user_id' => auth()->id(),
-                'student_id' => $student->id ?? null
-            ]);
+            \Log::error('Student dashboard error: ' . $e->getMessage());
 
-            return view('student.welcome')->with('error', 'डाटा लोड गर्न असफल भयो');
+            // Error भएमा पनि dashboard नै देखाउने
+            $user = Auth::user();
+            return view('student.dashboard', [
+                'student' => (object)[
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email
+                ],
+                'hostel' => null,
+                'room' => null,
+                'todayMeal' => null,
+                'error' => 'डाटा लोड गर्न असफल भयो'
+            ]);
         }
     }
+
 
     // Student profile for student role - ONLY ONE PROFILE METHOD
     public function profile()

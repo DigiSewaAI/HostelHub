@@ -54,29 +54,14 @@
                 <div class="flex-1">
                     <!-- Main Heading with Waving Hand -->
                     <h2 class="text-2xl font-bold mb-2 text-white">
-                        नमस्ते, {{ $student->name }}! 
+                        नमस्ते, {{ $student->user->name }}! 
                         <span class="wave-hand">👋</span>
                     </h2>
                     
-                    <!-- ✅ FIXED: Conditional hostel name display -->
-                    @if($hostel)
-                        <p class="text-white text-lg font-medium mb-4">{{ $hostel->name }} मा तपाईंलाई स्वागत छ</p>
-                    @else
-                        <p class="text-white text-lg font-medium mb-4">तपाईंलाई स्वागत छ</p>
-                    @endif
-                    
-                    <!-- Error message display -->
-                    @if(isset($error) && $error)
-                    <div class="bg-yellow-400 text-gray-900 rounded-xl p-3 inline-block border border-yellow-500 mt-2">
-                        <div class="flex items-center">
-                            <i class="fas fa-exclamation-triangle mr-2"></i>
-                            <span class="font-bold">{{ $error }}</span>
-                        </div>
-                    </div>
-                    @endif
+                    <p class="text-white text-lg font-medium mb-4">{{ $hostel->name }} मा तपाईंलाई स्वागत छ</p>
                     
                     @if(($unreadCirculars ?? 0) > 0)
-                    <div class="bg-yellow-400 text-gray-900 rounded-xl p-3 inline-block border border-yellow-500 mt-2">
+                    <div class="bg-yellow-400 text-gray-900 rounded-xl p-3 inline-block border border-yellow-500">
                         <div class="flex items-center">
                             <i class="fas fa-bell mr-2"></i>
                             <span class="font-bold">तपाईंसँग {{ $unreadCirculars }} वटा नयाँ सूचनाहरू छन्!</span>
@@ -132,7 +117,7 @@
     @endif
 
     <!-- Urgent Circulars Alert -->
-    @if(isset($urgentCirculars) && $urgentCirculars && $urgentCirculars->count() > 0)
+    @if($urgentCirculars && $urgentCirculars->count() > 0)
     <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-6 rounded">
         <div class="flex items-center">
             <div class="flex-shrink-0">
@@ -156,15 +141,11 @@
 
     <!-- Quick Stats -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <!-- Room Number -->
         <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-200">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-gray-600 text-sm font-medium">कोठा नं.</p>
-                    <!-- ✅ FIXED: Use $room variable instead of $student->room -->
-                    <p class="text-2xl font-bold text-blue-600 mt-1">
-                        {{ $room && $room->room_number ? $room->room_number : 'N/A' }}
-                    </p>
+                    <p class="text-2xl font-bold text-blue-600 mt-1">{{ $student->room->room_number ?? 'N/A' }}</p>
                 </div>
                 <div class="bg-blue-100 p-3 rounded-xl">
                     <i class="fas fa-door-open text-blue-600 text-xl"></i>
@@ -173,14 +154,11 @@
             <p class="text-gray-500 text-xs mt-2">तपाईंको कोठा नम्बर</p>
         </div>
 
-        <!-- Today's Meal -->
         <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-200">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-gray-600 text-sm font-medium">आजको खाना</p>
-                    <p class="text-2xl font-bold text-green-600 mt-1">
-                        {{ $todayMeal ? 'उपलब्ध' : ($hostel ? 'अपडेट छैन' : 'N/A') }}
-                    </p>
+                    <p class="text-2xl font-bold text-green-600 mt-1">{{ $todayMeal ? 'उपलब्ध' : 'अपडेट छैन' }}</p>
                 </div>
                 <div class="bg-green-100 p-3 rounded-xl">
                     <i class="fas fa-utensils text-green-600 text-xl"></i>
@@ -189,14 +167,11 @@
             <p class="text-gray-500 text-xs mt-2">खानाको अवस्था</p>
         </div>
 
-        <!-- Payment Status -->
         <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-200">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-gray-600 text-sm font-medium">भुक्तानी</p>
-                    <p class="text-2xl font-bold text-amber-600 mt-1">
-                        {{ $paymentStatus == 'Paid' ? 'भुक्तानी भएको' : 'बाकी' }}
-                    </p>
+                    <p class="text-2xl font-bold text-amber-600 mt-1">{{ $paymentStatus == 'Paid' ? 'भुक्तानी भएको' : 'बाकी' }}</p>
                 </div>
                 <div class="bg-amber-100 p-3 rounded-xl">
                     <i class="fas fa-receipt text-amber-600 text-xl"></i>
@@ -205,7 +180,6 @@
             <p class="text-gray-500 text-xs mt-2">भुक्तानी स्थिति</p>
         </div>
 
-        <!-- Notifications -->
         <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-200">
             <div class="flex items-center justify-between">
                 <div>
@@ -235,8 +209,8 @@
         </div>
         
         @php
-            // ✅ FIXED: Use the student passed from controller
-            $userReviews = $student && isset($student->id) 
+            $student = auth()->user()->student;
+            $userReviews = $student 
                 ? \App\Models\Review::where('student_id', $student->id)
                     ->with('hostel')
                     ->orderBy('created_at', 'desc')
@@ -292,7 +266,6 @@
                         <h3 class="text-lg font-bold text-gray-800">कोठा जानकारी</h3>
                     </div>
                     
-                    @if($hostel && $room)
                     <div class="space-y-3">
                         <div class="flex justify-between">
                             <span class="text-gray-600">होस्टेल:</span>
@@ -300,32 +273,23 @@
                         </div>
                         <div class="flex justify-between">
                             <span class="text-gray-600">कोठा नं.:</span>
-                            <span class="font-medium text-gray-800">{{ $room->room_number ?? 'उपलब्ध छैन' }}</span>
+                            <span class="font-medium text-gray-800">{{ $student->room->room_number ?? 'उपलब्ध छैन' }}</span>
                         </div>
                         <div class="flex justify-between">
                             <span class="text-gray-600">कोठा प्रकार:</span>
-                            <span class="font-medium text-gray-800">{{ $room->type ?? 'उपलब्ध छैन' }}</span>
+                            <span class="font-medium text-gray-800">{{ $student->room->type ?? 'उपलब्ध छैन' }}</span>
                         </div>
                         <div class="flex justify-between">
                             <span class="text-gray-600">मासिक भुक्तानी:</span>
-                            <span class="font-bold text-green-600">रु. {{ $room->rent ?? 'उपलब्ध छैन' }}</span>
+                            <span class="font-bold text-green-600">रु. {{ $student->room->rent ?? 'उपलब्ध छैन' }}</span>
                         </div>
                     </div>
                     
                     <a href="{{ route('student.my-room') }}" 
-                       class="block w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl font-medium transition-colors text-center">
-                        <i class="fas fa-info-circle mr-2"></i>पूर्ण विवरण हेर्नुहोस्
-                    </a>
-                    @else
-                    <div class="text-center py-4">
-                        <i class="fas fa-home text-gray-400 text-3xl mb-2"></i>
-                        <p class="text-gray-500">तपाईंलाई अहिले कुनै होस्टेल वा कोठा असाइन गरिएको छैन।</p>
-                        <a href="{{ route('student.hostel.search') }}" 
-                           class="inline-block mt-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl font-medium">
-                            होस्टेल खोज्नुहोस्
-                        </a>
-                    </div>
-                    @endif
+   class="block w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl font-medium transition-colors text-center">
+    <i class="fas fa-info-circle mr-2"></i>पूर्ण विवरण हेर्नुहोस्
+</a>
+
                 </div>
 
                 <!-- Payment Status -->
@@ -401,11 +365,7 @@
                     @else
                         <div class="text-center py-4">
                             <i class="fas fa-utensils text-gray-400 text-3xl mb-2"></i>
-                            @if($hostel)
-                                <p class="text-gray-500">आजको खानाको मेनु हाल अपडेट छैन</p>
-                            @else
-                                <p class="text-gray-500">तपाईंलाई अहिले कुनै होस्टेल असाइन गरिएको छैन</p>
-                            @endif
+                            <p class="text-gray-500">आजको खानाको मेनु हाल अपडेट छैन</p>
                         </div>
                     @endif
                     
@@ -423,7 +383,7 @@
                         <h3 class="text-lg font-bold text-gray-800">हालैका सूचनाहरू</h3>
                     </div>
                     
-                    @if(isset($recentStudentCirculars) && $recentStudentCirculars->count() > 0)
+                    @if($recentStudentCirculars && $recentStudentCirculars->count() > 0)
                         <div class="space-y-3">
                             @foreach($recentStudentCirculars->take(3) as $circular)
                                 <div class="border-l-4 border-indigo-500 pl-3 py-2 bg-indigo-50 rounded-r-lg">
@@ -458,6 +418,9 @@
             <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
                 <h3 class="text-lg font-bold text-gray-800 mb-4">द्रुत कार्यहरू</h3>
                 <div class="grid grid-cols-2 gap-3">
+                    <!-- 🚫 DUPLICATE "मुख्य पृष्ठ" BUTTON REMOVED FROM QUICK ACTIONS -->
+                    <!-- Keeping only the one in Welcome section -->
+                    
                     <a href="{{ route('student.profile') }}" class="bg-blue-50 hover:bg-blue-100 p-3 rounded-xl text-center transition-colors group border border-blue-100">
                         <div class="text-blue-600 text-xl mb-1">
                             <i class="fas fa-user"></i>
@@ -509,7 +472,7 @@
             </div>
 
             <!-- Important Circulars -->
-            @if(isset($importantCirculars) && $importantCirculars && $importantCirculars->count() > 0)
+            @if($importantCirculars && $importantCirculars->count() > 0)
             <div class="bg-red-50 border border-red-200 rounded-2xl p-6">
                 <div class="flex items-center mb-4">
                     <div class="bg-red-100 p-2 rounded-lg mr-3">
@@ -539,7 +502,7 @@
                     <h3 class="text-lg font-bold text-gray-800">आगामी घटनाहरू</h3>
                 </div>
                 
-                @if(isset($upcomingEvents) && $upcomingEvents->count() > 0)
+                @if($upcomingEvents->count() > 0)
                     <div class="space-y-3">
                         @foreach($upcomingEvents->take(2) as $event)
                             <div class="border-l-4 border-purple-500 pl-3 py-2">
