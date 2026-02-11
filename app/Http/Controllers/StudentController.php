@@ -39,161 +39,280 @@ class StudentController extends Controller
         return view('students.my', compact('students'));
     }
 
-    // StudentController.php मा dashboard() method यसरी सरल बनाउनुहोस्:
-
+    /**
+     * 🔥 PERMANENT FIX: विद्यार्थी ड्यासबोर्ड (सबै विधिहरू प्रयोग गरेर)
+     */
     public function dashboard()
     {
         try {
             $user = Auth::user();
-            $student = $user->student;
 
-            // ✅ CRITICAL FIX: सबै विद्यार्थीलाई dashboard देखाउने
-            // यदि विद्यार्थी प्रोफाइल छैन भने dashboard नै देखाउने तर message सहित
+            // ✅ PERMANENT FIX: 5 वटा तरिकाबाट student record पाउने
+            $student = $this->findStudentRecord($user);
+
+            // यदि student छैन भने पनि dashboard देखाउने
             if (!$student) {
-                return view('student.dashboard', [
-                    'student' => (object)[
-                        'id' => $user->id,
-                        'name' => $user->name,
-                        'email' => $user->email,
-                        'hostel_id' => null,
-                        'room_id' => null
-                    ],
-                    'hostel' => null,
-                    'room' => null,
-                    'todayMeal' => null,
-                    'galleryImages' => collect(),
-                    'notifications' => collect(),
-                    'upcomingEvents' => collect(),
-                    'lastPayment' => null,
-                    'paymentStatus' => 'Unpaid',
-                    'unreadCirculars' => 0,
-                    'recentStudentCirculars' => collect(),
-                    'urgentCirculars' => collect(),
-                    'importantCirculars' => collect(),
-                    'error' => 'विद्यार्थी प्रोफाइल फेला परेन। होस्टेल व्यवस्थापकसँग सम्पर्क गर्नुहोस्।'
+                \Log::warning('Student record not found for user', [
+                    'user_id' => $user->id,
+                    'email' => $user->email,
+                    'name' => $user->name
                 ]);
+
+                return $this->showDashboardWithoutStudent($user);
             }
 
-            // ✅ विद्यार्थी छ भने सबै data लिने
-            $hostel = $student->hostel;
-            $room = $student->room;
+            // ✅ Student पाइयो भने पूर्ण data लोड गर्ने
+            return $this->loadFullDashboardData($user, $student);
+        } catch (\Exception $e) {
+            \Log::error('Student dashboard error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
 
-            // Today's meal (यदि hostel छ भने)
-            $todayMeal = null;
-            if ($hostel) {
-                $currentDay = now()->format('l');
-                $todayMeal = MealMenu::where('hostel_id', $hostel->id)
-                    ->where('day_of_week', $currentDay)
-                    ->first();
+            return $this->showErrorDashboard($user ?? null, 'डाटा लोड गर्न असफल भयो: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * 🔥 HELPER: Student record पाउने 5 वटा तरिका
+     */
+    private function findStudentRecord($user)
+    {
+        // Method 1: Relationship बाट
+        if (method_exists($user, 'student') && $user->student) {
+            return $user->student;
+        }
+
+        // Method 2: Direct query (user_id)
+        $student = \App\Models\Student::where('user_id', $user->id)->first();
+        if ($student) {
+            return $student;
+        }
+
+        // Method 3: Email द्वारा
+        $student = \App\Models\Student::where('email', $user->email)->first();
+        if ($student) {
+            // Auto-fix: user_id सेट गर्ने
+            $student->user_id = $user->id;
+            $student->save();
+            return $student;
+        }
+
+        // Method 4: Phone द्वारा
+        if (!empty($user->phone)) {
+            $student = \App\Models\Student::where('phone', $user->phone)->first();
+            if ($student) {
+                $student->user_id = $user->id;
+                $student->save();
+                return $student;
             }
+        }
 
-            // Gallery images
-            $galleryImages = Gallery::where('is_active', true)
-                ->take(4)
-                ->get();
+        // Method 5: Name द्वारा (partial match)
+        $student = \App\Models\Student::where('name', 'LIKE', '%' . $user->name . '%')->first();
+        if ($student) {
+            $student->user_id = $user->id;
+            $student->save();
+            return $student;
+        }
 
-            // Last payment
-            $lastPayment = Payment::where('student_id', $student->id)
-                ->latest()
-                ->first();
+        return null;
+    }
 
-            $paymentStatus = 'Unpaid';
-            if ($lastPayment) {
-                $paymentStatus = $lastPayment->status == 'paid' ? 'Paid' : 'Unpaid';
-            }
+    /**
+     * 🔥 HELPER: Student बिना dashboard देखाउने
+     */
+    private function showDashboardWithoutStudent($user)
+    {
+        // होस्टेल owner ले register गरेको student record खोज्ने
+        $studentByEmail = \App\Models\Student::where('email', $user->email)->first();
 
-            // Circular data
-            $unreadCirculars = 0;
-            $recentStudentCirculars = collect();
-            $urgentCirculars = collect();
-            $importantCirculars = collect();
+        if ($studentByEmail) {
+            // Student record छ तर user_id सेट छैन
+            $studentByEmail->user_id = $user->id;
+            $studentByEmail->save();
 
-            if (class_exists('App\Models\Circular') && class_exists('App\Models\CircularRecipient')) {
-                try {
-                    $userId = $user->id;
-                    $circularIds = CircularRecipient::where('user_id', $userId)
-                        ->pluck('circular_id');
+            // अब पूर्ण data लोड गर्ने
+            return $this->loadFullDashboardData($user, $studentByEmail);
+        }
 
-                    if ($circularIds->count() > 0) {
-                        $unreadCirculars = CircularRecipient::where('user_id', $userId)
-                            ->where('is_read', false)
-                            ->count();
+        // Temporary student object बनाउने
+        $tempStudent = (object)[
+            'id' => null,
+            'user_id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'phone' => $user->phone,
+            'hostel_id' => null,
+            'room_id' => null,
+            'is_temp' => true
+        ];
 
-                        $recentStudentCirculars = Circular::whereIn('id', $circularIds)
-                            ->where('status', 'published')
-                            ->where(function ($query) {
-                                $query->whereNull('published_at')
-                                    ->orWhere('published_at', '<=', now());
-                            })
-                            ->where(function ($query) {
-                                $query->whereNull('expires_at')
-                                    ->orWhere('expires_at', '>', now());
-                            })
-                            ->with(['creator', 'organization'])
-                            ->latest()
-                            ->take(5)
-                            ->get();
+        return view('student.dashboard', [
+            'student' => $tempStudent,
+            'hostel' => null,
+            'room' => null,
+            'todayMeal' => null,
+            'galleryImages' => collect(),
+            'notifications' => collect(),
+            'upcomingEvents' => collect(),
+            'lastPayment' => null,
+            'paymentStatus' => 'Unpaid',
+            'unreadCirculars' => 0,
+            'recentStudentCirculars' => collect(),
+            'urgentCirculars' => collect(),
+            'importantCirculars' => collect(),
+            'error' => 'विद्यार्थी प्रोफाइल लोड गर्न असफल भयो। होस्टेल व्यवस्थापकसँग सम्पर्क गर्नुहोस्।'
+        ]);
+    }
 
-                        $urgentCirculars = Circular::whereIn('id', $circularIds)
-                            ->where('status', 'published')
-                            ->where('priority', 'urgent')
-                            ->where(function ($query) {
-                                $query->whereNull('published_at')
-                                    ->orWhere('published_at', '<=', now());
-                            })
-                            ->where(function ($query) {
-                                $query->whereNull('expires_at')
-                                    ->orWhere('expires_at', '>', now());
-                            })
-                            ->with(['creator', 'organization'])
-                            ->latest()
-                            ->take(3)
-                            ->get();
-
-                        $importantCirculars = $urgentCirculars;
-                    }
-                } catch (\Exception $e) {
-                    \Log::error('Circular data fetching error: ' . $e->getMessage());
+    /**
+     * 🔥 HELPER: पूर्ण dashboard data लोड गर्ने
+     */
+    private function loadFullDashboardData($user, $student)
+    {
+        // Hostel लोड गर्ने
+        $hostel = null;
+        if ($student->hostel_id) {
+            $hostel = \App\Models\Hostel::find($student->hostel_id);
+        } else {
+            // Emergency: User को hostel_id बाट खोज्ने
+            if ($user->hostel_id) {
+                $hostel = \App\Models\Hostel::find($user->hostel_id);
+                if ($hostel) {
+                    // Student record update गर्ने
+                    $student->hostel_id = $hostel->id;
+                    $student->save();
                 }
             }
-
-            // Other data
-            $notifications = collect();
-            $upcomingEvents = collect();
-
-            // ✅ सबै विद्यार्थीलाई dashboard देखाउने
-            return view('student.dashboard', compact(
-                'student',
-                'hostel',
-                'room',
-                'todayMeal',
-                'galleryImages',
-                'notifications',
-                'upcomingEvents',
-                'lastPayment',
-                'paymentStatus',
-                'unreadCirculars',
-                'recentStudentCirculars',
-                'urgentCirculars',
-                'importantCirculars'
-            ));
-        } catch (\Exception $e) {
-            \Log::error('Student dashboard error: ' . $e->getMessage());
-
-            // Error भएमा पनि dashboard नै देखाउने
-            $user = Auth::user();
-            return view('student.dashboard', [
-                'student' => (object)[
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email
-                ],
-                'hostel' => null,
-                'room' => null,
-                'todayMeal' => null,
-                'error' => 'डाटा लोड गर्न असफल भयो'
-            ]);
         }
+
+        // Room लोड गर्ने
+        $room = null;
+        if ($student->room_id) {
+            $room = \App\Models\Room::find($student->room_id);
+        }
+
+        // Today's meal
+        $todayMeal = null;
+        if ($hostel) {
+            $currentDay = now()->format('l');
+            $todayMeal = \App\Models\MealMenu::where('hostel_id', $hostel->id)
+                ->where('day_of_week', $currentDay)
+                ->first();
+        }
+
+        // Gallery images
+        $galleryImages = \App\Models\Gallery::where('is_active', true)
+            ->take(4)
+            ->get();
+
+        // Last payment
+        $lastPayment = \App\Models\Payment::where('student_id', $student->id)
+            ->latest()
+            ->first();
+
+        $paymentStatus = 'Unpaid';
+        if ($lastPayment) {
+            $paymentStatus = $lastPayment->status == 'paid' ? 'Paid' : 'Unpaid';
+        }
+
+        // Circular data
+        $unreadCirculars = 0;
+        $recentStudentCirculars = collect();
+        $urgentCirculars = collect();
+        $importantCirculars = collect();
+
+        if (class_exists('App\Models\Circular') && class_exists('App\Models\CircularRecipient')) {
+            try {
+                $userId = $user->id;
+                $circularIds = \App\Models\CircularRecipient::where('user_id', $userId)
+                    ->pluck('circular_id');
+
+                if ($circularIds->count() > 0) {
+                    $unreadCirculars = \App\Models\CircularRecipient::where('user_id', $userId)
+                        ->where('is_read', false)
+                        ->count();
+
+                    $recentStudentCirculars = \App\Models\Circular::whereIn('id', $circularIds)
+                        ->where('status', 'published')
+                        ->where(function ($query) {
+                            $query->whereNull('published_at')
+                                ->orWhere('published_at', '<=', now());
+                        })
+                        ->where(function ($query) {
+                            $query->whereNull('expires_at')
+                                ->orWhere('expires_at', '>', now());
+                        })
+                        ->with(['creator', 'organization'])
+                        ->latest()
+                        ->take(5)
+                        ->get();
+
+                    $urgentCirculars = \App\Models\Circular::whereIn('id', $circularIds)
+                        ->where('status', 'published')
+                        ->where('priority', 'urgent')
+                        ->where(function ($query) {
+                            $query->whereNull('published_at')
+                                ->orWhere('published_at', '<=', now());
+                        })
+                        ->where(function ($query) {
+                            $query->whereNull('expires_at')
+                                ->orWhere('expires_at', '>', now());
+                        })
+                        ->with(['creator', 'organization'])
+                        ->latest()
+                        ->take(3)
+                        ->get();
+
+                    $importantCirculars = $urgentCirculars;
+                }
+            } catch (\Exception $e) {
+                \Log::error('Circular data error: ' . $e->getMessage());
+            }
+        }
+
+        // Other data
+        $notifications = collect();
+        $upcomingEvents = collect();
+
+        // Dashboard view return गर्ने
+        return view('student.dashboard', compact(
+            'student',
+            'hostel',
+            'room',
+            'todayMeal',
+            'galleryImages',
+            'notifications',
+            'upcomingEvents',
+            'lastPayment',
+            'paymentStatus',
+            'unreadCirculars',
+            'recentStudentCirculars',
+            'urgentCirculars',
+            'importantCirculars'
+        ));
+    }
+
+    /**
+     * 🔥 HELPER: Error dashboard देखाउने
+     */
+    private function showErrorDashboard($user, $errorMessage)
+    {
+        if (!$user) {
+            $user = Auth::user();
+        }
+
+        return view('student.dashboard', [
+            'student' => (object)[
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email
+            ],
+            'hostel' => null,
+            'room' => null,
+            'todayMeal' => null,
+            'error' => $errorMessage
+        ]);
     }
 
 

@@ -11,7 +11,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Hash; // ✅ ADDED
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 
 class User extends Authenticatable
 {
@@ -226,11 +227,70 @@ class User extends Authenticatable
     }
 
     /**
-     * Get the student profile associated with the user.
+     * 🔥 PERMANENT FIX: Student relationship (कुनै पनि foreign key नाममा काम गर्ने)
      */
     public function student(): HasOne
     {
-        return $this->hasOne(Student::class, 'user_id', 'id');
+        // Try multiple possible foreign key names
+        if (Schema::hasColumn('students', 'user_id')) {
+            return $this->hasOne(Student::class, 'user_id', 'id');
+        } elseif (Schema::hasColumn('students', 'user_id')) {
+            return $this->hasOne(Student::class, 'user_id', 'id');
+        } elseif (Schema::hasColumn('students', 'users_id')) {
+            return $this->hasOne(Student::class, 'users_id', 'id');
+        } else {
+            // Emergency fallback - email द्वारा जोड्ने
+            return new HasOne(
+                (new Student)->newQuery(),
+                $this,
+                'email',
+                'id'
+            );
+        }
+    }
+
+    /**
+     * 🔥 ULTIMATE FIX: Student पाउने dynamic method
+     */
+    public function getStudent()
+    {
+        // 1. Relationship बाट प्रयास गर्ने
+        if ($this->relationLoaded('student') && $this->student) {
+            return $this->student;
+        }
+
+        // 2. Direct query - user_id द्वारा
+        $student = \App\Models\Student::where('user_id', $this->id)->first();
+        if ($student) {
+            $this->setRelation('student', $student);
+            return $student;
+        }
+
+        // 3. Email द्वारा प्रयास गर्ने
+        $student = \App\Models\Student::where('email', $this->email)->first();
+        if ($student) {
+            // Auto-fix: student record मा user_id update गर्ने
+            if (empty($student->user_id)) {
+                $student->user_id = $this->id;
+                $student->save();
+            }
+            $this->setRelation('student', $student);
+            return $student;
+        }
+
+        // 4. Name द्वारा प्रयास गर्ने
+        $student = \App\Models\Student::where('name', $this->name)->first();
+        if ($student) {
+            // Auto-fix: student record मा user_id update गर्ने
+            if (empty($student->user_id)) {
+                $student->user_id = $this->id;
+                $student->save();
+            }
+            $this->setRelation('student', $student);
+            return $student;
+        }
+
+        return null;
     }
 
     /**

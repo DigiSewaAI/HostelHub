@@ -55,6 +55,7 @@ class Kernel extends HttpKernel
         'student' => [
             'auth',
             'role:student',
+            'check.booking', // ✅ Added student booking validation
         ],
     ];
 
@@ -85,12 +86,12 @@ class Kernel extends HttpKernel
         'role.multiple' => \App\Http\Middleware\RoleMiddleware::class,
         'admin' => \App\Http\Middleware\AdminMiddleware::class,
 
-        // 🆕 FIX: Both aliases for the same middleware
+        // Permission Checking Middlewares
         'check.permission' => \App\Http\Middleware\CheckPermission::class,
         'check.permission.middleware' => \App\Http\Middleware\CheckPermission::class, // Alternative alias
         'check.role.or.permission' => \App\Http\Middleware\CheckRoleOrPermission::class,
 
-        // 🆕 NEW: Dashboard Access Middleware
+        // Dashboard Access Middleware
         'check.dashboard' => \App\Http\Middleware\CheckDashboardAccess::class,
 
         // Subscription & Plan Middlewares
@@ -111,12 +112,21 @@ class Kernel extends HttpKernel
         'localize' => \App\Http\Middleware\Localize::class,
         'security.headers' => \App\Http\Middleware\SecurityHeaders::class,
 
-        // ✅ NEW: Student Booking Validation Middleware
+        // Student Middlewares
         'check.booking' => \App\Http\Middleware\CheckStudentBooking::class,
+
+        // 🔥 NEW: Student-User Relationship Fix Middleware
+        'ensure.student.record' => \App\Http\Middleware\EnsureStudentRecord::class,
+
+        // 🔥 NEW: Emergency Fix Middleware for Sarita
+        // 'emergency.fix' => \App\Http\Middleware\EmergencyRelationshipFix::class,
     ];
 
     /**
      * The application's route middleware.
+     * 
+     * @deprecated Use $middlewareAliases instead in Laravel 10+
+     * Keeping for backward compatibility
      */
     protected $routeMiddleware = [
         // Laravel Default Middlewares
@@ -142,12 +152,12 @@ class Kernel extends HttpKernel
         'role.multiple' => \App\Http\Middleware\RoleMiddleware::class,
         'admin' => \App\Http\Middleware\AdminMiddleware::class,
 
-        // 🆕 FIX: Both aliases for the same middleware
+        // Permission Checking Middlewares
         'check.permission' => \App\Http\Middleware\CheckPermission::class,
-        'check.permission.middleware' => \App\Http\Middleware\CheckPermission::class, // Alternative alias
+        'check.permission.middleware' => \App\Http\Middleware\CheckPermission::class,
         'check.role.or.permission' => \App\Http\Middleware\CheckRoleOrPermission::class,
 
-        // 🆕 NEW: Dashboard Access Middleware
+        // Dashboard Access Middleware
         'check.dashboard' => \App\Http\Middleware\CheckDashboardAccess::class,
 
         // Subscription & Plan Middlewares
@@ -168,8 +178,14 @@ class Kernel extends HttpKernel
         'localize' => \App\Http\Middleware\Localize::class,
         'security.headers' => \App\Http\Middleware\SecurityHeaders::class,
 
-        // ✅ NEW: Student Booking Validation Middleware
+        // Student Middlewares
         'check.booking' => \App\Http\Middleware\CheckStudentBooking::class,
+
+        // 🔥 NEW: Student-User Relationship Fix Middleware
+        'ensure.student.record' => \App\Http\Middleware\EnsureStudentRecord::class,
+
+        // 🔥 NEW: Emergency Fix Middleware for Sarita
+        //'emergency.fix' => \App\Http\Middleware\EmergencyRelationshipFix::class,
     ];
 
     /**
@@ -179,7 +195,10 @@ class Kernel extends HttpKernel
      */
     protected $commands = [
         \App\Console\Commands\SyncRoomsOccupancy::class,
-        // ✅ NEW: Add gallery refresh command to Http Kernel
         \App\Console\Commands\RefreshGalleryCache::class,
+        // 🔥 NEW: Add relationship fix command
+        //\App\Console\Commands\FixStudentRelationships::class,
+        // 🔥 NEW: Add auto-link students command
+        \App\Console\Commands\AutoLinkStudentRecords::class,
     ];
 }

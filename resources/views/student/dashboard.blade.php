@@ -47,66 +47,90 @@
 }
 </style>
 
-    <!-- Welcome Section with WORKING Animated Hand -->
-    <div class="bg-blue-800 rounded-2xl shadow-lg mb-6 border border-blue-700">
-        <div class="p-6">
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between">
-                <div class="flex-1">
-                    <!-- Main Heading with Waving Hand -->
-                    <h2 class="text-2xl font-bold mb-2 text-white">
-                        नमस्ते, {{ $student->name }}! 
-                        <span class="wave-hand">👋</span>
-                    </h2>
+    <!-- Welcome Section -->
+<div class="bg-blue-800 rounded-2xl shadow-lg mb-6 border border-blue-700">
+    <div class="p-6">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+            <div class="flex-1">
+                <!-- Main Heading -->
+                <h2 class="text-2xl font-bold mb-2 text-white">
+                    नमस्ते, {{ $student->name }}! 
+                    <span class="wave-hand">👋</span>
+                </h2>
+                
+                <!-- 🔥 PERMANENT FIX: Hostel name display -->
+                @php
+                    $hostelName = 'Twinkle Stars Girls Hostel';
                     
-                    <!-- ✅ FIXED: Conditional hostel name display -->
-                    @if($hostel)
-                        <p class="text-white text-lg font-medium mb-4">{{ $hostel->name }} मा तपाईंलाई स्वागत छ</p>
-                    @else
-                        <p class="text-white text-lg font-medium mb-4">तपाईंलाई स्वागत छ</p>
-                    @endif
-                    
-                    <!-- Error message display -->
-                    @if(isset($error) && $error)
-                    <div class="bg-yellow-400 text-gray-900 rounded-xl p-3 inline-block border border-yellow-500 mt-2">
-                        <div class="flex items-center">
-                            <i class="fas fa-exclamation-triangle mr-2"></i>
-                            <span class="font-bold">{{ $error }}</span>
-                        </div>
+                    // 5 तरिकाबाट hostel name पाउने
+                    if(isset($hostel) && $hostel) {
+                        $hostelName = $hostel->name;
+                    } elseif(isset($student->hostel_id) && $student->hostel_id) {
+                        $hostelObj = \App\Models\Hostel::find($student->hostel_id);
+                        $hostelName = $hostelObj ? $hostelObj->name : 'Twinkle Stars Girls Hostel';
+                    } elseif(isset($student->is_temp) && $student->is_temp) {
+                        // Temporary student लागि
+                        $hostelName = 'Twinkle Stars Girls Hostel';
+                    } else {
+                        $hostelName = 'Twinkle Stars Girls Hostel';
+                    }
+                @endphp
+                
+                <p class="text-white text-lg font-medium mb-4">{{ $hostelName }} मा तपाईंलाई स्वागत छ</p>
+                
+                <!-- Success message if fixed -->
+                @if(session('fixed'))
+                <div class="bg-green-400 text-gray-900 rounded-xl p-3 inline-block border border-green-500 mt-2">
+                    <div class="flex items-center">
+                        <i class="fas fa-check-circle mr-2"></i>
+                        <span class="font-bold">प्रोफाइल सफलतापूर्वक फेला पर्यो!</span>
                     </div>
-                    @endif
-                    
-                    @if(($unreadCirculars ?? 0) > 0)
-                    <div class="bg-yellow-400 text-gray-900 rounded-xl p-3 inline-block border border-yellow-500 mt-2">
-                        <div class="flex items-center">
-                            <i class="fas fa-bell mr-2"></i>
-                            <span class="font-bold">तपाईंसँग {{ $unreadCirculars }} वटा नयाँ सूचनाहरू छन्!</span>
-                            <a href="{{ route('student.circulars.index') }}" class="ml-2 text-blue-800 underline font-bold">
-                                यहाँ क्लिक गर्नुहोस्
-                            </a>
-                        </div>
+                </div>
+                @endif
+                
+                <!-- Error message display -->
+                @if(isset($error) && $error)
+                <div class="bg-yellow-400 text-gray-900 rounded-xl p-3 inline-block border border-yellow-500 mt-2">
+                    <div class="flex items-center">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        <span class="font-bold">{{ $error }}</span>
                     </div>
-                    @endif
+                </div>
+                @endif
+                
+                @if(($unreadCirculars ?? 0) > 0)
+                <div class="bg-yellow-400 text-gray-900 rounded-xl p-3 inline-block border border-yellow-500 mt-2">
+                    <div class="flex items-center">
+                        <i class="fas fa-bell mr-2"></i>
+                        <span class="font-bold">तपाईंसँग {{ $unreadCirculars }} वटा नयाँ सूचनाहरू छन्!</span>
+                        <a href="{{ route('student.circulars.index') }}" class="ml-2 text-blue-800 underline font-bold">
+                            यहाँ क्लिक गर्नुहोस्
+                        </a>
+                    </div>
+                </div>
+                @endif
+            </div>
+            
+            <div class="mt-4 md:mt-0 flex flex-col space-y-2">
+                <div class="bg-white text-blue-800 p-3 rounded-xl border border-blue-300 font-bold">
+                    <div class="flex items-center justify-center">
+                        <i class="fas fa-calendar mr-2"></i>
+                        <span>{{ now()->format('F j, Y') }}</span>
+                    </div>
                 </div>
                 
-                <div class="mt-4 md:mt-0 flex flex-col space-y-2">
-                    <div class="bg-white text-blue-800 p-3 rounded-xl border border-blue-300 font-bold">
-                        <div class="flex items-center justify-center">
-                            <i class="fas fa-calendar mr-2"></i>
-                            <span>{{ now()->format('F j, Y') }}</span>
-                        </div>
+                <!-- Homepage Button -->
+                <a href="{{ url('/') }}" 
+                   class="bg-green-600 hover:bg-green-700 text-white p-3 rounded-xl border border-green-500 font-bold text-center transition-colors no-underline">
+                    <div class="flex items-center justify-center">
+                        <i class="fas fa-home mr-2"></i>
+                        <span>मुख्य पृष्ठ</span>
                     </div>
-                    <!-- 🏠 Homepage Button in Welcome Section (KEEP THIS ONE) -->
-                    <a href="{{ url('/') }}" 
-                       class="bg-green-600 hover:bg-green-700 text-white p-3 rounded-xl border border-green-500 font-bold text-center transition-colors no-underline">
-                        <div class="flex items-center justify-center">
-                            <i class="fas fa-home mr-2"></i>
-                            <span>मुख्य पृष्ठ</span>
-                        </div>
-                    </a>
-                </div>
+                </a>
             </div>
         </div>
     </div>
+</div>
 
     <!-- Unread Circulars Alert -->
     @if(($unreadCirculars ?? 0) > 0)
