@@ -20,7 +20,6 @@ class LoginController extends Controller
             return view('auth.login');
         } catch (\Exception $e) {
             Log::error('Login form error: ' . $e->getMessage());
-            // Emergency fallback - return simple login form
             return view('auth.login', ['error' => 'Temporary issue loading login form']);
         }
     }
@@ -38,8 +37,6 @@ class LoginController extends Controller
 
             if (Auth::attempt($credentials, $request->boolean('remember'))) {
                 $request->session()->regenerate();
-
-                // ✅ FIXED: Use the authenticated method for proper redirect
                 return $this->authenticated($request, Auth::user());
             }
 
@@ -48,29 +45,44 @@ class LoginController extends Controller
             ])->onlyInput('email');
         } catch (\Exception $e) {
             Log::error('Login process error: ' . $e->getMessage());
-
             return back()->withErrors([
                 'email' => 'Login failed due to system error. Please try again.',
             ])->onlyInput('email');
         }
     }
 
-    // ✅ FIXED: Add authenticated method for post-login redirect with intended
+    /**
+     * ✅ FIXED: Post-login redirect with proper student check
+     */
     protected function authenticated(Request $request, $user)
     {
         try {
             // Set organization session
             $this->setOrganizationSession($user);
 
-            // ✅ FIX: विद्यार्थी भएमा सिधै student.dashboard मा जाने
+            // 🟢 STUDENT: Check if active + hostel assigned
             if ($user->hasRole('student')) {
-                return redirect()->route('student.dashboard');
+                $student = $user->student; // User model बाट student लिने
+
+                if ($student && $student->status === 'active' && $student->hostel_id !== null) {
+                    Log::info('LoginController: Student with active hostel → dashboard', [
+                        'user_id' => $user->id
+                    ]);
+                    return redirect()->intended(route('student.dashboard'));
+                }
+
+                Log::info('LoginController: Student without active hostel → welcome', [
+                    'user_id' => $user->id
+                ]);
+                return redirect()->intended(route('student.welcome'));
             }
-            // Owner/Manager भएमा
+
+            // 🟠 OWNER / HOSTEL MANAGER
             elseif ($user->hasRole('hostel_manager') || $user->hasRole('owner')) {
                 return redirect()->intended(route('owner.dashboard'));
             }
-            // Admin भएमा
+
+            // 🔴 ADMIN
             elseif ($user->hasRole('admin')) {
                 return redirect()->intended(route('admin.dashboard'));
             }
@@ -82,33 +94,26 @@ class LoginController extends Controller
         }
     }
 
-
-    protected function redirectPath()
-    {
-        try {
-            return $this->redirectTo();
-        } catch (\Exception $e) {
-            Log::error('Redirect path error: ' . $e->getMessage());
-            return '/';
-        }
-    }
-
-    // FIXED: Set organization session and proper role checking
+    /**
+     * Fallback redirect path (if needed)
+     */
     protected function redirectTo()
     {
         try {
             $user = Auth::user();
 
-            // Set organization session first
             $this->setOrganizationSession($user);
 
-            // Use role relationship properly
-            if ($user->hasRole('admin')) {
-                return '/admin/dashboard';
+            if ($user->hasRole('student')) {
+                $student = $user->student;
+                if ($student && $student->status === 'active' && $student->hostel_id !== null) {
+                    return route('student.dashboard');
+                }
+                return route('student.welcome');
             } elseif ($user->hasRole('hostel_manager') || $user->hasRole('owner')) {
-                return '/owner/dashboard';
-            } elseif ($user->hasRole('student')) {
-                return '/student/dashboard';
+                return route('owner.dashboard');
+            } elseif ($user->hasRole('admin')) {
+                return route('admin.dashboard');
             }
 
             return '/';
@@ -124,12 +129,10 @@ class LoginController extends Controller
     protected function setOrganizationSession($user)
     {
         try {
-            // If session already has organization, no need to set again
             if (session('current_organization_id')) {
                 return;
             }
 
-            // Get user's organization from database
             $orgUser = DB::table('organization_user')
                 ->where('user_id', $user->id)
                 ->first();
@@ -140,11 +143,12 @@ class LoginController extends Controller
             }
         } catch (\Exception $e) {
             Log::error('Set organization session error: ' . $e->getMessage());
-            // Continue without organization session - don't break login
         }
     }
 
-    // ✅ FIXED: Simplified logout method with error handling
+    /**
+     * Logout the user
+     */
     public function logout(Request $request)
     {
         try {
@@ -156,7 +160,6 @@ class LoginController extends Controller
             return redirect('/');
         } catch (\Exception $e) {
             Log::error('Logout error: ' . $e->getMessage());
-            // Even if logout fails, try to redirect
             return redirect('/');
         }
     }

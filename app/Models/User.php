@@ -49,7 +49,7 @@ class User extends Authenticatable
 
     protected $casts = [
         'email_verified_at' => 'datetime',
-        // ❌ REMOVED: 'password' => 'hashed', // 🔥 THIS WAS THE PROBLEM
+        'password' => 'hashed',
         'email_notifications' => 'boolean',
         'sms_notifications' => 'boolean',
         'booking_alerts' => 'boolean',
@@ -58,17 +58,6 @@ class User extends Authenticatable
         'trial_ends_at' => 'datetime'
     ];
 
-    /**
-     * ✅ ADDED: Clean Password Mutator (Fixes the NULL hashing issue)
-     */
-    public function setPasswordAttribute($value)
-    {
-        if ($value === null || $value === '') {
-            $this->attributes['password'] = null;
-        } else {
-            $this->attributes['password'] = Hash::make($value);
-        }
-    }
 
     /**
      * ✅ NEW: Boot method for auto-linking guest bookings

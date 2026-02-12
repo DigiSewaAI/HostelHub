@@ -2,14 +2,14 @@
 
 use App\Http\Controllers\Auth\{
     RegisteredUserController,
-    LoginController,
     PasswordResetLinkController,
     NewPasswordController,
     EmailVerificationPromptController,
     VerifyEmailController,
     EmailVerificationNotificationController,
     PasswordController,
-    ConfirmablePasswordController
+    ConfirmablePasswordController,
+    AuthenticatedSessionController // ✅ ADDED
 };
 use App\Http\Controllers\ProfileController;
 
@@ -22,18 +22,11 @@ Route::middleware('guest')->group(function () {
     Route::get('/register', [RegisteredUserController::class, 'create'])->name('register');
     Route::post('/register', [RegisteredUserController::class, 'store'])->name('register.submit');
 
-    // Login routes
-    Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
-    Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
-
-    // Password reset routes
+    // Password reset routes (same as before)
     Route::get('/forgot-password', [PasswordResetLinkController::class, 'create'])->name('password.request');
     Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])->name('password.email');
     Route::get('/reset-password/{token}', [NewPasswordController::class, 'create'])->name('password.reset');
-    
-    // ✅ FIXED: Route name changed to 'password.reset.store' to avoid conflict
-    Route::post('/reset-password', [NewPasswordController::class, 'store'])
-        ->name('password.reset.store');
+    Route::post('/reset-password', [NewPasswordController::class, 'store'])->name('password.reset.store');
 
     // Email verification routes
     Route::get('/verify-email', [EmailVerificationPromptController::class, '__invoke'])->name('verification.notice');
@@ -49,13 +42,12 @@ Route::middleware('guest')->group(function () {
 | Global Logout Route
 |--------------------------------------------------------------------------
 */
-Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout'); // ✅ FIXED: Logout पनि same controller
 
 /*|--------------------------------------------------------------------------
 | Password Management
 |--------------------------------------------------------------------------
 */
-// ✅ This stays as PUT for logged-in users updating their password
 Route::put('/password', [PasswordController::class, 'update'])->name('password.update');
 Route::get('/confirm-password', [ConfirmablePasswordController::class, 'show'])->name('password.confirm');
 Route::post('/confirm-password', [ConfirmablePasswordController::class, 'store'])->name('password.confirm.store');

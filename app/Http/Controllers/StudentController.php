@@ -50,25 +50,28 @@ class StudentController extends Controller
             // ✅ PERMANENT FIX: 5 वटा तरिकाबाट student record पाउने
             $student = $this->findStudentRecord($user);
 
-            // यदि student छैन भने पनि dashboard देखाउने
-            if (!$student) {
-                \Log::warning('Student record not found for user', [
+            // 🔥 CRITICAL FIX: यदि student छैन, वा status active छैन, वा hostel_id null छ भने → WELCOME PAGE
+            if (!$student || $student->status !== 'active' || $student->hostel_id === null) {
+                \Log::info('Student dashboard redirect: No active hostel assignment', [
                     'user_id' => $user->id,
-                    'email' => $user->email,
-                    'name' => $user->name
+                    'student_exists' => !is_null($student),
+                    'status' => $student?->status,
+                    'hostel_id' => $student?->hostel_id,
                 ]);
 
-                return $this->showDashboardWithoutStudent($user);
+                return redirect()->route('student.welcome')
+                    ->with('error', 'तपाईंलाई कुनै होस्टेल असाइन गरिएको छैन।');
             }
 
-            // ✅ Student पाइयो भने पूर्ण data लोड गर्ने
+            // ✅ यहाँ मात्र पूर्ण ड्यासबोर्ड डाटा लोड गर्ने (active + hostel assigned)
             return $this->loadFullDashboardData($user, $student);
         } catch (\Exception $e) {
             \Log::error('Student dashboard error: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString()
             ]);
 
-            return $this->showErrorDashboard($user ?? null, 'डाटा लोड गर्न असफल भयो: ' . $e->getMessage());
+            return redirect()->route('student.welcome')
+                ->with('error', 'ड्यासबोर्ड लोड गर्न असफल भयो।');
         }
     }
 

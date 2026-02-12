@@ -10,28 +10,29 @@ use App\Http\Controllers\Student\CircularController as StudentCircularController
 use App\Http\Controllers\Admin\DocumentController;
 use App\Http\Controllers\WelcomeController;
 
-
 /*|--------------------------------------------------------------------------
 | Student Routes - ONLY for student role
 |--------------------------------------------------------------------------
 */
 
-Route::prefix('student')  // ✅ YO LINE THAPNUHOS
+Route::prefix('student')
     ->middleware(['auth', 'role:student'])
     ->name('student.')
     ->group(function () {
-        // Student Dashboard
-        Route::get('/dashboard', [StudentController::class, 'dashboard'])->name('dashboard');
+
+        // ✅ Student Dashboard – Protected with hostel assignment check
+        Route::get('/dashboard', [StudentController::class, 'dashboard'])
+            ->name('dashboard');
 
         // Student Profile
         Route::get('/profile', [StudentController::class, 'profile'])->name('profile');
         Route::patch('/profile/update', [StudentController::class, 'updateProfile'])->name('profile.update');
 
-        // ✅ NEW: Student's Room Routes
+        // Student's Room Routes
         Route::get('/my-room', [StudentController::class, 'myRoom'])->name('my-room');
         Route::post('/report-room-issue', [StudentController::class, 'reportRoomIssue'])->name('report-room-issue');
 
-        // ✅ FIXED: Payments routes with ALL missing routes
+        // Payments routes
         Route::prefix('payments')->name('payments.')->group(function () {
             Route::get('/', [PaymentController::class, 'studentPayments'])->name('index');
             Route::get('/{paymentId}/receipt', [PaymentController::class, 'showReceipt'])->name('receipt');
@@ -64,7 +65,7 @@ Route::prefix('student')  // ✅ YO LINE THAPNUHOS
             Route::get('/hostel/{hostelId}', [StudentReviewController::class, 'hostelReviews'])->name('hostel');
         });
 
-        // ✅ FIXED: Bookings routes with ALL variations
+        // Bookings routes
         Route::get('/bookings', [BookingController::class, 'index'])->name('bookings.index');
         Route::get('/booking', [BookingController::class, 'index'])->name('booking.index');
         Route::get('/bookings/create', [BookingController::class, 'create'])->name('bookings.create');
@@ -72,7 +73,7 @@ Route::prefix('student')  // ✅ YO LINE THAPNUHOS
         Route::get('/bookings/{id}', [BookingController::class, 'show'])->name('bookings.show');
         Route::post('/bookings/{id}/cancel', [BookingController::class, 'cancel'])->name('bookings.cancel');
 
-        // ✅ FIXED: Student Circular Routes
+        // Student Circular Routes
         Route::prefix('circulars')->name('circulars.')->group(function () {
             Route::get('/', [StudentCircularController::class, 'index'])->name('index');
             Route::get('/{circular}', [StudentCircularController::class, 'show'])->name('show');
@@ -85,7 +86,7 @@ Route::prefix('student')  // ✅ YO LINE THAPNUHOS
             Route::get('/category/{category}', [StudentCircularController::class, 'filterByCategory'])->name('filter.category');
         });
 
-        // ✅ FIXED: Student Document Management Routes
+        // Student Document Management Routes
         Route::prefix('documents')->name('documents.')->group(function () {
             Route::get('/', [DocumentController::class, 'index'])->name('index');
             Route::get('/create', [DocumentController::class, 'create'])->name('create');
@@ -104,14 +105,14 @@ Route::prefix('student')  // ✅ YO LINE THAPNUHOS
         Route::get('/notifications', [StudentController::class, 'notifications'])->name('notifications');
         Route::post('/maintenance-request', [StudentController::class, 'submitMaintenance'])->name('maintenance.submit');
 
-        // ✅ FIXED: Circular notifications
+        // Circular notifications
         Route::get('/circulars/notifications/latest', [StudentCircularController::class, 'getLatestCirculars'])->name('circulars.notifications.latest');
         Route::post('/circulars/notifications/mark-all-read', [StudentCircularController::class, 'markAllAsRead'])->name('circulars.notifications.mark-all-read');
 
-        // student.php file मा यो route थप्नुहोस्:
+        // ✅ Student Welcome Page (accessible without hostel assignment)
         Route::get('/welcome', [WelcomeController::class, 'showWelcome'])->name('welcome');
 
-        // ✅ FIXED: Bank transfer request route
+        // Bank transfer request (fallback)
         Route::get('/payment/bank-transfer-request', function () {
             return redirect()->route('student.payments.index')
                 ->with('info', 'बैंक हस्तान्तरणको सुविधा चाँडै उपलब्ध हुनेछ।');

@@ -19,7 +19,6 @@ use App\Http\Controllers\StudentController;
 use App\Http\Controllers\Student\StudentReviewController;
 use App\Http\Controllers\Student\StudentCircularController;
 use App\Http\Controllers\DocumentController;
-
 // Force HTTPS in production
 if (app()->environment('production')) {
     URL::forceScheme('https');
@@ -58,8 +57,8 @@ Route::get('/booking-success/{id}', [PublicController::class, 'bookingSuccessNew
 // ✅ Basic pages
 Route::get('/pricing', [PricingController::class, 'index'])->name('pricing');
 
-Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
-Route::post('/login', [LoginController::class, 'login']);
+Route::get('/login', [\App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'create'])->name('login');
+Route::post('/login', [App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'store'])->name('login');
 Route::get('/register', [RegisterController::class, 'showUserRegistrationForm'])->name('register');
 
 /*|--------------------------------------------------------------------------

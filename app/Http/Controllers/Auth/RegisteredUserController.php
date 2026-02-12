@@ -68,7 +68,7 @@ class RegisteredUserController extends Controller
 
                 $existingUser->update([
                     'name' => $request->name,
-                    'password' => Hash::make($request->password),
+                    'password' => $request->password,
                     'email_verified_at' => now(),
                     'role_id' => 3,
                 ]);
