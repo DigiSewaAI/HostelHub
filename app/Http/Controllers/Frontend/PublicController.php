@@ -1071,7 +1071,7 @@ class PublicController extends Controller
 
         $hostels = $query->where('status', 'active')->paginate(12);
 
-        return view('frontend.hostel-search', compact('hostels'));
+        return view('frontend.search-results', compact('hostels'));
     }
 
     // Student hostel join functionality
