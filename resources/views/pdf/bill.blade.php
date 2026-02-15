@@ -262,7 +262,6 @@
         </table>
     </div>
     
-    <!-- Rest of the template remains the same -->
     <!-- Title -->
     <div class="title">
         <h1>PAYMENT BILL</h1>
@@ -289,7 +288,7 @@
                 
                 <div class="row">
                     <span class="label">Student ID:</span>
-                    <span class="value">{{ $student->student_id ?? 'N/A' }}</span>
+                    <span class="value">{{ $student->id ?? 'N/A' }}</span>
                 </div>
                 
                 <div class="row">
@@ -313,9 +312,10 @@
                     <span class="value">{{ $student->guardian_name ?? 'N/A' }}</span>
                 </div>
                 
+                <!-- FIX 1: Guardian Contact with fallback guardian_contact -->
                 <div class="row">
                     <span class="label">Guardian Contact:</span>
-                    <span class="value">{{ $student->guardian_phone ?? 'N/A' }}</span>
+                    <span class="value">{{ $student->guardian_phone ?? $student->guardian_contact ?? 'N/A' }}</span>
                 </div>
             </td>
             
@@ -337,9 +337,27 @@
                     <span class="value">{{ \Carbon\Carbon::parse($payment->due_date ?? $payment->payment_date)->format('Y-m-d') }}</span>
                 </div>
                 
+                <!-- FIX 2: Payment Method mapping -->
                 <div class="row">
                     <span class="label">Payment Method:</span>
-                    <span class="value">{{ $payment->payment_method ?? 'N/A' }}</span>
+                    <span class="value">
+                        @php
+                            $methodMap = [
+                                'cash' => 'Cash',
+                                'bank_transfer' => 'Bank Transfer',
+                                'esewa' => 'eSewa',
+                                'khalti' => 'Khalti',
+                                'connectips' => 'Connect IPS',
+                                'credit_card' => 'Credit Card',
+                                'online' => 'Online',
+                                'cheque' => 'Cheque',
+                                'wallet' => 'Wallet',
+                                'other' => 'Other',
+                            ];
+                            $paymentMethod = $methodMap[$payment->payment_method] ?? ucfirst($payment->payment_method ?? 'N/A');
+                        @endphp
+                        {{ $paymentMethod }}
+                    </span>
                 </div>
                 
                 <div class="row">
@@ -350,7 +368,7 @@
                         @else
                             <span class="status" style="background:#fef3c7;color:#92400e">PENDING</span>
                         @endif
-                    </span
+                    </span> <!-- FIX 3: Closing tag added -->
                 </div>
                 
                 <div class="row">

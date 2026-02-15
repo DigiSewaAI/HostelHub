@@ -271,7 +271,7 @@
             
             <div class="detail-row">
                 <span class="detail-label">Student ID:</span>
-                <span class="detail-value">{{ $student->student_id ?? 'N/A' }}</span>
+                <span class="detail-value">{{ $student->id ?? 'N/A' }}</span>
             </div>
             
             <div class="detail-row">
