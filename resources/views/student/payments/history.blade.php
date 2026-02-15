@@ -142,16 +142,22 @@
                                             <div class="d-flex flex-column">
                                                 <strong class="text-dark">भुक्तानी ID: {{ $payment->id }}</strong>
                                                 <small class="text-muted">
-                                                    @if($payment->booking && $payment->booking->room)
-                                                        <i class="fas fa-bed me-1"></i>
-                                                        कोठा {{ $payment->booking->room->room_number ?? 'N/A' }}
-                                                        @if($payment->booking->room->hostel)
-                                                            ({{ $payment->booking->room->hostel->name ?? '' }})
-                                                        @endif
-                                                    @else
-                                                        <i class="fas fa-info-circle me-1"></i>
-                                                        {{ $payment->getPurposeText() }}
+                                                    @if($payment->room)
+                                                    <i class="fas fa-bed me-1"></i>
+                                                    कोठा {{ $payment->room->room_number ?? 'N/A' }}
+                                                    @if($payment->room->hostel)
+                                                        ({{ $payment->room->hostel->name ?? '' }})
                                                     @endif
+                                                @elseif($payment->booking && $payment->booking->room)
+                                                    <i class="fas fa-bed me-1"></i>
+                                                    कोठा {{ $payment->booking->room->room_number ?? 'N/A' }}
+                                                    @if($payment->booking->room->hostel)
+                                                        ({{ $payment->booking->room->hostel->name ?? '' }})
+                                                    @endif
+                                                @else
+                                                    <i class="fas fa-info-circle me-1"></i>
+                                                    {{ $payment->getPurposeText() }}
+                                                @endif
                                                 </small>
                                                         {{-- 🔥 NEW: Initial Payment Badge --}}
                                                         @if($payment->payment_type == 'initial')
@@ -279,23 +285,39 @@
                                                                 </div>
                                                             </div>
                                                             
-                                                            @if($payment->booking)
-                                                            <div class="mt-4 pt-3 border-top">
-                                                                <h6 class="text-muted mb-3">
-                                                                    <i class="fas fa-bed me-2"></i>बुकिंग जानकारी
-                                                                </h6>
-                                                                <div class="row">
-                                                                    <div class="col-md-6">
-                                                                        <small class="text-muted d-block">कोठा:</small>
-                                                                        <strong>{{ $payment->booking->room->room_number ?? 'N/A' }}</strong>
-                                                                    </div>
-                                                                    <div class="col-md-6">
-                                                                        <small class="text-muted d-block">होस्टल:</small>
-                                                                        <strong>{{ $payment->booking->room->hostel->name ?? 'N/A' }}</strong>
+                                                            @if($payment->room || $payment->booking)
+                                                                <div class="mt-4 pt-3 border-top">
+                                                                    <h6 class="text-muted mb-3">
+                                                                        <i class="fas fa-bed me-2"></i>बुकिंग जानकारी
+                                                                    </h6>
+                                                                    <div class="row">
+                                                                        <div class="col-md-6">
+                                                                            <small class="text-muted d-block">कोठा:</small>
+                                                                            <strong>
+                                                                                @if($payment->room)
+                                                                                    {{ $payment->room->room_number ?? 'N/A' }}
+                                                                                @elseif($payment->booking && $payment->booking->room)
+                                                                                    {{ $payment->booking->room->room_number ?? 'N/A' }}
+                                                                                @else
+                                                                                    N/A
+                                                                                @endif
+                                                                            </strong>
+                                                                        </div>
+                                                                        <div class="col-md-6">
+                                                                            <small class="text-muted d-block">होस्टल:</small>
+                                                                            <strong>
+                                                                                @if($payment->room && $payment->room->hostel)
+                                                                                    {{ $payment->room->hostel->name ?? 'N/A' }}
+                                                                                @elseif($payment->booking && $payment->booking->room && $payment->booking->room->hostel)
+                                                                                    {{ $payment->booking->room->hostel->name ?? 'N/A' }}
+                                                                                @else
+                                                                                    N/A
+                                                                                @endif
+                                                                            </strong>
+                                                                        </div>
                                                                     </div>
                                                                 </div>
-                                                            </div>
-                                                            @endif
+                                                                @endif
                                                         </div>
                                                         <div class="modal-footer">
                                                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">बन्द गर्नुहोस्</button>

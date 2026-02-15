@@ -269,7 +269,7 @@
                                     class="mt-1 block w-full border rounded-lg px-3 py-2 focus:ring focus:ring-blue-300">
                                 <option value="">-- छान्नुहोस् --</option>
                                 <option value="cash" {{ old('initial_payment_method') == 'cash' ? 'selected' : '' }}>नगद</option>
-                                <option value="bank" {{ old('initial_payment_method') == 'bank' ? 'selected' : '' }}>बैंक</option>
+                                <option value="bank_transfer" {{ old('initial_payment_method') == 'bank_transfer' ? 'selected' : '' }}>बैंक</option>
                                 <option value="online" {{ old('initial_payment_method') == 'online' ? 'selected' : '' }}>अनलाइन</option>
                                 <option value="cheque" {{ old('initial_payment_method') == 'cheque' ? 'selected' : '' }}>चेक</option>
                             </select>

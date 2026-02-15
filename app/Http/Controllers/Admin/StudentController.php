@@ -609,7 +609,6 @@ class StudentController extends Controller
                     'guardian_address' => $request->guardian_address,
                     'dob' => $request->dob,
                     'gender' => $request->gender,
-                    'payment_status' => $request->payment_status,
                     'status' => $request->status,
                     'admission_date' => $request->admission_date,
                     'organization_id' => auth()->user()->organization_id,
@@ -1055,22 +1054,22 @@ class StudentController extends Controller
             return;
         }
 
-        // ✅ FIX: Room price लाई सुरक्षित रूपमा लिने
+        // Room price र room_id दुबै लिने
         $room = Room::find($student->room_id);
         $roomPrice = $room ? ($room->price ?? 0) : 0;
+        $roomId = $room ? $room->id : null;   // ✅ यो line थपियो
 
-        // ✅ FIX: amount को priority: form बाट आएको मान, नभए room price, नभए 0
+        // amount: form बाट आएको मान, नभए room price, नभए 0
         $amount = $request->input('initial_payment_amount');
         if (is_null($amount) || $amount === '') {
             $amount = $roomPrice;
         }
-
-        // अझै NULL भए 0 सेट गर्ने
         $amount = $amount ?? 0;
 
         $paymentData = [
             'student_id'    => $student->id,
             'hostel_id'     => $student->hostel_id ?? auth()->user()->hostel_id,
+            'room_id'       => $roomId,
             'amount'        => $amount,
             'payment_date'  => $request->input('initial_payment_date', now()),
             'payment_method' => $request->input('initial_payment_method', 'cash'),

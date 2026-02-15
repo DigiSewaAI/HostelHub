@@ -23,6 +23,11 @@ class Payment extends Model
     const METHOD_ESEWA = 'esewa';
     const METHOD_BANK_TRANSFER = 'bank_transfer';
     const METHOD_CREDIT_CARD = 'credit_card';
+    const METHOD_CONNECTIPS = 'connectips';
+    const METHOD_CHEQUE = 'cheque';
+    const METHOD_ONLINE = 'online';
+    const METHOD_WALLET = 'wallet';
+    const METHOD_OTHER = 'other';
 
     // ✅ PAYMENT PURPOSE CONSTANTS
     const PURPOSE_BOOKING = 'booking';
@@ -31,7 +36,7 @@ class Payment extends Model
     const PURPOSE_MEAL = 'meal';
     const PURPOSE_OTHER = 'other';
 
-    // ✅ PAYMENT TYPE CONSTANTS (NEW)
+    // ✅ PAYMENT TYPE CONSTANTS
     const PAYMENT_TYPE_INITIAL = 'initial';
     const PAYMENT_TYPE_MONTHLY = 'monthly';
     const PAYMENT_TYPE_OTHER   = 'other';
@@ -48,13 +53,13 @@ class Payment extends Model
         'payment_date',
         'due_date',
         'payment_method',
-        'payment_type',    // ✅ NEW: type of payment (initial, monthly, etc.)
+        'payment_type',    // ✅ type of payment (initial, monthly, etc.)
         'purpose',
         'transaction_id',
         'status',
         'remarks',
-        'created_by',      // ✅ ADDED: Created by user
-        'updated_by',      // ✅ ADDED: Updated by user
+        'created_by',      // ✅ Created by user
+        'updated_by',      // ✅ Updated by user
         'verified_by',
         'verified_at',
         'metadata'         // ✅ Additional payment data
@@ -67,7 +72,6 @@ class Payment extends Model
         'amount' => 'decimal:2',
         'metadata' => 'array' // ✅ Cast metadata as array
     ];
-
 
     /**
      * Validation rules for payment
@@ -85,15 +89,38 @@ class Payment extends Model
             'amount' => 'required|numeric|min:0',
             'payment_date' => 'required|date',
             'due_date' => 'nullable|date|after:payment_date',
-            'payment_method' => 'required|in:cash,khalti,esewa,bank_transfer,credit_card',
+            'payment_method' => 'required|in:' . implode(',', [
+                self::METHOD_CASH,
+                self::METHOD_KHALTI,
+                self::METHOD_ESEWA,
+                self::METHOD_BANK_TRANSFER,
+                self::METHOD_CREDIT_CARD,
+                self::METHOD_CONNECTIPS,
+                self::METHOD_CHEQUE,
+                self::METHOD_ONLINE,
+                self::METHOD_WALLET,
+                self::METHOD_OTHER,
+            ]),
             'payment_type' => 'nullable|in:' . implode(',', [
                 self::PAYMENT_TYPE_INITIAL,
                 self::PAYMENT_TYPE_MONTHLY,
                 self::PAYMENT_TYPE_OTHER
-            ]), // ✅ NEW: validation for payment_type
-            'purpose' => 'required|in:booking,subscription,extra_hostel,meal,other',
+            ]),
+            'purpose' => 'required|in:' . implode(',', [
+                self::PURPOSE_BOOKING,
+                self::PURPOSE_SUBSCRIPTION,
+                self::PURPOSE_EXTRA_HOSTEL,
+                self::PURPOSE_MEAL,
+                self::PURPOSE_OTHER,
+            ]),
             'transaction_id' => 'nullable|string|max:255|unique:payments,transaction_id,' . $id,
-            'status' => 'required|in:pending,completed,failed,refunded,cancelled',
+            'status' => 'required|in:' . implode(',', [
+                self::STATUS_PENDING,
+                self::STATUS_COMPLETED,
+                self::STATUS_FAILED,
+                self::STATUS_REFUNDED,
+                self::STATUS_CANCELLED,
+            ]),
             'remarks' => 'nullable|string|max:500',
             'created_by' => 'nullable|exists:users,id',
             'updated_by' => 'nullable|exists:users,id',
@@ -228,13 +255,13 @@ class Payment extends Model
         return $this->belongsTo(Subscription::class)->withDefault();
     }
 
-    // ✅ CREATED BY RELATIONSHIP (ADDED)
+    // ✅ CREATED BY RELATIONSHIP
     public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by')->withDefault();
     }
 
-    // ✅ UPDATED BY RELATIONSHIP (ADDED)
+    // ✅ UPDATED BY RELATIONSHIP
     public function updatedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'updated_by')->withDefault();
@@ -322,14 +349,22 @@ class Payment extends Model
         return 'रु. ' . number_format($this->amount, 2);
     }
 
+    /**
+     * ✅ IMPROVED: Get payment method text with comprehensive mapping
+     */
     public function getPaymentMethodText(): string
     {
         $methods = [
-            self::METHOD_CASH => 'नगद',
-            self::METHOD_KHALTI => 'खल्ती',
-            self::METHOD_ESEWA => 'eSewa',
-            self::METHOD_BANK_TRANSFER => 'बैंक स्थानान्तरण',
-            self::METHOD_CREDIT_CARD => 'क्रेडिट कार्ड'
+            self::METHOD_CASH          => 'नगद',
+            self::METHOD_KHALTI         => 'खल्ती',
+            self::METHOD_ESEWA          => 'eSewa',
+            self::METHOD_BANK_TRANSFER  => 'बैंक स्थानान्तरण',
+            self::METHOD_CREDIT_CARD    => 'क्रेडिट कार्ड',
+            self::METHOD_CONNECTIPS     => 'कनेक्ट आइपीएस',
+            self::METHOD_CHEQUE         => 'चेक',
+            self::METHOD_ONLINE         => 'अनलाइन',
+            self::METHOD_WALLET         => 'वालेट',
+            self::METHOD_OTHER          => 'अन्य',
         ];
 
         return $methods[$this->payment_method] ?? 'अन्य';
@@ -338,11 +373,11 @@ class Payment extends Model
     public function getPurposeText(): string
     {
         $purposes = [
-            self::PURPOSE_BOOKING => 'कोठा बुकिंग',
-            self::PURPOSE_SUBSCRIPTION => 'सदस्यता शुल्क',
-            self::PURPOSE_EXTRA_HOSTEL => 'अतिरिक्त होस्टल',
-            self::PURPOSE_MEAL => 'खाना शुल्क',
-            self::PURPOSE_OTHER => 'अन्य'
+            self::PURPOSE_BOOKING       => 'कोठा बुकिंग',
+            self::PURPOSE_SUBSCRIPTION  => 'सदस्यता शुल्क',
+            self::PURPOSE_EXTRA_HOSTEL  => 'अतिरिक्त होस्टल',
+            self::PURPOSE_MEAL          => 'खाना शुल्क',
+            self::PURPOSE_OTHER         => 'अन्य'
         ];
 
         return $purposes[$this->purpose] ?? 'अन्य';
@@ -351,14 +386,55 @@ class Payment extends Model
     public function getStatusBadge(): string
     {
         $badges = [
-            self::STATUS_PENDING => '<span class="badge badge-warning">पेन्डिङ</span>',
+            self::STATUS_PENDING   => '<span class="badge badge-warning">पेन्डिङ</span>',
             self::STATUS_COMPLETED => '<span class="badge badge-success">पूरा भयो</span>',
-            self::STATUS_FAILED => '<span class="badge badge-danger">असफल</span>',
-            self::STATUS_REFUNDED => '<span class="badge badge-info">फिर्ता भयो</span>',
+            self::STATUS_FAILED    => '<span class="badge badge-danger">असफल</span>',
+            self::STATUS_REFUNDED  => '<span class="badge badge-info">फिर्ता भयो</span>',
             self::STATUS_CANCELLED => '<span class="badge badge-secondary">रद्द भयो</span>'
         ];
 
         return $badges[$this->status] ?? '<span class="badge badge-secondary">अन्य</span>';
+    }
+
+    /**
+     * ✅ NEW: Get room number (from payment's room or student's room)
+     */
+    public function getRoomNumberAttribute(): string
+    {
+        // First try payment's direct room
+        if ($this->room && $this->room->room_number) {
+            return $this->room->room_number;
+        }
+
+        // Then try student's room
+        if ($this->student && $this->student->room && $this->student->room->room_number) {
+            return $this->student->room->room_number;
+        }
+
+        return 'N/A';
+    }
+
+    /**
+     * ✅ NEW: Get hostel name (from payment's hostel or student's hostel)
+     */
+    public function getHostelNameAttribute(): string
+    {
+        // First try payment's direct hostel
+        if ($this->hostel && $this->hostel->name) {
+            return $this->hostel->name;
+        }
+
+        // Then try student's hostel
+        if ($this->student && $this->student->hostel && $this->student->hostel->name) {
+            return $this->student->hostel->name;
+        }
+
+        // Then try student's room's hostel
+        if ($this->student && $this->student->room && $this->student->room->hostel && $this->student->room->hostel->name) {
+            return $this->student->room->hostel->name;
+        }
+
+        return 'N/A';
     }
 
     /**
@@ -415,7 +491,7 @@ class Payment extends Model
     }
 
     /**
-     * ✅ ADDED: Get created by user name safely
+     * ✅ Get created by user name safely
      */
     public function getCreatedByName(): string
     {
@@ -423,7 +499,7 @@ class Payment extends Model
     }
 
     /**
-     * ✅ ADDED: Get updated by user name safely
+     * ✅ Get updated by user name safely
      */
     public function getUpdatedByName(): string
     {
@@ -431,32 +507,38 @@ class Payment extends Model
     }
 
     /**
-     * ✅ ADDED: Static method to get payment method text
+     * ✅ Static method to get payment method text (for use in views without instance)
      */
     public static function getPaymentMethodTextStatic($method): string
     {
-        return match ($method) {
-            'cash' => 'नगद',
-            'bank_transfer' => 'बैंक स्थानान्तरण',
-            'khalti' => 'खल्ती',
-            'esewa' => 'ईसेवा',
-            'connectips' => 'कनेक्टआइपीएस',
-            default => $method
-        };
+        $methods = [
+            self::METHOD_CASH          => 'नगद',
+            self::METHOD_KHALTI         => 'खल्ती',
+            self::METHOD_ESEWA          => 'ईसेवा',
+            self::METHOD_BANK_TRANSFER  => 'बैंक स्थानान्तरण',
+            self::METHOD_CREDIT_CARD    => 'क्रेडिट कार्ड',
+            self::METHOD_CONNECTIPS     => 'कनेक्टआइपीएस',
+            self::METHOD_CHEQUE         => 'चेक',
+            self::METHOD_ONLINE         => 'अनलाइन',
+            self::METHOD_WALLET         => 'वालेट',
+            self::METHOD_OTHER          => 'अन्य',
+        ];
+
+        return $methods[$method] ?? $method;
     }
 
     /**
-     * ✅ ADDED: Get verified by user name safely
+     * ✅ Get verified by user name safely
      */
     public function getVerifiedByName(): string
     {
         return $this->verifiedBy ? $this->verifiedBy->name : 'N/A';
     }
 
-    // ====================== NEW METHODS FOR INITIAL PAYMENT ======================
+    // ====================== METHODS FOR INITIAL PAYMENT ======================
 
     /**
-     * ✅ NEW: Check if an initial payment exists for a given student.
+     * ✅ Check if an initial payment exists for a given student.
      *
      * @param int $studentId
      * @return bool
@@ -469,7 +551,7 @@ class Payment extends Model
     }
 
     /**
-     * ✅ NEW: Get the initial payment record for a student.
+     * ✅ Get the initial payment record for a student.
      *
      * @param int $studentId
      * @return \App\Models\Payment|null

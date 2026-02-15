@@ -215,7 +215,7 @@
                         <div>
                             <label for="initial_payment_amount" class="block text-sm font-medium text-gray-700">रकम *</label>
                             <input type="number" step="0.01" name="initial_payment_amount" id="initial_payment_amount" 
-                                   value="{{ old('initial_payment_amount', $initialPayment->amount ?? ($student->room->price ?? '')) }}" 
+                                   value="{{ old('initial_payment_amount', $initialPayment->amount ?? ($student->room?->price ?? '')) }}" 
                                    class="mt-1 block w-full border rounded-lg px-3 py-2 focus:ring focus:ring-blue-300"
                                    placeholder="कोठा रकम">
                             @error('initial_payment_amount')
@@ -230,7 +230,7 @@
                                     class="mt-1 block w-full border rounded-lg px-3 py-2 focus:ring focus:ring-blue-300">
                                 <option value="">-- छान्नुहोस् --</option>
                                 <option value="cash" {{ old('initial_payment_method', $initialPayment->payment_method ?? '') == 'cash' ? 'selected' : '' }}>नगद</option>
-                                <option value="bank" {{ old('initial_payment_method', $initialPayment->payment_method ?? '') == 'bank' ? 'selected' : '' }}>बैंक</option>
+                                <option value="bank_transfer" {{ old('initial_payment_method', $initialPayment->payment_method ?? '') == 'bank_transfer' ? 'selected' : '' }}>बैंक</option>
                                 <option value="online" {{ old('initial_payment_method', $initialPayment->payment_method ?? '') == 'online' ? 'selected' : '' }}>अनलाइन</option>
                                 <option value="cheque" {{ old('initial_payment_method', $initialPayment->payment_method ?? '') == 'cheque' ? 'selected' : '' }}>चेक</option>
                             </select>
@@ -244,7 +244,7 @@
                     <div class="mt-3">
                         <label for="initial_payment_date" class="block text-sm font-medium text-gray-700">भुक्तानी मिति</label>
                         <input type="date" name="initial_payment_date" id="initial_payment_date" 
-                               value="{{ old('initial_payment_date', $initialPayment->payment_date ? $initialPayment->payment_date->format('Y-m-d') : ($student->admission_date ? $student->admission_date->format('Y-m-d') : date('Y-m-d'))) }}" 
+                               value="{{ old('initial_payment_date', $initialPayment?->payment_date?->format('Y-m-d') ?? ($student->admission_date?->format('Y-m-d') ?? date('Y-m-d'))) }}" 
                                min="2000-01-01" max="{{ date('Y-m-d', strtotime('+1 year')) }}"
                                class="mt-1 block w-full border rounded-lg px-3 py-2 focus:ring focus:ring-blue-300">
                         @error('initial_payment_date')
