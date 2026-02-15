@@ -781,25 +781,42 @@ class PaymentController extends Controller
         if (!$student) {
             $payments = collect([]);
             $contactMessage = "भुक्तानी सम्बन्धी जानकारीका लागि होस्टल कार्यालयमा सम्पर्क गर्नुहोस्";
+            $hostel = null;
+            $paymentMethods = collect();
         } else {
             $payments = Payment::where('student_id', $student->id)
                 ->with(['organization', 'booking.room.hostel.owner'])
                 ->latest()
                 ->paginate(10);
 
-            // Get owner phone from student's hostel
-            $contactMessage = "भुक्तानी सम्बन्धी जानकारीका लागि होस्टल कार्यालयमा सम्पर्क गर्नुहोस्";
+            // Try to get the hostel from student (direct, via room, or via hostel_id)
+            $hostel = null;
+            if ($student->hostel) {
+                $hostel = $student->hostel;
+            } elseif ($student->room && $student->room->hostel) {
+                $hostel = $student->room->hostel;
+            } elseif ($student->hostel_id) {
+                $hostel = Hostel::find($student->hostel_id);
+            }
 
-            // Check if student has hostel and hostel has owner with phone
-            if ($student->hostel && $student->hostel->owner) {
-                $owner = $student->hostel->owner;
-                if (!empty($owner->phone)) {
-                    $contactMessage = "भुक्तानी सम्बन्धी समस्या भए {$owner->phone} मा सम्पर्क गर्नुहोस्";
-                }
+            // Get active payment methods for the hostel, ordered by 'order'
+            $paymentMethods = $hostel
+                ? $hostel->paymentMethods()->where('is_active', true)->orderBy('order')->get()
+                : collect();
+
+            // Prepare contact message using owner's phone if available
+            $contactMessage = "भुक्तानी सम्बन्धी जानकारीका लागि होस्टल कार्यालयमा सम्पर्क गर्नुहोस्";
+            if ($hostel && $hostel->owner && !empty($hostel->owner->phone)) {
+                $contactMessage = "भुक्तानी सम्बन्धी समस्या भए {$hostel->owner->phone} मा सम्पर्क गर्नुहोस्";
             }
         }
 
-        return view('student.payments.history', compact('payments', 'contactMessage'));
+        return view('student.payments.history', compact(
+            'payments',
+            'contactMessage',
+            'hostel',
+            'paymentMethods'
+        ));
     }
 
     /**

@@ -381,34 +381,9 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    @php
-                        // Get student's hostel information
-                        $student = auth()->user()->student;
-                        $studentHostel = null;
-                        $paymentMethods = [];
-                        
-                        if ($student) {
-                            // Try multiple ways to get hostel
-                            if ($student->hostel) {
-                                $studentHostel = $student->hostel;
-                            } elseif ($student->room && $student->room->hostel) {
-                                $studentHostel = $student->room->hostel;
-                            } elseif ($student->hostel_id) {
-                                $studentHostel = \App\Models\Hostel::find($student->hostel_id);
-                            }
-                            
-                            if ($studentHostel) {
-                                // Get active payment methods for the hostel
-                                $paymentMethods = $studentHostel->activePaymentMethods ?? $studentHostel->paymentMethods()->where('is_active', true)->get();
-                            }
-                        }
-                        
-                        $hasPaymentMethods = !empty($paymentMethods) && count($paymentMethods) > 0;
-                    @endphp
-
-                    @if($hasPaymentMethods)
+                    @if($paymentMethods->isNotEmpty())
                         <div class="mb-3">
-                            <h6 class="text-muted mb-3">तपाईंको होस्टेल: <strong>{{ $studentHostel->name ?? 'N/A' }}</strong></h6>
+                            <h6 class="text-muted mb-3">तपाईंको होस्टेल: <strong>{{ $hostel->name ?? 'N/A' }}</strong></h6>
                             
                             @foreach($paymentMethods as $method)
                                 <div class="card mb-3 border-start border-{{ 
@@ -531,16 +506,16 @@
                             <i class="fas fa-credit-card fa-2x text-muted mb-3"></i>
                             <h6 class="text-muted">भुक्तानी विवरण</h6>
                             
-                            @if($studentHostel)
+                            @if($hostel)
                                 <p class="small text-muted mb-3">
                                     भुक्तानी गर्नका लागि होस्टेल कार्यालयमा सम्पर्क गर्नुहोस्।
                                 </p>
                                 <div class="bg-light p-3 rounded">
                                     <p class="mb-1 small">
-                                        <strong>फोन:</strong> {{ $studentHostel->contact_phone_formatted ?? 'N/A' }}
+                                        <strong>फोन:</strong> {{ $hostel->contact_phone_formatted ?? 'N/A' }}
                                     </p>
                                     <p class="mb-0 small">
-                                        <strong>इमेल:</strong> {{ $studentHostel->contact_email_formatted ?? 'N/A' }}
+                                        <strong>इमेल:</strong> {{ $hostel->contact_email_formatted ?? 'N/A' }}
                                     </p>
                                 </div>
                             @else
@@ -564,7 +539,7 @@
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-2">
-                        @if($studentHostel && $hasPaymentMethods)
+                        @if($hostel && $paymentMethods->isNotEmpty())
                             <a href="#" onclick="alert('यो सुविधा चाँडै उपलब्ध हुनेछ।')" 
                                class="btn btn-outline-success tooltip-btn" 
                                title="बैंक हस्तान्तरण गर्नुहोस्"
@@ -579,8 +554,8 @@
                            data-bs-toggle="tooltip">
                             <i class="fas fa-history me-2"></i> सबै भुक्तानी हेर्नुहोस्
                         </a>
-                        
-                                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -640,17 +615,17 @@
                     <li>भुक्तानी विवरण गलत भएमा तुरुन्तै जानकारी गराउनुहोस्</li>
                 </ul>
                 
-                @if(isset($studentHostel) && $studentHostel)
+                @if(isset($hostel) && $hostel)
                     <div class="mt-3 p-3 bg-light rounded">
                         <h6>सम्पर्क विवरण:</h6>
                         <p class="mb-1">
-                            <strong>होस्टेल:</strong> {{ $studentHostel->name ?? 'N/A' }}
+                            <strong>होस्टेल:</strong> {{ $hostel->name ?? 'N/A' }}
                         </p>
                         <p class="mb-1">
-                            <strong>फोन:</strong> {{ $studentHostel->contact_phone_formatted ?? 'N/A' }}
+                            <strong>फोन:</strong> {{ $hostel->contact_phone_formatted ?? 'N/A' }}
                         </p>
                         <p class="mb-0">
-                            <strong>इमेल:</strong> {{ $studentHostel->contact_email_formatted ?? 'N/A' }}
+                            <strong>इमेल:</strong> {{ $hostel->contact_email_formatted ?? 'N/A' }}
                         </p>
                     </div>
                 @endif
