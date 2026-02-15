@@ -113,7 +113,7 @@
         <div class="col-lg-8 mb-4">
             <!-- Payments List Card -->
             <div class="card shadow-sm">
-                <div class="card-header bg-gradient-primary text-white py-3">
+                <div class="card-header bg-sky-blue text-white py-3">
                     <h5 class="mb-0">
                         <i class="fas fa-history me-2"></i>
                         भुक्तानीहरूको सूची
@@ -209,28 +209,26 @@
                                                 <button type="button" 
                                                         class="btn btn-outline-info tooltip-btn" 
                                                         title="विवरण हेर्नुहोस्"
-                                                        data-bs-toggle="modal" 
-                                                        data-bs-target="#paymentModal{{ $payment->id }}"
-                                                        data-bs-toggle="tooltip">
+                                                        onclick="openModal('paymentModal{{ $payment->id }}')">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
                                             </div>
 
-                                            <!-- Payment Details Modal -->
-                                            <div class="modal fade" id="paymentModal{{ $payment->id }}" tabindex="-1">
-                                                <div class="modal-dialog modal-lg">
-                                                    <div class="modal-content">
-                                                        <div class="modal-header bg-primary text-white">
-                                                            <h5 class="modal-title">
+                                            <!-- Payment Details Modal (Custom) -->
+                                            <div id="paymentModal{{ $payment->id }}" class="custom-modal">
+                                                <div class="custom-modal-dialog">
+                                                    <div class="custom-modal-content">
+                                                        <div class="custom-modal-header">
+                                                            <h5 class="custom-modal-title">
                                                                 <i class="fas fa-credit-card me-2"></i>
                                                                 भुक्तानी विवरण
                                                             </h5>
-                                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                                            <button type="button" class="custom-modal-close" onclick="closeModal('paymentModal{{ $payment->id }}')">&times;</button>
                                                         </div>
-                                                        <div class="modal-body">
+                                                        <div class="custom-modal-body">
                                                             <div class="row">
                                                                 <div class="col-md-6">
-                                                                    <table class="table table-borderless">
+                                                                    <table class="table table-borderless modal-table">
                                                                         <tr>
                                                                             <td class="text-muted">भुक्तानी ID:</td>
                                                                             <td><strong>#{{ $payment->id }}</strong></td>
@@ -250,7 +248,7 @@
                                                                     </table>
                                                                 </div>
                                                                 <div class="col-md-6">
-                                                                    <table class="table table-borderless">
+                                                                    <table class="table table-borderless modal-table">
                                                                         <tr>
                                                                             <td class="text-muted">मिति:</td>
                                                                             <td>{{ $payment->payment_date->format('Y-m-d h:i A') }}</td>
@@ -278,7 +276,7 @@
                                                                         @if($payment->remarks)
                                                                         <tr>
                                                                             <td class="text-muted">टिप्पणी:</td>
-                                                                            <td>{{ $payment->remarks }}</td>
+                                                                            <td class="remarks-cell">{{ $payment->remarks }}</td>
                                                                         </tr>
                                                                         @endif
                                                                     </table>
@@ -319,8 +317,8 @@
                                                                 </div>
                                                                 @endif
                                                         </div>
-                                                        <div class="modal-footer">
-                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">बन्द गर्नुहोस्</button>
+                                                        <div class="custom-modal-footer">
+                                                            <button type="button" class="btn btn-secondary me-2" onclick="closeModal('paymentModal{{ $payment->id }}')">बन्द गर्नुहोस्</button>
                                                             <a href="{{ route('student.payments.receipt', $payment->id) }}" 
                                                                class="btn btn-primary" 
                                                                target="_blank">
@@ -374,7 +372,7 @@
         <div class="col-lg-4 mb-4">
             <!-- Payment Methods Card -->
             <div class="card shadow-sm mb-4">
-                <div class="card-header bg-gradient-success text-white py-3">
+                <div class="card-header bg-bright-green text-white py-3">
                     <h5 class="mb-0">
                         <i class="fas fa-university me-2"></i>
                         भुक्तानी गर्ने विधिहरू
@@ -474,7 +472,7 @@
                                                 <p class="small text-muted mb-1" style="font-size: 0.75rem;">QR कोड स्क्यान गर्नुहोस्:</p>
                                                 <img src="{{ \media_url($method->qr_code_path) }}" 
                                                      class="img-fluid rounded border" 
-                                                     style="max-width: 120px;">
+                                                     style="max-width: 120px; display: block; margin: 0 auto;">
                                             </div>
                                         @endif
                                         
@@ -529,34 +527,8 @@
                 </div>
             </div>
 
-            <!-- Quick Actions Card -->
-            <div class="card shadow-sm">
-                <div class="card-header bg-gradient-primary text-white py-3">
-                    <h5 class="mb-0">
-                        <i class="fas fa-bolt me-2"></i>
-                        द्रुत कार्यहरू
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        @if($hostel && $paymentMethods->isNotEmpty())
-                            <a href="#" onclick="alert('यो सुविधा चाँडै उपलब्ध हुनेछ।')" 
-                               class="btn btn-outline-success tooltip-btn" 
-                               title="बैंक हस्तान्तरण गर्नुहोस्"
-                               data-bs-toggle="tooltip">
-                                <i class="fas fa-bank me-2"></i> बैंक हस्तान्तरण गर्नुहोस्
-                            </a>
-                        @endif
-                        
-                        <a href="{{ route('student.payments.index') }}" 
-                           class="btn btn-outline-info tooltip-btn" 
-                           title="सबै भुक्तानी हेर्नुहोस्"
-                           data-bs-toggle="tooltip">
-                            <i class="fas fa-history me-2"></i> सबै भुक्तानी हेर्नुहोस्
-                        </a>
-                    </div>
-                </div>
-            </div>
+            <!-- Quick Actions Card - REMOVED as per request -->
+            
         </div>
     </div>
 
@@ -599,15 +571,15 @@
     </div>
 </div>
 
-<!-- Help Modal -->
-<div class="modal fade" id="paymentHelpModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title">भुक्तानी सम्बन्धी मद्दत</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+<!-- Help Modal (Custom) -->
+<div id="paymentHelpModal" class="custom-modal">
+    <div class="custom-modal-dialog">
+        <div class="custom-modal-content">
+            <div class="custom-modal-header">
+                <h5 class="custom-modal-title">भुक्तानी सम्बन्धी मद्दत</h5>
+                <button type="button" class="custom-modal-close" onclick="closeModal('paymentHelpModal')">&times;</button>
             </div>
-            <div class="modal-body">
+            <div class="custom-modal-body">
                 <h6>समस्या समाधान:</h6>
                 <ul>
                     <li>भुक्तानी गर्न कठिनाई भएमा होस्टेल कार्यालयमा जानुहोस्</li>
@@ -630,8 +602,8 @@
                     </div>
                 @endif
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">बन्द गर्नुहोस्</button>
+            <div class="custom-modal-footer">
+                <button type="button" class="btn btn-secondary me-2" onclick="closeModal('paymentHelpModal')">बन्द गर्नुहोस्</button>
             </div>
         </div>
     </div>
@@ -682,6 +654,27 @@
     
     .bg-gradient-success {
         background: linear-gradient(90deg, #1cc88a 0%, #13855c 100%);
+    }
+    
+    /* Custom header for "भुक्तानीहरूको सूची" - Sky Blue */
+    .bg-sky-blue {
+        background-color: #0d6efd !important; /* Sky blue */
+    }
+    
+    /* Custom header for "भुक्तानी गर्ने विधिहरू" - Bright Green */
+    .bg-bright-green {
+        background-color: #28a745 !important; /* Bright green */
+    }
+    
+    /* Ensure text in custom headers is white for all child elements */
+    .bg-sky-blue, .bg-sky-blue *,
+    .bg-bright-green, .bg-bright-green * {
+        color: white !important;
+    }
+    
+    /* Ensure icons also turn white */
+    .bg-sky-blue i, .bg-bright-green i {
+        color: white !important;
     }
     
     .table th {
@@ -772,11 +765,148 @@
         position: relative;
         cursor: pointer;
     }
+
+    /* Custom Modal Styles */
+    .custom-modal {
+        display: none;
+        position: fixed;
+        z-index: 1050;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.2); /* Very light dim */
+    }
+
+    .custom-modal.show {
+        display: block;
+    }
+
+    .custom-modal-dialog {
+        position: relative;
+        width: auto;
+        margin: 1.75rem auto;
+        max-width: 800px;
+        pointer-events: none;
+    }
+
+    .custom-modal-content {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        background-color: #fff;
+        border: 1px solid rgba(0,0,0,0.2);
+        border-radius: 0.3rem;
+        outline: 0;
+        pointer-events: auto;
+    }
+
+    .custom-modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem;
+        border-bottom: 1px solid #dee2e6;
+        border-top-left-radius: 0.3rem;
+        border-top-right-radius: 0.3rem;
+        background-color: #4e73df;
+        color: white !important; /* Ensure header text is white */
+    }
+
+    .custom-modal-title {
+        margin: 0;
+        line-height: 1.5;
+        font-size: 1.25rem;
+        color: white !important; /* Ensure title is white */
+    }
+
+    .custom-modal-close {
+        background: transparent;
+        border: none;
+        font-size: 1.5rem;
+        font-weight: 700;
+        line-height: 1;
+        color: #fff !important; /* Ensure close button is white */
+        text-shadow: 0 1px 0 #fff;
+        opacity: 0.5;
+        cursor: pointer;
+        padding: 0.5rem;
+        margin: -0.5rem;
+    }
+
+    .custom-modal-close:hover {
+        opacity: 1;
+    }
+
+    .custom-modal-body {
+        position: relative;
+        flex: 1 1 auto;
+        padding: 1rem;
+    }
+
+    .custom-modal-footer {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding: 0.75rem;
+        border-top: 1px solid #dee2e6;
+        gap: 0.5rem;
+    }
+
+    /* Make modal footer buttons text white */
+    .custom-modal-footer .btn {
+        color: white !important;
+    }
+
+    /* Ensure table cells wrap long text */
+    .custom-modal-body .modal-table {
+        width: 100%;
+        table-layout: fixed; /* Fixed layout to prevent overflow */
+    }
+
+    .custom-modal-body .modal-table td {
+        word-wrap: break-word;
+        word-break: break-word;
+        white-space: normal;
+    }
+
+    .custom-modal-body .remarks-cell {
+        max-width: 200px; /* Adjust as needed */
+        overflow-wrap: break-word;
+    }
 </style>
 @endpush
 
 @push('scripts')
 <script>
+// Function to open modal
+function openModal(modalId) {
+    var modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden'; // Prevent scrolling
+    }
+}
+
+// Function to close modal
+function closeModal(modalId) {
+    var modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.remove('show');
+        document.body.style.overflow = ''; // Restore scrolling
+    }
+}
+
+// Close modal when clicking outside the modal content
+window.onclick = function(event) {
+    if (event.target.classList.contains('custom-modal')) {
+        event.target.classList.remove('show');
+        document.body.style.overflow = '';
+    }
+}
+
 $(document).ready(function() {
     // Add animation to payment method cards
     $('.card.border-start').hover(
@@ -789,18 +919,6 @@ $(document).ready(function() {
             $(this).css('transform', 'translateY(0)');
         }
     );
-
-    // Modal animation
-    $('.modal').on('show.bs.modal', function () {
-        $(this).find('.modal-dialog').css({
-            'transform': 'scale(0.9)',
-            'transition': 'transform 0.3s ease-out'
-        });
-    });
-    
-    $('.modal').on('shown.bs.modal', function () {
-        $(this).find('.modal-dialog').css('transform', 'scale(1)');
-    });
 
     // Tooltip initialization with custom options
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
