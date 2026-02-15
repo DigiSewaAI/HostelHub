@@ -219,8 +219,20 @@
                 <div>
                     <p class="text-gray-600 text-sm font-medium">भुक्तानी</p>
                     <p class="text-2xl font-bold text-amber-600 mt-1">
-                        {{ $paymentStatus == 'Paid' ? 'भुक्तानी भएको' : 'बाकी' }}
+                        @if($paymentStatus == 'paid')
+                            भुक्तानी भएको
+                        @elseif($paymentStatus == 'overdue')
+                            बाँकी
+                            @if(isset($delayMonths) && $delayMonths > 0)
+                                ({{ $delayMonths }} महिना ढिला)
+                            @endif
+                        @else
+                            भुक्तानी भएको छैन
+                        @endif
                     </p>
+                    @if(isset($nextDueDate) && $nextDueDate)
+                        <p class="text-xs text-gray-500 mt-1">अर्को म्याद: {{ $nextDueDate->format('Y-m-d') }}</p>
+                    @endif
                 </div>
                 <div class="bg-amber-100 p-3 rounded-xl">
                     <i class="fas fa-receipt text-amber-600 text-xl"></i>
@@ -370,17 +382,39 @@
                             <span class="text-gray-600">अन्तिम मिति:</span>
                             <span class="font-medium text-gray-800">{{ $lastPayment ? $lastPayment->created_at->format('Y-m-d') : 'हाल अपडेट छैन' }}</span>
                         </div>
+                        
+                        {{-- अर्को म्याद मिति देखाउन --}}
+                        @if(isset($nextDueDate) && $nextDueDate)
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">अर्को म्याद:</span>
+                            <span class="font-medium text-gray-800">{{ $nextDueDate->format('Y-m-d') }}</span>
+                        </div>
+                        @endif
+                        
                         <div class="flex justify-between items-center">
                             <span class="text-gray-600">स्थिति:</span>
-                            <span class="bg-{{ $paymentStatus == 'Paid' ? 'green' : 'red' }}-100 text-{{ $paymentStatus == 'Paid' ? 'green' : 'red' }}-800 px-3 py-1 rounded-full text-sm font-medium">
-                                {{ $paymentStatus == 'Paid' ? 'भुक्तानी भएको' : 'बाकी' }}
+                            <span class="
+                                @if($paymentStatus == 'paid') bg-green-100 text-green-800
+                                @elseif($paymentStatus == 'overdue') bg-red-100 text-red-800
+                                @else bg-gray-100 text-gray-800
+                                @endif
+                                px-3 py-1 rounded-full text-sm font-medium
+                            ">
+                                @if($paymentStatus == 'paid')
+                                    भुक्तानी भएको
+                                @elseif($paymentStatus == 'overdue')
+                                    बाँकी
+                                    @if(isset($delayMonths) && $delayMonths > 0)
+                                        ({{ $delayMonths }} महिना ढिला)
+                                    @endif
+                                @else
+                                    भुक्तानी भएको छैन
+                                @endif
                             </span>
                         </div>
                     </div>
                     
-                    <button class="w-full mt-4 bg-amber-600 hover:bg-amber-700 text-white py-2 rounded-xl font-medium transition-colors">
-                        <i class="fas fa-money-bill mr-2"></i>भुक्तानी गर्नुहोस्
-                    </button>
+                    <!-- Button removed as per user request -->
                 </div>
             </div>
 

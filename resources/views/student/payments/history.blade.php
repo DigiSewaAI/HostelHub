@@ -180,11 +180,11 @@
                                             <span class="badge bg-info">{{ $payment->getPaymentMethodText() }}</span>
                                         </td>
                                         <td>
-                                            <div class="d-flex flex-column">
-                                                <span>{{ $payment->payment_date->format('Y-m-d') }}</span>
-                                                <small class="text-muted">{{ $payment->payment_date->format('h:i A') }}</small>
-                                            </div>
-                                        </td>
+    <div class="d-flex flex-column">
+        <span>{{ $payment->payment_date->format('Y-m-d') }}</span>
+        <small class="text-muted">{{ $payment->created_at->format('h:i A') }}</small>
+    </div>
+</td>
                                         <td>
                                             @if($payment->status == 'completed')
                                                 <span class="badge bg-success">सफल</span>
@@ -251,7 +251,7 @@
                                                                     <table class="table table-borderless modal-table">
                                                                         <tr>
                                                                             <td class="text-muted">मिति:</td>
-                                                                            <td>{{ $payment->payment_date->format('Y-m-d h:i A') }}</td>
+                                                                            <td>{{ $payment->payment_date->format('Y-m-d') }} {{ $payment->created_at->format('h:i A') }}</td>
                                                                         </tr>
                                                                         <tr>
                                                                             <td class="text-muted">स्थिति:</td>

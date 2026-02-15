@@ -209,14 +209,35 @@ class StudentController extends Controller
             ->take(4)
             ->get();
 
-        // Last payment
+        // Last successful payment (status = completed) ordered by payment_date
         $lastPayment = \App\Models\Payment::where('student_id', $student->id)
-            ->latest()
+            ->where('status', \App\Models\Payment::STATUS_COMPLETED)   // use constant from Payment model
+            ->latest('payment_date')
             ->first();
 
-        $paymentStatus = 'Unpaid';
+        $paymentStatus = 'unpaid';   // default: भुक्तानी भएको छैन
+        $nextDueDate = null;
+        $delayMonths = 0;
+
         if ($lastPayment) {
-            $paymentStatus = $lastPayment->status == 'paid' ? 'Paid' : 'Unpaid';
+            // Calculate next due date = payment_date + 1 month
+            $nextDueDate = \Carbon\Carbon::parse($lastPayment->payment_date)->addMonth();
+            $today = \Carbon\Carbon::now();
+
+            if ($today->gt($nextDueDate)) {
+                $paymentStatus = 'overdue';
+                // कति महिना बाँकी छ गन्ने
+                $overdueCount = 0;
+                $due = $nextDueDate->copy();
+                while ($due->lt($today)) {
+                    $overdueCount++;
+                    $due->addMonth();
+                }
+                $delayMonths = $overdueCount;
+            } else {
+                $paymentStatus = 'paid';
+                $delayMonths = 0;
+            }
         }
 
         // Circular data
@@ -289,6 +310,8 @@ class StudentController extends Controller
             'upcomingEvents',
             'lastPayment',
             'paymentStatus',
+            'delayMonths',
+            'nextDueDate',
             'unreadCirculars',
             'recentStudentCirculars',
             'urgentCirculars',
