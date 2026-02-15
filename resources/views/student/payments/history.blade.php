@@ -153,6 +153,11 @@
                                                         {{ $payment->getPurposeText() }}
                                                     @endif
                                                 </small>
+                                                        {{-- 🔥 NEW: Initial Payment Badge --}}
+                                                        @if($payment->payment_type == 'initial')
+                                                            <span class="badge bg-info mt-1">प्रारम्भिक</span>
+                                                        @endif
+
                                                 @if($payment->transaction_id)
                                                     <small class="text-muted">
                                                         <i class="fas fa-hashtag me-1"></i>

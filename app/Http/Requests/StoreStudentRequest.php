@@ -23,7 +23,8 @@ class StoreStudentRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
+        // Base rules that apply to everyone
+        $rules = [
             'name' => 'required|string|max:255',
             'email' => [
                 'nullable',
@@ -73,14 +74,24 @@ class StoreStudentRequest extends FormRequest
             'gender' => 'nullable|in:male,female,other',
             'admission_date' => 'required|date',
             'status' => 'required|in:pending,approved,active,inactive',
-            'payment_status' => 'required|in:pending,paid,unpaid',
             'user_id' => 'nullable|exists:users,id|unique:students,user_id',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'note' => 'nullable|string|max:1000',
             'organization_id' => 'required|exists:organizations,id',
         ];
-    }
 
+        // ✅ Role‑based handling for payment_status
+        if (auth()->check() && auth()->user()->hasRole('admin')) {
+            // Admin: payment_status is required
+            $rules['payment_status'] = 'required|in:pending,paid,unpaid';
+        } else {
+            // Owner / hostel_manager / others: payment_status is optional
+            // (because they use the new initial payment section)
+            $rules['payment_status'] = 'nullable|in:pending,paid,unpaid';
+        }
+
+        return $rules;
+    }
 
     /**
      * Custom validation messages (optional - Nepali or English)
@@ -96,7 +107,6 @@ class StoreStudentRequest extends FormRequest
             // ... rest of messages remain the same
         ];
     }
-
 
     /**
      * Prepare the data for validation.

@@ -18,6 +18,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use App\Models\Payment;
+use Illuminate\Support\Facades\DB;
 
 class StudentController extends Controller
 {
@@ -222,6 +224,13 @@ class StudentController extends Controller
                     ->with('error', 'कृपया पहिले आफ्नो होस्टेल सेटअप गर्नुहोस्। होस्टेल बिना विद्यार्थी दर्ता गर्न सकिँदैन।');
             }
 
+            $request->validate([
+                'initial_payment_status'   => 'nullable|in:paid,pending',
+                'initial_payment_amount'   => 'nullable|numeric|min:0',   // ✅ FIXED: removed required_if
+                'initial_payment_method'   => 'nullable|required_if:initial_payment_status,paid|string|max:50',
+                'initial_payment_date'     => 'nullable|required_if:initial_payment_status,paid|date',
+            ]);
+
             try {
                 // ✅ FIXED: Handle duplicate email SAFELY - UPDATED LOGIC
                 $user = null;
@@ -335,6 +344,7 @@ class StudentController extends Controller
                     ]);
 
                     $student = $existingStudent;
+                    $this->handleInitialPayment($student, $request);
 
                     Log::info('Student transferred to new hostel', [
                         'student_id' => $student->id,
@@ -372,6 +382,7 @@ class StudentController extends Controller
 
                     // Create new student record
                     $student = Student::create($validatedData);
+                    $this->handleInitialPayment($student, $request);
                 }
 
                 // ✅ Update room status if room assigned
@@ -479,7 +490,8 @@ class StudentController extends Controller
                 'student_id' => $student->id
             ]);
 
-            return view('owner.students.edit', compact('student', 'hostels', 'rooms', 'users', 'colleges'));
+            $initialPayment = Payment::getInitialPayment($student->id);
+            return view('owner.students.edit', compact('student', 'hostels', 'rooms', 'users', 'colleges', 'initialPayment'));
         }
     }
 
@@ -578,6 +590,12 @@ class StudentController extends Controller
                 return redirect()->route('owner.hostels.index')
                     ->with('error', 'कृपया पहिले आफ्नो होस्टेल सेटअप गर्नुहोस्।');
             }
+            $request->validate([
+                'initial_payment_status'   => 'nullable|in:paid,pending',
+                'initial_payment_amount'   => 'nullable|numeric|min:0',   // ✅ FIXED: removed required_if
+                'initial_payment_method'   => 'required_if:initial_payment_status,paid|string|max:50',
+                'initial_payment_date'     => 'required_if:initial_payment_status,paid|date',
+            ]);
 
             try {
                 // ✅ FIXED: Build safe update array - ONLY allow specific fields
@@ -698,6 +716,7 @@ class StudentController extends Controller
 
                 // ✅ Update the student with explicit data
                 $student->update($updateData);
+                $this->handleInitialPayment($student, $request);
 
                 return redirect()->route('owner.students.index')
                     ->with('success', 'विद्यार्थी विवरण सफलतापूर्वक अद्यावधिक गरियो!');
@@ -1011,5 +1030,82 @@ class StudentController extends Controller
         }
 
         return view('student.meal-menu-show', compact('student', 'mealMenu'));
+    }
+
+    /**
+     * Handle creation/update of initial payment for a student.
+     *
+     * @param \App\Models\Student $student
+     * @param \Illuminate\Http\Request $request
+     * @return void
+     */
+    private function handleInitialPayment($student, $request)
+    {
+        Log::info('handleInitialPayment triggered', [
+            'student_id' => $student->id,
+            'request_has_initial_status' => $request->has('initial_payment_status'),
+            'initial_payment_status' => $request->input('initial_payment_status'),
+            'initial_payment_amount' => $request->input('initial_payment_amount'),
+            'initial_payment_method' => $request->input('initial_payment_method'),
+            'initial_payment_date' => $request->input('initial_payment_date'),
+        ]);
+
+        if (!$request->has('initial_payment_status')) {
+            Log::warning('handleInitialPayment: initial_payment_status not present, skipping');
+            return;
+        }
+
+        // ✅ FIX: Room price लाई सुरक्षित रूपमा लिने
+        $room = Room::find($student->room_id);
+        $roomPrice = $room ? ($room->price ?? 0) : 0;
+
+        // ✅ FIX: amount को priority: form बाट आएको मान, नभए room price, नभए 0
+        $amount = $request->input('initial_payment_amount');
+        if (is_null($amount) || $amount === '') {
+            $amount = $roomPrice;
+        }
+
+        // अझै NULL भए 0 सेट गर्ने
+        $amount = $amount ?? 0;
+
+        $paymentData = [
+            'student_id'    => $student->id,
+            'hostel_id'     => $student->hostel_id ?? auth()->user()->hostel_id,
+            'amount'        => $amount,
+            'payment_date'  => $request->input('initial_payment_date', now()),
+            'payment_method' => $request->input('initial_payment_method', 'cash'),
+            'payment_type'  => Payment::PAYMENT_TYPE_INITIAL,
+            'status'        => $request->input('initial_payment_status') === 'paid'
+                ? Payment::STATUS_COMPLETED
+                : Payment::STATUS_PENDING,
+            'remarks'       => 'Initial registration payment',
+            'created_by'    => auth()->id(),
+        ];
+
+        Log::info('handleInitialPayment: prepared payment data', $paymentData);
+
+        $existingPayment = Payment::getInitialPayment($student->id);
+
+        try {
+            DB::transaction(function () use ($existingPayment, $paymentData, $student, $request) {
+                if ($existingPayment) {
+                    $existingPayment->update($paymentData);
+                    Log::info('handleInitialPayment: updated existing payment', ['payment_id' => $existingPayment->id]);
+                } else {
+                    $payment = Payment::create($paymentData);
+                    Log::info('handleInitialPayment: created new payment', ['payment_id' => $payment->id]);
+                }
+
+                // Student को पुरानो payment_status पनि sync गर्ने (optional)
+                $student->payment_status = $request->input('initial_payment_status') === 'paid' ? 'paid' : 'pending';
+                $student->save();
+                Log::info('handleInitialPayment: updated student payment_status', ['student_id' => $student->id, 'new_status' => $student->payment_status]);
+            });
+        } catch (\Exception $e) {
+            Log::error('handleInitialPayment transaction failed: ' . $e->getMessage(), [
+                'student_id' => $student->id,
+                'trace' => $e->getTraceAsString()
+            ]);
+        }
     }
 }

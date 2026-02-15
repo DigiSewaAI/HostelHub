@@ -31,6 +31,11 @@ class Payment extends Model
     const PURPOSE_MEAL = 'meal';
     const PURPOSE_OTHER = 'other';
 
+    // ✅ PAYMENT TYPE CONSTANTS (NEW)
+    const PAYMENT_TYPE_INITIAL = 'initial';
+    const PAYMENT_TYPE_MONTHLY = 'monthly';
+    const PAYMENT_TYPE_OTHER   = 'other';
+
     protected $fillable = [
         'organization_id', // ✅ Multi-tenant support
         'user_id',         // ✅ User who made the payment
@@ -43,7 +48,8 @@ class Payment extends Model
         'payment_date',
         'due_date',
         'payment_method',
-        'purpose',         // ✅ Payment purpose
+        'payment_type',    // ✅ NEW: type of payment (initial, monthly, etc.)
+        'purpose',
         'transaction_id',
         'status',
         'remarks',
@@ -62,6 +68,7 @@ class Payment extends Model
         'metadata' => 'array' // ✅ Cast metadata as array
     ];
 
+
     /**
      * Validation rules for payment
      */
@@ -79,6 +86,11 @@ class Payment extends Model
             'payment_date' => 'required|date',
             'due_date' => 'nullable|date|after:payment_date',
             'payment_method' => 'required|in:cash,khalti,esewa,bank_transfer,credit_card',
+            'payment_type' => 'nullable|in:' . implode(',', [
+                self::PAYMENT_TYPE_INITIAL,
+                self::PAYMENT_TYPE_MONTHLY,
+                self::PAYMENT_TYPE_OTHER
+            ]), // ✅ NEW: validation for payment_type
             'purpose' => 'required|in:booking,subscription,extra_hostel,meal,other',
             'transaction_id' => 'nullable|string|max:255|unique:payments,transaction_id,' . $id,
             'status' => 'required|in:pending,completed,failed,refunded,cancelled',
@@ -157,6 +169,15 @@ class Payment extends Model
     public function scopeForCreator($query, $userId)
     {
         return $query->where('created_by', $userId);
+    }
+
+    /**
+     * ✅ NEW: Scope to get initial payment for a student
+     */
+    public function scopeInitialForStudent($query, $studentId)
+    {
+        return $query->where('student_id', $studentId)
+            ->where('payment_type', self::PAYMENT_TYPE_INITIAL);
     }
 
     // ✅ ORGANIZATION RELATIONSHIP
@@ -430,5 +451,33 @@ class Payment extends Model
     public function getVerifiedByName(): string
     {
         return $this->verifiedBy ? $this->verifiedBy->name : 'N/A';
+    }
+
+    // ====================== NEW METHODS FOR INITIAL PAYMENT ======================
+
+    /**
+     * ✅ NEW: Check if an initial payment exists for a given student.
+     *
+     * @param int $studentId
+     * @return bool
+     */
+    public static function hasInitialPayment($studentId): bool
+    {
+        return self::where('student_id', $studentId)
+            ->where('payment_type', self::PAYMENT_TYPE_INITIAL)
+            ->exists();
+    }
+
+    /**
+     * ✅ NEW: Get the initial payment record for a student.
+     *
+     * @param int $studentId
+     * @return \App\Models\Payment|null
+     */
+    public static function getInitialPayment($studentId): ?self
+    {
+        return self::where('student_id', $studentId)
+            ->where('payment_type', self::PAYMENT_TYPE_INITIAL)
+            ->first();
     }
 }
