@@ -202,5 +202,7 @@ class Kernel extends HttpKernel
         //\App\Console\Commands\FixStudentRelationships::class,
         // 🔥 NEW: Add auto-link students command
         \App\Console\Commands\AutoLinkStudentRecords::class,
+        \App\Console\Commands\BackfillInvoices::class,
+
     ];
 }

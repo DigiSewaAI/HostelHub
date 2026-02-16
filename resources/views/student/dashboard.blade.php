@@ -214,32 +214,32 @@
         </div>
 
         <!-- Payment Status -->
-        <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-200">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-gray-600 text-sm font-medium">भुक्तानी</p>
-                    <p class="text-2xl font-bold text-amber-600 mt-1">
-                        @if($paymentStatus == 'paid')
-                            भुक्तानी भएको
-                        @elseif($paymentStatus == 'overdue')
-                            बाँकी
-                            @if(isset($delayMonths) && $delayMonths > 0)
-                                ({{ $delayMonths }} महिना ढिला)
-                            @endif
-                        @else
-                            भुक्तानी भएको छैन
-                        @endif
-                    </p>
-                    @if(isset($nextDueDate) && $nextDueDate)
-                        <p class="text-xs text-gray-500 mt-1">अर्को म्याद: {{ $nextDueDate->format('Y-m-d') }}</p>
+<div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-200">
+    <div class="flex items-center justify-between">
+        <div>
+            <p class="text-gray-600 text-sm font-medium">भुक्तानी</p>
+            <p class="text-2xl font-bold text-amber-600 mt-1">
+                @if($paymentStatus == 'paid')
+                    भुक्तानी भएको
+                @elseif($paymentStatus == 'overdue')
+                    बाँकी
+                    @if($delayMonths > 0)
+                        ({{ $delayMonths }} महिना ढिला)
                     @endif
-                </div>
-                <div class="bg-amber-100 p-3 rounded-xl">
-                    <i class="fas fa-receipt text-amber-600 text-xl"></i>
-                </div>
-            </div>
-            <p class="text-gray-500 text-xs mt-2">भुक्तानी स्थिति</p>
+                @else
+                    भुक्तानी भएको छैन
+                @endif
+            </p>
+            @if($nextDueDate)
+                <p class="text-xs text-gray-500 mt-1">अर्को म्याद: {{ $nextDueDate->format('Y-m-d') }}</p>
+            @endif
         </div>
+        <div class="bg-amber-100 p-3 rounded-xl">
+            <i class="fas fa-receipt text-amber-600 text-xl"></i>
+        </div>
+    </div>
+    <p class="text-gray-500 text-xs mt-2">भुक्तानी स्थिति</p>
+</div>
 
         <!-- Notifications -->
         <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-200">
@@ -391,6 +391,7 @@
                         </div>
                         @endif
                         
+                        <!-- Payment Status in left column -->
                         <div class="flex justify-between items-center">
                             <span class="text-gray-600">स्थिति:</span>
                             <span class="
@@ -404,7 +405,7 @@
                                     भुक्तानी भएको
                                 @elseif($paymentStatus == 'overdue')
                                     बाँकी
-                                    @if(isset($delayMonths) && $delayMonths > 0)
+                                    @if($delayMonths > 0)
                                         ({{ $delayMonths }} महिना ढिला)
                                     @endif
                                 @else

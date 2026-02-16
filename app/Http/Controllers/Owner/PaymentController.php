@@ -4,11 +4,16 @@ namespace App\Http\Controllers\Owner;
 
 use App\Http\Controllers\Controller;
 use App\Models\Payment;
+use App\Models\Student;
 use App\Models\Hostel;
+use App\Models\Invoice;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class PaymentController extends Controller
 {
@@ -382,6 +387,108 @@ class PaymentController extends Controller
         imagedestroy($image);
 
         return $tempFile;
+    }
+
+    /**
+     * Store a newly created payment in storage.
+     */
+    public function store(Request $request)
+    {
+        // 1. अनुमति जाँच: Owner वा Hostel Manager मात्र
+        if (!Auth::user()->hasAnyRole(['owner', 'hostel_manager'])) {
+            abort(403, 'तपाईंसँग भुक्तानी थप्ने अनुमति छैन');
+        }
+
+        $user = Auth::user();
+
+        // 2. Validation नियमहरू
+        $request->validate([
+            'student_id'    => 'required|exists:students,id',
+            'amount'        => 'required|numeric|min:0',
+            'payment_date'  => 'required|date',
+            'payment_method' => 'required|string|max:50',
+            'status'        => 'required|in:pending,completed,failed',
+            'remarks'       => 'nullable|string|max:500',
+            // due_date आवश्यक छैन, पछि आफैं सेट गरिनेछ
+        ]);
+
+        // 3. Owner/Manager को आफ्नो hostel_id छ कि छैन जाँच
+        $userHostelId = $user->hostel_id;
+        if (!$userHostelId) {
+            return back()->with('error', 'कृपया पहिले आफ्नो होस्टेल सेटअप गर्नुहोस्।');
+        }
+
+        // 4. विद्यार्थी उही hostel को हो भनी सुनिश्चित गर्ने
+        $student = Student::where('id', $request->student_id)
+            ->where('hostel_id', $userHostelId)
+            ->first();
+
+        if (!$student) {
+            return back()
+                ->withInput()
+                ->with('error', 'तपाईंसँग यो विद्यार्थीको लागि भुक्तानी थप्ने अनुमति छैन');
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // 5. कोठा ID पत्ता लगाउने (यदि छ भने)
+            $roomId = $student->room ? $student->room->id : null;
+
+            // 6. भुक्तानी मितिबाट billing_month निकाल्ने (महिनाको पहिलो दिन)
+            $paymentDate = Carbon::parse($request->payment_date);
+            $billingMonth = $paymentDate->copy()->startOfMonth()->toDateString();
+
+            // 7. होस्टेल ID (owner को hostel_id नै)
+            $hostelId = $userHostelId;
+
+            // 8. इनभ्वाइस खोज्ने वा बनाउने (firstOrCreate)
+            $invoice = Invoice::firstOrCreate(
+                [
+                    'student_id'    => $student->id,
+                    'billing_month' => $billingMonth,
+                ],
+                [
+                    'hostel_id'     => $hostelId,
+                    'amount'        => $request->amount,   // पहिलो payment को रकम इनभ्वाइसको कुल रकम
+                    'due_date'      => $request->due_date ?? $paymentDate->copy()->addDays(7)->toDateString(),
+                    'status'        => 'unpaid',
+                ]
+            );
+
+            // 9. भुक्तानी डेटा तयार गर्ने (invoice_id सहित)
+            $paymentData = [
+                'student_id'    => $student->id,
+                'room_id'       => $roomId,
+                'hostel_id'     => $hostelId,
+                'amount'        => $request->amount,
+                'payment_date'  => $request->payment_date,
+                'due_date'      => $request->due_date ?? $paymentDate->copy()->addDays(7)->toDateString(),
+                'payment_method' => $request->payment_method,
+                'status'        => $request->status,
+                'remarks'       => $request->remarks,
+                'created_by'    => $user->id,
+                'invoice_id'    => $invoice->id,   // ✅ इनभ्वाइस ID जोडियो
+            ];
+
+            // 10. भुक्तानी सिर्जना गर्ने
+            Payment::create($paymentData);
+
+            DB::commit();
+
+            // 11. सफल भएपछि पुनः निर्देशित गर्ने (owner.payments.create मा)
+            return redirect()
+                ->route('owner.payments.create')
+                ->with('success', 'भुक्तानी सफलतापूर्वक थपियो! नयाँ भुक्तानी थप्नुहोस्।');
+        } catch (\Exception $e) {
+            DB::rollback();
+            Log::error('Owner Payment creation failed: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
+
+            return back()
+                ->withInput()
+                ->with('error', 'भुक्तानी दर्ता गर्न असफल। कृपया पुनः प्रयास गर्नुहोस्।');
+        }
     }
 
     /**

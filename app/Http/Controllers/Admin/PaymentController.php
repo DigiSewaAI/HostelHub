@@ -19,6 +19,8 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\PaymentsExport;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Services\PdfImageService;
+use Carbon\Carbon;
+use App\Models\Invoice;
 
 class PaymentController extends Controller
 {
@@ -361,19 +363,49 @@ class PaymentController extends Controller
             // Set due_date to payment_date if not provided
             $dueDate = $request->due_date ?? $request->payment_date;
 
+            // ---------------- नयाँ भाग: इनभ्वाइस सिर्जना/प्राप्त गर्ने ----------------
+            // भुक्तानी मितिबाट billing_month निकाल्ने (महिनाको पहिलो दिन)
+            $paymentDate = Carbon::parse($request->payment_date);
+            $billingMonth = $paymentDate->copy()->startOfMonth()->toDateString();
+
+            // होस्टेल ID निर्धारण गर्ने (इनभ्वाइसको लागि)
+            if ($user->hasRole('admin')) {
+                $hostelId = $request->hostel_id;
+            } else {
+                // owner वा hostel_manager को लागि
+                $hostelId = $student->hostel_id ?? $user->hostel_id;
+            }
+
+            // इनभ्वाइस खोज्ने वा बनाउने (पहिले देखि भए त्यही प्रयोग गर्ने)
+            $invoice = Invoice::firstOrCreate(
+                [
+                    'student_id'    => $student->id,
+                    'billing_month' => $billingMonth,
+                ],
+                [
+                    'hostel_id'     => $hostelId,
+                    'amount'        => $request->amount,        // पहिलो payment को रकम इनभ्वाइसको कुल रकम मानिनेछ
+                    'due_date'      => $dueDate,                 // payment को due_date नै प्रयोग गर्ने
+                    'status'        => 'unpaid',
+                ]
+            );
+            // ---------------------------------------------------------------------
+
+            // Payment data तयार गर्ने (अब यसमा invoice_id थपिनेछ)
             $paymentData = [
-                'student_id' => $request->student_id,
-                'room_id' => $roomId,
-                'amount' => $request->amount,
+                'student_id'   => $request->student_id,
+                'room_id'      => $roomId,
+                'amount'       => $request->amount,
                 'payment_date' => $request->payment_date,
-                'due_date' => $dueDate,
+                'due_date'     => $dueDate,
                 'payment_method' => $request->payment_method,
-                'status' => $request->status,
-                'remarks' => $request->notes,
-                'created_by' => $user->id,
+                'status'       => $request->status,
+                'remarks'      => $request->notes,
+                'created_by'   => $user->id,
+                'invoice_id'   => $invoice->id,      // ✅ इनभ्वाइस ID थपियो
             ];
 
-            // Set hostel_id based on role
+            // Set hostel_id based on role (पहिले जस्तै)
             if ($user->hasRole('admin')) {
                 $paymentData['hostel_id'] = $request->hostel_id;
             } elseif ($user->hasRole('owner') || $user->hasRole('hostel_manager')) {

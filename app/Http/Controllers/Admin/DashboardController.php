@@ -14,7 +14,7 @@ use App\Models\StudentDocument;
 use App\Models\Circular;
 use App\Models\CircularRecipient;
 use App\Models\OrganizationRequest;
-use App\Models\Review; // ✅ ADDED: Import Review model
+use App\Models\Review;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Log;
@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Invoice;
 use Carbon\Carbon;
 
 class DashboardController extends Controller
@@ -802,12 +803,12 @@ class DashboardController extends Controller
                 ->select('id', 'meal_type', 'items', 'description', 'day_of_week')
                 ->first();
 
-            // Get last payment information
+            // Get last payment information (पुरानो तर optional)
             $lastPayment = Payment::where('student_id', $student->id)
                 ->latest()
                 ->first();
 
-            // Get upcoming events (assuming you have an Event model)
+            // Get upcoming events
             $upcomingEvents = \App\Models\Event::where('date', '>=', now())
                 ->where('hostel_id', $hostel->id)
                 ->orderBy('date')
@@ -823,7 +824,7 @@ class DashboardController extends Controller
             // Get notifications
             $notifications = $user->notifications()->latest()->take(5)->get();
 
-            // ✅ IMPROVED: Circulars data for student with Read Status
+            // Circulars data for student with Read Status
             $unreadCirculars = CircularRecipient::where('user_id', $user->id)
                 ->where('is_read', false)
                 ->count();
@@ -850,9 +851,45 @@ class DashboardController extends Controller
                 ->take(3)
                 ->get();
 
-            // Determine payment status
-            $paymentStatus = $lastPayment && $lastPayment->status === 'completed' ? 'Paid' : 'Pending';
+            // ---------- नयाँ: इनभ्वाइसबाट payment status, next due date, delay months गणना ----------
+            $latestInvoice = Invoice::where('student_id', $student->id)
+                ->orderByDesc('billing_month')
+                ->first();
 
+            $paymentStatus = 'unpaid';
+            $nextDueDate = null;
+            $delayMonths = 0;
+
+            if ($latestInvoice) {
+                $currentMonthStart = now()->startOfMonth();
+                $billingMonth = Carbon::parse($latestInvoice->billing_month)->startOfMonth();
+
+                if ($latestInvoice->status === 'paid' && $billingMonth->greaterThanOrEqualTo($currentMonthStart)) {
+                    // हालको महिना वा भविष्यको महिना पैसा तिरेको छ
+                    $paymentStatus = 'paid';
+                    // अर्को म्याद = भुक्तानी गरेको महिनाको अर्को महिनाको पहिलो दिन
+                    $nextDueDate = $billingMonth->copy()->addMonth()->startOfMonth();
+                } elseif ($latestInvoice->status === 'paid' && $billingMonth->lessThan($currentMonthStart)) {
+                    // पछिल्लो पटक तिरेको महिना वर्तमान महिनाभन्दा अघि छ -> बाँकी
+                    $paymentStatus = 'overdue';
+                    $delayMonths = $billingMonth->copy()->addMonth()->diffInMonths($currentMonthStart);
+                    $nextDueDate = $billingMonth->copy()->addMonth()->startOfMonth(); // अर्को म्याद (जुन तिर्न बाँकी छ)
+                } elseif ($latestInvoice->status === 'partial' || $latestInvoice->status === 'unpaid') {
+                    $paymentStatus = 'overdue';
+                    // यो इनभ्वाइसकै महिना बाँकी छ
+                    $delayMonths = $billingMonth->lessThan($currentMonthStart)
+                        ? $billingMonth->diffInMonths($currentMonthStart)
+                        : 0;
+                    $nextDueDate = $billingMonth->copy()->startOfMonth();
+                }
+            } else {
+                // कुनै इनभ्वाइस छैन
+                $paymentStatus = 'unpaid';
+                $nextDueDate = null;
+            }
+            // ---------------------------------------------------------------------------------
+
+            // ✅ अन्तमा view मा सबै variables पठाउने (पुराना + नयाँ)
             return view('student.dashboard', compact(
                 'student',
                 'room',
@@ -862,11 +899,13 @@ class DashboardController extends Controller
                 'upcomingEvents',
                 'galleryImages',
                 'notifications',
-                'paymentStatus',
-                // Circular variables
                 'unreadCirculars',
                 'recentStudentCirculars',
-                'importantCirculars'
+                'importantCirculars',
+                'paymentStatus',      // ✅ नयाँ
+                'nextDueDate',         // ✅ नयाँ
+                'delayMonths',         // ✅ नयाँ
+                'latestInvoice'        // ✅ वैकल्पिक (यदि चाहिन्छ भने)
             ));
         } catch (\Exception $e) {
             Log::error('विद्यार्थी ड्यासबोर्ड त्रुटि: ' . $e->getMessage(), [

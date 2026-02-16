@@ -4,6 +4,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Payment Bill - {{ $hostel->name ?? 'HostelHub' }}</title>
     <style>
+        /* तपाईंको CSS यथावत रहन्छ */
         body {
             font-family: Helvetica, Arial, sans-serif;
             font-size: 11px;
@@ -332,10 +333,21 @@
                     <span class="value">{{ \Carbon\Carbon::parse($payment->payment_date)->format('Y-m-d') }}</span>
                 </div>
                 
+                <!-- ✅ परिवर्तन: Due Date (payment->due_date, payment->invoice->due_date, वा payment->payment_date) -->
                 <div class="row">
                     <span class="label">Due Date:</span>
-                    <span class="value">{{ \Carbon\Carbon::parse($payment->due_date ?? $payment->payment_date)->format('Y-m-d') }}</span>
+                    <span class="value">
+                        {{ \Carbon\Carbon::parse($payment->due_date ?? ($payment->invoice->due_date ?? $payment->payment_date))->format('Y-m-d') }}
+                    </span>
                 </div>
+                
+                <!-- ✅ नयाँ: Billing Month (यदि payment सँग invoice छ भने) -->
+                @if($payment->invoice)
+                <div class="row">
+                    <span class="label">Billing Month:</span>
+                    <span class="value">{{ \Carbon\Carbon::parse($payment->invoice->billing_month)->format('F Y') }}</span>
+                </div>
+                @endif
                 
                 <!-- FIX 2: Payment Method mapping -->
                 <div class="row">

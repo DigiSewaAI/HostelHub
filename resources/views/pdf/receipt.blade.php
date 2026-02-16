@@ -323,6 +323,22 @@
                 </span>
             </div>
             
+            <!-- ✅ नयाँ: Due Date (यदि payment सँग invoice छ भने invoice को due_date, नभए payment को due_date वा payment_date) -->
+            <div class="detail-row">
+                <span class="detail-label">Due Date:</span>
+                <span class="detail-value">
+                    {{ \Carbon\Carbon::parse($payment->due_date ?? ($payment->invoice->due_date ?? $payment->payment_date))->format('Y-m-d') }}
+                </span>
+            </div>
+            
+            <!-- ✅ नयाँ: Billing Month (यदि payment सँग invoice छ भने) -->
+            @if($payment->invoice)
+            <div class="detail-row">
+                <span class="detail-label">Billing Month:</span>
+                <span class="detail-value">{{ \Carbon\Carbon::parse($payment->invoice->billing_month)->format('F Y') }}</span>
+            </div>
+            @endif
+            
             <div class="detail-row">
                 <span class="detail-label">Payment Method:</span>
                 <span class="detail-value">

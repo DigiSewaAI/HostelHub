@@ -562,4 +562,36 @@ class Payment extends Model
             ->where('payment_type', self::PAYMENT_TYPE_INITIAL)
             ->first();
     }
+    // Payment.php मा relationship
+    public function invoice(): BelongsTo
+    {
+        return $this->belongsTo(Invoice::class);
+    }
+
+    // मोडेलको booted method (पहिले देखिको boot method सँगै रहन सक्छ)
+    protected static function booted()
+    {
+        // सुरक्षित/अपडेट गर्दा सम्बन्धित इनभ्वाइसको status अपडेट गर्ने
+        static::saved(function ($payment) {
+            if ($payment->invoice_id) {
+                $payment->invoice->updateStatus();
+            }
+        });
+
+        // मेटाउँदा पनि इनभ्वाइसको status अपडेट गर्ने
+        static::deleted(function ($payment) {
+            if ($payment->invoice_id) {
+                $payment->invoice->updateStatus();
+            }
+        });
+
+        // यदि payment को invoice_id परिवर्तन हुन्छ भने पुरानो इनभ्वाइस पनि अपडेट गर्नुपर्छ
+        static::updating(function ($payment) {
+            $oldInvoiceId = $payment->getOriginal('invoice_id');
+            if ($oldInvoiceId && $oldInvoiceId != $payment->invoice_id) {
+                // पुरानो इनभ्वाइसलाई अपडेट गर्ने
+                Invoice::find($oldInvoiceId)?->updateStatus();
+            }
+        });
+    }
 }
