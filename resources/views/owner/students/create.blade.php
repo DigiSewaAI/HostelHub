@@ -35,8 +35,7 @@
     @endif
 
     {{-- Create Student Form --}}
-    <form action="{{ route('owner.students.store') }}" method="POST" class="bg-white shadow-md rounded-lg p-6" id="studentForm">
-        @csrf
+    <form action="{{ route('owner.students.store') }}" method="POST" class="bg-white shadow-md rounded-lg p-6" id="studentForm" enctype="multipart/form-data">        @csrf
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             {{-- Left Column --}}
@@ -194,6 +193,15 @@
                            class="mt-1 block w-full border rounded-lg px-3 py-2 focus:ring focus:ring-blue-300"
                            placeholder="जस्तै: बुबा, आमा, दाजु, etc.">
                     @error('guardian_relation')
+                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                {{-- Student Image --}}
+                <div class="mb-4">
+                    <label for="image" class="block text-sm font-medium text-gray-700">विद्यार्थी फोटो (PP Size)</label>
+                    <input type="file" name="image" id="image" class="mt-1 block w-full border rounded-lg px-3 py-2 focus:ring focus:ring-blue-300" accept="image/*">
+                    @error('image')
                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                     @enderror
                 </div>

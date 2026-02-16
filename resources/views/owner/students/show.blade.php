@@ -13,6 +13,13 @@
 
     {{-- Student Card --}}
     <div class="bg-white shadow-md rounded-lg p-6">
+        @if($student->image)
+    <div class="flex justify-center mb-4">
+        <img src="{{ asset('storage/students/'.$student->image) }}" 
+             alt="Student Photo" 
+             class="w-44 h-48 object-cover rounded-lg shadow-md border-2 border-gray-200">
+    </div>
+@endif
         <h2 class="text-xl font-semibold text-blue-700 mb-4">{{ $student->name }}</h2>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">

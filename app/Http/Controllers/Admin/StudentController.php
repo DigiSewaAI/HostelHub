@@ -163,7 +163,7 @@ class StudentController extends Controller
 
         // Role-based data handling
         if (auth()->user()->hasRole('admin')) {
-            // Admin side processing
+            // Admin side processing (यो अपरिवर्तित रहन्छ)
             try {
                 // ✅ FIXED: Handle user_id for admin side - convert 0 to NULL
                 $validatedData['user_id'] = ($validatedData['user_id'] == 0) ? null : $validatedData['user_id'];
@@ -225,8 +225,9 @@ class StudentController extends Controller
             }
 
             $request->validate([
+                'image'                    => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
                 'initial_payment_status'   => 'nullable|in:paid,pending',
-                'initial_payment_amount'   => 'nullable|numeric|min:0',   // ✅ FIXED: removed required_if
+                'initial_payment_amount'   => 'nullable|numeric|min:0',
                 'initial_payment_method'   => 'nullable|required_if:initial_payment_status,paid|string|max:50',
                 'initial_payment_date'     => 'nullable|required_if:initial_payment_status,paid|date',
             ]);
@@ -344,6 +345,20 @@ class StudentController extends Controller
                     ]);
 
                     $student = $existingStudent;
+
+                    // ✅ फोटो अपलोड (स्थानान्तरण भएको विद्यार्थीको लागि)
+                    if ($request->hasFile('image')) {
+                        // पुरानो फोटो मेटाउने (यदि छ भने)
+                        if ($student->image && Storage::disk('public')->exists('students/' . $student->image)) {
+                            Storage::disk('public')->delete('students/' . $student->image);
+                        }
+                        $image = $request->file('image');
+                        $imageName = time() . '_' . $image->getClientOriginalName();
+                        $image->storeAs('students', $imageName, 'public');
+                        $student->image = $imageName;
+                        $student->save();
+                    }
+
                     $this->handleInitialPayment($student, $request);
 
                     Log::info('Student transferred to new hostel', [
@@ -382,6 +397,16 @@ class StudentController extends Controller
 
                     // Create new student record
                     $student = Student::create($validatedData);
+
+                    // ✅ फोटो अपलोड (नयाँ विद्यार्थीको लागि)
+                    if ($request->hasFile('image')) {
+                        $image = $request->file('image');
+                        $imageName = time() . '_' . $image->getClientOriginalName();
+                        $image->storeAs('students', $imageName, 'public');
+                        $student->image = $imageName;
+                        $student->save();
+                    }
+
                     $this->handleInitialPayment($student, $request);
                 }
 
