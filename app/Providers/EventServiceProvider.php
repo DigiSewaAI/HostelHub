@@ -5,9 +5,6 @@ namespace App\Providers;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
-use Illuminate\Support\Facades\Event;
-use App\Models\Review;
-use App\Observers\ReviewObserver;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -20,23 +17,6 @@ class EventServiceProvider extends ServiceProvider
         Registered::class => [
             SendEmailVerificationNotification::class,
         ],
-
-        // ✅ ADDED: Review Events for Admin Notifications
-        \App\Events\ReviewSubmitted::class => [
-            \App\Listeners\SendReviewSubmittedNotification::class,
-        ],
-
-        \App\Events\ReviewApproved::class => [
-            \App\Listeners\SendReviewApprovedNotification::class,
-        ],
-
-        \App\Events\ReviewRejected::class => [
-            \App\Listeners\SendReviewRejectedNotification::class,
-        ],
-
-        \App\Events\OwnerRepliedToReview::class => [
-            \App\Listeners\SendOwnerReplyNotification::class,
-        ],
     ];
 
     /**
@@ -46,7 +26,9 @@ class EventServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        Review::observe(ReviewObserver::class);
+        parent::boot();
+
+        // ✅ सबै Observers हटाइयो (Notification प्रणालीले काम गर्छ)
     }
 
     /**

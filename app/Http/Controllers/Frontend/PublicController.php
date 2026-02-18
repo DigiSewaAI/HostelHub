@@ -106,7 +106,8 @@ class PublicController extends Controller
             // 5. Recent Testimonials (with caching)
             $testimonials = Cache::remember('home_testimonials', 3600, function () {
                 return Review::with('student')
-                    ->where('is_published', true)
+                    ->where('status', 'approved')
+                    ->latest()
                     ->take(3)
                     ->get();
             });

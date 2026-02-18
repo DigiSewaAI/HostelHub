@@ -21,7 +21,7 @@ use Illuminate\Support\Str;
 use App\Models\Payment;
 use Illuminate\Support\Facades\DB;
 use App\Notifications\NewStudentNotification;
-
+use App\Notifications\RoomVacateNotification;
 
 class StudentController extends Controller
 {
@@ -726,6 +726,29 @@ class StudentController extends Controller
                         if ($otherActiveStudents == 0) {
                             $oldRoom->update(['status' => 'available']);
                         }
+                    }
+
+                    // 🔔 मालिकलाई सूचना पठाउने (कोठा खाली भएको)
+                    try {
+                        $hostel = $student->hostel;
+                        if ($hostel && $hostel->owner) {
+                            $hostel->owner->notify(new RoomVacateNotification($student));
+                            Log::info('RoomVacateNotification sent to owner', [
+                                'owner_id' => $hostel->owner->id,
+                                'student_id' => $student->id,
+                                'hostel_id' => $hostel->id
+                            ]);
+                        } else {
+                            Log::warning('Could not send RoomVacateNotification: hostel or owner not found', [
+                                'student_id' => $student->id,
+                                'hostel_id' => $student->hostel_id
+                            ]);
+                        }
+                    } catch (\Exception $e) {
+                        Log::error('Failed to send RoomVacateNotification: ' . $e->getMessage(), [
+                            'student_id' => $student->id,
+                            'trace' => $e->getTraceAsString()
+                        ]);
                     }
                 } else {
                     // For active/pending/approved students, handle room assignment

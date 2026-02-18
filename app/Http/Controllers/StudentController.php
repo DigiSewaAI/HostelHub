@@ -18,6 +18,8 @@ use App\Models\CircularRecipient;
 use App\Models\Event;
 use Illuminate\Support\Facades\Log;
 use App\Notifications\MaintenanceRequestNotification;
+use App\Models\RoomIssue;
+use App\Notifications\RoomIssueNotification;
 
 class StudentController extends Controller
 {
@@ -478,38 +480,6 @@ class StudentController extends Controller
         return view('student.notifications', compact('notifications'));
     }
 
-    public function submitMaintenance(Request $request)
-    {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'priority' => 'required|in:low,medium,high,urgent',
-        ]);
-
-        $student = Auth::user()->student;
-
-        if (!$student || !$student->hostel_id) {
-            return redirect()->back()->with('error', 'विद्यार्थी वा हस्टेल फेला परेन');
-        }
-
-        // Check if MaintenanceRequest model exists
-        if (class_exists('App\Models\MaintenanceRequest')) {
-            \App\Models\MaintenanceRequest::create([
-                'student_id' => $student->id,
-                'hostel_id' => $student->hostel_id,
-                'room_id' => $student->room_id,
-                'title' => $request->title,
-                'description' => $request->description,
-                'priority' => $request->priority,
-                'status' => 'pending'
-            ]);
-
-            return redirect()->back()->with('success', 'मर्मतको अनुरोध सफलतापूर्वक पेश गरियो');
-        } else {
-            return redirect()->back()->with('error', 'मर्मत सेवा अहिले उपलब्ध छैन');
-        }
-    }
-
     // ✅ NEWLY ADDED: Method to view circulars for students
     public function circulars()
     {
@@ -698,7 +668,7 @@ class StudentController extends Controller
 
 
     /**
-     * ✅ FIXED: Report room issue with multiple fallback options
+     * ✅ FIXED: Report room issue with RoomIssue model and notification
      */
     public function reportRoomIssue(Request $request)
     {
@@ -729,81 +699,46 @@ class StudentController extends Controller
                 ]);
             }
 
-            // Prepare report data
-            $reportData = [
-                'student_id' => $student->id,
-                'student_name' => $student->name,
-                'room_id' => $room->id,
-                'room_number' => $room->room_number,
-                'hostel_id' => $room->hostel_id,
-                'hostel_name' => $room->hostel->name ?? 'N/A',
-                'issue_type' => $validated['issue_type'],
-                'description' => $validated['description'],
-                'priority' => $validated['priority'],
-                'status' => 'pending',
-                'reported_at' => now(),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ];
+            // ✅ Create RoomIssue record using the model (only fillable fields)
+            $roomIssue = RoomIssue::create([
+                'student_id'   => $student->id,
+                'hostel_id'    => $room->hostel_id,
+                'room_id'      => $room->id,
+                'issue_type'   => $validated['issue_type'],
+                'description'  => $validated['description'],
+                'priority'     => $validated['priority'],
+                'status'       => 'pending',
+                // 'image_url' is optional, not provided here
+            ]);
 
-            $savedToDb = false;
-            $tableName = '';
+            // ✅ Log for debugging
+            \Log::info('ROOM_ISSUE_REPORT', $roomIssue->toArray());
 
-            // Try to save in room_issues table (NEW TABLE)
-            if (\Schema::hasTable('room_issues')) {
-                try {
-                    \DB::table('room_issues')->insert($reportData);
-                    $savedToDb = true;
-                    $tableName = 'room_issues';
-                } catch (\Exception $e) {
-                    \Log::error('Room issues table error: ' . $e->getMessage());
+            // ✅ Send notification to hostel owner using RoomIssueNotification
+            try {
+                $hostel = $room->hostel;
+                if ($hostel && $hostel->owner) {
+                    $hostel->owner->notify(new RoomIssueNotification($roomIssue));
+                    \Log::info('RoomIssueNotification sent to owner: ' . $hostel->owner->email);
+                } else {
+                    \Log::warning('Hostel owner not found for room issue', [
+                        'hostel_id' => $room->hostel_id,
+                        'student_id' => $student->id
+                    ]);
                 }
+            } catch (\Exception $e) {
+                \Log::error('Failed to send RoomIssueNotification: ' . $e->getMessage());
             }
-
-            // Try to save in maintenance_requests table (EXISTING TABLE)
-            if (!$savedToDb && \Schema::hasTable('maintenance_requests')) {
-                try {
-                    \DB::table('maintenance_requests')->insert($reportData);
-                    $savedToDb = true;
-                    $tableName = 'maintenance_requests';
-                } catch (\Exception $e) {
-                    \Log::error('Maintenance request table error: ' . $e->getMessage());
-                }
-            }
-
-            // Save to log file (ALWAYS WORKS)
-            $logMessage = sprintf(
-                "[%s] Room Issue Report:\nStudent: %s (ID: %s)\nRoom: %s, Hostel: %s\nIssue Type: %s\nPriority: %s\nDescription: %s\n\n",
-                now()->format('Y-m-d H:i:s'),
-                $student->name,
-                $student->id,
-                $room->room_number,
-                $room->hostel->name ?? 'N/A',
-                $validated['issue_type'],
-                $validated['priority'],
-                $validated['description']
-            );
-
-            // Save to Laravel log
-            \Log::info('ROOM_ISSUE_REPORT', $reportData);
-
-            // Save to custom log file
-            file_put_contents(storage_path('logs/room_issues.log'), $logMessage, FILE_APPEND);
-
-            // Send notification to hostel owner (using Laravel notification)
-            $this->notifyHostelOwner($student, $room, $validated);
-
-            $message = $savedToDb
-                ? 'तपाईंको समस्या सफलतापूर्वक रिपोर्ट गरियो! (सुरक्षित गरियो: ' . $tableName . ' मा)'
-                : 'तपाईंको समस्या लग गरियो। व्यवस्थापकलाई सूचना गरियो।';
 
             return response()->json([
                 'success' => true,
-                'message' => $message,
-                'saved_to_db' => $savedToDb
+                'message' => 'तपाईंको समस्या सफलतापूर्वक रिपोर्ट गरियो!',
+                'issue_id' => $roomIssue->id
             ]);
         } catch (\Exception $e) {
-            \Log::error('Error in reportRoomIssue: ' . $e->getMessage());
+            \Log::error('Error in reportRoomIssue: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
 
             return response()->json([
                 'success' => false,
@@ -812,28 +747,6 @@ class StudentController extends Controller
         }
     }
 
-    // ✅ FIXED: Notify hostel owner using MaintenanceRequestNotification (2)
-    private function notifyHostelOwner($student, $room, $data)
-    {
-        try {
-            // Get hostel owner
-            $hostel = $room->hostel;
-
-            if ($hostel && $hostel->owner) {
-                // ✅ Laravel notification पठाउने (MaintenanceRequestNotification प्रयोग गरेर)
-                $hostel->owner->notify(new MaintenanceRequestNotification($student, $room, $data));
-
-                \Log::info('MaintenanceRequestNotification sent to hostel owner: ' . $hostel->owner->email);
-            } else {
-                \Log::warning('Hostel owner not found for maintenance request', [
-                    'hostel_id' => $hostel->id ?? null,
-                    'student_id' => $student->id
-                ]);
-            }
-        } catch (\Exception $e) {
-            \Log::error('Failed to send MaintenanceRequestNotification: ' . $e->getMessage());
-        }
-    }
 
     // ✅ NEWLY ADDED: Method to mark circular as read
     public function markCircularAsRead($circularId)

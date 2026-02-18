@@ -5,7 +5,8 @@ namespace App\Http\Controllers\Owner;
 use App\Models\Review;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Auth; // ✅ ADDED
+use Illuminate\Support\Facades\Auth;
+use App\Notifications\NewReviewNotification; // ✅ Import the notification
 
 class ReviewController extends Controller
 {
@@ -105,6 +106,9 @@ class ReviewController extends Controller
         }
 
         $review->update(['status' => 'approved']);
+
+        // 🔔 Notify the owner about the approved review
+        $user->notify(new NewReviewNotification($review));
 
         return redirect()->route('owner.reviews.index')
             ->with('success', 'समीक्षा सफलतापूर्वक स्वीकृत गरियो!');

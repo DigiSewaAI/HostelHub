@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ReviewRequest;
 use App\Models\Review;
+use App\Notifications\NewReviewNotification; // 🔔 Import the notification
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
@@ -23,6 +24,11 @@ class ReviewController extends Controller
             'status' => 'approved',
             'is_approved' => true
         ]);
+
+        // 🔔 Notify the hostel owner about the approved review
+        if ($review->hostel && $review->hostel->owner) {
+            $review->hostel->owner->notify(new NewReviewNotification($review));
+        }
 
         return back()->with('success', '✅ समीक्षा स्वीकृत गरियो!');
     }
@@ -93,7 +99,6 @@ class ReviewController extends Controller
      */
     public function create()
     {
-        // ✅ SECURITY FIX: Authorization check
         $user = auth()->user();
         if (!$user->hasRole('admin')) {
             abort(403, 'तपाईंसँग समीक्षा सिर्जना गर्ने अनुमति छैन');
@@ -107,16 +112,13 @@ class ReviewController extends Controller
      */
     public function store(ReviewRequest $request)
     {
-        // ✅ SECURITY FIX: Authorization check
         $user = auth()->user();
         if (!$user->hasRole('admin')) {
             abort(403, 'तपाईंसँग समीक्षा सिर्जना गर्ने अनुमति छैन');
         }
 
-        // ✅ SECURITY FIX: Mass assignment protection - use validated data only
         $validated = $request->validated();
 
-        // ✅ SECURITY FIX: Enhanced file upload security
         if ($request->hasFile('image')) {
             $image = $request->file('image');
             $originalName = $image->getClientOriginalName();
@@ -125,7 +127,6 @@ class ReviewController extends Controller
             $validated['image'] = $path;
         }
 
-        // ✅ SECURITY FIX: Add user_id to track who created the review
         $validated['created_by'] = $user->id;
 
         Review::create($validated);
@@ -139,7 +140,6 @@ class ReviewController extends Controller
      */
     public function show(Review $review)
     {
-        // ✅ SECURITY FIX: Authorization check
         $user = auth()->user();
         if (!$user->hasRole('admin')) {
             abort(403, 'तपाईंसँग समीक्षा हेर्ने अनुमति छैन');
@@ -153,7 +153,6 @@ class ReviewController extends Controller
      */
     public function edit(Review $review)
     {
-        // ✅ SECURITY FIX: Authorization check
         $user = auth()->user();
         if (!$user->hasRole('admin')) {
             abort(403, 'तपाईंसँग समीक्षा सम्पादन गर्ने अनुमति छैन');
@@ -167,23 +166,18 @@ class ReviewController extends Controller
      */
     public function update(ReviewRequest $request, Review $review)
     {
-        // ✅ SECURITY FIX: Authorization check
         $user = auth()->user();
         if (!$user->hasRole('admin')) {
             abort(403, 'तपाईंसँग समीक्षा अद्यावधिक गर्ने अनुमति छैन');
         }
 
-        // ✅ SECURITY FIX: Mass assignment protection - use validated data only
         $validated = $request->validated();
 
-        // ✅ SECURITY FIX: Enhanced file upload security
         if ($request->hasFile('image')) {
-            // Delete old image if exists
             if ($review->image && Storage::disk('public')->exists($review->image)) {
                 Storage::disk('public')->delete($review->image);
             }
 
-            // Save new image with secure naming
             $image = $request->file('image');
             $originalName = $image->getClientOriginalName();
             $safeName = preg_replace('/[^a-zA-Z0-9\-\._]/', '', $originalName);
@@ -191,7 +185,6 @@ class ReviewController extends Controller
             $validated['image'] = $path;
         }
 
-        // ✅ SECURITY FIX: Handle image removal if requested
         if ($request->has('remove_image') && $request->remove_image == '1') {
             if ($review->image && Storage::disk('public')->exists($review->image)) {
                 Storage::disk('public')->delete($review->image);
@@ -210,13 +203,11 @@ class ReviewController extends Controller
      */
     public function destroy(Review $review)
     {
-        // ✅ SECURITY FIX: Authorization check
         $user = auth()->user();
         if (!$user->hasRole('admin')) {
             abort(403, 'तपाईंसँग समीक्षा हटाउने अनुमति छैन');
         }
 
-        // Delete image if exists
         if ($review->image && Storage::disk('public')->exists($review->image)) {
             Storage::disk('public')->delete($review->image);
         }
@@ -232,7 +223,6 @@ class ReviewController extends Controller
      */
     public function toggleStatus(Review $review)
     {
-        // ✅ SECURITY FIX: Authorization check
         $user = auth()->user();
         if (!$user->hasRole('admin')) {
             abort(403, 'तपाईंसँग समीक्षा स्थिति परिवर्तन गर्ने अनुमति छैन');
@@ -251,7 +241,6 @@ class ReviewController extends Controller
      */
     public function bulkAction(Request $request)
     {
-        // ✅ SECURITY FIX: Authorization check
         $user = auth()->user();
         if (!$user->hasRole('admin')) {
             abort(403, 'तपाईंसँग बल्क कार्य गर्ने अनुमति छैन');
@@ -283,7 +272,6 @@ class ReviewController extends Controller
 
                 case 'delete':
                     foreach ($reviews as $review) {
-                        // Delete image if exists
                         if ($review->image && Storage::disk('public')->exists($review->image)) {
                             Storage::disk('public')->delete($review->image);
                         }
@@ -304,7 +292,6 @@ class ReviewController extends Controller
      */
     public function search(Request $request)
     {
-        // ✅ SECURITY FIX: Authorization check
         $user = auth()->user();
         if (!$user->hasRole('admin')) {
             abort(403, 'तपाईंसँग समीक्षा खोज गर्ने अनुमति छैन');
@@ -318,8 +305,6 @@ class ReviewController extends Controller
         ]);
 
         $query = $request->input('search');
-
-        // ✅ SECURITY FIX: SQL Injection prevention in search
         $safeQuery = '%' . addcslashes($query, '%_') . '%';
 
         $reviews = Review::where('title', 'like', $safeQuery)

@@ -1966,7 +1966,7 @@ main.home-page-main {
 @php
     use App\Models\Review;
     $featuredTestimonials = Review::with('student')
-        ->where('is_published', true)
+        ->where('status', 'approved')  // ✅ 'is_published' लाई 'status' मा बदल्नुहोस्
         ->latest()
         ->take(3)
         ->get();

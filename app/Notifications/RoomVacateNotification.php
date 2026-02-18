@@ -2,7 +2,7 @@
 
 namespace App\Notifications;
 
-use App\Models\Booking;
+use App\Models\Student; // Student model प्रयोग गरिएको
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\BroadcastMessage;
@@ -11,37 +11,51 @@ class RoomVacateNotification extends Notification
 {
     use Queueable;
 
-    protected $booking;
+    protected $student;
 
-    public function __construct(Booking $booking)
+    /**
+     * नयाँ notification instance सिर्जना गर्नुहोस्।
+     */
+    public function __construct(Student $student)
     {
-        $this->booking = $booking;
+        $this->student = $student;
     }
 
+    /**
+     * Notification पठाउने च्यानलहरू निर्धारण गर्नुहोस्।
+     */
     public function via($notifiable)
     {
-        return ['database', 'broadcast'];
+        return ['database', 'broadcast']; // डाटाबेस र ब्रोडकास्ट दुवै
     }
 
+    /**
+     * डाटाबेसको लागि notification डाटा ढाँचा (array)।
+     */
     public function toDatabase($notifiable)
     {
-        $studentName = $this->booking->student->name ?? $this->booking->guest_name ?? 'कोही';
+        $studentName = $this->student->user->name ?? $this->student->name ?? 'कोही';
+        $roomNumber  = $this->student->room->room_number ?? 'अज्ञात';
+
         return [
             'title'      => 'कोठा खाली भयो',
-            'message'    => "{$studentName} ले {$this->booking->room->room_number} कोठा खाली गरेका छन्।",
-            'booking_id' => $this->booking->id,
-            'hostel_id'  => $this->booking->hostel_id,
-            'room_id'    => $this->booking->room_id,
+            'message'    => "{$studentName} ले {$roomNumber} कोठा खाली गरेका छन्।",
+            'student_id' => $this->student->id,
+            'hostel_id'  => $this->student->hostel_id,
+            'room_id'    => $this->student->room_id,
             'type'       => 'vacate',
-            'url'        => route('owner.bookings.show', $this->booking->id),
+            'url'        => route('owner.students.show', $this->student->id), // owner को student show रुट
         ];
     }
 
+    /**
+     * ब्रोडकास्ट (Pusher) को लागि notification डाटा।
+     */
     public function toBroadcast($notifiable)
     {
         return new BroadcastMessage([
             'title'   => 'कोठा खाली',
-            'message' => "एउटा कोठा खाली भएको छ।",
+            'message' => 'एउटा कोठा खाली भएको छ।',
             'type'    => 'vacate',
         ]);
     }
