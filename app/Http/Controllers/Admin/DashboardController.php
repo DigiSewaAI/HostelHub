@@ -24,6 +24,8 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Invoice;
 use Carbon\Carbon;
+use App\Models\RoomIssue;
+use Illuminate\Support\Collection;
 
 class DashboardController extends Controller
 {
@@ -41,22 +43,24 @@ class DashboardController extends Controller
      */
     public function index()
     {
-        $user = auth()->user();
+        $user = Auth::user();
 
-        // ✅ SECURITY FIX: Authorization check for all roles
-        if (!$user->hasAnyRole(['admin', 'hostel_manager', 'student'])) {
-            abort(403, 'अनधिकृत पहुँच');
-        }
+        // पछिल्लो १० वटा notifications (पढेको र नपढेको दुवै)
+        $notifications = $user->notifications()->latest()->take(10)->get();
 
-        if ($user->hasRole('admin')) {
-            return $this->adminDashboard();
-        } elseif ($user->hasRole('hostel_manager')) {
-            return $this->ownerDashboard();
-        } elseif ($user->hasRole('student')) {
-            return $this->studentDashboard();
-        }
+        // नपढेको notifications को संख्या
+        $unreadCount = $user->unreadNotifications->count();
 
-        abort(403, 'अनधिकृत पहुँच');
+        // अन्य ड्यासबोर्ड डाटा (यदि छ भने)
+        $totalHostels = \App\Models\Hostel::count(); // उदाहरण
+        $totalStudents = \App\Models\Student::count(); // उदाहरण
+
+        return view('admin.dashboard', compact(
+            'notifications',
+            'unreadCount',
+            'totalHostels',
+            'totalStudents'
+        ));
     }
 
     /**
@@ -103,6 +107,10 @@ class DashboardController extends Controller
         $this->ensureAdminSession();
 
         $this->authorize('view-admin-dashboard');
+        // ✅ STEP 1: Fetch user notifications for admin
+        $user = auth()->user();
+        $notifications = $user->notifications()->latest()->take(10)->get();
+        $unreadCount = $user->unreadNotifications->count();
 
         $userId = auth()->id();
         $cacheKey = "admin_dashboard_metrics_{$userId}";
@@ -290,7 +298,9 @@ class DashboardController extends Controller
                 'rejectedOrganizationRequests',
                 'totalOrganizationRequests',
                 'todayOrganizationRequests',
-                'recentOrganizationRequests'
+                'recentOrganizationRequests',
+                'notifications',
+                'unreadCount'
             ));
         } catch (\Exception $e) {
             // Log error details for debugging
@@ -364,11 +374,13 @@ class DashboardController extends Controller
                 'totalOrganizationRequests' => 0,
                 'todayOrganizationRequests' => 0,
                 'recentOrganizationRequests' => collect(),
-                'error' => 'ड्यासबोर्ड डाटा लोड गर्न सकिएन। कृपया पछि प्रयास गर्नुहोस् वा समर्थन सम्पर्क गर्नुहोस्।'
+                'error' => 'ड्यासबोर्ड डाटा लोड गर्न सकिएन। कृपया पछि प्रयास गर्नुहोस् वा समर्थन सम्पर्क गर्नुहोस्।',
+                // ✅ STEP 3: Add notifications in error case
+                'notifications' => collect(),
+                'unreadCount' => 0
             ]);
         }
     }
-
     /**
      * Calculate room occupancy rate
      */
@@ -522,6 +534,11 @@ class DashboardController extends Controller
         }
 
         try {
+
+            // ✅ STEP 4: Fetch user notifications for owner
+            $notifications = $user->notifications()->latest()->take(10)->get();
+            $unreadCount = $user->unreadNotifications->count();
+
             // ✅ CRITICAL FIX: Force session organization set
             $organization = $user->organizations()
                 ->wherePivot('role', 'owner')
@@ -701,7 +718,9 @@ class DashboardController extends Controller
                 'pendingRoomIssues',
                 'highPriorityRoomIssues',
                 'todayRoomIssues',
-                'recentRoomIssues'
+                'recentRoomIssues',
+                'notifications',
+                'unreadCount'
             ));
         } catch (\Exception $e) {
             Log::error('होस्टेल मालिक ड्यासबोर्ड त्रुटि: ' . $e->getMessage(), [
@@ -761,6 +780,9 @@ class DashboardController extends Controller
                 'highPriorityRoomIssues' => 0,
                 'todayRoomIssues' => 0,
                 'recentRoomIssues' => collect(),
+                // ✅ STEP 6: Add notifications in error case
+                'notifications' => collect(),
+                'unreadCount' => 0
             ]);
         }
     }

@@ -6,6 +6,8 @@ use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Event;
+use App\Models\Review;
+use App\Observers\ReviewObserver;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -44,7 +46,7 @@ class EventServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+        Review::observe(ReviewObserver::class);
     }
 
     /**

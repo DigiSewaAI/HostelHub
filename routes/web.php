@@ -75,6 +75,14 @@ Route::post('/reset-password-temp', function (Illuminate\Http\Request $request) 
 })->name('password.reset.temp');
 
 // ✅ Authenticated user routes
+
+// ✅ Notification mark as read (सबै प्रमाणित प्रयोगकर्ताका लागि)
+Route::post('/notifications/{id}/mark-as-read', function (Request $request, $id) {
+    $notification = auth()->user()->notifications()->findOrFail($id);
+    $notification->markAsRead();
+    return response()->json(['success' => true]);
+})->name('notifications.mark-as-read');
+
 Route::middleware(['auth'])->group(function () {
     // Welcome page with booking summary
     Route::get('/welcome', [WelcomeController::class, 'showWelcome'])->name('user.welcome');

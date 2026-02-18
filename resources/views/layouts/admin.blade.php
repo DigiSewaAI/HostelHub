@@ -1022,58 +1022,63 @@
                         </button>
                         
                         <!-- Notifications -->
-                        <div class="relative" x-data="{ open: false }">
-                            <button @click="open = !open" class="notification-button text-white hover:text-gray-200 p-2 rounded-full hover:bg-blue-700 tap-target" aria-label="सूचनाहरू हेर्नुहोस्">
-                                <i class="fas fa-bell text-lg"></i>
-                                <span class="notification-dot" aria-hidden="true"></span>
-                            </button>
-                            
-                            <div x-show="open" @click.away="open = false"
-                                 x-transition:enter="transition ease-out duration-200"
-                                 x-transition:enter-start="opacity-0 transform scale-95"
-                                 x-transition:enter-end="opacity-100 transform scale-100"
-                                 x-transition:leave="transition ease-in duration-75"
-                                 x-transition:leave-start="opacity-100 transform scale-100"
-                                 x-transition:leave-end="opacity-0 transform scale-95"
-                                 class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg py-1 z-20 max-h-96 overflow-y-auto border border-gray-200 dark:bg-gray-700 dark:border-gray-600"
-                                 role="menu"
-                                 aria-orientation="vertical"
-                                 aria-labelledby="notifications-button">
-                                <div class="px-4 py-2 border-b border-gray-200 dark:border-gray-600">
-                                    <h3 class="font-semibold text-gray-800 dark:text-white">सूचनाहरू</h3>
-                                </div>
-                                <a href="#" class="flex items-start px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-600 border-b border-gray-100 dark:border-gray-600" role="menuitem">
-                                    <div class="bg-indigo-100 p-2 rounded-lg mr-3">
-                                        <i class="fas fa-user-plus text-indigo-600"></i>
-                                    </div>
-                                    <div>
-                                        <p class="text-sm font-medium text-gray-800 dark:text-white">नयाँ विद्यार्थी दर्ता</p>
-                                        <p class="text-xs text-gray-500 dark:text-gray-300">३० मिनेट अघि</p>
-                                    </div>
-                                </a>
-                                <a href="#" class="flex items-start px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-600 border-b border-gray-100 dark:border-gray-600" role="menuitem">
-                                    <div class="bg-amber-100 p-2 rounded-lg mr-3">
-                                        <i class="fas fa-money-bill-wave text-amber-600"></i>
-                                    </div>
-                                    <div>
-                                        <p class="text-sm font-medium text-gray-800 dark:text-white">भुक्तानी समाप्ति</p>
-                                        <p class="text-xs text-gray-500 dark:text-gray-300">१ घण्टा अघि</p>
-                                    </div>
-                                </a>
-                                <a href="#" class="flex items-start px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-600" role="menuitem">
-                                    <div class="bg-red-100 p-2 rounded-lg mr-3">
-                                        <i class="fas fa-exclamation-triangle text-red-600"></i>
-                                    </div>
-                                    <div>
-                                        <p class="text-sm font-medium text-gray-800 dark:text-white">कोठा उपलब्धता</p>
-                                        <p class="text-xs text-gray-500 dark:text-gray-300">२ घण्टा अघि</p>
-                                    </div>
-                                </a>
-                                <div class="px-4 py-2 border-t border-gray-200 dark:border-gray-600 text-center">
-                                    <a href="#" class="text-indigo-600 dark:text-indigo-400 text-sm hover:underline">सबै सूचनाहरू हेर्नुहोस्</a>
-                                </div>
-                            </div>
+                        {{-- नोटिफिकेसन ड्रपडाउन (Alpine.js) --}}
+<div class="relative" x-data="{ open: false }">
+    {{-- नोटिफिकेसन बटन --}}
+    <button @click="open = !open" class="relative p-2 text-white hover:text-gray-200 focus:outline-none" aria-label="सूचनाहरू">
+        <i class="fas fa-bell text-xl"></i>
+        @if(isset($unreadCount) && $unreadCount > 0)
+            <span class="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-500 rounded-full">{{ $unreadCount }}</span>
+        @endif
+    </button>
+
+    {{-- ड्रपडाउन मेनु --}}
+    <div x-show="open" @click.away="open = false"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0 transform scale-95"
+         x-transition:enter-end="opacity-100 transform scale-100"
+         x-transition:leave="transition ease-in duration-75"
+         x-transition:leave-start="opacity-100 transform scale-100"
+         x-transition:leave-end="opacity-0 transform scale-95"
+         class="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg overflow-hidden z-20 border border-gray-200">
+
+        <div class="px-4 py-2 bg-gray-100 border-b border-gray-200">
+            <h3 class="font-semibold text-gray-700">सूचनाहरू</h3>
+        </div>
+
+        <div class="max-h-96 overflow-y-auto">
+            @forelse($notifications ?? [] as $notification)
+                @php
+                    $data = $notification->data;
+                    $url = $data['url'] ?? '#';
+                    $message = $data['message'] ?? 'नयाँ सूचना';
+                    $isUnread = is_null($notification->read_at);
+                @endphp
+                <a href="{{ $url }}"
+                   class="flex items-start px-4 py-3 hover:bg-gray-50 border-b border-gray-100 {{ $isUnread ? 'bg-blue-50' : '' }}"
+                   onclick="event.preventDefault(); markNotificationAsRead('{{ $notification->id }}', '{{ $url }}');">
+                    <div class="flex-shrink-0 mr-3">
+                        <div class="bg-indigo-100 rounded-full p-2">
+                            <i class="fas fa-star text-indigo-600"></i>
                         </div>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm text-gray-800 {{ $isUnread ? 'font-semibold' : '' }}">{{ $message }}</p>
+                        <p class="text-xs text-gray-500 mt-1">{{ $notification->created_at->diffForHumans() }}</p>
+                    </div>
+                </a>
+            @empty
+                <div class="px-4 py-6 text-center text-gray-500">
+                    कुनै सूचना छैन।
+                </div>
+            @endforelse
+        </div>
+
+        <div class="px-4 py-2 bg-gray-50 border-t border-gray-200 text-center">
+            <a href="{{ route('admin.notifications.index') }}" class="text-indigo-600 text-sm hover:underline">सबै सूचनाहरू हेर्नुहोस्</a>
+        </div>
+    </div>
+</div>
                         
                         <!-- User Dropdown -->
                         <div class="flex items-center space-x-2 user-dropdown">
@@ -2028,5 +2033,28 @@
             }
         }
     </script>
+
+    <script>
+    function markNotificationAsRead(notificationId, url) {
+        fetch('/notifications/' + notificationId + '/mark-as-read', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Content-Type': 'application/json',
+            },
+        }).then(response => {
+            if (response.ok) {
+                // सफल भयो भने redirect
+                window.location.href = url;
+            } else {
+                // भएन भने पनि redirect
+                window.location.href = url;
+            }
+        }).catch(error => {
+            console.error('Error:', error);
+            window.location.href = url;
+        });
+    }
+</script>
 </body>
 </html>

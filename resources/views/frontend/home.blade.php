@@ -1963,76 +1963,16 @@ main.home-page-main {
     </div>
 </section>
 
-<!-- 🚀 FIX 1: TESTIMONIALS CAROUSEL - BLUE CARDS WITH WHITE TEXT -->
-<section class="testimonials-carousel-section" id="testimonials">
-    <div class="testimonials-carousel-container">
-        <h2 class="testimonials-carousel-title nepali">ग्राहकहरूको प्रशंसापत्रहरू</h2>
-        <p class="testimonials-carousel-subtitle nepali">HostelHub प्रयोग गर्ने हाम्रा ग्राहकहरूले के भन्छन्</p>
-        
-        <!-- Swiper Testimonials Carousel -->
-        <div class="swiper testimonials-swiper">
-            <div class="swiper-wrapper">
-                <!-- Testimonial 1 -->
-                <div class="swiper-slide">
-                    <div class="testimonial-carousel-card">
-                        <div class="testimonial-quote">"</div>
-                        <p class="testimonial-text nepali">
-                            HostelHub को कोठा बुकिंग प्रणाली धेरै सजिलो छ। मैले आफ्नो कोठा अहिले नै बुक गरेँ र प्रक्रिया धेरै छिटो थियो। होस्टलको सबै विवरण फोटो सहित थियो।
-                        </p>
-                        <div class="testimonial-author">
-                            <div class="testimonial-author-avatar">क</div>
-                            <div class="testimonial-author-info">
-                                <h4>कल्पना तामाङ</h4>
-                                <p>विद्यार्थी</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Testimonial 2 -->
-                <div class="swiper-slide">
-                    <div class="testimonial-carousel-card">
-                        <div class="testimonial-quote">"</div>
-                        <p class="testimonial-text nepali">
-                            HostelHub ले हाम्रो होस्टल व्यवस्थापन धेरै सजिलो बनायो। विद्यार्थी व्यवस्थापन, भुक्तानी ट्र्याकिंग सबै एउटै ठाउँमा। अब सबै काम मोबाइलबाटै गर्न सक्छौं।
-                        </p>
-                        <div class="testimonial-author">
-                            <div class="testimonial-author-avatar">र</div>
-                            <div class="testimonial-author-info">
-                                <h4>राम श्रेष्ठ</h4>
-                                <p>होस्टल मालिक</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Testimonial 3 -->
-                <div class="swiper-slide">
-                    <div class="testimonial-carousel-card">
-                        <div class="testimonial-quote">"</div>
-                        <p class="testimonial-text nepali">
-                            खानाको मेनु अग्रिम हेर्न पाउँदा धेरै राम्रो लाग्छ। होस्टलको सबै सुविधाहरूको फोटो पनि ग्यालरीमा छन्। भुक्तानी पनि सजिलो, एक पटकमै बुक गर्न सकिन्छ।
-                        </p>
-                        <div class="testimonial-author">
-                            <div class="testimonial-author-avatar">स</div>
-                            <div class="testimonial-author-info">
-                                <h4>सरस्वती गौतम</h4>
-                                <p>विद्यार्थी</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Navigation buttons -->
-            <div class="swiper-button-next"></div>
-            <div class="swiper-button-prev"></div>
-            
-            <!-- Pagination dots -->
-            <div class="swiper-pagination"></div>
-        </div>
-    </div>
-</section>
+@php
+    use App\Models\Review;
+    $featuredTestimonials = Review::with('student')
+        ->where('is_published', true)
+        ->latest()
+        ->take(3)
+        ->get();
+@endphp
+
+@include('partials.testimonials', ['featuredTestimonials' => $featuredTestimonials])
 
 <!-- Pricing Section - FIXED VERSION -->
 <section class="section pricing" id="pricing">

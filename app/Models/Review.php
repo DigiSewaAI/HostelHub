@@ -40,7 +40,11 @@ class Review extends Model
         'comment',
         'reply',
         'reply_date',
-        'is_approved'
+        'is_approved',
+        'type',
+        'reviewable_type',
+        'reviewable_id',
+        'email'
     ];
 
     /**
@@ -55,7 +59,10 @@ class Review extends Model
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
         'reply_date' => 'datetime',
+        'reviewable_id' => 'integer',
+
     ];
+
 
     /**
      * Set default attribute values
@@ -125,6 +132,11 @@ class Review extends Model
         });
     }
 
+    public function reviewable()
+    {
+        return $this->morphTo();
+    }
+
     /**
      * Scope for user-specific reviews
      */
@@ -154,7 +166,7 @@ class Review extends Model
      */
     public function scopeForOrganization($query, $organizationId)
     {
-        return $query->whereHas('hostel', function($q) use ($organizationId) {
+        return $query->whereHas('hostel', function ($q) use ($organizationId) {
             $q->where('organization_id', $organizationId);
         });
     }

@@ -18,6 +18,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use PDF;
+use App\Notifications\NewPaymentNotification;
+
 
 class PaymentController extends Controller
 {
@@ -589,6 +591,42 @@ class PaymentController extends Controller
 
             if ($request->booking_id) {
                 $payment->update(['booking_id' => $request->booking_id]);
+            }
+
+            // 🔔 नयाँ भुक्तानी सूचना पठाउने (2)
+            try {
+                // भुक्तानीको owner पत्ता लगाउने
+                $owner = null;
+
+                // 1. Booking बाट hostel owner खोज्ने
+                if ($payment->booking_id) {
+                    $booking = $payment->booking;
+                    if ($booking && $booking->hostel && $booking->hostel->owner) {
+                        $owner = $booking->hostel->owner;
+                    }
+                }
+
+                // 2. यदि owner भेटिएन भने student को hostel बाट खोज्ने
+                if (!$owner && $student && $student->hostel && $student->hostel->owner) {
+                    $owner = $student->hostel->owner;
+                }
+
+                // 3. यदि अझै owner भेटिएन भने organization को owner खोज्ने
+                if (!$owner && $payment->organization_id) {
+                    $organization = Organization::find($payment->organization_id);
+                    if ($organization && $organization->owner) {
+                        $owner = $organization->owner;
+                    }
+                }
+
+                // यदि owner भेटियो भने notification पठाउने
+                if ($owner) {
+                    $owner->notify(new NewPaymentNotification($payment));
+                } else {
+                    Log::warning('NewPaymentNotification: Owner not found for payment ID: ' . $payment->id);
+                }
+            } catch (\Exception $e) {
+                Log::error('NewPaymentNotification failed: ' . $e->getMessage());
             }
 
             return redirect()->route('payment.success', $payment->id)

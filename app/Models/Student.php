@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use App\Notifications\NewStudentNotification;        // <-- थप्ने (1)
 
 class Student extends Model
 {
@@ -102,6 +103,21 @@ class Student extends Model
                 'booking_id' => $booking->id,
                 'user_id' => $user->id
             ]);
+
+            // 🔔 नयाँ विद्यार्थी सिर्जना भएपछि होस्टल मालिकलाई सूचना (2)
+            try {
+                $owner = $booking->hostel->owner;
+                if ($owner) {
+                    $owner->notify(new NewStudentNotification($student));
+                } else {
+                    Log::warning('Hostel owner not found for notification', [
+                        'hostel_id' => $booking->hostel_id,
+                        'student_id' => $student->id
+                    ]);
+                }
+            } catch (\Exception $e) {
+                Log::error('NewStudentNotification failed in createFromBooking: ' . $e->getMessage());
+            }
 
             return $student;
         } catch (\Exception $e) {

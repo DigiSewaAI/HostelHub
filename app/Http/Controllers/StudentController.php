@@ -17,6 +17,7 @@ use App\Models\Circular;
 use App\Models\CircularRecipient;
 use App\Models\Event;
 use Illuminate\Support\Facades\Log;
+use App\Notifications\MaintenanceRequestNotification;
 
 class StudentController extends Controller
 {
@@ -789,7 +790,7 @@ class StudentController extends Controller
             // Save to custom log file
             file_put_contents(storage_path('logs/room_issues.log'), $logMessage, FILE_APPEND);
 
-            // Send notification to hostel owner
+            // Send notification to hostel owner (using Laravel notification)
             $this->notifyHostelOwner($student, $room, $validated);
 
             $message = $savedToDb
@@ -811,7 +812,7 @@ class StudentController extends Controller
         }
     }
 
-    // New method to notify hostel owner
+    // ✅ FIXED: Notify hostel owner using MaintenanceRequestNotification (2)
     private function notifyHostelOwner($student, $room, $data)
     {
         try {
@@ -819,27 +820,18 @@ class StudentController extends Controller
             $hostel = $room->hostel;
 
             if ($hostel && $hostel->owner) {
-                // Create notification in database
-                \DB::table('notifications')->insert([
-                    'user_id' => $hostel->owner->id,
-                    'type' => 'room_issue',
-                    'title' => 'नयाँ कोठा समस्या रिपोर्ट',
-                    'message' => "विद्यार्थी: {$student->name}\nकोठा: {$room->room_number}\nसमस्या: {$data['issue_type']}",
-                    'data' => json_encode([
-                        'student_id' => $student->id,
-                        'room_id' => $room->id,
-                        'issue_type' => $data['issue_type'],
-                        'priority' => $data['priority']
-                    ]),
-                    'read' => false,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
+                // ✅ Laravel notification पठाउने (MaintenanceRequestNotification प्रयोग गरेर)
+                $hostel->owner->notify(new MaintenanceRequestNotification($student, $room, $data));
 
-                \Log::info('Notification sent to hostel owner: ' . $hostel->owner->email);
+                \Log::info('MaintenanceRequestNotification sent to hostel owner: ' . $hostel->owner->email);
+            } else {
+                \Log::warning('Hostel owner not found for maintenance request', [
+                    'hostel_id' => $hostel->id ?? null,
+                    'student_id' => $student->id
+                ]);
             }
         } catch (\Exception $e) {
-            \Log::error('Failed to send notification: ' . $e->getMessage());
+            \Log::error('Failed to send MaintenanceRequestNotification: ' . $e->getMessage());
         }
     }
 

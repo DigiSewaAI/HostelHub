@@ -25,7 +25,9 @@
     },
     "dependencies": {
         "@fortawesome/fontawesome-free": "^7.0.1",
+        "laravel-echo": "^2.3.0",
         "lodash": "^4.17.21",
-        "lodash-es": "^4.17.21"
+        "lodash-es": "^4.17.21",
+        "pusher-js": "^8.4.0"
     }
 }

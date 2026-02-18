@@ -17,6 +17,8 @@ use App\Http\Controllers\Admin\RoomController as AdminRoomController;
 use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\Owner\ContactController as OwnerContactController;
 use App\Http\Controllers\Admin\DocumentController;
+// ✅ NEW: Import Owner Notification Controller
+use App\Http\Controllers\Owner\NotificationController as OwnerNotificationController;
 
 /*|--------------------------------------------------------------------------
 | Owner/Hostel Manager Routes - BOTH roles can access
@@ -256,7 +258,7 @@ Route::middleware(['auth', 'hasOrganization', 'role:owner,hostel_manager'])
 
         Route::post('rooms/{room}/sync-single', [AdminRoomController::class, 'syncSingle'])->name('rooms.sync-single');
 
-        // ✅ NEW: Payment Method Routes (थप्नुहोस् यहाँ)
+        // ✅ NEW: Payment Method Routes
         Route::prefix('payment-methods')->name('payment-methods.')->group(function () {
             Route::get('/', [PaymentMethodController::class, 'index'])->name('index');
             Route::get('/hostel/{hostelId}', [PaymentMethodController::class, 'hostelPaymentMethods'])->name('hostel');
@@ -269,5 +271,14 @@ Route::middleware(['auth', 'hasOrganization', 'role:owner,hostel_manager'])
             Route::post('/{paymentMethod}/set-default', [PaymentMethodController::class, 'setDefault'])->name('set-default');
             Route::delete('/{paymentMethod}', [PaymentMethodController::class, 'destroy'])->name('destroy');
             Route::post('/update-order', [PaymentMethodController::class, 'updateOrder'])->name('update-order');
+        });
+
+        // ✅ NEW: Owner Notification Routes (Step 5.6)
+        Route::prefix('notifications')->name('notifications.')->group(function () {
+            Route::get('/', [OwnerNotificationController::class, 'index'])->name('index');
+            Route::post('/mark-all-read', [OwnerNotificationController::class, 'markAllAsRead'])->name('mark-all-read');
+            Route::get('/unread-count', [OwnerNotificationController::class, 'unreadCount'])->name('unread-count');
+            Route::post('/mark-read/{id}', [OwnerNotificationController::class, 'markAsRead'])->name('mark-read');
+            Route::get('/recent', [OwnerNotificationController::class, 'recent'])->name('recent');
         });
     });

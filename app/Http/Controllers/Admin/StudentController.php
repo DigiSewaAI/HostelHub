@@ -20,6 +20,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use App\Models\Payment;
 use Illuminate\Support\Facades\DB;
+use App\Notifications\NewStudentNotification;
+
 
 class StudentController extends Controller
 {
@@ -200,6 +202,18 @@ class StudentController extends Controller
                 }
 
                 $student = Student::create($validatedData);
+
+                // 🔔 नयाँ विद्यार्थी सिर्जना भएपछि hostel owner लाई सूचना (Admin side)
+                try {
+                    if ($student->hostel_id) {
+                        $hostel = Hostel::find($student->hostel_id);
+                        if ($hostel && $hostel->owner) {
+                            $hostel->owner->notify(new NewStudentNotification($student));
+                        }
+                    }
+                } catch (\Exception $e) {
+                    Log::error('NewStudentNotification failed (admin): ' . $e->getMessage());
+                }
 
                 // Update room status only if room is assigned and was available
                 if (isset($validatedData['room_id'])) {
@@ -397,6 +411,18 @@ class StudentController extends Controller
 
                     // Create new student record
                     $student = Student::create($validatedData);
+
+                    // 🔔 नयाँ विद्यार्थी सिर्जना भएपछि hostel owner लाई सूचना (Owner side - new student)
+                    try {
+                        if ($student->hostel_id) {
+                            $hostel = Hostel::find($student->hostel_id);
+                            if ($hostel && $hostel->owner) {
+                                $hostel->owner->notify(new NewStudentNotification($student));
+                            }
+                        }
+                    } catch (\Exception $e) {
+                        Log::error('NewStudentNotification failed (owner new student): ' . $e->getMessage());
+                    }
 
                     // ✅ फोटो अपलोड (नयाँ विद्यार्थीको लागि)
                     if ($request->hasFile('image')) {

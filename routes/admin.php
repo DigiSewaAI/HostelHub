@@ -8,14 +8,13 @@ use App\Http\Controllers\Admin\MealController;
 use App\Http\Controllers\Admin\MealMenuController as AdminMealMenuController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
-use App\Http\Controllers\Admin\RoomController as AdminRoomController; // ✅ FIXED: Added alias
+use App\Http\Controllers\Admin\RoomController as AdminRoomController;
 use App\Http\Controllers\Admin\StudentController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
 use App\Http\Controllers\Admin\CircularController as AdminCircularController;
 use App\Http\Controllers\Admin\OrganizationRequestController;
 use App\Http\Controllers\Admin\DocumentController;
-
 
 /*|--------------------------------------------------------------------------
 | Admin Routes - ONLY for admin role
@@ -225,4 +224,12 @@ Route::name('admin.')  // ✅ KEEP only the name prefix
 
         // ✅ CRITICAL FIX: Added fallback bulk operations route for other resources
         Route::post('/bulk-operations', [DashboardController::class, 'bulkOperations'])->name('bulk-operations');
+
+        // ===================== ✅ STEP 5: Admin Notification Routes =====================
+        // Admin Notifications - for listing all notifications and marking all as read
+        Route::prefix('notifications')->name('notifications.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\NotificationController::class, 'index'])->name('index');
+            Route::post('/mark-all-read', [\App\Http\Controllers\Admin\NotificationController::class, 'markAllAsRead'])->name('mark-all-read');
+        });
+        // ==============================================================================
     });

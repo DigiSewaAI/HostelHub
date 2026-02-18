@@ -23,48 +23,48 @@ export default defineConfig({
                 'resources/js/gallery.js',
                 'resources/js/themes/classic.js',
                 'resources/js/themes/modern.js'
-
             ],
             refresh: true,
         }),
     ],
+    // ✅ css.devSourcemap यहाँ राखियो (root level)
+    css: {
+        devSourcemap: true,
+    },
     build: {
-        manifest: 'manifest.json',
+        manifest: 'manifest.json', // Optional, plugin already does this
         outDir: 'public/build',
         rollupOptions: {
             output: {
-                entryFileNames: `assets/[name].js`,
-                chunkFileNames: `assets/[name].js`,
-                assetFileNames: `assets/[name].[ext]`,
-                manualChunks: {
-                    // ✅ ADDED: Modern theme chunk optimization
-                    'modern-theme': [
-                        './public/css/themes/modern.css',
-                        './public/js/themes/modern.js'
-                    ]
-                }
-            }
+                // ✅ [hash] हटाइएको थियो, तर cache busting को लागि [hash] रहन दिनु राम्रो
+                // यदि तपाईंलाई नाम नियन्त्रण गर्नै पर्छ भने entryFileNames, chunkFileNames, assetFileNames मा [hash] राख्नुहोस्।
+                // तर सामान्यतया laravel-vite-plugin को डिफल्ट नै ठीक हुन्छ। त्यसैले यो भाग हटाउन सकिन्छ।
+                // यदि राख्नै पर्छ भने:
+                entryFileNames: `assets/[name]-[hash].js`,
+                chunkFileNames: `assets/[name]-[hash].js`,
+                assetFileNames: `assets/[name]-[hash].[ext]`,
+                manualChunks: (id) => {
+                    // ✅ सही manualChunks: source फाइलहरूमा आधारित
+                    if (id.includes('/resources/css/themes/modern.css') || 
+                        id.includes('/resources/js/themes/modern.js')) {
+                        return 'modern-theme';
+                    }
+                    // तपाईं यहाँ अन्य चंकिङ पनि थप्न सक्नुहुन्छ
+                },
+            },
         },
         // Additional build optimizations for Laravel
         assetsInlineLimit: 0,
         chunkSizeWarningLimit: 1000,
-        // ✅ ADDED: CSS optimization for modern theme
-        css: {
-            devSourcemap: true
-        },
-        // Prevent vendor chunk splitting issues
-        commonjsOptions: {
-            transformMixedEsModules: true
-        },
-        // ✅ ADDED: Modern theme build optimizations
+        // ✅ cssCodeSplit build भित्र नै ठीक छ
         cssCodeSplit: true,
         minify: 'terser',
         terserOptions: {
             compress: {
                 drop_console: true,
-                drop_debugger: true
-            }
-        }
+                drop_debugger: true,
+            },
+        },
     },
     // Server configuration for development
     server: {
@@ -72,7 +72,7 @@ export default defineConfig({
             host: 'localhost',
         },
         watch: {
-            usePolling: true,
+            usePolling: true, // यदि तपाईं WSL वा Docker मा हुनुहुन्छ भने आवश्यक
         },
     },
     // Resolve configuration
@@ -85,7 +85,7 @@ export default defineConfig({
     optimizeDeps: {
         include: [
             'lodash-es',
-            'axios'
-        ]
-    }
+            'axios',
+        ],
+    },
 });

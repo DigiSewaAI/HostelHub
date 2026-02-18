@@ -114,6 +114,12 @@ Route::group(['middleware' => 'web'], function () {
     Route::get('/reviews', [FrontendReviewController::class, 'index'])->name('reviews');
     Route::get('/testimonials', [FrontendReviewController::class, 'index'])->name('testimonials');
 
+    // ✅ Step 2.1: Platform review submission (POST)
+    Route::post('/reviews/platform', [App\Http\Controllers\Frontend\ReviewController::class, 'storePlatform'])
+        ->name('reviews.platform.store')
+        ->middleware('throttle:5,1'); // प्रति IP 5 पटक मात्र
+
+
     // Legal pages routes
     Route::get('/privacy-policy', [PublicController::class, 'privacy'])->name('privacy');
     Route::get('/terms-of-service', [PublicController::class, 'terms'])->name('terms');

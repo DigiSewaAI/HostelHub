@@ -4,29 +4,29 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Models\Review;
+use App\Models\User;                      // <-- थपियो
+use App\Notifications\ReviewSubmitted;    // <-- थपियो
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification; // <-- थपियो
 
 class ReviewController extends Controller
 {
     /**
      * Display public testimonials page.
      */
-    public function index(Request $request)
+    public function index()
     {
         try {
-            // ✅ FIXED: Add proper error handling and ordering
-            $testimonials = Review::where('status', 'active')
+            $testimonials = Review::where('type', 'platform')
+                ->where('status', 'approved')
                 ->orderBy('created_at', 'desc')
-                ->orderBy('rating', 'desc')
                 ->get();
 
             return view('frontend.testimonials', compact('testimonials'));
         } catch (\Exception $e) {
-            // ✅ FIXED: Log error and return empty testimonials
             Log::error('Testimonials page error: ' . $e->getMessage());
-
-            $testimonials = collect(); // Empty collection
+            $testimonials = collect();
             return view('frontend.testimonials', compact('testimonials'));
         }
     }
@@ -276,7 +276,7 @@ class ReviewController extends Controller
     }
 
     /**
-     * ✅ NEW: Submit a new testimonial
+     * ✅ NEW: Submit a new testimonial (hostel review)
      */
     public function store(Request $request)
     {
@@ -315,5 +315,47 @@ class ReviewController extends Controller
                 'message' => 'प्रतिक्रिया पेश गर्दा त्रुटि भयो। कृपया पुनः प्रयास गर्नुहोस्।'
             ], 500);
         }
+    }
+
+    /**
+     * Store a platform review (HostelHub को बारेमा)
+     */
+    public function storePlatform(Request $request)
+    {
+        $request->validate([
+            'name'     => 'required|string|max:255',
+            'rating'   => 'required|integer|min:1|max:5',
+            'comment'  => 'required|string|min:10|max:1000',
+            'email'    => 'nullable|email|max:255',
+        ]);
+
+        // समीक्षा सिर्जना गर्ने
+        $review = Review::create([
+            'name'            => $request->name,
+            'rating'          => $request->rating,
+            'comment'         => $request->comment,
+            'email'           => $request->email,
+            'type'            => 'platform',
+            'status'          => Review::STATUS_PENDING,
+            'is_approved'     => false,
+            'reviewable_type' => 'platform',
+            'reviewable_id'   => null,
+        ]);
+
+        // 🔔 सबै एडमिनलाई सूचना पठाउने
+        try {
+            // Spatie को role scope प्रयोग गरेर एडमिनहरू प्राप्त गर्ने
+            $admins = User::role('admin')->get();
+
+            // यदि Spatie प्रयोग नगरेको भए, आफ्नो तरिकाले एडमिन फिल्टर गर्नुहोस्, जस्तै:
+            // $admins = User::where('is_admin', true)->get();
+
+            Notification::send($admins, new ReviewSubmitted($review));
+        } catch (\Exception $e) {
+            // सूचना पठाउन असफल भएमा लग मात्र राख्ने, प्रयोगकर्तालाई असर नगर्ने
+            Log::error('Platform review admin notification failed: ' . $e->getMessage());
+        }
+
+        return redirect()->back()->with('success', 'धन्यवाद! तपाईंको समीक्षा पेश गरिएको छ। प्रशासकद्वारा स्वीकृत भएपछि प्रकाशित हुनेछ।');
     }
 }

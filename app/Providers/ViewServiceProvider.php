@@ -20,7 +20,24 @@ class ViewServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // You can add view composers here if needed
-        // View::composer('view.name', function () {});
+        // owner layout मा notifications र unreadCount उपलब्ध गराउने view composer
+        View::composer('layouts.owner', function ($view) {
+            $user = auth()->user();
+            $notifications = collect();
+            $unreadCount = 0;
+
+            if ($user) {
+                // पछिल्लो 10 वटा सूचनाहरू (पढिएको र नपढिएको) ड्रपडाउनका लागि लिने
+                $notifications = $user->notifications()
+                    ->latest()
+                    ->take(10)
+                    ->get();
+
+                // ब्याजमा देखाउन केवल अपठित गणना
+                $unreadCount = $user->unreadNotifications()->count();
+            }
+
+            $view->with(compact('notifications', 'unreadCount'));
+        });
     }
 }

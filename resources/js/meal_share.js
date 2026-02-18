@@ -11,7 +11,7 @@ class MealShareManager {
 
     init() {
         this.bindShareEvents();
-        this.trackShareAnalytics();
+        this.trackShareAnalytics();   // Now defined
     }
 
     bindShareEvents() {
@@ -55,6 +55,12 @@ class MealShareManager {
                 'method': platform
             });
         }
+    }
+
+    // ✅ Added missing method to fix "trackShareAnalytics is not a function"
+    trackShareAnalytics() {
+        // You can add actual tracking logic here if needed
+        console.log('Meal share analytics tracking initialized');
     }
 }
 

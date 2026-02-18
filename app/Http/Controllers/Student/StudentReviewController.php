@@ -5,9 +5,13 @@ namespace App\Http\Controllers\Student;
 use App\Http\Controllers\Controller;
 use App\Models\Review;
 use App\Models\Hostel;
+use App\Models\User;
+use App\Notifications\NewReviewNotification;        // <-- परिवर्तन: ReviewSubmitted को सट्टा
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB; // ✅ ADDED
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Log;
 
 class StudentReviewController extends Controller
 {
@@ -128,7 +132,7 @@ class StudentReviewController extends Controller
             }
 
             // ✅ FIXED: Complete data with proper defaults
-            $review = Review::create([ // ✅ CHANGED: Assigned to variable
+            $review = Review::create([
                 'name' => $student->user->name, // Student's name
                 'position' => 'Student', // Default position
                 'student_id' => $student->id,
@@ -142,8 +146,24 @@ class StudentReviewController extends Controller
 
             DB::commit();
 
-            // ✅ TRIGGER EVENT: Trigger event for admin notification (Added as per instructions)
-            event(new \App\Events\ReviewSubmitted($review));
+            // ✅ TRIGGER EVENT: Trigger event for admin notification (optional)
+            // event(new \App\Events\ReviewSubmitted($review));
+
+            // 🔔 होस्टल मालिकलाई सूचना पठाउने (NewReviewNotification प्रयोग गरिएको)
+            try {
+                // समीक्षाको होस्टल पत्ता लगाउने
+                $hostel = $review->hostel; // Review मोडलमा hostel() relationship हुनुपर्छ
+                if ($hostel && $hostel->owner) { // owner relationship Hostel मोडलमा परिभाषित हुनुपर्छ
+                    $hostel->owner->notify(new NewReviewNotification($review));   // <-- परिवर्तन
+                } else {
+                    // यदि owner प्रत्यक्ष छैन भने organization को owner खोज्ने
+                    if ($hostel && $hostel->organization && $hostel->organization->owner) {
+                        $hostel->organization->owner->notify(new NewReviewNotification($review));   // <-- परिवर्तन
+                    }
+                }
+            } catch (\Exception $e) {
+                Log::error('Owner notification failed: ' . $e->getMessage());
+            }
 
             return redirect()->route('student.reviews.index')
                 ->with('success', 'तपाईंको समीक्षा सफलतापूर्वक पेश गरियो। प्रशासकद्वारा स्वीकृत पछि प्रदर्शित हुनेछ।');

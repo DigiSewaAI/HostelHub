@@ -15,9 +15,11 @@
     
     <!-- Font Awesome 6.4.0 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-          integrity="sha512-iecdLmaskl7CVskpV0uYGFkTd73EVdjGN7teJQ8N+2ER5yiJHHIyMI1GAa5I80LzvcpbKjByZcXc9j5QFZUvSJQ=="
-          crossorigin="anonymous" referrerpolicy="no-referrer">
-    
+      crossorigin="anonymous" referrerpolicy="no-referrer">
+
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
     <!-- Vite CSS Assets -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     
@@ -742,54 +744,64 @@
                             <span>मालिक</span>
                         </div>
 
-                        <!-- Notification Bell -->
-                        <div class="dropdown">
-                            <button class="notification-button text-white hover:text-gray-200 p-2 rounded-full hover:bg-blue-700 dropdown-toggle tap-target" 
-                                    type="button" 
-                                    id="notificationsDropdown" 
-                                    data-bs-toggle="dropdown" 
-                                    aria-expanded="false"
-                                    aria-label="सूचनाहरू हेर्नुहोस्">
-                                <i class="fas fa-bell text-lg"></i>
-                                <span class="notification-dot" aria-hidden="true"></span>
-                            </button>
-                            <div class="dropdown-menu dropdown-menu-end w-80 bg-white rounded-xl shadow-lg py-1 z-20 max-h-96 overflow-y-auto border border-gray-200" 
-                                 aria-labelledby="notificationsDropdown">
-                                <div class="px-4 py-2 border-b border-gray-200">
-                                    <h3 class="font-semibold text-gray-800">सूचनाहरू</h3>
-                                </div>
-                                <a href="#" class="flex items-start px-4 py-3 hover:bg-gray-50 border-b border-gray-100">
-                                    <div class="bg-blue-100 p-2 rounded-lg mr-3">
-                                        <i class="fas fa-money-bill-wave text-blue-600"></i>
-                                    </div>
-                                    <div>
-                                        <p class="text-sm font-medium text-gray-800">नयाँ भुक्तानी प्राप्त भयो</p>
-                                        <p class="text-xs text-gray-500">३० मिनेट अघि</p>
-                                    </div>
-                                </a>
-                                <a href="#" class="flex items-start px-4 py-3 hover:bg-gray-50 border-b border-gray-100">
-                                    <div class="bg-green-100 p-2 rounded-lg mr-3">
-                                        <i class="fas fa-star text-green-600"></i>
-                                    </div>
-                                    <div>
-                                        <p class="text-sm font-medium text-gray-800">नयाँ समीक्षा प्राप्त भयो</p>
-                                        <p class="text-xs text-gray-500">१ घण्टा अघि</p>
-                                    </div>
-                                </a>
-                                <a href="#" class="flex items-start px-4 py-3 hover:bg-gray-50">
-                                    <div class="bg-amber-100 p-2 rounded-lg mr-3">
-                                        <i class="fas fa-user-plus text-amber-600"></i>
-                                    </div>
-                                    <div>
-                                        <p class="text-sm font-medium text-gray-800">नयाँ विद्यार्थी दर्ता भयो</p>
-                                        <p class="text-xs text-gray-500">२ घण्टा अघि</p>
-                                    </div>
-                                </a>
-                                <div class="px-4 py-2 border-t border-gray-200 text-center">
-                                    <a href="#" class="text-sm text-blue-600 hover:text-blue-800 font-medium">सबै सूचनाहरू हेर्नुहोस्</a>
-                                </div>
-                            </div>
+                        <!-- Notifications Dropdown (Bootstrap) -->
+<div class="dropdown">
+    <button class="btn dropdown-toggle notification-button tap-target p-2 text-white hover:text-gray-200 focus:outline-none"
+            type="button"
+            id="notificationDropdown"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+            aria-label="सूचनाहरू">
+        <i class="fas fa-bell text-xl"></i>
+        @if($unreadCount > 0)
+            <span class="absolute top-0 right-0 inline-flex items-center justify-center px-1 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-500 rounded-full min-w-[18px] h-[18px]">{{ $unreadCount }}</span>
+        @endif
+    </button>
+
+    <div class="dropdown-menu dropdown-menu-end shadow-lg rounded-xl border-0 py-2"
+         aria-labelledby="notificationDropdown"
+         style="width: 320px;">
+
+        <div class="px-4 py-2 bg-gray-100 border-b border-gray-200">
+            <h3 class="font-semibold text-gray-700">सूचनाहरू</h3>
+        </div>
+
+        <div class="max-h-96 overflow-y-auto">
+            @forelse($notifications as $notification)
+                @php
+                    $data = $notification->data;
+                    $url = $data['url'] ?? '#';
+                    $message = $data['message'] ?? 'नयाँ सूचना';
+                    $isUnread = is_null($notification->read_at);
+                    $icon = $data['type'] ?? 'bell';
+                @endphp
+                <a href="{{ $url }}"
+                   class="dropdown-item flex items-start px-4 py-3 hover:bg-gray-50 border-b border-gray-100 {{ $isUnread ? 'bg-blue-50' : '' }}"
+                   onclick="event.preventDefault(); markNotificationAsRead('{{ $notification->id }}', '{{ $url }}');">
+                    <div class="flex-shrink-0 mr-3">
+                        <div class="bg-indigo-100 rounded-full p-2">
+                            <i class="fas fa-{{ $icon }} text-indigo-600"></i>
                         </div>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm text-gray-800 {{ $isUnread ? 'font-semibold' : '' }}">{{ $message }}</p>
+                        <p class="text-xs text-gray-500 mt-1">{{ $notification->created_at->diffForHumans() }}</p>
+                    </div>
+                </a>
+            @empty
+                <div class="px-4 py-6 text-center text-gray-500">
+                    कुनै सूचना छैन।
+                </div>
+            @endforelse
+        </div>
+
+        <div class="px-4 py-2 bg-gray-50 border-t border-gray-200 text-center">
+            <a href="{{ route('owner.notifications.index') }}" class="text-indigo-600 text-sm hover:underline">
+                सबै सूचनाहरू हेर्नुहोस्
+            </a>
+        </div>
+    </div>
+</div>
                         
                         <!-- User Profile Dropdown -->
                         <div class="dropdown user-dropdown">
@@ -1724,4 +1736,83 @@ if (window.innerWidth < 1024) {
     @stack('scripts')
     <div id="toast-container" class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 11"></div>
 </body>
+
+<!-- Real-time Notification via Pusher (यदि सक्षम छ भने मात्र लोड हुने) -->
+@if(config('broadcasting.default') === 'pusher')
+<script src="https://js.pusher.com/7.0/pusher.min.js"></script>
+
+<script>
+    // Unread count badge अपडेट गर्ने function (पहिले polling बाट हटाइएको)
+    function updateUnreadCount() {
+        fetch('/owner/notifications/unread-count')
+            .then(res => res.json())
+            .then(data => {
+                const badge = document.querySelector('#notificationDropdown span.absolute');
+                const button = document.querySelector('#notificationDropdown');
+                if (data.count > 0) {
+                    if (badge) {
+                        badge.textContent = data.count;
+                        badge.style.display = 'inline-flex';
+                    } else {
+                        const newBadge = document.createElement('span');
+                        newBadge.className = 'absolute top-0 right-0 inline-flex items-center justify-center px-1 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-500 rounded-full min-w-[18px] h-[18px]';
+                        newBadge.textContent = data.count;
+                        button.appendChild(newBadge);
+                    }
+                } else {
+                    if (badge) badge.style.display = 'none';
+                }
+            })
+            .catch(err => console.error('Failed to fetch unread count:', err));
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // पहिलो पटक unread count ल्याउनुहोस्
+        updateUnreadCount();
+
+        // Echo चालू छ कि छैन जाँच गर्नुहोस्
+        if (typeof Echo !== 'undefined') {
+            Echo.private('App.Models.User.' + {{ auth()->id() }})
+                .notification((notification) => {
+                    // Unread count badge अपडेट गर्नुहोस्
+                    updateUnreadCount();
+
+                    // Toast मा सन्देश देखाउनुहोस् (notification.data बाट message लिने)
+                    const message = notification.data?.message || notification.message || 'नयाँ सूचना';
+                    showNotificationAlert(message);
+                });
+        }
+    });
+
+    // नयाँ notification आउँदा सानो Toast देखाउने
+    function showNotificationAlert(message) {
+        let toastHtml = `<div class="toast align-items-center text-white bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">${message}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>`;
+        document.getElementById('toast-container').insertAdjacentHTML('beforeend', toastHtml);
+        let toastElement = document.querySelector('.toast:last-child');
+        let toast = new bootstrap.Toast(toastElement);
+        toast.show();
+    }
+</script>
+@endif
+<script>
+    function markNotificationAsRead(notificationId, url) {
+        // यहाँ URL लाई owner prefix सहित बनाउनुहोस्
+        fetch('/owner/notifications/mark-read/' + notificationId, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
+        }).finally(() => {
+            // सफल होस् वा नहोस्, अन्तमा redirect गर्ने
+            window.location.href = url;
+        });
+    }
+</script>
 </html>

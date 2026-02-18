@@ -44,7 +44,68 @@
         margin: 0 auto 0.75rem auto;
     }
 
-    /* Testimonials Content */
+    /* 🆕 Review Form Styles */
+    .review-form-container {
+        background: #f8fafc;
+        padding: 2rem;
+        border-radius: 1rem;
+        margin-bottom: 2rem;
+        max-width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+        width: 95%;
+    }
+
+    .rating-stars {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .rating-stars label {
+        cursor: pointer;
+        font-size: 1.8rem;
+        color: #cbd5e1;
+        transition: color 0.2s;
+    }
+
+    .rating-stars label:hover,
+    .rating-stars label:hover ~ label {
+        color: #fbbf24;
+    }
+
+    .compact-form-control {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.5rem;
+        font-size: 1rem;
+        transition: border-color 0.2s;
+    }
+
+    .compact-form-control:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+    }
+
+    .btn-primary.nepali {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: opacity 0.2s;
+    }
+
+    .btn-primary.nepali:hover {
+        opacity: 0.9;
+    }
+
+    /* ✅ Testimonials Display Section */
     .testimonials-content-section {
         max-width: 1200px;
         margin: 0 auto 2rem auto;
@@ -57,7 +118,6 @@
         margin: 0 auto;
     }
 
-    /* Testimonial Cards */
     .testimonial-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
@@ -116,6 +176,34 @@
     .author-info p {
         color: #6b7280;
         font-size: 0.95rem;
+    }
+
+    /* Empty State for No Testimonials */
+    .empty-testimonials {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: #f8fafc;
+        border-radius: 1rem;
+        border: 2px dashed #cbd5e0;
+    }
+
+    .empty-icon {
+        font-size: 4rem;
+        color: #9ca3af;
+        margin-bottom: 1.5rem;
+    }
+
+    .empty-message {
+        font-size: 1.2rem;
+        color: #6b7280;
+        margin-bottom: 1rem;
+    }
+
+    .empty-submessage {
+        font-size: 1rem;
+        color: #9ca3af;
+        max-width: 600px;
+        margin: 0 auto;
     }
 
     /* 🚨 UPDATED CTA SECTION - PROFESSIONAL STRATEGY (FIXED BORDER ISSUE) */
@@ -260,34 +348,6 @@
         to { transform: rotate(360deg); }
     }
 
-    /* Empty State for No Testimonials */
-    .empty-testimonials {
-        text-align: center;
-        padding: 4rem 2rem;
-        background: #f8fafc;
-        border-radius: 1rem;
-        border: 2px dashed #cbd5e0;
-    }
-
-    .empty-icon {
-        font-size: 4rem;
-        color: #9ca3af;
-        margin-bottom: 1.5rem;
-    }
-
-    .empty-message {
-        font-size: 1.2rem;
-        color: #6b7280;
-        margin-bottom: 1rem;
-    }
-
-    .empty-submessage {
-        font-size: 1rem;
-        color: #9ca3af;
-        max-width: 600px;
-        margin: 0 auto;
-    }
-
     /* Mobile adjustments */
     @media (max-width: 768px) {
         .testimonial-header {
@@ -308,6 +368,14 @@
 
         .testimonial-grid {
             grid-template-columns: 1fr;
+        }
+
+        .review-form-container {
+            padding: 1.5rem;
+        }
+
+        .rating-stars label {
+            font-size: 1.5rem;
         }
 
         .testimonial-cta-wrapper {
@@ -384,94 +452,78 @@
         <p>वास्तविक अनुभव, वास्तविक परिणाम।</p>
     </div>
 
-    <!-- Testimonials Content -->
-    <section class="testimonials-content-section">
+    <!-- ✅ Platform Review Form -->
+    <div class="review-form-container">
+        <h3 class="nepali" style="color: var(--primary); margin-bottom: 1rem; text-align: center;">हाम्रो बारेमा प्रतिक्रिया दिनुहोस्</h3>
+
+        @if(session('success'))
+            <div class="alert alert-success" style="background: #d4edda; color: #155724; padding: 0.75rem; border-radius: 0.5rem; margin-bottom: 1rem;">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        <form action="{{ route('reviews.platform.store') }}" method="POST">
+            @csrf
+            <div class="mb-3">
+                <label for="name" class="form-label nepali">नाम *</label>
+                <input type="text" name="name" id="name" class="compact-form-control" required value="{{ old('name') }}" style="width:100%;">
+            </div>
+            <div class="mb-3">
+                <label for="email" class="form-label nepali">इमेल (वैकल्पिक)</label>
+                <input type="email" name="email" id="email" class="compact-form-control" value="{{ old('email') }}" style="width:100%;">
+            </div>
+            <div class="mb-3">
+                <label class="form-label nepali">रेटिङ *</label>
+                <div class="rating-stars">
+                    @for($i=1; $i<=5; $i++)
+                        <input type="radio" id="star{{$i}}" name="rating" value="{{$i}}" {{ old('rating')==$i ? 'checked' : '' }} required style="display:none;">
+                        <label for="star{{$i}}" style="cursor:pointer; font-size:1.5rem; color: {{ old('rating')>=$i ? '#fbbf24' : '#cbd5e1' }};"><i class="fas fa-star"></i></label>
+                    @endfor
+                </div>
+            </div>
+            <div class="mb-3">
+                <label for="comment" class="form-label nepali">प्रतिक्रिया *</label>
+                <textarea name="comment" id="comment" rows="4" class="compact-form-control" required>{{ old('comment') }}</textarea>
+            </div>
+            <button type="submit" class="btn btn-primary nepali" style="width:100%;">पेश गर्नुहोस्</button>
+        </form>
+    </div>
+
+    <!-- ✅ Testimonials Display Section (वास्तविक डाटा) -->
+    <div class="testimonials-content-section">
         <div class="testimonials-container">
-            <!-- Note: यो डमी डाटा हो। वास्तविक डाटा database बाट ल्याउनुपर्छ -->
-            <!-- यदि कुनै प्रशंसापत्र छैन भने empty state देखाउने -->
-            
-            @if(false) <!-- Database बाट प्रशंसापत्र check गर्ने -->
             <div class="testimonial-grid">
-                <!-- Testimonial 1 -->
-                <div class="testimonial-card">
-                    <div class="testimonial-text">
-                        "HostelHub ले हाम्रो होस्टल व्यवस्थापन पूर्ण रूपमा बदलेको छ। अब विद्यार्थी र कोठाको ट्र्याकिंग एकदमै सजिलो भएको छ।"
-                    </div>
-                    <div class="testimonial-author">
-                        <div class="author-avatar">र</div>
-                        <div class="author-info">
-                            <h4>रमेश श्रेष्ठ</h4>
-                            <p>सुन्दर होस्टल, काठमाडौं</p>
+                @forelse($testimonials as $testimonial)
+                    <div class="testimonial-card">
+                        <div class="testimonial-text">"{{ $testimonial->comment }}"</div>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">{{ substr($testimonial->name, 0, 2) }}</div>
+                            <div class="author-info">
+                                <h4>{{ $testimonial->name }}</h4>
+                                <p>रेटिङ: {{ $testimonial->rating }}/5</p>
+                                <p class="text-muted">{{ $testimonial->created_at->format('d M, Y') }}</p>
+                            </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Testimonial 2 -->
-                <div class="testimonial-card">
-                    <div class="testimonial-text">
-                        "मोबाइल एप्प र वेब इन्टरफेस दुवैको कम्बिनेशनले हाम्रो काम धेरै सहज बनाएको छ। भुक्तानी प्रणाली पनि अत्यन्तै सुरक्षित छ।"
+                @empty
+                    <div class="empty-testimonials" style="grid-column: 1 / -1;">
+                        <div class="empty-icon"><i class="fas fa-comments"></i></div>
+                        <h3 class="empty-message nepali">अहिलेसम्म कुनै प्रशंसापत्र छैन</h3>
+                        <p class="empty-submessage nepali">पहिलो प्रतिक्रिया दिन माथिको फारम प्रयोग गर्नुहोस्।</p>
                     </div>
-                    <div class="testimonial-author">
-                        <div class="author-avatar">स</div>
-                        <div class="author-info">
-                            <h4>सीता अधिकारी</h4>
-                            <p>ज्ञान होस्टल, पोखरा</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Testimonial 3 -->
-                <div class="testimonial-card">
-                    <div class="testimonial-text">
-                        "७ दिनको निःशुल्क परीक्षण पछि हामीले तुरुन्तै प्रीमियम योजना लिएका छौं। यो साँच्चै राम्रो investment हो।"
-                    </div>
-                    <div class="testimonial-author">
-                        <div class="author-avatar">ह</div>
-                        <div class="author-info">
-                            <h4>हरि गुरुङ</h4>
-                            <p>शान्ति होस्टल, चितवन</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Testimonial 4 -->
-                <div class="testimonial-card">
-                    <div class="testimonial-text">
-                        "ग्राहक सहयोग टिमको प्रतिक्रिया एकदमै छिटो छ। कुनै समस्या आएमा तुरुन्तै समाधान गर्छन्।"
-                    </div>
-                    <div class="testimonial-author">
-                        <div class="author-avatar">ग</div>
-                        <div class="author-info">
-                            <h4>गीता शर्मा</h4>
-                            <p>विद्या होस्टल, भक्तपुर</p>
-                        </div>
-                    </div>
-                </div>
+                @endforelse
             </div>
-            @else
-            <!-- Empty State - कुनै प्रशंसापत्र नभएको खण्डमा -->
-            <div class="empty-testimonials">
-                <div class="empty-icon">
-                    <i class="fas fa-comments"></i>
-                </div>
-                <h3 class="empty-message">तपाइँ पहिलो ग्राहक बन्नुहोस्!</h3>
-                <p class="empty-submessage">
-                    HostelHub को सेवा प्रयोग गरेर आफ्नो अनुभव साझा गर्नुहोस्। 
-                    हामी छिट्टै नयाँ प्रशंसापत्रहरू थप्नेछौं।
-                </p>
-            </div>
-            @endif
         </div>
-    </section>
+    </div>
 
-    <!-- 🚨 UPDATED CTA SECTION - PROFESSIONAL STRATEGY -->
+    <!-- 🚨 CTA Section -->
     <div class="testimonial-cta-wrapper">
         <section class="testimonial-cta-section">
             <h2>आफैंले अनुभव गर्नुहोस्</h2>
             <p>७ दिनको निःशुल्क परीक्षणमा साइन अप गरेर तपाइँको होस्टललाई आधुनिक बनाउनुहोस्।</p>
             
             <div class="testimonial-cta-buttons-container">
-                <!-- BUTTON 1: DEMO (Orange Gradient) -->
+                <!-- BUTTON 1: DEMO -->
                 <a href="{{ route('demo') }}" class="testimonial-demo-button">
                     <i class="fas fa-play-circle"></i> डेमो हेर्नुहोस्
                 </a>
@@ -518,7 +570,7 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Add smooth scrolling for anchor links
+    // Smooth scrolling for anchor links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
             e.preventDefault();
@@ -534,6 +586,28 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // ⭐ Rating stars interactive behavior
+    const stars = document.querySelectorAll('.rating-stars label');
+    if (stars.length) {
+        stars.forEach((label, index, labels) => {
+            label.addEventListener('mouseenter', () => {
+                for(let i=0; i<=index; i++) labels[i].style.color = '#fbbf24';
+                for(let i=index+1; i<labels.length; i++) labels[i].style.color = '#cbd5e1';
+            });
+            label.addEventListener('mouseleave', () => {
+                let selected = document.querySelector('input[name="rating"]:checked');
+                let val = selected ? selected.value : 0;
+                labels.forEach((l, i) => {
+                    l.style.color = i < val ? '#fbbf24' : '#cbd5e1';
+                });
+            });
+            label.addEventListener('click', () => {
+                let radio = document.getElementById('star'+(index+1));
+                radio.checked = true;
+            });
+        });
+    }
 });
 </script>
 @endpush

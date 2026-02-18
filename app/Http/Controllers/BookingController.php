@@ -13,6 +13,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Notifications\NewBookingNotification;
+use App\Notifications\RoomVacateNotification;
 
 class BookingController extends Controller
 {
@@ -229,6 +231,23 @@ class BookingController extends Controller
                         ]
                     ]);
 
+                    // ✅ महत्वपूर्ण: यहाँ DB::commit() गर्नुहोस् (पहिले थिएन)
+                    DB::commit();
+
+                    // 🔔 नयाँ बुकिङ सूचना पठाउने (DB::commit() पछि)
+                    try {
+                        $hostel = $booking->hostel;
+                        if ($hostel && $hostel->owner) {
+                            $hostel->owner->notify(new NewBookingNotification($booking));
+                        } else {
+                            if ($hostel && $hostel->organization && $hostel->organization->owner) {
+                                $hostel->organization->owner->notify(new NewBookingNotification($booking));
+                            }
+                        }
+                    } catch (\Exception $e) {
+                        Log::error('NewBookingNotification failed: ' . $e->getMessage());
+                    }
+
                     // Redirect to payment checkout for students
                     return redirect()->route('payment.checkout', [
                         'amount' => $room->price,
@@ -246,7 +265,25 @@ class BookingController extends Controller
             // ❌❌❌ COMPLETELY REMOVED: Email dispatch code
             Log::info('✅ Booking created successfully without email. Booking ID: ' . $booking->id);
 
-            DB::commit();
+            DB::commit();   // <-- यो commit अहिले सबै branches मा पुग्ने गरी राखिएको छ
+
+            // 🔔 नयाँ बुकिङ सूचना पठाउने (DB::commit() पछि, तर माथिको approved branch मा पहिले नै गरिसकेकोले यहाँ फेरि नगर्नुहोस्)
+            // तर manual approval को case मा मात्र यहाँ notification पठाउनुहोस्।
+            // यसको लागि हामीले $status को मान जाँच गर्नुपर्छ।
+            if ($status !== Booking::STATUS_APPROVED) {
+                try {
+                    $hostel = $booking->hostel;
+                    if ($hostel && $hostel->owner) {
+                        $hostel->owner->notify(new NewBookingNotification($booking));
+                    } else {
+                        if ($hostel && $hostel->organization && $hostel->organization->owner) {
+                            $hostel->organization->owner->notify(new NewBookingNotification($booking));
+                        }
+                    }
+                } catch (\Exception $e) {
+                    Log::error('NewBookingNotification failed: ' . $e->getMessage());
+                }
+            }
 
             // ✅ FIXED: Redirect based on user type to correct success route for gallery bookings
             if (Auth::check() && !$isGuest) {
@@ -656,6 +693,21 @@ class BookingController extends Controller
             $room->save();
 
             DB::commit();
+
+            // 🔔 कोठा खाली भएको सूचना होस्टल मालिकलाई पठाउने (2)
+            try {
+                $hostel = $booking->hostel;
+                if ($hostel && $hostel->owner) {
+                    $hostel->owner->notify(new RoomVacateNotification($booking));
+                } else {
+                    // यदि owner प्रत्यक्ष छैन भने organization को owner खोज्ने
+                    if ($hostel && $hostel->organization && $hostel->organization->owner) {
+                        $hostel->organization->owner->notify(new RoomVacateNotification($booking));
+                    }
+                }
+            } catch (\Exception $e) {
+                Log::error('RoomVacateNotification failed: ' . $e->getMessage());
+            }
 
             return response()->json([
                 'success' => true,
