@@ -111,8 +111,9 @@ Route::group(['middleware' => 'web'], function () {
     });
 
     // Public testimonials
-    Route::get('/reviews', [FrontendReviewController::class, 'index'])->name('reviews');
-    Route::get('/testimonials', [FrontendReviewController::class, 'index'])->name('testimonials');
+    // Public testimonials
+    Route::get('/testimonials', [PublicController::class, 'testimonials'])->name('testimonials');
+    Route::redirect('/reviews', '/testimonials', 301);
 
     // ✅ Step 2.1: Platform review submission (POST)
     Route::post('/reviews/platform', [App\Http\Controllers\Frontend\ReviewController::class, 'storePlatform'])

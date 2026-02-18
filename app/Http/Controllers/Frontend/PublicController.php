@@ -1122,17 +1122,34 @@ class PublicController extends Controller
     }
 
     /**
-     * Display testimonials page
+     * Display testimonials page with two sections:
+     * 1. HostelHub platform reviews (hostel_id = null)
+     * 2. Hostel reviews (hostel_id not null, paginated)
      */
     public function testimonials(): View
     {
-        $testimonials = Review::with('student')
-            ->where('is_published', true)
-            ->latest()
-            ->paginate(6);
+        try {
+            // सबै approved reviews, पहिले hostel_id NULL (HostelHub) अनि मिति अनुसार
+            $reviews = Review::with(['student', 'hostel', 'user'])
+                ->where('status', Review::STATUS_APPROVED)
+                ->orderByRaw('CASE WHEN hostel_id IS NULL THEN 0 ELSE 1 END') // HostelHub पहिले
+                ->latest() // त्यसपछि नयाँ पहिले
+                ->paginate(12);
 
-        return view('frontend.testimonials', compact('testimonials'));
+            $totalApproved = Review::where('status', Review::STATUS_APPROVED)->count();
+            $avgRating = Review::where('status', Review::STATUS_APPROVED)->avg('rating') ?? 0;
+
+            return view('frontend.testimonials', compact('reviews', 'totalApproved', 'avgRating'));
+        } catch (\Exception $e) {
+            Log::error('Testimonials page error: ' . $e->getMessage());
+            // Fallback
+            $reviews = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 12);
+            $totalApproved = 0;
+            $avgRating = 0;
+            return view('frontend.testimonials', compact('reviews', 'totalApproved', 'avgRating'));
+        }
     }
+
 
     public function contact(): View
     {
