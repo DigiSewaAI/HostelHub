@@ -69,13 +69,14 @@
 
                         // 1. Student image priority
                         if($review->student_id && $review->student && $review->student->image) {
-                            $studentImage = $review->student->image;
-                            $studentImagePath = str_starts_with($studentImage,'students/') ? $studentImage : 'students/'.$studentImage;
-                            if(Storage::disk('public')->exists($studentImagePath)){
-                                $imageUrl = asset('storage/'.$studentImagePath);
-                                $useInitials = false;
-                            }
-                        }
+    $studentImage = $review->student->image;
+    // ✅ यदि पथमा '/' छ भने पूरा पथ प्रयोग गर्नुहोस्, नभए 'students/' जोड्नुहोस् (पुरानो समर्थन)
+    $studentImagePath = (str_contains($studentImage, '/')) ? $studentImage : 'students/' . $studentImage;
+    if(Storage::disk('public')->exists($studentImagePath)){
+        $imageUrl = asset('storage/'.$studentImagePath);
+        $useInitials = false;
+    }
+}
                         // 2. Hostel image fallback
                         elseif($review->hostel_id && $review->hostel && $review->hostel->image) {
                             $hostelImage = $review->hostel->image;

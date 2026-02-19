@@ -23,8 +23,7 @@
     @endif
 
     {{-- Edit Student Form --}}
-    <form action="{{ route('owner.students.update', $student->id) }}" method="POST" class="bg-white shadow-md rounded-lg p-6" id="studentForm">
-        @csrf
+    <form action="{{ route('owner.students.update', $student->id) }}" method="POST" class="bg-white shadow-md rounded-lg p-6" id="studentForm" enctype="multipart/form-data">        @csrf
         @method('PUT')
 
         {{-- 🔥 CRITICAL: Hidden hostel_id field to prevent NULL updates --}}
@@ -174,6 +173,33 @@
                     @enderror
                 </div>
 
+    {{-- Student Image --}}
+<div class="mb-4">
+    <label for="image" class="block text-sm font-medium text-gray-700">विद्यार्थी फोटो (PP Size)</label>
+    
+    {{-- हालको फोटो प्रिभ्यू --}}
+    @if($student->image)
+        <div class="mt-2 mb-2">
+            <img src="{{ $student->image_url }}" alt="{{ $student->name }}" class="h-24 w-24 rounded-full object-cover border border-gray-300">
+            <p class="text-xs text-gray-500 mt-1">हालको फोटो</p>
+        </div>
+    @else
+        <div class="mt-2 mb-2">
+            <img src="{{ asset('images/default-user.png') }}" alt="Default" class="h-24 w-24 rounded-full object-cover border border-gray-300">
+            <p class="text-xs text-gray-500 mt-1">कुनै फोटो छैन</p>
+        </div>
+    @endif
+
+    {{-- फाइल अपलोड इनपुट --}}
+    <input type="file" name="image" id="image" 
+           class="mt-1 block w-full border rounded-lg px-3 py-2 focus:ring focus:ring-blue-300" 
+           accept="image/jpeg,image/png,image/jpg">
+    <p class="text-xs text-gray-500 mt-1">अनुमति: jpg, jpeg, png | अधिकतम साइज: २ MB</p>
+    
+    @error('image')
+        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+    @enderror
+</div>
                 {{-- Room --}}
                 <div class="mb-4">
                     <label for="room_id" class="block text-sm font-medium text-gray-700">कोठा तोक्नुहोस्</label>

@@ -21,15 +21,18 @@
     @endif
 
     <!-- Read-only View -->
-<div id="profileView">
-    {{-- ✅ फोटो बायाँपट्टि, साइज आधा --}}
-    @if($student->image)
-        <div class="mb-4">
-            <img src="{{ asset('storage/students/'.$student->image) }}" 
-                 alt="Profile Photo" 
-                 class="w-44 h-48 object-cover rounded-lg shadow-md border-2 border-gray-200">
-        </div>
-    @endif
+    <div id="profileView">
+        {{-- ✅ फोटो बायाँपट्टि, साइज आधा --}}
+        @if($student->image)
+            @php
+                $imagePath = str_contains($student->image, '/') ? $student->image : 'students/' . $student->image;
+            @endphp
+            <div class="mb-4">
+                <img src="{{ asset('storage/'.$imagePath) }}" 
+                     alt="{{ $student->user->name ?? 'Profile Photo' }}" 
+                     class="w-44 h-48 object-cover rounded-lg shadow-md border-2 border-gray-200">
+            </div>
+        @endif
 
         <div class="row">
             <div class="col-md-6">

@@ -14,9 +14,13 @@
     {{-- Student Card --}}
     <div class="bg-white shadow-md rounded-lg p-6">
         @if($student->image)
+    @php
+        // यदि image मा '/' छ भने पूरा पथ प्रयोग गर्नुहोस्, नभए 'students/' जोड्नुहोस् (पुरानो समर्थन)
+        $imagePath = str_contains($student->image, '/') ? $student->image : 'students/' . $student->image;
+    @endphp
     <div class="flex justify-center mb-4">
-        <img src="{{ asset('storage/students/'.$student->image) }}" 
-             alt="Student Photo" 
+        <img src="{{ asset('storage/'.$imagePath) }}" 
+             alt="{{ $student->name }}" 
              class="w-44 h-48 object-cover rounded-lg shadow-md border-2 border-gray-200">
     </div>
 @endif

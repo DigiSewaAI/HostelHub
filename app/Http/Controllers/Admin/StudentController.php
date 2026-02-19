@@ -362,14 +362,16 @@ class StudentController extends Controller
 
                     // ✅ फोटो अपलोड (स्थानान्तरण भएको विद्यार्थीको लागि)
                     if ($request->hasFile('image')) {
-                        // पुरानो फोटो मेटाउने (यदि छ भने)
-                        if ($student->image && Storage::disk('public')->exists('students/' . $student->image)) {
-                            Storage::disk('public')->delete('students/' . $student->image);
+                        // पुरानो फोटो मेटाउने
+                        if ($student->image && Storage::disk('public')->exists($student->image)) {
+                            Storage::disk('public')->delete($student->image);
                         }
-                        $image = $request->file('image');
-                        $imageName = time() . '_' . $image->getClientOriginalName();
-                        $image->storeAs('students', $imageName, 'public');
-                        $student->image = $imageName;
+
+                        $hostelId = $student->hostel_id ?? auth()->user()->hostel_id;
+                        $folder = 'hostels/' . $hostelId . '/students';
+                        $imagePath = $request->file('image')->store($folder, 'public');
+
+                        $student->image = $imagePath;
                         $student->save();
                     }
 
@@ -426,10 +428,11 @@ class StudentController extends Controller
 
                     // ✅ फोटो अपलोड (नयाँ विद्यार्थीको लागि)
                     if ($request->hasFile('image')) {
-                        $image = $request->file('image');
-                        $imageName = time() . '_' . $image->getClientOriginalName();
-                        $image->storeAs('students', $imageName, 'public');
-                        $student->image = $imageName;
+                        $hostelId = $student->hostel_id ?? auth()->user()->hostel_id;
+                        $folder = 'hostels/' . $hostelId . '/students';
+                        $imagePath = $request->file('image')->store($folder, 'public');
+
+                        $student->image = $imagePath;
                         $student->save();
                     }
 
@@ -642,8 +645,9 @@ class StudentController extends Controller
                     ->with('error', 'कृपया पहिले आफ्नो होस्टेल सेटअप गर्नुहोस्।');
             }
             $request->validate([
+                'image'                    => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
                 'initial_payment_status'   => 'nullable|in:paid,pending',
-                'initial_payment_amount'   => 'nullable|numeric|min:0',   // ✅ FIXED: removed required_if
+                'initial_payment_amount'   => 'nullable|numeric|min:0',
                 'initial_payment_method'   => 'required_if:initial_payment_status,paid|string|max:50',
                 'initial_payment_date'     => 'required_if:initial_payment_status,paid|date',
             ]);
@@ -789,6 +793,23 @@ class StudentController extends Controller
 
                 // ✅ Update the student with explicit data
                 $student->update($updateData);
+
+                // ✅ फोटो अपलोड ह्यान्डलिङ (Multi‑tenant storage)
+                if ($request->hasFile('image')) {
+                    // पुरानो फोटो मेटाउने (यदि छ भने)
+                    if ($student->image && Storage::disk('public')->exists($student->image)) {
+                        Storage::disk('public')->delete($student->image);
+                    }
+
+                    // नयाँ फोटो स्टोर गर्ने: hostels/{hostel_id}/students/ फोल्डरमा
+                    $hostelId = $student->hostel_id ?? auth()->user()->hostel_id;
+                    $folder = 'hostels/' . $hostelId . '/students';
+                    $imagePath = $request->file('image')->store($folder, 'public');
+
+                    $student->image = $imagePath;
+                    $student->save();
+                }
+
                 $this->handleInitialPayment($student, $request);
 
                 return redirect()->route('owner.students.index')
