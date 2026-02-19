@@ -179,19 +179,20 @@
     }
     
     .pricing-button {
-        display: inline-block;
-        background: #0d6efd;
-        color: white;
-        padding: 12px 30px;
-        border-radius: 50px;
-        text-decoration: none;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        border: 2px solid #0d6efd;
-        margin-top: 10px;
-        cursor: pointer;
-        width: 100%;
-    }
+    display: inline-block;
+    background: #0d6efd;
+    color: white;
+    padding: 0.6rem 1.5rem;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    border: 2px solid #0d6efd;
+    margin-top: 10px;
+    cursor: pointer;
+    width: 100%;
+}
     
     .pricing-button:hover {
         background: transparent;
@@ -507,11 +508,12 @@
             width: calc(100% - 2rem);
         }
 
-        .trial-button,
-        .pricing-button {
-            padding: 0.6rem 1.5rem;
-            font-size: 0.9rem;
-        }
+        @media (max-width: 768px) {
+    .trial-button {
+        padding: 0.6rem 1.5rem;
+        font-size: 0.9rem;
+    }
+    
     }
 
     @media (max-width: 480px) {
@@ -592,160 +594,114 @@
     <section class="pricing-cards-section">
         <div class="pricing-container">
             <!-- Starter Plan -->
-            <div class="pricing-card">
-                <div class="pricing-header">
-                    <h3 class="pricing-title">सुरुवाती</h3>
-                    <div class="pricing-price">रु. 2,999</div>
-                    <div class="pricing-period">/महिना</div>
-                </div>
-                
-                <div class="pricing-capacity">
-                    <div class="capacity-item">
-                        <i class="fas fa-users"></i>
-                        <span><strong>विद्यार्थी सीमा:</strong> ५० विद्यार्थी सम्म</span>
-                    </div>
-                    <div class="capacity-item">
-                        <i class="fas fa-building"></i>
-                        <span><strong>होस्टल सीमा:</strong> १ होस्टल सम्म</span>
-                    </div>
-                </div>
-                
-                <div class="trial-note">
-                    <i class="fas fa-check-circle"></i> ७ दिन निःशुल्क परीक्षण
-                </div>
-                
-                @auth
-                    @if($isTrial)
-                        <div class="trial-warning">
-                            तपाईं निःशुल्क परीक्षण अवधिमा हुनुहुन्छ
-                        </div>
-                        <button class="pricing-button" disabled>
-                            परीक्षण अवधिमा
-                        </button>
-                    @elseif($isStarterCurrent)
-                        <div class="current-plan-badge">
-                            वर्तमान योजना
-                        </div>
-                        <button class="pricing-button" disabled>
-                            सक्रिय
-                        </button>
-                    @else
-                        <form action="{{ route('subscription.upgrade') }}" method="POST" class="plan-form" style="display: inline; width: 100%;">
-                            @csrf
-                            <input type="hidden" name="plan" value="starter">
-                            <button type="submit" class="pricing-button">योजना छान्नुहोस्</button>
-                        </form>
-                    @endif
-                @else
-                    <a href="{{ route('register.organization', ['plan' => 'starter']) }}" class="pricing-button">योजना छान्नुहोस्</a>
-                @endauth
+            <x-pricing-card
+    name="सुरुवाती"
+    :price="2999"
+    studentLimit="५० विद्यार्थी सम्म"
+    hostelLimit="१ होस्टल सम्म"
+>
+    @auth
+        @if($isTrial)
+            <div class="trial-warning">
+                तपाईं निःशुल्क परीक्षण अवधिमा हुनुहुन्छ
             </div>
+            <button class="pricing-button" disabled>
+                परीक्षण अवधिमा
+            </button>
+        @elseif($isStarterCurrent)
+            <div class="current-plan-badge">
+                वर्तमान योजना
+            </div>
+            <button class="pricing-button" disabled>
+                सक्रिय
+            </button>
+        @else
+            <form action="{{ route('subscription.upgrade') }}" method="POST" class="plan-form" style="display: inline; width: 100%;">
+                @csrf
+                <input type="hidden" name="plan" value="starter">
+                <button type="submit" class="pricing-button">योजना छान्नुहोस्</button>
+            </form>
+        @endif
+    @else
+        <a href="{{ route('register.organization', ['plan' => 'starter']) }}" class="pricing-button">योजना छान्नुहोस्</a>
+    @endauth
+</x-pricing-card>
 
             <!-- Pro Plan -->
-            <div class="pricing-card popular">
-                <div class="popular-badge">लोकप्रिय</div>
-                <div class="pricing-header">
-                    <h3 class="pricing-title">प्रो</h3>
-                    <div class="pricing-price">रु. 4,999</div>
-                    <div class="pricing-period">/महिना</div>
-                </div>
-                
-                <div class="pricing-capacity">
-                    <div class="capacity-item">
-                        <i class="fas fa-users"></i>
-                        <span><strong>विद्यार्थी सीमा:</strong> २०० विद्यार्थी सम्म</span>
-                    </div>
-                    <div class="capacity-item">
-                        <i class="fas fa-building"></i>
-                        <span><strong>होस्टल सीमा:</strong> १ होस्टल सम्म</span>
-                    </div>
-                </div>
-                
-                <div class="trial-note">
-                    <i class="fas fa-check-circle"></i> ७ दिन निःशुल्क परीक्षण
-                </div>
-                
-                @auth
-                    @if($isTrial)
-                        <div class="trial-warning">
-                            तपाईं निःशुल्क परीक्षण अवधिमा हुनुहुन्छ
-                        </div>
-                        <button class="pricing-button" disabled>
-                            परीक्षण अवधिमा
-                        </button>
-                    @elseif($isProCurrent)
-                        <div class="current-plan-badge">
-                            वर्तमान योजना
-                        </div>
-                        <button class="pricing-button" disabled>
-                            सक्रिय
-                        </button>
-                    @else
-                        <form action="{{ route('subscription.upgrade') }}" method="POST" class="plan-form" style="display: inline; width: 100%;">
-                            @csrf
-                            <input type="hidden" name="plan" value="pro">
-                            <button type="submit" class="pricing-button">योजना छान्नुहोस्</button>
-                        </form>
-                    @endif
-                @else
-                    <a href="{{ route('register.organization', ['plan' => 'pro']) }}" class="pricing-button">योजना छान्नुहोस्</a>
-                @endauth
+            <x-pricing-card
+    name="प्रो"
+    :price="4999"
+    studentLimit="२०० विद्यार्थी सम्म"
+    hostelLimit="१ होस्टल सम्म"
+    :popular="true"
+>
+    @auth
+        @if($isTrial)
+            <div class="trial-warning">
+                तपाईं निःशुल्क परीक्षण अवधिमा हुनुहुन्छ
             </div>
+            <button class="pricing-button" disabled>
+                परीक्षण अवधिमा
+            </button>
+        @elseif($isProCurrent)
+            <div class="current-plan-badge">
+                वर्तमान योजना
+            </div>
+            <button class="pricing-button" disabled>
+                सक्रिय
+            </button>
+        @else
+            <form action="{{ route('subscription.upgrade') }}" method="POST" class="plan-form" style="display: inline; width: 100%;">
+                @csrf
+                <input type="hidden" name="plan" value="pro">
+                <button type="submit" class="pricing-button">योजना छान्नुहोस्</button>
+            </form>
+        @endif
+    @else
+        <a href="{{ route('register.organization', ['plan' => 'pro']) }}" class="pricing-button">योजना छान्नुहोस्</a>
+    @endauth
+</x-pricing-card>
 
             <!-- Enterprise Plan -->
-            <div class="pricing-card">
-                <div class="pricing-header">
-                    <h3 class="pricing-title">एन्टरप्राइज</h3>
-                    <div class="pricing-price">रु. 8,999</div>
-                    <div class="pricing-period">/महिना</div>
-                </div>
-                
-                <div class="pricing-capacity">
-                    <div class="capacity-item">
-                        <i class="fas fa-users"></i>
-                        <span><strong>विद्यार्थी सीमा:</strong> असीमित विद्यार्थी</span>
-                    </div>
-                    <div class="capacity-item">
-                        <i class="fas fa-building"></i>
-                        <span><strong>होस्टल सीमा:</strong> बहु-होस्टल व्यवस्थापन (५ होस्टल सम्म)</span>
-                    </div>
-                </div>
-                
-                <div class="trial-note">
-                    <i class="fas fa-check-circle"></i> ७ दिन निःशुल्क परीक्षण
-                </div>
-                
-                <!-- Additional note for enterprise -->
-                <div class="feature-note">
-                    <i class="fas fa-info-circle"></i> 
-                    <strong>अतिरिक्त होस्टल थप्न सकिन्छ:</strong> रु. १,०००/महिना प्रति अतिरिक्त होस्टल
-                </div>
-                
-                @auth
-                    @if($isTrial)
-                        <div class="trial-warning">
-                            तपाईं निःशुल्क परीक्षण अवधिमा हुनुहुन्छ
-                        </div>
-                        <button class="pricing-button" disabled>
-                            परीक्षण अवधिमा
-                        </button>
-                    @elseif($isEnterpriseCurrent)
-                        <div class="current-plan-badge">
-                            वर्तमान योजना
-                        </div>
-                        <button class="pricing-button" disabled>
-                            सक्रिय
-                        </button>
-                    @else
-                        <form action="{{ route('subscription.upgrade') }}" method="POST" class="plan-form" style="display: inline; width: 100%;">
-                            @csrf
-                            <input type="hidden" name="plan" value="enterprise">
-                            <button type="submit" class="pricing-button">योजना छान्नुहोस्</button>
-                        </form>
-                    @endif
-                @else
-                    <a href="{{ route('register.organization', ['plan' => 'enterprise']) }}" class="pricing-button">योजना छान्नुहोस्</a>
-                @endauth
+            <x-pricing-card
+    name="एन्टरप्राइज"
+    :price="8999"
+    studentLimit="असीमित विद्यार्थी"
+    hostelLimit="बहु-होस्टल व्यवस्थापन (५ होस्टल सम्म)"
+>
+    @slot('extra')
+        <div class="feature-note">
+            <i class="fas fa-info-circle"></i> 
+            <strong>अतिरिक्त होस्टल थप्न सकिन्छ:</strong> रु. १,०००/महिना प्रति अतिरिक्त होस्टल
+        </div>
+    @endslot
+
+    @auth
+        @if($isTrial)
+            <div class="trial-warning">
+                तपाईं निःशुल्क परीक्षण अवधिमा हुनुहुन्छ
+            </div>
+            <button class="pricing-button" disabled>
+                परीक्षण अवधिमा
+            </button>
+        @elseif($isEnterpriseCurrent)
+            <div class="current-plan-badge">
+                वर्तमान योजना
+            </div>
+            <button class="pricing-button" disabled>
+                सक्रिय
+            </button>
+        @else
+            <form action="{{ route('subscription.upgrade') }}" method="POST" class="plan-form" style="display: inline; width: 100%;">
+                @csrf
+                <input type="hidden" name="plan" value="enterprise">
+                <button type="submit" class="pricing-button">योजना छान्नुहोस्</button>
+            </form>
+        @endif
+    @else
+        <a href="{{ route('register.organization', ['plan' => 'enterprise']) }}" class="pricing-button">योजना छान्नुहोस्</a>
+    @endauth
+</x-pricing-card>
             </div>
         </div>
     </section>

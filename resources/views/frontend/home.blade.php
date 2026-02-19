@@ -1600,6 +1600,48 @@ main.home-page-main {
         min-height: calc(100vh - 100px) !important;
         padding-top: 80px !important;
     }
+    /* ===== ADDED FOR UNIFIED PRICING CARDS ===== */
+.pricing-capacity {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 20px 0;
+    text-align: left;
+}
+.capacity-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 15px;
+}
+.capacity-item:last-child {
+    margin-bottom: 0;
+}
+.capacity-item i {
+    color: #0d6efd;
+    margin-right: 10px;
+    font-size: 16px;
+    min-width: 20px;
+    text-align: center;
+}
+.trial-note {
+    background: #e8f5e9;
+    border: 1px solid #c8e6c9;
+    border-radius: 6px;
+    padding: 10px;
+    margin: 15px 0;
+    font-size: 14px;
+    color: #2e7d32;
+    font-weight: 500;
+}
+.trial-note i {
+    color: #4caf50;
+    margin-right: 5px;
+}
+.pricing-period {
+    color: #6c757d;
+    font-size: 14px;
+    margin-bottom: 15px;
 }
 
 </style>
@@ -1984,7 +2026,7 @@ main.home-page-main {
 
 @include('partials.testimonials', ['featuredTestimonials' => $featuredTestimonials])
 
-<!-- Pricing Section - FIXED VERSION -->
+<!-- Pricing Section - UNIFIED VERSION -->
 <section class="section pricing" id="pricing">
     <div class="container">
         <h2 class="section-title nepali">योजना अनुसारका मूल्यहरू</h2>
@@ -1995,238 +2037,164 @@ main.home-page-main {
         </div>
 
         <div class="pricing-grid">
-            <!-- सुरुवाती Plan -->
-            <div class="pricing-card">
-                <div class="pricing-header">
-                    <h3 class="pricing-title nepali">सुरुवाती</h3>
-                    <div class="pricing-price">रु. २,९९९<span class="nepali">/महिना</span></div>
-                </div>
-                <ul class="pricing-features">
-                    <li>
-                        <i class="fas fa-check"></i>
-                        <span class="feature-text nepali">५० विद्यार्थी सम्म</span>
-                    </li>
-                    <li>
-                        <i class="fas fa-check"></i>
-                        <span class="feature-text nepali">१ होस्टल सम्म</span>
-                    </li>
-                    <li>
-                        <i class="fas fa-check"></i>
-                        <span class="feature-text nepali">मूल विद्यार्थी व्यवस्थापन</span>
-                    </li>
-                    <li>
-                        <i class="fas fa-check"></i>
-                        <span class="feature-text nepali">कोठा आवंटन</span>
-                    </li>
-                    <li>
-                        <i class="fas fa-check"></i>
-                        <span class="feature-text nepali">बेसिक अग्रिम कोठा बुकिंग (manual approval)</span>
-                    </li>
-                    <li>
-                        <i class="fas fa-check"></i>
-                        <span class="feature-text nepali">भुक्तानी ट्र्याकिंग</span>
-                    </li>
-                </ul>
-                <div class="pricing-button">
-                    @auth
-                        @php
-                            $organizationId = session('current_organization_id');
-                            $currentSubscription = null;
-                            $currentPlan = null;
-                            $isTrial = false;
-                            
-                            if ($organizationId) {
-                                $organization = \App\Models\Organization::with('subscription.plan')->find($organizationId);
-                                $currentSubscription = $organization->subscription ?? null;
-                                $currentPlan = $currentSubscription->plan ?? null;
-                                $isTrial = $currentSubscription && $currentSubscription->status == 'trial';
-                            }
-                            
-                            $isStarterCurrent = $currentPlan && $currentPlan->slug == 'starter';
-                        @endphp
+            {{-- सुरुवाती Plan --}}
+            <x-pricing-card
+                name="सुरुवाती"
+                :price="2999"
+                studentLimit="५० विद्यार्थी सम्म"
+                hostelLimit="१ होस्टल सम्म"
+            >
+                @auth
+                    @php
+                        $organizationId = session('current_organization_id');
+                        $currentSubscription = null;
+                        $currentPlan = null;
+                        $isTrial = false;
                         
-                        @if($isTrial)
-                            <button class="pricing-btn pricing-btn-outline nepali" disabled>
-                                परीक्षण अवधिमा
-                            </button>
-                        @elseif($isStarterCurrent)
-                            <button class="pricing-btn pricing-btn-outline nepali" disabled>
-                                सक्रिय योजना
-                            </button>
-                        @else
-                            <form action="{{ route('subscription.upgrade') }}" method="POST" style="display: inline;">
-                                @csrf
-                                <input type="hidden" name="plan" value="starter">
-                                <button type="submit" class="pricing-btn pricing-btn-outline nepali">
-                                    योजना छान्नुहोस्
-                                </button>
-                            </form>
-                        @endif
+                        if ($organizationId) {
+                            $organization = \App\Models\Organization::with('subscription.plan')->find($organizationId);
+                            $currentSubscription = $organization->subscription ?? null;
+                            $currentPlan = $currentSubscription->plan ?? null;
+                            $isTrial = $currentSubscription && $currentSubscription->status == 'trial';
+                        }
+                        
+                        $isStarterCurrent = $currentPlan && $currentPlan->slug == 'starter';
+                    @endphp
+                    
+                    @if($isTrial)
+                        <button class="pricing-btn pricing-btn-outline nepali" disabled>
+                            परीक्षण अवधिमा
+                        </button>
+                    @elseif($isStarterCurrent)
+                        <button class="pricing-btn pricing-btn-outline nepali" disabled>
+                            सक्रिय योजना
+                        </button>
                     @else
-                        <a href="{{ route('register.organization', ['plan' => 'starter']) }}" 
-                           class="pricing-btn pricing-btn-outline nepali">
-                            योजना छान्नुहोस्
-                        </a>
-                    @endauth
-                </div>
-            </div>
+                        <form action="{{ route('subscription.upgrade') }}" method="POST" style="display: inline;">
+                            @csrf
+                            <input type="hidden" name="plan" value="starter">
+                            <button type="submit" class="pricing-btn pricing-btn-outline nepali">
+                                योजना छान्नुहोस्
+                            </button>
+                        </form>
+                    @endif
+                @else
+                    <a href="{{ route('register.organization', ['plan' => 'starter']) }}" 
+                       class="pricing-btn pricing-btn-outline nepali">
+                        योजना छान्नुहोस्
+                    </a>
+                @endauth
+            </x-pricing-card>
 
-            <!-- प्रो Plan -->
-            <div class="pricing-card popular">
-                <div class="popular-badge nepali">लोकप्रिय</div>
-                <div class="pricing-header">
-                    <h3 class="pricing-title nepali">प्रो</h3>
-                    <div class="pricing-price">रु. ४,९९९<span class="nepali">/महिना</span></div>
-                </div>
-                <ul class="pricing-features">
-                    <li>
-                        <i class="fas fa-check"></i>
-                        <span class="feature-text nepali">२०० विद्यार्थी सम्म</span>
-                    </li>
-                    <li>
-                        <i class="fas fa-check"></i>
-                        <span class="feature-text nepali">१ होस्टल सम्म</span>
-                    </li>
-                    <li>
-                        <i class="fas fa-check"></i>
-                        <span class="feature-text nepali">पूर्ण विद्यार्थी व्यवस्थापन</span>
-                    </li>
-                    <li>
-                        <i class="fas fa-check"></i>
-                        <span class="feature-text nepali">अग्रिम कोठा बुकिंग (auto-confirm, notifications)</span>
-                    </li>
-                    <li>
-                        <i class="fas fa-check"></i>
-                        <span class="feature-text nepali">भुक्तानी ट्र्याकिंग</span>
-                    </li>
-                    <li>
-                        <i class="fas fa-check"></i>
-                        <span class="feature-text nepali">मोबाइल एप्प</span>
-                    </li>
-                </ul>
-                <div class="pricing-button">
-                    @auth
-                        @php
-                            $organizationId = session('current_organization_id');
-                            $currentSubscription = null;
-                            $currentPlan = null;
-                            $isTrial = false;
-                            
-                            if ($organizationId) {
-                                $organization = \App\Models\Organization::with('subscription.plan')->find($organizationId);
-                                $currentSubscription = $organization->subscription ?? null;
-                                $currentPlan = $currentSubscription->plan ?? null;
-                                $isTrial = $currentSubscription && $currentSubscription->status == 'trial';
-                            }
-                            
-                            $isProCurrent = $currentPlan && $currentPlan->slug == 'pro';
-                        @endphp
+            {{-- प्रो Plan --}}
+            <x-pricing-card
+                name="प्रो"
+                :price="4999"
+                studentLimit="२०० विद्यार्थी सम्म"
+                hostelLimit="१ होस्टल सम्म"
+                :popular="true"
+            >
+                @auth
+                    @php
+                        $organizationId = session('current_organization_id');
+                        $currentSubscription = null;
+                        $currentPlan = null;
+                        $isTrial = false;
                         
-                        @if($isTrial)
-                            <button class="pricing-btn pricing-btn-primary nepali" disabled>
-                                परीक्षण अवधिमा
-                            </button>
-                        @elseif($isProCurrent)
-                            <button class="pricing-btn pricing-btn-primary nepali" disabled>
-                                सक्रिय योजना
-                            </button>
-                        @else
-                            <form action="{{ route('subscription.upgrade') }}" method="POST" style="display: inline;">
-                                @csrf
-                                <input type="hidden" name="plan" value="pro">
-                                <button type="submit" class="pricing-btn pricing-btn-primary nepali">
-                                    योजना छान्नुहोस्
-                                </button>
-                            </form>
-                        @endif
+                        if ($organizationId) {
+                            $organization = \App\Models\Organization::with('subscription.plan')->find($organizationId);
+                            $currentSubscription = $organization->subscription ?? null;
+                            $currentPlan = $currentSubscription->plan ?? null;
+                            $isTrial = $currentSubscription && $currentSubscription->status == 'trial';
+                        }
+                        
+                        $isProCurrent = $currentPlan && $currentPlan->slug == 'pro';
+                    @endphp
+                    
+                    @if($isTrial)
+                        <button class="pricing-btn pricing-btn-primary nepali" disabled>
+                            परीक्षण अवधिमा
+                        </button>
+                    @elseif($isProCurrent)
+                        <button class="pricing-btn pricing-btn-primary nepali" disabled>
+                            सक्रिय योजना
+                        </button>
                     @else
-                        <a href="{{ route('register.organization', ['plan' => 'pro']) }}" 
-                           class="pricing-btn pricing-btn-primary nepali">
-                            योजना छान्नुहोस्
-                        </a>
-                    @endauth
-                </div>
-            </div>
+                        <form action="{{ route('subscription.upgrade') }}" method="POST" style="display: inline;">
+                            @csrf
+                            <input type="hidden" name="plan" value="pro">
+                            <button type="submit" class="pricing-btn pricing-btn-primary nepali">
+                                योजना छान्नुहोस्
+                            </button>
+                        </form>
+                    @endif
+                @else
+                    <a href="{{ route('register.organization', ['plan' => 'pro']) }}" 
+                       class="pricing-btn pricing-btn-primary nepali">
+                        योजना छान्नुहोस्
+                    </a>
+                @endauth
+            </x-pricing-card>
 
-            <!-- एन्टरप्राइज Plan -->
-            <div class="pricing-card">
-                <div class="pricing-header">
-                    <h3 class="pricing-title nepali">एन्टरप्राइज</h3>
-                    <div class="pricing-price">रु. ८,९९९<span class="nepali">/महिना</span></div>
-                </div>
-                <ul class="pricing-features">
-                    <li>
-                        <i class="fas fa-check"></i>
-                        <span class="feature-text nepali">असीमित विद्यार्थी</span>
-                    </li>
-                    <li>
-                        <i class="fas fa-check"></i>
-                        <span class="feature-text nepali">बहु-होस्टल व्यवस्थापन (५ होस्टल सम्म)</span>
-                    </li>
-                    <li>
-                        <i class="fas fa-check"></i>
-                        <span class="feature-text nepali">पूर्ण विद्यार्थी व्यवस्थापन</span>
-                    </li>
-                    <li>
-                        <i class="fas fa-check"></i>
-                        <span class="feature-text nepali">अग्रिम कोठा बुकिंग (auto-confirm)</span>
-                    </li>
-                    <li>
-                        <i class="fas fa-check"></i>
-                        <span class="feature-text nepali">कस्टम भुक्तानी प्रणाली</span>
-                    </li>
-                    <li>
-                        <i class="fas fa-check"></i>
-                        <span class="feature-text nepali">२४/७ समर्थन</span>
-                    </li>
-                    <li>
-                        <i class="fas fa-info-circle"></i>
-                        <span class="feature-text nepali enterprise-note">अतिरिक्त होस्टल थप्न सकिन्छ: रु. १,०००/महिना प्रति अतिरिक्त होस्टल</span>
-                    </li>
-                </ul>
-                <div class="pricing-button">
-                    @auth
-                        @php
-                            $organizationId = session('current_organization_id');
-                            $currentSubscription = null;
-                            $currentPlan = null;
-                            $isTrial = false;
-                            
-                            if ($organizationId) {
-                                $organization = \App\Models\Organization::with('subscription.plan')->find($organizationId);
-                                $currentSubscription = $organization->subscription ?? null;
-                                $currentPlan = $currentSubscription->plan ?? null;
-                                $isTrial = $currentSubscription && $currentSubscription->status == 'trial';
-                            }
-                            
-                            $isEnterpriseCurrent = $currentPlan && $currentPlan->slug == 'enterprise';
-                        @endphp
+            {{-- एन्टरप्राइज Plan --}}
+            <x-pricing-card
+                name="एन्टरप्राइज"
+                :price="8999"
+                studentLimit="असीमित विद्यार्थी"
+                hostelLimit="बहु-होस्टल व्यवस्थापन (५ होस्टल सम्म)"
+            >
+                @auth
+                    @php
+                        $organizationId = session('current_organization_id');
+                        $currentSubscription = null;
+                        $currentPlan = null;
+                        $isTrial = false;
                         
-                        @if($isTrial)
-                            <button class="pricing-btn pricing-btn-outline nepali" disabled>
-                                परीक्षण अवधिमा
-                            </button>
-                        @elseif($isEnterpriseCurrent)
-                            <button class="pricing-btn pricing-btn-outline nepali" disabled>
-                                सक्रिय योजना
-                            </button>
-                        @else
-                            <form action="{{ route('subscription.upgrade') }}" method="POST" style="display: inline;">
-                                @csrf
-                                <input type="hidden" name="plan" value="enterprise">
-                                <button type="submit" class="pricing-btn pricing-btn-outline nepali">
-                                    योजना छान्नुहोस्
-                                </button>
-                            </form>
-                        @endif
+                        if ($organizationId) {
+                            $organization = \App\Models\Organization::with('subscription.plan')->find($organizationId);
+                            $currentSubscription = $organization->subscription ?? null;
+                            $currentPlan = $currentSubscription->plan ?? null;
+                            $isTrial = $currentSubscription && $currentSubscription->status == 'trial';
+                        }
+                        
+                        $isEnterpriseCurrent = $currentPlan && $currentPlan->slug == 'enterprise';
+                    @endphp
+                    
+                    @if($isTrial)
+                        <button class="pricing-btn pricing-btn-outline nepali" disabled>
+                            परीक्षण अवधिमा
+                        </button>
+                    @elseif($isEnterpriseCurrent)
+                        <button class="pricing-btn pricing-btn-outline nepali" disabled>
+                            सक्रिय योजना
+                        </button>
                     @else
-                        <a href="{{ route('register.organization', ['plan' => 'enterprise']) }}" 
-                           class="pricing-btn pricing-btn-outline nepali">
-                            योजना छान्नुहोस्
-                        </a>
-                    @endauth
-                </div>
-            </div>
+                        <form action="{{ route('subscription.upgrade') }}" method="POST" style="display: inline;">
+                            @csrf
+                            <input type="hidden" name="plan" value="enterprise">
+                            <button type="submit" class="pricing-btn pricing-btn-outline nepali">
+                                योजना छान्नुहोस्
+                            </button>
+                        </form>
+                    @endif
+                @else
+                    <a href="{{ route('register.organization', ['plan' => 'enterprise']) }}" 
+                       class="pricing-btn pricing-btn-outline nepali">
+                        योजना छान्नुहोस्
+                    </a>
+                @endauth
+            </x-pricing-card>
+        </div>
+
+        {{-- Global Plan Note and link to full pricing --}}
+        <p class="text-center text-gray-600 mt-8 nepali">
+            सबै योजनाहरूमा समान सुविधाहरू उपलब्ध छन्।<br>
+            फरक केवल विद्यार्थी संख्या र होस्टल क्षमतामा मात्र हो।
+        </p>
+        <div class="text-center mt-4">
+            <a href="{{ route('pricing') }}" class="inline-block bg-indigo-600 text-white py-2 px-6 rounded-lg nepali">
+                पूरा मूल्य विवरण हेर्नुहोस् →
+            </a>
         </div>
     </div>
 </section>
