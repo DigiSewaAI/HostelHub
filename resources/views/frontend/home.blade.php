@@ -710,19 +710,29 @@ main.home-page-main {
     top: 8px;
     right: 8px;
     color: white;
-    padding: 3px 6px;
+    padding: 4px 8px;                /* Slightly increased for better readability */
     border-radius: 4px;
-    font-size: 0.7rem;
+    font-size: 0.7rem;                /* Keep as is, but can be adjusted for mobile */
     font-weight: 500;
     z-index: 10;
     backdrop-filter: blur(4px);
     display: flex;
-    align-items: center;
+    align-items: flex-start;          /* Align icon to top if text wraps */
     gap: 3px;
-    max-width: 120px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    max-width: calc(100% - 20px);     /* Allow badge to use most of the slide width */
+    word-break: break-word;            /* Break long words if needed */
+    line-height: 1.3;                  /* Comfortable line spacing for wrapped text */
+    white-space: normal;               /* Allow wrapping */
+    overflow: visible;                 /* Ensure nothing is hidden */
+    text-overflow: clip;               /* Remove ellipsis */
+}
+
+@media (max-width: 480px) {
+    .hostel-badge-sm {
+        font-size: 0.65rem;
+        padding: 3px 6px;
+        max-width: calc(100% - 16px);
+    }
 }
 
 .hostel-badge-sm i {
