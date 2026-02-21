@@ -205,7 +205,7 @@
                                             </td>
                                             
                                             <!-- Items Column -->
-                                            <td>
+                                            <td class="text-dark">
                                                 <div class="meal-items">
                                                     @if(is_array($menu->items))
                                                         @foreach($menu->items as $item)

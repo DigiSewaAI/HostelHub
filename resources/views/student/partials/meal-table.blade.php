@@ -52,24 +52,24 @@
                 </td>
                 
                 <!-- Items Column -->
-                <td>
-                    <div class="meal-items">
-                        @if(is_array($menu->items))
-                            @foreach($menu->items as $item)
-                            <span class="d-inline-block mb-1 me-1">
-                                <span class="badge bg-light text-dark border p-2">
-                                    <i class="fas fa-check text-success me-1"></i>
-                                    {{ $item }}
-                                </span>
-                            </span>
-                            @endforeach
-                        @else
-                            <div class="p-2 bg-light rounded">
-                                <i class="fas fa-list-ul me-2 text-primary"></i>
-                                {{ $menu->items }}
-                            </div>
-                        @endif
-                    </div>
+                <td class="text-dark">                                        
+                <div class="meal-items">
+                @if(is_array($menu->items))
+                @foreach($menu->items as $item)
+                <span class="d-inline-block mb-1 me-1">
+                <span class="badge bg-light text-dark border p-2">
+                <i class="fas fa-check text-success me-1"></i>
+                {{ $item }}
+                </span>
+                </span>
+                @endforeach
+                @else
+                <div class="p-2 bg-light rounded">
+                <i class="fas fa-list-ul me-2 text-primary"></i>
+                {{ $menu->items }}
+                </div>
+                @endif
+                </div>
                 </td>
                 
                 <!-- Image Column -->
