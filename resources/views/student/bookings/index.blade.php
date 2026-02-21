@@ -71,4 +71,20 @@
         </div>
     </div>
 </div>
+
+<!-- Force all button text and icons to be white in every state -->
+<style>
+.container-fluid .btn,
+.container-fluid .btn *,
+.container-fluid .btn:hover,
+.container-fluid .btn:hover *,
+.container-fluid .btn:focus,
+.container-fluid .btn:focus *,
+.container-fluid .btn:active,
+.container-fluid .btn:active *,
+.container-fluid .btn:visited,
+.container-fluid .btn:visited * {
+    color: #ffffff !important;
+}
+</style>
 @endsection

@@ -75,6 +75,33 @@
         </div>
     </div>
 </div>
+
+<!-- 🚀 Direct inline style block to force white button text (always works) -->
+<style>
+/* Target both buttons and all their children in every state */
+.card-body .btn.btn-secondary,
+.card-body .btn.btn-primary,
+.card-body .btn.btn-secondary *,
+.card-body .btn.btn-primary *,
+.card-body .btn.btn-secondary:hover,
+.card-body .btn.btn-primary:hover,
+.card-body .btn.btn-secondary:hover *,
+.card-body .btn.btn-primary:hover *,
+.card-body .btn.btn-secondary:focus,
+.card-body .btn.btn-primary:focus,
+.card-body .btn.btn-secondary:focus *,
+.card-body .btn.btn-primary:focus *,
+.card-body .btn.btn-secondary:active,
+.card-body .btn.btn-primary:active,
+.card-body .btn.btn-secondary:active *,
+.card-body .btn.btn-primary:active *,
+.card-body .btn.btn-secondary:visited,
+.card-body .btn.btn-primary:visited,
+.card-body .btn.btn-secondary:visited *,
+.card-body .btn.btn-primary:visited * {
+    color: #ffffff !important;
+}
+</style>
 @endsection
 
 @section('styles')
