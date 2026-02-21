@@ -189,4 +189,181 @@
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 </style>
+<style>
+/* =========================================== */
+/* FIXES FOR मेरा सूचनाहरू PAGE - WHITE TEXT & ATTRACTIVE */
+/* =========================================== */
+
+/* 1. Card Header - White Text */
+.card-header.bg-primary.text-white,
+.card-header.bg-primary.text-white h3,
+.card-header.bg-primary.text-white i {
+    color: white !important;
+}
+
+.card-header.bg-primary.text-white .card-title {
+    color: white !important;
+}
+
+/* 2. Info Boxes - White Text & Attractive */
+.info-box {
+    min-height: 100px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    padding: 15px;
+    transition: transform 0.3s, box-shadow 0.3s;
+    display: flex;
+    align-items: center;
+}
+
+.info-box:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.info-box.bg-info {
+    background: linear-gradient(45deg, #17a2b8, #0f7c8f) !important;
+}
+
+.info-box.bg-success {
+    background: linear-gradient(45deg, #28a745, #1e7e34) !important;
+}
+
+.info-box.bg-warning {
+    background: linear-gradient(45deg, #ffc107, #d39e00) !important;
+}
+
+.info-box.bg-danger {
+    background: linear-gradient(45deg, #dc3545, #bd2130) !important;
+}
+
+.info-box-icon {
+    font-size: 2.5rem;
+    width: 70px;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.2);
+    border-radius: 10px;
+    margin-right: 15px;
+    color: white !important;
+}
+
+.info-box-icon i {
+    color: white !important;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.info-box-content {
+    flex: 1;
+}
+
+.info-box-text {
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.9) !important;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.info-box-number {
+    font-size: 28px;
+    font-weight: 700;
+    color: white !important;
+    line-height: 1.2;
+    text-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+/* Override any global dark text */
+.info-box *,
+.info-box-icon *,
+.info-box-content * {
+    color: white !important;
+}
+
+/* 3. Buttons - White Text */
+.btn-primary,
+.btn-secondary {
+    color: white !important;
+    font-weight: 500;
+    padding: 8px 20px;
+    border-radius: 30px;
+    transition: all 0.3s;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+}
+
+.btn-primary {
+    background: linear-gradient(45deg, #007bff, #0056b3) !important;
+    border: none;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(45deg, #0056b3, #007bff) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,123,255,0.3);
+}
+
+.btn-secondary {
+    background: linear-gradient(45deg, #6c757d, #545b62) !important;
+    border: none;
+}
+
+.btn-secondary:hover {
+    background: linear-gradient(45deg, #545b62, #6c757d) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(108,117,125,0.3);
+}
+
+.btn i {
+    color: white !important;
+}
+
+/* 4. Filter/Search Form Elements - Better Styling */
+.form-control-sm {
+    border-radius: 20px;
+    padding: 8px 15px;
+    border: 1px solid #e0e0e0;
+    transition: all 0.3s;
+}
+
+.form-control-sm:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+}
+
+select.form-control-sm {
+    cursor: pointer;
+}
+
+/* 5. Empty State Styling */
+.text-center.text-muted {
+    color: #6c757d !important;
+}
+
+.text-center.text-muted i {
+    color: #adb5bd !important;
+}
+
+/* 6. Pagination Styling - Optional */
+.pagination .page-link {
+    color: #007bff;
+    border-radius: 30px;
+    margin: 0 3px;
+    transition: all 0.3s;
+}
+
+.pagination .page-item.active .page-link {
+    background: linear-gradient(45deg, #007bff, #0056b3);
+    border-color: #007bff;
+    color: white;
+    box-shadow: 0 3px 8px rgba(0,123,255,0.3);
+}
+
+.pagination .page-link:hover {
+    background: #f8f9fa;
+    transform: translateY(-2px);
+}
+</style>
 @endsection
