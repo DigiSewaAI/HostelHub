@@ -546,7 +546,21 @@
                         100% { transform: rotate(360deg); }
                     }
                 </style>
-
+<style>
+    /* Fix for "कोठा जानकारी" text color - override global dark text */
+    .card-header.bg-gradient-primary h5,
+    .card-header.bg-gradient-primary h5 i,
+    .card-header.bg-gradient-primary h5 span {
+        color: white !important;
+    }
+    /* यदि माथिल्लो नियमले काम नगरेमा, यो अलि बढी specific selector */
+    .card-header.bg-gradient-primary .mb-0 {
+        color: white !important;
+    }
+    .card-header.bg-gradient-primary .mb-0 i {
+        color: white !important;
+    }
+</style>
                 <!-- SIMPLE JAVASCRIPT - NO BOOTSTRAP CONFLICT -->
                 <script>
                 // Modal Functions

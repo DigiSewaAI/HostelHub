@@ -513,6 +513,16 @@
         }
     }
 </style>
+<style>
+    /* Fix for meal items badges - override global white badge color */
+    .meal-items .badge.text-dark {
+        color: #333333 !important;
+    }
+    /* Fix for the fallback div (bg-light) */
+    .meal-items .bg-light.rounded {
+        color: #333333 !important;
+    }
+</style>
 
 <!-- JavaScript - CUSTOM MODAL (NO Bootstrap) -->
 <script>
@@ -594,6 +604,35 @@ document.addEventListener('DOMContentLoaded', function() {
     window.openImageModal = function(imageSrc, title) {
         openCustomModal(imageSrc, title);
     };
+
+    // ✅ Download button functionality (यो भित्र राखिएको छ)
+    if (modalDownload) {
+        modalDownload.addEventListener('click', function(e) {
+            e.preventDefault();
+            const imageUrl = this.href;
+            const filename = imageUrl.split('/').pop() || 'meal-image.jpg';
+            
+            fetch(imageUrl)
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.blob();
+                })
+                .then(blob => {
+                    const blobUrl = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = blobUrl;
+                    link.download = filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    window.URL.revokeObjectURL(blobUrl);
+                })
+                .catch(error => {
+                    console.error('Download error:', error);
+                    alert('डाउनलोड असफल भयो।');
+                });
+        });
+    }
 });
 </script>
 @endsection
