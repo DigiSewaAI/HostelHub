@@ -157,20 +157,32 @@
                                             <td>
                                                 <div class="d-flex flex-column">
                                                     @php
-                                                        $carbonDate = \Carbon\Carbon::parse($menu->date);
-                                                        $dayMap = [
-                                                            'Sunday' => 'आइतबार',
-                                                            'Monday' => 'सोमबार', 
-                                                            'Tuesday' => 'मंगलबार',
-                                                            'Wednesday' => 'बुधबार',
-                                                            'Thursday' => 'बिहिबार',
-                                                            'Friday' => 'शुक्रबार',
-                                                            'Saturday' => 'शनिबार'
-                                                        ];
-                                                        $nepaliDay = $dayMap[$carbonDate->format('l')] ?? $carbonDate->format('l');
-                                                    @endphp
-                                                    <strong class="text-primary">{{ $nepaliDay }}</strong>
-                                                    <small class="text-muted">{{ $carbonDate->format('Y-m-d') }}</small>
+    $weekStart = \Carbon\Carbon::now()->startOfWeek(); // Monday (सोमबार)
+    $dayMapOffset = [
+        'monday'    => 0,
+        'tuesday'   => 1,
+        'wednesday' => 2,
+        'thursday'  => 3,
+        'friday'    => 4,
+        'saturday'  => 5,
+        'sunday'    => 6,
+    ];
+    $offset = $dayMapOffset[strtolower($menu->day_of_week)] ?? 0;
+    $menuDate = $weekStart->copy()->addDays($offset);
+    
+    $dayMapNepali = [
+        'Sunday'    => 'आइतबार',
+        'Monday'    => 'सोमबार',
+        'Tuesday'   => 'मंगलबार',
+        'Wednesday' => 'बुधबार',
+        'Thursday'  => 'बिहिबार',
+        'Friday'    => 'शुक्रबार',
+        'Saturday'  => 'शनिबार'
+    ];
+    $nepaliDay = $dayMapNepali[$menuDate->format('l')] ?? $menuDate->format('l');
+@endphp
+<strong class="text-primary">{{ $nepaliDay }}</strong>
+<small class="text-muted">{{ $menuDate->format('Y-m-d') }}</small>
                                                     <small class="text-info">
                                                         @if($menu->meal_type == 'breakfast')
                                                         <i class="fas fa-clock me-1"></i> ७:०० - ९:०० बिहान
@@ -234,7 +246,7 @@
                                                          class="img-fluid rounded shadow-sm meal-image" 
                                                          style="max-height: 100px; width: auto; cursor: pointer;"
                                                          data-src="{{ asset('storage/' . $menu->image) }}"
-                                                         data-title="{{ $menu->meal_type }} - {{ $carbonDate->format('Y-m-d') }}">
+                                                         data-title="{{ $menu->meal_type }} - {{ $menuDate->format('Y-m-d') }}"
                                                     <small class="d-block text-center text-muted mt-1">तस्बिर हेर्न क्लिक गर्नुहोस्</small>
                                                 </div>
                                                 @else

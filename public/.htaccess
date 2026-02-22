@@ -24,6 +24,8 @@
     RewriteRule ^ index.php [L]
 </IfModule>
 
+AddType image/svg+xml .svg .svgz
+
 # Enable CORS and byte-range requests for videos
 <IfModule mod_headers.c>
     # Handle preflight requests

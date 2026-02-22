@@ -2334,14 +2334,14 @@
                 
                 <!-- Logout Section -->
                 <div class="mt-auto pt-4 border-t sidebar-border">
-                    <form method="POST" action="{{ route('logout') }}" id="logout-form">
-                        @csrf
-                        <button type="submit" class="w-full flex items-center px-2 py-2 text-sm rounded-md hover-sidebar-item transition-colors">
-                            <i class="fas fa-sign-out-alt sidebar-icon"></i>
-                            <span class="sidebar-text">लगआउट</span>
-                        </button>
-                    </form>
-                </div>
+    <form method="POST" action="{{ route('logout') }}" id="logout-form">
+        @csrf
+        <button type="submit" class="w-full flex items-center px-4 py-3 text-sm font-semibold rounded-lg bg-red-600 hover:bg-red-700 text-white transition-colors shadow-md">
+            <i class="fas fa-power-off mr-3 text-base"></i>
+            <span class="sidebar-text">लगआउट</span>
+        </button>
+    </form>
+</div>
             </nav>
         </aside>
 

@@ -514,59 +514,72 @@
         <!-- Right Column - Sidebar -->
         <div class="space-y-6">
             <!-- Quick Actions -->
-            <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
-                <h3 class="text-lg font-bold text-gray-800 mb-4">द्रुत कार्यहरू</h3>
-                <div class="grid grid-cols-2 gap-3">
-                    <a href="{{ route('student.profile') }}" class="bg-blue-50 hover:bg-blue-100 p-3 rounded-xl text-center transition-colors group border border-blue-100">
-                        <div class="text-blue-600 text-xl mb-1">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <div class="text-blue-800 text-xs font-medium">मेरो प्रोफाइल</div>
-                    </a>
-                    
-                    <a href="{{ route('student.meal-menus') }}" class="bg-green-50 hover:bg-green-100 p-3 rounded-xl text-center transition-colors group border border-green-100">
-                        <div class="text-green-600 text-xl mb-1">
-                            <i class="fas fa-utensils"></i>
-                        </div>
-                        <div class="text-green-800 text-xs font-medium">खानाको मेनु</div>
-                    </a>
-                    
-                    <a href="{{ route('student.circulars.index') }}" class="bg-indigo-50 hover:bg-indigo-100 p-3 rounded-xl text-center transition-colors group border border-indigo-100 relative">
-                        <div class="text-indigo-600 text-xl mb-1">
-                            <i class="fas fa-bullhorn"></i>
-                        </div>
-                        <div class="text-indigo-800 text-xs font-medium">सबै सूचनाहरू</div>
-                        @if(($unreadCirculars ?? 0) > 0)
-                            <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
-                                {{ $unreadCirculars }}
-                            </span>
-                        @endif
-                    </a>
-
-                    <a href="{{ route('student.reviews.index') }}" class="bg-purple-50 hover:bg-purple-100 p-3 rounded-xl text-center transition-colors group border border-purple-100">
-                        <div class="text-purple-600 text-xl mb-1">
-                            <i class="fas fa-star"></i>
-                        </div>
-                        <div class="text-purple-800 text-xs font-medium">मेरो समीक्षा</div>
-                    </a>
-
-                    <button class="bg-amber-50 hover:bg-amber-100 p-3 rounded-xl text-center transition-colors group border border-amber-100">
-                        <div class="text-amber-600 text-xl mb-1">
-                            <i class="fas fa-credit-card"></i>
-                        </div>
-                        <div class="text-amber-800 text-xs font-medium">भुक्तानी गर्नुहोस्</div>
-                    </button>
-                    
-                    <!-- Added extra button to maintain grid layout -->
-                    <a href="{{ route('student.bookings.index') }}" class="bg-teal-50 hover:bg-teal-100 p-3 rounded-xl text-center transition-colors group border border-teal-100">
-                        <div class="text-teal-600 text-xl mb-1">
-                            <i class="fas fa-calendar-check"></i>
-                        </div>
-                        <div class="text-teal-800 text-xs font-medium">मेरो बुकिङ</div>
-                    </a>
-                </div>
+<div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
+    <h3 class="text-lg font-bold text-gray-800 mb-4">द्रुत कार्यहरू</h3>
+    <div class="grid grid-cols-2 gap-3">
+        <!-- मेरो प्रोफाइल -->
+        <a href="{{ route('student.profile') }}" class="bg-blue-50 hover:bg-blue-100 p-3 rounded-xl text-center transition-colors group border border-blue-100">
+            <div class="text-blue-600 text-xl mb-1">
+                <i class="fas fa-user"></i>
             </div>
+            <div class="text-blue-800 text-xs font-medium">मेरो प्रोफाइल</div>
+        </a>
+        
+        <!-- खानाको मेनु -->
+        <a href="{{ route('student.meal-menus') }}" class="bg-green-50 hover:bg-green-100 p-3 rounded-xl text-center transition-colors group border border-green-100">
+            <div class="text-green-600 text-xl mb-1">
+                <i class="fas fa-utensils"></i>
+            </div>
+            <div class="text-green-800 text-xs font-medium">खानाको मेनु</div>
+        </a>
+        
+        <!-- सबै सूचनाहरू -->
+        <a href="{{ route('student.circulars.index') }}" class="bg-indigo-50 hover:bg-indigo-100 p-3 rounded-xl text-center transition-colors group border border-indigo-100 relative">
+            <div class="text-indigo-600 text-xl mb-1">
+                <i class="fas fa-bullhorn"></i>
+            </div>
+            <div class="text-indigo-800 text-xs font-medium">सबै सूचनाहरू</div>
+            @if(($unreadCirculars ?? 0) > 0)
+                <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                    {{ $unreadCirculars }}
+                </span>
+            @endif
+        </a>
 
+        <!-- मेरो समीक्षा -->
+        <a href="{{ route('student.reviews.index') }}" class="bg-purple-50 hover:bg-purple-100 p-3 rounded-xl text-center transition-colors group border border-purple-100">
+            <div class="text-purple-600 text-xl mb-1">
+                <i class="fas fa-star"></i>
+            </div>
+            <div class="text-purple-800 text-xs font-medium">मेरो समीक्षा</div>
+        </a>
+
+        <!-- 🆕 नयाँ बुक गर्नुहोस् (यहाँ थपिएको) -->
+<a href="{{ route('hostels.index') }}" class="bg-sky-50 hover:bg-sky-100 p-3 rounded-xl text-center transition-colors group border border-sky-100">
+    <div class="text-sky-600 text-xl mb-1">
+        <i class="fas fa-plus-circle"></i>
+    </div>
+    <div class="text-sky-800 text-xs font-medium">नयाँ बुक</div>
+</a>
+
+
+        <!-- भुक्तानी गर्नुहोस् -->
+        <button class="bg-amber-50 hover:bg-amber-100 p-3 rounded-xl text-center transition-colors group border border-amber-100">
+            <div class="text-amber-600 text-xl mb-1">
+                <i class="fas fa-credit-card"></i>
+            </div>
+            <div class="text-amber-800 text-xs font-medium">भुक्तानी गर्नुहोस्</div>
+        </button>
+        
+        <!-- मेरो बुकिङ -->
+        <a href="{{ route('student.bookings.index') }}" class="bg-teal-50 hover:bg-teal-100 p-3 rounded-xl text-center transition-colors group border border-teal-100">
+            <div class="text-teal-600 text-xl mb-1">
+                <i class="fas fa-calendar-check"></i>
+            </div>
+            <div class="text-teal-800 text-xs font-medium">मेरो बुकिङ</div>
+        </a>
+    </div>
+</div>
             <!-- Important Circulars -->
             @if(isset($importantCirculars) && $importantCirculars && $importantCirculars->count() > 0)
             <div class="bg-red-50 border border-red-200 rounded-2xl p-6">
