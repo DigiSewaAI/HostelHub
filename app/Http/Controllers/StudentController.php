@@ -198,13 +198,16 @@ class StudentController extends Controller
             $room = \App\Models\Room::find($student->room_id);
         }
 
-        // Today's meal
-        $todayMeal = null;
+        // Today's meals – सबै मेनुहरू ल्याउने, meal_type अनुसार group गर्ने
+        $groupedMeals = collect(); // fallback empty collection
         if ($hostel) {
             $currentDay = now()->format('l');
-            $todayMeal = \App\Models\MealMenu::where('hostel_id', $hostel->id)
+            $todayMeals = \App\Models\MealMenu::where('hostel_id', $hostel->id)
                 ->where('day_of_week', $currentDay)
-                ->first();
+                ->where('is_active', true)  // सक्रिय मेनु मात्र
+                ->get();
+
+            $groupedMeals = $todayMeals->groupBy('meal_type');
         }
 
         // Gallery images
@@ -307,7 +310,6 @@ class StudentController extends Controller
             'student',
             'hostel',
             'room',
-            'todayMeal',
             'galleryImages',
             'notifications',
             'upcomingEvents',
@@ -318,7 +320,8 @@ class StudentController extends Controller
             'unreadCirculars',
             'recentStudentCirculars',
             'urgentCirculars',
-            'importantCirculars'
+            'importantCirculars',
+            'groupedMeals'
         ));
     }
 

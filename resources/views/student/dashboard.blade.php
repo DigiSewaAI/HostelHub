@@ -3,6 +3,11 @@
 @section('title', 'विद्यार्थी ड्यासबोर्ड')
 
 @section('content')
+
+@php
+    $groupedMeals = $groupedMeals ?? collect();
+@endphp
+
 <style>
 /* Custom Wave Animation */
 .wave-hand {
@@ -179,82 +184,89 @@
     @endif
 
     <!-- Quick Stats -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <!-- Room Number -->
-        <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-200">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-gray-600 text-sm font-medium">कोठा नं.</p>
-                    <!-- ✅ FIXED: Use $room variable instead of $student->room -->
-                    <p class="text-2xl font-bold text-blue-600 mt-1">
-                        {{ $room && $room->room_number ? $room->room_number : 'N/A' }}
-                    </p>
-                </div>
-                <div class="bg-blue-100 p-3 rounded-xl">
-                    <i class="fas fa-door-open text-blue-600 text-xl"></i>
-                </div>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <!-- Room Number -->
+    <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-200">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-600 text-sm font-medium">कोठा नं.</p>
+                <p class="text-2xl font-bold text-blue-600 mt-1">
+                    {{ $room && $room->room_number ? $room->room_number : 'N/A' }}
+                </p>
             </div>
-            <p class="text-gray-500 text-xs mt-2">तपाईंको कोठा नम्बर</p>
-        </div>
-
-        <!-- Today's Meal -->
-        <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-200">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-gray-600 text-sm font-medium">आजको खाना</p>
-                    <p class="text-2xl font-bold text-green-600 mt-1">
-                        {{ $todayMeal ? 'उपलब्ध' : ($hostel ? 'अपडेट छैन' : 'N/A') }}
-                    </p>
-                </div>
-                <div class="bg-green-100 p-3 rounded-xl">
-                    <i class="fas fa-utensils text-green-600 text-xl"></i>
-                </div>
+            <div class="bg-blue-100 p-3 rounded-xl">
+                <i class="fas fa-door-open text-blue-600 text-xl"></i>
             </div>
-            <p class="text-gray-500 text-xs mt-2">खानाको अवस्था</p>
         </div>
+        <p class="text-gray-500 text-xs mt-2">तपाईंको कोठा नम्बर</p>
+    </div>
 
-        <!-- Payment Status -->
+    <!-- Today's Meal (UPDATED) -->
 <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-200">
     <div class="flex items-center justify-between">
         <div>
-            <p class="text-gray-600 text-sm font-medium">भुक्तानी</p>
-            <p class="text-2xl font-bold text-amber-600 mt-1">
-                @if($paymentStatus == 'paid')
-                    भुक्तानी भएको
-                @elseif($paymentStatus == 'overdue')
-                    बाँकी
-                    @if($delayMonths > 0)
-                        ({{ $delayMonths }} महिना ढिला)
+            <p class="text-gray-600 text-sm font-medium">आजको खाना</p>
+            <p class="text-2xl font-bold text-green-600 mt-1">
+                @if($hostel)
+                    @if($groupedMeals->isNotEmpty())
+                        उपलब्ध
+                    @else
+                        अपडेट छैन
                     @endif
                 @else
-                    भुक्तानी भएको छैन
+                    N/A
                 @endif
             </p>
-            @if($nextDueDate)
-                <p class="text-xs text-gray-500 mt-1">अर्को म्याद: {{ $nextDueDate->format('Y-m-d') }}</p>
-            @endif
         </div>
-        <div class="bg-amber-100 p-3 rounded-xl">
-            <i class="fas fa-receipt text-amber-600 text-xl"></i>
+        <div class="bg-green-100 p-3 rounded-xl">
+            <i class="fas fa-utensils text-green-600 text-xl"></i>
         </div>
     </div>
-    <p class="text-gray-500 text-xs mt-2">भुक्तानी स्थिति</p>
+    <p class="text-gray-500 text-xs mt-2">खानाको अवस्था</p>
 </div>
 
-        <!-- Notifications -->
-        <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-200">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-gray-600 text-sm font-medium">सूचनाहरू</p>
-                    <p class="text-2xl font-bold text-indigo-600 mt-1">{{ $unreadCirculars ?? 0 }}</p>
-                </div>
-                <div class="bg-indigo-100 p-3 rounded-xl">
-                    <i class="fas fa-bullhorn text-indigo-600 text-xl"></i>
-                </div>
+    <!-- Payment Status -->
+    <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-200">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-600 text-sm font-medium">भुक्तानी</p>
+                <p class="text-2xl font-bold text-amber-600 mt-1">
+                    @if($paymentStatus == 'paid')
+                        भुक्तानी भएको
+                    @elseif($paymentStatus == 'overdue')
+                        बाँकी
+                        @if($delayMonths > 0)
+                            ({{ $delayMonths }} महिना ढिला)
+                        @endif
+                    @else
+                        भुक्तानी भएको छैन
+                    @endif
+                </p>
+                @if($nextDueDate)
+                    <p class="text-xs text-gray-500 mt-1">अर्को म्याद: {{ $nextDueDate->format('Y-m-d') }}</p>
+                @endif
             </div>
-            <p class="text-gray-500 text-xs mt-2">नयाँ सूचनाहरू</p>
+            <div class="bg-amber-100 p-3 rounded-xl">
+                <i class="fas fa-receipt text-amber-600 text-xl"></i>
+            </div>
         </div>
+        <p class="text-gray-500 text-xs mt-2">भुक्तानी स्थिति</p>
     </div>
+
+    <!-- Notifications -->
+    <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-200">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-600 text-sm font-medium">सूचनाहरू</p>
+                <p class="text-2xl font-bold text-indigo-600 mt-1">{{ $unreadCirculars ?? 0 }}</p>
+            </div>
+            <div class="bg-indigo-100 p-3 rounded-xl">
+                <i class="fas fa-bullhorn text-indigo-600 text-xl"></i>
+            </div>
+        </div>
+        <p class="text-gray-500 text-xs mt-2">नयाँ सूचनाहरू</p>
+    </div>
+</div>
 
     <!-- Reviews Summary Section -->
     <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-200 mb-6">
@@ -420,58 +432,109 @@
             </div>
 
             <!-- Today's Meal & Recent Circulars -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Today's Meal -->
-                <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
-                    <div class="flex items-center mb-4">
-                        <div class="bg-green-100 p-2 rounded-lg mr-3">
-                            <i class="fas fa-utensils text-green-600"></i>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Today's Meal -->
+    <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
+        <div class="flex items-center mb-4">
+            <div class="bg-green-100 p-2 rounded-lg mr-3">
+                <i class="fas fa-utensils text-green-600"></i>
+            </div>
+            <h3 class="text-lg font-bold text-gray-800">आजको खानाको मेनु</h3>
+        </div>
+        
+        @php
+            // खानाका प्रकारहरू परिभाषित गर्ने
+            $mealTypes = [
+                'breakfast' => [
+                    'name' => 'नास्ता', 
+                    'icon' => 'fa-sun', 
+                    'time' => '७:०० - ९:०० बिहान', 
+                    'color' => 'yellow'
+                ],
+                'lunch' => [
+                    'name' => 'दिउँसोको खाना', 
+                    'icon' => 'fa-utensil-spoon', 
+                    'time' => '१२:०० - २:०० दिउँसो', 
+                    'color' => 'blue'
+                ],
+                'dinner' => [
+                    'name' => 'रातिको खाना', 
+                    'icon' => 'fa-moon', 
+                    'time' => '७:०० - ९:०० बेलुका', 
+                    'color' => 'indigo'
+                ],
+            ];
+            
+            // हालको समय (घण्टा) निकाल्ने
+            $currentHour = (int)now()->format('H');
+        @endphp
+
+        @if($hostel)
+            @forelse($mealTypes as $type => $info)
+                @php
+                    // यस प्रकारको मेनु छ कि छैन जाँच गर्ने
+                    $meal = $groupedMeals->get($type)?->first();
+                    
+                    // के यो मेनु हालको समयमा उपलब्ध छ?
+                    $isCurrentlyAvailable = false;
+                    if ($type == 'breakfast' && $currentHour >= 7 && $currentHour < 9) $isCurrentlyAvailable = true;
+                    if ($type == 'lunch' && $currentHour >= 12 && $currentHour < 14) $isCurrentlyAvailable = true;
+                    if ($type == 'dinner' && $currentHour >= 19 && $currentHour < 21) $isCurrentlyAvailable = true;
+                @endphp
+                
+                <div class="mb-4 last:mb-0 border-b last:border-0 pb-4 last:pb-0">
+                    <div class="flex items-center mb-2">
+                        <div class="bg-{{ $info['color'] }}-100 p-2 rounded-lg mr-2">
+                            <i class="fas {{ $info['icon'] }} text-{{ $info['color'] }}-600"></i>
                         </div>
-                        <h3 class="text-lg font-bold text-gray-800">आजको खानाको मेनु</h3>
+                        <h4 class="font-semibold text-gray-800">{{ $info['name'] }}</h4>
+                        <span class="ml-auto text-sm text-gray-500">{{ $info['time'] }}</span>
                     </div>
                     
-                    @if($todayMeal)
-                        <div class="space-y-3">
-                            @if(is_array($todayMeal->items))
-                                @if(isset($todayMeal->items['breakfast']))
-                                    <div>
-                                        <p class="font-medium text-gray-700">बिहानको खाना:</p>
-                                        <p class="text-gray-600">{{ $todayMeal->items['breakfast'] }}</p>
-                                    </div>
+                    @if($meal)
+                        <div class="ml-12">
+                            <div class="text-gray-700">
+                                @if(is_array($meal->items))
+                                    @foreach($meal->items as $item)
+                                        <span class="inline-block bg-gray-100 rounded px-2 py-1 text-sm mr-1 mb-1">
+                                            <i class="fas fa-check text-green-600 mr-1"></i>{{ $item }}
+                                        </span>
+                                    @endforeach
+                                @else
+                                    <p>{{ $meal->items }}</p>
                                 @endif
-                                @if(isset($todayMeal->items['lunch']))
-                                    <div>
-                                        <p class="font-medium text-gray-700">दिउँसोको खाना:</p>
-                                        <p class="text-gray-600">{{ $todayMeal->items['lunch'] }}</p>
-                                    </div>
-                                @endif
-                                @if(isset($todayMeal->items['dinner']))
-                                    <div>
-                                        <p class="font-medium text-gray-700">रातिको खाना:</p>
-                                        <p class="text-gray-600">{{ $todayMeal->items['dinner'] }}</p>
-                                    </div>
-                                @endif
-                            @else
-                                <p class="text-gray-600">मुख्य खाना: {{ $todayMeal->main_dish ?? 'उपलब्ध छैन' }}</p>
-                                <p class="text-gray-600">साइड डिश: {{ $todayMeal->side_dish ?? 'उपलब्ध छैन' }}</p>
+                            </div>
+                            
+                            @if($meal->description)
+                                <p class="text-sm text-gray-500 mt-1">{{ $meal->description }}</p>
                             @endif
-                            <p class="text-sm text-gray-500"><i class="fas fa-clock mr-1"></i>समय: {{ $todayMeal->serving_time ?? 'उपलब्ध छैन' }}</p>
+                            
+                            @if($isCurrentlyAvailable)
+                                <span class="inline-block mt-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                                    <i class="fas fa-circle text-xs mr-1 animate-pulse"></i> अहिले उपलब्ध
+                                </span>
+                            @endif
                         </div>
                     @else
-                        <div class="text-center py-4">
-                            <i class="fas fa-utensils text-gray-400 text-3xl mb-2"></i>
-                            @if($hostel)
-                                <p class="text-gray-500">आजको खानाको मेनु हाल अपडेट छैन</p>
-                            @else
-                                <p class="text-gray-500">तपाईंलाई अहिले कुनै होस्टेल असाइन गरिएको छैन</p>
-                            @endif
-                        </div>
+                        <p class="ml-12 text-gray-400 italic">
+                            <i class="fas fa-info-circle mr-1"></i>आजको लागि कुनै खाना योजना गरिएको छैन।
+                        </p>
                     @endif
-                    
-                    <a href="{{ route('student.meal-menus') }}" class="block w-full mt-4 bg-green-600 hover:bg-green-700 text-white py-2 rounded-xl font-medium text-center transition-colors">
-                        <i class="fas fa-calendar mr-2"></i>सप्ताहिक मेनु हेर्नुहोस्
-                    </a>
                 </div>
+            @empty
+                {{-- यो कहिल्यै खाली हुँदैन, तर सुरक्षाको लागि राखिएको --}}
+            @endforelse
+        @else
+            <div class="text-center py-4">
+                <i class="fas fa-utensils text-gray-400 text-3xl mb-2"></i>
+                <p class="text-gray-500">तपाईंलाई अहिले कुनै होस्टेल असाइन गरिएको छैन</p>
+            </div>
+        @endif
+        
+        <a href="{{ route('student.meal-menus') }}" class="block w-full mt-4 bg-green-600 hover:bg-green-700 text-white py-2 rounded-xl font-medium text-center transition-colors">
+            <i class="fas fa-calendar-alt mr-2"></i>सप्ताहिक मेनु हेर्नुहोस्
+        </a>
+    </div>
 
                 <!-- Recent Circulars -->
                 <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-200">
