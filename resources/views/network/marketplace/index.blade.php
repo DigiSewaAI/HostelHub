@@ -1,6 +1,11 @@
-@extends('network.layouts.app')
+@extends('layouts.owner')
 
 @section('title', __('network.marketplace'))
+
+@section('breadcrumbs')
+    <li class="breadcrumb-item"><a href="{{ route('owner.dashboard') }}">ड्यासबोर्ड</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ __('network.marketplace') }}</li>
+@endsection
 
 @section('content')
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
@@ -88,6 +93,16 @@
         {{ $listings->withQueryString()->links() }}
     </div>
 @else
-    <p>{{ __('network.no_listings') }}</p>
+    <div class="text-center py-5">
+        <i class="fas fa-store fa-4x text-muted mb-3"></i>
+        <h4>{{ __('network.no_listings') }}</h4>
+        <p class="text-muted">{{ __('network.no_listings_desc') ?? 'हाल कुनै लिस्टिंग उपलब्ध छैन।' }}</p>
+        <a href="{{ route('network.marketplace.create') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> {{ __('network.create_listing') }}
+        </a>
+        <a href="{{ route('network.marketplace.index') }}" class="btn btn-secondary">
+            <i class="fas fa-times"></i> {{ __('network.clear_filters') }}
+        </a>
+    </div>
 @endif
 @endsection

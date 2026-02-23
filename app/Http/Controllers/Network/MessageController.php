@@ -49,22 +49,42 @@ class MessageController extends Controller
 
         $senderId = Auth::id();
 
+        // ✅ Tenant ID प्राप्त गर्ने (तपाईंको डाटाबेस संरचना अनुसार मिलाउनुहोस्)
+        $user = Auth::user();
+        $tenantId = $user->ownerProfile->tenant_id ?? null;  // यदि ownerProfile छ भने
+
+        // यदि tenant ID छैन भने error फर्काउने (वा आवश्यकता अनुसार ह्यान्डल)
+        if (!$tenantId) {
+            return back()->with('error', 'Tenant जानकारी फेला परेन। कृपया प्रोफाइल पूरा गर्नुहोस्।');
+        }
+
         // यदि नयाँ थ्रेड हो भने
         if (empty($validated['thread_id'])) {
             $participants = [$senderId, $validated['recipient_id']];
             $thread = $this->messageService->createThread($participants, $validated['subject'] ?? null);
             $threadId = $thread->id;
+
+            // ✅ नयाँ थ्रेडमा tenant_id सेट गर्ने
+            $thread->tenant_id = $tenantId;
+            $thread->save();
         } else {
             $threadId = $validated['thread_id'];
         }
 
-        $this->messageService->sendMessage(
+        // सन्देश पठाउने (messageService ले message object फर्काउँछ भन्ने मानिएको छ)
+        $message = $this->messageService->sendMessage(
             $threadId,
             $senderId,
             $validated['body'],
             $validated['category'],
             $validated['priority']
         );
+
+        // ✅ सन्देशमा tenant_id सेट गर्ने
+        if ($message) {
+            $message->tenant_id = $tenantId;
+            $message->save();
+        }
 
         return redirect()->route('network.messages.show', $threadId)
             ->with('success', 'सन्देश पठाइयो।');

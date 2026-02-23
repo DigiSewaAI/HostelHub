@@ -8,6 +8,9 @@ use App\Services\ClassicImageOptimizer; // ✅ NEW: Classic theme image optimize
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\View;
+use App\Models\MessageThreadParticipant;
+use Illuminate\Support\Facades\Auth;
 
 // View Components
 use App\View\Components\AdminNavLink;
@@ -84,6 +87,20 @@ class AppServiceProvider extends ServiceProvider
         $this->app['router']->aliasMiddleware('hasOrganization', \App\Http\Middleware\HasOrganization::class);
         $this->app['router']->aliasMiddleware('enforce.plan.limits', \App\Http\Middleware\EnforcePlanLimits::class);
         $this->app['router']->aliasMiddleware('role', \App\Http\Middleware\RoleMiddleware::class);
+
+        // ✅ ADDED: View Composer for Owner Layout to pass unread message count
+        View::composer('owner', function ($view) {
+            $unreadCount = 0;
+            if (Auth::check()) {
+                $userId = Auth::id();
+                // आफ्नो Database Structure अनुसार यो Query मिलाउनुहोस्
+                // यहाँ MessageThreadParticipant Model प्रयोग गरिएको छ
+                $unreadCount = MessageThreadParticipant::where('user_id', $userId)
+                    ->whereColumn('last_read_at', '<', 'thread.last_message_at')
+                    ->count();
+            }
+            $view->with('unreadCount', $unreadCount);
+        });
 
         // Additional bootstrapping code can go here
         // For example, view composers, database macros, etc.

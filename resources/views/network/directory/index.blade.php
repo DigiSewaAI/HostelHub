@@ -1,6 +1,11 @@
-@extends('network.layouts.app')
+@extends('layouts.owner')
 
 @section('title', __('network.owner_directory'))
+
+@section('breadcrumbs')
+    <li class="breadcrumb-item"><a href="{{ route('owner.dashboard') }}">ड्यासबोर्ड</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ __('network.directory') }}</li>
+@endsection
 
 @section('content')
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
@@ -113,8 +118,15 @@
                 {{ $owners->withQueryString()->links() }}
             </div>
         @else
-            <p>{{ __('network.no_owners_found') }}</p>
-        @endif
+    <div class="text-center py-5">
+        <i class="fas fa-address-book fa-4x text-muted mb-3"></i>
+        <h4>{{ __('network.no_owners_found') }}</h4>
+        <p class="text-muted">{{ __('network.no_owners_found_desc') ?? 'कुनै मालिक फेला परेन। फिल्टर परिवर्तन गरेर पुन: प्रयास गर्नुहोस्।' }}</p>
+        <a href="{{ route('network.directory.index') }}" class="btn btn-secondary">
+            <i class="fas fa-times"></i> {{ __('network.clear_filters') }}
+        </a>
+    </div>
+@endif
     </div>
 </div>
 @endsection

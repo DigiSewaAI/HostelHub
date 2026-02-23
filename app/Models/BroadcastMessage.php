@@ -36,4 +36,8 @@ class BroadcastMessage extends Model
     {
         return $this->belongsTo(User::class, 'moderated_by');
     }
+    protected static function booted()
+    {
+        static::addGlobalScope(new TenantScope);
+    }
 }

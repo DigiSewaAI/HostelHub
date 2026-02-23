@@ -687,6 +687,47 @@
     <i class="fas fa-exclamation-triangle sidebar-icon"></i>
     <span class="sidebar-text">रूम समस्याहरू</span>
 </a>
+
+<!-- Hostel Network Dropdown -->
+<div class="nav-dropdown-container">
+    <a href="javascript:void(0)" 
+       class="sidebar-link nav-dropdown-toggle {{ request()->routeIs('network.*') ? 'active' : '' }}">
+        <i class="fas fa-network-wired sidebar-icon"></i>
+        <span class="sidebar-text">होस्टल नेटवर्क</span>
+        <i class="fas fa-chevron-right dropdown-arrow ms-auto"></i>
+    </a>
+    <div class="nav-dropdown-menu {{ request()->routeIs('network.*') ? 'show' : '' }}">
+        <a href="{{ route('network.messages.index') }}"
+           class="nav-dropdown-item {{ request()->routeIs('network.messages.index') ? 'active' : '' }}">
+            <i class="fas fa-envelope me-2"></i>
+            <span>इनबक्स</span>
+            @if(isset($unreadCount) && $unreadCount > 0)
+                <span class="badge bg-danger ms-auto">{{ $unreadCount }}</span>
+            @endif
+        </a>
+        <a href="{{ route('network.broadcast.index') }}"
+           class="nav-dropdown-item {{ request()->routeIs('network.broadcast.*') ? 'active' : '' }}">
+            <i class="fas fa-bullhorn me-2"></i>
+            <span>प्रसारण</span>
+        </a>
+        <a href="{{ route('network.marketplace.index') }}"
+           class="nav-dropdown-item {{ request()->routeIs('network.marketplace.*') ? 'active' : '' }}">
+            <i class="fas fa-store me-2"></i>
+            <span>बजार</span>
+        </a>
+        <a href="{{ route('network.directory.index') }}"
+           class="nav-dropdown-item {{ request()->routeIs('network.directory.*') ? 'active' : '' }}">
+            <i class="fas fa-address-book me-2"></i>
+            <span>निर्देशिका</span>
+        </a>
+        <a href="{{ route('network.profile.edit') }}"
+           class="nav-dropdown-item {{ request()->routeIs('network.profile.edit') ? 'active' : '' }}">
+            <i class="fas fa-user me-2"></i>
+            <span>प्रोफाइल</span>
+        </a>
+    </div>
+</div>
+
                 <!-- Logout Section -->
                 <div class="mt-auto pt-4 border-t border-blue-700">
                     <form method="POST" action="{{ route('logout') }}" id="logout-form">
@@ -865,6 +906,15 @@
                             <button type="button" class="btn-close tap-target" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     @endif
+
+<!-- Breadcrumbs -->
+@if(View::hasSection('breadcrumbs'))
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            @yield('breadcrumbs')
+        </ol>
+    </nav>
+@endif
 
                     <!-- Page Content -->
                     @yield('content')

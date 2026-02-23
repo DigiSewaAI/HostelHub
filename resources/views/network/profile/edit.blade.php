@@ -1,6 +1,11 @@
-@extends('network.layouts.app')
+@extends('layouts.owner')
 
 @section('title', 'प्रोफाइल सम्पादन')
+
+@section('breadcrumbs')
+    <li class="breadcrumb-item"><a href="{{ route('owner.dashboard') }}">ड्यासबोर्ड</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ __('network.profile') }}</li>
+@endsection
 
 @section('content')
 <div class="row justify-content-center">

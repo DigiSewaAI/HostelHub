@@ -29,15 +29,30 @@ class BroadcastController extends Controller
 
     public function store(Request $request)
     {
+        // कूलडाउन चेक (यदि गेट छ भने)
         if (Gate::denies('create', BroadcastMessage::class)) {
             return back()->with('error', 'कूलडाउन अवधि समाप्त भएको छैन।');
         }
 
+        // डाटा भ्यालिडेसन
         $validated = $request->validate([
             'subject' => 'required|string|max:255',
-            'body' => 'required|string',
+            'body'    => 'required|string',
         ]);
 
+        // ✅ Tenant ID प्राप्त गर्ने (तपाईंको डाटाबेस संरचना अनुसार)
+        $user = Auth::user();
+        $tenantId = $user->ownerProfile->tenant_id ?? null;
+
+        // यदि tenant ID छैन भने error फर्काउने (वा आवश्यकता अनुसार ह्यान्डल)
+        if (!$tenantId) {
+            return back()->with('error', 'Tenant जानकारी फेला परेन। कृपया प्रोफाइल पूरा गर्नुहोस्।');
+        }
+
+        // validated data मा tenant_id थप्ने
+        $validated['tenant_id'] = $tenantId;
+
+        // ब्रोडकास्ट सिर्जना गर्न service मा पठाउने
         $broadcast = $this->broadcastService->createBroadcast(Auth::id(), $validated);
 
         return redirect()->route('network.broadcast.index')

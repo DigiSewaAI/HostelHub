@@ -1,13 +1,19 @@
-@extends('network.layouts.app')
+@extends('layouts.owner')
 
 @section('title', $listing->title)
+
+@section('breadcrumbs')
+    <li class="breadcrumb-item"><a href="{{ route('owner.dashboard') }}">ड्यासबोर्ड</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('network.marketplace.index') }}">{{ __('network.marketplace') }}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ $listing->title }}</li>
+@endsection
 
 @section('content')
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
     <h1 class="h2">{{ $listing->title }}</h1>
     <div class="btn-toolbar mb-2 mb-md-0">
         <a href="{{ route('network.marketplace.index') }}" class="btn btn-sm btn-secondary">
-            {{ __('network.back') }}
+            <i class="fas fa-arrow-left"></i> {{ __('network.back') }}
         </a>
     </div>
 </div>
@@ -37,6 +43,11 @@
                     <span class="carousel-control-next-icon" aria-hidden="true"></span>
                     <span class="visually-hidden">Next</span>
                 </button>
+            </div>
+        @else
+            <!-- ✅ मिडिया नभएमा प्लेसहोल्डर -->
+            <div class="bg-light d-flex align-items-center justify-content-center mb-4" style="height: 200px; border-radius: 0.375rem;">
+                <span class="text-muted">{{ __('network.no_image') }}</span>
             </div>
         @endif
 

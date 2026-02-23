@@ -1,6 +1,11 @@
-@extends('network.layouts.app')
+@extends('layouts.owner')
 
 @section('title', __('network.my_broadcasts'))
+
+@section('breadcrumbs')
+    <li class="breadcrumb-item"><a href="{{ route('owner.dashboard') }}">ड्यासबोर्ड</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ __('network.broadcast') }}</li>
+@endsection
 
 @section('content')
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
@@ -76,6 +81,13 @@
     </div>
     {{ $broadcasts->links() }}
 @else
-    <p>{{ __('network.no_broadcasts') }}</p>
+    <div class="text-center py-5">
+        <i class="fas fa-bullhorn fa-4x text-muted mb-3"></i>
+        <h4>{{ __('network.no_broadcasts') }}</h4>
+        <p class="text-muted">{{ __('network.no_broadcasts_desc') ?? 'तपाईंले कुनै प्रसारण पठाउनुभएको छैन।' }}</p>
+        <a href="{{ route('network.broadcast.create') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> {{ __('network.create_broadcast') }}
+        </a>
+    </div>
 @endif
 @endsection

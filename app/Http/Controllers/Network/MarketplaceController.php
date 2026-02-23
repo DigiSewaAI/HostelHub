@@ -17,41 +17,76 @@ class MarketplaceController extends Controller
         $this->marketplaceService = $marketplaceService;
     }
 
+    /**
+     * सबै सूचीहरू देखाउने (फिल्टर सहित)
+     */
     public function index(Request $request)
     {
-        $query = MarketplaceListing::with('owner', 'media')
-            ->where('tenant_id', session('tenant_id'));
+        $user = Auth::user();
+        $tenantId = $user->ownerProfile->tenant_id ?? null;
 
-        if ($request->has('type')) {
-            $query->where('type', $request->type);
+        // यदि tenant ID छैन भने खाली नतिजा देखाउने
+        if (!$tenantId) {
+            $listings = collect([]); // खाली collection
+        } else {
+            $query = MarketplaceListing::with('owner', 'media')
+                ->where('tenant_id', $tenantId); // ✅ सही tenant_id प्रयोग
+
+            // फिल्टरहरू
+            if ($request->filled('type')) {
+                $query->where('type', $request->type);
+            }
+
+            if ($request->filled('status')) {
+                $query->where('status', $request->status);
+            }
+
+            if ($request->filled('location')) {
+                $query->where('location', 'like', '%' . $request->location . '%');
+            }
+
+            $listings = $query->latest()->paginate(12)->withQueryString();
         }
 
-        if ($request->has('status')) {
-            $query->where('status', $request->status);
-        }
-
-        $listings = $query->latest()->paginate(12);
         return view('network.marketplace.index', compact('listings'));
     }
 
+    /**
+     * नयाँ सूची सिर्जना गर्ने पृष्ठ
+     */
     public function create()
     {
         return view('network.marketplace.create');
     }
 
+    /**
+     * नयाँ सूची भण्डारण गर्ने
+     */
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'title' => 'required|string|max:255',
+            'title'       => 'required|string|max:255',
             'description' => 'required|string',
-            'type' => 'required|in:sale,lease,partnership,investment',
-            'price' => 'nullable|numeric|min:0',
-            'location' => 'nullable|string|max:255',
-            'media.*' => 'nullable|image|max:2048',
+            'type'        => 'required|in:sale,lease,partnership,investment',
+            'price'       => 'nullable|numeric|min:0',
+            'location'    => 'nullable|string|max:255',
+            'media.*'     => 'nullable|image|max:2048', // प्रति फाइल 2MB
         ]);
 
+        $user = Auth::user();
+        $tenantId = $user->ownerProfile->tenant_id ?? null;
+
+        if (!$tenantId) {
+            return back()->with('error', 'Tenant जानकारी फेला परेन। कृपया प्रोफाइल पूरा गर्नुहोस्।');
+        }
+
+        // ✅ validated data मा tenant_id थप्ने
+        $validated['tenant_id'] = $tenantId;
+
+        // सूची सिर्जना गर्न service मा पठाउने
         $listing = $this->marketplaceService->createListing(Auth::id(), $validated);
 
+        // मिडिया अपलोड भएमा ह्यान्डल गर्ने
         if ($request->hasFile('media')) {
             $this->marketplaceService->handleMediaUpload($listing, $request->file('media'));
         }
@@ -60,27 +95,50 @@ class MarketplaceController extends Controller
             ->with('success', 'सूची सिर्जना गरियो। मध्यस्थता पछि प्रकाशित हुनेछ।');
     }
 
+    /**
+     * एकल सूचीको विवरण देखाउने
+     */
     public function show($slug)
     {
+        $user = Auth::user();
+        $tenantId = $user->ownerProfile->tenant_id ?? null;
+
+        // ✅ tenant_id पनि जाँच गर्ने ताकि अर्को tenant को listing नदेखियोस्
         $listing = MarketplaceListing::with('owner', 'media')
             ->where('slug', $slug)
+            ->where('tenant_id', $tenantId)
             ->firstOrFail();
 
+        // हेराइको गणना बढाउने
         $this->marketplaceService->incrementViews($listing);
 
         return view('network.marketplace.show', compact('listing'));
     }
 
+    /**
+     * सूचीको मालिकलाई सम्पर्क गर्ने (सन्देश पठाउने)
+     */
     public function contact(Request $request, $listingId)
     {
         $listing = MarketplaceListing::findOrFail($listingId);
+
+        // यहाँ पनि tenant जाँच गर्न सकिन्छ (वैकल्पिक)
+        $user = Auth::user();
+        $tenantId = $user->ownerProfile->tenant_id ?? null;
+
+        if (!$tenantId || $listing->tenant_id != $tenantId) {
+            return back()->with('error', 'तपाईंलाई यो सूचीमा सम्पर्क गर्ने अनुमति छैन।');
+        }
+
         $messageService = app(\App\Services\MessageService::class);
 
+        // नयाँ सन्देश थ्रेड सिर्जना गर्ने
         $thread = $messageService->createThread(
             [Auth::id(), $listing->owner_id],
             'सूची: ' . $listing->title
         );
 
-        return redirect()->route('network.messages.show', $thread->id);
+        return redirect()->route('network.messages.show', $thread->id)
+            ->with('success', 'मालिकलाई सन्देश पठाउन सक्नुहुन्छ।');
     }
 }

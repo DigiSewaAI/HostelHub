@@ -1,6 +1,12 @@
-@extends('network.layouts.app')
+@extends('layouts.owner')
 
 @section('title', __('network.create_listing'))
+
+@section('breadcrumbs')
+    <li class="breadcrumb-item"><a href="{{ route('owner.dashboard') }}">ड्यासबोर्ड</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('network.marketplace.index') }}">{{ __('network.marketplace') }}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ __('network.create_listing') }}</li>
+@endsection
 
 @section('content')
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">

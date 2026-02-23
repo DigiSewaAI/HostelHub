@@ -1,6 +1,12 @@
-@extends('network.layouts.app')
+@extends('layouts.owner')
 
 @section('title', $thread->subject ?? __('network.thread'))
+
+@section('breadcrumbs')
+    <li class="breadcrumb-item"><a href="{{ route('owner.dashboard') }}">ड्यासबोर्ड</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('network.messages.index') }}">{{ __('network.inbox') }}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ $thread->subject }}</li>
+@endsection
 
 @section('content')
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
@@ -9,11 +15,11 @@
         <form method="POST" action="{{ route('network.messages.archive', $thread->id) }}" class="d-inline">
             @csrf
             <button type="submit" class="btn btn-sm btn-warning" onclick="return confirm('{{ __('network.archive_confirm') }}')">
-                {{ __('network.archive') }}
+                <i class="fas fa-archive"></i> {{ __('network.archive') }}
             </button>
         </form>
         <a href="{{ route('network.messages.index') }}" class="btn btn-sm btn-secondary ms-2">
-            {{ __('network.back') }}
+            <i class="fas fa-arrow-left"></i> {{ __('network.back') }}
         </a>
     </div>
 </div>
@@ -29,7 +35,7 @@
 </div>
 
 <!-- सन्देश इतिहास -->
-<div class="card mb-4" style="max-height: 500px; overflow-y: auto;">
+<div class="card mb-4" id="message-container" style="max-height: 500px; overflow-y: auto;">
     <div class="card-body">
         @forelse($thread->messages as $message)
             <div class="mb-3 {{ $message->sender_id == Auth::id() ? 'text-end' : '' }}">
@@ -50,9 +56,19 @@
                 </div>
             </div>
         @empty
-            <p>{{ __('network.no_messages') }}</p>
+            <div class="text-center py-4">
+                <i class="fas fa-envelope-open fa-3x text-muted mb-3"></i>
+                <p class="text-muted">{{ __('network.no_messages_in_thread') ?? 'यस वार्तालापमा कुनै सन्देश छैन।' }}</p>
+            </div>
         @endforelse
     </div>
+    @if($thread->messages->count() > 5)
+        <div class="text-center mb-2">
+            <button onclick="document.getElementById('message-container').scrollTo(0, document.getElementById('message-container').scrollHeight)" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-arrow-down"></i> {{ __('network.scroll_to_bottom') }}
+            </button>
+        </div>
+    @endif
 </div>
 
 <!-- जवाफ दिने फारम -->
@@ -102,4 +118,15 @@
         </form>
     </div>
 </div>
+
+@push('scripts')
+<script>
+    // पेज लोड हुँदा स्वतः तल स्क्रोल गर्न
+    document.addEventListener('DOMContentLoaded', function() {
+        const container = document.getElementById('message-container');
+        container.scrollTop = container.scrollHeight;
+    });
+</script>
+@endpush
+
 @endsection

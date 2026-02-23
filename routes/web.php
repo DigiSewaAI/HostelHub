@@ -233,7 +233,7 @@ Route::middleware(['auth'])->prefix('network')->name('network.')->group(function
     Route::get('/messages/{thread}', [MessageController::class, 'show'])->name('messages.show');
     Route::post('/messages/{thread}/archive', [MessageController::class, 'archive'])->name('messages.archive');
     Route::post('/messages', [MessageController::class, 'store'])
-        ->middleware('throttle:30,1')   // ⬅️ यो middleware थपियो
+        ->middleware('throttle:30,1')
         ->name('messages.store');
 
     // Broadcast

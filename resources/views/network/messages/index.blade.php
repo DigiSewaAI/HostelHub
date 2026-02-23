@@ -1,6 +1,12 @@
-@extends('network.layouts.app')
+@extends('layouts.owner')
 
 @section('title', __('network.inbox'))
+
+@section('breadcrumbs')
+    <li class="breadcrumb-item"><a href="{{ route('owner.dashboard') }}">ड्यासबोर्ड</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ __('network.broadcast') }}</li>
+@endsection
+
 
 @section('content')
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
@@ -58,7 +64,14 @@
         </div>
     </div>
 @empty
-    <p>{{ __('network.no_messages') ?? 'कुनै सन्देश छैन।' }}</p>
+    <div class="text-center py-5">
+        <i class="fas fa-envelope fa-4x text-muted mb-3"></i>
+        <h4>{{ __('network.no_messages') ?? 'कुनै सन्देश छैन।' }}</h4>
+        <p class="text-muted">{{ __('network.no_messages_desc') ?? 'तपाईंको इनबक्स खाली छ।' }}</p>
+        <a href="{{ route('network.messages.create') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> {{ __('network.compose') }}
+        </a>
+    </div>
 @endforelse
 
 {{ $threads->links() }}
