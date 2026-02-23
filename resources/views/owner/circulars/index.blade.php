@@ -121,7 +121,7 @@
                                         </td>
                                         <td>
                                             @if($circular->priority == 'urgent')
-                                                <span class="badge badge-danger" style="font-size: 0.85em; padding: 0.4em 0.6em;">जरुरी</span>
+                                                <span class="badge" style="background-color: #dc3545; color: white; font-size: 0.85em; padding: 0.4em 0.6em;">जरुरी</span>
                                             @elseif($circular->priority == 'normal')
                                                 <span class="badge badge-primary" style="font-size: 0.85em; padding: 0.4em 0.6em;">सामान्य</span>
                                             @else
@@ -189,4 +189,125 @@
         </div>
     </div>
 </div>
+@push('styles')
+<style>
+/* ========== INFO BOXES - ATTRACTIVE GRADIENT DESIGN (STUDENT PANEL JASTAI) ========== */
+.info-box {
+    min-height: 110px;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    margin-bottom: 20px;
+    padding: 15px 20px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    border: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.info-box::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: rgba(255,255,255,0.1);
+    transform: rotate(45deg);
+    transition: all 0.5s ease;
+}
+
+.info-box:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 25px rgba(0,0,0,0.15);
+}
+
+.info-box:hover::before {
+    transform: rotate(45deg) translate(10%, 10%);
+}
+
+.info-box.bg-info {
+    background: linear-gradient(135deg, #17a2b8, #0f7c8f) !important;
+}
+
+.info-box.bg-success {
+    background: linear-gradient(135deg, #28a745, #1e7e34) !important;
+}
+
+.info-box.bg-warning {
+    background: linear-gradient(135deg, #ffc107, #d39e00) !important;
+}
+
+.info-box.bg-danger {
+    background: linear-gradient(135deg, #dc3545, #bd2130) !important;
+}
+
+.info-box-icon {
+    font-size: 2.5rem;
+    width: 70px;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.15);
+    border-radius: 50%;
+    margin-right: 20px;
+    color: white !important;
+    z-index: 1;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.info-box-icon i {
+    color: white !important;
+    text-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+.info-box-content {
+    flex: 1;
+    z-index: 1;
+}
+
+.info-box-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.9) !important;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 5px;
+}
+
+.info-box-number {
+    font-size: 32px;
+    font-weight: 700;
+    color: white !important;
+    line-height: 1.2;
+    text-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    margin-bottom: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .info-box {
+        min-height: 90px;
+        padding: 10px 15px;
+    }
+    
+    .info-box-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.8rem;
+        margin-right: 12px;
+    }
+    
+    .info-box-number {
+        font-size: 24px;
+    }
+    
+    .info-box-text {
+        font-size: 12px;
+    }
+}
+</style>
+@endpush
 @endsection

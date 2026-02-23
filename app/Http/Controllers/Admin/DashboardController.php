@@ -61,41 +61,40 @@ class DashboardController extends Controller
                 'totalHostels',
                 'totalStudents'
             ));
-        } 
-        elseif ($user->hasRole('student')) {
+        } elseif ($user->hasRole('student')) {
             // Student dashboard data with circular statistics
 
             // Base query for published circulars accessible to this student
             $baseQuery = Circular::published()
-                            ->whereHas('recipients', function($q) use ($user) {
-                                $q->where('user_id', $user->id)
-                                  ->whereNull('deleted_at');
-                            });
+                ->whereHas('recipients', function ($q) use ($user) {
+                    $q->where('user_id', $user->id)
+                        ->whereNull('deleted_at');
+                });
 
             // Circular statistics
             $totalCount = $baseQuery->count();
             $readCount = (clone $baseQuery)
-                            ->whereHas('recipients', function($q) use ($user) {
-                                $q->where('user_id', $user->id)
-                                  ->where('is_read', true);
-                            })->count();
+                ->whereHas('recipients', function ($q) use ($user) {
+                    $q->where('user_id', $user->id)
+                        ->where('is_read', true);
+                })->count();
             $unreadCircularCount = (clone $baseQuery)
-                            ->whereHas('recipients', function($q) use ($user) {
-                                $q->where('user_id', $user->id)
-                                  ->where('is_read', false);
-                            })->count();
+                ->whereHas('recipients', function ($q) use ($user) {
+                    $q->where('user_id', $user->id)
+                        ->where('is_read', false);
+                })->count();
             $urgentCount = (clone $baseQuery)
-                            ->where('priority', 'urgent')
-                            ->whereHas('recipients', function($q) use ($user) {
-                                $q->where('user_id', $user->id);
-                            })->count();
+                ->where('priority', 'urgent')
+                ->whereHas('recipients', function ($q) use ($user) {
+                    $q->where('user_id', $user->id);
+                })->count();
 
             // Recent circulars (last 5)
             $recentCirculars = $baseQuery
-                                ->with(['organization', 'hostel'])
-                                ->orderBy('published_at', 'desc')
-                                ->limit(5)
-                                ->get();
+                ->with(['organization', 'hostel'])
+                ->orderBy('published_at', 'desc')
+                ->limit(5)
+                ->get();
 
             // Student specific data (room, payment etc.)
             $student = $user->student; // assuming student relation exists
@@ -114,14 +113,13 @@ class DashboardController extends Controller
                 'room',
                 'latestPayment'
             ));
-        }
-        else {
+        } else {
             // Fallback for other roles (owner, hostel_manager, etc.)
             // You can add more conditions as needed
             return view('dashboard', compact('notifications', 'unreadCount'));
         }
     }
-}
+
 
     /**
      * ✅ CRITICAL FIX: Ensure admin users have proper session setup
