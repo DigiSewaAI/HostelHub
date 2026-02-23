@@ -18,6 +18,17 @@
                     @method('PUT')
                     
                     <div class="card-body">
+                        {{-- सबै validation errors को लागि सामान्य सारांश --}}
+                        @if($errors->any())
+                            <div class="alert alert-danger">
+                                <ul class="mb-0">
+                                    @foreach($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+
                         <div class="row">
                             <!-- Left Column - Basic Info -->
                             <div class="col-md-8">
@@ -108,18 +119,24 @@
                                 <div class="form-group">
                                     <label for="scheduled_at">तोकिएको प्रकाशन मिति</label>
                                     <input type="datetime-local" name="scheduled_at" id="scheduled_at" 
-                                           class="form-control" 
+                                           class="form-control @error('scheduled_at') is-invalid @enderror" 
                                            value="{{ old('scheduled_at', $circular->scheduled_at ? $circular->scheduled_at->format('Y-m-d\TH:i') : '') }}">
                                     <small class="text-muted">खाली छोड्नुहोस् यदि तुरुन्त प्रकाशन गर्न चाहनुहुन्छ भने</small>
+                                    @error('scheduled_at')
+                                        <span class="text-danger">{{ $message }}</span>
+                                    @enderror
                                 </div>
 
                                 <!-- Expiry -->
                                 <div class="form-group">
                                     <label for="expires_at">समाप्ति मिति</label>
                                     <input type="datetime-local" name="expires_at" id="expires_at" 
-                                           class="form-control" 
+                                           class="form-control @error('expires_at') is-invalid @enderror" 
                                            value="{{ old('expires_at', $circular->expires_at ? $circular->expires_at->format('Y-m-d\TH:i') : '') }}">
                                     <small class="text-muted">सूचना स्वतः समाप्त हुने मिति</small>
+                                    @error('expires_at')
+                                        <span class="text-danger">{{ $message }}</span>
+                                    @enderror
                                 </div>
                             </div>
                         </div>
@@ -152,6 +169,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const targetAudience = document.getElementById('target_audience');
     const specificLabel = document.getElementById('specific_audience_label');
 
+    // PHP variables to JavaScript
+    const hostels = @json($hostels);
+    const students = @json($students);
+    const oldTarget = @json(old('target_audience', $circular->target_audience ?? []));
+
     function loadSpecificAudienceOptions() {
         const selectedAudience = audienceType.value;
         specificSection.style.display = 'none';
@@ -161,17 +183,32 @@ document.addEventListener('DOMContentLoaded', function() {
             specificSection.style.display = 'block';
             specificLabel.textContent = 'होस्टेलहरू चयन गर्नुहोस्';
             
-            @foreach($hostels as $hostel)
-                targetAudience.innerHTML += `<option value="{{ $hostel->id }}" {{ in_array($hostel->id, old('target_audience', $circular->target_audience ?? [])) ? 'selected' : '' }}>{{ $hostel->name }}</option>`;
-            @endforeach
+            hostels.forEach(hostel => {
+                const option = document.createElement('option');
+                option.value = hostel.id;
+                option.textContent = hostel.name;
+                if (oldTarget.includes(String(hostel.id))) {
+                    option.selected = true;
+                }
+                targetAudience.appendChild(option);
+            });
             
         } else if (selectedAudience === 'specific_students') {
             specificSection.style.display = 'block';
             specificLabel.textContent = 'विद्यार्थीहरू चयन गर्नुहोस्';
             
-            @foreach($students as $student)
-                targetAudience.innerHTML += `<option value="{{ $student->user_id }}" {{ in_array($student->user_id, old('target_audience', $circular->target_audience ?? [])) ? 'selected' : '' }}>{{ $student->user->name }} ({{ $student->user->email }})</option>`;
-            @endforeach
+            students.forEach(student => {
+                // सुरक्षित रूपमा user जाँच गर्ने
+                if (student.user) {
+                    const option = document.createElement('option');
+                    option.value = student.user_id;
+                    option.textContent = student.user.name + ' (' + (student.user.email || 'N/A') + ')';
+                    if (oldTarget.includes(String(student.user_id))) {
+                        option.selected = true;
+                    }
+                    targetAudience.appendChild(option);
+                }
+            });
         }
     }
 
