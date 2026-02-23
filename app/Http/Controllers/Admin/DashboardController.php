@@ -45,23 +45,83 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
 
-        // पछिल्लो १० वटा notifications (पढेको र नपढेको दुवै)
+        // Common data for all roles: notifications
         $notifications = $user->notifications()->latest()->take(10)->get();
-
-        // नपढेको notifications को संख्या
         $unreadCount = $user->unreadNotifications->count();
 
-        // अन्य ड्यासबोर्ड डाटा (यदि छ भने)
-        $totalHostels = \App\Models\Hostel::count(); // उदाहरण
-        $totalStudents = \App\Models\Student::count(); // उदाहरण
+        // Role-based data
+        if ($user->hasRole('admin')) {
+            // Admin dashboard data
+            $totalHostels = Hostel::count();
+            $totalStudents = Student::count();
 
-        return view('admin.dashboard', compact(
-            'notifications',
-            'unreadCount',
-            'totalHostels',
-            'totalStudents'
-        ));
+            return view('admin.dashboard', compact(
+                'notifications',
+                'unreadCount',
+                'totalHostels',
+                'totalStudents'
+            ));
+        } 
+        elseif ($user->hasRole('student')) {
+            // Student dashboard data with circular statistics
+
+            // Base query for published circulars accessible to this student
+            $baseQuery = Circular::published()
+                            ->whereHas('recipients', function($q) use ($user) {
+                                $q->where('user_id', $user->id)
+                                  ->whereNull('deleted_at');
+                            });
+
+            // Circular statistics
+            $totalCount = $baseQuery->count();
+            $readCount = (clone $baseQuery)
+                            ->whereHas('recipients', function($q) use ($user) {
+                                $q->where('user_id', $user->id)
+                                  ->where('is_read', true);
+                            })->count();
+            $unreadCircularCount = (clone $baseQuery)
+                            ->whereHas('recipients', function($q) use ($user) {
+                                $q->where('user_id', $user->id)
+                                  ->where('is_read', false);
+                            })->count();
+            $urgentCount = (clone $baseQuery)
+                            ->where('priority', 'urgent')
+                            ->whereHas('recipients', function($q) use ($user) {
+                                $q->where('user_id', $user->id);
+                            })->count();
+
+            // Recent circulars (last 5)
+            $recentCirculars = $baseQuery
+                                ->with(['organization', 'hostel'])
+                                ->orderBy('published_at', 'desc')
+                                ->limit(5)
+                                ->get();
+
+            // Student specific data (room, payment etc.)
+            $student = $user->student; // assuming student relation exists
+            $room = $student->room ?? null;
+            $latestPayment = $student ? $student->payments()->latest()->first() : null;
+
+            return view('student.dashboard', compact(
+                'notifications',
+                'unreadCount',
+                'totalCount',
+                'readCount',
+                'unreadCircularCount',
+                'urgentCount',
+                'recentCirculars',
+                'student',
+                'room',
+                'latestPayment'
+            ));
+        }
+        else {
+            // Fallback for other roles (owner, hostel_manager, etc.)
+            // You can add more conditions as needed
+            return view('dashboard', compact('notifications', 'unreadCount'));
+        }
     }
+}
 
     /**
      * ✅ CRITICAL FIX: Ensure admin users have proper session setup

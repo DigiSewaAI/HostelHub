@@ -183,8 +183,8 @@
     </div>
     @endif
 
-    <!-- Quick Stats -->
-<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <!-- Quick Stats - पहिलो पङ्क्ति: कोठा, खाना, भुक्तानी -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
     <!-- Room Number -->
     <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-200">
         <div class="flex items-center justify-between">
@@ -201,29 +201,29 @@
         <p class="text-gray-500 text-xs mt-2">तपाईंको कोठा नम्बर</p>
     </div>
 
-    <!-- Today's Meal (UPDATED) -->
-<div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-200">
-    <div class="flex items-center justify-between">
-        <div>
-            <p class="text-gray-600 text-sm font-medium">आजको खाना</p>
-            <p class="text-2xl font-bold text-green-600 mt-1">
-                @if($hostel)
-                    @if($groupedMeals->isNotEmpty())
-                        उपलब्ध
+    <!-- Today's Meal -->
+    <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-200">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-600 text-sm font-medium">आजको खाना</p>
+                <p class="text-2xl font-bold text-green-600 mt-1">
+                    @if($hostel)
+                        @if($groupedMeals->isNotEmpty())
+                            उपलब्ध
+                        @else
+                            अपडेट छैन
+                        @endif
                     @else
-                        अपडेट छैन
+                        N/A
                     @endif
-                @else
-                    N/A
-                @endif
-            </p>
+                </p>
+            </div>
+            <div class="bg-green-100 p-3 rounded-xl">
+                <i class="fas fa-utensils text-green-600 text-xl"></i>
+            </div>
         </div>
-        <div class="bg-green-100 p-3 rounded-xl">
-            <i class="fas fa-utensils text-green-600 text-xl"></i>
-        </div>
+        <p class="text-gray-500 text-xs mt-2">खानाको अवस्था</p>
     </div>
-    <p class="text-gray-500 text-xs mt-2">खानाको अवस्था</p>
-</div>
 
     <!-- Payment Status -->
     <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-200">
@@ -252,19 +252,60 @@
         </div>
         <p class="text-gray-500 text-xs mt-2">भुक्तानी स्थिति</p>
     </div>
+</div>
 
-    <!-- Notifications -->
+<!-- Quick Stats - दोस्रो पङ्क्ति: सूचना तथ्यांक -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <!-- कुल सूचनाहरू -->
     <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-200">
         <div class="flex items-center justify-between">
             <div>
-                <p class="text-gray-600 text-sm font-medium">सूचनाहरू</p>
-                <p class="text-2xl font-bold text-indigo-600 mt-1">{{ $unreadCirculars ?? 0 }}</p>
+                <p class="text-gray-600 text-sm font-medium">कुल सूचनाहरू</p>
+                <p class="text-2xl font-bold text-blue-600 mt-1">{{ $totalCount ?? 0 }}</p>
             </div>
-            <div class="bg-indigo-100 p-3 rounded-xl">
-                <i class="fas fa-bullhorn text-indigo-600 text-xl"></i>
+            <div class="bg-blue-100 p-3 rounded-xl">
+                <i class="fas fa-envelope text-blue-600 text-xl"></i>
             </div>
         </div>
-        <p class="text-gray-500 text-xs mt-2">नयाँ सूचनाहरू</p>
+    </div>
+
+    <!-- पढिसकेका -->
+    <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-200">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-600 text-sm font-medium">पढिसकेका</p>
+                <p class="text-2xl font-bold text-green-600 mt-1">{{ $readCount ?? 0 }}</p>
+            </div>
+            <div class="bg-green-100 p-3 rounded-xl">
+                <i class="fas fa-check-circle text-green-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- नपढेका -->
+    <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-200">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-600 text-sm font-medium">नपढेका</p>
+                <p class="text-2xl font-bold text-amber-600 mt-1">{{ $unreadCount ?? 0 }}</p>
+            </div>
+            <div class="bg-amber-100 p-3 rounded-xl">
+                <i class="fas fa-envelope-open text-amber-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- जरुरी सूचनाहरू -->
+    <div class="bg-white rounded-2xl shadow-sm p-4 border border-gray-200">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-600 text-sm font-medium">जरुरी</p>
+                <p class="text-2xl font-bold text-red-600 mt-1">{{ $urgentCount ?? 0 }}</p>
+            </div>
+            <div class="bg-red-100 p-3 rounded-xl">
+                <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+            </div>
+        </div>
     </div>
 </div>
 

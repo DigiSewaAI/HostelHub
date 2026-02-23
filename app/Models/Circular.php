@@ -87,12 +87,16 @@ class Circular extends Model
     }
 
     // Published scope - ✅ FIXED: Better published status handling
-    public function scopePublished(Builder $query)
+    public function scopePublished($query)
     {
         return $query->where('status', 'published')
             ->where(function ($q) {
-                $q->whereNull('published_at')
-                    ->orWhere('published_at', '<=', now());
+                $q->whereNull('scheduled_at')
+                    ->orWhere('scheduled_at', '<=', now());
+            })
+            ->where(function ($q) {
+                $q->whereNull('expires_at')
+                    ->orWhere('expires_at', '>', now());
             });
     }
 

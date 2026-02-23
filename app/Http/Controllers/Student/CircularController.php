@@ -45,69 +45,95 @@ class CircularController extends Controller
      */
     public function index(Request $request)
     {
-        $user = Auth::user();
+        $user = auth()->user();
 
-        $this->authorizeCircularAccess();
-
-        // Get circular IDs where user is recipient
-        $circularIds = CircularRecipient::where('user_id', $user->id)
-            ->pluck('circular_id');
-
-        // Build query with eager loading to avoid N+1
-        $query = Circular::whereIn('id', $circularIds)
-            ->published()
-            ->active()
-            ->with(['creator', 'organization'])
-
-            // ✅ FIXED: Eager load recipients with filter for current user only
-            ->with(['recipients' => function ($q) use ($user) {
+        // Base query: published circulars जुन यो user को recipients मा छ
+        $query = Circular::published()
+            ->whereHas('recipients', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+                // ✅ deleted_at हटाइयो
+            })
+            ->with(['organization', 'hostel', 'recipients' => function ($q) use ($user) {
                 $q->where('user_id', $user->id);
             }]);
 
-        // Filter by read status
-        if ($request->has('read_status')) {
-            $readStatus = $request->read_status === 'read';
-            $readCircularIds = CircularRecipient::where('user_id', $user->id)
-                ->where('is_read', $readStatus)
-                ->pluck('circular_id');
-            $query->whereIn('id', $readCircularIds);
-        }
-
-        // Search
-        if ($request->has('search')) {
-            $searchTerm = $request->search;
-            $query->where(function ($q) use ($searchTerm) {
-                $q->where('title', 'like', '%' . $searchTerm . '%')
-                    ->orWhere('content', 'like', '%' . $searchTerm . '%');
+        // Filters
+        if ($request->filled('read_status')) {
+            $isRead = $request->read_status === 'read';
+            $query->whereHas('recipients', function ($q) use ($user, $isRead) {
+                $q->where('user_id', $user->id)
+                    ->where('is_read', $isRead);
             });
         }
 
-        $circulars = $query->latest()->paginate(15);
+        if ($request->filled('priority')) {
+            $query->where('priority', $request->priority);
+        }
 
-        return view('student.circulars.index', compact('circulars'));
+        if ($request->filled('search')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('title', 'like', '%' . $request->search . '%')
+                    ->orWhere('content', 'like', '%' . $request->search . '%');
+            });
+        }
+
+        // Pagination
+        $circulars = $query->orderBy('published_at', 'desc')
+            ->paginate(15);
+
+        // ✅ Statistics सही गर्ने - same query conditions प्रयोग गर्ने
+        $baseStatsQuery = Circular::published()
+            ->whereHas('recipients', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+                // ✅ deleted_at हटाइयो
+            });
+
+        $stats = [
+            'total' => $baseStatsQuery->count(),
+            'read' => (clone $baseStatsQuery)
+                ->whereHas('recipients', function ($q) use ($user) {
+                    $q->where('user_id', $user->id)
+                        ->where('is_read', true);
+                })->count(),
+            'unread' => (clone $baseStatsQuery)
+                ->whereHas('recipients', function ($q) use ($user) {
+                    $q->where('user_id', $user->id)
+                        ->where('is_read', false);
+                })->count(),
+            'urgent_count' => (clone $baseStatsQuery)
+                ->where('priority', 'urgent')
+                ->whereHas('recipients', function ($q) use ($user) {
+                    $q->where('user_id', $user->id);
+                })->count(),
+        ];
+
+        return view('student.circulars.index', compact('circulars', 'stats'));
     }
 
     /**
-     * Display the specified circular.
+     * Display the specified circular and mark as read.
      */
     public function show(Circular $circular)
     {
-        $user = Auth::user();
+        $user = auth()->user();
 
-        $this->authorizeCircularAccess($circular);
-
-        // Fetch recipient record (already authorized)
-        $recipient = CircularRecipient::where('circular_id', $circular->id)
+        // Check if user has access to this circular
+        $recipient = $circular->recipients()
             ->where('user_id', $user->id)
-            ->firstOrFail();
+            // ✅ deleted_at हटाइयो
+            ->first();
 
-        // Mark as read if not already
-        if (!$recipient->is_read) {
-            $recipient->markAsRead();
+        if (!$recipient) {
+            abort(403, 'तपाईंसँग यो सूचना हेर्ने अनुमति छैन।');
         }
 
-        // Load relationships for view
-        $circular->load(['creator', 'organization']);
+        // Mark as read if not already read
+        if (!$recipient->is_read) {
+            $recipient->update([
+                'is_read' => true,
+                'read_at' => now(),
+            ]);
+        }
 
         return view('student.circulars.show', compact('circular', 'recipient'));
     }
