@@ -15,7 +15,9 @@ use Carbon\Carbon;
 class CircularService
 {
     /**
-     * Create recipients for a circular
+     * Create recipients for a circular using AudienceResolverService
+     * 
+     * @deprecated Use GenerateCircularRecipientsJob instead. This method is kept for backward compatibility.
      */
     public function createRecipients(Circular $circular, $audienceType, $targetData = null, $organizationId = null)
     {
@@ -46,15 +48,11 @@ class CircularService
 
         switch ($audienceType) {
             case 'all_students':
-                $users = User::whereHas('roles', function ($q) {
-                    $q->where('name', 'student');
-                })->get();
+                $users = User::role('student')->get();
                 break;
 
             case 'all_managers':
-                $users = User::whereHas('roles', function ($q) {
-                    $q->where('name', 'hostel_manager');
-                })->get();
+                $users = User::role('hostel_manager')->get();
                 break;
 
             case 'all_users':
@@ -65,9 +63,10 @@ class CircularService
 
             case 'organization_students':
                 if ($orgId) {
-                    $users = User::whereHas('student', function ($q) use ($orgId) {
-                        $q->where('organization_id', $orgId);
-                    })->get();
+                    $users = User::role('student')
+                        ->whereHas('student', function ($q) use ($orgId) {
+                            $q->where('organization_id', $orgId);
+                        })->get();
                 } else {
                     Log::warning('Organization ID missing for organization_students audience');
                 }
@@ -75,10 +74,11 @@ class CircularService
 
             case 'organization_managers':
                 if ($orgId) {
-                    $users = User::whereHas('organizations', function ($q) use ($orgId) {
-                        $q->where('organization_id', $orgId)
-                            ->where('role', 'owner');
-                    })->get();
+                    // ✅ FIXED: Correct query for organization managers
+                    $users = User::role('hostel_manager')
+                        ->whereHas('hostels', function ($q) use ($orgId) {
+                            $q->where('organization_id', $orgId);
+                        })->get();
                 } else {
                     Log::warning('Organization ID missing for organization_managers audience');
                 }
@@ -89,9 +89,8 @@ class CircularService
                     $users = User::where(function ($q) use ($orgId) {
                         $q->whereHas('student', function ($q2) use ($orgId) {
                             $q2->where('organization_id', $orgId);
-                        })->orWhereHas('organizations', function ($q2) use ($orgId) {
-                            $q2->where('organization_id', $orgId)
-                                ->where('role', 'owner');
+                        })->orWhereHas('hostels', function ($q2) use ($orgId) {
+                            $q2->where('organization_id', $orgId);
                         });
                     })->get();
                 } else {
@@ -101,9 +100,10 @@ class CircularService
 
             case 'specific_hostel':
                 if (!empty($targetData)) {
-                    $users = User::whereHas('student', function ($q) use ($targetData) {
-                        $q->whereIn('hostel_id', $targetData);
-                    })->get();
+                    $users = User::role('student')
+                        ->whereHas('student', function ($q) use ($targetData) {
+                            $q->whereIn('hostel_id', $targetData);
+                        })->get();
                     Log::info('Specific hostel users found', ['count' => $users->count()]);
                 } else {
                     Log::warning('Target data empty for specific_hostel audience');
@@ -124,7 +124,6 @@ class CircularService
                 break;
         }
 
-        // ✅ FIX: Check if we have users to avoid empty inserts
         if ($users->isEmpty()) {
             Log::warning('No users found for circular recipients', [
                 'circular_id' => $circular->id,
@@ -132,7 +131,7 @@ class CircularService
                 'target_data' => $targetData,
                 'organization_id' => $orgId
             ]);
-            return 0; // Return 0 recipients created
+            return 0;
         }
 
         foreach ($users as $user) {
@@ -150,19 +149,23 @@ class CircularService
 
         if (!empty($recipients)) {
             try {
-                CircularRecipient::insert($recipients);
+                // Use chunking for large inserts
+                foreach (array_chunk($recipients, 500) as $chunk) {
+                    CircularRecipient::insert($chunk);
+                }
+
                 Log::info('Recipients created successfully', [
                     'circular_id' => $circular->id,
                     'recipient_count' => count($recipients)
                 ]);
-                return count($recipients); // Return number of recipients created
+                return count($recipients);
             } catch (\Exception $e) {
                 Log::error('Failed to create recipients: ' . $e->getMessage(), [
                     'circular_id' => $circular->id,
                     'recipient_count' => count($recipients),
                     'error' => $e->getMessage()
                 ]);
-                throw $e; // Re-throw to trigger transaction rollback
+                throw $e;
             }
         }
 
@@ -288,80 +291,7 @@ class CircularService
     }
 
     /**
-     * Authorize view access for circular
-     */
-    public function authorizeView(Circular $circular, User $user)
-    {
-        try {
-            if ($user->hasRole('admin')) {
-                return true;
-            }
-
-            if ($user->hasRole('hostel_manager') || $user->hasRole('owner')) {
-                $organization = $user->organizations()->first();
-                if ($organization && $circular->organization_id === $organization->id) {
-                    return true;
-                }
-            }
-
-            if ($user->hasRole('student')) {
-                $hasAccess = CircularRecipient::where('circular_id', $circular->id)
-                    ->where('user_id', $user->id)
-                    ->exists();
-                if ($hasAccess) {
-                    return true;
-                }
-            }
-
-            Log::warning('Unauthorized view access attempt', [
-                'user_id' => $user->id,
-                'circular_id' => $circular->id,
-                'user_roles' => $user->getRoleNames()
-            ]);
-
-            abort(403, 'तपाईंसँग यो सूचना हेर्ने अनुमति छैन');
-        } catch (\Exception $e) {
-            Log::error('Error in authorizeView: ' . $e->getMessage());
-            abort(403, 'तपाईंसँग यो सूचना हेर्ने अनुमति छैन');
-        }
-    }
-
-    /**
-     * Authorize edit access for circular
-     */
-    public function authorizeEdit(Circular $circular, User $user)
-    {
-        try {
-            if ($user->hasRole('admin')) {
-                return true;
-            }
-
-            if ($user->hasRole('hostel_manager') || $user->hasRole('owner')) {
-                $organization = $user->organizations()->first();
-                if (
-                    $organization &&
-                    $circular->organization_id === $organization->id &&
-                    $circular->created_by === $user->id
-                ) {
-                    return true;
-                }
-            }
-
-            Log::warning('Unauthorized edit access attempt', [
-                'user_id' => $user->id,
-                'circular_id' => $circular->id,
-                'user_roles' => $user->getRoleNames()
-            ]);
-
-            abort(403, 'तपाईंसँग यो सूचना सम्पादन गर्ने अनुमति छैन');
-        } catch (\Exception $e) {
-            Log::error('Error in authorizeEdit: ' . $e->getMessage());
-            abort(403, 'तपाईंसँग यो सूचना सम्पादन गर्ने अनुमति छैन');
-        }
-    }
-
-    /**
-     * ✅ NEW: Mark circular as read for a user
+     * Mark circular as read for a user
      */
     public function markAsRead(Circular $circular, User $user)
     {
@@ -386,7 +316,7 @@ class CircularService
     }
 
     /**
-     * ✅ NEW: Get unread circulars count for user
+     * Get unread circulars count for user
      */
     public function getUnreadCount(User $user)
     {
@@ -398,5 +328,53 @@ class CircularService
             Log::error('Error getting unread count: ' . $e->getMessage());
             return 0;
         }
+    }
+
+    /**
+     * Check if user has access to circular (replacement for authorizeView)
+     * This is a helper method, actual authorization should be done via Policy
+     */
+    public function checkAccess(Circular $circular, User $user): bool
+    {
+        if ($user->hasRole('admin')) {
+            return true;
+        }
+
+        if ($user->hasRole('hostel_manager') || $user->hasRole('owner')) {
+            $organization = $user->organizations()->first();
+            return $organization && $circular->organization_id === $organization->id;
+        }
+
+        if ($user->hasRole('student')) {
+            return CircularRecipient::where('circular_id', $circular->id)
+                ->where('user_id', $user->id)
+                ->exists();
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if user can edit circular (replacement for authorizeEdit)
+     * This is a helper method, actual authorization should be done via Policy
+     */
+    public function checkEditable(Circular $circular, User $user): bool
+    {
+        if ($circular->status === 'archived') {
+            return false;
+        }
+
+        if ($user->hasRole('admin')) {
+            return true;
+        }
+
+        if ($user->hasRole('hostel_manager') || $user->hasRole('owner')) {
+            $organization = $user->organizations()->first();
+            return $organization &&
+                $circular->organization_id === $organization->id &&
+                $circular->created_by === $user->id;
+        }
+
+        return false;
     }
 }

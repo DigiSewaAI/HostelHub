@@ -3,16 +3,21 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class StoreCircularRequest extends FormRequest
 {
-    public function authorize()
+    /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
     {
         return true;
     }
 
-    public function rules()
+    /**
+     * Get the validation rules that apply to the request.
+     */
+    public function rules(): array
     {
         $user = auth()->user();
         $isAdmin = $user->hasRole('admin');
@@ -40,29 +45,72 @@ class StoreCircularRequest extends FormRequest
         return $rules;
     }
 
+    /**
+     * Configure the validator instance.
+     */
     public function withValidator($validator)
     {
         $validator->after(function ($validator) {
-            if ($this->audience_type === 'specific_students' && empty($this->target_audience)) {
-                $validator->errors()->add('target_audience', 'कृपया कम्तीमा एक विद्यार्थी चयन गर्नुहोस्');
+            $user = auth()->user();
+            $audienceType = $this->audience_type;
+            $targetAudience = $this->target_audience ?? [];
+
+            // Check if target audience is empty for specific types
+            if (in_array($audienceType, ['specific_hostel', 'specific_students']) && empty($targetAudience)) {
+                $validator->errors()->add('target_audience', 'कृपया कम्तीमा एक प्रयोगकर्ता चयन गर्नुहोस्।');
             }
 
-            if ($this->audience_type === 'specific_hostel' && empty($this->target_audience)) {
-                $validator->errors()->add('target_audience', 'कृपया कम्तीमा एक होस्टल चयन गर्नुहोस्');
+            // Additional validation for non-admin users (owner/manager)
+            if (!$user->hasRole('admin')) {
+                $orgId = $user->organizations()->first()?->id;
+
+                if (!$orgId) {
+                    $validator->errors()->add('organization', 'तपाईं कुनै संगठनसँग सम्बद्ध हुनुहुन्न।');
+                    return;
+                }
+
+                if ($audienceType === 'specific_hostel' && !empty($targetAudience)) {
+                    $invalid = \App\Models\Hostel::whereIn('id', $targetAudience)
+                        ->where('organization_id', '!=', $orgId)
+                        ->exists();
+                    if ($invalid) {
+                        $validator->errors()->add('target_audience', 'केही होस्टल तपाईंको संगठनसँग सम्बन्धित छैनन्।');
+                    }
+                }
+
+                if ($audienceType === 'specific_students' && !empty($targetAudience)) {
+                    $invalid = \App\Models\Student::whereIn('user_id', $targetAudience)
+                        ->where('organization_id', '!=', $orgId)
+                        ->exists();
+                    if ($invalid) {
+                        $validator->errors()->add('target_audience', 'केही विद्यार्थी तपाईंको संगठनसँग सम्बन्धित छैनन्।');
+                    }
+                }
             }
         });
     }
 
-    public function messages()
+    /**
+     * Get custom messages for validator errors.
+     */
+    public function messages(): array
     {
         return [
-            'title.required' => 'शीर्षक आवश्यक छ',
-            'title.max' => 'शीर्षक २५५ अक्षरभन्दा लामो हुनु हुँदैन',
-            'content.required' => 'सूचनाको विवरण आवश्यक छ',
-            'audience_type.required' => 'लक्षित प्रयोगकर्ता चयन गर्नुहोस्',
-            'target_audience.required' => 'कृपया लक्षित प्रयोगकर्ता चयन गर्नुहोस्',
-            'scheduled_at.after_or_equal' => 'तोकिएको मिति हालको मितिभन्दा पछि हुनुपर्छ',
-            'expires_at.after' => 'समाप्ति मिति प्रकाशन मितिभन्दा पछि हुनुपर्छ',
+            'title.required' => 'शीर्षक आवश्यक छ।',
+            'title.max' => 'शीर्षक २५५ अक्षरभन्दा लामो हुनु हुँदैन।',
+            'content.required' => 'सूचनाको विवरण आवश्यक छ।',
+            'priority.required' => 'प्राथमिकता चयन गर्नुहोस्।',
+            'priority.in' => 'प्राथमिकता मान्य छैन।',
+            'audience_type.required' => 'लक्षित प्रयोगकर्ता चयन गर्नुहोस्।',
+            'audience_type.in' => 'लक्षित प्रयोगकर्ता प्रकार मान्य छैन।',
+            'target_audience.required' => 'कृपया लक्षित प्रयोगकर्ता चयन गर्नुहोस्।',
+            'target_audience.array' => 'लक्षित प्रयोगकर्ता एरे हुनुपर्छ।',
+            'target_audience.*.integer' => 'प्रत्येक लक्षित प्रयोगकर्ता ID पूर्णांक हुनुपर्छ।',
+            'scheduled_at.date' => 'तालिकाबद्ध मिति मान्य मिति हुनुपर्छ।',
+            'scheduled_at.after_or_equal' => 'तालिकाबद्ध मिति हालको मितिभन्दा पछि हुनुपर्छ।',
+            'expires_at.date' => 'समाप्ति मिति मान्य मिति हुनुपर्छ।',
+            'expires_at.after' => 'समाप्ति मिति तालिकाबद्ध मितिभन्दा पछि हुनुपर्छ।',
+            'organization_id.exists' => 'चयन गरिएको संगठन मान्य छैन।',
         ];
     }
 }

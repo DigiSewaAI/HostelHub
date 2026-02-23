@@ -16,11 +16,12 @@ class Kernel extends ConsoleKernel
         // Existing commands
         \App\Console\Commands\SyncRoomsOccupancy::class,
         \App\Console\Commands\ClearGalleryCache::class,
-
-        // ✅ NEW: Add RefreshGalleryCache command
         \App\Console\Commands\RefreshGalleryCache::class,
-
         Commands\DeployDatabase::class,
+
+        // ✅ NEW: Circular commands
+        \App\Console\Commands\PublishScheduledCirculars::class,
+        \App\Console\Commands\ArchiveExpiredCirculars::class,
     ];
 
     /**
@@ -28,7 +29,17 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // ... यहाँ तपाईंका अरु existing schedule commands हुन सक्छन् ...
+        // ✅ NEW: Publish scheduled circulars every minute
+        $schedule->command('circulars:publish')
+            ->everyMinute()
+            ->withoutOverlapping()
+            ->runInBackground();
+
+        // ✅ NEW: Archive expired circulars every minute
+        $schedule->command('circulars:archive-expired')
+            ->everyMinute()
+            ->withoutOverlapping()
+            ->runInBackground();
 
         // ✅ NEW: Dynamic gallery cache management
         // Refresh gallery cache every hour at minute 0

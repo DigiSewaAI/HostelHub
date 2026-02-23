@@ -9,7 +9,9 @@ use App\Models\Hostel;
 use App\Models\Student;
 use App\Models\CircularRecipient;
 use App\Http\Requests\StoreCircularRequest;
+use App\Http\Requests\UpdateCircularRequest; // ✅ Import UpdateCircularRequest
 use App\Services\CircularService;
+use App\Jobs\GenerateCircularRecipientsJob; // ✅ Import Job
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -22,18 +24,15 @@ class CircularController extends Controller
     public function __construct(CircularService $circularService)
     {
         $this->circularService = $circularService;
-        // ✅ FIXED: Apply authorization middleware
         $this->middleware('role:admin');
     }
 
     public function index(Request $request)
     {
-        // ✅ FIXED: Enhanced authorization check
         if (!Auth::user()->hasRole('admin')) {
             abort(403, 'तपाईंसँग सूचनाहरू हेर्ने अनुमति छैन');
         }
 
-        // ✅ FIXED: Input validation for filters
         $validated = $request->validate([
             'organization_id' => 'sometimes|integer|exists:organizations,id',
             'status' => 'sometimes|in:draft,published,archived',
@@ -43,22 +42,18 @@ class CircularController extends Controller
 
         $query = Circular::with(['organization', 'creator']);
 
-        // ✅ FIXED: Use validated data for filtering
         if (isset($validated['organization_id'])) {
             $query->where('organization_id', $validated['organization_id']);
         }
 
-        // Filter by status
         if (isset($validated['status'])) {
             $query->where('status', $validated['status']);
         }
 
-        // Filter by priority
         if (isset($validated['priority'])) {
             $query->where('priority', $validated['priority']);
         }
 
-        // ✅ FIXED: SQL Injection prevention in search
         if (isset($validated['search'])) {
             $safeSearch = '%' . addcslashes($validated['search'], '%_') . '%';
             $query->where(function ($q) use ($safeSearch) {
@@ -75,7 +70,6 @@ class CircularController extends Controller
 
     public function create()
     {
-        // ✅ FIXED: Authorization check
         if (!Auth::user()->hasRole('admin')) {
             abort(403, 'तपाईंसँग सूचना सिर्जना गर्ने अनुमति छैन');
         }
@@ -83,10 +77,9 @@ class CircularController extends Controller
         $organizations = Organization::all();
         $hostels = Hostel::all();
 
-        // ✅ FIXED: Limit students to manageable numbers with pagination
         $students = Student::with('user')
             ->orderBy('created_at', 'desc')
-            ->limit(1000) // Prevent memory issues
+            ->limit(1000)
             ->get();
 
         return view('admin.circulars.create', compact('organizations', 'hostels', 'students'));
@@ -94,7 +87,6 @@ class CircularController extends Controller
 
     public function store(StoreCircularRequest $request)
     {
-        // ✅ FIXED: Authorization check
         if (!Auth::user()->hasRole('admin')) {
             abort(403, 'तपाईंसँग सूचना सिर्जना गर्ने अनुमति छैन');
         }
@@ -106,27 +98,19 @@ class CircularController extends Controller
 
                 $data['created_by'] = $user->id;
 
-                // ✅ FIXED: Ensure organization_id is set and user has access
                 if (!isset($data['organization_id'])) {
                     throw new \Exception('Organization ID is required');
                 }
 
-                // Create circular
                 $circular = Circular::create($data);
 
-                // Create recipients
-                $this->circularService->createRecipients(
-                    $circular,
-                    $data['audience_type'],
-                    $data['target_audience'] ?? null
-                );
+                // ✅ Dispatch job instead of direct service call
+                GenerateCircularRecipientsJob::dispatch($circular->id);
 
-                // Auto-publish if not scheduled
                 if (!$circular->scheduled_at) {
                     $circular->markAsPublished();
                 }
 
-                // ✅ FIXED: Log circular creation
                 Log::info('Circular created successfully', [
                     'circular_id' => $circular->id,
                     'user_id' => $user->id,
@@ -140,10 +124,9 @@ class CircularController extends Controller
 
             return redirect()->route('admin.circulars.index')->with('success', $message);
         } catch (\Exception $e) {
-            // ✅ FIXED: Proper error handling and logging
             Log::error('Circular creation failed: ' . $e->getMessage(), [
                 'user_id' => Auth::id(),
-                'request_data' => $request->except(['content']) // Don't log full content
+                'request_data' => $request->except(['content'])
             ]);
 
             return back()->withInput()
@@ -153,32 +136,23 @@ class CircularController extends Controller
 
     public function show(Circular $circular)
     {
-        // ✅ FIXED: Enhanced authorization with proper error handling
-        try {
-            $this->circularService->authorizeView($circular, Auth::user());
-        } catch (\Exception $e) {
-            abort(403, 'तपाईंसँग यो सूचना हेर्ने अनुमति छैन');
-        }
+        // ✅ Use Policy instead of service
+        $this->authorize('view', $circular);
 
         $circular->load(['organization', 'creator', 'recipients.user']);
-        $readStats = $this->circularService->getReadStats($circular);
+        $readStats = $this->circularService->getReadStats($circular); // This can stay
 
         return view('admin.circulars.show', compact('circular', 'readStats'));
     }
 
     public function edit(Circular $circular)
     {
-        // ✅ FIXED: Enhanced authorization with proper error handling
-        try {
-            $this->circularService->authorizeEdit($circular, Auth::user());
-        } catch (\Exception $e) {
-            abort(403, 'तपाईंसँग यो सूचना सम्पादन गर्ने अनुमति छैन');
-        }
+        // ✅ Use Policy
+        $this->authorize('update', $circular);
 
         $organizations = Organization::all();
         $hostels = Hostel::all();
 
-        // ✅ FIXED: Limit students to prevent memory issues
         $students = Student::with('user')
             ->orderBy('created_at', 'desc')
             ->limit(1000)
@@ -187,19 +161,47 @@ class CircularController extends Controller
         return view('admin.circulars.edit', compact('circular', 'organizations', 'hostels', 'students'));
     }
 
-    public function update(StoreCircularRequest $request, Circular $circular)
+    public function update(UpdateCircularRequest $request, Circular $circular)
     {
-        // ✅ FIXED: Enhanced authorization with proper error handling
-        try {
-            $this->circularService->authorizeEdit($circular, Auth::user());
-        } catch (\Exception $e) {
-            abort(403, 'तपाईंसँग यो सूचना सम्पादन गर्ने अनुमति छैन');
-        }
+        // ✅ Use Policy
+        $this->authorize('update', $circular);
 
         try {
-            $circular->update($request->validated());
+            // Capture old audience before update
+            $oldAudience = [
+                'audience_type' => $circular->audience_type,
+                'target_audience' => $circular->target_audience,
+                'organization_id' => $circular->organization_id,
+            ];
 
-            // ✅ FIXED: Log the update
+            $data = $request->validated();
+
+            // Handle scheduling logic if needed
+            if (isset($data['scheduled_at']) && $data['scheduled_at'] > now()) {
+                $data['status'] = 'draft';
+                $data['published_at'] = null;
+            } elseif ($circular->status === 'draft' && (!isset($data['scheduled_at']) || $data['scheduled_at'] <= now())) {
+                $data['status'] = 'published';
+                if (!$circular->published_at) {
+                    $data['published_at'] = now();
+                }
+            }
+
+            $circular->update($data);
+
+            // Check if audience changed
+            $newAudience = [
+                'audience_type' => $circular->audience_type,
+                'target_audience' => $circular->target_audience,
+                'organization_id' => $circular->organization_id,
+            ];
+
+            if ($oldAudience != $newAudience) {
+                // Delete existing recipients and dispatch job to regenerate
+                $circular->recipients()->delete();
+                GenerateCircularRecipientsJob::dispatch($circular->id);
+            }
+
             Log::info('Circular updated successfully', [
                 'circular_id' => $circular->id,
                 'user_id' => Auth::id()
@@ -220,18 +222,13 @@ class CircularController extends Controller
 
     public function destroy(Circular $circular)
     {
-        // ✅ FIXED: Enhanced authorization with proper error handling
-        try {
-            $this->circularService->authorizeEdit($circular, Auth::user());
-        } catch (\Exception $e) {
-            abort(403, 'तपाईंसँग यो सूचना मेटाउने अनुमति छैन');
-        }
+        // ✅ Use Policy
+        $this->authorize('delete', $circular);
 
         try {
             $circularId = $circular->id;
             $circular->delete();
 
-            // ✅ FIXED: Log the deletion
             Log::info('Circular deleted successfully', [
                 'circular_id' => $circularId,
                 'user_id' => Auth::id()
@@ -251,17 +248,12 @@ class CircularController extends Controller
 
     public function publish(Circular $circular)
     {
-        // ✅ FIXED: Enhanced authorization with proper error handling
-        try {
-            $this->circularService->authorizeEdit($circular, Auth::user());
-        } catch (\Exception $e) {
-            abort(403, 'तपाईंसँग यो सूचना प्रकाशन गर्ने अनुमति छैन');
-        }
+        // ✅ Use Policy (update)
+        $this->authorize('update', $circular);
 
         try {
             $circular->markAsPublished();
 
-            // ✅ FIXED: Log the publication
             Log::info('Circular published successfully', [
                 'circular_id' => $circular->id,
                 'user_id' => Auth::id()
@@ -280,7 +272,6 @@ class CircularController extends Controller
 
     public function analytics(Circular $circular = null)
     {
-        // ✅ FIXED: Authorization check for analytics
         if (!Auth::user()->hasRole('admin')) {
             abort(403, 'तपाईंसँग विश्लेषण हेर्ने अनुमति छैन');
         }
@@ -288,11 +279,25 @@ class CircularController extends Controller
         try {
             if ($circular) {
                 // Single circular analytics
-                $this->circularService->authorizeView($circular, Auth::user());
-                $stats = $this->circularService->getCircularAnalytics($circular);
+                $this->authorize('view', $circular);
+
+                // ✅ Optimized analytics
+                $stats = [
+                    'total_recipients' => $circular->recipients()->count(),
+                    'total_read' => $circular->recipients()->where('is_read', true)->count(),
+                    'by_user_type' => $circular->recipients()
+                        ->select('user_type')
+                        ->selectRaw('COUNT(*) as total')
+                        ->selectRaw('SUM(is_read) as read_count')
+                        ->groupBy('user_type')
+                        ->get(),
+                    'engagement_rate' => $circular->recipients()->count() > 0 ?
+                        round(($circular->recipients()->where('is_read', true)->count() / $circular->recipients()->count()) * 100, 1) : 0
+                ];
+
                 return view('admin.circulars.analytics-single', compact('circular', 'stats'));
             } else {
-                // General analytics
+                // General analytics (could also be optimized, but keep as is for now)
                 $stats = $this->circularService->getAdminAnalytics();
                 return view('admin.circulars.analytics', compact('stats'));
             }
@@ -308,7 +313,6 @@ class CircularController extends Controller
 
     public function markAsRead(Circular $circular)
     {
-        // ✅ FIXED: Authorization check - user must be recipient
         $user = Auth::user();
 
         $recipient = CircularRecipient::where('circular_id', $circular->id)
@@ -341,12 +345,10 @@ class CircularController extends Controller
 
     public function templates()
     {
-        // ✅ FIXED: Authorization check
         if (!Auth::user()->hasRole('admin')) {
             abort(403, 'तपाईंसँग टेम्प्लेटहरू हेर्ने अनुमति छैन');
         }
 
-        // ✅ FIXED: Secure template data - consider moving to database
         $templates = [
             [
                 'id' => 1,

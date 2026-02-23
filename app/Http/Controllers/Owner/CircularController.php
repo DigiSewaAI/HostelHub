@@ -8,7 +8,9 @@ use App\Models\Hostel;
 use App\Models\Student;
 use App\Models\CircularRecipient;
 use App\Http\Requests\StoreCircularRequest;
+use App\Http\Requests\UpdateCircularRequest; // ✅ Use UpdateCircularRequest instead of StoreCircularRequest for update
 use App\Services\CircularService;
+use App\Jobs\GenerateCircularRecipientsJob; // ✅ Job for recipient generation
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -22,7 +24,7 @@ class CircularController extends Controller
         $this->circularService = $circularService;
     }
 
-    // ✅ FIXED: Owner authorization helper method
+    // ✅ Helper method for owner authorization (used in index/create)
     private function authorizeOwnerAccess($organizationId = null)
     {
         $user = Auth::user();
@@ -48,23 +50,19 @@ class CircularController extends Controller
     {
         $user = auth()->user();
 
-        // ✅ ENHANCED: Owner authorization
         if ($user->hasRole('hostel_manager')) {
             $this->authorizeOwnerAccess();
         }
 
         $organization = $user->organizations()->first();
 
-        // ✅ ENHANCED: Data scoping for owners
         $query = Circular::with(['organization', 'creator'])
             ->where('organization_id', $organization->id);
 
-        // Filter by status
         if ($request->has('status') && in_array($request->status, ['draft', 'published', 'archived'])) {
             $query->where('status', $request->status);
         }
 
-        // Filter by priority
         if ($request->has('priority') && in_array($request->priority, ['urgent', 'normal', 'info'])) {
             $query->where('priority', $request->priority);
         }
@@ -78,7 +76,6 @@ class CircularController extends Controller
     {
         $user = auth()->user();
 
-        // ✅ ENHANCED: Owner authorization
         if ($user->hasRole('hostel_manager')) {
             $this->authorizeOwnerAccess();
         }
@@ -88,42 +85,46 @@ class CircularController extends Controller
         $hostels = $organization->hostels;
         $students = $organization->students()->with('user')->get();
 
-        return view('owner.circulars.create', compact('hostels', 'students'));
+        return view('owner.circulars.create', compact('hostels', 'students', 'organization'));
     }
 
     public function store(StoreCircularRequest $request)
     {
         $user = auth()->user();
-
-        // ✅ ENHANCED: Owner authorization
-        if ($user->hasRole('hostel_manager')) {
-            $this->authorizeOwnerAccess();
-        }
+        $organization = $user->organizations()->first();
 
         try {
-            DB::transaction(function () use ($request, $user) {
-                $organization = $user->organizations()->first();
-
-                if (!$organization) {
-                    throw new \Exception('Organization not found');
-                }
-
+            DB::transaction(function () use ($request, $user, $organization) {
                 $data = $request->validated();
+
+                // override sensitive fields
                 $data['organization_id'] = $organization->id;
                 $data['created_by'] = $user->id;
 
-                // ✅ CRITICAL FIX: Proper status and publishing logic
-                if ($request->has('scheduled_at') && $request->scheduled_at > now()) {
-                    $data['status'] = 'draft'; // Schedule for later
+                // Schedule vs immediate publish
+                if ($request->filled('scheduled_at') && $request->scheduled_at > now()) {
+                    $data['status'] = 'draft';
                 } else {
                     $data['status'] = 'published';
-                    $data['published_at'] = now(); // ✅ CRITICAL: Set published_at timestamp
+                    $data['published_at'] = now();
                 }
 
-                // Create circular
+                // Validate target_audience against org
+                if (in_array($data['audience_type'], ['specific_hostel', 'specific_students'])) {
+                    $data['target_audience'] = array_filter($data['target_audience'], function ($id) use ($organization, $data) {
+                        if ($data['audience_type'] === 'specific_hostel') {
+                            return in_array($id, $organization->hostels->pluck('id')->toArray());
+                        }
+                        if ($data['audience_type'] === 'specific_students') {
+                            return in_array($id, $organization->students->pluck('id')->toArray());
+                        }
+                        return false;
+                    });
+                }
+
                 $circular = Circular::create($data);
 
-                // ✅ FIXED: Create recipients with proper parameters
+                // Recipient creation
                 $this->circularService->createRecipients(
                     $circular,
                     $data['audience_type'],
@@ -131,33 +132,23 @@ class CircularController extends Controller
                     $organization->id
                 );
 
-                // ✅ ENHANCED LOG for debugging
-                \Log::info('Circular created successfully', [
-                    'circular_id' => $circular->id,
-                    'audience_type' => $data['audience_type'],
-                    'organization_id' => $organization->id,
-                    'status' => $circular->status,
-                    'published_at' => $circular->published_at
+                \Log::info('Circular created', [
+                    'id' => $circular->id,
+                    'audience' => $data['audience_type'],
+                    'org' => $organization->id,
+                    'status' => $circular->status
                 ]);
             });
 
-            $message = $request->has('scheduled_at') && $request->scheduled_at > now()
+            $message = ($request->filled('scheduled_at') && $request->scheduled_at > now())
                 ? 'सूचना सफलतापूर्वक सिर्जना गरियो र तोकिएको समयमा प्रकाशित हुनेछ'
                 : 'सूचना सफलतापूर्वक प्रकाशित गरियो';
 
-            // ✅ FIXED: Proper form clearing with session flag
             return redirect()->route('owner.circulars.index')
-                ->with('success', $message)
-                ->with('clear_form', true); // Flag for JavaScript form reset
-
+                ->with('success', $message);
         } catch (\Exception $e) {
-            \Log::error('Circular creation failed: ' . $e->getMessage(), [
-                'input_data' => $request->except('password') // Don't log sensitive data
-            ]);
-
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'सूचना सिर्जना गर्दा त्रुटि भयो: ' . $e->getMessage());
+            \Log::error('Circular creation failed: ' . $e->getMessage(), $request->except('password'));
+            return redirect()->back()->withInput()->with('error', 'सूचना सिर्जना गर्दा त्रुटि भयो: ' . $e->getMessage());
         }
     }
 
@@ -165,15 +156,11 @@ class CircularController extends Controller
     {
         $user = auth()->user();
 
-        // ✅ ENHANCED: Owner authorization
-        if ($user->hasRole('hostel_manager')) {
-            $this->authorizeOwnerAccess($circular->organization_id);
-        }
-
-        $this->circularService->authorizeView($circular, $user);
+        // ✅ Use Policy instead of service
+        $this->authorize('view', $circular);
 
         $circular->load(['organization', 'creator', 'recipients.user']);
-        $readStats = $this->circularService->getReadStats($circular);
+        $readStats = $this->circularService->getReadStats($circular); // This service method can stay
 
         return view('owner.circulars.show', compact('circular', 'readStats'));
     }
@@ -182,12 +169,8 @@ class CircularController extends Controller
     {
         $user = auth()->user();
 
-        // ✅ ENHANCED: Owner authorization
-        if ($user->hasRole('hostel_manager')) {
-            $this->authorizeOwnerAccess($circular->organization_id);
-        }
-
-        $this->circularService->authorizeEdit($circular, $user);
+        // ✅ Use Policy instead of service
+        $this->authorize('update', $circular);
 
         $organization = $user->organizations()->first();
 
@@ -197,32 +180,55 @@ class CircularController extends Controller
         return view('owner.circulars.edit', compact('circular', 'hostels', 'students'));
     }
 
-    public function update(StoreCircularRequest $request, Circular $circular)
+    /**
+     * Update the specified circular.
+     * Uses UpdateCircularRequest for validation.
+     */
+    public function update(UpdateCircularRequest $request, Circular $circular)
     {
         $user = auth()->user();
 
-        // ✅ ENHANCED: Owner authorization
-        if ($user->hasRole('hostel_manager')) {
-            $this->authorizeOwnerAccess($circular->organization_id);
-        }
+        // ✅ Use Policy
+        $this->authorize('update', $circular);
 
-        $this->circularService->authorizeEdit($circular, $user);
+        // Capture old audience data before update
+        $oldAudience = [
+            'audience_type' => $circular->audience_type,
+            'target_audience' => $circular->target_audience,
+            'organization_id' => $circular->organization_id,
+        ];
 
         $data = $request->validated();
 
-        // ✅ FIXED: Update publishing logic during edit
-        if ($request->has('scheduled_at') && $request->scheduled_at > now()) {
+        // Handle scheduling logic
+        if (isset($data['scheduled_at']) && $data['scheduled_at'] > now()) {
             $data['status'] = 'draft';
-            $data['published_at'] = null; // Reset published_at if scheduled for future
-        } else {
+            $data['published_at'] = null;
+        } elseif ($circular->status === 'draft' && (!isset($data['scheduled_at']) || $data['scheduled_at'] <= now())) {
+            // If updating from draft without future scheduled_at, keep status as draft unless explicitly published
+            // But we can keep existing logic: if scheduled_at is past or not set, set as published? Let's keep original logic.
+            // Actually original logic: if scheduled_at present and future -> draft, else published. But for update, we need to be careful.
+            // We'll follow original: if request has scheduled_at > now -> draft, else published (with published_at set if not already).
             $data['status'] = 'published';
-            // Only set published_at if it's not already set
             if (!$circular->published_at) {
                 $data['published_at'] = now();
             }
         }
 
         $circular->update($data);
+
+        // Check if audience changed
+        $newAudience = [
+            'audience_type' => $circular->audience_type,
+            'target_audience' => $circular->target_audience,
+            'organization_id' => $circular->organization_id,
+        ];
+
+        if ($oldAudience != $newAudience) {
+            // Delete existing recipients and dispatch job to regenerate
+            $circular->recipients()->delete();
+            GenerateCircularRecipientsJob::dispatch($circular->id);
+        }
 
         return redirect()->route('owner.circulars.show', $circular)
             ->with('success', 'सूचना सफलतापूर्वक अद्यावधिक गरियो');
@@ -232,12 +238,8 @@ class CircularController extends Controller
     {
         $user = auth()->user();
 
-        // ✅ ENHANCED: Owner authorization
-        if ($user->hasRole('hostel_manager')) {
-            $this->authorizeOwnerAccess($circular->organization_id);
-        }
-
-        $this->circularService->authorizeEdit($circular, $user);
+        // ✅ Use Policy
+        $this->authorize('delete', $circular);
 
         $circular->delete();
 
@@ -249,14 +251,9 @@ class CircularController extends Controller
     {
         $user = auth()->user();
 
-        // ✅ ENHANCED: Owner authorization
-        if ($user->hasRole('hostel_manager')) {
-            $this->authorizeOwnerAccess($circular->organization_id);
-        }
+        // ✅ Use Policy (maybe a custom policy method 'publish')
+        $this->authorize('update', $circular); // Or create a separate 'publish' policy
 
-        $this->circularService->authorizeEdit($circular, $user);
-
-        // ✅ FIXED: Ensure published_at is set when manually publishing
         $circular->update([
             'status' => 'published',
             'published_at' => now()
@@ -265,12 +262,11 @@ class CircularController extends Controller
         return back()->with('success', 'सूचना सफलतापूर्वक प्रकाशित गरियो');
     }
 
-    // ✅ FIXED: General analytics for all circulars (without parameter)
+    // General analytics for all circulars
     public function analytics()
     {
         $user = auth()->user();
 
-        // ✅ ENHANCED: Owner authorization
         if ($user->hasRole('hostel_manager')) {
             $this->authorizeOwnerAccess();
         }
@@ -306,18 +302,15 @@ class CircularController extends Controller
         return view('owner.circulars.analytics', compact('stats', 'recentCirculars'));
     }
 
-    // ✅ FIXED: Single circular analytics (with parameter)
+    // Single circular analytics (optimized)
     public function analyticsSingle(Circular $circular)
     {
         $user = auth()->user();
 
-        // ✅ ENHANCED: Owner authorization
-        if ($user->hasRole('hostel_manager')) {
-            $this->authorizeOwnerAccess($circular->organization_id);
-        }
+        // ✅ Use Policy
+        $this->authorize('view', $circular);
 
-        $this->circularService->authorizeView($circular, $user);
-
+        // Already optimized with direct queries
         $stats = [
             'total_recipients' => $circular->recipients()->count(),
             'total_read' => $circular->recipients()->where('is_read', true)->count(),
@@ -338,7 +331,6 @@ class CircularController extends Controller
     {
         $user = auth()->user();
 
-        // ✅ ENHANCED: Student authorization - students can only mark their own circulars as read
         if ($user->hasRole('student')) {
             $student = Student::where('user_id', $user->id)->first();
             if (!$student) {
@@ -357,17 +349,15 @@ class CircularController extends Controller
         return response()->json(['success' => true]);
     }
 
-    // ✅ ADDED: Template management method (if needed for your routes)
+    // Template management method
     public function templates()
     {
         $user = auth()->user();
 
-        // ✅ ENHANCED: Owner authorization
         if ($user->hasRole('hostel_manager')) {
             $this->authorizeOwnerAccess();
         }
 
-        // Add your template logic here
         return view('owner.circulars.templates');
     }
 }

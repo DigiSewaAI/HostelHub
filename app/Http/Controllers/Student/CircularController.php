@@ -7,7 +7,7 @@ use App\Models\Circular;
 use App\Models\CircularRecipient;
 use App\Services\CircularService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth; // ✅ ADDED
+use Illuminate\Support\Facades\Auth;
 
 class CircularController extends Controller
 {
@@ -18,17 +18,15 @@ class CircularController extends Controller
         $this->circularService = $circularService;
     }
 
-    // ✅ ENHANCED: Student authorization for circular access
+    // ✅ Student authorization helper (can be replaced with Policy later)
     private function authorizeCircularAccess(Circular $circular = null)
     {
         $user = Auth::user();
 
-        // ✅ ADDED: Ensure user is a student
         if (!$user->hasRole('student')) {
             abort(403, 'तपाईंसँग यो सर्कुलर हेर्ने अनुमति छैन');
         }
 
-        // ✅ ADDED: Check specific circular access
         if ($circular) {
             $hasAccess = CircularRecipient::where('circular_id', $circular->id)
                 ->where('user_id', $user->id)
@@ -42,32 +40,46 @@ class CircularController extends Controller
         return true;
     }
 
+    /**
+     * Display a listing of circulars for the student.
+     */
     public function index(Request $request)
     {
         $user = Auth::user();
 
-        // ✅ ENHANCED: Authorization check
         $this->authorizeCircularAccess();
 
+        // Get circular IDs where user is recipient
         $circularIds = CircularRecipient::where('user_id', $user->id)
             ->pluck('circular_id');
 
+        // Build query with eager loading to avoid N+1
         $query = Circular::whereIn('id', $circularIds)
             ->published()
             ->active()
-            ->with(['creator', 'organization']);
+            ->with(['creator', 'organization'])
+
+            // ✅ FIXED: Eager load recipients with filter for current user only
+            ->with(['recipients' => function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            }]);
 
         // Filter by read status
         if ($request->has('read_status')) {
+            $readStatus = $request->read_status === 'read';
             $readCircularIds = CircularRecipient::where('user_id', $user->id)
-                ->where('is_read', $request->read_status === 'read')
+                ->where('is_read', $readStatus)
                 ->pluck('circular_id');
             $query->whereIn('id', $readCircularIds);
         }
 
         // Search
         if ($request->has('search')) {
-            $query->where('title', 'like', '%' . $request->search . '%');
+            $searchTerm = $request->search;
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('title', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('content', 'like', '%' . $searchTerm . '%');
+            });
         }
 
         $circulars = $query->latest()->paginate(15);
@@ -75,50 +87,58 @@ class CircularController extends Controller
         return view('student.circulars.index', compact('circulars'));
     }
 
+    /**
+     * Display the specified circular.
+     */
     public function show(Circular $circular)
     {
         $user = Auth::user();
 
-        // ✅ ENHANCED: Authorization check
         $this->authorizeCircularAccess($circular);
 
-        // Verify the student has access to this circular
+        // Fetch recipient record (already authorized)
         $recipient = CircularRecipient::where('circular_id', $circular->id)
             ->where('user_id', $user->id)
             ->firstOrFail();
 
-        // Mark as read
+        // Mark as read if not already
         if (!$recipient->is_read) {
             $recipient->markAsRead();
         }
 
+        // Load relationships for view
+        $circular->load(['creator', 'organization']);
+
         return view('student.circulars.show', compact('circular', 'recipient'));
     }
 
+    /**
+     * Mark a circular as read via AJAX.
+     */
     public function markAsRead(Circular $circular)
     {
         $user = Auth::user();
 
-        // ✅ ENHANCED: Authorization check
         $this->authorizeCircularAccess($circular);
 
         $recipient = CircularRecipient::where('circular_id', $circular->id)
             ->where('user_id', $user->id)
             ->first();
 
-        if ($recipient) {
+        if ($recipient && !$recipient->is_read) {
             $recipient->markAsRead();
         }
 
         return response()->json(['success' => true]);
     }
 
-    // ✅ ADDED: New method to get circular statistics
+    /**
+     * Get circular statistics for the student.
+     */
     public function getStatistics()
     {
         $user = Auth::user();
 
-        // ✅ ENHANCED: Authorization check
         $this->authorizeCircularAccess();
 
         $totalCirculars = CircularRecipient::where('user_id', $user->id)->count();
@@ -137,12 +157,13 @@ class CircularController extends Controller
         ]);
     }
 
-    // ✅ ADDED: Method to mark all circulars as read
+    /**
+     * Mark all circulars as read for the student.
+     */
     public function markAllAsRead()
     {
         $user = Auth::user();
 
-        // ✅ ENHANCED: Authorization check
         $this->authorizeCircularAccess();
 
         $updated = CircularRecipient::where('user_id', $user->id)
@@ -156,12 +177,13 @@ class CircularController extends Controller
         ]);
     }
 
-    // ✅ ADDED: Method to get unread circulars count for notifications
+    /**
+     * Get unread circular count for notifications.
+     */
     public function getUnreadCount()
     {
         $user = Auth::user();
 
-        // ✅ ENHANCED: Authorization check
         $this->authorizeCircularAccess();
 
         $unreadCount = CircularRecipient::where('user_id', $user->id)
@@ -173,12 +195,13 @@ class CircularController extends Controller
         ]);
     }
 
-    // ✅ ADDED: Method to filter circulars by priority
+    /**
+     * Filter circulars by priority.
+     */
     public function filterByPriority(Request $request, $priority)
     {
         $user = Auth::user();
 
-        // ✅ ENHANCED: Authorization check
         $this->authorizeCircularAccess();
 
         $validPriorities = ['urgent', 'normal', 'info'];
@@ -194,6 +217,10 @@ class CircularController extends Controller
             ->published()
             ->active()
             ->with(['creator', 'organization'])
+            // ✅ Eager load recipients with filter
+            ->with(['recipients' => function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            }])
             ->latest()
             ->paginate(15);
 
