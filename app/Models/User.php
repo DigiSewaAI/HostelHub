@@ -306,6 +306,11 @@ class User extends Authenticatable
         return $this->hasMany(Booking::class);
     }
 
+    public function ownerNetworkProfile()
+    {
+        return $this->hasOne(\App\Models\OwnerNetworkProfile::class, 'user_id');
+    }
+
     /**
      * Get all bookings approved by the user.
      */

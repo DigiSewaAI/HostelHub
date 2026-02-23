@@ -19,6 +19,14 @@ use App\Http\Controllers\StudentController;
 use App\Http\Controllers\Student\StudentReviewController;
 use App\Http\Controllers\Student\StudentCircularController;
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\Admin\ModerationController;
+use App\Http\Controllers\Network\ProfileController;
+use App\Http\Controllers\Network\MessageController;
+use App\Http\Controllers\Network\BroadcastController;
+use App\Http\Controllers\Network\MarketplaceController;
+use App\Http\Controllers\Network\DirectoryController;
+
+
 // Force HTTPS in production
 if (app()->environment('production')) {
     URL::forceScheme('https');
@@ -157,6 +165,13 @@ Route::prefix('admin')
 
         require __DIR__ . '/admin.php';
 
+        // ✅ Network Moderation Routes
+        Route::get('/moderation', [ModerationController::class, 'index'])->name('admin.moderation.index');
+        Route::post('/moderation/broadcast/{id}/approve', [ModerationController::class, 'approveBroadcast'])->name('admin.moderation.broadcast.approve');
+        Route::post('/moderation/broadcast/{id}/reject', [ModerationController::class, 'rejectBroadcast'])->name('admin.moderation.broadcast.reject');
+        Route::post('/moderation/listing/{id}/approve', [ModerationController::class, 'approveListing'])->name('admin.moderation.listing.approve');
+        Route::post('/moderation/listing/{id}/reject', [ModerationController::class, 'rejectListing'])->name('admin.moderation.listing.reject');
+
         // Admin booking management routes
         Route::get('/bookings/pending', [BookingController::class, 'pendingApprovals'])->name('admin.bookings.pending');
         Route::post('/bookings/{id}/approve', [BookingController::class, 'approve'])->name('admin.bookings.approve');
@@ -205,6 +220,37 @@ Route::prefix('owner')
         Route::delete('/room-issues/{id}', [\App\Http\Controllers\Owner\OwnerRoomIssuesController::class, 'destroy'])->name('owner.room-issues.destroy');
         Route::get('/room-issues/stats', [\App\Http\Controllers\Owner\OwnerRoomIssuesController::class, 'getStats'])->name('owner.room-issues.stats');
     });
+
+// ✅ Network Features Routes (Owner/User Network)
+Route::middleware(['auth'])->prefix('network')->name('network.')->group(function () {
+
+    // Profile
+    Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+
+    // Messages
+    Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
+    Route::get('/messages/{thread}', [MessageController::class, 'show'])->name('messages.show');
+    Route::post('/messages/{thread}/archive', [MessageController::class, 'archive'])->name('messages.archive');
+    Route::post('/messages', [MessageController::class, 'store'])
+        ->middleware('throttle:30,1')   // ⬅️ यो middleware थपियो
+        ->name('messages.store');
+
+    // Broadcast
+    Route::get('/broadcast/create', [BroadcastController::class, 'create'])->name('broadcast.create');
+    Route::post('/broadcast', [BroadcastController::class, 'store'])->name('broadcast.store');
+    Route::get('/broadcast', [BroadcastController::class, 'index'])->name('broadcast.index');
+
+    // Marketplace
+    Route::get('/marketplace', [MarketplaceController::class, 'index'])->name('marketplace.index');
+    Route::get('/marketplace/create', [MarketplaceController::class, 'create'])->name('marketplace.create');
+    Route::post('/marketplace', [MarketplaceController::class, 'store'])->name('marketplace.store');
+    Route::get('/marketplace/{listing:slug}', [MarketplaceController::class, 'show'])->name('marketplace.show');
+    Route::post('/marketplace/{listing}/contact', [MarketplaceController::class, 'contact'])->name('marketplace.contact');
+
+    // Directory
+    Route::get('/directory', [DirectoryController::class, 'index'])->name('directory.index');
+});
 
 // ✅ Student routes - सरल र सही version
 // केवल student.php file include गर्ने

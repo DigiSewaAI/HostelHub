@@ -13,7 +13,10 @@ use App\Models\{
     Room,
     Student,
     Circular,
-    User
+    User,
+    Message,
+    BroadcastMessage,
+    MarketplaceListing
 };
 use App\Policies\{
     ContactPolicy,
@@ -26,7 +29,10 @@ use App\Policies\{
     RoomPolicy,
     StudentPolicy,
     CircularPolicy,
-    AdminPolicy
+    AdminPolicy,
+    MessagePolicy,
+    BroadcastPolicy,
+    MarketplaceListingPolicy
 };
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Gate;
@@ -49,7 +55,10 @@ class AuthServiceProvider extends ServiceProvider
         Organization::class => OrganizationPolicy::class,
         Hostel::class => HostelPolicy::class,
         Circular::class => CircularPolicy::class,
-        User::class => AdminPolicy::class, // ✅ ADDED: Admin policy for user model
+        User::class => AdminPolicy::class,
+        Message::class => MessagePolicy::class,
+        BroadcastMessage::class => BroadcastPolicy::class,
+        MarketplaceListing::class => MarketplaceListingPolicy::class,
     ];
 
     /**
