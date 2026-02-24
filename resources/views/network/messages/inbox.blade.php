@@ -17,14 +17,14 @@
     </div>
 </div>
 
-{{-- Filters --}}
+{{-- Filters (unchanged) --}}
 <form method="GET" class="row g-3 mb-4">
     <div class="col-auto">
         <select name="category" class="form-select">
             <option value="">{{ __('network.all_categories') }}</option>
-            @foreach(['business_inquiry' => 'network.business_inquiry', 'partnership' => 'network.partnership', 'hostel_sale' => 'network.hostel_sale', 'emergency' => 'network.emergency', 'general' => 'network.general'] as $value => $label)
-                <option value="{{ $value }}" {{ request('category') == $value ? 'selected' : '' }}>
-                    {{ __($label) }}
+            @foreach(['business_inquiry', 'partnership', 'hostel_sale', 'emergency', 'general'] as $cat)
+                <option value="{{ $cat }}" {{ request('category') == $cat ? 'selected' : '' }}>
+                    {{ __('network.' . $cat) }}
                 </option>
             @endforeach
         </select>
@@ -34,7 +34,7 @@
     </div>
 </form>
 
-{{-- Threads List --}}
+{{-- Threads List (unchanged) --}}
 @forelse($threads as $participant)
     @php $thread = $participant->thread; @endphp
     <div class="card mb-2">
@@ -68,7 +68,7 @@
 
 {{ $threads->links() }}
 
-{{-- Compose Modal --}}
+{{-- Compose Modal (fixed recipient dropdown) --}}
 <div class="modal fade" id="composeModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -83,7 +83,9 @@
                         <label class="form-label">{{ __('network.recipient') }}</label>
                         <select name="recipient_id" class="form-select" required>
                             <option value="">{{ __('network.select_recipient') }}</option>
-                            @foreach(\App\Models\User::whereHas('ownerNetworkProfile')->get() as $user)
+                            @foreach(\App\Models\User::whereHas('hostels', function($q) {
+                                    $q->where('status', 'active')->where('is_published', true);
+                                })->get() as $user)
                                 <option value="{{ $user->id }}">{{ $user->name }}</option>
                             @endforeach
                         </select>

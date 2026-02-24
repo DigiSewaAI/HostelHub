@@ -720,8 +720,8 @@
             <i class="fas fa-address-book me-2"></i>
             <span>निर्देशिका</span>
         </a>
-        <a href="{{ route('network.profile.edit') }}"
-           class="nav-dropdown-item {{ request()->routeIs('network.profile.edit') ? 'active' : '' }}">
+        <a href="{{ route('network.profile.show') }}"
+           class="nav-dropdown-item {{ request()->routeIs('network.profile.show') ? 'active' : '' }}">
             <i class="fas fa-user me-2"></i>
             <span>प्रोफाइल</span>
         </a>

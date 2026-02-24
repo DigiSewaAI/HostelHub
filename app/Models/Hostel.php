@@ -168,6 +168,20 @@ class Hostel extends Model
         });
     }
 
+    public function networkProfile()
+    {
+        return $this->hasOne(OwnerNetworkProfile::class);
+    }
+
+    /**
+     * Check if hostel is eligible for network visibility
+     */
+    public function isEligibleForNetwork(): bool
+    {
+        return $this->status === 'active' && $this->is_published;
+    }
+
+
     public function rooms(): HasMany
     {
         return $this->hasMany(Room::class);

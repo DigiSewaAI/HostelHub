@@ -3,58 +3,36 @@
 namespace App\Http\Controllers\Network;
 
 use App\Http\Controllers\Controller;
-use App\Models\OwnerNetworkProfile;
-use Illuminate\Http\Request;
+use App\Models\Hostel;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 
 class ProfileController extends Controller
 {
     /**
-     * प्रोफाइल सम्पादन पृष्ठ देखाउने
+     * Show the auto-synced network profile of the logged-in owner's hostel.
      */
-    public function edit()
+    public function show()
     {
-        // प्रयोगकर्ताको network प्रोफाइल ल्याउने (यदि छैन भने नयाँ बनाउने)
-        $profile = OwnerNetworkProfile::where('user_id', Auth::id())->firstOrNew();
-
-        return view('network.profile.edit', compact('profile'));
-    }
-
-    /**
-     * प्रोफाइल अद्यावधिक गर्ने
-     */
-    public function update(Request $request)
-    {
-        $validated = $request->validate([
-            'business_name' => 'nullable|string|max:255',
-            'phone'         => 'nullable|string|max:20',
-            'city'          => 'nullable|string|max:100',
-            'bio'           => 'nullable|string',
-            'services'      => 'nullable|array',
-            'hostel_size'   => 'nullable|integer|min:0',
-            'pricing_category' => 'nullable|in:budget,mid,premium',
-        ]);
-
         $user = Auth::user();
 
-        // ✅ Tenant ID प्राप्त गर्ने (तपाईंको डाटाबेस संरचना अनुसार)
-        $tenantId = $user->ownerProfile->tenant_id ?? null;
+        // Get the first hostel managed by this user (assuming one owner may have multiple, we take the first)
+        // Adjust if you have a specific logic (e.g., if user is owner_id in hostels table)
+        $hostel = $user->hostels()->first();
 
-        // यदि tenant ID छैन भने error फर्काउने
-        if (!$tenantId) {
-            return back()->with('error', 'Tenant जानकारी फेला परेन। कृपया पहिले आफ्नो मालिक प्रोफाइल पूरा गर्नुहोस्।');
+        if (!$hostel) {
+            return redirect()->route('owner.dashboard')
+                ->with('error', 'तपाईंसँग कुनै होस्टल छैन।');
         }
 
-        // प्रोफाइल सिर्जना वा अद्यावधिक गर्ने
-        $profile = OwnerNetworkProfile::updateOrCreate(
-            [
-                'user_id'   => $user->id,
-                'tenant_id' => $tenantId,   // ✅ सही tenant_id प्रयोग गरियो
-            ],
-            $validated
-        );
+        // Ensure the network profile exists (should be auto-created by observer)
+        $profile = $hostel->networkProfile;
 
-        return redirect()->route('network.profile.edit')
-            ->with('success', 'प्रोफाइल सफलतापूर्वक अद्यावधिक गरियो।');
+        // Authorize using the policy
+        if (Gate::denies('view', $profile)) {
+            abort(403, 'यो प्रोफाइल हेर्ने अनुमति छैन।');
+        }
+
+        return view('network.profile.show', compact('hostel', 'profile'));
     }
 }

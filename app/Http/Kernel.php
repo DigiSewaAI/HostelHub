@@ -77,6 +77,7 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'tenant' => \App\Http\Middleware\TenantMiddleware::class,
         'owner.profile' => \App\Http\Middleware\OwnerProfileMiddleware::class,
+        'network' => \App\Http\Middleware\EnsureEligibleForNetwork::class,
 
         // Spatie Permission Middlewares
         'role' => \Spatie\Permission\Middlewares\RoleMiddleware::class,
@@ -143,7 +144,7 @@ class Kernel extends HttpKernel
         'signed' => \App\Http\Middleware\ValidateSignature::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
-
+        'network' => \App\Http\Middleware\EnsureEligibleForNetwork::class, // <-- add this line
 
 
         // Spatie Permission Middlewares

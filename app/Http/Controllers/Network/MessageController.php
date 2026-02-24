@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Services\MessageService;
 use App\Models\MessageThread;
 use App\Models\Message;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -48,30 +49,51 @@ class MessageController extends Controller
         ]);
 
         $senderId = Auth::id();
+        $sender = Auth::user();
 
-        // ✅ Tenant ID प्राप्त गर्ने (तपाईंको डाटाबेस संरचना अनुसार मिलाउनुहोस्)
-        $user = Auth::user();
-        $tenantId = $user->ownerProfile->tenant_id ?? null;  // यदि ownerProfile छ भने
-
-        // यदि tenant ID छैन भने error फर्काउने (वा आवश्यकता अनुसार ह्यान्डल)
+        // Get tenant ID from the sender's owner profile
+        $tenantId = $sender->ownerProfile->tenant_id ?? null;
         if (!$tenantId) {
             return back()->with('error', 'Tenant जानकारी फेला परेन। कृपया प्रोफाइल पूरा गर्नुहोस्।');
         }
 
-        // यदि नयाँ थ्रेड हो भने
+        // 🔐 RECIPIENT ELIGIBILITY CHECK (for new thread)
+        if (empty($validated['thread_id']) && isset($validated['recipient_id'])) {
+            $recipient = User::find($validated['recipient_id']);
+            if (!$recipient) {
+                return back()->with('error', 'प्राप्तकर्ता फेला परेन।');
+            }
+            // Allow admins even if they have no eligible hostel
+            if (!$recipient->hasEligibleHostel() && !$recipient->isAdmin()) {
+                return back()->with('error', 'यो प्राप्तकर्ता सन्देश प्राप्त गर्न योग्य छैन।');
+            }
+        }
+
+        // If existing thread, validate that thread belongs to the same tenant
+        if (!empty($validated['thread_id'])) {
+            $thread = MessageThread::find($validated['thread_id']);
+            if (!$thread) {
+                return back()->with('error', 'थ्रेड फेला परेन।');
+            }
+            if ($thread->tenant_id != $tenantId) {
+                return back()->with('error', 'तपाईंलाई यो थ्रेडमा सन्देश पठाउने अनुमति छैन।');
+            }
+        }
+
+        // Create new thread if needed
         if (empty($validated['thread_id'])) {
             $participants = [$senderId, $validated['recipient_id']];
             $thread = $this->messageService->createThread($participants, $validated['subject'] ?? null);
             $threadId = $thread->id;
 
-            // ✅ नयाँ थ्रेडमा tenant_id सेट गर्ने
+            // Set tenant_id on the thread
             $thread->tenant_id = $tenantId;
             $thread->save();
         } else {
             $threadId = $validated['thread_id'];
         }
 
-        // सन्देश पठाउने (messageService ले message object फर्काउँछ भन्ने मानिएको छ)
+        // Send the message
         $message = $this->messageService->sendMessage(
             $threadId,
             $senderId,
@@ -80,7 +102,7 @@ class MessageController extends Controller
             $validated['priority']
         );
 
-        // ✅ सन्देशमा tenant_id सेट गर्ने
+        // Set tenant_id on the message as well (optional, for consistency)
         if ($message) {
             $message->tenant_id = $tenantId;
             $message->save();

@@ -17,7 +17,7 @@
     </div>
 </div>
 
-<!-- फिल्टर फारम -->
+<!-- फिल्टर फारम (unchanged) -->
 <form method="GET" action="{{ route('network.marketplace.index') }}" class="row g-3 mb-4">
     <div class="col-md-3">
         <label for="type" class="form-label">{{ __('network.listing_type') }}</label>
@@ -50,7 +50,7 @@
     </div>
 </form>
 
-<!-- सूची कार्डहरू -->
+<!-- सूची कार्डहरू (fixed) -->
 @if($listings->count())
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
         @foreach($listings as $listing)
@@ -77,6 +77,13 @@
                         <span class="badge bg-{{ $listing->status === 'approved' ? 'success' : ($listing->status === 'pending' ? 'warning' : 'secondary') }}">
                             {{ __('network.' . $listing->status) }}
                         </span>
+                    </p>
+                    <!-- Owner info: only name and phone from User model -->
+                    <p class="card-text">
+                        <strong>{{ __('network.owner') }}:</strong> {{ $listing->owner->name }}<br>
+                        @if($listing->owner->phone)
+                            <i class="bi bi-telephone"></i> {{ $listing->owner->phone }}
+                        @endif
                     </p>
                 </div>
                 <div class="card-footer">

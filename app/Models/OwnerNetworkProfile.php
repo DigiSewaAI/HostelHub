@@ -4,34 +4,27 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Traits\BelongsToTenant;
 
 class OwnerNetworkProfile extends Model
 {
-    use HasFactory, BelongsToTenant;
+    use HasFactory;
 
     protected $fillable = [
-        'tenant_id',
-        'user_id',
-        'business_name',
-        'phone',
-        'city',
-        'bio',
-        'services',
-        'hostel_size',
-        'pricing_category',
-        'is_verified',
+        'hostel_id',
+        'auto_snapshot',
         'verified_at',
     ];
 
     protected $casts = [
-        'services' => 'array',
-        'is_verified' => 'boolean',
-        'verified_at' => 'datetime',
+        'auto_snapshot' => 'array',
+        'verified_at'   => 'datetime',
     ];
 
-    public function user()
+    /**
+     * Get the hostel that owns this network profile.
+     */
+    public function hostel()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Hostel::class);
     }
 }

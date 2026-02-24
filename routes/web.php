@@ -222,35 +222,39 @@ Route::prefix('owner')
     });
 
 // ✅ Network Features Routes (Owner/User Network)
-Route::middleware(['auth'])->prefix('network')->name('network.')->group(function () {
 
-    // Profile
-    Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+Route::middleware(['auth', \App\Http\Middleware\EnsureEligibleForNetwork::class])
+    ->prefix('network')
+    ->name('network.')
+    ->group(function () {
 
-    // Messages
-    Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
-    Route::get('/messages/{thread}', [MessageController::class, 'show'])->name('messages.show');
-    Route::post('/messages/{thread}/archive', [MessageController::class, 'archive'])->name('messages.archive');
-    Route::post('/messages', [MessageController::class, 'store'])
-        ->middleware('throttle:30,1')
-        ->name('messages.store');
 
-    // Broadcast
-    Route::get('/broadcast/create', [BroadcastController::class, 'create'])->name('broadcast.create');
-    Route::post('/broadcast', [BroadcastController::class, 'store'])->name('broadcast.store');
-    Route::get('/broadcast', [BroadcastController::class, 'index'])->name('broadcast.index');
+        // Profile (read‑only)
+        Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
 
-    // Marketplace
-    Route::get('/marketplace', [MarketplaceController::class, 'index'])->name('marketplace.index');
-    Route::get('/marketplace/create', [MarketplaceController::class, 'create'])->name('marketplace.create');
-    Route::post('/marketplace', [MarketplaceController::class, 'store'])->name('marketplace.store');
-    Route::get('/marketplace/{listing:slug}', [MarketplaceController::class, 'show'])->name('marketplace.show');
-    Route::post('/marketplace/{listing}/contact', [MarketplaceController::class, 'contact'])->name('marketplace.contact');
+        // Messages
+        Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
+        Route::get('/messages/{thread}', [MessageController::class, 'show'])->name('messages.show');
+        Route::post('/messages/{thread}/archive', [MessageController::class, 'archive'])->name('messages.archive');
+        Route::post('/messages', [MessageController::class, 'store'])
+            ->middleware('throttle:30,1')
+            ->name('messages.store');
 
-    // Directory
-    Route::get('/directory', [DirectoryController::class, 'index'])->name('directory.index');
-});
+        // Broadcast
+        Route::get('/broadcast/create', [BroadcastController::class, 'create'])->name('broadcast.create');
+        Route::post('/broadcast', [BroadcastController::class, 'store'])->name('broadcast.store');
+        Route::get('/broadcast', [BroadcastController::class, 'index'])->name('broadcast.index');
+
+        // Marketplace
+        Route::get('/marketplace', [MarketplaceController::class, 'index'])->name('marketplace.index');
+        Route::get('/marketplace/create', [MarketplaceController::class, 'create'])->name('marketplace.create');
+        Route::post('/marketplace', [MarketplaceController::class, 'store'])->name('marketplace.store');
+        Route::get('/marketplace/{listing:slug}', [MarketplaceController::class, 'show'])->name('marketplace.show');
+        Route::post('/marketplace/{listing}/contact', [MarketplaceController::class, 'contact'])->name('marketplace.contact');
+
+        // Directory
+        Route::get('/directory', [DirectoryController::class, 'index'])->name('directory.index');
+    });
 
 // ✅ Student routes - सरल र सही version
 // केवल student.php file include गर्ने

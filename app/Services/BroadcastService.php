@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use App\Notifications\BroadcastNotification;
+use App\Jobs\SendBroadcastJob;
 
 class BroadcastService
 {
@@ -15,12 +16,13 @@ class BroadcastService
      */
     public function createBroadcast($senderId, $data)
     {
+        // ✅ Use tenant_id from validated data (set in controller)
         return BroadcastMessage::create([
-            'tenant_id' => session('tenant_id'),
+            'tenant_id' => $data['tenant_id'] ?? null,  // Use passed tenant_id
             'sender_id' => $senderId,
-            'subject' => $data['subject'],
-            'body' => $data['body'],
-            'status' => 'pending',
+            'subject'   => $data['subject'],
+            'body'      => $data['body'],
+            'status'    => 'pending',
         ]);
     }
 
@@ -32,34 +34,51 @@ class BroadcastService
         $broadcast = BroadcastMessage::findOrFail($broadcastId);
 
         $broadcast->update([
-            'status' => 'approved',
+            'status'       => 'approved',
             'moderated_by' => $moderatorId,
             'moderated_at' => now(),
         ]);
 
         // Queue मा राख्ने (पछि send हुनेछ)
-        dispatch(new \App\Jobs\SendBroadcastJob($broadcast));
+        dispatch(new SendBroadcastJob($broadcast));
 
         return $broadcast;
     }
 
     /**
-     * सबै मालिकहरूलाई ब्रोडकास्ट पठाउने (जब Queue प्रोसेस हुन्छ)
+     * सबै योग्य मालिकहरूलाई ब्रोडकास्ट पठाउने (जब Queue प्रोसेस हुन्छ)
+     * Eligibility: सक्रिय र प्रकाशित होस्टल भएका मालिकहरू
      */
     public function sendBroadcastToAllOwners($broadcast)
     {
-        $owners = User::whereHas('ownerNetworkProfile')->get();
+        // ✅ Fetch only eligible owners within the same tenant
+        $eligibleOwners = User::whereHas('hostels', function ($query) use ($broadcast) {
+            $query->where('status', 'active')
+                ->where('is_published', true);
+        })
+            ->when($broadcast->tenant_id, function ($query, $tenantId) {
+                // If tenant isolation is required, filter by tenant
+                $query->whereHas('ownerProfile', function ($q) use ($tenantId) {
+                    $q->where('tenant_id', $tenantId);
+                });
+            })
+            ->get();
 
-        Notification::send($owners, new BroadcastNotification($broadcast));
+        // Also include admins (optional) if they need to receive broadcasts
+        // $admins = User::role('admin')->get();
+        // $recipients = $eligibleOwners->merge($admins);
+
+        Notification::send($eligibleOwners, new BroadcastNotification($broadcast));
 
         $broadcast->update([
-            'status' => 'sent',
-            'sent_at' => now(),
+            'status'   => 'sent',
+            'sent_at'  => now(),
         ]);
     }
 
     /**
      * कूलडाउन जाँच गर्ने (पहिले नै Policy मा छ)
+     * यो method policy मा प्रयोग हुन सक्छ वा सिधै service मा
      */
     public function checkCooldown($ownerId)
     {

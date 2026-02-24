@@ -311,6 +311,15 @@ class User extends Authenticatable
         return $this->hasOne(\App\Models\OwnerNetworkProfile::class, 'user_id');
     }
 
+    public function hasEligibleHostel(): bool
+    {
+        return $this->hostels()
+            ->where('status', 'active')
+            ->where('is_published', true)
+            ->exists();
+    }
+
+
     /**
      * Get all bookings approved by the user.
      */

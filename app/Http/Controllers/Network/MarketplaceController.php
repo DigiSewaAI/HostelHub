@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Network;
 use App\Http\Controllers\Controller;
 use App\Services\MarketplaceService;
 use App\Models\MarketplaceListing;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -80,7 +81,6 @@ class MarketplaceController extends Controller
             return back()->with('error', 'Tenant जानकारी फेला परेन। कृपया प्रोफाइल पूरा गर्नुहोस्।');
         }
 
-        // ✅ validated data मा tenant_id थप्ने
         $validated['tenant_id'] = $tenantId;
 
         // सूची सिर्जना गर्न service मा पठाउने
@@ -103,13 +103,11 @@ class MarketplaceController extends Controller
         $user = Auth::user();
         $tenantId = $user->ownerProfile->tenant_id ?? null;
 
-        // ✅ tenant_id पनि जाँच गर्ने ताकि अर्को tenant को listing नदेखियोस्
         $listing = MarketplaceListing::with('owner', 'media')
             ->where('slug', $slug)
             ->where('tenant_id', $tenantId)
             ->firstOrFail();
 
-        // हेराइको गणना बढाउने
         $this->marketplaceService->incrementViews($listing);
 
         return view('network.marketplace.show', compact('listing'));
@@ -122,12 +120,17 @@ class MarketplaceController extends Controller
     {
         $listing = MarketplaceListing::findOrFail($listingId);
 
-        // यहाँ पनि tenant जाँच गर्न सकिन्छ (वैकल्पिक)
         $user = Auth::user();
         $tenantId = $user->ownerProfile->tenant_id ?? null;
 
         if (!$tenantId || $listing->tenant_id != $tenantId) {
             return back()->with('error', 'तपाईंलाई यो सूचीमा सम्पर्क गर्ने अनुमति छैन।');
+        }
+
+        // 🔐 RECIPIENT ELIGIBILITY CHECK (listing owner)
+        $owner = $listing->owner;
+        if (!$owner->hasEligibleHostel() && !$owner->isAdmin()) {
+            return back()->with('error', 'यो सूचीको मालिक हाल सन्देश प्राप्त गर्न योग्य छैन।');
         }
 
         $messageService = app(\App\Services\MessageService::class);
@@ -137,6 +140,10 @@ class MarketplaceController extends Controller
             [Auth::id(), $listing->owner_id],
             'सूची: ' . $listing->title
         );
+
+        // Set tenant_id on the thread
+        $thread->tenant_id = $tenantId;
+        $thread->save();
 
         return redirect()->route('network.messages.show', $thread->id)
             ->with('success', 'मालिकलाई सन्देश पठाउन सक्नुहुन्छ।');

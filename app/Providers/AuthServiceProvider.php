@@ -36,6 +36,9 @@ use App\Policies\{
 };
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Gate;
+use App\Models\OwnerNetworkProfile;
+use App\Policies\OwnerNetworkProfilePolicy;
+
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -59,6 +62,8 @@ class AuthServiceProvider extends ServiceProvider
         Message::class => MessagePolicy::class,
         BroadcastMessage::class => BroadcastPolicy::class,
         MarketplaceListing::class => MarketplaceListingPolicy::class,
+        OwnerNetworkProfile::class => OwnerNetworkProfilePolicy::class,
+
     ];
 
     /**
