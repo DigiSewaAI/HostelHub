@@ -16,19 +16,29 @@ class ProfileController extends Controller
     {
         $user = Auth::user();
 
-        // Get the first hostel managed by this user (assuming one owner may have multiple, we take the first)
-        // Adjust if you have a specific logic (e.g., if user is owner_id in hostels table)
-        $hostel = $user->hostels()->first();
+        // 1️⃣ Get all **eligible** hostels of the user (active & published)
+        $eligibleHostels = $user->hostels()
+            ->where('status', 'active')
+            ->where('is_published', true)
+            ->get();
 
-        if (!$hostel) {
+        if ($eligibleHostels->isEmpty()) {
             return redirect()->route('owner.dashboard')
-                ->with('error', 'तपाईंसँग कुनै होस्टल छैन।');
+                ->with('error', 'तपाईंसँग नेटवर्कको लागि योग्य होस्टल छैन।');
         }
 
-        // Ensure the network profile exists (should be auto-created by observer)
+        // 2️⃣ Use the first eligible hostel (you could later allow choosing)
+        $hostel = $eligibleHostels->first();
+
+        // 3️⃣ Ensure the network profile exists (sync if missing)
+        if (!$hostel->networkProfile) {
+            app(\App\Services\NetworkProfileSyncService::class)->syncForHostel($hostel);
+            $hostel->load('networkProfile');
+        }
+
         $profile = $hostel->networkProfile;
 
-        // Authorize using the policy
+        // 4️⃣ Authorize (the policy checks ownership)
         if (Gate::denies('view', $profile)) {
             abort(403, 'यो प्रोफाइल हेर्ने अनुमति छैन।');
         }
