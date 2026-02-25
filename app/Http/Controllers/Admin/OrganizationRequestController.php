@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
+use App\Models\OwnerProfile;
 
 class OrganizationRequestController extends Controller
 {
@@ -144,8 +145,28 @@ class OrganizationRequestController extends Controller
                 'organization_id' => $organization->id,
             ]);
 
+            // ✅ TENANT BINDING – insert into tenants table & update owner_profile
+            DB::table('tenants')->insertOrIgnore([
+                'id'         => $organization->id,
+                'name'       => $organization->name,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            OwnerProfile::updateOrCreate(
+                ['user_id' => $user->id],
+                ['tenant_id' => $organization->id]
+            );
+
+            Log::info('Tenant auto-bound for owner', [
+                'owner_id'  => $user->id,
+                'tenant_id' => $organization->id,
+                'hostel_id' => $hostel->id,
+            ]);
+
             // 7️⃣ Update user's hostel_id
             $user->update(['hostel_id' => $hostel->id]);
+
 
             // 8️⃣ Create onboarding progress
             OnboardingProgress::create([
