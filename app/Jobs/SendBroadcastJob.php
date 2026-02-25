@@ -16,11 +16,17 @@ class SendBroadcastJob implements ShouldQueue
 
     protected $broadcast;
 
+    /**
+     * Create a new job instance.
+     */
     public function __construct(BroadcastMessage $broadcast)
     {
         $this->broadcast = $broadcast;
     }
 
+    /**
+     * Execute the job.
+     */
     public function handle(BroadcastService $broadcastService)
     {
         $broadcastService->sendBroadcastToAllOwners($this->broadcast);

@@ -13,12 +13,6 @@
     <h1 class="h2">{{ __('network.create_broadcast') }}</h1>
 </div>
 
-@if(session('cooldown'))
-    <div class="alert alert-warning">
-        {{ session('cooldown') }}
-    </div>
-@endif
-
 <form method="POST" action="{{ route('network.broadcast.store') }}">
     @csrf
 
@@ -36,10 +30,6 @@
         @error('body')
             <div class="invalid-feedback">{{ $message }}</div>
         @enderror
-    </div>
-
-    <div class="alert alert-info">
-        <i class="bi bi-info-circle"></i> {{ __('network.cooldown_warning') }}
     </div>
 
     <button type="submit" class="btn btn-primary">{{ __('network.send') }}</button>

@@ -950,6 +950,70 @@
                     <i class="fas fa-bullhorn sidebar-icon"></i>
                     <span class="sidebar-text" x-show="!sidebarCollapsed">सूचनाहरू</span>
                 </a>
+
+                <!-- Divider -->
+<hr class="sidebar-divider">
+
+<!-- Heading - नेटवर्क कन्ट्रोल -->
+@can('view-network-dashboard')
+    <div class="sidebar-heading">
+        नेटवर्क कन्ट्रोल
+    </div>
+@endcan
+
+<!-- नेटवर्क ड्यासबोर्ड -->
+@can('view-network-dashboard')
+    <a href="{{ route('admin.network.dashboard') }}"
+       class="sidebar-link {{ request()->routeIs('admin.network.dashboard') ? 'active' : '' }}">
+        <i class="fas fa-fw fa-tachometer-alt sidebar-icon"></i>
+        <span class="sidebar-text" x-show="!sidebarCollapsed">ड्यासबोर्ड</span>
+    </a>
+@endcan
+
+<!-- प्रोफाइलहरू -->
+@can('view-network-dashboard')
+    <a href="{{ route('admin.network.profiles.index') }}"
+       class="sidebar-link {{ request()->routeIs('admin.network.profiles.*') ? 'active' : '' }}">
+        <i class="fas fa-fw fa-id-card sidebar-icon"></i>
+        <span class="sidebar-text" x-show="!sidebarCollapsed">प्रोफाइलहरू</span>
+    </a>
+@endcan
+
+<!-- ब्रोडकास्ट -->
+@can('view-network-dashboard')
+    <a href="{{ route('admin.network.broadcasts.index') }}"
+       class="sidebar-link {{ request()->routeIs('admin.network.broadcasts.*') ? 'active' : '' }}">
+        <i class="fas fa-fw fa-bullhorn sidebar-icon"></i>
+        <span class="sidebar-text" x-show="!sidebarCollapsed">ब्रोडकास्ट</span>
+    </a>
+@endcan
+
+<!-- मार्केटप्लेस -->
+@can('view-network-dashboard')
+    <a href="{{ route('admin.network.marketplace.index') }}"
+       class="sidebar-link {{ request()->routeIs('admin.network.marketplace.*') ? 'active' : '' }}">
+        <i class="fas fa-fw fa-store sidebar-icon"></i>
+        <span class="sidebar-text" x-show="!sidebarCollapsed">मार्केटप्लेस</span>
+    </a>
+@endcan
+
+<!-- सन्देशहरू -->
+@can('view-network-dashboard')
+    <a href="{{ route('admin.network.messages.index') }}"
+       class="sidebar-link {{ request()->routeIs('admin.network.messages.*') ? 'active' : '' }}">
+        <i class="fas fa-fw fa-envelope sidebar-icon"></i>
+        <span class="sidebar-text" x-show="!sidebarCollapsed">सन्देशहरू</span>
+    </a>
+@endcan
+
+<!-- रिपोर्टहरू -->
+@can('view-network-dashboard')
+    <a href="{{ route('admin.network.reports.index') }}"
+       class="sidebar-link {{ request()->routeIs('admin.network.reports.*') ? 'active' : '' }}">
+        <i class="fas fa-fw fa-flag sidebar-icon"></i>
+        <span class="sidebar-text" x-show="!sidebarCollapsed">रिपोर्टहरू</span>
+    </a>
+@endcan
                 
                 <!-- Settings -->
                 <a href="{{ route('admin.settings.index') }}"

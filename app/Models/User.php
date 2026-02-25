@@ -319,6 +319,10 @@ class User extends Authenticatable
             ->exists();
     }
 
+    public function ownerProfile()
+    {
+        return $this->hasOne(OwnerProfile::class);
+    }
 
     /**
      * Get all bookings approved by the user.

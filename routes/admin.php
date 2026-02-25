@@ -232,4 +232,7 @@ Route::name('admin.')  // ✅ KEEP only the name prefix
             Route::post('/mark-all-read', [\App\Http\Controllers\Admin\NotificationController::class, 'markAllAsRead'])->name('mark-all-read');
         });
         // ==============================================================================
+
+        // Inside routes/admin.php, after other admin routes
+        require __DIR__ . '/admin-network.php';
     });

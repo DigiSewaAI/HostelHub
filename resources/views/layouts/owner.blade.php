@@ -886,26 +886,6 @@
             <div class="main-content-container">
                 <!-- Page Content -->
                 <main id="main-content" class="page-content safe-area-left safe-area-right safe-area-bottom">
-                    <!-- Flash Messages -->
-                    @if(session('success'))
-                        <div class="alert alert-success alert-dismissible fade show mb-4 rounded-xl" role="alert">
-                            <div class="d-flex align-items-center">
-                                <i class="fas fa-check-circle me-2"></i>
-                                <strong class="nepali">{{ session('success') }}</strong>
-                            </div>
-                            <button type="button" class="btn-close tap-target" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    @endif
-
-                    @if(session('error'))
-                        <div class="alert alert-danger alert-dismissible fade show mb-4 rounded-xl" role="alert">
-                            <div class="d-flex align-items-center">
-                                <i class="fas fa-exclamation-circle me-2"></i>
-                                <strong class="nepali">{{ session('error') }}</strong>
-                            </div>
-                            <button type="button" class="btn-close tap-target" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    @endif
 
 <!-- Breadcrumbs -->
 @if(View::hasSection('breadcrumbs'))

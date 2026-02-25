@@ -73,6 +73,12 @@ class AuthServiceProvider extends ServiceProvider
     {
         $this->registerPolicies();
 
+        // यो Gate ले BroadcastMessage को create ability लाई override गर्नेछ
+        Gate::define('create', function ($user) {
+            \Log::info('Direct Gate create called', ['user' => $user->id]);
+            return true;
+        });
+
         // ✅ ADMIN BYPASS: Allow admin to bypass all permission checks
         Gate::before(function ($user, $ability) {
             if ($user->hasRole('admin')) {

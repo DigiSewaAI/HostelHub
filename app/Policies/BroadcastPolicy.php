@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Models\User;
 use App\Models\BroadcastMessage;
+use App\Services\BroadcastService;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class BroadcastPolicy
@@ -15,12 +16,7 @@ class BroadcastPolicy
      */
     public function create(User $user)
     {
-        // कूलडाउन जाँच: पछिल्लो ब्रोडकास्ट पठाएको कम्तीमा ७ दिन भयो?
-        $last = BroadcastMessage::where('sender_id', $user->id)
-            ->where('status', 'sent')
-            ->latest()
-            ->first();
-
-        return !$last || $last->sent_at->diffInDays(now()) >= 7;
+        \Log::info('BroadcastPolicy create called', ['user_id' => $user->id]);
+        return app(BroadcastService::class)->checkCooldown($user->id);
     }
 }
