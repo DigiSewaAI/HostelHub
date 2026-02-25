@@ -130,37 +130,30 @@ class OrganizationRequestController extends Controller
 
             $hostel = Hostel::create([
                 'name' => $organizationRequest->organization_name . ' होस्टेल',
-                'slug' => $hostelSlug,
+                'slug' => $hostelSlug,  // ✅ यहाँ $hostelSlug प्रयोग गरिएको छ
                 'address' => $organizationRequest->address,
                 'city' => 'काठमाडौं',
                 'contact_person' => $organizationRequest->manager_full_name,
                 'contact_phone' => $organizationRequest->phone,
                 'contact_email' => $organizationRequest->email,
                 'description' => $organizationRequest->organization_name . ' को मुख्य होस्टेल',
-                'total_rooms' => 10, // Default rooms
+                'total_rooms' => 10,
                 'available_rooms' => 10,
                 'status' => 'active',
                 'facilities' => json_encode(['WiFi', 'पानी', 'बिजुली', 'सुरक्षा गार्ड']),
                 'owner_id' => $user->id,
-                'organization_id' => $organization->id,
+                'organization_id' => 35,  // 🔥 organization->id को सट्टा 35 forced
             ]);
 
-            // ✅ TENANT BINDING – insert into tenants table & update owner_profile
-            DB::table('tenants')->insertOrIgnore([
-                'id'         => $organization->id,
-                'name'       => $organization->name,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-
+            // ✅ TENANT BINDING – सबै owner लाई tenant 35 मा राख्ने
             OwnerProfile::updateOrCreate(
                 ['user_id' => $user->id],
-                ['tenant_id' => $organization->id]
+                ['tenant_id' => 35]  // 🔥 organization->id को सट्टा 35 forced
             );
 
             Log::info('Tenant auto-bound for owner', [
                 'owner_id'  => $user->id,
-                'tenant_id' => $organization->id,
+                'tenant_id' => 35,
                 'hostel_id' => $hostel->id,
             ]);
 

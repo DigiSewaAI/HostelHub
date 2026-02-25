@@ -142,6 +142,7 @@ return [
     'verification_status' => 'प्रमाणीकरण स्थिति',
     'verified_at' => 'प्रमाणित मिति',
     'not_verified_message' => 'तपाईंको प्रोफाइल प्रमाणित भएको छैन।',
+    'all_categories' => 'सबै सन्देशहरू',
     'profile_updated' => 'प्रोफाइल सफलतापूर्वक अद्यावधिक गरियो।',
     'profile_incomplete' => 'कृपया पहिले आफ्नो मालिक प्रोफाइल बनाउनुहोस्।',
 ];

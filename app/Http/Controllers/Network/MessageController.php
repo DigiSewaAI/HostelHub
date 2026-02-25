@@ -19,6 +19,9 @@ class MessageController extends Controller
         $this->messageService = $messageService;
     }
 
+    /**
+     * इनबक्स देखाउँछ (जसमा ब्रॉडकास्ट थ्रेडहरू पनि आउँछन्)
+     */
     public function index(Request $request)
     {
         $filters = $request->only(['category']);
@@ -26,6 +29,9 @@ class MessageController extends Controller
         return view('network.messages.inbox', compact('threads'));
     }
 
+    /**
+     * एकल थ्रेड (message thread) देखाउँछ
+     */
     public function show($threadId)
     {
         $thread = MessageThread::with(['messages.sender', 'participants.user'])
@@ -37,6 +43,9 @@ class MessageController extends Controller
         return view('network.messages.show', compact('thread'));
     }
 
+    /**
+     * नयाँ सन्देश पठाउँछ (वा अवस्थित थ्रेडमा जवाफ)
+     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -51,25 +60,25 @@ class MessageController extends Controller
         $senderId = Auth::id();
         $sender = Auth::user();
 
-        // Get tenant ID from the sender's owner profile
+        // पठाउने व्यक्तिको tenant ID प्राप्त गर्ने (Owner प्रोफाइलबाट)
         $tenantId = $sender->ownerProfile->tenant_id ?? null;
         if (!$tenantId) {
             return back()->with('error', 'Tenant जानकारी फेला परेन। कृपया प्रोफाइल पूरा गर्नुहोस्।');
         }
 
-        // 🔐 RECIPIENT ELIGIBILITY CHECK (for new thread)
+        // 🔐 नयाँ थ्रेडको लागि प्राप्तकर्ता योग्य छ कि छैन जाँच गर्ने
         if (empty($validated['thread_id']) && isset($validated['recipient_id'])) {
             $recipient = User::find($validated['recipient_id']);
             if (!$recipient) {
                 return back()->with('error', 'प्राप्तकर्ता फेला परेन।');
             }
-            // Allow admins even if they have no eligible hostel
+            // एडमिनलाई पनि अनुमति दिने (तर यहाँ ownerProfile भएका मात्र आउँछन्)
             if (!$recipient->hasEligibleHostel() && !$recipient->isAdmin()) {
                 return back()->with('error', 'यो प्राप्तकर्ता सन्देश प्राप्त गर्न योग्य छैन।');
             }
         }
 
-        // If existing thread, validate that thread belongs to the same tenant
+        // यदि अवस्थित थ्रेड हो भने, tenant ID मिल्दो छ कि छैन जाँच गर्ने
         if (!empty($validated['thread_id'])) {
             $thread = MessageThread::find($validated['thread_id']);
             if (!$thread) {
@@ -80,20 +89,20 @@ class MessageController extends Controller
             }
         }
 
-        // Create new thread if needed
+        // नयाँ थ्रेड सिर्जना गर्ने (यदि आवश्यक भए)
         if (empty($validated['thread_id'])) {
             $participants = [$senderId, $validated['recipient_id']];
             $thread = $this->messageService->createThread($participants, $validated['subject'] ?? null);
             $threadId = $thread->id;
 
-            // Set tenant_id on the thread
+            // tenant_id सेट गर्ने
             $thread->tenant_id = $tenantId;
             $thread->save();
         } else {
             $threadId = $validated['thread_id'];
         }
 
-        // Send the message
+        // सन्देश पठाउने
         $message = $this->messageService->sendMessage(
             $threadId,
             $senderId,
@@ -102,7 +111,7 @@ class MessageController extends Controller
             $validated['priority']
         );
 
-        // Set tenant_id on the message as well (optional, for consistency)
+        // थ्रेड र सन्देश दुवैमा tenant_id छ भनी सुनिश्चित गर्ने (वैकल्पिक)
         if ($message) {
             $message->tenant_id = $tenantId;
             $message->save();
@@ -112,6 +121,9 @@ class MessageController extends Controller
             ->with('success', 'सन्देश पठाइयो।');
     }
 
+    /**
+     * थ्रेडलाई अभिलेख (archive) गर्ने
+     */
     public function archive($threadId)
     {
         $this->messageService->archiveThread($threadId, Auth::id());

@@ -76,6 +76,13 @@ class BroadcastService
             ->latest()
             ->first();
 
-        return !$last || $last->sent_at->diffInDays(now()) >= 7;
+        if (!$last) {
+            return true; // कुनै अघिल्लो ब्रॉडकास्ट छैन, create गर्न दिने
+        }
+
+        // यदि sent_at छ भने त्यसको आधारमा, नभए created_at प्रयोग गर्ने
+        $referenceDate = $last->sent_at ?? $last->created_at;
+
+        return $referenceDate->diffInDays(now()) >= 7;
     }
 }

@@ -4,12 +4,24 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\BroadcastMessage;
+use App\Services\BroadcastDistributionService; // Service import गरियो
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Jobs\DistributeBroadcast; // Queue job (यदि प्रयोग गर्ने हो भने)
 
 class AdminBroadcastController extends Controller
 {
+    protected $distributionService;
+
+    /**
+     * Constructor मा BroadcastDistributionService inject गरियो
+     */
+    public function __construct(BroadcastDistributionService $distributionService)
+    {
+        $this->distributionService = $distributionService;
+    }
+
     public function index(Request $request)
     {
         $query = BroadcastMessage::with('sender');
@@ -29,6 +41,10 @@ class AdminBroadcastController extends Controller
         return view('admin.network.broadcasts.show', compact('broadcast'));
     }
 
+    /**
+     * ब्रॉडकास्ट approve गर्ने मेथड
+     * यसले ब्रॉडकास्टलाई approved मार्क गर्छ र सबै eligible प्रापकहरूलाई वितरण गर्छ।
+     */
     public function approve(BroadcastMessage $broadcast)
     {
         $broadcast->update([
@@ -40,12 +56,14 @@ class AdminBroadcastController extends Controller
             'rejected_reason' => null,
         ]);
 
-        // Optionally trigger sending logic (e.g., queue job to send to all recipients)
-        // For now, we just mark it approved; the actual sending might be handled by a separate process.
+        // यो लाइन थप्नुहोस् (queue वा सीधै)
+        app(\App\Services\BroadcastDistributionService::class)->distribute($broadcast);
 
         return redirect()->route('admin.network.broadcasts.index')
             ->with('success', 'Broadcast approved.');
     }
+
+
 
     public function reject(Request $request, BroadcastMessage $broadcast)
     {
@@ -62,7 +80,8 @@ class AdminBroadcastController extends Controller
             'rejected_reason' => $request->rejected_reason,
         ]);
 
-        // Notify owner about rejection
+        // Notify owner about rejection (optional)
+        // तपाईं यहाँ notification पठाउन सक्नुहुन्छ
 
         return redirect()->route('admin.network.broadcasts.index')
             ->with('success', 'Broadcast rejected.');
