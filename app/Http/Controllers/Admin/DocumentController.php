@@ -17,75 +17,46 @@ use Illuminate\Validation\Rule;
 class DocumentController extends Controller
 {
     /**
+     * Get all hostel IDs owned by the current user.
+     */
+    private function getUserHostelIds($user)
+    {
+        return Hostel::where('owner_id', $user->id)->pluck('id');
+    }
+
+    /**
      * Display a listing of documents based on user role.
      */
     public function index(Request $request)
     {
         try {
             $user = Auth::user();
-            \Log::info("=== DOCUMENT CONTROLLER START ===");
-            \Log::info("User: " . $user->name . " (ID: " . $user->id . ")");
-            \Log::info("Roles: " . $user->getRoleNames()->implode(', '));
-
             $query = Document::with(['student.user', 'hostel', 'uploader', 'organization']);
 
-            // ✅ FIXED: Proper role-based data scoping with tenant context
             if ($user->hasRole('admin')) {
-                \Log::info("Admin access - showing all documents");
                 $documents = $query->latest();
             } elseif ($user->hasRole('hostel_manager') || $user->hasRole('owner')) {
-                \Log::info("Owner/hostel_manager access detected");
+                // ✅ FIXED: Use owner_id to get hostel IDs
+                $hostelIds = $this->getUserHostelIds($user);
 
-                // ✅ FIXED: Get organization from session for tenant context
-                $organizationId = session('current_organization_id');
-                \Log::info("Session organization ID: " . $organizationId);
-
-                if ($organizationId) {
-                    $organization = Organization::find($organizationId);
-                    \Log::info("Organization found: " . ($organization->name ?? 'Unknown') . " (ID: " . $organizationId . ")");
-
-                    // Get students in organization's hostels
-                    $hostelIds = $organization->hostels->pluck('id');
-                    $studentIds = Student::whereIn('hostel_id', $hostelIds)->pluck('id');
-
-                    $documents = $query->whereIn('student_id', $studentIds)->latest();
-                    \Log::info("Filtering documents for organization. Hostels: " . $hostelIds->count() . ", Students: " . $studentIds->count());
+                if ($hostelIds->isEmpty()) {
+                    $documents = $query->where('id', 0); // No documents
                 } else {
-                    \Log::warning("No organization found in session for user: " . $user->id);
-                    // Emergency fallback: get user's first organization
-                    $userOrganization = $user->organizations()->first();
-                    if ($userOrganization) {
-                        session(['current_organization_id' => $userOrganization->id]);
-                        $hostelIds = $userOrganization->hostels->pluck('id');
-                        $studentIds = Student::whereIn('hostel_id', $hostelIds)->pluck('id');
-                        $documents = $query->whereIn('student_id', $studentIds)->latest();
-                        \Log::info("Using emergency fallback organization: " . $userOrganization->name);
-                    } else {
-                        \Log::error("No organization available for user: " . $user->id);
-                        $documents = $query->where('id', 0); // No documents
-                    }
+                    $documents = $query->whereIn('hostel_id', $hostelIds)->latest();
                 }
             } else {
-                // Students can only see their own documents
+                // Student
                 $student = $user->student;
                 if ($student) {
                     $documents = $query->where('student_id', $student->id)->latest();
                 } else {
-                    $documents = $query->where('id', 0); // No documents
+                    $documents = $query->where('id', 0);
                 }
             }
 
-            // Count before pagination
-            $countBeforePagination = $documents->count();
-            \Log::info("Documents count before pagination: " . $countBeforePagination);
-
-            // ✅ SECURITY: Apply filters with input validation
+            // Apply filters
             $documents = $this->applyFilters($documents, $request);
-
             $documents = $documents->paginate(10);
-
-            \Log::info("Documents count after pagination: " . $documents->count());
-            \Log::info("=== DOCUMENT CONTROLLER END ===");
 
             return $this->roleBasedView('documents.index', [
                 'documents' => $documents,
@@ -106,30 +77,24 @@ class DocumentController extends Controller
         try {
             $user = Auth::user();
 
-            // ✅ SECURITY: Role-based data access with tenant context
             if ($user->hasRole('admin')) {
                 $students = Student::with('user')->where('status', 'active')->get();
                 $hostels = Hostel::all();
             } elseif ($user->hasRole('hostel_manager') || $user->hasRole('owner')) {
-                $organizationId = session('current_organization_id');
-                
-                if (!$organizationId) {
+                // ✅ FIXED: Use owner_id to get hostels
+                $hostelIds = $this->getUserHostelIds($user);
+
+                if ($hostelIds->isEmpty()) {
                     return redirect()->route($this->getRoleRoute('documents.index'))
-                        ->with('error', 'तपाईंको संस्था फेला परेन। कृपया पुन: लगइन गर्नुहोस्।');
+                        ->with('error', 'तपाईंसँग कुनै होस्टल छैन। पहिले होस्टल सिर्जना गर्नुहोस्।');
                 }
 
-                $organization = Organization::find($organizationId);
-                if (!$organization) {
-                    return redirect()->route($this->getRoleRoute('documents.index'))
-                        ->with('error', 'तपाईंको संस्था फेला परेन');
-                }
-
-                $hostelIds = $organization->hostels->pluck('id');
                 $students = Student::whereIn('hostel_id', $hostelIds)
                     ->with('user')
                     ->where('status', 'active')
                     ->get();
-                $hostels = $organization->hostels;
+
+                $hostels = Hostel::whereIn('id', $hostelIds)->get();
             } else {
                 abort(403, 'तपाईंसँग यो कार्य गर्ने अनुमति छैन');
             }
@@ -148,15 +113,15 @@ class DocumentController extends Controller
     {
         \Log::info("=== DOCUMENT STORE START ===");
         \Log::info("All request data:", $request->all());
-        
+
         DB::beginTransaction();
 
         try {
             $user = Auth::user();
-            
+
             // ✅ FIXED: Proper document type validation
             $allowedDocumentTypes = array_keys($this->getDocumentTypes());
-            
+
             $validator = Validator::make($request->all(), [
                 'student_id' => 'required|exists:students,id',
                 'document_type' => ['required', 'string', Rule::in($allowedDocumentTypes)],
@@ -203,7 +168,7 @@ class DocumentController extends Controller
 
             // Get student and set organization context
             $student = Student::with('hostel')->findOrFail($validatedData['student_id']);
-            
+
             // ✅ FIXED: Set tenant context properly
             $organizationId = session('current_organization_id') ?? $student->organization_id;
 
@@ -274,7 +239,7 @@ class DocumentController extends Controller
                 $hostels = Hostel::all();
             } elseif ($user->hasRole('hostel_manager') || $user->hasRole('owner')) {
                 $organizationId = session('current_organization_id');
-                
+
                 if (!$organizationId) {
                     return redirect()->route($this->getRoleRoute('documents.index'))
                         ->with('error', 'तपाईंको संस्था फेला परेन');
@@ -463,7 +428,7 @@ class DocumentController extends Controller
                         'documentTypes' => $this->getDocumentTypes()
                     ])->with('error', 'तपाईंको संस्था फेला परेन');
                 }
-                
+
                 $organization = Organization::find($organizationId);
                 $hostelIds = $organization->hostels->pluck('id');
                 $query->whereIn('hostel_id', $hostelIds);
@@ -511,11 +476,11 @@ class DocumentController extends Controller
             // ✅ FIXED: Tenant-aware file storage
             $organizationId = session('current_organization_id');
             $directory = 'documents';
-            
+
             if ($organizationId) {
                 $directory .= '/organization_' . $organizationId;
             }
-            
+
             if ($studentId) {
                 $directory .= '/student_' . $studentId;
             }
@@ -562,11 +527,9 @@ class DocumentController extends Controller
         }
 
         if ($user->hasRole('hostel_manager') || $user->hasRole('owner')) {
-            $organizationId = session('current_organization_id');
-            if (!$organizationId) return false;
-
-            $student = Student::with('hostel')->find($studentId);
-            return $student && $student->organization_id == $organizationId;
+            $hostelIds = $this->getUserHostelIds($user);
+            $student = Student::find($studentId);
+            return $student && $hostelIds->contains($student->hostel_id);
         }
 
         // Students can only create documents for themselves
@@ -587,8 +550,8 @@ class DocumentController extends Controller
         }
 
         if ($user->hasRole('hostel_manager') || $user->hasRole('owner')) {
-            $organizationId = session('current_organization_id');
-            return $organizationId && $document->organization_id == $organizationId;
+            $hostelIds = $this->getUserHostelIds($user);
+            return $hostelIds->contains($document->hostel_id);
         }
 
         if ($user->hasRole('student')) {
@@ -607,18 +570,12 @@ class DocumentController extends Controller
             return true;
         }
 
-        // Owners can delete documents from their organization
         if ($user->hasRole('hostel_manager') || $user->hasRole('owner')) {
-            $organizationId = session('current_organization_id');
-            if (!$organizationId) return false;
-
-            $hasOrganizationAccess = $document->organization_id == $organizationId;
-
-            // Allow deletion if user uploaded the document or has organization access
-            return $document->uploaded_by == $user->id || $hasOrganizationAccess;
+            $hostelIds = $this->getUserHostelIds($user);
+            $hasHostelAccess = $hostelIds->contains($document->hostel_id);
+            return $document->uploaded_by == $user->id || $hasHostelAccess;
         }
 
-        // Students can only delete their own uploaded documents
         if ($user->hasRole('student')) {
             return $user->student &&
                 $document->student_id == $user->student->id &&
