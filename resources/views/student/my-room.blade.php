@@ -584,69 +584,82 @@
 
                 // Form submission
                 document.getElementById('reportIssueForm').addEventListener('submit', function(e) {
-                    e.preventDefault(); // Prevent page reload
-                    
-                    // Show loading state
-                    const submitBtn = document.getElementById('submitBtn');
-                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> पेश गर्दै...';
-                    submitBtn.disabled = true;
-                    
-                    // Hide any previous messages
-                    const formMessage = document.getElementById('formMessage');
-                    formMessage.style.display = 'none';
-                    
-                    // Get form data
-                    const formData = new FormData(this);
-                    
-                    // Send AJAX request using Fetch API
-                    fetch('{{ route("student.report-room-issue") }}', {
-                        method: 'POST',
-                        body: formData,
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        // Reset button
-                        submitBtn.innerHTML = '<i class="fas fa-paper-plane me-1"></i> रिपोर्ट गर्नुहोस्';
-                        submitBtn.disabled = false;
-                        
-                        if (data.success) {
-                            // Show success message
-                            formMessage.className = 'alert alert-success';
-                            formMessage.innerHTML = '<i class="fas fa-check-circle me-2"></i>' + data.message;
-                            formMessage.style.display = 'block';
-                            
-                            // Clear form
-                            this.reset();
-                            
-                            // Close modal after 2 seconds
-                            setTimeout(() => {
-                                closeReportModal();
-                                showToast('सफलता!', data.message, 'success');
-                            }, 2000);
-                        } else {
-                            // Show error message
-                            formMessage.className = 'alert alert-danger';
-                            formMessage.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i>' + data.message;
-                            formMessage.style.display = 'block';
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        
-                        // Reset button
-                        submitBtn.innerHTML = '<i class="fas fa-paper-plane me-1"></i> रिपोर्ट गर्नुहोस्';
-                        submitBtn.disabled = false;
-                        
-                        // Show error message
-                        formMessage.className = 'alert alert-danger';
-                        formMessage.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i>अनुरोध पेश गर्न असफल। पुनः प्रयास गर्नुहोस्।';
-                        formMessage.style.display = 'block';
-                    });
-                });
+    e.preventDefault();
+
+    const submitBtn = document.getElementById('submitBtn');
+    const originalBtnText = submitBtn.innerHTML; // save for later
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> पेश गर्दै...';
+    submitBtn.disabled = true;
+
+    const formMessage = document.getElementById('formMessage');
+    if (formMessage) {
+        formMessage.style.display = 'none'; // hide previous messages
+    }
+
+    const formData = new FormData(this);
+
+    fetch('{{ route("student.report-room-issue") }}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        }
+    })
+    .then(async response => {
+        if (!response.ok) {
+            // Try to get error message from response body (could be HTML or JSON)
+            const text = await response.text();
+            throw new Error(`Server error (${response.status}): ${text.substring(0, 200)}`);
+        }
+        return response.json(); // expect JSON
+    })
+    .then(data => {
+        // Reset button
+        submitBtn.innerHTML = originalBtnText;
+        submitBtn.disabled = false;
+
+        if (data.success) {
+            // Success message
+            if (formMessage) {
+                formMessage.className = 'alert alert-success';
+                formMessage.innerHTML = '<i class="fas fa-check-circle me-2"></i>' + (data.message || 'सफल भयो');
+                formMessage.style.display = 'block';
+            }
+            this.reset(); // clear form
+            // Close modal after 2 seconds
+            setTimeout(() => {
+                closeReportModal();
+                showToast('सफलता!', data.message || 'समस्या रिपोर्ट गरियो', 'success');
+            }, 2000);
+        } else {
+            // Error from server (validation, business logic, etc.)
+            const errorMsg = data.message || 'कृपया फारम पुन: जाँच गर्नुहोस्।';
+            if (formMessage) {
+                formMessage.className = 'alert alert-danger';
+                formMessage.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i>' + errorMsg;
+                formMessage.style.display = 'block';
+            } else {
+                alert('त्रुटि: ' + errorMsg);
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Fetch error:', error);
+        // Reset button
+        submitBtn.innerHTML = originalBtnText;
+        submitBtn.disabled = false;
+
+        const errorMsg = error.message || 'नेटवर्क त्रुटि भयो। पुन: प्रयास गर्नुहोस्।';
+        if (formMessage) {
+            formMessage.className = 'alert alert-danger';
+            formMessage.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i>' + errorMsg;
+            formMessage.style.display = 'block';
+        } else {
+            alert('त्रुटि: ' + errorMsg);
+        }
+    });
+});
 
                 function resetForm() {
                     document.getElementById('reportIssueForm').reset();

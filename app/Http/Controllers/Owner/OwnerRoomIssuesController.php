@@ -19,26 +19,29 @@ class OwnerRoomIssuesController extends Controller
     }
 
     /**
-     * Get hostel IDs for the authenticated owner
+     * Get all hostel IDs accessible by the owner:
+     * - from organizations where user is owner
+     * - directly owned hostels (hostels.owner_id)
+     *
+     * @return \Illuminate\Support\Collection
      */
     private function getOwnerHostelIds()
     {
         $user = Auth::user();
+        $hostelIds = collect();
 
-        // Get all organizations where user is owner
+        // 1. Hostels from organizations where user is owner
         $organizations = $user->organizations()
             ->wherePivot('role', 'owner')
             ->get();
 
-        if ($organizations->isEmpty()) {
-            return collect();
-        }
-
-        // Get all hostel IDs from all organizations
-        $hostelIds = collect();
         foreach ($organizations as $organization) {
             $hostelIds = $hostelIds->merge($organization->hostels()->pluck('id'));
         }
+
+        // 2. Directly owned hostels (owner_id)
+        $directHostels = \App\Models\Hostel::where('owner_id', $user->id)->pluck('id');
+        $hostelIds = $hostelIds->merge($directHostels);
 
         return $hostelIds->unique();
     }
@@ -137,20 +140,13 @@ class OwnerRoomIssuesController extends Controller
     {
         try {
             $user = Auth::user();
+            $hostelIds = $this->getOwnerHostelIds();
 
-            // Get owner's organization
-            $organization = $user->organizations()
-                ->wherePivot('role', 'owner')
-                ->first();
-
-            if (!$organization) {
+            if ($hostelIds->isEmpty()) {
                 return redirect()->route('owner.room-issues.index')
-                    ->with('error', 'तपाईंको संस्था फेला परेन।');
+                    ->with('error', 'तपाईंको होस्टेल फेला परेन।');
             }
 
-            $hostelIds = $organization->hostels()->pluck('id');
-
-            // यो तरिकाले issue लिनुहोस्:
             $issue = RoomIssue::whereIn('hostel_id', $hostelIds)
                 ->with(['hostel', 'room', 'student.user'])
                 ->find($id);
@@ -174,18 +170,12 @@ class OwnerRoomIssuesController extends Controller
     {
         try {
             $user = Auth::user();
+            $hostelIds = $this->getOwnerHostelIds();
 
-            // Get owner's organization
-            $organization = $user->organizations()
-                ->wherePivot('role', 'owner')
-                ->first();
-
-            if (!$organization) {
+            if ($hostelIds->isEmpty()) {
                 return redirect()->back()
                     ->with('error', 'तपाईंसँग यो समस्या अद्यावधिक गर्ने अनुमति छैन');
             }
-
-            $hostelIds = $organization->hostels()->pluck('id');
 
             $issue = RoomIssue::whereIn('hostel_id', $hostelIds)->find($id);
 
@@ -225,17 +215,11 @@ class OwnerRoomIssuesController extends Controller
     {
         try {
             $user = Auth::user();
+            $hostelIds = $this->getOwnerHostelIds();
 
-            // Get owner's organization and hostels
-            $organization = $user->organizations()
-                ->wherePivot('role', 'owner')
-                ->first();
-
-            if (!$organization) {
+            if ($hostelIds->isEmpty()) {
                 abort(403, 'तपाईंसँग यो समस्या मेटाउने अनुमति छैन');
             }
-
-            $hostelIds = $organization->hostels()->pluck('id');
 
             $issue = RoomIssue::whereIn('hostel_id', $hostelIds)->findOrFail($id);
             $issue->delete();
@@ -271,21 +255,15 @@ class OwnerRoomIssuesController extends Controller
     {
         try {
             $user = Auth::user();
+            $hostelIds = $this->getOwnerHostelIds();
 
-            // Get owner's organization
-            $organization = $user->organizations()
-                ->wherePivot('role', 'owner')
-                ->first();
-
-            if (!$organization) {
+            if ($hostelIds->isEmpty()) {
                 return response()->json([
                     'total' => 0,
                     'pending' => 0,
                     'today' => 0
                 ]);
             }
-
-            $hostelIds = $organization->hostels()->pluck('id');
 
             $stats = [
                 'total' => RoomIssue::whereIn('hostel_id', $hostelIds)->count(),

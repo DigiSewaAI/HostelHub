@@ -20,6 +20,14 @@ Route::prefix('student')
     ->name('student.')
     ->group(function () {
 
+        // Student Notification Routes
+        Route::prefix('notifications')->name('notifications.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Student\NotificationController::class, 'index'])->name('index');
+            Route::post('/mark-all-read', [\App\Http\Controllers\Student\NotificationController::class, 'markAllAsRead'])->name('mark-all-read');
+            Route::get('/unread-count', [\App\Http\Controllers\Student\NotificationController::class, 'unreadCount'])->name('unread-count');
+        });
+
+
         // ✅ Student Dashboard – Protected with hostel assignment check
         Route::get('/dashboard', [StudentController::class, 'dashboard'])
             ->name('dashboard');
@@ -118,10 +126,3 @@ Route::prefix('student')
                 ->with('info', 'बैंक हस्तान्तरणको सुविधा चाँडै उपलब्ध हुनेछ।');
         })->name('payment.bank-transfer-request');
     });
-
-// Student Notification Routes
-Route::prefix('notifications')->name('notifications.')->group(function () {
-    Route::get('/', [\App\Http\Controllers\Student\NotificationController::class, 'index'])->name('index');
-    Route::post('/mark-all-read', [\App\Http\Controllers\Student\NotificationController::class, 'markAllAsRead'])->name('mark-all-read');
-    Route::get('/unread-count', [\App\Http\Controllers\Student\NotificationController::class, 'unreadCount'])->name('unread-count');
-});

@@ -11,12 +11,17 @@ class RoomIssue extends Model
 
     protected $fillable = [
         'student_id',
+        'student_name',
         'hostel_id',
+        'hostel_name',
         'room_id',
+        'room_number',
+        'organization_id',
         'issue_type',
         'description',
         'priority',
         'status',
+        'reported_at',
         'image_url',
         'resolution_notes',
         'assigned_to',

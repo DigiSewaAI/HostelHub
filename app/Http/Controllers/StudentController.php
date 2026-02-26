@@ -675,7 +675,6 @@ class StudentController extends Controller
      */
     public function reportRoomIssue(Request $request)
     {
-        // Validate the request
         $validated = $request->validate([
             'issue_type' => 'required|string|max:255',
             'description' => 'required|string|max:1000',
@@ -702,32 +701,30 @@ class StudentController extends Controller
                 ]);
             }
 
-            // ✅ Create RoomIssue record using the model (only fillable fields)
+            $hostel = $room->hostel;
+            $organizationId = $hostel->organization_id ?? null;
+            $hostelName = $hostel->name ?? null;
+
+            // ✅ Include all required fields
             $roomIssue = RoomIssue::create([
-                'student_id'   => $student->id,
-                'hostel_id'    => $room->hostel_id,
-                'room_id'      => $room->id,
-                'issue_type'   => $validated['issue_type'],
-                'description'  => $validated['description'],
-                'priority'     => $validated['priority'],
-                'status'       => 'pending',
-                // 'image_url' is optional, not provided here
+                'student_id'      => $student->id,
+                'student_name'    => $student->name,
+                'hostel_id'       => $room->hostel_id,
+                'hostel_name'     => $hostel->name ?? null,
+                'room_id'         => $room->id,
+                'room_number'     => $room->room_number,
+                'organization_id' => $organizationId,
+                'issue_type'      => $validated['issue_type'],
+                'description'     => $validated['description'],
+                'priority'        => $validated['priority'],
+                'status'          => 'pending',
+                'reported_at'     => now(),
             ]);
 
-            // ✅ Log for debugging
-            \Log::info('ROOM_ISSUE_REPORT', $roomIssue->toArray());
-
-            // ✅ Send notification to hostel owner using RoomIssueNotification
+            // Optional notification
             try {
-                $hostel = $room->hostel;
                 if ($hostel && $hostel->owner) {
                     $hostel->owner->notify(new RoomIssueNotification($roomIssue));
-                    \Log::info('RoomIssueNotification sent to owner: ' . $hostel->owner->email);
-                } else {
-                    \Log::warning('Hostel owner not found for room issue', [
-                        'hostel_id' => $room->hostel_id,
-                        'student_id' => $student->id
-                    ]);
                 }
             } catch (\Exception $e) {
                 \Log::error('Failed to send RoomIssueNotification: ' . $e->getMessage());
