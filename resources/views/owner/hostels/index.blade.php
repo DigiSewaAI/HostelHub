@@ -58,28 +58,35 @@
                                     </div>
                                 @endif
                                 
-                                <!-- Quick Stats -->
+                                <!-- Quick Stats with Dynamic Room Counts -->
                                 <div class="card bg-light">
                                     <div class="card-body">
                                         <h6 class="card-title">त्वरित तथ्याङ्क</h6>
                                         <div class="row text-center">
                                             <div class="col-6">
                                                 <div class="border-end">
-                                                    <h5 class="text-primary mb-1">{{ $hostel->total_rooms }}</h5>
+                                                    @php
+                                                        $totalRooms = $hostel->rooms ? $hostel->rooms->count() : 0;
+                                                    @endphp
+                                                    <h5 class="text-primary mb-1">{{ $totalRooms }}</h5>
                                                     <small class="text-muted">कुल कोठा</small>
                                                 </div>
                                             </div>
                                             <div class="col-6">
-                                                <h5 class="text-success mb-1">{{ $hostel->available_rooms }}</h5>
+                                                @php
+                                                    $availableRooms = $hostel->rooms ? $hostel->rooms->where('status', 'available')->count() : 0;
+                                                @endphp
+                                                <h5 class="text-success mb-1">{{ $availableRooms }}</h5>
                                                 <small class="text-muted">उपलब्ध कोठा</small>
                                             </div>
                                         </div>
-                                        @if($hostel->rooms && $hostel->rooms->count() > 0)
+                                        @if($totalRooms > 0)
                                         <div class="mt-3">
                                             <small class="text-muted">कब्जा दर:</small>
                                             <div class="progress mt-1" style="height: 8px;">
                                                 @php
-                                                    $occupancyRate = (($hostel->total_rooms - $hostel->available_rooms) / $hostel->total_rooms) * 100;
+                                                    $occupiedRooms = $hostel->rooms->where('status', 'occupied')->count();
+                                                    $occupancyRate = $totalRooms > 0 ? ($occupiedRooms / $totalRooms) * 100 : 0;
                                                 @endphp
                                                 <div class="progress-bar bg-success" 
                                                      role="progressbar" 
@@ -119,13 +126,13 @@
                                     <div class="col-md-6">
                                         <div class="mb-3">
                                             <label class="form-label fw-bold">कुल कोठाहरू</label>
-                                            <p class="fs-5">{{ $hostel->total_rooms }}</p>
+                                            <p class="fs-5">{{ $totalRooms }}</p>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3">
                                             <label class="form-label fw-bold">उपलब्ध कोठाहरू</label>
-                                            <p class="fs-5 text-success">{{ $hostel->available_rooms }}</p>
+                                            <p class="fs-5 text-success">{{ $availableRooms }}</p>
                                         </div>
                                     </div>
                                 </div>

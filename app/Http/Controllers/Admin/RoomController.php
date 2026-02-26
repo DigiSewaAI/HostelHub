@@ -26,22 +26,28 @@ class RoomController extends Controller
         if ($user->hasRole('admin')) {
             $rooms = Room::with('hostel')->latest()->paginate(10);
             return view('admin.rooms.index', compact('rooms'));
-        } elseif ($user->hasRole('hostel_manager')) {
-            $organization = $user->organizations()->wherePivot('role', 'owner')->first();
+        }
 
-            if (!$organization) {
+        // ✅ FIXED: For hostel_manager/owner, use direct owner_id relationship
+        if ($user->hasRole('hostel_manager') || $user->hasRole('owner')) {
+            // Get all hostel IDs where this user is the owner
+            $hostelIds = Hostel::where('owner_id', $user->id)->pluck('id');
+
+            // If no hostels found, show empty list with appropriate message
+            if ($hostelIds->isEmpty()) {
                 return view('owner.rooms.index', ['rooms' => collect()])
-                    ->with('error', 'तपाईंको संस्था फेला परेन');
+                    ->with('error', 'तपाईंसँग कुनै होस्टल छैन। पहिले होस्टल सिर्जना गर्नुहोस्।');
             }
 
-            $hostelIds = $organization->hostels->pluck('id');
             $rooms = Room::whereIn('hostel_id', $hostelIds)
                 ->with('hostel')
                 ->latest()
                 ->paginate(10);
 
             return view('owner.rooms.index', compact('rooms'));
-        } elseif ($user->hasRole('student')) {
+        }
+
+        if ($user->hasRole('student')) {
             $rooms = Room::with('hostel')->where('status', 'available')->paginate(10);
             return view('student.rooms.index', compact('rooms'));
         }
@@ -70,17 +76,17 @@ class RoomController extends Controller
 
         // ✅ ADDED: Explicit check for other roles to prevent fall-through
         if ($user->hasRole('hostel_manager') || $user->hasRole('owner')) {
-            $organization = $user->organizations()->wherePivot('role', 'owner')->first();
+            // ✅ FIXED: Use direct owner_id relationship to fetch hostels (bypass organization/session)
+            $hostels = Hostel::where('owner_id', $user->id)->get();
 
-            if (!$organization) {
-                \Log::warning('Organization not found for user', ['user_id' => $user->id]);
+            if ($hostels->isEmpty()) {
+                \Log::warning('No hostels found for user', ['user_id' => $user->id]);
                 return redirect()->route('owner.rooms.index')
-                    ->with('error', 'तपाईंको संस्था फेला परेन');
+                    ->with('error', 'तपाईंसँग कुनै होस्टल छैन। पहिले होस्टल सिर्जना गर्नुहोस्।');
             }
 
-            $hostels = $organization->hostels;
             \Log::info('Owner/Manager accessing room create form', [
-                'organization_id' => $organization->id,
+                'user_id' => $user->id,
                 'hostels_count' => $hostels->count()
             ]);
             return view('owner.rooms.create', compact('hostels'));
@@ -132,17 +138,12 @@ class RoomController extends Controller
                     ->with('error', $validationError);
             }
 
-            // Check permissions for hostel_manager
-            if ($user->hasRole('hostel_manager')) {
-                $organization = $user->organizations()->wherePivot('role', 'owner')->first();
+            // 🔥 FIXED: For hostel_manager/owner, check hostel ownership via owner_id, not organization
+            if ($user->hasRole('hostel_manager') || $user->hasRole('owner')) {
+                $hostel = Hostel::where('id', $request->hostel_id)
+                    ->where('owner_id', $user->id)
+                    ->first();
 
-                if (!$organization) {
-                    return redirect()->back()
-                        ->withInput()
-                        ->with('error', 'तपाईंको संस्था फेला परेन');
-                }
-
-                $hostel = $organization->hostels()->where('id', $request->hostel_id)->first();
                 if (!$hostel) {
                     return redirect()->back()
                         ->withInput()

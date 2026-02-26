@@ -66,21 +66,49 @@ class HostelController extends Controller
 
     public function index()
     {
-        $organizationId = session('current_organization_id');
+        $user = Auth::user();
 
+        // ✅ PRIORITY: Use direct hostel relation if available
+        $hostel = $user->hostel;
+        if ($hostel) {
+            // Fix session organization to match the hostel's actual organization (35)
+            session(['current_organization_id' => $hostel->organization_id]);
+
+            // Load organization (optional, but needed for usage overview etc.)
+            $organization = $hostel->organization;
+
+            // If organization not found (e.g., deleted), fallback to session org
+            if (!$organization) {
+                $organization = Organization::find(session('current_organization_id'));
+            }
+
+            // 🔥 FIX: Load rooms for the main hostel to enable dynamic counts in the view
+            $hostel->load('rooms');
+
+            // Load counts and other data as before
+            $hostels = $hostel->organization->hostels()->withCount(['rooms', 'students'])->get();
+            $usageOverview = $this->planLimitService->getUsageOverview($organization);
+            $subscription = $organization->currentSubscription();
+            $canCreateMoreHostels = $subscription ? $this->planLimitService->canAddHostel($organization) : false;
+
+            return view('owner.hostels.index', compact(
+                'hostels',
+                'organization',
+                'hostel',
+                'usageOverview',
+                'subscription',
+                'canCreateMoreHostels'
+            ));
+        }
+
+        // 🔁 Fallback to original organization-based logic (for users without direct hostel_id)
+        $organizationId = session('current_organization_id');
         if (!$organizationId) {
             return redirect()->route('register.organization')
                 ->with('error', 'कृपया पहिले संस्था दर्ता गर्नुहोस् वा संस्था चयन गर्नुहोस्');
         }
 
-        // ✅ ENHANCED: Owner authorization
-        $user = Auth::user();
-        if ($user->hasRole('hostel_manager')) {
-            $this->authorizeHostelAccess();
-        }
-
         $organization = Organization::find($organizationId);
-
         if (!$organization) {
             session()->forget('current_organization_id');
             return redirect()->route('register.organization')
@@ -89,6 +117,11 @@ class HostelController extends Controller
 
         $hostels = $organization->hostels()->withCount(['rooms', 'students'])->get();
         $hostel = $hostels->first();
+
+        // 🔥 FIX: If a hostel exists, load its rooms for dynamic counts
+        if ($hostel) {
+            $hostel->load('rooms');
+        }
 
         $usageOverview = $this->planLimitService->getUsageOverview($organization);
         $subscription = $organization->currentSubscription();

@@ -10,7 +10,18 @@
                 <i class="fas fa-arrow-left me-2"></i>पछाडि फर्कनुहोस्
             </a>
         </div>
-
+{{-- ✅ Validation Error Summary --}}
+@if($errors->any())
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <strong>कृपया तलका त्रुटिहरू सच्याउनुहोस्:</strong>
+        <ul class="mb-0 mt-2">
+            @foreach($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+@endif
         <div class="card shadow mb-4">
             <div class="card-header py-3">
                 <h6 class="m-0 font-weight-bold text-primary">कोठा विवरण</h6>
