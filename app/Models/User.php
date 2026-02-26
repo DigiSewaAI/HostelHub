@@ -324,6 +324,11 @@ class User extends Authenticatable
         return $this->hasOne(OwnerProfile::class);
     }
 
+    public function marketplaceListings()
+    {
+        return $this->hasMany(MarketplaceListing::class, 'user_id');
+    }
+
     /**
      * Get all bookings approved by the user.
      */

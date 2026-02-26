@@ -251,10 +251,20 @@ Route::middleware(['auth', \App\Http\Middleware\EnsureEligibleForNetwork::class]
         Route::post('/marketplace', [MarketplaceController::class, 'store'])->name('marketplace.store');
         Route::get('/marketplace/{listing:slug}', [MarketplaceController::class, 'show'])->name('marketplace.show');
         Route::post('/marketplace/{listing}/contact', [MarketplaceController::class, 'contact'])->name('marketplace.contact');
+        Route::get('/marketplace/{listing}/edit', [MarketplaceController::class, 'edit'])->name('marketplace.edit');
+        Route::put('/marketplace/{listing}', [MarketplaceController::class, 'update'])->name('marketplace.update');
+        Route::delete('/marketplace/{listing}', [MarketplaceController::class, 'destroy'])->name('marketplace.destroy');
+
 
         // Directory
         Route::get('/directory', [DirectoryController::class, 'index'])->name('directory.index');
     });
+
+// Public Bazar
+Route::prefix('bazar')->name('public.bazar.')->group(function () {
+    Route::get('/', [App\Http\Controllers\Public\BazarController::class, 'index'])->name('index');
+    Route::get('/{slug}', [App\Http\Controllers\Public\BazarController::class, 'show'])->name('show');
+});
 
 // ✅ Student routes - सरल र सही version
 // केवल student.php file include गर्ने

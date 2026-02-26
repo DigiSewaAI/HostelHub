@@ -24,11 +24,15 @@ Route::prefix('network')->name('network.')->group(function () {
     Route::post('broadcasts/{broadcast}/reject', [AdminBroadcastController::class, 'reject'])->name('broadcasts.reject');
 
     // Marketplace
-    Route::resource('marketplace', AdminMarketplaceController::class)->only(['index', 'show']);
+    Route::get('marketplace', [AdminMarketplaceController::class, 'index'])->name('marketplace.index');
+    Route::get('marketplace/{listing}', [AdminMarketplaceController::class, 'show'])->name('marketplace.show');
+    Route::get('marketplace/{listing}/edit', [AdminMarketplaceController::class, 'edit'])->name('marketplace.edit');
+    Route::put('marketplace/{listing}', [AdminMarketplaceController::class, 'update'])->name('marketplace.update');
     Route::post('marketplace/{listing}/approve', [AdminMarketplaceController::class, 'approve'])->name('marketplace.approve');
     Route::post('marketplace/{listing}/reject', [AdminMarketplaceController::class, 'reject'])->name('marketplace.reject');
+    Route::delete('marketplace/{listing}', [AdminMarketplaceController::class, 'destroy'])->name('marketplace.destroy');  // ✅ थपियो
+    Route::post('marketplace/bulk-action', [AdminMarketplaceController::class, 'bulkAction'])->name('marketplace.bulk-action');  // ✅ थपियो
 
-    // Messages
     Route::resource('messages', AdminMessageController::class)->only(['index', 'show']);
     // थपियो: म्यासेज थ्रेड ब्लक/हटाउने रुट
     Route::delete('messages/{thread}/block', [AdminMessageController::class, 'blockSender'])->name('messages.block');

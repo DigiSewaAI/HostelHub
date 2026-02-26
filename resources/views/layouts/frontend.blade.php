@@ -1572,6 +1572,7 @@
                         <a href="{{ route('features') }}" class="nepali">सुविधाहरू</a>
                         <a href="{{ route('how-it-works') }}" class="nepali">कसरी काम गर्छ</a>
                         <a href="{{ route('gallery.index') }}" class="nepali">ग्यालरी</a>
+                        <a href="{{ route('public.bazar.index') }}" class="nepali">हाम्रो बजार</a>
                         <a href="{{ route('pricing') }}" class="nepali">मूल्य</a>
                         <a href="{{ route('testimonials') }}" class="nepali">प्रशंसापत्रहरू</a>
                         <a href="{{ route('about') }}" class="nepali">हाम्रो बारेमा</a>
@@ -1658,6 +1659,7 @@
                         <li><a href="{{ route('features') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">सुविधाहरू</span></a></li>
                         <li><a href="{{ route('how-it-works') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">कसरी काम गर्छ</span></a></li>
                         <li><a href="{{ route('gallery.index') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">ग्यालरी</span></a></li>
+                        <li><a href="{{ route('public.bazar.index') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">हाम्रो बजार</span></a></li>
                         <li><a href="{{ route('pricing') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">मूल्य</span></a></li>
                         <li><a href="{{ route('testimonials') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">प्रशंसापत्रहरू</span></a></li>
                         <li><a href="{{ route('about') }}"><i class="fas fa-chevron-right"></i> <span class="nepali">हाम्रो बारेमा</span></a></li>

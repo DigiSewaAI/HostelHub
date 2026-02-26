@@ -181,6 +181,10 @@ class Hostel extends Model
         return $this->status === 'active' && $this->is_published;
     }
 
+    public function marketplaceListings()
+    {
+        return $this->hasMany(MarketplaceListing::class, 'hostel_id');
+    }
 
     public function rooms(): HasMany
     {
