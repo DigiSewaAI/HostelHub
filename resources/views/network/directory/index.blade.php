@@ -82,6 +82,15 @@
                     @php
                         $snapshot = $hostel->networkProfile?->auto_snapshot ?? [];
                         $verified = !is_null($hostel->networkProfile?->verified_at);
+                        // ✅ facilities लाई array मा बदल्ने
+                        $facilities = $hostel->facilities;
+                        if (is_string($facilities)) {
+                            $facilities = json_decode($facilities, true) ?? [];
+                        }
+                        // यदि अझै array छैन भने खाली array
+                        if (!is_array($facilities)) {
+                            $facilities = [];
+                        }
                     @endphp
                     <div class="col">
                         <div class="card h-100">
@@ -102,9 +111,9 @@
                                     @if($hostel->total_rooms)
                                         <i class="bi bi-building"></i> {{ __('network.total_rooms', ['count' => $hostel->total_rooms]) }}<br>
                                     @endif
-                                    @if($hostel->facilities)
+                                    @if(!empty($facilities))
                                         <strong>{{ __('network.facilities_provided') }}:</strong>
-                                        @foreach($hostel->facilities as $facility)
+                                        @foreach($facilities as $facility)
                                             <span class="badge bg-secondary">{{ $facility }}</span>
                                         @endforeach
                                     @endif

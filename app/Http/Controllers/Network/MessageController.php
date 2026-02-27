@@ -31,20 +31,22 @@ class MessageController extends Controller
         // Eager load आवश्यक सम्बन्धहरू
         $threads->load('thread.messages.sender', 'thread.participants.user.hostels');
 
-        // नपढिएको सन्देशको सङ्ख्या प्रति ट्याब गणना गर्ने
-        $marketplaceUnread = $threads->getCollection()->filter(
-            fn($p) =>
-            $p->thread->type === 'marketplace' && $p->last_read_at < $p->thread->last_message_at
-        )->count();
+        // नपढिएको सन्देशको सङ्ख्या गणना गर्ने
+        $marketplaceUnread = 0;
+        $broadcastUnread = 0;
+        $directUnread = 0;
 
-        $broadcastUnread = $threads->getCollection()->filter(
-            fn($p) =>
-            $p->thread->type === 'broadcast' && $p->last_read_at < $p->thread->last_message_at
-        )->count();
-
-        $directUnread = $threads->getCollection()->filter(
-            fn($p) => ($p->thread->type === 'direct' || $p->thread->type === null) && $p->last_read_at < $p->thread->last_message_at
-        )->count();
+        foreach ($threads as $participant) {
+            $type = $participant->thread->type;
+            $isUnread = $participant->last_read_at < $participant->thread->last_message_at;
+            if ($type === 'marketplace') {
+                if ($isUnread) $marketplaceUnread++;
+            } elseif ($type === 'broadcast') {
+                if ($isUnread) $broadcastUnread++;
+            } else { // direct or null
+                if ($isUnread) $directUnread++;
+            }
+        }
 
         // हालको ट्याब (default marketplace)
         $tab = $request->get('tab', 'marketplace');
@@ -59,11 +61,14 @@ class MessageController extends Controller
         });
 
         // प्याजिनेसन कायम राख्दै नयाँ paginator बनाउने
-        $filteredThreads = new \Illuminate\Pagination\LengthAwarePaginator(
-            $filteredCollection->forPage($threads->currentPage(), $threads->perPage()),
+        $currentPage = LengthAwarePaginator::resolveCurrentPage();
+        $perPage = $threads->perPage();
+        $currentItems = $filteredCollection->slice(($currentPage - 1) * $perPage, $perPage)->values();
+        $filteredThreads = new LengthAwarePaginator(
+            $currentItems,
             $filteredCollection->count(),
-            $threads->perPage(),
-            $threads->currentPage(),
+            $perPage,
+            $currentPage,
             ['path' => $request->url(), 'query' => $request->query()]
         );
 

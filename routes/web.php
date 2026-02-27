@@ -258,6 +258,7 @@ Route::middleware(['auth', \App\Http\Middleware\EnsureEligibleForNetwork::class]
 
         // Directory
         Route::get('/directory', [DirectoryController::class, 'index'])->name('directory.index');
+        Route::get('/messages/create', [App\Http\Controllers\Network\MessageController::class, 'create'])->name('messages.create');
     });
 
 // Public Bazar

@@ -31,8 +31,8 @@ return [
     'new_message' => 'नयाँ सन्देश',
     'subject' => 'विषय',
     'body' => 'मुख्य पाठ',
-    'category' => 'श्रेणी',
-    'priority' => 'प्राथमिकता',
+    'category' => 'श्रेणी',          // ✅ अब यो स्ट्रिङ हो, array होइन
+    'priority' => 'प्राथमिकता',      // ✅ यो पनि स्ट्रिङ
     'thread' => 'वार्तालाप',
     'threads' => 'वार्तालापहरू',
     'participants' => 'सहभागीहरू',
@@ -52,15 +52,16 @@ return [
     'type_message' => 'सन्देश लेख्नुहोस्...',
     'unknown' => 'अज्ञात',
     'direct_chat' => 'प्रत्यक्ष च्याट',
+    'direct_message' => 'प्रत्यक्ष सन्देश',
 
-    // श्रेणी
-    'category_business_inquiry' => 'व्यापार सोधपुछ',
-    'category_partnership' => 'साझेदारी',
-    'category_hostel_sale' => 'होस्टल बिक्री',
-    'category_emergency' => 'आपतकालीन',
-    'category_general' => 'सामान्य',
+    // श्रेणीहरू (फ्ल्याट कुञ्जीहरू)
+    'business_inquiry' => 'व्यापार सोधपुछ',
+    'partnership' => 'साझेदारी',
+    'hostel_sale' => 'होस्टल बिक्री',
+    'emergency' => 'आपतकालीन',
+    'general' => 'सामान्य',
 
-    // प्राथमिकता
+    // प्राथमिकता (फ्ल्याट कुञ्जीहरू)
     'priority_low' => 'कम',
     'priority_medium' => 'मध्यम',
     'priority_high' => 'उच्च',
@@ -121,6 +122,7 @@ return [
     'owner_directory' => 'मालिक निर्देशिका',
     'search_owners' => 'मालिकहरू खोज्नुहोस्',
     'city' => 'शहर',
+    'facility' => 'सुविधा',
     'services' => 'सेवाहरू',
     'hostel_size' => 'होस्टल क्षमता',
     'pricing_category' => 'मूल्य श्रेणी',
@@ -131,12 +133,25 @@ return [
     'phone' => 'फोन',
     'bio' => 'जानकारी',
     'hostel_size_beds' => ':count बेड',
+    'total_rooms' => ':count कोठा',
     'pricing_budget' => 'बजेट',
     'pricing_mid' => 'मध्यम',
     'pricing_premium' => 'प्रिमियम',
     'services_provided' => 'उपलब्ध सेवाहरू',
+    'facilities_provided' => 'उपलब्ध सुविधाहरू',
+    'price_range' => 'मूल्य दायरा',
+    'hostels_found' => 'होस्टलहरू फेला पर्यो',
+    'no_hostels_found' => 'कुनै होस्टल फेला परेन।',
+    'no_hostels_found_desc' => 'कुनै होस्टल फेला परेन। कृपया फिल्टर परिवर्तन गरेर पुन: प्रयास गर्नुहोस्।',
     'no_owners_found' => 'कुनै मालिक फेला परेन।',
     'no_owners_found_desc' => 'कुनै मालिक फेला परेन। कृपया फिल्टर परिवर्तन गरेर पुन: प्रयास गर्नुहोस्।',
+
+    // फिल्टरहरू
+    'all' => 'सबै',
+    'min_price' => 'न्यूनतम मूल्य',
+    'max_price' => 'अधिकतम मूल्य',
+    'min_rooms' => 'न्यूनतम कोठा',
+    'max_rooms' => 'अधिकतम कोठा',
 
     // प्रोफाइल
     'edit_profile' => 'प्रोफाइल सम्पादन गर्नुहोस्',
@@ -148,4 +163,8 @@ return [
     'all_categories' => 'सबै सन्देशहरू',
     'profile_updated' => 'प्रोफाइल सफलतापूर्वक अद्यावधिक गरियो।',
     'profile_incomplete' => 'कृपया पहिले आफ्नो मालिक प्रोफाइल बनाउनुहोस्।',
+
+    // कम्पोज मोडल
+    'recipient' => 'प्राप्तकर्ता',
+    'select_recipient' => 'प्राप्तकर्ता छान्नुहोस्',
 ];
