@@ -24,20 +24,25 @@
     </div>
 </div>
 
-{{-- Chat Header: Show other participant's hostel info --}}
 @php
     $otherParticipant = $thread->participants->filter(fn($p) => $p->user_id != Auth::id())->first();
     $otherUser = $otherParticipant?->user;
     $otherHostel = $otherUser?->primary_hostel;
     $otherHostelName = $otherHostel?->name ?? $otherUser?->name ?? 'अज्ञात';
-    $otherHostelLogo = $otherHostel?->logo ? asset('storage/'.$otherHostel->logo) : null;
+    
+    // ✅ logo_path प्रयोग गर्ने (यदि छ भने)
+    $otherHostelLogo = $otherHostel && !empty($otherHostel->logo_path) ? asset('storage/'.$otherHostel->logo_path) : null;
 @endphp
+
+{{-- Chat Header --}}
 <div class="d-flex align-items-center mb-4 p-3 bg-light rounded">
     <div class="flex-shrink-0 me-3">
         @if($otherHostelLogo)
-            <img src="{{ $otherHostelLogo }}" alt="{{ $otherHostelName }}" class="rounded-circle" width="56" height="56" style="object-fit: cover;">
+            <img src="{{ $otherHostelLogo }}" alt="{{ $otherHostelName }}" 
+                 class="rounded-circle" width="64" height="64" style="object-fit: cover;">
         @else
-            <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center" style="width:56px; height:56px; font-weight:bold; font-size:1.5rem;">
+            <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center" 
+                 style="width:64px; height:64px; font-weight:bold; font-size:1.5rem;">
                 {{ strtoupper(substr($otherHostelName, 0, 1)) }}
             </div>
         @endif
@@ -57,53 +62,53 @@
             @php
                 $isMine = $message->sender_id == Auth::id();
                 $sender = $message->sender;
-                $senderHostel = $sender->primary_hostel;
-                $senderName = $senderHostel?->name ?? $sender->name;
-                $senderLogo = $senderHostel?->logo ? asset('storage/'.$senderHostel->logo) : null;
+                $senderHostel = $sender?->primary_hostel;
+                $senderName = $senderHostel?->name ?? $sender?->name ?? 'अज्ञात';
+                // ✅ sender logo_path
+                $senderLogo = $senderHostel && !empty($senderHostel->logo_path) ? asset('storage/'.$senderHostel->logo_path) : null;
+                // Self logo_path
+                $myHostel = Auth::user()->primary_hostel;
+                $myLogo = $myHostel && !empty($myHostel->logo_path) ? asset('storage/'.$myHostel->logo_path) : null;
             @endphp
             <div class="d-flex {{ $isMine ? 'justify-content-end' : 'justify-content-start' }} mb-3">
                 @if(!$isMine)
-                    {{-- Other's logo --}}
+                    {{-- अर्को पक्षको लोगो --}}
                     <div class="flex-shrink-0 me-2">
                         @if($senderLogo)
-                            <img src="{{ $senderLogo }}" alt="{{ $senderName }}" class="rounded-circle" width="36" height="36" style="object-fit: cover;">
+                            <img src="{{ $senderLogo }}" alt="{{ $senderName }}" class="rounded-circle" width="44" height="44" style="object-fit: cover;">
                         @else
-                            <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center" style="width:36px; height:36px; font-weight:bold;">
+                            <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center" style="width:44px; height:44px; font-weight:bold;">
                                 {{ strtoupper(substr($senderName, 0, 1)) }}
                             </div>
                         @endif
                     </div>
                 @endif
                 <div class="d-flex flex-column {{ $isMine ? 'align-items-end' : 'align-items-start' }}" style="max-width: 70%;">
-                    {{-- Sender name (only for others) --}}
                     @if(!$isMine)
                         <small class="text-muted ms-1 mb-1">{{ $senderName }}</small>
                     @endif
-                    {{-- Bubble --}}
                     <div class="p-3 rounded-3 shadow-sm {{ $isMine ? 'bg-primary text-white' : 'bg-white' }}" style="word-wrap: break-word;">
                         {{ $message->body }}
                     </div>
-                    {{-- Timestamp + metadata --}}
                     <div class="d-flex align-items-center mt-1 small {{ $isMine ? 'text-muted' : 'text-muted' }}">
                         <span>{{ $message->created_at->format('H:i A') }}</span>
                         @if($message->category)
-                            <span class="badge bg-secondary ms-2">{{ __('network.category_' . $message->category->value) }}</span>
+                            <span class="badge bg-secondary ms-2">{{ __('network.category_' . ($message->category->value ?? $message->category)) }}</span>
                         @endif
                         @if($message->priority)
-                            <span class="badge bg-{{ $message->priority->value == 'urgent' ? 'danger' : ($message->priority->value == 'high' ? 'warning' : 'info') }} ms-2">
-                                {{ __('network.priority_' . $message->priority->value) }}
+                            <span class="badge bg-{{ ($message->priority->value ?? $message->priority) == 'urgent' ? 'danger' : (($message->priority->value ?? $message->priority) == 'high' ? 'warning' : 'info') }} ms-2">
+                                {{ __('network.priority_' . ($message->priority->value ?? $message->priority)) }}
                             </span>
                         @endif
                     </div>
                 </div>
                 @if($isMine)
-                    {{-- Self logo --}}
+                    {{-- आफ्नो लोगो --}}
                     <div class="flex-shrink-0 ms-2">
-                        @php $myHostel = Auth::user()->primary_hostel; @endphp
-                        @if($myHostel && $myHostel->logo)
-                            <img src="{{ asset('storage/'.$myHostel->logo) }}" alt="{{ $myHostel->name }}" class="rounded-circle" width="36" height="36" style="object-fit: cover;">
+                        @if($myLogo)
+                            <img src="{{ $myLogo }}" alt="{{ $myHostel?->name ?? Auth::user()->name }}" class="rounded-circle" width="44" height="44" style="object-fit: cover;">
                         @else
-                            <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center" style="width:36px; height:36px; font-weight:bold;">
+                            <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center" style="width:44px; height:44px; font-weight:bold;">
                                 {{ strtoupper(substr($myHostel?->name ?? Auth::user()->name, 0, 1)) }}
                             </div>
                         @endif
@@ -125,14 +130,10 @@
         <form method="POST" action="{{ route('network.messages.store') }}">
             @csrf
             <input type="hidden" name="thread_id" value="{{ $thread->id }}">
-
             <div class="mb-3">
                 <textarea class="form-control @error('body') is-invalid @enderror" name="body" rows="2" placeholder="सन्देश लेख्नुहोस्..." required>{{ old('body') }}</textarea>
-                @error('body')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
+                @error('body') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
-
             <div class="row g-2">
                 <div class="col-md-5">
                     <select class="form-select @error('category') is-invalid @enderror" name="category" required>
