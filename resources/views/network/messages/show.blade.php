@@ -45,11 +45,11 @@
                     <div class="small {{ $message->sender_id == Auth::id() ? 'text-white-50' : 'text-muted' }}">
                         {{ $message->created_at->format('Y-m-d H:i') }}
                         @if($message->category)
-                            <span class="badge bg-secondary">{{ __('network.category_' . $message->category) }}</span>
+                            <span class="badge bg-secondary">{{ __('network.category_' . $message->category->value) }}</span>
                         @endif
                         @if($message->priority)
-                            <span class="badge bg-{{ $message->priority == 'urgent' ? 'danger' : ($message->priority == 'high' ? 'warning' : 'info') }}">
-                                {{ __('network.priority_' . $message->priority) }}
+                            <span class="badge bg-{{ $message->priority->value == 'urgent' ? 'danger' : ($message->priority->value == 'high' ? 'warning' : 'info') }}">
+                                {{ __('network.priority_' . $message->priority->value) }}
                             </span>
                         @endif
                     </div>

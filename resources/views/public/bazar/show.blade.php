@@ -24,14 +24,11 @@
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                 @if($listing->media->count() > 0)
                     <div x-data="{ activeSlide: 0 }" class="relative">
-                        {{-- Main image --}}
                         <div class="aspect-video bg-gray-100">
                             <img :src="'{{ asset('storage/') }}/' + {{ $listing->media->map(fn($m) => $m->file_path)->toJson() }}[activeSlide]"
                                  alt="{{ $listing->title }}"
                                  class="w-full h-full object-contain">
                         </div>
-
-                        {{-- Thumbnails --}}
                         @if($listing->media->count() > 1)
                             <div class="flex gap-2 p-4 overflow-x-auto">
                                 @foreach($listing->media as $index => $media)
@@ -115,47 +112,8 @@
 
         {{-- Right: Seller & Related --}}
         <div class="space-y-6">
-            {{-- Seller card --}}
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sticky top-24">
-                <h2 class="font-semibold text-lg text-gray-800 mb-4">विक्रेता जानकारी</h2>
-
-                @if($listing->owner)
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="w-12 h-12 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-xl font-bold">
-                            {{ substr($listing->owner->name, 0, 1) }}
-                        </div>
-                        <div>
-                            <div class="font-medium">{{ $listing->owner->name }}</div>
-                            <div class="text-sm text-gray-500">
-                                @if($listing->owner->ownerProfile && $listing->owner->ownerProfile->hostel)
-                                    {{ $listing->owner->ownerProfile->hostel->name }}
-                                @else
-                                    स्वतन्त्र विक्रेता
-                                @endif
-                            </div>
-                        </div>
-                    </div>
-
-                    @auth
-                        @if(auth()->id() !== $listing->owner_id)
-                            <a href="{{ route('network.marketplace.contact', $listing->id) }}"
-                               class="block w-full bg-primary-600 text-white text-center py-2 px-4 rounded-lg hover:bg-primary-700 transition font-medium">
-                                <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                                </svg>
-                                सन्देश पठाउनुहोस्
-                            </a>
-                        @endif
-                    @else
-                        <a href="{{ route('login') }}"
-                           class="block w-full border border-primary-600 text-primary-600 text-center py-2 px-4 rounded-lg hover:bg-primary-50 transition font-medium">
-                            सम्पर्क गर्न लगइन गर्नुहोस्
-                        </a>
-                    @endauth
-                @else
-                    <p class="text-gray-500">विक्रेता जानकारी उपलब्ध छैन।</p>
-                @endif
-            </div>
+            {{-- Seller info component --}}
+            <x-seller-info :listing="$listing" />
 
             {{-- Related listings --}}
             @if(isset($related) && $related->count() > 0)
@@ -163,11 +121,11 @@
                     <h2 class="font-semibold text-lg text-gray-800 mb-4">सम्बन्धित सूचीहरू</h2>
                     <div class="space-y-4">
                         @foreach($related as $rel)
-                            <a href="{{ route('public.bazar.show', $rel->slug) }}" class="flex gap-3 group">
+                            <div class="flex gap-3 group items-center">
                                 <div class="w-16 h-16 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0">
                                     @if($rel->media->first())
                                         <img src="{{ asset('storage/'.$rel->media->first()->file_path) }}" alt=""
-                                             class="w-full h-full object-cover group-hover:scale-105 transition">
+                                             class="w-full h-full object-cover group-hover:scale-105 transition" loading="lazy">
                                     @else
                                         <div class="w-full h-full flex items-center justify-center">
                                             <svg class="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -176,11 +134,15 @@
                                         </div>
                                     @endif
                                 </div>
-                                <div class="flex-1">
-                                    <h3 class="font-medium text-gray-800 group-hover:text-primary-600 line-clamp-1">{{ $rel->title }}</h3>
+                                <div class="flex-1 min-w-0">
+                                    <h3 class="font-medium text-gray-800 group-hover:text-primary-600 truncate">{{ $rel->title }}</h3>
                                     <p class="text-sm text-primary-600 font-bold">रु. {{ number_format($rel->price) }}</p>
                                 </div>
-                            </a>
+                                <a href="{{ route('public.bazar.show', $rel->slug) }}" 
+                                   class="flex-shrink-0 bg-primary-600 hover:bg-primary-700 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition-colors duration-200">
+                                    हेर्नुहोस्
+                                </a>
+                            </div>
                         @endforeach
                     </div>
                 </div>
