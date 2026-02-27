@@ -24,36 +24,91 @@
     </div>
 </div>
 
-<!-- सहभागीहरू -->
-<div class="mb-3">
-    <strong>{{ __('network.participants') }}:</strong>
-    @foreach($thread->participants as $participant)
-        @if($participant->user_id != Auth::id())
-            <span class="badge bg-info">{{ $participant->user->name }}</span>
+{{-- Chat Header: Show other participant's hostel info --}}
+@php
+    $otherParticipant = $thread->participants->filter(fn($p) => $p->user_id != Auth::id())->first();
+    $otherUser = $otherParticipant?->user;
+    $otherHostel = $otherUser?->primary_hostel;
+    $otherHostelName = $otherHostel?->name ?? $otherUser?->name ?? 'अज्ञात';
+    $otherHostelLogo = $otherHostel?->logo ? asset('storage/'.$otherHostel->logo) : null;
+@endphp
+<div class="d-flex align-items-center mb-4 p-3 bg-light rounded">
+    <div class="flex-shrink-0 me-3">
+        @if($otherHostelLogo)
+            <img src="{{ $otherHostelLogo }}" alt="{{ $otherHostelName }}" class="rounded-circle" width="56" height="56" style="object-fit: cover;">
+        @else
+            <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center" style="width:56px; height:56px; font-weight:bold; font-size:1.5rem;">
+                {{ strtoupper(substr($otherHostelName, 0, 1)) }}
+            </div>
         @endif
-    @endforeach
+    </div>
+    <div>
+        <h4 class="mb-0 fw-bold">{{ $otherHostelName }}</h4>
+        @if($otherUser && $otherUser->name)
+            <small class="text-muted">{{ $otherUser->name }} (मालिक)</small>
+        @endif
+    </div>
 </div>
 
-<!-- सन्देश इतिहास -->
-<div class="card mb-4" id="message-container" style="max-height: 500px; overflow-y: auto;">
-    <div class="card-body">
+{{-- Messenger-style Chat Container --}}
+<div class="card mb-4" id="message-container" style="height: 60vh; overflow-y: auto; background: #f0f2f5;">
+    <div class="card-body d-flex flex-column">
         @forelse($thread->messages as $message)
-            <div class="mb-3 {{ $message->sender_id == Auth::id() ? 'text-end' : '' }}">
-                <div class="d-inline-block p-3 rounded {{ $message->sender_id == Auth::id() ? 'bg-primary text-white' : 'bg-light' }}" style="max-width: 70%;">
-                    <div class="fw-bold">{{ $message->sender->name }}</div>
-                    <div>{{ $message->body }}</div>
-                    <div class="small {{ $message->sender_id == Auth::id() ? 'text-white-50' : 'text-muted' }}">
-                        {{ $message->created_at->format('Y-m-d H:i') }}
+            @php
+                $isMine = $message->sender_id == Auth::id();
+                $sender = $message->sender;
+                $senderHostel = $sender->primary_hostel;
+                $senderName = $senderHostel?->name ?? $sender->name;
+                $senderLogo = $senderHostel?->logo ? asset('storage/'.$senderHostel->logo) : null;
+            @endphp
+            <div class="d-flex {{ $isMine ? 'justify-content-end' : 'justify-content-start' }} mb-3">
+                @if(!$isMine)
+                    {{-- Other's logo --}}
+                    <div class="flex-shrink-0 me-2">
+                        @if($senderLogo)
+                            <img src="{{ $senderLogo }}" alt="{{ $senderName }}" class="rounded-circle" width="36" height="36" style="object-fit: cover;">
+                        @else
+                            <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center" style="width:36px; height:36px; font-weight:bold;">
+                                {{ strtoupper(substr($senderName, 0, 1)) }}
+                            </div>
+                        @endif
+                    </div>
+                @endif
+                <div class="d-flex flex-column {{ $isMine ? 'align-items-end' : 'align-items-start' }}" style="max-width: 70%;">
+                    {{-- Sender name (only for others) --}}
+                    @if(!$isMine)
+                        <small class="text-muted ms-1 mb-1">{{ $senderName }}</small>
+                    @endif
+                    {{-- Bubble --}}
+                    <div class="p-3 rounded-3 shadow-sm {{ $isMine ? 'bg-primary text-white' : 'bg-white' }}" style="word-wrap: break-word;">
+                        {{ $message->body }}
+                    </div>
+                    {{-- Timestamp + metadata --}}
+                    <div class="d-flex align-items-center mt-1 small {{ $isMine ? 'text-muted' : 'text-muted' }}">
+                        <span>{{ $message->created_at->format('H:i A') }}</span>
                         @if($message->category)
-                            <span class="badge bg-secondary">{{ __('network.category_' . $message->category->value) }}</span>
+                            <span class="badge bg-secondary ms-2">{{ __('network.category_' . $message->category->value) }}</span>
                         @endif
                         @if($message->priority)
-                            <span class="badge bg-{{ $message->priority->value == 'urgent' ? 'danger' : ($message->priority->value == 'high' ? 'warning' : 'info') }}">
+                            <span class="badge bg-{{ $message->priority->value == 'urgent' ? 'danger' : ($message->priority->value == 'high' ? 'warning' : 'info') }} ms-2">
                                 {{ __('network.priority_' . $message->priority->value) }}
                             </span>
                         @endif
                     </div>
                 </div>
+                @if($isMine)
+                    {{-- Self logo --}}
+                    <div class="flex-shrink-0 ms-2">
+                        @php $myHostel = Auth::user()->primary_hostel; @endphp
+                        @if($myHostel && $myHostel->logo)
+                            <img src="{{ asset('storage/'.$myHostel->logo) }}" alt="{{ $myHostel->name }}" class="rounded-circle" width="36" height="36" style="object-fit: cover;">
+                        @else
+                            <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center" style="width:36px; height:36px; font-weight:bold;">
+                                {{ strtoupper(substr($myHostel?->name ?? Auth::user()->name, 0, 1)) }}
+                            </div>
+                        @endif
+                    </div>
+                @endif
             </div>
         @empty
             <div class="text-center py-4">
@@ -62,71 +117,51 @@
             </div>
         @endforelse
     </div>
-    @if($thread->messages->count() > 5)
-        <div class="text-center mb-2">
-            <button onclick="document.getElementById('message-container').scrollTo(0, document.getElementById('message-container').scrollHeight)" class="btn btn-sm btn-outline-secondary">
-                <i class="fas fa-arrow-down"></i> {{ __('network.scroll_to_bottom') }}
-            </button>
-        </div>
-    @endif
 </div>
 
-<!-- जवाफ दिने फारम -->
-<div class="card">
-    <div class="card-header">
-        {{ __('network.reply') }}
-    </div>
+{{-- Sticky Reply Form --}}
+<div class="card mt-3 sticky-bottom">
     <div class="card-body">
         <form method="POST" action="{{ route('network.messages.store') }}">
             @csrf
             <input type="hidden" name="thread_id" value="{{ $thread->id }}">
 
             <div class="mb-3">
-                <label for="body" class="form-label">{{ __('network.message') }}</label>
-                <textarea class="form-control @error('body') is-invalid @enderror" id="body" name="body" rows="3" required>{{ old('body') }}</textarea>
+                <textarea class="form-control @error('body') is-invalid @enderror" name="body" rows="2" placeholder="सन्देश लेख्नुहोस्..." required>{{ old('body') }}</textarea>
                 @error('body')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
 
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <label for="category" class="form-label">{{ __('network.category') }}</label>
-                    <select class="form-select @error('category') is-invalid @enderror" id="category" name="category" required>
+            <div class="row g-2">
+                <div class="col-md-5">
+                    <select class="form-select @error('category') is-invalid @enderror" name="category" required>
                         @foreach(['business_inquiry', 'partnership', 'hostel_sale', 'emergency', 'general'] as $cat)
                             <option value="{{ $cat }}" @selected(old('category', 'general')==$cat)>{{ __('network.category_' . $cat) }}</option>
                         @endforeach
                     </select>
-                    @error('category')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
                 </div>
-                <div class="col-md-6">
-                    <label for="priority" class="form-label">{{ __('network.priority') }}</label>
-                    <select class="form-select @error('priority') is-invalid @enderror" id="priority" name="priority" required>
+                <div class="col-md-5">
+                    <select class="form-select @error('priority') is-invalid @enderror" name="priority" required>
                         @foreach(['low', 'medium', 'high', 'urgent'] as $pri)
                             <option value="{{ $pri }}" @selected(old('priority', 'medium')==$pri)>{{ __('network.priority_' . $pri) }}</option>
                         @endforeach
                     </select>
-                    @error('priority')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">{{ __('network.send') }}</button>
                 </div>
             </div>
-
-            <button type="submit" class="btn btn-primary">{{ __('network.send') }}</button>
         </form>
     </div>
 </div>
+@endsection
 
 @push('scripts')
 <script>
-    // पेज लोड हुँदा स्वतः तल स्क्रोल गर्न
     document.addEventListener('DOMContentLoaded', function() {
         const container = document.getElementById('message-container');
         container.scrollTop = container.scrollHeight;
     });
 </script>
 @endpush
-
-@endsection

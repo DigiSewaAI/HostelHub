@@ -329,6 +329,11 @@ class User extends Authenticatable
         return $this->hasMany(MarketplaceListing::class, 'user_id');
     }
 
+    public function getPrimaryHostelAttribute()
+    {
+        return $this->hostels()->where('status', 'active')->where('is_published', true)->first();
+    }
+
     /**
      * Get all bookings approved by the user.
      */

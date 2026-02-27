@@ -17,7 +17,7 @@
     </div>
 </div>
 
-{{-- Filters (unchanged) --}}
+{{-- Filters (unchanged from original) --}}
 <form method="GET" class="row g-3 mb-4">
     <div class="col-auto">
         <select name="category" class="form-select">
@@ -34,41 +34,101 @@
     </div>
 </form>
 
-{{-- Threads List (unchanged) --}}
-@forelse($threads as $participant)
-    @php $thread = $participant->thread; @endphp
-    <div class="card mb-2">
-        <div class="card-body">
-            <div class="d-flex justify-content-between">
-                <h5 class="card-title">
-                    <a href="{{ route('network.messages.show', $thread->id) }}" class="text-decoration-none">
-                        {{ $thread->subject ?? __('network.direct_message') }}
-                    </a>
-                    @if($participant->last_read_at < $thread->last_message_at)
-                        <span class="badge bg-primary">{{ __('network.new') }}</span>
-                    @endif
-                </h5>
-                <small class="text-muted">{{ $thread->last_message_at?->diffForHumans() }}</small>
+{{-- Modern Tabs with Counters --}}
+<ul class="nav nav-tabs mb-4" id="inboxTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <a class="nav-link {{ $tab == 'marketplace' ? 'active' : '' }}" 
+           href="{{ route('network.messages.index', ['tab' => 'marketplace']) }}">
+            🛒 बजार सन्देश
+            @if($marketplaceUnread > 0)
+                <span class="badge bg-primary ms-1">{{ $marketplaceUnread }}</span>
+            @endif
+        </a>
+    </li>
+    <li class="nav-item" role="presentation">
+        <a class="nav-link {{ $tab == 'broadcast' ? 'active' : '' }}" 
+           href="{{ route('network.messages.index', ['tab' => 'broadcast']) }}">
+            📢 प्रसारण सन्देश
+            @if($broadcastUnread > 0)
+                <span class="badge bg-primary ms-1">{{ $broadcastUnread }}</span>
+            @endif
+        </a>
+    </li>
+    <li class="nav-item" role="presentation">
+        <a class="nav-link {{ $tab == 'direct' ? 'active' : '' }}" 
+           href="{{ route('network.messages.index', ['tab' => 'direct']) }}">
+            💬 प्रत्यक्ष च्याट
+            @if($directUnread > 0)
+                <span class="badge bg-primary ms-1">{{ $directUnread }}</span>
+            @endif
+        </a>
+    </li>
+</ul>
+
+{{-- Threads List --}}
+<div class="tab-content">
+    <div class="tab-pane active">
+        @forelse($filteredThreads as $participant)
+            @php 
+                $thread = $participant->thread;
+                // Get the other participant(s) – for now take first non-auth
+                $otherUser = $thread->participants->filter(fn($p) => $p->user_id != Auth::id())->first()?->user;
+                $hostel = $otherUser?->primary_hostel; // assumes accessor on User model
+                $hostelName = $hostel?->name ?? $otherUser?->name ?? __('network.unknown');
+                $hostelLogo = $hostel?->logo ? asset('storage/'.$hostel->logo) : null;
+                $listingTitle = $thread->subject ?? __('network.direct_message'); // or extract from message if marketplace
+                $lastMessage = $thread->latestMessage;
+                $unread = $participant->last_read_at < $thread->last_message_at;
+            @endphp
+            <div class="card mb-2 conversation-row">
+                <div class="card-body p-3">
+                    <div class="d-flex align-items-center">
+                        {{-- Hostel Logo / Avatar --}}
+                        <div class="flex-shrink-0 me-3">
+                            @if($hostelLogo)
+                                <img src="{{ $hostelLogo }}" alt="{{ $hostelName }}" class="rounded-circle" width="48" height="48" style="object-fit: cover;">
+                            @else
+                                <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center" style="width:48px; height:48px; font-weight:bold;">
+                                    {{ strtoupper(substr($hostelName, 0, 1)) }}
+                                </div>
+                            @endif
+                        </div>
+                        {{-- Conversation Details --}}
+                        <div class="flex-grow-1 min-width-0">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0 fw-bold text-truncate">
+                                    {{ $hostelName }}
+                                    @if($otherUser && $otherUser->name)
+                                        <small class="text-muted fw-normal">({{ $otherUser->name }})</small>
+                                    @endif
+                                </h6>
+                                <small class="text-muted">{{ $lastMessage?->created_at?->diffForHumans() }}</small>
+                            </div>
+                            @if($listingTitle && $listingTitle != __('network.direct_message'))
+                                <div class="small text-primary">{{ $listingTitle }}</div>
+                            @endif
+                            <div class="d-flex justify-content-between align-items-center">
+                                <p class="mb-0 text-truncate small text-muted" style="max-width: 70%;">
+                                    {{ $lastMessage?->body ?? '' }}
+                                </p>
+                                @if($unread)
+                                    <span class="badge bg-primary rounded-pill">नयाँ</span>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <a href="{{ route('network.messages.show', $thread->id) }}" class="stretched-link"></a>
             </div>
-            <p class="card-text text-truncate">
-                {{ $thread->latestMessage?->body ?? '' }}
-            </p>
-            <div>
-                @foreach($thread->participants as $p)
-                    @if($p->user_id != Auth::id())
-                        <span class="badge bg-secondary">{{ $p->user->name }}</span>
-                    @endif
-                @endforeach
-            </div>
-        </div>
+        @empty
+            <div class="alert alert-info">{{ __('network.no_messages') }}</div>
+        @endforelse
+
+        {{ $filteredThreads->links() }}
     </div>
-@empty
-    <div class="alert alert-info">{{ __('network.no_messages') }}</div>
-@endforelse
+</div>
 
-{{ $threads->links() }}
-
-{{-- Compose Modal (fixed recipient dropdown) --}}
+{{-- Compose Modal (unchanged from original) --}}
 <div class="modal fade" id="composeModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">

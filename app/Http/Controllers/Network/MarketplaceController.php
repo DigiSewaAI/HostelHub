@@ -266,11 +266,12 @@ class MarketplaceController extends Controller
         // नयाँ सन्देश थ्रेड सिर्जना गर्ने
         $thread = $messageService->createThread(
             [Auth::id(), $listing->owner_id],
-            'सूची: ' . $listing->title
+            'सोधपुछ: ' . $listing->title
         );
 
-        // Set tenant_id on the thread
+        // Set tenant_id and type on the thread
         $thread->tenant_id = $tenantId;
+        $thread->type = 'marketplace';  // ✅ type set गर्ने
         $thread->save();
 
         return redirect()->route('network.messages.show', $thread->id)

@@ -18,7 +18,7 @@ class MessageService
             $thread = MessageThread::create([
                 'tenant_id' => session('tenant_id'),
                 'subject' => $subject,
-                'type' => count($participantIds) > 2 ? 'group' : 'direct',
+                // type यहाँ सेट नगर्ने, controller मा सेट गर्ने
             ]);
 
             foreach ($participantIds as $userId) {

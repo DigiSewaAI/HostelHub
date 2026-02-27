@@ -9,6 +9,7 @@ use App\Models\Message;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class MessageController extends Controller
 {
@@ -20,22 +21,72 @@ class MessageController extends Controller
     }
 
     /**
-     * इनबक्स देखाउँछ (जसमा ब्रॉडकास्ट थ्रेडहरू पनि आउँछन्)
+     * Inbox with tabs (marketplace, broadcast, direct)
      */
     public function index(Request $request)
     {
         $filters = $request->only(['category']);
-        $threads = $this->messageService->getInbox(Auth::id(), $filters);
-        return view('network.messages.inbox', compact('threads'));
+        $threads = $this->messageService->getInbox(Auth::id(), $filters); // participants को paginated collection
+
+        // Eager load आवश्यक सम्बन्धहरू
+        $threads->load('thread.messages.sender', 'thread.participants.user.hostels');
+
+        // नपढिएको सन्देशको सङ्ख्या प्रति ट्याब गणना गर्ने
+        $marketplaceUnread = $threads->getCollection()->filter(
+            fn($p) =>
+            $p->thread->type === 'marketplace' && $p->last_read_at < $p->thread->last_message_at
+        )->count();
+
+        $broadcastUnread = $threads->getCollection()->filter(
+            fn($p) =>
+            $p->thread->type === 'broadcast' && $p->last_read_at < $p->thread->last_message_at
+        )->count();
+
+        $directUnread = $threads->getCollection()->filter(
+            fn($p) => ($p->thread->type === 'direct' || $p->thread->type === null) && $p->last_read_at < $p->thread->last_message_at
+        )->count();
+
+        // हालको ट्याब (default marketplace)
+        $tab = $request->get('tab', 'marketplace');
+
+        // ट्याब अनुसार फिल्टर गर्ने
+        $filteredCollection = $threads->getCollection()->filter(function ($participant) use ($tab) {
+            $type = $participant->thread->type;
+            if ($tab === 'direct') {
+                return $type === 'direct' || $type === null;
+            }
+            return $type === $tab;
+        });
+
+        // प्याजिनेसन कायम राख्दै नयाँ paginator बनाउने
+        $filteredThreads = new \Illuminate\Pagination\LengthAwarePaginator(
+            $filteredCollection->forPage($threads->currentPage(), $threads->perPage()),
+            $filteredCollection->count(),
+            $threads->perPage(),
+            $threads->currentPage(),
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+        return view('network.messages.inbox', compact(
+            'filteredThreads',
+            'tab',
+            'marketplaceUnread',
+            'broadcastUnread',
+            'directUnread'
+        ));
     }
 
     /**
-     * एकल थ्रेड (message thread) देखाउँछ
+     * Show single thread with messages
      */
     public function show($threadId)
     {
-        $thread = MessageThread::with(['messages.sender', 'participants.user'])
-            ->whereHas('participants', fn($q) => $q->where('user_id', Auth::id()))
+        $thread = MessageThread::with([
+            'messages.sender.hostels' => function ($q) {
+                $q->where('status', 'active')->where('is_published', true);
+            },
+            'participants.user.hostels'
+        ])->whereHas('participants', fn($q) => $q->where('user_id', Auth::id()))
             ->findOrFail($threadId);
 
         $this->messageService->markAsRead($threadId, Auth::id());
@@ -93,11 +144,22 @@ class MessageController extends Controller
         if (empty($validated['thread_id'])) {
             $participants = [$senderId, $validated['recipient_id']];
             $thread = $this->messageService->createThread($participants, $validated['subject'] ?? null);
-            $threadId = $thread->id;
 
             // tenant_id सेट गर्ने
             $thread->tenant_id = $tenantId;
+
+            // thread type निर्धारण गर्ने
+            $recipient = User::find($validated['recipient_id']);
+            $type = 'direct'; // default
+            if ($recipient && $recipient->isAdmin()) {
+                $type = 'broadcast';
+            } elseif (in_array($validated['category'], ['business_inquiry', 'partnership', 'hostel_sale'])) {
+                $type = 'marketplace';
+            }
+            $thread->type = $type;
             $thread->save();
+
+            $threadId = $thread->id;
         } else {
             $threadId = $validated['thread_id'];
         }
