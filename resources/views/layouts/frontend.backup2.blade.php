@@ -1557,7 +1557,6 @@ main > :not(.container) {
 .content-container.no-padding {
     padding-left: 0 !important;
     padding-right: 0 !important;
-    max-width: 100% !important;
 }
 
     </style>
@@ -1635,8 +1634,8 @@ main > :not(.container) {
     </header>
 
         <!-- Main Content -->
-<main id="main" class="main-content-global @if(Request::route()->getName() == 'home')home-page-main @endif">
-    <div class="content-container">
+<main id="main" class="main-content-global @yield('page-class', '') @if(Request::route()->getName() == 'home')home-page-main @endif">
+    <div class="content-container @yield('container-class', '')">
         @yield('content')
     </div>
 </main>

@@ -1,7 +1,8 @@
 /* 🚨 CRITICAL VITE MANIFEST FIX */
-@import "tailwindcss/base";
-@import "tailwindcss/components";
-@import "tailwindcss/utilities";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 @import "./layout-fix.css";
 @import "./themes.css";
 @import "./public-themes.css";

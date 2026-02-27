@@ -1543,23 +1543,6 @@
 .footer-col h3 {
     margin-top: 0 !important;
 }
-
-/* 🚨 FALLBACK: यो class ती पेजहरूको लागि हो जसमा कन्टेनर छैन */
-main > :not(.container) {
-    max-width: 1200px;
-    margin-left: auto;
-    margin-right: auto;
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
-}
-
-/* Marketplace pages को लागि: layout container को padding हटाउने */
-.content-container.no-padding {
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-    max-width: 100% !important;
-}
-
     </style>
 
     @stack('styles')
@@ -1634,12 +1617,12 @@ main > :not(.container) {
         </div>
     </header>
 
-        <!-- Main Content -->
-<main id="main" class="main-content-global @if(Request::route()->getName() == 'home')home-page-main @endif">
-    <div class="content-container">
-        @yield('content')
-    </div>
-</main>
+    <!-- Main Content -->
+    <main id="main" class="main-content-global @if(Request::route()->getName() == 'home')home-page-main @endif">
+        <div class="content-container">
+            @yield('content')
+        </div>
+    </main>
 
     <!-- FOOTER - ULTIMATE FIX WITH PROPER LOGO SIZE AND CLICKABLE -->
     <footer>
@@ -1834,8 +1817,6 @@ main > :not(.container) {
     </script>
 
     @stack('scripts')
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚨 Mobile header fix loaded');
