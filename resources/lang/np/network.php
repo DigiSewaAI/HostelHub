@@ -31,8 +31,8 @@ return [
     'new_message' => 'नयाँ सन्देश',
     'subject' => 'विषय',
     'body' => 'मुख्य पाठ',
-    'category' => 'श्रेणी',          // ✅ अब यो स्ट्रिङ हो, array होइन
-    'priority' => 'प्राथमिकता',      // ✅ यो पनि स्ट्रिङ
+    'category' => 'श्रेणी',
+    'priority' => 'प्राथमिकता',
     'thread' => 'वार्तालाप',
     'threads' => 'वार्तालापहरू',
     'participants' => 'सहभागीहरू',
@@ -54,18 +54,31 @@ return [
     'direct_chat' => 'प्रत्यक्ष च्याट',
     'direct_message' => 'प्रत्यक्ष सन्देश',
 
-    // श्रेणीहरू (फ्ल्याट कुञ्जीहरू)
+    // श्रेणीहरू (बिना prefix)
     'business_inquiry' => 'व्यापार सोधपुछ',
     'partnership' => 'साझेदारी',
     'hostel_sale' => 'होस्टल बिक्री',
     'emergency' => 'आपतकालीन',
     'general' => 'सामान्य',
 
-    // प्राथमिकता (फ्ल्याट कुञ्जीहरू)
+    // श्रेणीहरू (category_ prefix सहित - show.blade.php मा प्रयोग भएकोले)
+    'category_business_inquiry' => 'व्यापार सोधपुछ',
+    'category_partnership' => 'साझेदारी',
+    'category_hostel_sale' => 'होस्टल बिक्री',
+    'category_emergency' => 'आपतकालीन',
+    'category_general' => 'सामान्य',
+
+    // प्राथमिकता (priority_ prefix सहित)
     'priority_low' => 'कम',
     'priority_medium' => 'मध्यम',
     'priority_high' => 'उच्च',
     'priority_urgent' => 'तत्काल',
+
+    // प्राथमिकता (बिना prefix - यदि आवश्यक भए)
+    'low' => 'कम',
+    'medium' => 'मध्यम',
+    'high' => 'उच्च',
+    'urgent' => 'तत्काल',
 
     // स्थिति
     'status' => 'स्थिति',

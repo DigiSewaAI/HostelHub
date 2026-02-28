@@ -69,6 +69,10 @@
                 // Self logo_path
                 $myHostel = Auth::user()->primary_hostel;
                 $myLogo = $myHostel && !empty($myHostel->logo_path) ? asset('storage/'.$myHostel->logo_path) : null;
+                
+                // Category र Priority को लागि
+                $categoryKey = $message->category->value ?? $message->category;
+                $priorityKey = $message->priority->value ?? $message->priority;
             @endphp
             <div class="d-flex {{ $isMine ? 'justify-content-end' : 'justify-content-start' }} mb-3">
                 @if(!$isMine)
@@ -92,12 +96,12 @@
                     </div>
                     <div class="d-flex align-items-center mt-1 small {{ $isMine ? 'text-muted' : 'text-muted' }}">
                         <span>{{ $message->created_at->format('H:i A') }}</span>
-                        @if($message->category)
-                            <span class="badge bg-secondary ms-2">{{ __('network.category_' . ($message->category->value ?? $message->category)) }}</span>
+                        @if($categoryKey)
+                            <span class="badge bg-secondary ms-2">{{ __('network.category_' . $categoryKey) }}</span>
                         @endif
-                        @if($message->priority)
-                            <span class="badge bg-{{ ($message->priority->value ?? $message->priority) == 'urgent' ? 'danger' : (($message->priority->value ?? $message->priority) == 'high' ? 'warning' : 'info') }} ms-2">
-                                {{ __('network.priority_' . ($message->priority->value ?? $message->priority)) }}
+                        @if($priorityKey)
+                            <span class="badge bg-{{ $priorityKey == 'urgent' ? 'danger' : ($priorityKey == 'high' ? 'warning' : 'info') }} ms-2">
+                                {{ __('network.priority_' . $priorityKey) }}
                             </span>
                         @endif
                     </div>
@@ -138,14 +142,18 @@
                 <div class="col-md-5">
                     <select class="form-select @error('category') is-invalid @enderror" name="category" required>
                         @foreach(['business_inquiry', 'partnership', 'hostel_sale', 'emergency', 'general'] as $cat)
-                            <option value="{{ $cat }}" @selected(old('category', 'general')==$cat)>{{ __('network.category_' . $cat) }}</option>
+                            <option value="{{ $cat }}" @selected(old('category', 'general')==$cat)>
+                                {{ __('network.category_' . $cat) }}
+                            </option>
                         @endforeach
                     </select>
                 </div>
                 <div class="col-md-5">
                     <select class="form-select @error('priority') is-invalid @enderror" name="priority" required>
                         @foreach(['low', 'medium', 'high', 'urgent'] as $pri)
-                            <option value="{{ $pri }}" @selected(old('priority', 'medium')==$pri)>{{ __('network.priority_' . $pri) }}</option>
+                            <option value="{{ $pri }}" @selected(old('priority', 'medium')==$pri)>
+                                {{ __('network.priority_' . $pri) }}
+                            </option>
                         @endforeach
                     </select>
                 </div>

@@ -20,6 +20,13 @@ class MessageController extends Controller
         $this->messageService = $messageService;
     }
 
+    public function create(Request $request)
+    {
+        $recipientId = $request->query('recipient');
+        $recipient = User::findOrFail($recipientId);
+        return view('network.messages.create', compact('recipient'));
+    }
+
     /**
      * Inbox with tabs (marketplace, broadcast, direct)
      */
@@ -116,6 +123,9 @@ class MessageController extends Controller
         $senderId = Auth::id();
         $sender = Auth::user();
 
+        // ✅ डाइरेक्टरीबाट आएको हो कि जाँच गर्ने
+        $fromDirectory = $request->has('from_directory') && $request->from_directory == 1;
+
         // पठाउने व्यक्तिको tenant ID प्राप्त गर्ने (Owner प्रोफाइलबाट)
         $tenantId = $sender->ownerProfile->tenant_id ?? null;
         if (!$tenantId) {
@@ -156,11 +166,15 @@ class MessageController extends Controller
             // thread type निर्धारण गर्ने
             $recipient = User::find($validated['recipient_id']);
             $type = 'direct'; // default
+
             if ($recipient && $recipient->isAdmin()) {
                 $type = 'broadcast';
-            } elseif (in_array($validated['category'], ['business_inquiry', 'partnership', 'hostel_sale'])) {
+            } elseif (!$fromDirectory && in_array($validated['category'], ['business_inquiry', 'partnership', 'hostel_sale'])) {
+                // डाइरेक्टरीबाट आएको होइन र category यी मध्ये कुनै हो भने मात्र marketplace
                 $type = 'marketplace';
             }
+            // अन्यथा direct नै रहन्छ (जसमा fromDirectory = true वा category emergency/general समावेश छ)
+
             $thread->type = $type;
             $thread->save();
 

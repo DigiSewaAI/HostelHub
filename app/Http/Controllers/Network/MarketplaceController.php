@@ -69,10 +69,11 @@ class MarketplaceController extends Controller
      */
     public function create()
     {
-        // नयाँ थपियो: सक्रिय कोटिहरू लिने
-        $categories = MarketplaceCategory::active()->get();
+        // नयाँ थपियो: सक्रिय कोटिहरू alphabetical order मा लिने
+        $categories = MarketplaceCategory::active()->orderBy('name_en', 'asc')->get();
         return view('network.marketplace.create', compact('categories'));
     }
+
 
     /**
      * नयाँ सूची भण्डारण गर्ने
@@ -158,11 +159,12 @@ class MarketplaceController extends Controller
             abort(403, 'तपाईंलाई यो सूची सम्पादन गर्ने अनुमति छैन।');
         }
 
-        // नयाँ थपियो: सक्रिय कोटिहरू लिने
-        $categories = MarketplaceCategory::active()->get();
+        // नयाँ थपियो: सक्रिय कोटिहरू alphabetical order मा लिने
+        $categories = MarketplaceCategory::active()->orderBy('name_en', 'asc')->get();
 
         return view('network.marketplace.edit', compact('listing', 'categories'));
     }
+
 
     /**
      * सूची अपडेट गर्ने

@@ -27,7 +27,7 @@
                         <input type="text" class="form-control" id="city" name="city" value="{{ request('city') }}">
                     </div>
 
-                    <!-- सुविधा फिल्टर (facilities JSON मा खोज) -->
+                    <!-- सुविधा फिल्टर -->
                     <div class="mb-3">
                         <label for="facility" class="form-label">{{ __('network.facility') }}</label>
                         <select class="form-select" id="facility" name="facility">
@@ -39,7 +39,7 @@
                         </select>
                     </div>
 
-                    <!-- मूल्य दायरा (rooms बाट) -->
+                    <!-- मूल्य दायरा -->
                     <div class="mb-3">
                         <label for="min_price" class="form-label">{{ __('network.min_price') }}</label>
                         <input type="number" class="form-control" id="min_price" name="min_price" value="{{ request('min_price') }}">
@@ -87,7 +87,6 @@
                         if (is_string($facilities)) {
                             $facilities = json_decode($facilities, true) ?? [];
                         }
-                        // यदि अझै array छैन भने खाली array
                         if (!is_array($facilities)) {
                             $facilities = [];
                         }
@@ -127,9 +126,9 @@
                                 </p>
                             </div>
                             <div class="card-footer">
-                                <a href="{{ route('network.messages.create', ['recipient' => $hostel->owner_id]) }}" class="btn btn-sm btn-primary">
+                                <button type="button" class="btn btn-sm btn-primary" onclick="openComposeModalWithRecipient({{ $hostel->owner_id }})">
                                     {{ __('network.send_message') }}
-                                </a>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -151,4 +150,123 @@
         @endif
     </div>
 </div>
+
+{{-- Compose Modal --}}
+<div class="modal fade" id="composeModal" tabindex="-1" style="display: none;" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ __('network.compose') }}</h5>
+                <button type="button" class="btn-close" onclick="hideComposeModal()"></button>
+            </div>
+            <form action="{{ route('network.messages.store') }}" method="POST">
+                @csrf
+                {{-- ✅ डाइरेक्टरीबाट पठाइएको सन्देश हो भनी चिन्ह लगाउन --}}
+                <input type="hidden" name="from_directory" value="1">
+
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">{{ __('network.recipient') }}</label>
+                        <select name="recipient_id" id="modalRecipientSelect" class="form-select" required>
+                            <option value="">{{ __('network.select_recipient') }}</option>
+                            @foreach(\App\Models\User::whereHas('hostels', function($q) {
+                                    $q->where('status', 'active')->where('is_published', true);
+                                })->get() as $user)
+                                <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->primary_hostel?->name ?? '' }})</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ __('network.subject') }}</label>
+                        <input type="text" name="subject" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ __('network.message') }}</label>
+                        <textarea name="body" class="form-control" rows="5" required></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ __('network.category') }}</label>
+                            <select name="category" class="form-select" required>
+                                @foreach(['business_inquiry', 'partnership', 'hostel_sale', 'emergency', 'general'] as $cat)
+                                    <option value="{{ $cat }}">{{ __("network." . $cat) }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">{{ __('network.priority') }}</label>
+                            <select name="priority" class="form-select" required>
+                                @foreach(['low', 'medium', 'high', 'urgent'] as $pri)
+                                    <option value="{{ $pri }}">{{ __("network.priority_" . $pri) }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="hideComposeModal()">{{ __('network.cancel') }}</button>
+                    <button type="submit" class="btn btn-primary">{{ __('network.send') }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+/* मोडललाई सही रूपमा देखाउन CSS */
+#composeModal.show {
+    display: block !important;
+    background-color: rgba(0,0,0,0.5);
+}
+.modal-backdrop {
+    display: none !important; /* Bootstrap को backdrop हटाउने */
+}
+</style>
+
+@push('scripts')
+<script>
+function showComposeModal() {
+    var modal = document.getElementById('composeModal');
+    modal.style.display = 'block';
+    modal.classList.add('show');
+    document.body.classList.add('modal-open');
+}
+
+function hideComposeModal() {
+    var modal = document.getElementById('composeModal');
+    modal.style.display = 'none';
+    modal.classList.remove('show');
+    document.body.classList.remove('modal-open');
+}
+
+// बाहिर क्लिक गर्दा बन्द गर्न
+document.addEventListener('click', function(event) {
+    var modal = document.getElementById('composeModal');
+    if (event.target === modal) {
+        hideComposeModal();
+    }
+});
+
+// Escape key थिच्दा बन्द गर्न
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        hideComposeModal();
+    }
+});
+
+// recipient ID पास गरेर मोडल खोल्ने function
+function openComposeModalWithRecipient(recipientId) {
+    showComposeModal();
+    var select = document.getElementById('modalRecipientSelect');
+    if (select) {
+        for (var i = 0; i < select.options.length; i++) {
+            if (select.options[i].value == recipientId) {
+                select.selectedIndex = i;
+                break;
+            }
+        }
+    }
+}
+</script>
+@endpush
 @endsection

@@ -22,13 +22,13 @@
 <form method="GET" class="row g-3 mb-4">
     <div class="col-auto">
         <select name="category" class="form-select">
-    <option value="">{{ __('network.all_categories') }}</option>
-    @foreach(['business_inquiry', 'partnership', 'hostel_sale', 'emergency', 'general'] as $cat)
-        <option value="{{ $cat }}" {{ request('category') == $cat ? 'selected' : '' }}>
-            {{ __("network.{$cat}") }}
-        </option>
-    @endforeach
-</select>
+            <option value="">{{ __('network.all_categories') }}</option>
+            @foreach(['business_inquiry', 'partnership', 'hostel_sale', 'emergency', 'general'] as $cat)
+                <option value="{{ $cat }}" {{ request('category') == $cat ? 'selected' : '' }}>
+                    {{ __("network.{$cat}") }}
+                </option>
+            @endforeach
+        </select>
     </div>
     <div class="col-auto">
         <button type="submit" class="btn btn-outline-secondary">{{ __('network.search') }}</button>
@@ -140,7 +140,7 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">{{ __('network.recipient') }}</label>
-                        <select name="recipient_id" class="form-select" required>
+                        <select name="recipient_id" id="composeRecipientSelect" class="form-select" required>
                             <option value="">{{ __('network.select_recipient') }}</option>
                             @foreach(\App\Models\User::whereHas('hostels', function($q) {
                                     $q->where('status', 'active')->where('is_published', true);
@@ -162,7 +162,7 @@
                             <label class="form-label">{{ __('network.category') }}</label>
                             <select name="category" class="form-select" required>
                                 @foreach(['business_inquiry', 'partnership', 'hostel_sale', 'emergency', 'general'] as $cat)
-                                    <option value="{{ $cat }}">{{ __("network.category_" . $cat) }}</option>  {{-- ✅ यहाँ पनि category_ prefix --}}
+                                    <option value="{{ $cat }}">{{ __("network." . $cat) }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -170,7 +170,7 @@
                             <label class="form-label">{{ __('network.priority') }}</label>
                             <select name="priority" class="form-select" required>
                                 @foreach(['low', 'medium', 'high', 'urgent'] as $pri)
-                                    <option value="{{ $pri }}">{{ __("network.priority_" . $pri) }}</option>  {{-- ✅ priority_ prefix --}}
+                                    <option value="{{ $pri }}">{{ __("network.priority_" . $pri) }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -202,6 +202,27 @@ function showComposeModal() {
     modal.style.display = 'block';
     modal.classList.add('show');
     document.body.classList.add('modal-open');
+    
+    // कुनै recipient पूर्वनिर्धारित नगर्ने
+    var select = document.getElementById('composeRecipientSelect');
+    if (select) {
+        select.selectedIndex = 0;
+    }
+}
+
+function showComposeModalWithRecipient(recipientId) {
+    showComposeModal(); // पहिले मोडल खोल्ने
+    
+    // त्यसपछि select box मा उक्त recipient ID खोजेर select गर्ने
+    var select = document.getElementById('composeRecipientSelect');
+    if (select) {
+        for (var i = 0; i < select.options.length; i++) {
+            if (select.options[i].value == recipientId) {
+                select.selectedIndex = i;
+                break;
+            }
+        }
+    }
 }
 
 function hideComposeModal() {
