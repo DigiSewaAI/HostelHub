@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Helpers\TenantHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Events\BroadcastMessageCreated;
 
 class BroadcastController extends Controller
 {
@@ -104,6 +105,9 @@ class BroadcastController extends Controller
                 'medium'          // priority मध्यम
             );
         }
+
+        // 🆕 Event Dispatch: BroadcastMessageCreated event फायर गर्ने
+        event(new BroadcastMessageCreated($broadcast, $recipients));
 
         return redirect()->route('network.broadcast.index')
             ->with('success', 'ब्रोडकास्ट सफलतापूर्वक पठाइयो।');

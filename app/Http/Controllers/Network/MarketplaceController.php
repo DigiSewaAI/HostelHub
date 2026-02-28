@@ -5,11 +5,12 @@ namespace App\Http\Controllers\Network;
 use App\Http\Controllers\Controller;
 use App\Services\MarketplaceService;
 use App\Models\MarketplaceListing;
-use App\Models\MarketplaceCategory; // नयाँ थपियो: Category model
+use App\Models\MarketplaceCategory;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str; // नयाँ थपियो: slug को लागि
+use Illuminate\Support\Str;
+use App\Events\MarketplaceInquirySent; // ✅ Event थपियो
 
 class MarketplaceController extends Controller
 {
@@ -32,7 +33,7 @@ class MarketplaceController extends Controller
         if (!$tenantId) {
             $listings = collect([]); // खाली collection
         } else {
-            $query = MarketplaceListing::with('owner', 'media', 'category') // नयाँ: category पनि लोड गर्ने
+            $query = MarketplaceListing::with('owner', 'media', 'category')
                 ->where('tenant_id', $tenantId);
 
             // फिल्टरहरू
@@ -48,12 +49,10 @@ class MarketplaceController extends Controller
                 $query->where('location', 'like', '%' . $request->location . '%');
             }
 
-            // नयाँ फिल्टर: visibility अनुसार
             if ($request->filled('visibility')) {
                 $query->where('visibility', $request->visibility);
             }
 
-            // नयाँ फिल्टर: category अनुसार
             if ($request->filled('category_id')) {
                 $query->where('category_id', $request->category_id);
             }
@@ -69,11 +68,9 @@ class MarketplaceController extends Controller
      */
     public function create()
     {
-        // नयाँ थपियो: सक्रिय कोटिहरू alphabetical order मा लिने
         $categories = MarketplaceCategory::active()->orderBy('name_en', 'asc')->get();
         return view('network.marketplace.create', compact('categories'));
     }
-
 
     /**
      * नयाँ सूची भण्डारण गर्ने
@@ -86,9 +83,8 @@ class MarketplaceController extends Controller
             'type'        => 'required|in:sale,lease,partnership,investment',
             'price'       => 'nullable|numeric|min:0',
             'location'    => 'nullable|string|max:255',
-            'media.*'     => 'nullable|image|max:2048', // प्रति फाइल 2MB
-            // नयाँ थपियो: नयाँ फिल्डहरूको लागि validation
-            'visibility'  => 'required|in:private,both', // owner ले public छान्न पाउँदैन, admin मात्र
+            'media.*'     => 'nullable|image|max:2048',
+            'visibility'  => 'required|in:private,both',
             'category_id' => 'nullable|exists:marketplace_categories,id',
             'condition'   => 'nullable|in:new,used',
             'quantity'    => 'integer|min:1',
@@ -102,20 +98,16 @@ class MarketplaceController extends Controller
             return back()->with('error', 'Tenant जानकारी फेला परेन। कृपया प्रोफाइल पूरा गर्नुहोस्।');
         }
 
-        // नयाँ थपियो: slug बनाउने
         $validated['slug'] = Str::slug($validated['title']) . '-' . uniqid();
         $validated['tenant_id'] = $tenantId;
-        $validated['owner_id'] = Auth::id(); // यो पनि थप्नुपर्छ, पहिले service मा पठाउँदा हुन्थ्यो
+        $validated['owner_id'] = Auth::id();
 
-        // नयाँ थपियो: यदि quantity खाली छ भने default 1
         if (!isset($validated['quantity']) || empty($validated['quantity'])) {
             $validated['quantity'] = 1;
         }
 
-        // सूची सिर्जना गर्न service मा पठाउने (service ले पनि नयाँ fields सम्हाल्नुपर्छ)
         $listing = $this->marketplaceService->createListing(Auth::id(), $validated);
 
-        // मिडिया अपलोड भएमा ह्यान्डल गर्ने
         if ($request->hasFile('media')) {
             $this->marketplaceService->handleMediaUpload($listing, $request->file('media'));
         }
@@ -132,7 +124,7 @@ class MarketplaceController extends Controller
         $user = Auth::user();
         $tenantId = $user->ownerProfile->tenant_id ?? null;
 
-        $listing = MarketplaceListing::with('owner', 'media', 'category') // नयाँ: category पनि
+        $listing = MarketplaceListing::with('owner', 'media', 'category')
             ->where('slug', $slug)
             ->where('tenant_id', $tenantId)
             ->firstOrFail();
@@ -154,17 +146,14 @@ class MarketplaceController extends Controller
             ->where('tenant_id', $tenantId)
             ->firstOrFail();
 
-        // जाँच गर्ने: के यो लिस्टिङ यो user को हो?
         if ($listing->owner_id !== Auth::id()) {
             abort(403, 'तपाईंलाई यो सूची सम्पादन गर्ने अनुमति छैन।');
         }
 
-        // नयाँ थपियो: सक्रिय कोटिहरू alphabetical order मा लिने
         $categories = MarketplaceCategory::active()->orderBy('name_en', 'asc')->get();
 
         return view('network.marketplace.edit', compact('listing', 'categories'));
     }
-
 
     /**
      * सूची अपडेट गर्ने
@@ -178,7 +167,6 @@ class MarketplaceController extends Controller
             ->where('tenant_id', $tenantId)
             ->firstOrFail();
 
-        // जाँच गर्ने: के यो लिस्टिङ यो user को हो?
         if ($listing->owner_id !== Auth::id()) {
             abort(403, 'तपाईंलाई यो सूची सम्पादन गर्ने अनुमति छैन।');
         }
@@ -189,7 +177,6 @@ class MarketplaceController extends Controller
             'type'        => 'required|in:sale,lease,partnership,investment',
             'price'       => 'nullable|numeric|min:0',
             'location'    => 'nullable|string|max:255',
-            // नयाँ थपियो: नयाँ फिल्डहरूको लागि validation
             'visibility'  => 'required|in:private,both',
             'category_id' => 'nullable|exists:marketplace_categories,id',
             'condition'   => 'nullable|in:new,used',
@@ -197,19 +184,16 @@ class MarketplaceController extends Controller
             'price_type'  => 'required|in:fixed,negotiable',
         ]);
 
-        // यदि title परिवर्तन भएमा slug पनि अपडेट गर्ने
         if ($listing->title !== $validated['title']) {
             $validated['slug'] = Str::slug($validated['title']) . '-' . uniqid();
         }
 
-        // नयाँ थपियो: यदि quantity खाली छ भने default 1
         if (!isset($validated['quantity']) || empty($validated['quantity'])) {
             $validated['quantity'] = 1;
         }
 
         $listing->update($validated);
 
-        // मिडिया ह्यान्डलिङ (यदि नयाँ मिडिया छ भने)
         if ($request->hasFile('media')) {
             $this->marketplaceService->handleMediaUpload($listing, $request->file('media'));
         }
@@ -230,12 +214,10 @@ class MarketplaceController extends Controller
             ->where('tenant_id', $tenantId)
             ->firstOrFail();
 
-        // जाँच गर्ने: के यो लिस्टिङ यो user को हो?
         if ($listing->owner_id !== Auth::id()) {
             abort(403, 'तपाईंलाई यो सूची मेटाउने अनुमति छैन।');
         }
 
-        // मिडिया पनि मेटाउने (service मा method छ भने)
         $this->marketplaceService->deleteListingMedia($listing);
         $listing->delete();
 
@@ -273,8 +255,11 @@ class MarketplaceController extends Controller
 
         // Set tenant_id and type on the thread
         $thread->tenant_id = $tenantId;
-        $thread->type = 'marketplace';  // ✅ type set गर्ने
+        $thread->type = 'marketplace';
         $thread->save();
+
+        // 🆕 Event Dispatch: MarketplaceInquirySent event फायर गर्ने
+        event(new MarketplaceInquirySent($listing, Auth::user(), $thread, $owner));
 
         return redirect()->route('network.messages.show', $thread->id)
             ->with('success', 'मालिकलाई सन्देश पठाउन सक्नुहुन्छ।');

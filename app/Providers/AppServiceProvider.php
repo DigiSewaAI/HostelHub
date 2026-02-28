@@ -3,8 +3,8 @@
 namespace App\Providers;
 
 use App\Services\PlanLimitService;
-use App\Services\ImageOptimizer; // ✅ ADDED: For image optimization service
-use App\Services\ClassicImageOptimizer; // ✅ NEW: Classic theme image optimizer
+use App\Services\ImageOptimizer;
+use App\Services\ClassicImageOptimizer;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
@@ -16,18 +16,18 @@ use Illuminate\Support\Facades\Auth;
 use App\View\Components\AdminNavLink;
 
 // Models
-use App\Models\StudentDocument; // ✅ ADDED: For policy registration
-use App\Models\Student; // ✅ ADDED: For observer registration
-use App\Models\Hostel; // ✅ ADDED: For Hostel observer registration
-use App\Models\Room; // ✅ ADDED: For Room observer registration
+use App\Models\StudentDocument;
+use App\Models\Student;
+use App\Models\Hostel;
+use App\Models\Room;
 
 // Policies
-use App\Policies\DocumentPolicy; // ✅ ADDED: For policy registration
+use App\Policies\DocumentPolicy;
 
 // Observers
-use App\Observers\StudentObserver; // ✅ ADDED: For observer registration
-use App\Observers\HostelObserver; // ✅ ADDED: For Hostel observer registration
-use App\Observers\RoomObserver; // ✅ ADDED: For Room observer registration
+use App\Observers\StudentObserver;
+use App\Observers\HostelObserver;
+use App\Observers\RoomObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -42,25 +42,26 @@ class AppServiceProvider extends ServiceProvider
             require_once $helperFile;
         }
 
+        // ✅ NEW: Register NotificationHelper (if not already in composer autoload)
+        $notificationHelper = app_path('Helpers/NotificationHelper.php');
+        if (file_exists($notificationHelper)) {
+            require_once $notificationHelper;
+        }
+
         // Register PlanLimitService as a singleton
         $this->app->singleton(PlanLimitService::class, function ($app) {
             return new PlanLimitService();
         });
 
-        // ✅ ADDED: Register ImageOptimizer Service as a singleton
+        // Register ImageOptimizer Service as a singleton
         $this->app->singleton(ImageOptimizer::class, function ($app) {
             return new ImageOptimizer();
         });
 
-        // ✅ NEW: Register ClassicImageOptimizer Service as a singleton
+        // Register ClassicImageOptimizer Service as a singleton
         $this->app->singleton(ClassicImageOptimizer::class, function ($app) {
             return new ClassicImageOptimizer();
         });
-
-        // Register other services if needed
-        // $this->app->singleton(OtherService::class, function ($app) {
-        //     return new OtherService();
-        // });
     }
 
     /**
@@ -68,16 +69,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // ✅ ADDED: Register Student Observer for automatic room occupancy updates
+        // ✅ Register Observers
         Student::observe(StudentObserver::class);
-
-        // ✅ ADDED: Register Hostel Observer
         Hostel::observe(HostelObserver::class);
-
-        // ✅ ADDED: Register Room Observer
         Room::observe(RoomObserver::class);
 
-        // ✅ ADDED: Register Document Policy
+        // ✅ Register Policies
         Gate::policy(StudentDocument::class, DocumentPolicy::class);
 
         // Register Blade component
@@ -88,13 +85,12 @@ class AppServiceProvider extends ServiceProvider
         $this->app['router']->aliasMiddleware('enforce.plan.limits', \App\Http\Middleware\EnforcePlanLimits::class);
         $this->app['router']->aliasMiddleware('role', \App\Http\Middleware\RoleMiddleware::class);
 
-        // ✅ ADDED: View Composer for Owner Layout to pass unread message count
+        // ✅ [EXISTING] View Composer for Owner Layout – passes message unread count (using $unreadCount)
         View::composer('owner', function ($view) {
             $unreadCount = 0;
             if (Auth::check()) {
                 $userId = Auth::id();
-                // आफ्नो Database Structure अनुसार यो Query मिलाउनुहोस्
-                // यहाँ MessageThreadParticipant Model प्रयोग गरिएको छ
+                // Adjust query as per your database structure
                 $unreadCount = MessageThreadParticipant::where('user_id', $userId)
                     ->whereColumn('last_read_at', '<', 'thread.last_message_at')
                     ->count();
@@ -102,10 +98,19 @@ class AppServiceProvider extends ServiceProvider
             $view->with('unreadCount', $unreadCount);
         });
 
-        // Additional bootstrapping code can go here
-        // For example, view composers, database macros, etc.
+        // ✅ [NEW] Global View Composer for Notifications – passes notifications and notificationUnreadCount
+        View::composer('*', function ($view) {
+            if (Auth::check()) {
+                $user = Auth::user();
+                $notifications = $user->notifications()->latest()->take(10)->get();
+                $notificationUnreadCount = $user->unreadNotifications()->count();
+                $view->with(compact('notifications', 'notificationUnreadCount'));
+            } else {
+                $view->with('notifications', collect([]))->with('notificationUnreadCount', 0);
+            }
+        });
 
-        // Share common data with all views (optional)
+        // Additional bootstrapping code can go here
         // $this->shareCommonViewData();
     }
 
@@ -116,10 +121,5 @@ class AppServiceProvider extends ServiceProvider
     {
         // Example: Share app name with all views
         // view()->share('appName', config('app.name'));
-
-        // Example: Share current user with all views (if authenticated)
-        // view()->composer('*', function ($view) {
-        //     $view->with('currentUser', auth()->user());
-        // });
     }
 }

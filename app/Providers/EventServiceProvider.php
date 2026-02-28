@@ -16,6 +16,15 @@ class EventServiceProvider extends ServiceProvider
     protected $listen = [
         Registered::class => [
             SendEmailVerificationNotification::class,
+            \App\Events\ChatMessageSent::class => [
+                \App\Listeners\SendChatMessageNotification::class,
+            ],
+            \App\Events\BroadcastMessageCreated::class => [
+                \App\Listeners\SendBroadcastNotification::class,
+            ],
+            \App\Events\MarketplaceInquirySent::class => [
+                \App\Listeners\SendMarketplaceInquiryNotification::class,
+            ],
         ],
     ];
 

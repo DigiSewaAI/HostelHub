@@ -84,12 +84,30 @@ Route::post('/reset-password-temp', function (Illuminate\Http\Request $request) 
 
 // ✅ Authenticated user routes
 
+// ✅ Fetch latest notifications (API for bell dropdown)
+Route::middleware('auth')->get('/notifications', function () {
+    return auth()->user()
+        ->notifications()
+        ->latest()
+        ->take(10)
+        ->get()
+        ->map(function ($notification) {
+            return [
+                'id' => $notification->id,
+                'data' => $notification->data,
+                'read_at' => $notification->read_at,
+                'created_at' => $notification->created_at->toIso8601String(),
+            ];
+        });
+})->name('notifications.api');
+
 // ✅ Notification mark as read (सबै प्रमाणित प्रयोगकर्ताका लागि)
 Route::post('/notifications/{id}/mark-as-read', function (Request $request, $id) {
     $notification = auth()->user()->notifications()->findOrFail($id);
     $notification->markAsRead();
     return response()->json(['success' => true]);
 })->name('notifications.mark-as-read');
+Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
 
 Route::middleware(['auth'])->group(function () {
     // Welcome page with booking summary

@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Pagination\LengthAwarePaginator;
+use App\Events\ChatMessageSent;
 
 class MessageController extends Controller
 {
@@ -196,6 +197,16 @@ class MessageController extends Controller
         if ($message) {
             $message->tenant_id = $tenantId;
             $message->save();
+
+            // 🆕 Event Dispatch: सन्देश पठाइसकेपछि ChatMessageSent event फायर गर्ने
+            $thread = MessageThread::with('participants.user')->find($threadId);
+            $participants = $thread->participants
+                ->pluck('user')
+                ->reject(function ($user) use ($senderId) {
+                    return $user->id == $senderId;
+                });
+
+            event(new ChatMessageSent($message, $thread, $participants));
         }
 
         return redirect()->route('network.messages.show', $threadId)
