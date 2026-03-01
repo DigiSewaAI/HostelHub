@@ -34,8 +34,17 @@ class RoomIssueNotification extends Notification
      */
     public function toDatabase($notifiable)
     {
-        $studentName = $this->roomIssue->student->user->name ?? $this->roomIssue->student->name ?? 'कोही';
+        $student = $this->roomIssue->student;
+        $studentName = $student->user->name ?? $student->name ?? 'कोही';
         $roomNumber  = $this->roomIssue->room->room_number ?? 'अज्ञात';
+
+        // Student image URL बनाउने
+        $avatarUrl = null;
+        if ($student && $student->image) {
+            // तपाईंको storage path अनुसार URL बनाउनुहोस्
+            // मानौं student->image मा relative path stored छ (जस्तै: hostels/15/students/filename.jpg)
+            $avatarUrl = asset('storage/' . $student->image);
+        }
 
         return [
             'title'      => 'रूम समस्या',
@@ -46,6 +55,7 @@ class RoomIssueNotification extends Notification
             'issue'      => $this->roomIssue->issue ?? $this->roomIssue->description,
             'type'       => 'maintenance',
             'url'        => route('owner.room-issues.show', $this->roomIssue->id),
+            'avatar'     => $avatarUrl, // यो थपियो
         ];
     }
 

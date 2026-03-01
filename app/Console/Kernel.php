@@ -22,6 +22,8 @@ class Kernel extends ConsoleKernel
         // ✅ NEW: Circular commands
         \App\Console\Commands\PublishScheduledCirculars::class,
         \App\Console\Commands\ArchiveExpiredCirculars::class,
+        \App\Console\Commands\UpdateRoomIssueNotificationsAvatar::class,
+
     ];
 
     /**
