@@ -14,12 +14,20 @@
         </div>
         <div class="max-h-96 overflow-y-auto">
             <template x-for="notification in notifications" :key="notification.id">
-                <a :href="notification.data.url" @click.prevent="markAsRead(notification.id, notification.data.url)" class="flex items-start px-4 py-3 hover:bg-gray-50 border-b border-gray-100" :class="{ 'bg-blue-50': !notification.read_at }">
+                <a :href="notification.data.url" @click.prevent="markAsRead(notification.id, notification.data.url)" class="flex items-start px-4 py-3 hover:bg-gray-50 border-b border-gray-100 no-underline hover:no-underline" :class="{ 'bg-blue-50': !notification.read_at }">
+                    <!-- Avatar -->
                     <div class="flex-shrink-0 mr-3">
-                        <img :src="notification.data.avatar" class="w-10 h-10 rounded-full object-cover" alt="Avatar">
+                        <template x-if="notification.data.avatar">
+                            <img :src="notification.data.avatar" class="w-10 h-10 rounded-full object-cover">
+                        </template>
+                        <template x-if="!notification.data.avatar">
+                            <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-sm">
+                                <i class="fas fa-user-circle text-2xl"></i>
+                            </div>
+                        </template>
                     </div>
                     <div class="flex-1">
-                        <p class="text-sm text-gray-800" :class="{ 'font-semibold': !notification.read_at }" x-text="notification.data.title + ' - ' + notification.data.message"></p>
+                        <p class="text-sm text-gray-800" :class="{ 'font-semibold': !notification.read_at }" x-text="notification.data.message"></p>
                         <p class="text-xs text-gray-500 mt-1" x-text="timeAgo(notification.created_at)"></p>
                     </div>
                 </a>
@@ -29,24 +37,21 @@
             </div>
         </div>
         <div class="px-4 py-2 bg-gray-50 border-t border-gray-200 text-center">
-    @php
-        $notificationsRoute = '#';
-        if (auth()->check()) {
-            $user = auth()->user();
-            if ($user->hasRole('admin')) {
-                $notificationsRoute = route('admin.notifications.index');
-            } elseif ($user->hasRole('owner') || $user->hasRole('hostel_manager')) {
-                $notificationsRoute = route('owner.notifications.index');
-            } elseif ($user->hasRole('student')) {
-                $notificationsRoute = route('student.notifications.index');
-            } else {
-                // fallback – if no role, you might want a generic route
+            @php
                 $notificationsRoute = '#';
-            }
-        }
-    @endphp
-    <a href="{{ $notificationsRoute }}" class="text-indigo-600 text-sm hover:underline">सबै सूचनाहरू हेर्नुहोस्</a>
-</div>
+                if (auth()->check()) {
+                    $user = auth()->user();
+                    if ($user->hasRole('admin')) {
+                        $notificationsRoute = route('admin.notifications.index');
+                    } elseif ($user->hasRole('owner') || $user->hasRole('hostel_manager')) {
+                        $notificationsRoute = route('owner.notifications.index');
+                    } elseif ($user->hasRole('student')) {
+                        $notificationsRoute = route('student.notifications.index');
+                    }
+                }
+            @endphp
+            <a href="{{ $notificationsRoute }}" class="text-indigo-600 text-sm hover:underline">सबै सूचनाहरू हेर्नुहोस्</a>
+        </div>
     </div>
 </div>
 
@@ -55,36 +60,46 @@ function notificationDropdown() {
     return {
         open: false,
         notificationUnreadCount: {{ $notificationUnreadCount }},
-        notifications: @json($notifications),
-        
-        // ✅ init method: component लोड हुँदा real-time event listener थप्ने
+        notifications: @json($notifications->toArray()),
+
         init() {
             window.addEventListener('new-notification', (e) => {
-                this.notifications.unshift(e.detail);
-                this.notificationUnreadCount++;
+                // Prevent duplicate entries - ID छ कि छैन जाँच गर्ने
+                if (!this.notifications.some(n => n.id === e.detail.id)) {
+                    this.notifications.unshift(e.detail);
+                    this.notificationUnreadCount++;
+                }
             });
         },
-        
+
         toggle() {
             this.open = !this.open;
             if (this.open && this.notifications.length === 0) {
                 this.fetchNotifications();
             }
         },
-        
+
         fetchNotifications() {
-            axios.get('/notifications').then(response => {
-                this.notifications = response.data;
-                this.notificationUnreadCount = response.data.filter(n => !n.read_at).length;
-            });
+            axios.get('/notifications')
+                .then(response => {
+                    // नयाँ notifications मात्र थप्ने, पुराना नहटाउने
+                    const newOnes = response.data.filter(
+                        newNotif => !this.notifications.some(old => old.id === newNotif.id)
+                    );
+                    this.notifications = [...newOnes, ...this.notifications];
+                    this.notificationUnreadCount = this.notifications.filter(n => !n.read_at).length;
+                })
+                .catch(error => {
+                    console.error('Failed to fetch notifications', error);
+                });
         },
-        
+
         markAsRead(id, url) {
             axios.post('/notifications/' + id + '/mark-as-read').finally(() => {
                 window.location.href = url;
             });
         },
-        
+
         timeAgo(date) {
             const diff = (new Date() - new Date(date)) / 1000;
             if (diff < 60) return 'अहिले मात्र';

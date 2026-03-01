@@ -35,15 +35,34 @@ class NewChatMessageNotification extends Notification implements ShouldQueue
         return [
             'type'      => 'chat',
             'title'     => 'नयाँ सन्देश',
-            'message'   => $sender->name . ' ले तपाईंलाई सन्देश पठाएका छन्।',
+            'message'   => $this->getMessageText($sender),
             'avatar'    => $avatar,
             'url'       => route('network.messages.show', $this->thread->id),
             'sender_id' => $sender->id,
+            'message_id' => $this->message->id, // ✅ यहाँ पनि थप्नुहोस्
         ];
     }
 
     public function toBroadcast($notifiable)
     {
         return new BroadcastMessage($this->toDatabase($notifiable));
+    }
+
+    private function getMessageText($sender)
+    {
+        $hostelName = null;
+
+        if ($sender->isHostelManager()) {
+            $hostel = $sender->hostels()->first();
+            if ($hostel) {
+                $hostelName = $hostel->name;
+            }
+        }
+
+        if ($hostelName) {
+            return $hostelName . ' बाट ' . $sender->name . ' ले तपाईंलाई नयाँ सन्देश पठाएका छन्।';
+        }
+
+        return $sender->name . ' ले तपाईंलाई सन्देश पठाएका छन्।';
     }
 }

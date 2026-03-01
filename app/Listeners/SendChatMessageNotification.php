@@ -5,22 +5,32 @@ namespace App\Listeners;
 use App\Events\ChatMessageSent;
 use App\Events\NewNotification;
 use App\Notifications\NewChatMessageNotification;
-use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Log;
 
 class SendChatMessageNotification
 {
     public function handle(ChatMessageSent $event)
     {
-        // 1. प्रत्येक recipient लाई notification पठाउने
         foreach ($event->recipients as $recipient) {
-            $recipient->notify(new NewChatMessageNotification($event->message, $event->thread));
+            // ✅ Duplicate check: पछिल्लो १ मिनेटमा यही message_id को notification छ?
+            $existing = $recipient->notifications()
+                ->where('type', NewChatMessageNotification::class)
+                ->where('created_at', '>', now()->subMinutes(1))
+                ->whereRaw('JSON_EXTRACT(data, "$.message_id") = ?', [$event->message->id])
+                ->exists();
 
-            // 2. यो नोटिफिकेसन पठाइसकेपछि, भर्खरै सिर्जना भएको notification लिने
-            $notification = $recipient->notifications()->latest()->first();
+            if (!$existing) {
+                $recipient->notify(new NewChatMessageNotification($event->message, $event->thread));
 
-            // 3. यदि notification भेटियो भने, custom broadcast event पठाउने
-            if ($notification) {
-                broadcast(new NewNotification($notification, $recipient->id));
+                $notification = $recipient->notifications()->latest()->first();
+                if ($notification) {
+                    broadcast(new NewNotification($notification, $recipient->id));
+                }
+            } else {
+                Log::info('Duplicate chat notification prevented', [
+                    'message_id' => $event->message->id,
+                    'recipient_id' => $recipient->id
+                ]);
             }
         }
     }

@@ -10,7 +10,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
-use App\Events\MarketplaceInquirySent; // ✅ Event थपियो
+use App\Events\MarketplaceInquirySent;
+
 
 class MarketplaceController extends Controller
 {
@@ -230,7 +231,7 @@ class MarketplaceController extends Controller
      */
     public function contact(Request $request, $listingId)
     {
-        $listing = MarketplaceListing::findOrFail($listingId);
+        $listing = MarketplaceListing::with('hostel')->findOrFail($listingId);
 
         $user = Auth::user();
         $tenantId = $user->ownerProfile->tenant_id ?? null;
@@ -239,26 +240,34 @@ class MarketplaceController extends Controller
             return back()->with('error', 'तपाईंलाई यो सूचीमा सम्पर्क गर्ने अनुमति छैन।');
         }
 
-        // 🔐 RECIPIENT ELIGIBILITY CHECK (listing owner)
+        $hostel = $listing->hostel;
+        if (!$hostel) {
+            return back()->with('error', 'यो सूचीमा होस्टेल जानकारी छैन।');
+        }
+
         $owner = $listing->owner;
-        if (!$owner->hasEligibleHostel() && !$owner->isAdmin()) {
-            return back()->with('error', 'यो सूचीको मालिक हाल सन्देश प्राप्त गर्न योग्य छैन।');
+
+        // ✅ नयाँ networking approval जाँच
+        if (!$owner->isAdmin()) {
+            if (!$owner->isOwnerApproved()) {
+                return back()->with('error', 'यो सूचीको मालिक हाल सन्देश प्राप्त गर्न योग्य छैन (खाता स्वीकृत छैन)।');
+            }
+            if (!$owner->hasApprovedNetworkProfileForHostel($hostel->id)) {
+                return back()->with('error', 'यो सूचीको मालिकको networking सुविधा सक्रिय छैन।');
+            }
         }
 
         $messageService = app(\App\Services\MessageService::class);
 
-        // नयाँ सन्देश थ्रेड सिर्जना गर्ने
         $thread = $messageService->createThread(
             [Auth::id(), $listing->owner_id],
             'सोधपुछ: ' . $listing->title
         );
 
-        // Set tenant_id and type on the thread
         $thread->tenant_id = $tenantId;
         $thread->type = 'marketplace';
         $thread->save();
 
-        // 🆕 Event Dispatch: MarketplaceInquirySent event फायर गर्ने
         event(new MarketplaceInquirySent($listing, Auth::user(), $thread, $owner));
 
         return redirect()->route('network.messages.show', $thread->id)

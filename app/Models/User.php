@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Schema;
 
 class User extends Authenticatable
 {
+    use Notifiable;
     use HasFactory, Notifiable, HasRoles;
 
     // 🔥 CRITICAL: Explicitly set central DB connection
@@ -215,6 +216,11 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
+    public function organizationRequests(): HasMany
+    {
+        return $this->hasMany(OrganizationRequest::class);
+    }
+
     /**
      * 🔥 PERMANENT FIX: Student relationship (कुनै पनि foreign key नाममा काम गर्ने)
      */
@@ -311,6 +317,54 @@ class User extends Authenticatable
         return $this->hasOne(\App\Models\OwnerNetworkProfile::class, 'user_id');
     }
 
+    /**
+     * के user को account admin द्वारा approved छ?
+     * organization_requests मा status = approved भएको रेकर्ड हुनुपर्छ।
+     */
+    public function isOwnerApproved(): bool
+    {
+        return $this->organizationRequests()
+            ->where('status', 'approved')
+            ->exists();
+    }
+
+    /**
+     * के user सँग कम्तीमा एउटा approved network profile भएको hostel छ?
+     * यो general eligibility को लागि प्रयोग हुन्छ (जस्तै broadcast पठाउन)।
+     */
+    public function hasAnyApprovedNetworkProfile(): bool
+    {
+        return $this->hostels()
+            ->whereHas('networkProfile', function ($query) {
+                $query->whereNotNull('verified_at')
+                    ->whereIn('trust_level', ['verified', 'trusted']);
+            })->exists();
+    }
+
+    /**
+     * खास hostel को network profile approved छ कि छैन जाँच गर्ने (marketplace inquiry को लागि)
+     */
+    public function hasApprovedNetworkProfileForHostel($hostelId): bool
+    {
+        $networkProfile = \App\Models\OwnerNetworkProfile::where('hostel_id', $hostelId)->first();
+        if (!$networkProfile) {
+            return false;
+        }
+        return !is_null($networkProfile->verified_at)
+            && in_array($networkProfile->trust_level, ['verified', 'trusted']);
+    }
+
+    /**
+     * Networking approval को लागि account approved र कम्तीमा एउटा approved network profile चाहिन्छ।
+     */
+    public function isNetworkingApproved(): bool
+    {
+        return $this->isOwnerApproved() && $this->hasAnyApprovedNetworkProfile();
+    }
+
+    /**
+     * @deprecated 1.0.0 Networking approval अब isNetworkingApproved() प्रयोग गर्नुहोस्।
+     */
     public function hasEligibleHostel(): bool
     {
         return $this->hostels()

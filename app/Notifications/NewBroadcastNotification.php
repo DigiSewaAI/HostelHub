@@ -34,8 +34,9 @@ class NewBroadcastNotification extends Notification implements ShouldQueue
             'title'     => 'प्रसारण सन्देश',
             'message'   => $this->broadcast->subject,
             'avatar'    => $avatar,
-            'url'       => route('network.broadcast.index'), // उपयुक्त पृष्ठ
+            'url'       => route('network.broadcast.index'),
             'sender_id' => $sender->id,
+            'broadcast_id' => $this->broadcast->id,
         ];
     }
 

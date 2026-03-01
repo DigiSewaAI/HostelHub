@@ -52,6 +52,12 @@ class BroadcastController extends Controller
     {
         $user = Auth::user();
 
+        // 🔐 SENDER ELIGIBILITY CHECK (networking approval)
+        // यदि user admin होइन भने networking approved हुनैपर्छ
+        if (!$user->isAdmin() && !$user->isNetworkingApproved()) {
+            return back()->with('error', 'तपाईंलाई ब्रोडकास्ट पठाउने अनुमति छैन। कृपया आफ्नो खाता र network profile स्वीकृत गराउनुहोस्।');
+        }
+
         // कूलडाउन जाँच
         if (!$this->broadcastService->checkCooldown($user->id)) {
             return back()->with('error', 'कूलडाउन अवधि समाप्त भएको छैन। कृपया पर्खनुहोस्।');
@@ -70,11 +76,24 @@ class BroadcastController extends Controller
         // 1. BroadcastMessage मा रेकर्ड सेभ गर्ने (यदि तपाईंलाई चाहिन्छ भने)
         $broadcast = $this->broadcastService->createBroadcast($user->id, array_merge($validated, ['tenant_id' => $tenantId]));
 
-        // 2. सबै योग्य प्राप्तकर्ताहरू लिने (जसको active hostel छ वा admin हो)
-        $recipients = User::whereHas('hostels', function ($q) {
-            $q->where('status', 'active')->where('is_published', true);
+        // 2. सबै योग्य प्राप्तकर्ताहरू लिने (admin वा networking approved प्रयोगकर्ता)
+        $recipients = User::where(function ($query) {
+            // Admin हरू (role_id 1 वा 'admin' role भएका)
+            $query->where('role_id', 1)  // तपाईंको role_id अनुसार मिलाउनुहोस्
+                ->orWhereHas('roles', function ($q) {
+                    $q->where('name', 'admin');
+                });
         })
-            ->orWhere('is_admin', true)  // यदि is_admin column छ भने; नभए role प्रयोग गर्नुहोस्
+            ->orWhere(function ($query) {
+                // Networking approved प्रयोगकर्ता (account approved + कम्तीमा एउटा approved network profile)
+                $query->whereHas('organizationRequests', function ($q) {
+                    $q->where('status', 'approved');
+                })
+                    ->whereHas('hostels.networkProfile', function ($q) {
+                        $q->whereNotNull('verified_at')
+                            ->whereIn('trust_level', ['verified', 'trusted']);
+                    });
+            })
             ->where('id', '!=', $user->id) // आफूलाई छोडेर
             ->get();
 
@@ -85,7 +104,7 @@ class BroadcastController extends Controller
 
         // 3. प्रत्येक प्राप्तकर्ताको लागि थ्रेड सिर्जना गर्ने र सन्देश पठाउने
         foreach ($recipients as $recipient) {
-            // थ्रेड सिर्जना (यदि पहिले नेपाली विषय राख्न चाहनुहुन्छ भने)
+            // थ्रेड सिर्जना
             $thread = $this->messageService->createThread(
                 [$user->id, $recipient->id],
                 $validated['subject']
@@ -101,7 +120,7 @@ class BroadcastController extends Controller
                 $thread->id,
                 $user->id,
                 $validated['body'],
-                'general',        // ब्रोडकास्टको लागि category सामान्य राख्न सकिन्छ
+                'general',        // ब्रोडकास्टको लागि category सामान्य
                 'medium'          // priority मध्यम
             );
         }

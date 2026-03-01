@@ -66,7 +66,7 @@ Route::get('/booking-success/{id}', [PublicController::class, 'bookingSuccessNew
 Route::get('/pricing', [PricingController::class, 'index'])->name('pricing');
 
 Route::get('/login', [\App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'create'])->name('login');
-Route::post('/login', [App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'store'])->name('login');
+Route::post('/login', [App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'store']);
 Route::get('/register', [RegisterController::class, 'showUserRegistrationForm'])->name('register');
 
 /*|--------------------------------------------------------------------------
@@ -84,22 +84,6 @@ Route::post('/reset-password-temp', function (Illuminate\Http\Request $request) 
 
 // ✅ Authenticated user routes
 
-// ✅ Fetch latest notifications (API for bell dropdown)
-Route::middleware('auth')->get('/notifications', function () {
-    return auth()->user()
-        ->notifications()
-        ->latest()
-        ->take(10)
-        ->get()
-        ->map(function ($notification) {
-            return [
-                'id' => $notification->id,
-                'data' => $notification->data,
-                'read_at' => $notification->read_at,
-                'created_at' => $notification->created_at->toIso8601String(),
-            ];
-        });
-})->name('notifications.api');
 
 // ✅ Notification mark as read (सबै प्रमाणित प्रयोगकर्ताका लागि)
 Route::post('/notifications/{id}/mark-as-read', function (Request $request, $id) {
@@ -107,7 +91,6 @@ Route::post('/notifications/{id}/mark-as-read', function (Request $request, $id)
     $notification->markAsRead();
     return response()->json(['success' => true]);
 })->name('notifications.mark-as-read');
-Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
 
 Route::middleware(['auth'])->group(function () {
     // Welcome page with booking summary
@@ -592,3 +575,10 @@ Route::get('/media/{path}', function ($path) {
         ->header('Content-Type', $type)
         ->header('Content-Disposition', 'inline');
 })->where('path', '.*')->name('media.stream');
+
+Route::get('/test-avatar/{userId}', function ($userId) {
+    $user = App\Models\User::find($userId);
+    return getNotificationAvatar($user);
+});
+
+Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])->middleware('auth')->name('notifications.index');

@@ -6,6 +6,13 @@ use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 
+use App\Events\ChatMessageSent;
+use App\Listeners\SendChatMessageNotification;
+use App\Events\BroadcastMessageCreated;
+use App\Listeners\SendBroadcastNotification;
+use App\Events\MarketplaceInquirySent;
+use App\Listeners\SendMarketplaceInquiryNotification;
+
 class EventServiceProvider extends ServiceProvider
 {
     /**
@@ -16,15 +23,15 @@ class EventServiceProvider extends ServiceProvider
     protected $listen = [
         Registered::class => [
             SendEmailVerificationNotification::class,
-            \App\Events\ChatMessageSent::class => [
-                \App\Listeners\SendChatMessageNotification::class,
-            ],
-            \App\Events\BroadcastMessageCreated::class => [
-                \App\Listeners\SendBroadcastNotification::class,
-            ],
-            \App\Events\MarketplaceInquirySent::class => [
-                \App\Listeners\SendMarketplaceInquiryNotification::class,
-            ],
+        ],
+        ChatMessageSent::class => [
+            SendChatMessageNotification::class,
+        ],
+        BroadcastMessageCreated::class => [
+            SendBroadcastNotification::class,
+        ],
+        MarketplaceInquirySent::class => [
+            SendMarketplaceInquiryNotification::class,
         ],
     ];
 

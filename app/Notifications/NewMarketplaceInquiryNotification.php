@@ -6,11 +6,9 @@ use App\Models\MarketplaceListing;
 use App\Models\User;
 use App\Models\MessageThread;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
-use Illuminate\Notifications\Messages\BroadcastMessage;
 
-class NewMarketplaceInquiryNotification extends Notification implements ShouldQueue
+class NewMarketplaceInquiryNotification extends Notification
 {
     use Queueable;
 
@@ -27,25 +25,27 @@ class NewMarketplaceInquiryNotification extends Notification implements ShouldQu
 
     public function via($notifiable)
     {
-        return ['database', 'broadcast'];
+        return ['database'];   // Only database channel
     }
 
-    public function toDatabase($notifiable)
+    public function toArray($notifiable)
     {
-        $avatar = getNotificationAvatar($this->sender, 'marketplace');
-
         return [
-            'type'      => 'marketplace',
-            'title'     => 'नयाँ सोधपुछ',
-            'message'   => $this->sender->name . ' ले "' . $this->listing->title . '" को बारेमा सोधेका छन्।',
-            'avatar'    => $avatar,
-            'url'       => route('network.messages.show', $this->thread->id),
+            'message' => "{$this->sender->name} ले तपाईंको लिस्टिग '{$this->listing->title}' मा इन्क्वायरी पठाएको छ।",
+            'listing_id' => $this->listing->id,
             'sender_id' => $this->sender->id,
+            'thread_id' => $this->thread->id,
+            'url' => route('network.messages.show', $this->thread->id),
+            'avatar' => $this->getNotificationAvatar(),
         ];
     }
 
-    public function toBroadcast($notifiable)
+    protected function getNotificationAvatar()
     {
-        return new BroadcastMessage($this->toDatabase($notifiable));
+        if (function_exists('getNotificationAvatar')) {
+            return getNotificationAvatar($this->sender);
+        }
+
+        return $this->sender->profile_photo_url ?? asset('images/logo.png');
     }
 }
