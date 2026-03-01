@@ -1,5 +1,4 @@
 <?php
-// app/Http/Controllers/Network/DirectoryController.php
 
 namespace App\Http\Controllers\Network;
 
@@ -21,7 +20,13 @@ class DirectoryController extends Controller
         $query = Hostel::query()
             ->where('status', 'active')
             ->where('is_published', true)
-            ->with('networkProfile'); // eager load network profile for verification badge
+            ->with([
+                'networkProfile',
+                // ✅ Load rooms that have available beds for price calculation in view
+                'rooms' => function ($q) {
+                    $q->where('available_beds', '>', 0);
+                }
+            ]);
 
         // 1. City filter (partial match)
         if ($request->filled('city')) {

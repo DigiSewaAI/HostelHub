@@ -332,17 +332,19 @@
                                         @endif
                                     </div>
 
-                                    <!-- Price - FIXED: Use calculated starting price -->
-                                    <div class="text-center">
-                                        @if($hostel->starting_price > 0)
-                                        <span class="text-md font-bold text-gray-900 nepali">रु. {{ number_format($hostel->starting_price) }}</span>
-                                        <span class="text-gray-500 text-xs nepali block">सुरुवाती मूल्य</span>
-                                        @else
-                                        <span class="text-sm font-semibold text-gray-500 nepali">मूल्य उपलब्ध छैन</span>
-                                        @endif
-                                    </div>
-                                </div>
-
+                                    <!-- Price - ULTIMATE FIX: Calculate from rooms directly -->
+<div class="text-center">
+    @php
+        $calculatedPrice = $hostel->rooms->min('price') ?? 0;
+    @endphp
+    @if($calculatedPrice > 0)
+        <span class="text-md font-bold text-gray-900 nepali">रु. {{ number_format($calculatedPrice) }}</span>
+        <span class="text-gray-500 text-xs nepali block">सुरुवाती मूल्य</span>
+    @else
+        <span class="text-sm font-semibold text-gray-500 nepali">मूल्य उपलब्ध छैन</span>
+    @endif
+</div>
+</div>
                                 <!-- Three Button Layout - ALWAYS VISIBLE AT BOTTOM -->
                                 <div class="mt-auto pt-2 border-t border-gray-100">
                                     <div class="grid grid-cols-3 gap-1">

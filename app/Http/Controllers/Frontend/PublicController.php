@@ -510,16 +510,26 @@ class PublicController extends Controller
                     $query->where('is_published', true);
                 },
                 'rooms' => function ($roomQuery) {
-                    $roomQuery->where('status', 'available')
-                        ->where('available_beds', '>', 0);
+                    $roomQuery->where('available_beds', '>', 0);
                 }
             ])
                 ->withCount(['rooms as available_rooms_count' => function ($roomQuery) {
-                    $roomQuery->where('status', 'available')
-                        ->where('available_beds', '>', 0);
+                    $roomQuery->where('available_beds', '>', 0);
                 }])
                 ->withAvg('reviews', 'rating')
+                ->addSelect([
+                    'min_price' => \App\Models\Room::select('price')
+                        ->whereColumn('hostel_id', 'hostels.id')
+                        ->where('available_beds', '>', 0)
+                        ->orderBy('price')
+                        ->limit(1)
+                ])
                 ->paginate(12);
+
+            // ✅ Fallback: Calculate min_price from loaded rooms in case addSelect fails
+            $hostels->each(function ($hostel) {
+                $hostel->min_price = $hostel->min_price ?? $hostel->rooms->min('price');
+            });
 
             $cities = Hostel::where('is_published', true)
                 ->whereNotNull('city')
@@ -536,7 +546,8 @@ class PublicController extends Controller
         } catch (\Exception $e) {
             \Log::error('All hostels page error: ' . $e->getMessage());
 
-            $hostels = Hostel::where('id', 0)->paginate(12);
+            // Return empty paginator on error
+            $hostels = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 12);
             $cities = collect([]);
             $searchFilters = $request->all();
 
@@ -619,7 +630,7 @@ class PublicController extends Controller
     }
 
     /**
-     * 🚨 FIXED: Unified search method with CORRECT price filtering
+     * 🚨 FIXED: Unified search method with CORRECT price filtering and min_price
      */
     public function search(Request $request)
     {
@@ -735,17 +746,27 @@ class PublicController extends Controller
                     $query->where('is_published', true);
                 },
                 'rooms' => function ($roomQuery) {
-                    $roomQuery->where('status', 'available')
-                        ->where('available_beds', '>', 0);
+                    $roomQuery->where('available_beds', '>', 0);
                 }
             ])
                 ->withCount(['rooms as available_rooms_count' => function ($roomQuery) {
-                    $roomQuery->where('status', 'available')
-                        ->where('available_beds', '>', 0);
+                    $roomQuery->where('available_beds', '>', 0);
                 }])
                 ->withAvg('reviews', 'rating')
+                ->addSelect([
+                    'min_price' => \App\Models\Room::select('price')
+                        ->whereColumn('hostel_id', 'hostels.id')
+                        ->where('available_beds', '>', 0)
+                        ->orderBy('price')
+                        ->limit(1)
+                ])
                 ->orderBy('created_at', 'desc')
                 ->paginate(12);
+
+            // ✅ Fallback: Ensure min_price is set (use loaded rooms if addSelect fails)
+            $hostels->each(function ($hostel) {
+                $hostel->min_price = $hostel->min_price ?? $hostel->rooms->min('price');
+            });
 
             $cities = Cache::remember('search_cities', 3600, function () {
                 return Hostel::where('is_published', true)
@@ -776,7 +797,8 @@ class PublicController extends Controller
         } catch (\Exception $e) {
             \Log::error('❌ Search error: ' . $e->getMessage());
 
-            $hostels = Hostel::where('id', 0)->paginate(12);
+            // Return empty paginator on error
+            $hostels = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 12);
             $cities = collect([]);
             $searchFilters = $request->all();
 

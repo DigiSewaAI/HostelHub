@@ -94,12 +94,24 @@
                     <div class="col">
                         <div class="card h-100">
                             <div class="card-body">
-                                <h5 class="card-title">
-                                    {{ $hostel->name }}
+                                <!-- ✅ Title and verified badge (right aligned) -->
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h5 class="card-title mb-0">{{ $hostel->name }}</h5>
                                     @if($verified)
                                         <span class="badge bg-success">{{ __('network.verified') }}</span>
                                     @endif
-                                </h5>
+                                </div>
+
+                                <!-- ✅ Logo display (just below the title/badge) -->
+                                @if($hostel->logo_path)
+                                    <div class="text-center mb-2">
+                                        <img src="{{ asset('storage/' . $hostel->logo_path) }}" 
+                                             alt="{{ $hostel->name }}" 
+                                             class="img-fluid rounded" 
+                                             style="max-height: 60px; max-width: 100%; object-fit: contain;">
+                                    </div>
+                                @endif
+
                                 <p class="card-text">
                                     @if($hostel->city)
                                         <i class="bi bi-geo-alt"></i> {{ $hostel->city }}<br>
@@ -122,7 +134,17 @@
                                 @endif
                                 <p class="card-text">
                                     <strong>{{ __('network.price_range') }}:</strong>
-                                    {{ $hostel->formatted_price_range }}
+                                    @php
+                                        $minPrice = $hostel->rooms->where('available_beds', '>', 0)->min('price');
+                                        $maxPrice = $hostel->rooms->where('available_beds', '>', 0)->max('price');
+                                    @endphp
+                                    @if($minPrice && $maxPrice)
+                                        रु. {{ number_format($minPrice) }} - {{ number_format($maxPrice) }}
+                                    @elseif($minPrice)
+                                        रु. {{ number_format($minPrice) }}
+                                    @else
+                                        {{ __('network.price_unavailable') ?? 'मूल्य उपलब्ध छैन' }}
+                                    @endif
                                 </p>
                             </div>
                             <div class="card-footer">
