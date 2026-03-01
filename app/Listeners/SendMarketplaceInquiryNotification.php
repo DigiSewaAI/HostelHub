@@ -4,12 +4,12 @@ namespace App\Listeners;
 
 use App\Events\MarketplaceInquirySent;
 use App\Notifications\NewMarketplaceInquiryNotification;
+use App\Events\NewNotification;
 use Illuminate\Support\Facades\Log;
-use Throwable;
 
 class SendMarketplaceInquiryNotification
 {
-    public function handle(MarketplaceInquirySent $event): void
+    public function handle(MarketplaceInquirySent $event)
     {
         try {
             Log::info('🚀 SendMarketplaceInquiryNotification started', [
@@ -26,33 +26,35 @@ class SendMarketplaceInquiryNotification
                 return;
             }
 
-            Log::info('Recipient details', [
-                'id'    => $recipient->id,
-                'email' => $recipient->email,
-                'class' => get_class($recipient),
-            ]);
+            // ✅ Duplicate check: पछिल्लो १ मिनेटमा यही listing_id र sender_id बाट notification छ?
+            $existing = $recipient->notifications()
+                ->where('type', NewMarketplaceInquiryNotification::class)
+                ->where('created_at', '>', now()->subMinutes(1))
+                ->whereRaw('JSON_EXTRACT(data, "$.listing_id") = ?', [$event->listing->id])
+                ->whereRaw('JSON_EXTRACT(data, "$.sender_id") = ?', [$event->sender->id])
+                ->exists();
 
-            $notification = new NewMarketplaceInquiryNotification(
-                $event->listing,
-                $event->sender,
-                $event->thread
-            );
+            if (!$existing) {
+                $recipient->notify(new NewMarketplaceInquiryNotification(
+                    $event->listing,
+                    $event->sender,
+                    $event->thread
+                ));
 
-            $recipient->notify($notification);
-            Log::info('✅ notify() method called');
-
-            // Verify insertion - डाटाबेसमा पर्यो कि परेन जाँच गर्ने
-            $latestNotification = $recipient->notifications()->latest()->first();
-            if ($latestNotification) {
-                Log::info('✅ Notification found in database', [
-                    'id' => $latestNotification->id,
-                    'type' => $latestNotification->type,
-                    'data' => $latestNotification->data,
-                ]);
+                // Broadcast NewNotification event (if needed)
+                $notification = $recipient->notifications()->latest()->first();
+                if ($notification) {
+                    broadcast(new NewNotification($notification, $recipient->id));
+                }
+                Log::info('✅ Marketplace notification sent');
             } else {
-                Log::warning('⚠️ Notification NOT found after notify()');
+                Log::info('⏭️ Duplicate marketplace notification prevented', [
+                    'listing_id' => $event->listing->id,
+                    'sender_id' => $event->sender->id,
+                    'recipient_id' => $recipient->id
+                ]);
             }
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             Log::error('❌ Exception in SendMarketplaceInquiryNotification', [
                 'message' => $e->getMessage(),
                 'trace'   => $e->getTraceAsString(),
