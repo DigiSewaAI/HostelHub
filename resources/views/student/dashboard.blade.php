@@ -56,12 +56,117 @@
 <div class="bg-blue-800 rounded-2xl shadow-lg mb-6 border border-blue-700">
     <div class="p-6">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                        @if($isBirthday)
+    <!-- बेलुन कन्टेनर (absolute) -->
+    <div id="balloon-container" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; z-index: 5;"></div>
+
+    <style>
+        .balloon {
+            position: absolute;
+            bottom: 10px;
+            width: 45px;
+            height: 60px;
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            animation: float 8s ease-in forwards;
+            opacity: 0.95;
+            z-index: 10;
+            box-shadow: 0 0 15px rgba(255,255,255,0.6) inset, 2px 2px 5px rgba(0,0,0,0.2);
+        }
+        .balloon::before {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 35px;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.8), rgba(200,200,200,0.5));
+            border-left: 1px solid #aaa;
+        }
+        .balloon::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 8px;
+            height: 8px;
+            background: #ffd966;
+            border-radius: 50%;
+            box-shadow: 0 0 5px #ffbf00;
+        }
+        @keyframes float {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(-700px) rotate(15deg); opacity: 0; }
+        }
+    </style>
+
+    <script>
+        (function() {
+            // Bright & Shiny Colors Array
+            const colors = [
+                '#FF3131', // Neon Red
+                '#FF69B4', // Hot Pink
+                '#FFD700', // Gold
+                '#00FF00', // Lime Green
+                '#1E90FF', // Dodger Blue
+                '#FF8C00', // Dark Orange
+                '#FF00FF', // Magenta
+                '#00FFFF', // Cyan
+                '#FFFF00', // Yellow
+                '#FF1493', // Deep Pink
+                '#7CFC00', // Lawn Green
+                '#FF4500', // Orange Red
+                '#9370DB', // Medium Purple
+                '#00FA9A', // Mint Green
+                '#FFB6C1'  // Light Pink
+            ];
+            
+            const container = document.getElementById('balloon-container');
+            if (!container) return;
+
+            // Create 15 balloons with slight delay
+            for (let i = 0; i < 15; i++) {
+                setTimeout(() => {
+                    const balloon = document.createElement('div');
+                    balloon.className = 'balloon';
+                    
+                    // Random bright color
+                    const color = colors[Math.floor(Math.random() * colors.length)];
+                    balloon.style.backgroundColor = color;
+                    
+                    // Random left position (10% to 90%)
+                    balloon.style.left = (10 + Math.random() * 80) + '%';
+                    
+                    // Slight variation in size
+                    const width = 40 + Math.floor(Math.random() * 20);  // 40–60px
+                    const height = width * 1.2;  // proportional height
+                    balloon.style.width = width + 'px';
+                    balloon.style.height = height + 'px';
+                    
+                    // Random slight horizontal drift via rotation
+                    balloon.style.animation = `float 8s ease-in forwards`;
+                    
+                    container.appendChild(balloon);
+
+                    balloon.addEventListener('animationend', () => {
+                        balloon.remove();
+                    });
+                }, i * 200); // 200ms अन्तराल
+            }
+        })();
+    </script>
+@endif
             <div class="flex-1">
                 <!-- Main Heading -->
-                <h2 class="text-2xl font-bold mb-2 text-white">
-                    नमस्ते, {{ $student->name }}! 
-                    <span class="wave-hand">👋</span>
-                </h2>
+<h2 class="text-2xl font-bold mb-2 text-white">
+    @if($isBirthday)
+        🎉 जन्म दिनको धेरै धेरै शुभकामना {{ $firstName }}! 🎂
+    @else
+        नमस्ते, {{ $student->name }}! 
+        <span class="wave-hand">👋</span>
+    @endif
+</h2>
                 
                 <!-- 🔥 PERMANENT FIX: Hostel name display -->
                 @php

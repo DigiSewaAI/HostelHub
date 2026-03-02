@@ -198,6 +198,35 @@ class StudentController extends Controller
             $room = \App\Models\Room::find($student->room_id);
         }
 
+        // ========== 🎂 BIRTHDAY CHECK (using correct column name 'dob') ==========
+        $isBirthday = false;
+        $firstName = $student->name; // fallback
+
+        \Log::info('Birthday Debug - Student ID: ' . $student->id . ', DOB raw: ' . ($student->dob ?? 'null'));
+
+        if ($student && !empty($student->dob)) {
+            try {
+                $birthday = \Carbon\Carbon::parse($student->dob);
+                \Log::info('Birthday parsed: ' . $birthday->toDateString() . ', month: ' . $birthday->month . ', day: ' . $birthday->day);
+
+                $today = \Carbon\Carbon::today();
+                \Log::info('Today: ' . $today->toDateString() . ', month: ' . $today->month . ', day: ' . $today->day);
+
+                if ($birthday->month === $today->month && $birthday->day === $today->day) {
+                    $isBirthday = true;
+                    $firstName = explode(' ', trim($student->name))[0];
+                    \Log::info('Birthday true for student ' . $student->id);
+                } else {
+                    \Log::info('Birthday false for student ' . $student->id);
+                }
+            } catch (\Exception $e) {
+                \Log::warning('Birthday check failed for student ID: ' . $student->id . ' - ' . $e->getMessage());
+            }
+        } else {
+            \Log::info('Birthday check - dob empty for student ' . $student->id);
+        }
+        // ========== 🎂 BIRTHDAY CHECK END ==========
+
         // Today's meals – सबै मेनुहरू ल्याउने, meal_type अनुसार group गर्ने
         $groupedMeals = collect(); // fallback empty collection
         if ($hostel) {
@@ -305,7 +334,7 @@ class StudentController extends Controller
         $notifications = collect();
         $upcomingEvents = collect();
 
-        // Dashboard view return गर्ने
+        // Dashboard view return गर्ने (अब isBirthday र firstName पनि पठाइनेछ)
         return view('student.dashboard', compact(
             'student',
             'hostel',
@@ -321,7 +350,9 @@ class StudentController extends Controller
             'recentStudentCirculars',
             'urgentCirculars',
             'importantCirculars',
-            'groupedMeals'
+            'groupedMeals',
+            'isBirthday',
+            'firstName'
         ));
     }
 
