@@ -15,12 +15,20 @@
         <div class="max-h-96 overflow-y-auto">
             <template x-for="notification in notifications" :key="notification.id">
                 <a :href="notification.data.url" @click.prevent="markAsRead(notification.id, notification.data.url)" class="flex items-start px-4 py-3 hover:bg-gray-50 border-b border-gray-100 no-underline hover:no-underline" :class="{ 'bg-blue-50': !notification.read_at }">
-                    <!-- Avatar -->
+                    <!-- Avatar / Icon -->
                     <div class="flex-shrink-0 mr-3">
-                        <template x-if="notification.data.avatar">
+                        <!-- यदि birthday notification हो भने केक आइकन देखाउने -->
+                        <template x-if="notification.data.type === 'birthday'">
+                            <div class="w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center text-pink-600">
+                                <i class="fas fa-birthday-cake text-xl"></i>
+                            </div>
+                        </template>
+                        <!-- अन्यथा, यदि avatar छ भने त्यो देखाउने -->
+                        <template x-if="notification.data.type !== 'birthday' && notification.data.avatar">
                             <img :src="notification.data.avatar" class="w-10 h-10 rounded-full object-cover">
                         </template>
-                        <template x-if="!notification.data.avatar">
+                        <!-- नभए default user icon -->
+                        <template x-if="notification.data.type !== 'birthday' && !notification.data.avatar">
                             <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-sm">
                                 <i class="fas fa-user-circle text-2xl"></i>
                             </div>

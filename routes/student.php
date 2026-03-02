@@ -110,7 +110,7 @@ Route::prefix('student')
         // Additional student routes
         Route::get('/gallery', [StudentController::class, 'gallery'])->name('gallery');
         Route::get('/events', [StudentController::class, 'events'])->name('events');
-        Route::get('/notifications', [StudentController::class, 'notifications'])->name('notifications');
+        //Route::get('/notifications', [StudentController::class, 'notifications'])->name('notifications');
         Route::post('/maintenance-request', [StudentController::class, 'submitMaintenance'])->name('maintenance.submit');
 
         // Circular notifications

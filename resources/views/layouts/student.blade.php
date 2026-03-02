@@ -2229,6 +2229,11 @@
     @stack('styles')
 </head>
 <body class="student-dashboard">
+    @php
+        $unreadCount = $unreadCount ?? 0;
+        $notifications = $notifications ?? collect();
+    @endphp
+
     <a href="#main-content" class="skip-link">मुख्य सामग्रीमा जानुहोस्</a>
     
     <div class="flex min-h-screen">
@@ -2387,51 +2392,62 @@
                         </div>
 
                         <!-- Notifications -->
-                        <div class="relative">
-                            <button class="notification-button text-white hover:text-gray-200 p-2 rounded-full hover:bg-blue-700" 
-                                    type="button" 
-                                    id="notificationsDropdown"
-                                    aria-label="सूचनाहरू हेर्नुहोस्">
-                                <i class="fas fa-bell text-lg text-white"></i>
-                                <span class="notification-dot" aria-hidden="true"></span>
-                            </button>
-                            <div class="dropdown-menu dropdown-menu-end w-80 bg-white rounded-xl shadow-lg py-1 z-20 max-h-96 overflow-y-auto border border-gray-200 absolute right-0 mt-2" 
-                                 id="notificationsMenu">
-                                <div class="px-4 py-2 border-b border-gray-200">
-                                    <h3 class="font-semibold text-gray-800">सूचनाहरू</h3>
-                                </div>
-                                <a href="#" class="flex items-start px-4 py-3 hover:bg-gray-50 border-b border-gray-100 text-gray-800">
-                                    <div class="bg-blue-100 p-2 rounded-lg mr-3">
-                                        <i class="fas fa-utensils text-blue-600"></i>
-                                    </div>
-                                    <div>
-                                        <p class="text-sm font-medium">नयाँ खानाको मेनु सिर्जना गरियो</p>
-                                        <p class="text-xs text-gray-500">३० मिनेट अघि</p>
-                                    </div>
-                                </a>
-                                <a href="#" class="flex items-start px-4 py-3 hover:bg-gray-50 border-b border-gray-100 text-gray-800">
-                                    <div class="bg-amber-100 p-2 rounded-lg mr-3">
-                                        <i class="fas fa-money-bill-wave text-amber-600"></i>
-                                    </div>
-                                    <div>
-                                        <p class="text-sm font-medium">भुक्तानी म्याद नजिकिँदैछ</p>
-                                        <p class="text-xs text-gray-500">१ घण्टा अघि</p>
-                                    </div>
-                                </a>
-                                <a href="#" class="flex items-start px-4 py-3 hover:bg-gray-50 text-gray-800">
-                                    <div class="bg-indigo-100 p-2 rounded-lg mr-3">
-                                        <i class="fas fa-bullhorn text-indigo-600"></i>
-                                    </div>
-                                    <div>
-                                        <p class="text-sm font-medium">नयाँ सूचना प्रकाशित भयो</p>
-                                        <p class="text-xs text-gray-500">२ घण्टा अघि</p>
-                                    </div>
-                                </a>
-                                <div class="px-4 py-2 border-t border-gray-200 text-center">
-                                    <a href="#" class="text-sm text-blue-600 hover:text-blue-800 font-medium">सबै सूचनाहरू हेर्नुहोस्</a>
-                                </div>
-                            </div>
-                        </div>
+<div class="relative">
+    <button class="notification-button text-white hover:text-gray-200 p-2 rounded-full hover:bg-blue-700" 
+            type="button" 
+            id="notificationsDropdown"
+            aria-label="सूचनाहरू हेर्नुहोस्">
+        <i class="fas fa-bell text-lg text-white"></i>
+        @if($unreadCount > 0)
+            <span class="notification-dot" aria-hidden="true"></span>
+        @endif
+    </button>
+    
+    <div class="dropdown-menu dropdown-menu-end w-80 bg-white rounded-xl shadow-lg py-1 z-20 max-h-96 overflow-y-auto border border-gray-200 absolute right-0 mt-2" 
+         id="notificationsMenu">
+        
+        <div class="px-4 py-2 border-b border-gray-200">
+            <h3 class="font-semibold text-gray-800">सूचनाहरू</h3>
+        </div>
+        
+        @forelse($notifications as $notification)
+            @php
+                $data = $notification->data;
+                $isBirthday = ($data['type'] ?? '') === 'birthday';
+                $iconClass = $isBirthday ? 'bg-pink-100 text-pink-600' : 'bg-indigo-100 text-indigo-600';
+                $icon = $isBirthday ? 'fa-birthday-cake' : 'fa-user-circle';
+            @endphp
+            <a href="{{ $data['url'] ?? '#' }}" 
+   class="flex items-start px-4 py-3 hover:bg-gray-50 border-b border-gray-100 {{ !$notification->read_at ? 'bg-blue-50' : '' }} no-underline"
+   onclick="event.preventDefault(); markNotificationAsRead('{{ $notification->id }}', '{{ $data['url'] ?? '#' }}')">
+                   <div class="flex-shrink-0 mr-3">
+                    <div class="w-10 h-10 rounded-full {{ $iconClass }} flex items-center justify-center">
+                        <i class="fas {{ $icon }} text-xl"></i>
+                    </div>
+                </div>
+                <div class="flex-1">
+                    <p class="text-sm {{ !$notification->read_at ? 'font-semibold' : '' }} text-gray-800">
+                        {{ $data['message'] ?? 'सूचना' }}
+                    </p>
+                    <p class="text-xs text-gray-500 mt-1">{{ $notification->created_at->diffForHumans() }}</p>
+                </div>
+            </a>
+        @empty
+            <div class="px-4 py-6 text-center text-gray-500">
+                कुनै सूचना छैन।
+            </div>
+        @endforelse
+        
+        <div class="px-4 py-2 border-t border-gray-200 text-center">
+            @php
+                $notificationsRoute = route('student.notifications.index');
+            @endphp
+            <a href="{{ $notificationsRoute }}" class="text-indigo-600 text-sm hover:underline">
+                सबै सूचनाहरू हेर्नुहोस्
+            </a>
+        </div>
+    </div>
+</div>
                         
                         <!-- User Profile Dropdown -->
                         <div class="relative">
@@ -2954,9 +2970,23 @@
                 $('.circular-bulk-select').prop('checked', isChecked);
             });
         });
+        function markNotificationAsRead(notificationId, url) {
+    fetch(`/notifications/${notificationId}/mark-as-read`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Content-Type': 'application/json',
+        }
+    }).finally(() => {
+        if (url && url !== '#') {
+            window.location.href = url;
+        }
+    });
+}
     </script>
     
     <!-- Page-specific JavaScript -->
     @stack('scripts')
+    
 </body>
 </html>

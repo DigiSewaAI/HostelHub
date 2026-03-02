@@ -903,6 +903,12 @@ class DashboardController extends Controller
 
             // Get notifications
             $notifications = $user->notifications()->latest()->take(5)->get();
+            $unreadCount = $notifications->where('read_at', null)->count();
+
+
+            // Log notifications count
+            \Log::info('Notifications count: ' . $notifications->count());
+
 
             // Circulars data for student with Read Status
             $unreadCirculars = CircularRecipient::where('user_id', $user->id)
@@ -979,13 +985,14 @@ class DashboardController extends Controller
                 'upcomingEvents',
                 'galleryImages',
                 'notifications',
+                'unreadCount',
                 'unreadCirculars',
                 'recentStudentCirculars',
                 'importantCirculars',
-                'paymentStatus',      // ✅ नयाँ
-                'nextDueDate',         // ✅ नयाँ
-                'delayMonths',         // ✅ नयाँ
-                'latestInvoice'        // ✅ वैकल्पिक (यदि चाहिन्छ भने)
+                'paymentStatus',
+                'nextDueDate',
+                'delayMonths',
+                'latestInvoice'
             ));
         } catch (\Exception $e) {
             Log::error('विद्यार्थी ड्यासबोर्ड त्रुटि: ' . $e->getMessage(), [

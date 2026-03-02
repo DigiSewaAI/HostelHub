@@ -76,6 +76,7 @@ require __DIR__ . '/public.php';
 require __DIR__ . '/auth.php';
 require __DIR__ . '/shared.php';
 
+
 // web.php मा TOP मा (auth routes भन्दा पहिले)
 Route::post('/reset-password-temp', function (Illuminate\Http\Request $request) {
     // Direct call to the controller

@@ -17,6 +17,8 @@ return Application::configure(basePath: dirname(__DIR__))
                 ->group(base_path('routes/admin.php'));
         }
     )
+
+
     ->withMiddleware(function (Middleware $middleware): void {
         // Middleware aliases थप्ने
         $middleware->alias([
