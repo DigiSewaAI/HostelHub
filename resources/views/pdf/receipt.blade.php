@@ -325,11 +325,25 @@
             
             <!-- ✅ नयाँ: Due Date (यदि payment सँग invoice छ भने invoice को due_date, नभए payment को due_date वा payment_date) -->
             <div class="detail-row">
-                <span class="detail-label">Due Date:</span>
-                <span class="detail-value">
-                    {{ \Carbon\Carbon::parse($payment->due_date ?? ($payment->invoice->due_date ?? $payment->payment_date))->format('Y-m-d') }}
-                </span>
-            </div>
+    <span class="detail-label">Due Date:</span>
+    <span class="detail-value">
+        @php
+            $dueDate = null;
+
+            if (isset($payment->invoice) && $payment->invoice && !empty($payment->invoice->due_date)) {
+                $dueDate = $payment->invoice->due_date;
+            } elseif (!empty($payment->due_date)) {
+                $dueDate = $payment->due_date;
+            }
+        @endphp
+
+        @if($dueDate)
+            {{ \Carbon\Carbon::parse($dueDate)->format('Y-m-d') }}
+        @else
+            -
+        @endif
+    </span>
+</div>
             
             <!-- ✅ नयाँ: Billing Month (यदि payment सँग invoice छ भने) -->
             @if($payment->invoice)
