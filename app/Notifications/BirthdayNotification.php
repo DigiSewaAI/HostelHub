@@ -36,15 +36,13 @@ class BirthdayNotification extends Notification implements ShouldQueue
      *
      * @return array<string, mixed>
      */
-    public function toArray(object $notifiable): array
+    public function toArray($notifiable)
     {
         return [
-            'type'         => 'birthday',
-            'student_id'   => $this->birthdayStudent->id,
-            'student_name' => $this->birthdayStudent->name,
-            'message'      => "🎉 आज {$this->birthdayStudent->name} को जन्मदिन हो! उनलाई शुभकामना दिनुहोस् 🎂",
-            'url'          => null, // can be set to a profile route if needed
-            'avatar'       => asset('images/birthday-cake.png'), // default icon
+            'type' => 'birthday',
+            'message' => "🎉 आज {$this->student->name} को जन्मदिन हो! उनलाई शुभकामना दिनुहोस् 🎂",
+            'student_id' => $this->student->id,
+            'url' => route('owner.students.show', $this->student->id), // ✅ Owner को लागि
         ];
     }
 }

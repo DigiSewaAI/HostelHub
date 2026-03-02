@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\Student;
+use App\Models\User;
 use App\Notifications\BirthdayNotification;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
@@ -21,7 +22,7 @@ class SendBirthdayNotificationsJob implements ShouldQueue
         Log::info('🚀 SendBirthdayNotificationsJob started at ' . now());
         $today = Carbon::today();
 
-        // Get all active students whose birthday is today (month and day match)
+        // Get all active students whose birthday is today
         $birthdayStudents = Student::whereRaw('MONTH(dob) = ? AND DAY(dob) = ?', [$today->month, $today->day])
             ->where('status', 'active')
             ->with('hostel')
@@ -37,48 +38,90 @@ class SendBirthdayNotificationsJob implements ShouldQueue
         foreach ($birthdayStudents as $birthdayStudent) {
             Log::info("🎂 Processing birthday student ID: {$birthdayStudent->id}, Name: {$birthdayStudent->name}");
 
-            $hostelId = $birthdayStudent->hostel_id;
-            if (!$hostelId) {
-                Log::warning("⚠️ Birthday student ID {$birthdayStudent->id} has no hostel_id. Skipping.");
+            $hostel = $birthdayStudent->hostel;
+            if (!$hostel) {
+                Log::warning("⚠️ Birthday student ID {$birthdayStudent->id} has no hostel. Skipping.");
                 continue;
             }
 
-            // Get all active students in the same hostel, excluding the birthday student
-            $recipients = Student::where('hostel_id', $hostelId)
-                ->where('status', 'active')
-                ->where('id', '!=', $birthdayStudent->id)
-                ->with('user')
-                ->get();
+            // --- Send notifications to other students in the same hostel ---
+            $this->notifyOtherStudents($birthdayStudent, $hostel, $today);
 
-            Log::info("👥 Found {$recipients->count()} potential recipients in hostel {$hostelId}.");
-
-            foreach ($recipients->chunk(100) as $chunk) {
-                foreach ($chunk as $recipient) {
-                    $user = $recipient->user;
-                    if (!$user) {
-                        Log::warning("⚠️ Recipient student ID {$recipient->id} has no linked user. Skipping.");
-                        continue;
-                    }
-
-                    // Check for duplicate notification today
-                    $alreadySent = $user->notifications()
-                        ->where('type', 'App\Notifications\BirthdayNotification')
-                        ->whereDate('created_at', $today)
-                        ->where('data->student_id', $birthdayStudent->id)
-                        ->exists();
-
-                    if ($alreadySent) {
-                        Log::info("⏭️ Notification already sent to user {$user->id} for student {$birthdayStudent->id}. Skipping.");
-                        continue;
-                    }
-
-                    // Send notification
-                    $user->notify(new \App\Notifications\BirthdayNotification($birthdayStudent));
-                    Log::info("✅ Birthday notification sent to user {$user->id} (student {$recipient->id}) for student {$birthdayStudent->id}.");
-                }
-            }
-
-            Log::info("🎉 Finished processing for birthday student ID {$birthdayStudent->id}.");
+            // --- Send notification to the hostel owner (via owner_id) ---
+            $this->notifyHostelOwner($birthdayStudent, $hostel, $today);
         }
+
+        Log::info('🏁 SendBirthdayNotificationsJob completed at ' . now());
+    }
+
+    /**
+     * Send birthday notifications to other students in the same hostel
+     */
+    private function notifyOtherStudents($birthdayStudent, $hostel, $today)
+    {
+        $recipients = Student::where('hostel_id', $hostel->id)
+            ->where('status', 'active')
+            ->where('id', '!=', $birthdayStudent->id)
+            ->with('user')
+            ->get();
+
+        Log::info("👥 Found {$recipients->count()} potential student recipients in hostel {$hostel->id}.");
+
+        foreach ($recipients->chunk(100) as $chunk) {
+            foreach ($chunk as $recipient) {
+                $user = $recipient->user;
+                if (!$user) {
+                    Log::warning("⚠️ Recipient student ID {$recipient->id} has no linked user. Skipping.");
+                    continue;
+                }
+
+                // Check for duplicate notification today
+                $alreadySent = $user->notifications()
+                    ->where('type', 'App\Notifications\BirthdayNotification')
+                    ->whereDate('created_at', $today)
+                    ->where('data->student_id', $birthdayStudent->id)
+                    ->exists();
+
+                if ($alreadySent) {
+                    Log::info("⏭️ Notification already sent to user {$user->id} for student {$birthdayStudent->id}. Skipping.");
+                    continue;
+                }
+
+                $user->notify(new BirthdayNotification($birthdayStudent));
+                Log::info("✅ Birthday notification sent to user {$user->id} (student {$recipient->id}) for student {$birthdayStudent->id}.");
+            }
+        }
+    }
+
+    /**
+     * Send birthday notification to the hostel owner
+     */
+    private function notifyHostelOwner($birthdayStudent, $hostel, $today)
+    {
+        if (!$hostel->owner_id) {
+            Log::warning("⚠️ Hostel ID {$hostel->id} has no owner_id. Skipping owner notification.");
+            return;
+        }
+
+        $owner = User::find($hostel->owner_id);
+        if (!$owner) {
+            Log::warning("⚠️ Hostel ID {$hostel->id} has owner_id = {$hostel->owner_id} but user not found.");
+            return;
+        }
+
+        // Check for duplicate notification today
+        $alreadySent = $owner->notifications()
+            ->where('type', 'App\Notifications\BirthdayNotification')
+            ->whereDate('created_at', $today)
+            ->where('data->student_id', $birthdayStudent->id)
+            ->exists();
+
+        if ($alreadySent) {
+            Log::info("⏭️ Notification already sent to owner {$owner->id} for student {$birthdayStudent->id}. Skipping.");
+            return;
+        }
+
+        $owner->notify(new BirthdayNotification($birthdayStudent));
+        Log::info("✅ Birthday notification sent to owner {$owner->id} for student {$birthdayStudent->id}.");
     }
 }

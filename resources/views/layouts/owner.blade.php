@@ -1712,6 +1712,8 @@ if (window.innerWidth < 1024) {
     <!-- Alpine.js र Axios for Notification Component -->
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+{{-- 
 <!-- ✅ Laravel Echo + Pusher for Real-time Notifications -->
 <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.15.3/dist/echo.iife.min.js"></script>
@@ -1740,5 +1742,6 @@ Echo.private('App.Models.User.' + userId)
     }
 });
 </script>
+--}}
 </body>
 </html>
