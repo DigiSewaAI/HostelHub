@@ -729,15 +729,23 @@
 </div>
 
                 <!-- Logout Section -->
-                <div class="mt-auto pt-4 border-t border-blue-700">
-                    <form method="POST" action="{{ route('logout') }}" id="logout-form">
-                        @csrf
-                        <button type="submit" class="w-full flex items-center px-2 py-2 text-sm rounded-md hover:bg-blue-700 transition-colors tap-target">
-                            <i class="fas fa-sign-out-alt sidebar-icon"></i>
-                            <span class="sidebar-text">लगआउट</span>
-                        </button>
-                    </form>
-                </div>
+<div class="mt-auto pt-4 border-t border-blue-700">
+    <form method="POST" action="{{ route('logout') }}" id="logout-form">
+        @csrf
+        <button type="submit"
+                class="w-full flex items-center px-4 py-3
+                       bg-gradient-to-r from-red-600 to-red-700
+                       hover:from-red-700 hover:to-red-800
+                       text-white font-medium
+                       rounded-xl shadow-md hover:shadow-lg
+                       transition-all duration-200 ease-in-out
+                       hover:scale-[1.02]
+                       focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-blue-800">
+            <i class="fas fa-right-from-bracket sidebar-icon text-lg"></i>
+            <span class="sidebar-text">लगआउट</span>
+        </button>
+    </form>
+</div>
             </nav>
         </aside>
 
