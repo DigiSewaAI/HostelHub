@@ -1560,6 +1560,68 @@ main > :not(.container) {
     max-width: 100% !important;
 }
 
+/* ===== ULTIMATE HEADER FIX - OVERRIDE EVERYTHING ===== */
+.header-cta {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    margin-left: auto !important;
+    padding: 0 !important;
+    background: transparent !important;
+}
+
+.header-cta .btn,
+.header-cta .dashboard-link,
+.header-cta .logout-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    max-height: 40px !important;
+    padding: 0 1rem !important;
+    font-size: 0.9rem !important;
+    line-height: 1 !important;
+    border-radius: 0.5rem !important;
+    border: 2px solid white !important;
+    background: transparent !important;
+    color: white !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    vertical-align: middle !important;
+    white-space: nowrap !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+
+/* Primary button (Sign Up) */
+.header-cta .btn-primary {
+    background: linear-gradient(135deg, #1e3a8a, #0ea5e9) !important;
+    border: none !important;
+}
+
+/* Logout form */
+.header-cta form {
+    display: inline-flex !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Mobile adjustment */
+@media (max-width: 767px) {
+    .header-cta .btn,
+    .header-cta .dashboard-link,
+    .header-cta .logout-btn {
+        height: 36px !important;
+        min-height: 36px !important;
+        max-height: 36px !important;
+        padding: 0 0.7rem !important;
+        font-size: 0.8rem !important;
+    }
+}
+
     </style>
 
     @stack('styles')

@@ -1,11 +1,12 @@
 /* 🚨 CRITICAL VITE MANIFEST FIX */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
 @import "./layout-fix.css";
 @import "./themes.css";
 @import "./public-themes.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* 🚨 EMERGENCY FIX FOR ADMIN DASHBOARD */
 @layer base {
