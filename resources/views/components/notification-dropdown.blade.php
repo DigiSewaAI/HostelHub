@@ -14,7 +14,12 @@
         </div>
         <div class="max-h-96 overflow-y-auto">
             <template x-for="notification in notifications" :key="notification.id">
-                <a :href="notification.data.url" @click.prevent="markAsRead(notification.id, notification.data.url)" class="flex items-start px-4 py-3 hover:bg-gray-50 border-b border-gray-100 no-underline hover:no-underline" :class="{ 'bg-blue-50': !notification.read_at }">
+                <!-- ✅ FIXED: href कहिल्यै # हुँदैन -->
+                <a :href="(notification.data.url && notification.data.url !== '#') ? notification.data.url : getFallbackUrl(notification)" 
+                   @click.prevent="handleNotificationClick(notification.id, (notification.data.url && notification.data.url !== '#') ? notification.data.url : getFallbackUrl(notification), $event)" 
+                   class="flex items-start px-4 py-3 hover:bg-gray-50 border-b border-gray-100 no-underline hover:no-underline" 
+                   :class="{ 'bg-blue-50': !notification.read_at }"
+                   data-ignore-selector="true">
                     <!-- Avatar / Icon -->
                     <div class="flex-shrink-0 mr-3">
                         <!-- यदि birthday notification हो भने केक आइकन देखाउने -->
@@ -57,8 +62,9 @@
                         $notificationsRoute = route('student.notifications.index');
                     }
                 }
+                $notificationsRoute = $notificationsRoute === '#' ? '#dummy' : $notificationsRoute;
             @endphp
-            <a href="{{ $notificationsRoute }}" class="text-indigo-600 text-sm hover:underline">सबै सूचनाहरू हेर्नुहोस्</a>
+            <a href="{{ $notificationsRoute }}" class="text-indigo-600 text-sm hover:underline" data-ignore-selector="true">सबै सूचनाहरू हेर्नुहोस्</a>
         </div>
     </div>
 </div>
@@ -72,7 +78,6 @@ function notificationDropdown() {
 
         init() {
             window.addEventListener('new-notification', (e) => {
-                // Prevent duplicate entries - ID छ कि छैन जाँच गर्ने
                 if (!this.notifications.some(n => n.id === e.detail.id)) {
                     this.notifications.unshift(e.detail);
                     this.notificationUnreadCount++;
@@ -90,7 +95,6 @@ function notificationDropdown() {
         fetchNotifications() {
             axios.get('/notifications')
                 .then(response => {
-                    // नयाँ notifications मात्र थप्ने, पुराना नहटाउने
                     const newOnes = response.data.filter(
                         newNotif => !this.notifications.some(old => old.id === newNotif.id)
                     );
@@ -102,10 +106,44 @@ function notificationDropdown() {
                 });
         },
 
+        getFallbackUrl(notification) {
+            if (notification.data.type === 'birthday' && notification.data.student_id) {
+                return '/owner/students/' + notification.data.student_id;
+            }
+            if (notification.data.type === 'maintenance' && notification.data.issue_id) {
+                return '/owner/room-issues/' + notification.data.issue_id;
+            }
+            if (notification.data.type === 'student' && notification.data.student_id) {
+                return '/owner/students/' + notification.data.student_id;
+            }
+            return '#dummy';
+        },
+
+        handleNotificationClick(id, url, event) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            console.log('Notification clicked:', id, url);
+            
+            if (!url || url === '#' || url === '#dummy') {
+                console.warn('No valid URL for notification:', id);
+                axios.post('/notifications/' + id + '/mark-as-read')
+                    .catch(error => console.error('Error marking as read:', error));
+                return;
+            }
+            
+            axios.post('/notifications/' + id + '/mark-as-read')
+                .then(() => {
+                    window.location.href = url;
+                })
+                .catch(error => {
+                    console.error('Error marking as read:', error);
+                    window.location.href = url;
+                });
+        },
+
         markAsRead(id, url) {
-            axios.post('/notifications/' + id + '/mark-as-read').finally(() => {
-                window.location.href = url;
-            });
+            this.handleNotificationClick(id, url, { preventDefault: () => {}, stopPropagation: () => {} });
         },
 
         timeAgo(date) {
