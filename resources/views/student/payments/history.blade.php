@@ -775,6 +775,12 @@
     .modal-backdrop {
         z-index: 1040 !important;
     }
+
+    /* Fix: Ensure text in modal tables wraps properly */
+    .modal-body table td {
+        word-wrap: break-word;
+        white-space: normal;
+    }
 </style>
 @endpush
 
