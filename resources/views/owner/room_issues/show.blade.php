@@ -118,7 +118,7 @@
                                     <option value="pending" {{ $issue->status == 'pending' ? 'selected' : '' }}>पेन्डिङ</option>
                                     <option value="processing" {{ $issue->status == 'processing' ? 'selected' : '' }}>प्रक्रियामा</option>
                                     <option value="resolved" {{ $issue->status == 'resolved' ? 'selected' : '' }}>समाधान भएको</option>
-                                    <option value="closed" {{ $issue->status == 'closed' ? 'selected' : '' }}>एउटै issue दुई पटक report</option>
+                                    <option value="closed" {{ $issue->status == 'closed' ? 'selected' : '' }}>बन्द गरिएको</option>
                                 </select>
                             </div>
                             
@@ -161,9 +161,9 @@
                 <div class="card-body">
                     <div class="text-center mb-3">
                         <div class="avatar-lg bg-info text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3">
-                            {{ substr($issue->student->user->name ?? 'N', 0, 1) }}
+                            {{ substr($issue->student->user->name ?? $issue->student_name ?? 'N', 0, 1) }}
                         </div>
-                        <h5>{{ $issue->student->user->name ?? 'अज्ञात' }}</h5>
+                        <h5>{{ $issue->student->user->name ?? $issue->student_name ?? 'अज्ञात' }}</h5>
                         <p class="text-muted">{{ $issue->student->user->email ?? '' }}</p>
                     </div>
                     
@@ -250,7 +250,7 @@
                             <div class="h1 text-secondary">
                                 <i class="fas fa-times-circle"></i>
                             </div>
-                            <h4 class="text-secondary">एउटै issue दुई पटक report</h4>
+                            <h4 class="text-secondary">बन्द गरिएको</h4>
                         @endif
                     </div>
                     

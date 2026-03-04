@@ -142,13 +142,14 @@ class OrganizationRequestController extends Controller
                 'status' => 'active',
                 'facilities' => json_encode(['WiFi', 'पानी', 'बिजुली', 'सुरक्षा गार्ड']),
                 'owner_id' => $user->id,
-                'organization_id' => 35,  // 🔥 organization->id को सट्टा 35 forced
+                'organization_id' => $organization->id,
             ]);
 
             // ✅ TENANT BINDING – सबै owner लाई tenant 35 मा राख्ने
             OwnerProfile::updateOrCreate(
                 ['user_id' => $user->id],
-                ['tenant_id' => 35]  // 🔥 organization->id को सट्टा 35 forced
+                ['tenant_id' => $organization->id]
+
             );
 
             Log::info('Tenant auto-bound for owner', [

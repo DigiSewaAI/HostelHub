@@ -124,10 +124,10 @@
                                     </td>
                                     
                                     <td>
-                                        <div class="font-weight-bold text-dark">
-                                            {{ $issue->student->user->name ?? 'अज्ञात' }}
-                                        </div>
-                                    </td>
+    <div class="font-weight-bold text-dark">
+        {{ $issue->student->user->name ?? $issue->student_name ?? 'अज्ञात' }}
+    </div>
+</td>
                                     
                                     <td>
                                         <div class="font-weight-bold text-dark">{{ $issue->hostel->name ?? 'अज्ञात' }}</div>
@@ -173,7 +173,7 @@
                                             </span>
                                         @else
                                             <span class="badge badge-secondary text-white">
-                                                एउटै issue दुई पटक report
+                                                बन्द गरिएको
                                             </span>
                                         @endif
                                     </td>

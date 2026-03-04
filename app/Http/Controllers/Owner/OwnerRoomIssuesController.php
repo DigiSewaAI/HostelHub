@@ -30,18 +30,22 @@ class OwnerRoomIssuesController extends Controller
         $user = Auth::user();
         $hostelIds = collect();
 
-        // 1. Hostels from organizations where user is owner
-        $organizations = $user->organizations()
-            ->wherePivot('role', 'owner')
-            ->get();
-
-        foreach ($organizations as $organization) {
-            $hostelIds = $hostelIds->merge($organization->hostels()->pluck('id'));
+        // पहिले user.hostel_id बाट
+        if ($user->hostel_id) {
+            $hostelIds->push($user->hostel_id);
         }
 
-        // 2. Directly owned hostels (owner_id)
-        $directHostels = \App\Models\Hostel::where('owner_id', $user->id)->pluck('id');
-        $hostelIds = $hostelIds->merge($directHostels);
+        // अनि organization मार्फत (यदि माथि भएन भने)
+        if ($hostelIds->isEmpty()) {
+            $organizations = $user->organizations()->wherePivot('role', 'owner')->get();
+            foreach ($organizations as $organization) {
+                $hostelIds = $hostelIds->merge($organization->hostels()->pluck('id'));
+            }
+
+            // Directly owned hostels
+            $directHostels = \App\Models\Hostel::where('owner_id', $user->id)->pluck('id');
+            $hostelIds = $hostelIds->merge($directHostels);
+        }
 
         return $hostelIds->unique();
     }
