@@ -119,7 +119,7 @@
                                 <tr>
                                     <td>{{ $payment->id }}</td>
                                     <td>{{ $payment->student->name ?? 'N/A' }}</td>
-                                    <td>{{ $payment->room->name ?? 'N/A' }}</td>
+                                    <td>{{ $payment->student->room->room_number ?? 'N/A' }}</td>
                                     <td>रु {{ number_format($payment->amount, 2) }}</td>
                                     <td>{{ $payment->payment_date->format('Y-m-d') }}</td>
                                     <td>{{ $payment->due_date ? $payment->due_date->format('Y-m-d') : 'N/A' }}</td>

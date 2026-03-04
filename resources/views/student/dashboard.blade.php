@@ -366,7 +366,7 @@
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-gray-600 text-sm font-medium">कुल सूचनाहरू</p>
-                <p class="text-2xl font-bold text-blue-600 mt-1">{{ $totalCount ?? 0 }}</p>
+                <p class="text-2xl font-bold text-blue-600 mt-1">{{ $totalNotifications ?? 0 }}</p>
             </div>
             <div class="bg-blue-100 p-3 rounded-xl">
                 <i class="fas fa-envelope text-blue-600 text-xl"></i>
@@ -379,7 +379,7 @@
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-gray-600 text-sm font-medium">पढिसकेका</p>
-                <p class="text-2xl font-bold text-green-600 mt-1">{{ $readCount ?? 0 }}</p>
+                <p class="text-2xl font-bold text-green-600 mt-1">{{ $readNotifications ?? 0 }}</p>
             </div>
             <div class="bg-green-100 p-3 rounded-xl">
                 <i class="fas fa-check-circle text-green-600 text-xl"></i>
@@ -392,7 +392,7 @@
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-gray-600 text-sm font-medium">नपढेका</p>
-                <p class="text-2xl font-bold text-amber-600 mt-1">{{ $unreadCount ?? 0 }}</p>
+                <p class="text-2xl font-bold text-amber-600 mt-1">{{ $unreadNotifications ?? 0 }}</p>
             </div>
             <div class="bg-amber-100 p-3 rounded-xl">
                 <i class="fas fa-envelope-open text-amber-600 text-xl"></i>
@@ -405,7 +405,7 @@
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-gray-600 text-sm font-medium">जरुरी</p>
-                <p class="text-2xl font-bold text-red-600 mt-1">{{ $urgentCount ?? 0 }}</p>
+                <p class="text-2xl font-bold text-red-600 mt-1">{{ $urgentNotifications ?? 0 }}</p>
             </div>
             <div class="bg-red-100 p-3 rounded-xl">
                 <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>

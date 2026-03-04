@@ -73,8 +73,8 @@
 function notificationDropdown() {
     return {
         open: false,
-        notificationUnreadCount: {{ $notificationUnreadCount }},
-        notifications: @json($notifications->toArray()),
+        notificationUnreadCount: {{ $unreadCount ?? 0 }}, // ✅ यहाँ $unreadCount प्रयोग गरियो
+        notifications: @json($notifications->toArray() ?? []),
 
         init() {
             window.addEventListener('new-notification', (e) => {

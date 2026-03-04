@@ -723,4 +723,21 @@ class PaymentController extends Controller
             return response('Error: ' . $e->getMessage(), 500);
         }
     }
+    public function index(Request $request)
+    {
+        $user = Auth::user();
+
+        // Owner/Manager को hostel IDs
+        $hostelIds = Hostel::where('owner_id', $user->id)
+            ->orWhere('manager_id', $user->id)
+            ->pluck('id')
+            ->toArray();
+
+        $payments = Payment::with(['student.room', 'hostel'])   // ✅ student.room लोड गर्ने
+            ->whereIn('hostel_id', $hostelIds)
+            ->latest()
+            ->paginate(15);
+
+        return view('owner.payments.index', compact('payments'));
+    }
 }

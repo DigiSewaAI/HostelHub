@@ -57,7 +57,8 @@
                 <tbody>
                     @foreach($students as $student)
                         <tr class="hover:bg-gray-50">
-                            <td class="px-4 py-2 border-b">{{ $student->id }}</td>
+                            {{-- ✅ FIXED: Display student_id with fallback to id --}}
+                            <td class="px-4 py-2 border-b font-mono text-sm">{{ $student->student_id ?? $student->id }}</td>
                             <td class="px-4 py-2 border-b font-medium text-gray-800">{{ $student->name }}</td>
                             <td class="px-4 py-2 border-b">{{ $student->email }}</td>
                             <td class="px-4 py-2 border-b">{{ $student->phone ?? '-' }}</td>

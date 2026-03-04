@@ -883,7 +883,7 @@ class DashboardController extends Controller
                 ->select('id', 'meal_type', 'items', 'description', 'day_of_week')
                 ->first();
 
-            // Get last payment information (पुरानो तर optional)
+            // Get last payment information
             $lastPayment = Payment::where('student_id', $student->id)
                 ->latest()
                 ->first();
@@ -901,14 +901,12 @@ class DashboardController extends Controller
                 ->take(4)
                 ->get();
 
-            // Get notifications
+            // ✅ नयाँ: Notifications for dropdown + stats
             $notifications = $user->notifications()->latest()->take(5)->get();
-            $unreadCount = $notifications->where('read_at', null)->count();
-
-
-            // Log notifications count
-            \Log::info('Notifications count: ' . $notifications->count());
-
+            $unreadCount = $user->unreadNotifications()->count();
+            $totalCount = $user->notifications()->count();
+            $readCount = $totalCount - $unreadCount;
+            $urgentCount = 0; // यदि तपाईंसँग urgent notification छुट्टै छ भने यहाँ गणना गर्नुहोस्
 
             // Circulars data for student with Read Status
             $unreadCirculars = CircularRecipient::where('user_id', $user->id)
@@ -937,7 +935,7 @@ class DashboardController extends Controller
                 ->take(3)
                 ->get();
 
-            // ---------- नयाँ: इनभ्वाइसबाट payment status, next due date, delay months गणना ----------
+            // Invoice payment status calculation
             $latestInvoice = Invoice::where('student_id', $student->id)
                 ->orderByDesc('billing_month')
                 ->first();
@@ -951,31 +949,24 @@ class DashboardController extends Controller
                 $billingMonth = Carbon::parse($latestInvoice->billing_month)->startOfMonth();
 
                 if ($latestInvoice->status === 'paid' && $billingMonth->greaterThanOrEqualTo($currentMonthStart)) {
-                    // हालको महिना वा भविष्यको महिना पैसा तिरेको छ
                     $paymentStatus = 'paid';
-                    // अर्को म्याद = भुक्तानी गरेको महिनाको अर्को महिनाको पहिलो दिन
                     $nextDueDate = $billingMonth->copy()->addMonth()->startOfMonth();
                 } elseif ($latestInvoice->status === 'paid' && $billingMonth->lessThan($currentMonthStart)) {
-                    // पछिल्लो पटक तिरेको महिना वर्तमान महिनाभन्दा अघि छ -> बाँकी
                     $paymentStatus = 'overdue';
                     $delayMonths = $billingMonth->copy()->addMonth()->diffInMonths($currentMonthStart);
-                    $nextDueDate = $billingMonth->copy()->addMonth()->startOfMonth(); // अर्को म्याद (जुन तिर्न बाँकी छ)
+                    $nextDueDate = $billingMonth->copy()->addMonth()->startOfMonth();
                 } elseif ($latestInvoice->status === 'partial' || $latestInvoice->status === 'unpaid') {
                     $paymentStatus = 'overdue';
-                    // यो इनभ्वाइसकै महिना बाँकी छ
                     $delayMonths = $billingMonth->lessThan($currentMonthStart)
                         ? $billingMonth->diffInMonths($currentMonthStart)
                         : 0;
                     $nextDueDate = $billingMonth->copy()->startOfMonth();
                 }
             } else {
-                // कुनै इनभ्वाइस छैन
                 $paymentStatus = 'unpaid';
                 $nextDueDate = null;
             }
-            // ---------------------------------------------------------------------------------
 
-            // ✅ अन्तमा view मा सबै variables पठाउने (पुराना + नयाँ)
             return view('student.dashboard', compact(
                 'student',
                 'room',
@@ -984,15 +975,18 @@ class DashboardController extends Controller
                 'lastPayment',
                 'upcomingEvents',
                 'galleryImages',
-                'notifications',
-                'unreadCount',
+                'notifications',      // ✅ dropdown को लागि
+                'unreadCount',        // ✅ dropdown र stats दुवैको लागि
                 'unreadCirculars',
                 'recentStudentCirculars',
                 'importantCirculars',
                 'paymentStatus',
                 'nextDueDate',
                 'delayMonths',
-                'latestInvoice'
+                'latestInvoice',
+                'totalCount',         // ✅ stats box को लागि
+                'readCount',          // ✅ stats box को लागि
+                'urgentCount'         // ✅ stats box को लागि (यदि छैन भने 0)
             ));
         } catch (\Exception $e) {
             Log::error('विद्यार्थी ड्यासबोर्ड त्रुटि: ' . $e->getMessage(), [

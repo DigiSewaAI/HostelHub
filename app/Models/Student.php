@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use App\Notifications\NewStudentNotification;        // <-- थप्ने (1)
+use App\Notifications\NewStudentNotification;
 
 class Student extends Model
 {
@@ -585,5 +585,22 @@ class Student extends Model
             $this->payments()->count() === 0 &&
             $this->bookings()->count() === 0 &&
             $this->reviews()->count() === 0;
+    }
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($student) {
+            if (empty($student->student_id)) {
+                // Generate unique student ID
+                $prefix = 'STU';
+                $timestamp = time();
+                $random = rand(100, 999);
+                $student->student_id = $prefix . $timestamp . $random;
+                // वैकल्पिक: क्रमिक ID बनाउन चाहनुहुन्छ भने
+                // $last = self::max('id') ?? 0;
+                // $student->student_id = $prefix . str_pad($last + 1, 6, '0', STR_PAD_LEFT);
+            }
+        });
     }
 }
