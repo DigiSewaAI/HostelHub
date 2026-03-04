@@ -143,26 +143,25 @@
                                                 <strong class="text-dark">भुक्तानी ID: {{ $payment->id }}</strong>
                                                 <small class="text-muted">
                                                     @if($payment->room)
-                                                    <i class="fas fa-bed me-1"></i>
-                                                    कोठा {{ $payment->room->room_number ?? 'N/A' }}
-                                                    @if($payment->room->hostel)
-                                                        ({{ $payment->room->hostel->name ?? '' }})
-                                                    @endif
-                                                @elseif($payment->booking && $payment->booking->room)
-                                                    <i class="fas fa-bed me-1"></i>
-                                                    कोठा {{ $payment->booking->room->room_number ?? 'N/A' }}
-                                                    @if($payment->booking->room->hostel)
-                                                        ({{ $payment->booking->room->hostel->name ?? '' }})
-                                                    @endif
-                                                @else
-                                                    <i class="fas fa-info-circle me-1"></i>
-                                                    {{ $payment->getPurposeText() }}
-                                                @endif
-                                                </small>
-                                                        {{-- 🔥 NEW: Initial Payment Badge --}}
-                                                        @if($payment->payment_type == 'initial')
-                                                            <span class="badge bg-info mt-1">प्रारम्भिक</span>
+                                                        <i class="fas fa-bed me-1"></i>
+                                                        कोठा {{ $payment->room->room_number ?? 'N/A' }}
+                                                        @if($payment->room->hostel)
+                                                            ({{ $payment->room->hostel->name ?? '' }})
                                                         @endif
+                                                    @elseif($payment->booking && $payment->booking->room)
+                                                        <i class="fas fa-bed me-1"></i>
+                                                        कोठा {{ $payment->booking->room->room_number ?? 'N/A' }}
+                                                        @if($payment->booking->room->hostel)
+                                                            ({{ $payment->booking->room->hostel->name ?? '' }})
+                                                        @endif
+                                                    @else
+                                                        <i class="fas fa-info-circle me-1"></i>
+                                                        {{ $payment->getPurposeText() }}
+                                                    @endif
+                                                </small>
+                                                @if($payment->payment_type == 'initial')
+                                                    <span class="badge bg-info mt-1">प्रारम्भिक</span>
+                                                @endif
 
                                                 @if($payment->transaction_id)
                                                     <small class="text-muted">
@@ -180,11 +179,11 @@
                                             <span class="badge bg-info">{{ $payment->getPaymentMethodText() }}</span>
                                         </td>
                                         <td>
-    <div class="d-flex flex-column">
-        <span>{{ $payment->payment_date->format('Y-m-d') }}</span>
-        <small class="text-muted">{{ $payment->created_at->format('h:i A') }}</small>
-    </div>
-</td>
+                                            <div class="d-flex flex-column">
+                                                <span>{{ $payment->payment_date->format('Y-m-d') }}</span>
+                                                <small class="text-muted">{{ $payment->created_at->format('h:i A') }}</small>
+                                            </div>
+                                        </td>
                                         <td>
                                             @if($payment->status == 'completed')
                                                 <span class="badge bg-success">सफल</span>
@@ -206,127 +205,14 @@
                                                     <i class="fas fa-download"></i>
                                                 </a>
 
+                                                <!-- Eye button with modal trigger -->
                                                 <button type="button" 
                                                         class="btn btn-outline-info tooltip-btn" 
                                                         title="विवरण हेर्नुहोस्"
-                                                        onclick="openModal('paymentModal{{ $payment->id }}')">
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#paymentModal{{ $payment->id }}">
                                                     <i class="fas fa-eye"></i>
                                                 </button>
-                                            </div>
-
-                                            <!-- Payment Details Modal (Custom) -->
-                                            <div id="paymentModal{{ $payment->id }}" class="custom-modal">
-                                                <div class="custom-modal-dialog">
-                                                    <div class="custom-modal-content">
-                                                        <div class="custom-modal-header">
-                                                            <h5 class="custom-modal-title">
-                                                                <i class="fas fa-credit-card me-2"></i>
-                                                                भुक्तानी विवरण
-                                                            </h5>
-                                                            <button type="button" class="custom-modal-close" onclick="closeModal('paymentModal{{ $payment->id }}')">&times;</button>
-                                                        </div>
-                                                        <div class="custom-modal-body">
-                                                            <div class="row">
-                                                                <div class="col-md-6">
-                                                                    <table class="table table-borderless modal-table">
-                                                                        <tr>
-                                                                            <td class="text-muted">भुक्तानी ID:</td>
-                                                                            <td><strong>#{{ $payment->id }}</strong></td>
-                                                                        </tr>
-                                                                        <tr>
-                                                                            <td class="text-muted">रकम:</td>
-                                                                            <td><strong class="text-success">रु {{ number_format($payment->amount, 2) }}</strong></td>
-                                                                        </tr>
-                                                                        <tr>
-                                                                            <td class="text-muted">विधि:</td>
-                                                                            <td><span class="badge bg-info">{{ $payment->getPaymentMethodText() }}</span></td>
-                                                                        </tr>
-                                                                        <tr>
-                                                                            <td class="text-muted">उद्देश्य:</td>
-                                                                            <td>{{ $payment->getPurposeText() }}</td>
-                                                                        </tr>
-                                                                    </table>
-                                                                </div>
-                                                                <div class="col-md-6">
-                                                                    <table class="table table-borderless modal-table">
-                                                                        <tr>
-                                                                            <td class="text-muted">मिति:</td>
-                                                                            <td>{{ $payment->payment_date->format('Y-m-d') }} {{ $payment->created_at->format('h:i A') }}</td>
-                                                                        </tr>
-                                                                        <tr>
-                                                                            <td class="text-muted">स्थिति:</td>
-                                                                            <td>
-                                                                                @if($payment->status == 'completed')
-                                                                                    <span class="badge bg-success">सफल</span>
-                                                                                @elseif($payment->status == 'pending')
-                                                                                    <span class="badge bg-warning">पेन्डिङ</span>
-                                                                                @elseif($payment->status == 'failed')
-                                                                                    <span class="badge bg-danger">असफल</span>
-                                                                                @else
-                                                                                    <span class="badge bg-secondary">{{ $payment->status }}</span>
-                                                                                @endif
-                                                                            </td>
-                                                                        </tr>
-                                                                        @if($payment->transaction_id)
-                                                                        <tr>
-                                                                            <td class="text-muted">ट्रान्जेक्सन ID:</td>
-                                                                            <td><code>{{ $payment->transaction_id }}</code></td>
-                                                                        </tr>
-                                                                        @endif
-                                                                        @if($payment->remarks)
-                                                                        <tr>
-                                                                            <td class="text-muted">टिप्पणी:</td>
-                                                                            <td class="remarks-cell">{{ $payment->remarks }}</td>
-                                                                        </tr>
-                                                                        @endif
-                                                                    </table>
-                                                                </div>
-                                                            </div>
-                                                            
-                                                            @if($payment->room || $payment->booking)
-                                                                <div class="mt-4 pt-3 border-top">
-                                                                    <h6 class="text-muted mb-3">
-                                                                        <i class="fas fa-bed me-2"></i>बुकिंग जानकारी
-                                                                    </h6>
-                                                                    <div class="row">
-                                                                        <div class="col-md-6">
-                                                                            <small class="text-muted d-block">कोठा:</small>
-                                                                            <strong>
-                                                                                @if($payment->room)
-                                                                                    {{ $payment->room->room_number ?? 'N/A' }}
-                                                                                @elseif($payment->booking && $payment->booking->room)
-                                                                                    {{ $payment->booking->room->room_number ?? 'N/A' }}
-                                                                                @else
-                                                                                    N/A
-                                                                                @endif
-                                                                            </strong>
-                                                                        </div>
-                                                                        <div class="col-md-6">
-                                                                            <small class="text-muted d-block">होस्टल:</small>
-                                                                            <strong>
-                                                                                @if($payment->room && $payment->room->hostel)
-                                                                                    {{ $payment->room->hostel->name ?? 'N/A' }}
-                                                                                @elseif($payment->booking && $payment->booking->room && $payment->booking->room->hostel)
-                                                                                    {{ $payment->booking->room->hostel->name ?? 'N/A' }}
-                                                                                @else
-                                                                                    N/A
-                                                                                @endif
-                                                                            </strong>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                @endif
-                                                        </div>
-                                                        <div class="custom-modal-footer">
-                                                            <button type="button" class="btn btn-secondary me-2" onclick="closeModal('paymentModal{{ $payment->id }}')">बन्द गर्नुहोस्</button>
-                                                            <a href="{{ route('student.payments.receipt', $payment->id) }}" 
-                                                               class="btn btn-primary" 
-                                                               target="_blank">
-                                                                <i class="fas fa-print me-1"></i> रसिद प्रिन्ट गर्नुहोस्
-                                                            </a>
-                                                        </div>
-                                                    </div>
-                                                </div>
                                             </div>
                                         </td>
                                     </tr>
@@ -345,6 +231,7 @@
                             </div>
                         </div>
                     @else
+                        <!-- Empty state -->
                         <div class="text-center py-5">
                             <div class="empty-state-icon mb-4">
                                 <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center" 
@@ -368,7 +255,7 @@
             </div>
         </div>
 
-        <!-- Right Column: Payment Methods & Quick Actions -->
+        <!-- Right Column: Payment Methods (Original inline code) -->
         <div class="col-lg-4 mb-4">
             <!-- Payment Methods Card -->
             <div class="card shadow-sm mb-4">
@@ -470,7 +357,7 @@
                                         @if($method->qr_code_path)
                                             <div class="text-center mt-2">
                                                 <p class="small text-muted mb-1" style="font-size: 0.75rem;">QR कोड स्क्यान गर्नुहोस्:</p>
-                                                <img src="{{ \media_url($method->qr_code_path) }}" 
+                                                <img src="{{ media_url($method->qr_code_path) }}" 
                                                      class="img-fluid rounded border" 
                                                      style="max-width: 120px; display: block; margin: 0 auto;">
                                             </div>
@@ -526,9 +413,6 @@
                     @endif
                 </div>
             </div>
-
-            <!-- Quick Actions Card - REMOVED as per request -->
-            
         </div>
     </div>
 
@@ -571,15 +455,133 @@
     </div>
 </div>
 
-<!-- Help Modal (Custom) -->
-<div id="paymentHelpModal" class="custom-modal">
-    <div class="custom-modal-dialog">
-        <div class="custom-modal-content">
-            <div class="custom-modal-header">
-                <h5 class="custom-modal-title">भुक्तानी सम्बन्धी मद्दत</h5>
-                <button type="button" class="custom-modal-close" onclick="closeModal('paymentHelpModal')">&times;</button>
+<!-- ========== ALL MODALS (MOVED OUTSIDE CONTAINER) ========== -->
+@foreach($payments as $payment)
+<!-- Bootstrap Modal for Payment Details -->
+<div class="modal fade" id="paymentModal{{ $payment->id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-credit-card me-2"></i>
+                    भुक्तानी विवरण
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="custom-modal-body">
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td class="text-muted">भुक्तानी ID:</td>
+                                <td><strong>#{{ $payment->id }}</strong></td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">रकम:</td>
+                                <td><strong class="text-success">रु {{ number_format($payment->amount, 2) }}</strong></td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">विधि:</td>
+                                <td><span class="badge bg-info">{{ $payment->getPaymentMethodText() }}</span></td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">उद्देश्य:</td>
+                                <td>{{ $payment->getPurposeText() }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td class="text-muted">मिति:</td>
+                                <td>{{ $payment->payment_date->format('Y-m-d') }} {{ $payment->created_at->format('h:i A') }}</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">स्थिति:</td>
+                                <td>
+                                    @if($payment->status == 'completed')
+                                        <span class="badge bg-success">सफल</span>
+                                    @elseif($payment->status == 'pending')
+                                        <span class="badge bg-warning">पेन्डिङ</span>
+                                    @elseif($payment->status == 'failed')
+                                        <span class="badge bg-danger">असफल</span>
+                                    @else
+                                        <span class="badge bg-secondary">{{ $payment->status }}</span>
+                                    @endif
+                                </td>
+                            </tr>
+                            @if($payment->transaction_id)
+                            <tr>
+                                <td class="text-muted">ट्रान्जेक्सन ID:</td>
+                                <td><code>{{ $payment->transaction_id }}</code></td>
+                            </tr>
+                            @endif
+                            @if($payment->remarks)
+                            <tr>
+                                <td class="text-muted">टिप्पणी:</td>
+                                <td>{{ $payment->remarks }}</td>
+                            </tr>
+                            @endif
+                        </table>
+                    </div>
+                </div>
+                
+                @if($payment->room || $payment->booking)
+                    <div class="mt-4 pt-3 border-top">
+                        <h6 class="text-muted mb-3">
+                            <i class="fas fa-bed me-2"></i>बुकिंग जानकारी
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <small class="text-muted d-block">कोठा:</small>
+                                <strong>
+                                    @if($payment->room)
+                                        {{ $payment->room->room_number ?? 'N/A' }}
+                                    @elseif($payment->booking && $payment->booking->room)
+                                        {{ $payment->booking->room->room_number ?? 'N/A' }}
+                                    @else
+                                        N/A
+                                    @endif
+                                </strong>
+                            </div>
+                            <div class="col-md-6">
+                                <small class="text-muted d-block">होस्टल:</small>
+                                <strong>
+                                    @if($payment->room && $payment->room->hostel)
+                                        {{ $payment->room->hostel->name ?? 'N/A' }}
+                                    @elseif($payment->booking && $payment->booking->room && $payment->booking->room->hostel)
+                                        {{ $payment->booking->room->hostel->name ?? 'N/A' }}
+                                    @else
+                                        N/A
+                                    @endif
+                                </strong>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">बन्द गर्नुहोस्</button>
+                <a href="{{ route('student.payments.receipt', $payment->id) }}" 
+                   class="btn btn-primary" 
+                   target="_blank">
+                    <i class="fas fa-print me-1"></i> रसिद प्रिन्ट गर्नुहोस्
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+@endforeach
+
+<!-- Help Modal (Bootstrap) -->
+<div class="modal fade" id="paymentHelpModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title">भुक्तानी सम्बन्धी मद्दत</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
                 <h6>समस्या समाधान:</h6>
                 <ul>
                     <li>भुक्तानी गर्न कठिनाई भएमा होस्टेल कार्यालयमा जानुहोस्</li>
@@ -602,12 +604,13 @@
                     </div>
                 @endif
             </div>
-            <div class="custom-modal-footer">
-                <button type="button" class="btn btn-secondary me-2" onclick="closeModal('paymentHelpModal')">बन्द गर्नुहोस्</button>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">बन्द गर्नुहोस्</button>
             </div>
         </div>
     </div>
 </div>
+<!-- ========== END MODALS ========== -->
 @endsection
 
 @push('styles')
@@ -658,12 +661,12 @@
     
     /* Custom header for "भुक्तानीहरूको सूची" - Sky Blue */
     .bg-sky-blue {
-        background-color: #0d6efd !important; /* Sky blue */
+        background-color: #0d6efd !important;
     }
     
     /* Custom header for "भुक्तानी गर्ने विधिहरू" - Bright Green */
     .bg-bright-green {
-        background-color: #28a745 !important; /* Bright green */
+        background-color: #28a745 !important;
     }
     
     /* Ensure text in custom headers is white for all child elements */
@@ -699,7 +702,7 @@
         font-size: 0.75rem;
     }
     
-    /* Tooltip Customization - FIX for black text on black background */
+    /* Tooltip Customization */
     .tooltip {
         --bs-tooltip-bg: #fff;
         --bs-tooltip-color: #000;
@@ -717,25 +720,20 @@
     
     .bs-tooltip-top .tooltip-arrow::before {
         border-top-color: #fff !important;
-        border-bottom-color: transparent;
     }
     
     .bs-tooltip-bottom .tooltip-arrow::before {
         border-bottom-color: #fff !important;
-        border-top-color: transparent;
     }
     
     .bs-tooltip-start .tooltip-arrow::before {
         border-left-color: #fff !important;
-        border-right-color: transparent;
     }
     
     .bs-tooltip-end .tooltip-arrow::before {
         border-right-color: #fff !important;
-        border-left-color: transparent;
     }
     
-    /* Dark mode support */
     @media (prefers-color-scheme: dark) {
         .tooltip-inner {
             background-color: #333 !important;
@@ -760,184 +758,78 @@
         }
     }
     
-    /* Tooltip button styling */
     .tooltip-btn {
         position: relative;
         cursor: pointer;
     }
 
-    /* Custom Modal Styles */
-    .custom-modal {
-        display: none;
-        position: fixed;
-        z-index: 1050;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        overflow: auto;
-        background-color: rgba(0,0,0,0.2); /* Very light dim */
+    /* नयाँ थपिएको: मोडलभित्रको क्लिक सुनिश्चित गर्न */
+    .modal-content, .modal-content * {
+        pointer-events: auto !important;
     }
 
-    .custom-modal.show {
-        display: block;
+    /* मोडलको z-index सुनिश्चित */
+    .modal {
+        z-index: 1060 !important;
     }
-
-    .custom-modal-dialog {
-        position: relative;
-        width: auto;
-        margin: 1.75rem auto;
-        max-width: 800px;
-        pointer-events: none;
-    }
-
-    .custom-modal-content {
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        width: 100%;
-        background-color: #fff;
-        border: 1px solid rgba(0,0,0,0.2);
-        border-radius: 0.3rem;
-        outline: 0;
-        pointer-events: auto;
-    }
-
-    .custom-modal-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 1rem;
-        border-bottom: 1px solid #dee2e6;
-        border-top-left-radius: 0.3rem;
-        border-top-right-radius: 0.3rem;
-        background-color: #4e73df;
-        color: white !important; /* Ensure header text is white */
-    }
-
-    .custom-modal-title {
-        margin: 0;
-        line-height: 1.5;
-        font-size: 1.25rem;
-        color: white !important; /* Ensure title is white */
-    }
-
-    .custom-modal-close {
-        background: transparent;
-        border: none;
-        font-size: 1.5rem;
-        font-weight: 700;
-        line-height: 1;
-        color: #fff !important; /* Ensure close button is white */
-        text-shadow: 0 1px 0 #fff;
-        opacity: 0.5;
-        cursor: pointer;
-        padding: 0.5rem;
-        margin: -0.5rem;
-    }
-
-    .custom-modal-close:hover {
-        opacity: 1;
-    }
-
-    .custom-modal-body {
-        position: relative;
-        flex: 1 1 auto;
-        padding: 1rem;
-    }
-
-    .custom-modal-footer {
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        padding: 0.75rem;
-        border-top: 1px solid #dee2e6;
-        gap: 0.5rem;
-    }
-
-    /* Make modal footer buttons text white */
-    .custom-modal-footer .btn {
-        color: white !important;
-    }
-
-    /* Ensure table cells wrap long text */
-    .custom-modal-body .modal-table {
-        width: 100%;
-        table-layout: fixed; /* Fixed layout to prevent overflow */
-    }
-
-    .custom-modal-body .modal-table td {
-        word-wrap: break-word;
-        word-break: break-word;
-        white-space: normal;
-    }
-
-    .custom-modal-body .remarks-cell {
-        max-width: 200px; /* Adjust as needed */
-        overflow-wrap: break-word;
+    .modal-backdrop {
+        z-index: 1040 !important;
     }
 </style>
 @endpush
 
 @push('scripts')
 <script>
-// Function to open modal
-function openModal(modalId) {
-    var modal = document.getElementById(modalId);
-    if (modal) {
-        modal.classList.add('show');
-        document.body.style.overflow = 'hidden'; // Prevent scrolling
-    }
-}
-
-// Function to close modal
-function closeModal(modalId) {
-    var modal = document.getElementById(modalId);
-    if (modal) {
-        modal.classList.remove('show');
-        document.body.style.overflow = ''; // Restore scrolling
-    }
-}
-
-// Close modal when clicking outside the modal content
-window.onclick = function(event) {
-    if (event.target.classList.contains('custom-modal')) {
-        event.target.classList.remove('show');
-        document.body.style.overflow = '';
-    }
-}
-
 $(document).ready(function() {
-    // Add animation to payment method cards
+    console.log('✅ jQuery ready - Payment history page');
+
+    // Animation for payment method cards
     $('.card.border-start').hover(
-        function() {
-            $(this).addClass('shadow-sm');
-            $(this).css('transform', 'translateY(-2px)');
-        },
-        function() {
-            $(this).removeClass('shadow-sm');
-            $(this).css('transform', 'translateY(0)');
-        }
+        function() { $(this).addClass('shadow-sm').css('transform', 'translateY(-2px)'); },
+        function() { $(this).removeClass('shadow-sm').css('transform', 'translateY(0)'); }
     );
 
-    // Tooltip initialization with custom options
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl, {
-            delay: {show: 100, hide: 100},
-            placement: 'top'
+    // Bootstrap tooltip initialization
+    try {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.forEach(function (el) {
+            new bootstrap.Tooltip(el, { delay: {show: 100, hide: 100}, placement: 'top' });
         });
-    });
-    
-    // Initialize all title attributes as tooltips
-    $('[title]').each(function() {
-        if (!$(this).attr('data-bs-toggle')) {
+
+        // Also handle elements with title attribute
+        $('[title]').not('[data-bs-toggle]').each(function() {
             $(this).attr('data-bs-toggle', 'tooltip');
-            new bootstrap.Tooltip(this, {
-                delay: {show: 100, hide: 100},
-                placement: 'top'
-            });
-        }
+            new bootstrap.Tooltip(this, { delay: {show: 100, hide: 100}, placement: 'top' });
+        });
+    } catch (e) {
+        console.warn('Tooltip initialization error:', e);
+    }
+
+    // डिबग: मोडल भित्रको क्लिक जाँच गर्न
+    $(document).on('click', '.modal-content button, .modal-content a', function(e) {
+        console.log('✅ Modal button clicked:', this);
+    });
+
+    // ========== मोडल बटन नचल्ने समस्याको समाधान ==========
+    // जब मोडल खुल्छ, backdrop हटाउने र body मा modal-open क्लास नराख्ने
+    $(document).on('shown.bs.modal', '.modal', function () {
+        // यदि backdrop ले समस्या गरिरहेको छ भने, यसलाई हटाउने
+        $('.modal-backdrop').remove();
+        // modal-open क्लास हटाउने (यसले पृष्ठलाई स्क्रोल गर्न दिन्छ)
+        $('body').removeClass('modal-open');
+        // मोडललाई स्पष्ट रूपमा देखाउन
+        $(this).css('display', 'block');
+        console.log('Modal shown, backdrop removed');
+    });
+
+    // जब मोडल बन्द हुन्छ, कुनै अतिरिक्त सफाइ आवश्यक छैन
+    $(document).on('hidden.bs.modal', '.modal', function () {
+        console.log('Modal hidden');
+    });
+
+    // कहिलेकाँही backdrop पटक-पटक आउन सक्छ, त्यसैला हरेक पटक हटाउने
+    $(document).on('show.bs.modal', '.modal', function () {
+        $('.modal-backdrop').remove();
     });
 });
 </script>
