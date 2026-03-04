@@ -58,7 +58,6 @@ Route::prefix('student')
 
         // Hostel routes
         Route::get('/hostel/search', [PublicController::class, 'hostelSearch'])->name('hostel.search');
-        Route::get('/hostel/join', [PublicController::class, 'hostelJoin'])->name('hostel.join');
         Route::post('/hostel/{hostel}/join', [PublicController::class, 'joinHostel'])->name('hostel.join.submit');
 
         // Student Review Routes
