@@ -5,8 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="robots" content="noindex, nofollow">
-    <title>@yield('title', 'ड्यासबोर्ड') - HostelHub Student</title>
-    
+    <title>@yield('title', 'ड्यासबोर्ड') - HostelHub Student</title> 
     <!-- Favicon -->
     <link rel="shortcut icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
     
@@ -2391,64 +2390,8 @@
                             <span class="text-white">विद्यार्थी</span>
                         </div>
 
-                        <!-- Notifications -->
-<div class="relative">
-    <button class="notification-button text-white hover:text-gray-200 p-2 rounded-full hover:bg-blue-700" 
-            type="button" 
-            id="notificationsDropdown"
-            aria-label="सूचनाहरू हेर्नुहोस्">
-        <i class="fas fa-bell text-lg text-white"></i>
-        @if($unreadCount > 0)
-            <span class="notification-dot" aria-hidden="true"></span>
-        @endif
-    </button>
-    
-    <div class="dropdown-menu dropdown-menu-end w-80 bg-white rounded-xl shadow-lg py-1 z-20 max-h-96 overflow-y-auto border border-gray-200 absolute right-0 mt-2" 
-         id="notificationsMenu">
-        
-        <div class="px-4 py-2 border-b border-gray-200">
-            <h3 class="font-semibold text-gray-800">सूचनाहरू</h3>
-        </div>
-        
-        @forelse($notifications as $notification)
-            @php
-                $data = $notification->data;
-                $isBirthday = ($data['type'] ?? '') === 'birthday';
-                $iconClass = $isBirthday ? 'bg-pink-100 text-pink-600' : 'bg-indigo-100 text-indigo-600';
-                $icon = $isBirthday ? 'fa-birthday-cake' : 'fa-user-circle';
-            @endphp
-            <a href="{{ $data['url'] ?? '#' }}" 
-   class="flex items-start px-4 py-3 hover:bg-gray-50 border-b border-gray-100 {{ !$notification->read_at ? 'bg-blue-50' : '' }} no-underline"
-   onclick="event.preventDefault(); markNotificationAsRead('{{ $notification->id }}', '{{ $data['url'] ?? '#' }}')">
-                   <div class="flex-shrink-0 mr-3">
-                    <div class="w-10 h-10 rounded-full {{ $iconClass }} flex items-center justify-center">
-                        <i class="fas {{ $icon }} text-xl"></i>
-                    </div>
-                </div>
-                <div class="flex-1">
-                    <p class="text-sm {{ !$notification->read_at ? 'font-semibold' : '' }} text-gray-800">
-                        {{ $data['message'] ?? 'सूचना' }}
-                    </p>
-                    <p class="text-xs text-gray-500 mt-1">{{ $notification->created_at->diffForHumans() }}</p>
-                </div>
-            </a>
-        @empty
-            <div class="px-4 py-6 text-center text-gray-500">
-                कुनै सूचना छैन।
-            </div>
-        @endforelse
-        
-        <div class="px-4 py-2 border-t border-gray-200 text-center">
-            @php
-                $notificationsRoute = route('student.notifications.index');
-            @endphp
-            <a href="{{ $notificationsRoute }}" class="text-indigo-600 text-sm hover:underline">
-                सबै सूचनाहरू हेर्नुहोस्
-            </a>
-        </div>
-    </div>
-</div>
-                        
+<!-- Notifications -->
+@include('components.notification-dropdown')                        
                         <!-- User Profile Dropdown -->
                         <div class="relative">
                             <button class="btn btn-outline-light dropdown-toggle d-flex align-items-center" 
