@@ -72,18 +72,18 @@ class DashboardController extends Controller
                 });
 
             // Circular statistics
-            $totalCount = $baseQuery->count();
-            $readCount = (clone $baseQuery)
+            $circularTotal = $baseQuery->count();
+            $circularRead = (clone $baseQuery)
                 ->whereHas('recipients', function ($q) use ($user) {
                     $q->where('user_id', $user->id)
                         ->where('is_read', true);
                 })->count();
-            $unreadCircularCount = (clone $baseQuery)
+            $circularUnread = (clone $baseQuery)
                 ->whereHas('recipients', function ($q) use ($user) {
                     $q->where('user_id', $user->id)
                         ->where('is_read', false);
                 })->count();
-            $urgentCount = (clone $baseQuery)
+            $circularUrgent = (clone $baseQuery)
                 ->where('priority', 'urgent')
                 ->whereHas('recipients', function ($q) use ($user) {
                     $q->where('user_id', $user->id);
@@ -101,21 +101,41 @@ class DashboardController extends Controller
             $room = $student->room ?? null;
             $latestPayment = $student ? $student->payments()->latest()->first() : null;
 
+            // ✅ Notification statistics
+            $totalNotifications = $user->notifications()->count();
+            $readNotifications = $user->readNotifications()->count();
+            $unreadNotifications = $user->unreadNotifications()->count();
+            $urgentNotifications = 0; // यदि छुट्टै urgent notification छ भने यहाँ गणना गर्नुहोस्
+
+            // पुराना नामहरू (view मा यही प्रयोग भएको हुन सक्छ)
+            $totalCount = $totalNotifications;
+            $readCount = $readNotifications;
+            // $unreadCount पहिले नै छ
+            $urgentCount = $urgentNotifications;
+
             return view('student.dashboard', compact(
                 'notifications',
                 'unreadCount',
-                'totalCount',
-                'readCount',
-                'unreadCircularCount',
-                'urgentCount',
+                'circularTotal',
+                'circularRead',
+                'circularUnread',
+                'circularUrgent',
                 'recentCirculars',
                 'student',
                 'room',
-                'latestPayment'
+                'latestPayment',
+                // पुराना नामहरू
+                'totalCount',
+                'readCount',
+                'urgentCount',
+                // नयाँ नामहरू
+                'totalNotifications',
+                'readNotifications',
+                'unreadNotifications',
+                'urgentNotifications'
             ));
         } else {
             // Fallback for other roles (owner, hostel_manager, etc.)
-            // You can add more conditions as needed
             return view('dashboard', compact('notifications', 'unreadCount'));
         }
     }
@@ -845,12 +865,8 @@ class DashboardController extends Controller
         }
     }
 
-    /**
-     * Student dashboard
-     */
     public function studentDashboard()
     {
-        // ✅ SECURITY FIX: Authorization check
         $user = auth()->user();
         if (!$user->hasRole('student')) {
             abort(403, 'तपाईंसँग यो ड्यासबोर्ड हेर्ने अनुमति छैन');
@@ -859,87 +875,73 @@ class DashboardController extends Controller
         try {
             $student = $user->student;
 
-            // If student doesn't exist or doesn't have hostel, show welcome-style dashboard
             if (!$student || !$student->hostel_id) {
-                return view('student.welcome', [
-                    'user' => $user,
-                    'student' => $student
-                ]);
+                return view('student.welcome', compact('user', 'student'));
             }
 
             $room = $student->room;
             $hostel = $student->hostel;
 
             if (!$room || !$hostel) {
-                return view('student.welcome', [
-                    'user' => $user,
-                    'student' => $student
-                ]);
+                return view('student.welcome', compact('user', 'student'));
             }
 
-            // Get today's meal with proper meal items
+            // Today's meal
             $todayMeal = MealMenu::where('hostel_id', $hostel->id)
                 ->where('day_of_week', now()->format('l'))
                 ->select('id', 'meal_type', 'items', 'description', 'day_of_week')
                 ->first();
 
-            // Get last payment information
-            $lastPayment = Payment::where('student_id', $student->id)
-                ->latest()
-                ->first();
+            $groupedMeals = MealMenu::where('hostel_id', $hostel->id)
+                ->where('day_of_week', now()->format('l'))
+                ->get()
+                ->groupBy('meal_type');
 
-            // Get upcoming events
-            $upcomingEvents = \App\Models\Event::where('date', '>=', now())
-                ->where('hostel_id', $hostel->id)
-                ->orderBy('date')
-                ->take(3)
-                ->get();
+            $lastPayment = Payment::where('student_id', $student->id)->latest()->first();
 
-            // Get gallery images
-            $galleryImages = \App\Models\Gallery::where('hostel_id', $hostel->id)
-                ->where('is_active', true)
-                ->take(4)
-                ->get();
+            // ✅ Event model नभएको अवस्थामा error नआउने व्यवस्था
+            if (class_exists('App\Models\Event')) {
+                $upcomingEvents = \App\Models\Event::where('date', '>=', now())
+                    ->where('hostel_id', $hostel->id)
+                    ->orderBy('date')->take(3)->get();
+            } else {
+                $upcomingEvents = collect(); // खाली collection
+            }
 
-            // ✅ नयाँ: Notifications for dropdown + stats
+            // ✅ Gallery model नभएको अवस्थामा error नआउने व्यवस्था
+            if (class_exists('App\Models\Gallery')) {
+                $galleryImages = \App\Models\Gallery::where('hostel_id', $hostel->id)
+                    ->where('is_active', true)->take(4)->get();
+            } else {
+                $galleryImages = collect();
+            }
+
+            // --- Notifications ---
             $notifications = $user->notifications()->latest()->take(5)->get();
             $unreadCount = $user->unreadNotifications()->count();
-            $totalCount = $user->notifications()->count();
-            $readCount = $totalCount - $unreadCount;
-            $urgentCount = 0; // यदि तपाईंसँग urgent notification छुट्टै छ भने यहाँ गणना गर्नुहोस्
 
-            // Circulars data for student with Read Status
+            // ✅ Notification stats – view ले यही नाम खोज्छ
+            $totalNotifications = $user->notifications()->count();
+            $readNotifications   = $user->readNotifications()->count();
+            $unreadNotifications = $user->unreadNotifications()->count();
+            $urgentNotifications = 0; // यदि urgent notification छ भने यहाँ गणना गर्नुहोस्
+
+            // --- Circular data ---
             $unreadCirculars = CircularRecipient::where('user_id', $user->id)
-                ->where('is_read', false)
-                ->count();
+                ->where('is_read', false)->count();
 
-            $recentStudentCirculars = Circular::whereHas('recipients', function ($q) use ($user) {
-                $q->where('user_id', $user->id);
-            })
-                ->with(['creator', 'organization', 'recipients' => function ($q) use ($user) {
-                    $q->where('user_id', $user->id);
-                }])
-                ->latest()
-                ->take(5)
-                ->get();
+            $recentStudentCirculars = Circular::whereHas('recipients', fn($q) => $q->where('user_id', $user->id))
+                ->with(['creator', 'organization', 'recipients' => fn($q) => $q->where('user_id', $user->id)])
+                ->latest()->take(5)->get();
 
-            $importantCirculars = Circular::whereHas('recipients', function ($q) use ($user) {
-                $q->where('user_id', $user->id);
-            })
+            $importantCirculars = Circular::whereHas('recipients', fn($q) => $q->where('user_id', $user->id))
                 ->where('priority', 'urgent')
-                ->whereDoesntHave('recipients', function ($q) use ($user) {
-                    $q->where('user_id', $user->id)->where('is_read', true);
-                })
+                ->whereDoesntHave('recipients', fn($q) => $q->where('user_id', $user->id)->where('is_read', true))
                 ->with(['creator', 'organization'])
-                ->latest()
-                ->take(3)
-                ->get();
+                ->latest()->take(3)->get();
 
-            // Invoice payment status calculation
-            $latestInvoice = Invoice::where('student_id', $student->id)
-                ->orderByDesc('billing_month')
-                ->first();
-
+            // --- Invoice & payment status ---
+            $latestInvoice = Invoice::where('student_id', $student->id)->orderByDesc('billing_month')->first();
             $paymentStatus = 'unpaid';
             $nextDueDate = null;
             $delayMonths = 0;
@@ -955,28 +957,37 @@ class DashboardController extends Controller
                     $paymentStatus = 'overdue';
                     $delayMonths = $billingMonth->copy()->addMonth()->diffInMonths($currentMonthStart);
                     $nextDueDate = $billingMonth->copy()->addMonth()->startOfMonth();
-                } elseif ($latestInvoice->status === 'partial' || $latestInvoice->status === 'unpaid') {
+                } elseif (in_array($latestInvoice->status, ['partial', 'unpaid'])) {
                     $paymentStatus = 'overdue';
-                    $delayMonths = $billingMonth->lessThan($currentMonthStart)
-                        ? $billingMonth->diffInMonths($currentMonthStart)
-                        : 0;
+                    $delayMonths = $billingMonth->lessThan($currentMonthStart) ? $billingMonth->diffInMonths($currentMonthStart) : 0;
                     $nextDueDate = $billingMonth->copy()->startOfMonth();
                 }
-            } else {
-                $paymentStatus = 'unpaid';
-                $nextDueDate = null;
             }
 
+            // Birthday check
+            $isBirthday = false;
+            if ($student && $student->dob) {
+                $dob = Carbon::parse($student->dob);
+                $isBirthday = $dob->month === now()->month && $dob->day === now()->day;
+            }
+            $firstName = $student ? explode(' ', $student->name)[0] : '';
+
+            // ✅ View मा पठाउने
             return view('student.dashboard', compact(
                 'student',
                 'room',
                 'hostel',
                 'todayMeal',
+                'groupedMeals',
                 'lastPayment',
                 'upcomingEvents',
                 'galleryImages',
-                'notifications',      // ✅ dropdown को लागि
-                'unreadCount',        // ✅ dropdown र stats दुवैको लागि
+                'notifications',
+                'unreadCount',
+                'totalNotifications',
+                'readNotifications',
+                'unreadNotifications',
+                'urgentNotifications',
                 'unreadCirculars',
                 'recentStudentCirculars',
                 'importantCirculars',
@@ -984,9 +995,8 @@ class DashboardController extends Controller
                 'nextDueDate',
                 'delayMonths',
                 'latestInvoice',
-                'totalCount',         // ✅ stats box को लागि
-                'readCount',          // ✅ stats box को लागि
-                'urgentCount'         // ✅ stats box को लागि (यदि छैन भने 0)
+                'isBirthday',
+                'firstName'
             ));
         } catch (\Exception $e) {
             Log::error('विद्यार्थी ड्यासबोर्ड त्रुटि: ' . $e->getMessage(), [

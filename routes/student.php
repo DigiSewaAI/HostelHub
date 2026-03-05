@@ -9,6 +9,7 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\Student\CircularController as StudentCircularController;
 use App\Http\Controllers\Admin\DocumentController;
 use App\Http\Controllers\WelcomeController;
+use App\Http\Controllers\Admin\DashboardController;
 
 /*|--------------------------------------------------------------------------
 | Student Routes - ONLY for student role
@@ -28,9 +29,10 @@ Route::prefix('student')
         });
 
 
-        // ✅ Student Dashboard – Protected with hostel assignment check
-        Route::get('/dashboard', [StudentController::class, 'dashboard'])
+        // ✅ Student Dashboard – DashboardController बाट
+        Route::get('/dashboard', [DashboardController::class, 'studentDashboard'])
             ->name('dashboard');
+
 
         // Student Profile
         Route::get('/profile', [StudentController::class, 'profile'])->name('profile');

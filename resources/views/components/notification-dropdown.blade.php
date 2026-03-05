@@ -1,11 +1,16 @@
 <div x-data="notificationDropdown()" @click.away="open = false" class="relative">
     <!-- Bell Button -->
-    <button @click="toggle()" class="relative p-2 text-white hover:text-gray-200 focus:outline-none">
-        <i class="fas fa-bell text-xl"></i>
-        <template x-if="notificationUnreadCount > 0">
-            <span class="absolute top-0 right-0 inline-flex items-center justify-center px-1 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-500 rounded-full min-w-[18px] h-[18px]" x-text="notificationUnreadCount"></span>
-        </template>
-    </button>
+<button @click="toggle()" class="relative p-2 text-white hover:text-gray-200 focus:outline-none">
+    <i class="fas fa-bell text-xl"></i>
+    @php
+        $unreadCount = auth()->user()->unreadNotifications->count();
+    @endphp
+    @if($unreadCount > 0)
+        <span class="absolute top-0 right-0 inline-flex items-center justify-center px-1 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-500 rounded-full min-w-[18px] h-[18px]">
+            {{ $unreadCount }}
+        </span>
+    @endif
+</button>
 
     <!-- Dropdown -->
     <div x-show="open" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 transform scale-95" x-transition:enter-end="opacity-100 transform scale-100" x-transition:leave="transition ease-in duration-75" x-transition:leave-start="opacity-100 transform scale-100" x-transition:leave-end="opacity-0 transform scale-95" class="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg overflow-hidden z-20 border border-gray-200" style="display: none;">
