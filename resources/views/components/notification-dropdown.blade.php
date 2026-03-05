@@ -24,7 +24,7 @@
         <div class="max-h-96 overflow-y-auto">
             <template x-for="notification in notifications" :key="notification.id">
                 <a :href="notification.data.url || getFallbackUrl(notification)" 
-                   @click.prevent="handleNotificationClick(notification.id, notification.data.url || getFallbackUrl(notification), $event)" 
+                   @click.prevent="handleNotificationClick(notification.id, notification.data.url || getFallbackUrl(notification), notification)" 
                    class="flex items-start px-4 py-3 hover:bg-gray-50 border-b border-gray-100 no-underline hover:no-underline" 
                    :class="{ 'bg-blue-50': !notification.read_at }"
                    data-ignore-selector="true">
@@ -77,6 +77,29 @@
 </div>
 
 <script>
+function showToast(message) {
+    const toast = document.createElement('div');
+    toast.innerText = message;
+    toast.style.position = "fixed";
+    toast.style.bottom = "20px";
+    toast.style.right = "20px";
+    toast.style.padding = "12px 18px";
+    toast.style.background = "#2563eb";
+    toast.style.color = "white";
+    toast.style.borderRadius = "6px";
+    toast.style.boxShadow = "0 2px 6px rgba(0,0,0,0.2)";
+    toast.style.zIndex = "9999";
+    toast.style.fontSize = "14px";
+    toast.style.opacity = "0";
+    toast.style.transition = "opacity .3s ease";
+    document.body.appendChild(toast);
+    setTimeout(() => toast.style.opacity = "1", 50);
+    setTimeout(() => {
+        toast.style.opacity = "0";
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
 function notificationDropdown() {
     return {
         open: false,
@@ -121,13 +144,22 @@ function notificationDropdown() {
             }
             return '#dummy';
         },
-        handleNotificationClick(id, url, event) {
+        handleNotificationClick(id, url, notification) {
             event.preventDefault();
             event.stopPropagation();
+
+            if (notification.data.type === 'birthday' && {{ auth()->user()->hasRole('student') ? 'true' : 'false' }}) {
+                const name = notification.data.student_name || 'विद्यार्थी';
+                showToast(`${name} को जन्मदिन तपाईलाई जानकारी भयो, धन्यवाद 🎉`);
+                axios.post('/notifications/' + id + '/mark-as-read').catch(() => {});
+                return;
+            }
+
             if (!url || url === '#' || url === '#dummy') {
                 axios.post('/notifications/' + id + '/mark-as-read').catch(() => {});
                 return;
             }
+
             axios.post('/notifications/' + id + '/mark-as-read')
                 .then(() => { window.location.href = url; })
                 .catch(() => { window.location.href = url; });
