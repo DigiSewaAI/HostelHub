@@ -63,6 +63,7 @@ class AuthServiceProvider extends ServiceProvider
         BroadcastMessage::class => BroadcastPolicy::class,
         MarketplaceListing::class => MarketplaceListingPolicy::class,
         OwnerNetworkProfile::class => OwnerNetworkProfilePolicy::class,
+        Hostel::class => HostelPolicy::class,
 
     ];
 

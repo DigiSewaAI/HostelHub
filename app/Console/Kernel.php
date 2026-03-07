@@ -36,6 +36,8 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping() // एकै पटक धेरै पटक नचलोस्
             ->appendOutputTo(storage_path('logs/birthday-notifications.log')); // log हेर्न मिलोस्
 
+        $schedule->command('validate:organization')->daily();
+
         // तपाईंका अन्य scheduled jobs/commands छन् भने यहाँ थप्नुहोस्
         // जस्तै:
         // $schedule->command('circulars:publish')->everyMinute();

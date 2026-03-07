@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Scopes\OrganizationScope;
+
 
 class Booking extends Model
 {
@@ -188,6 +190,12 @@ class Booking extends Model
     {
         return $this->status === self::STATUS_PENDING;
     }
+
+    protected static function booted()
+    {
+        static::addGlobalScope(new OrganizationScope);
+    }
+
 
     /**
      * Check if booking is approved

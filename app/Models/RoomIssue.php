@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Scopes\OrganizationScope;
+
 
 class RoomIssue extends Model
 {
@@ -47,6 +49,11 @@ class RoomIssue extends Model
     public function room()
     {
         return $this->belongsTo(Room::class);
+    }
+
+    protected static function booted()
+    {
+        static::addGlobalScope(new OrganizationScope);
     }
 
     public function resolver()

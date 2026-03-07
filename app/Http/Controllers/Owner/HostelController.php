@@ -15,7 +15,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Auth; // ✅ ADDED
+use Illuminate\Support\Facades\Auth;
 
 class HostelController extends Controller
 {
@@ -66,6 +66,7 @@ class HostelController extends Controller
 
     public function index()
     {
+        $this->authorize('viewAny', Hostel::class);
         $user = Auth::user();
 
         // ✅ PRIORITY: Use direct hostel relation if available
@@ -139,6 +140,7 @@ class HostelController extends Controller
 
     public function create()
     {
+        $this->authorize('create', Hostel::class);
         $organizationId = session('current_organization_id');
 
         if (!$organizationId) {
@@ -190,6 +192,7 @@ class HostelController extends Controller
 
     public function store(Request $request)
     {
+        $this->authorize('create', Hostel::class);
         $organizationId = session('current_organization_id');
 
         if (!$organizationId) {
@@ -298,6 +301,7 @@ class HostelController extends Controller
      */
     public function show(Hostel $hostel)
     {
+        $this->authorize('view', $hostel);
         \Log::info("=== HOSTEL SHOW METHOD STARTED ===", [
             'hostel_id' => $hostel->id,
             'hostel_name' => $hostel->name,
@@ -372,6 +376,7 @@ class HostelController extends Controller
 
     public function edit(Hostel $hostel)
     {
+        $this->authorize('update', $hostel);
         \Log::info("=== HOSTEL EDIT START ===", [
             'user_id' => auth()->id(),
             'hostel_id' => $hostel->id,
@@ -428,6 +433,7 @@ class HostelController extends Controller
      */
     public function update(Request $request, Hostel $hostel)
     {
+        $this->authorize('update', $hostel);
         \Log::info("=== HOSTEL UPDATE START ===", [
             'user_id' => auth()->id(),
             'hostel_id' => $hostel->id,
@@ -540,6 +546,7 @@ class HostelController extends Controller
 
     public function destroy(Hostel $hostel)
     {
+        $this->authorize('delete', $hostel);
         $organizationId = session('current_organization_id');
 
         if (!$organizationId || $hostel->organization_id != $organizationId) {

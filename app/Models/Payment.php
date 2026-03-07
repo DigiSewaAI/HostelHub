@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Scopes\OrganizationScope;
+
 
 class Payment extends Model
 {
@@ -316,6 +318,11 @@ class Payment extends Model
         return $this->status === self::STATUS_FAILED;
     }
 
+    protected static function booted()
+    {
+        static::addGlobalScope(new \App\Scopes\OrganizationScope);
+    }
+
     public function isRefunded(): bool
     {
         return $this->status === self::STATUS_REFUNDED;
@@ -567,6 +574,8 @@ class Payment extends Model
     {
         return $this->belongsTo(Invoice::class);
     }
+
+
 
     // मोडेलको booted method (पहिले देखिको boot method सँगै रहन सक्छ)
     protected static function booted()

@@ -221,6 +221,7 @@ Route::prefix('owner')
         Route::patch('/room-issues/{id}', [\App\Http\Controllers\Owner\OwnerRoomIssuesController::class, 'update'])->name('owner.room-issues.update');
         Route::delete('/room-issues/{id}', [\App\Http\Controllers\Owner\OwnerRoomIssuesController::class, 'destroy'])->name('owner.room-issues.destroy');
         Route::get('/room-issues/stats', [\App\Http\Controllers\Owner\OwnerRoomIssuesController::class, 'getStats'])->name('owner.room-issues.stats');
+        Route::middleware(['auth', 'scope.organization'])->group(function () {});
     });
 
 // ✅ Network Features Routes (Owner/User Network)

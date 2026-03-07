@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Storage;
+use App\Scopes\OrganizationScope;
 
 class Hostel extends Model
 {
@@ -199,6 +200,11 @@ class Hostel extends Model
     public function manager(): BelongsTo
     {
         return $this->belongsTo(User::class, 'manager_id');
+    }
+
+    protected static function booted()
+    {
+        static::addGlobalScope(new \App\Scopes\OrganizationScope);
     }
 
     public function images(): HasMany

@@ -144,7 +144,9 @@ class Kernel extends HttpKernel
         'signed' => \App\Http\Middleware\ValidateSignature::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
-        'network' => \App\Http\Middleware\EnsureEligibleForNetwork::class, // <-- add this line
+        'network' => \App\Http\Middleware\EnsureEligibleForNetwork::class,
+        'scope.organization' => \App\Http\Middleware\ScopeByOrganization::class,
+
 
 
         // Spatie Permission Middlewares

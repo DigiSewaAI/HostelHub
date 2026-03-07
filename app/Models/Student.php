@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use App\Notifications\NewStudentNotification;
+use App\Scopes\OrganizationScope;
+
 
 class Student extends Model
 {
@@ -465,6 +467,11 @@ class Student extends Model
     public function hasPaid(): bool
     {
         return $this->payment_status === 'paid';
+    }
+
+    protected static function booted()
+    {
+        static::addGlobalScope(new \App\Scopes\OrganizationScope);
     }
 
     /**

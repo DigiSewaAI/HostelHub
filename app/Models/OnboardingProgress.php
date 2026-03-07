@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Scopes\OrganizationScope;
+
 
 class OnboardingProgress extends Model
 {
@@ -39,6 +41,12 @@ class OnboardingProgress extends Model
     {
         return $this->belongsTo(Organization::class, 'organization_id');
     }
+
+    protected static function booted()
+    {
+        static::addGlobalScope(new OrganizationScope);
+    }
+
 
     /**
      * Scope for organization onboarding progress

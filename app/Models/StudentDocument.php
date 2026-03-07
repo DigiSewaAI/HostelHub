@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Scopes\OrganizationScope;
+
 
 class StudentDocument extends Model
 {
@@ -72,6 +74,11 @@ class StudentDocument extends Model
     public function scopeForStudent($query, $studentId)
     {
         return $query->where('student_id', $studentId);
+    }
+
+    protected static function booted()
+    {
+        static::addGlobalScope(new OrganizationScope);
     }
 
     // Scope for hostel documents

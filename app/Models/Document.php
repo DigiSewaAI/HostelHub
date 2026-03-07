@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
+use App\Scopes\OrganizationScope;
+
 
 class Document extends Model
 {
@@ -61,36 +63,36 @@ class Document extends Model
     ];
 
     /**
- * Global scope for tenant isolation
- */
-protected static function boot()
-{
-    parent::boot();
+     * Global scope for tenant isolation
+     */
+    protected static function boot()
+    {
+        parent::boot();
 
-    // Auto-set organization_id if not set
-    static::creating(function ($model) {
-        if (auth()->check() && !$model->organization_id) {
-            $organizationId = session('current_organization_id');
-            if ($organizationId) {
-                $model->organization_id = $organizationId;
+        // Auto-set organization_id if not set
+        static::creating(function ($model) {
+            if (auth()->check() && !$model->organization_id) {
+                $organizationId = session('current_organization_id');
+                if ($organizationId) {
+                    $model->organization_id = $organizationId;
+                }
             }
-        }
-    });
+        });
 
-    // Auto-set status based on expiry date
-    static::saving(function ($model) {
-        if ($model->expiry_date && Carbon::now()->gt($model->expiry_date)) {
-            $model->status = 'expired';
-        }
-    });
+        // Auto-set status based on expiry date
+        static::saving(function ($model) {
+            if ($model->expiry_date && Carbon::now()->gt($model->expiry_date)) {
+                $model->status = 'expired';
+            }
+        });
 
-    // Delete file when document is deleted
-    static::deleting(function ($model) {
-        if ($model->stored_path && Storage::disk('public')->exists($model->stored_path)) {
-            Storage::disk('public')->delete($model->stored_path);
-        }
-    });
-}
+        // Delete file when document is deleted
+        static::deleting(function ($model) {
+            if ($model->stored_path && Storage::disk('public')->exists($model->stored_path)) {
+                Storage::disk('public')->delete($model->stored_path);
+            }
+        });
+    }
 
     /**
      * ✅ SECURITY: Relationship - Document belongs to Student
@@ -221,6 +223,12 @@ protected static function boot()
 
         return Carbon::now()->gt($this->expiry_date);
     }
+
+    protected static function booted()
+    {
+        static::addGlobalScope(new OrganizationScope);
+    }
+
 
     /**
      * Get formatted file size

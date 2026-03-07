@@ -9,18 +9,54 @@ use Illuminate\Support\Facades\Log;
 class StudentObserver
 {
     /**
+     * Handle the Student "creating" event.
+     * Automatically set organization_id based on the student's hostel.
+     */
+    public function creating(Student $student): void
+    {
+        if ($student->hostel_id) {
+            $hostel = $student->hostel;
+            if ($hostel && $hostel->organization_id) {
+                $student->organization_id = $hostel->organization_id;
+            }
+        }
+    }
+
+    /**
      * Handle the Student "created" event.
      */
     public function created(Student $student): void
     {
         Log::info('StudentObserver: Student created', [
-            'student_id' => $student->id,
-            'room_id' => $student->room_id,
-            'hostel_id' => $student->hostel_id
+            'student_id'    => $student->id,
+            'room_id'       => $student->room_id,
+            'hostel_id'     => $student->hostel_id,
+            'organization_id' => $student->organization_id,
         ]);
 
         if ($student->room_id) {
             $this->updateRoomCounters($student->room_id);
+        }
+    }
+
+    /**
+     * Handle the Student "updating" event.
+     * If hostel changes, update organization_id accordingly.
+     */
+    public function updating(Student $student): void
+    {
+        // If hostel_id changed, update organization_id from the new hostel
+        if ($student->isDirty('hostel_id')) {
+            $newHostelId = $student->hostel_id;
+            if ($newHostelId) {
+                $hostel = $student->hostel; // uses the new relationship
+                if ($hostel && $hostel->organization_id) {
+                    $student->organization_id = $hostel->organization_id;
+                }
+            } else {
+                // If hostel is removed (should not happen normally), set organization to null
+                $student->organization_id = null;
+            }
         }
     }
 
@@ -30,9 +66,11 @@ class StudentObserver
     public function updated(Student $student): void
     {
         Log::info('StudentObserver: Student updated', [
-            'student_id' => $student->id,
-            'room_id' => $student->room_id,
-            'original_room_id' => $student->getOriginal('room_id')
+            'student_id'       => $student->id,
+            'room_id'          => $student->room_id,
+            'original_room_id' => $student->getOriginal('room_id'),
+            'hostel_id'        => $student->hostel_id,
+            'organization_id'  => $student->organization_id,
         ]);
 
         // If room_id changed, update both old and new room
@@ -61,7 +99,7 @@ class StudentObserver
     {
         Log::info('StudentObserver: Student deleted', [
             'student_id' => $student->id,
-            'room_id' => $student->room_id
+            'room_id'    => $student->room_id,
         ]);
 
         if ($student->room_id) {
@@ -90,7 +128,7 @@ class StudentObserver
     }
 
     /**
-     * Update room counters based on active students
+     * Update room counters based on active students.
      */
     private function updateRoomCounters(int $roomId): void
     {
@@ -112,7 +150,7 @@ class StudentObserver
             // Determine status based on occupancy
             if ($activeStudentsCount == 0) {
                 $status = 'available';
-            } elseif ($activeStudentsCount == $room->capacity) {
+            } elseif ($activeStudentsCount >= $room->capacity) {
                 $status = 'occupied';
             } else {
                 $status = 'partially_available';
@@ -121,23 +159,22 @@ class StudentObserver
             // Update room quietly to avoid recursion
             $room->updateQuietly([
                 'current_occupancy' => $activeStudentsCount,
-                'available_beds' => $availableBeds,
-                'status' => $status
+                'available_beds'    => $availableBeds,
+                'status'            => $status,
             ]);
 
             Log::info('StudentObserver: Room counters updated', [
-                'room_id' => $roomId,
-                'room_number' => $room->room_number,
-                'active_students' => $activeStudentsCount,
-                'capacity' => $room->capacity,
-                'available_beds' => $availableBeds,
-                'new_status' => $status
+                'room_id'          => $roomId,
+                'room_number'      => $room->room_number,
+                'active_students'  => $activeStudentsCount,
+                'capacity'         => $room->capacity,
+                'available_beds'   => $availableBeds,
+                'new_status'       => $status,
             ]);
-
         } catch (\Exception $e) {
             Log::error('StudentObserver: Failed to update room counters', [
                 'room_id' => $roomId,
-                'error' => $e->getMessage()
+                'error'   => $e->getMessage(),
             ]);
         }
     }

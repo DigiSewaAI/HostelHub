@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Facades\Storage;
+use App\Scopes\OrganizationScope;
+
 
 class Room extends Model
 {
@@ -219,6 +221,7 @@ class Room extends Model
         return $this->status !== 'maintenance' && $this->available_beds > 0;
     }
 
+
     public function hostel(): BelongsTo
     {
         return $this->belongsTo(Hostel::class)->withDefault();
@@ -249,6 +252,7 @@ class Room extends Model
     {
         return $this->hasMany(Gallery::class);
     }
+
 
     /**
      * ✅ FIXED: Check if room is available for given dates - Only count APPROVED bookings for date conflicts
@@ -288,6 +292,7 @@ class Room extends Model
     {
         return $query->where('status', 'occupied');
     }
+
 
     public function scopeMaintenance(Builder $query): Builder
     {
@@ -350,6 +355,12 @@ class Room extends Model
     {
         return $this->available_capacity > 0;
     }
+
+    protected static function booted()
+    {
+        static::addGlobalScope(new OrganizationScope);
+    }
+
 
     /**
      * ✅ FIXED: Get the room image URL - ALWAYS returns string

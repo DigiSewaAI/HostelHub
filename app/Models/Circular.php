@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
+use App\Scopes\OrganizationScope;
+
 
 class Circular extends Model
 {
@@ -182,6 +184,12 @@ class Circular extends Model
     {
         return $this->hasMany(CircularRecipient::class);
     }
+
+    protected static function booted()
+    {
+        static::addGlobalScope(new OrganizationScope);
+    }
+
 
     // ✅ FIXED: Get student recipients through circular_recipients with proper relationship
     public function studentRecipients()
